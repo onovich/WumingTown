@@ -2,7 +2,7 @@
   "id": "WM-0001",
   "title": "Validate and adopt the handoff control plane",
   "summary": "Read the handoff corpus, verify coordination files and skill behavior, record contradictions, and establish the first execution plan without changing locked product decisions.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [],
@@ -26,7 +26,7 @@
   ],
   "branch": "task/WM-0001-adopt-control-plane",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T12:58:28.095Z",
+  "updatedAt": "2026-06-23T12:59:57.722Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
@@ -69,6 +69,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings; acceptance evidence confirmed after tracked adoption diff and refreshed validation evidence"
+    },
+    {
+      "at": "2026-06-23T12:59:57.683Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Tracked handoff adoption commits through 233aa36; reviewer verified WM-0001; integration gate passed: validate-handoff 172 files/12 tasks/9 roles, taskctl validate passed, taskctl status verified 1/proposed 11"
+    },
+    {
+      "at": "2026-06-23T12:59:57.721Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "claimedBy": "project-director",
@@ -80,5 +92,10 @@
     "verdict": "verified",
     "summary": "No blocking findings; acceptance evidence confirmed after tracked adoption diff and refreshed validation evidence",
     "at": "2026-06-23T12:58:28.095Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Tracked handoff adoption commits through 233aa36; reviewer verified WM-0001; integration gate passed: validate-handoff 172 files/12 tasks/9 roles, taskctl validate passed, taskctl status verified 1/proposed 11",
+    "at": "2026-06-23T12:59:57.682Z"
   }
 }
