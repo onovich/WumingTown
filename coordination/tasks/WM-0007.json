@@ -2,7 +2,7 @@
   "id": "WM-0007",
   "title": "Implement entity handles and foundational component stores",
   "summary": "Create generation-checked entity handles, bounded component stores, stable iteration and deferred structural command application with invariant tests.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -26,13 +26,19 @@
   ],
   "branch": "task/WM-0007-entity-stores",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T12:00:00.000Z",
+  "updatedAt": "2026-06-23T16:54:45.940Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
       "actor": "handoff-author",
       "action": "create",
       "details": "Initial roadmap task"
+    },
+    {
+      "at": "2026-06-23T16:54:45.940Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ]
 }

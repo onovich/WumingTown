@@ -2,7 +2,7 @@
   "id": "WM-0006",
   "title": "Implement the deterministic headless fixed-tick runner",
   "summary": "Create a Node-runnable authoritative simulation loop with 30 TPS semantics, pause/speed stepping, explicit seed input and no dependency on DOM or wall clock.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -27,7 +27,7 @@
   ],
   "branch": "task/WM-0006-headless-tick-runner",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T16:52:25.973Z",
+  "updatedAt": "2026-06-23T16:54:45.933Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
@@ -58,6 +58,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings; acceptance evidence confirmed for deterministic headless tick runner"
+    },
+    {
+      "at": "2026-06-23T16:54:39.008Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified branch task/WM-0006-headless-tick-runner at c65e457; required tick runner checks and reviewer verification passed."
+    },
+    {
+      "at": "2026-06-23T16:54:45.933Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "claimedBy": "simulation-engineer",
@@ -69,5 +81,10 @@
     "verdict": "verified",
     "summary": "No blocking findings; acceptance evidence confirmed for deterministic headless tick runner",
     "at": "2026-06-23T16:52:25.973Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified branch task/WM-0006-headless-tick-runner at c65e457; required tick runner checks and reviewer verification passed.",
+    "at": "2026-06-23T16:54:39.008Z"
   }
 }
