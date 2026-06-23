@@ -2,7 +2,7 @@
   "id": "WM-0005",
   "title": "Define and spike the simulation Worker protocol",
   "summary": "Implement typed command, snapshot, UI-delta, lifecycle and error envelopes between client and authoritative simulation Worker, including protocol version rejection.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -26,7 +26,7 @@
   ],
   "branch": "task/WM-0005-worker-protocol",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T16:13:13.448Z",
+  "updatedAt": "2026-06-23T16:17:02.459Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
@@ -57,6 +57,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings; acceptance evidence confirmed for Worker protocol spike"
+    },
+    {
+      "at": "2026-06-23T16:16:55.410Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified branch task/WM-0005-worker-protocol at 1fb2ccc; required protocol checks and reviewer verification passed."
+    },
+    {
+      "at": "2026-06-23T16:17:02.458Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "claimedBy": "simulation-engineer",
@@ -68,5 +80,10 @@
     "verdict": "verified",
     "summary": "No blocking findings; acceptance evidence confirmed for Worker protocol spike",
     "at": "2026-06-23T16:13:13.447Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified branch task/WM-0005-worker-protocol at 1fb2ccc; required protocol checks and reviewer verification passed.",
+    "at": "2026-06-23T16:16:55.409Z"
   }
 }
