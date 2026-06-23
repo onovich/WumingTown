@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQQZ67IQ-3B3ACD",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0008",
+  "kind": "review-request",
+  "subject": "WM-0008 ready for review",
+  "body": "Implemented named deterministic RNG streams, serializable/restorable headless RNG state, canonical world hashing, replay divergence diagnostics, and literal determinism/replay checks; owner gates passed.",
+  "artifacts": [
+    "coordination/reports/WM-0008.md",
+    "task/WM-0008-rng-world-hash"
+  ],
+  "createdAt": "2026-06-23T18:25:47.666Z",
+  "acknowledgedAt": null
+}

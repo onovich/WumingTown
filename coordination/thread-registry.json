@@ -22,10 +22,10 @@
       "registeredAt": "2026-06-23T15:10:49.598Z"
     },
     "simulation-engineer": {
-      "threadId": "019ef56b-41c8-7d13-85a7-f7a3ecea1e2e",
-      "label": "WM-0007 entity stores",
-      "registeredAt": "2026-06-23T16:58:40.243Z"
+      "threadId": "019ef5a6-1ad8-72d3-bbc2-25127feca4c8",
+      "label": "WM-0008 rng world hash",
+      "registeredAt": "2026-06-23T18:02:55.895Z"
     }
   },
-  "updatedAt": "2026-06-23T17:28:36.456Z"
+  "updatedAt": "2026-06-23T18:02:55.896Z"
 }

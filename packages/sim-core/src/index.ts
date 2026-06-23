@@ -2,6 +2,18 @@ import { CONTENT_SCHEMA_SMOKE } from "@wuming-town/content-schema";
 import { defineWorkspaceSmoke, type WorkspaceSmoke } from "@wuming-town/foundation";
 
 export { formatUint32Hex, hashStringToUint32, mixUint32 } from "./deterministic-hash";
+export {
+  NamedRandomStreams,
+  RANDOM_STREAMS_SNAPSHOT_VERSION,
+  createNamedRandomStreams,
+  restoreNamedRandomStreams,
+} from "./deterministic-rng";
+export { compareReplayCheckpoints } from "./replay-diagnostics";
+export {
+  CANONICAL_WORLD_HASH_VERSION,
+  formatCanonicalWorldHash,
+  hashCanonicalWorld,
+} from "./world-hash";
 export { Int32ComponentStore, createInt32ComponentStore } from "./component-store";
 export {
   EntityRegistry,
@@ -11,10 +23,14 @@ export {
 } from "./entity-id";
 export {
   HEADLESS_SUMMARY_VERSION,
+  HEADLESS_SNAPSHOT_VERSION,
   advanceHeadlessTicks,
+  createHeadlessReplayCheckpoint,
   createHeadlessRunner,
   queueHeadlessCommand,
+  restoreHeadlessRunner,
   runHeadlessTicks,
+  serializeHeadlessRunner,
   setHeadlessPaused,
   setHeadlessSpeed,
   stepHeadlessFrames,
@@ -44,6 +60,7 @@ export { TICKS_PER_DAY, TICKS_PER_SECOND, isSafeTick, requireSafeTick } from "./
 export type {
   HeadlessCommandInput,
   HeadlessQueuedCommand,
+  HeadlessRunnerSnapshot,
   HeadlessRunSummary,
   HeadlessRunnerOptions,
   HeadlessRunnerState,
@@ -57,7 +74,23 @@ export type {
   StructuralCommandResultView,
   StructuralCommitReport,
 } from "./structural-commands";
+export type {
+  NamedRandomStreamsOptions,
+  RandomStreamSnapshot,
+  RandomStreamsSnapshot,
+} from "./deterministic-rng";
 export type { RunnerSpeed, Tick } from "./time";
+export type {
+  ReplayCheckpoint,
+  ReplayComparisonResult,
+  ReplayDivergence,
+  ReplayDivergenceReason,
+} from "./replay-diagnostics";
+export type {
+  CanonicalCommandEntry,
+  CanonicalWorldField,
+  CanonicalWorldHashInput,
+} from "./world-hash";
 
 export const SIM_CORE_SMOKE: WorkspaceSmoke = defineWorkspaceSmoke(
   "@wuming-town/sim-core",

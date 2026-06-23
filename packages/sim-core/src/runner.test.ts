@@ -67,7 +67,7 @@ describe("deterministic headless fixed-tick runner", () => {
     const summary = runHeadlessTicks("1", 1_000_000);
 
     expect(summary).toStrictEqual({
-      version: 1,
+      version: 2,
       ticksPerSecond: 30,
       ticksPerDay: 36_000,
       seed: "1",
@@ -79,6 +79,7 @@ describe("deterministic headless fixed-tick runner", () => {
       appliedCommandCount: 0,
       commandHash: summary.commandHash,
       worldHash: summary.worldHash,
+      randomStreamCount: 1,
     });
     expect(summary.seedHash).toMatch(/^0x[0-9a-f]{8}$/u);
     expect(summary.commandHash).toMatch(/^0x[0-9a-f]{8}$/u);

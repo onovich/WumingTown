@@ -1,4 +1,5 @@
 import { formatUint32Hex, hashStringToUint32, mixUint32 } from "./deterministic-hash";
+import { createNamedRandomStreams, restoreNamedRandomStreams } from "./deterministic-rng";
 import {
   TICKS_PER_DAY,
   TICKS_PER_SECOND,
@@ -6,8 +7,12 @@ import {
   type RunnerSpeed,
   type Tick,
 } from "./time";
+import { hashCanonicalWorld, type CanonicalCommandEntry } from "./world-hash";
+import type { NamedRandomStreams, RandomStreamsSnapshot } from "./deterministic-rng";
+import type { ReplayCheckpoint } from "./replay-diagnostics";
 
-export const HEADLESS_SUMMARY_VERSION = 1;
+export const HEADLESS_SUMMARY_VERSION = 2;
+export const HEADLESS_SNAPSHOT_VERSION = 1;
 
 export interface HeadlessRunnerOptions {
   readonly seed: string;
@@ -31,6 +36,7 @@ export interface HeadlessRunnerState {
   readonly seed: string;
   readonly seedHash: number;
   readonly commands: HeadlessQueuedCommand[];
+  readonly randomStreams: NamedRandomStreams;
   tick: Tick;
   paused: boolean;
   speed: RunnerSpeed;
@@ -54,6 +60,23 @@ export interface HeadlessRunSummary {
   readonly appliedCommandCount: number;
   readonly commandHash: string;
   readonly worldHash: string;
+  readonly randomStreamCount: number;
+}
+
+export interface HeadlessRunnerSnapshot {
+  readonly version: number;
+  readonly seed: string;
+  readonly seedHash: number;
+  readonly commands: readonly HeadlessQueuedCommand[];
+  readonly randomStreams: RandomStreamsSnapshot;
+  readonly tick: Tick;
+  readonly paused: boolean;
+  readonly speed: RunnerSpeed;
+  readonly commandCursor: number;
+  readonly nextCommandSequence: number;
+  readonly appliedCommandCount: number;
+  readonly commandHash: number;
+  readonly worldHash: number;
 }
 
 export type QueueCommandResult =
@@ -77,6 +100,7 @@ export function createHeadlessRunner(options: HeadlessRunnerOptions): HeadlessRu
     seed: options.seed,
     seedHash,
     commands: [],
+    randomStreams: createNamedRandomStreams({ seed: options.seed }),
     tick: 0,
     paused: false,
     speed: 1,
@@ -182,6 +206,52 @@ export function summarizeHeadlessRun(state: HeadlessRunnerState): HeadlessRunSum
     appliedCommandCount: state.appliedCommandCount,
     commandHash: formatUint32Hex(state.commandHash),
     worldHash: formatUint32Hex(finalWorldHash(state)),
+    randomStreamCount: state.randomStreams.snapshot().streams.length,
+  };
+}
+
+export function serializeHeadlessRunner(state: HeadlessRunnerState): HeadlessRunnerSnapshot {
+  return {
+    version: HEADLESS_SNAPSHOT_VERSION,
+    seed: state.seed,
+    seedHash: state.seedHash,
+    commands: cloneCommands(state.commands),
+    randomStreams: state.randomStreams.snapshot(),
+    tick: state.tick,
+    paused: state.paused,
+    speed: state.speed,
+    commandCursor: state.commandCursor,
+    nextCommandSequence: state.nextCommandSequence,
+    appliedCommandCount: state.appliedCommandCount,
+    commandHash: state.commandHash,
+    worldHash: state.worldHash,
+  };
+}
+
+export function restoreHeadlessRunner(snapshot: HeadlessRunnerSnapshot): HeadlessRunnerState {
+  validateHeadlessSnapshot(snapshot);
+
+  return {
+    seed: snapshot.seed,
+    seedHash: snapshot.seedHash,
+    commands: cloneCommands(snapshot.commands),
+    randomStreams: restoreNamedRandomStreams(snapshot.randomStreams),
+    tick: snapshot.tick,
+    paused: snapshot.paused,
+    speed: snapshot.speed,
+    commandCursor: snapshot.commandCursor,
+    nextCommandSequence: snapshot.nextCommandSequence,
+    appliedCommandCount: snapshot.appliedCommandCount,
+    commandHash: snapshot.commandHash,
+    worldHash: snapshot.worldHash,
+  };
+}
+
+export function createHeadlessReplayCheckpoint(state: HeadlessRunnerState): ReplayCheckpoint {
+  return {
+    tick: state.tick,
+    worldHash: summarizeHeadlessRun(state).worldHash,
+    commandHash: formatUint32Hex(state.commandHash),
   };
 }
 
@@ -193,7 +263,9 @@ export function runHeadlessTicks(seed: string, ticks: Tick): HeadlessRunSummary 
 
 function runOneTick(state: HeadlessRunnerState): void {
   applyCommandsForCurrentTick(state);
+  const storyDirectorRoll = state.randomStreams.nextUint32("story-director");
   state.worldHash = mixUint32(state.worldHash, state.tick);
+  state.worldHash = mixUint32(state.worldHash, storyDirectorRoll);
   state.tick += 1;
 }
 
@@ -221,9 +293,76 @@ function hashCommand(command: HeadlessCommandInput, sequence: number): number {
 }
 
 function finalWorldHash(state: HeadlessRunnerState): number {
-  let hash = mixUint32(state.worldHash, state.seedHash);
-  hash = mixUint32(hash, state.tick);
-  hash = mixUint32(hash, state.appliedCommandCount);
-  hash = mixUint32(hash, state.commandHash);
-  return hash;
+  return hashCanonicalWorld({
+    fields: [
+      { name: "appliedCommandCount", value: state.appliedCommandCount },
+      { name: "commandCursor", value: state.commandCursor },
+      { name: "commandHash", value: state.commandHash },
+      { name: "nextCommandSequence", value: state.nextCommandSequence },
+      { name: "paused", value: state.paused },
+      { name: "rollingWorldHash", value: state.worldHash },
+      { name: "seed", value: state.seed },
+      { name: "seedHash", value: state.seedHash },
+      { name: "speed", value: state.speed },
+      { name: "tick", value: state.tick },
+    ],
+    randomStreams: state.randomStreams.snapshot().streams,
+    queuedCommands: toCanonicalCommands(state.commands),
+  });
+}
+
+function cloneCommands(commands: readonly HeadlessQueuedCommand[]): HeadlessQueuedCommand[] {
+  const cloned: HeadlessQueuedCommand[] = [];
+
+  for (const command of commands) {
+    cloned.push({
+      tick: command.tick,
+      sequence: command.sequence,
+      commandId: command.commandId,
+      kind: command.kind,
+      commandHash: command.commandHash,
+    });
+  }
+
+  return cloned;
+}
+
+function toCanonicalCommands(commands: readonly HeadlessQueuedCommand[]): CanonicalCommandEntry[] {
+  const canonical: CanonicalCommandEntry[] = [];
+
+  for (const command of commands) {
+    canonical.push({
+      tick: command.tick,
+      sequence: command.sequence,
+      commandHash: command.commandHash,
+    });
+  }
+
+  return canonical;
+}
+
+function validateHeadlessSnapshot(snapshot: HeadlessRunnerSnapshot): void {
+  if (snapshot.version !== HEADLESS_SNAPSHOT_VERSION) {
+    throw new Error("unsupported headless runner snapshot version");
+  }
+
+  if (snapshot.seed.length === 0 || hashStringToUint32(snapshot.seed) !== snapshot.seedHash) {
+    throw new Error("headless runner snapshot seed hash mismatch");
+  }
+
+  if (
+    snapshot.randomStreams.seed !== snapshot.seed ||
+    snapshot.randomStreams.seedHash !== snapshot.seedHash
+  ) {
+    throw new Error("headless runner snapshot random stream seed mismatch");
+  }
+
+  requireSafeTick(snapshot.tick, "snapshot tick");
+  requireSafeTick(snapshot.commandCursor, "snapshot command cursor");
+  requireSafeTick(snapshot.nextCommandSequence, "snapshot next command sequence");
+  requireSafeTick(snapshot.appliedCommandCount, "snapshot applied command count");
+
+  if (snapshot.commandCursor > snapshot.commands.length) {
+    throw new Error("snapshot command cursor exceeds queued command count");
+  }
 }

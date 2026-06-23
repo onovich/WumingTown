@@ -19,6 +19,7 @@
     "test:sim-protocol": "node tools/test-runner.mjs unit --filter sim-protocol",
     "test:e2e": "node tools/test-runner.mjs e2e",
     "sim:run": "node --experimental-strip-types --import ./tools/register-ts-extension-loader.mjs tools/headless-runner/src/cli.ts",
+    "sim:replay-test": "node --experimental-strip-types --import ./tools/register-ts-extension-loader.mjs tools/sim-replay-test.mjs",
     "bench": "node --experimental-strip-types --import ./tools/register-ts-extension-loader.mjs packages/benchmarks/src/cli.ts",
     "content:validate": "node tools/content-validation.mjs",
     "boundaries:check": "node tools/boundary-check.mjs",
