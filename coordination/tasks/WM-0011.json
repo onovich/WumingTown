@@ -2,7 +2,7 @@
   "id": "WM-0011",
   "title": "Integrate and close Milestone M0",
   "summary": "Integrate the M0 foundations, run the complete gate on one commit, document residual risk, and make the repository ready for first gameplay simulation work.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,13 +32,19 @@
   ],
   "branch": "task/WM-0011-integrate-m0",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T12:00:00.000Z",
+  "updatedAt": "2026-06-23T22:40:32.743Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
       "actor": "handoff-author",
       "action": "create",
       "details": "Initial roadmap task"
+    },
+    {
+      "at": "2026-06-23T22:40:32.743Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ]
 }
