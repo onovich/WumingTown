@@ -2,7 +2,7 @@
   "id": "WM-0018",
   "title": "Propose ADR 0006 for deterministic numeric and phase contracts",
   "summary": "Produce the proposed PRNG/fixed-point/phase contract ADR for M1 deterministic numeric semantics, command phases, async version checks and stable ordering.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,13 +30,19 @@
   ],
   "branch": "task/WM-0018-propose-adr-0006-for-deterministic-numeric-and-p",
   "createdAt": "2026-06-23T23:08:02.064Z",
-  "updatedAt": "2026-06-23T23:08:02.064Z",
+  "updatedAt": "2026-06-23T23:22:41.083Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.065Z",
       "actor": "taskctl",
       "action": "create",
       "details": ""
+    },
+    {
+      "at": "2026-06-23T23:22:41.083Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ]
 }

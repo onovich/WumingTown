@@ -2,7 +2,7 @@
   "id": "WM-0017",
   "title": "Propose ADR 0004 for Worker snapshot and read model encoding",
   "summary": "Produce the proposed Worker Snapshot encoding ADR for M1 render snapshots, UI detail, metrics and headless/Worker hash parity without moving authority to UI.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,13 +30,19 @@
   ],
   "branch": "task/WM-0017-propose-adr-0004-for-worker-snapshot-and-read-mo",
   "createdAt": "2026-06-23T23:08:02.025Z",
-  "updatedAt": "2026-06-23T23:08:02.025Z",
+  "updatedAt": "2026-06-23T23:22:41.083Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.026Z",
       "actor": "taskctl",
       "action": "create",
       "details": ""
+    },
+    {
+      "at": "2026-06-23T23:22:41.083Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ]
 }

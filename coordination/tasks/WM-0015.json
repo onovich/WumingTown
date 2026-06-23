@@ -2,7 +2,7 @@
   "id": "WM-0015",
   "title": "Propose ADR 0003 for M1 entity store memory layout",
   "summary": "Produce the proposed Entity/Store memory layout ADR for M1 map, location, item, job and reservation state ownership without accepting the decision inside an implementation task.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -29,13 +29,19 @@
   ],
   "branch": "task/WM-0015-propose-adr-0003-for-m1-entity-store-memory-layo",
   "createdAt": "2026-06-23T23:08:01.943Z",
-  "updatedAt": "2026-06-23T23:08:01.943Z",
+  "updatedAt": "2026-06-23T23:22:41.082Z",
   "history": [
     {
       "at": "2026-06-23T23:08:01.943Z",
       "actor": "taskctl",
       "action": "create",
       "details": ""
+    },
+    {
+      "at": "2026-06-23T23:22:41.082Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ]
 }

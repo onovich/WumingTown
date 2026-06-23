@@ -2,7 +2,7 @@
   "id": "WM-0012",
   "title": "Produce the executable M1 simulation-kernel plan",
   "summary": "Decompose M1 into reviewed tasks for map grids, spatial indexes, path request batching, jobs, reservations and the first hauling scenario with performance budgets.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -27,7 +27,7 @@
   ],
   "branch": "task/WM-0012-plan-m1",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T23:20:32.908Z",
+  "updatedAt": "2026-06-23T23:22:41.076Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
@@ -58,6 +58,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings; M1 task DAG is acyclic and small-tasked, WM-0014..WM-0030 remain proposed, ADR gates are explicit, first vertical is hauling/building, and validation/handoff/diff checks pass."
+    },
+    {
+      "at": "2026-06-23T23:22:41.038Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified branch 75b95ee; M1 simulation-kernel task DAG and plan reviewed; main fast-forward integration gate passed: validate-handoff, taskctl validate/status and git diff check."
+    },
+    {
+      "at": "2026-06-23T23:22:41.076Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "claimedBy": "systems-architect",
@@ -69,5 +81,10 @@
     "verdict": "verified",
     "summary": "No blocking findings; M1 task DAG is acyclic and small-tasked, WM-0014..WM-0030 remain proposed, ADR gates are explicit, first vertical is hauling/building, and validation/handoff/diff checks pass.",
     "at": "2026-06-23T23:20:32.907Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified branch 75b95ee; M1 simulation-kernel task DAG and plan reviewed; main fast-forward integration gate passed: validate-handoff, taskctl validate/status and git diff check.",
+    "at": "2026-06-23T23:22:41.037Z"
   }
 }

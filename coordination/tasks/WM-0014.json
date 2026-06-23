@@ -2,7 +2,7 @@
   "id": "WM-0014",
   "title": "Define the M1 hauling building vertical scenario contract",
   "summary": "Specify the first executable gameplay scenario as hauling materials into a build site, including fixture bounds, invariants, reason expectations, and non-goals so implementation does not drift into broad content production.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "gameplay-designer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -27,13 +27,19 @@
   ],
   "branch": "task/WM-0014-define-the-m1-hauling-building-vertical-scenario",
   "createdAt": "2026-06-23T23:08:01.899Z",
-  "updatedAt": "2026-06-23T23:08:01.899Z",
+  "updatedAt": "2026-06-23T23:22:41.081Z",
   "history": [
     {
       "at": "2026-06-23T23:08:01.899Z",
       "actor": "taskctl",
       "action": "create",
       "details": ""
+    },
+    {
+      "at": "2026-06-23T23:22:41.081Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ]
 }
