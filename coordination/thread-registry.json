@@ -22,10 +22,10 @@
       "registeredAt": "2026-06-23T15:10:49.598Z"
     },
     "simulation-engineer": {
-      "threadId": "019ef516-f9a1-75b2-bce1-e19c040a179b",
-      "label": "WM-0005 worker protocol",
-      "registeredAt": "2026-06-23T15:26:42.310Z"
+      "threadId": "019ef549-faaa-78e0-9a71-18d749f1fa1b",
+      "label": "WM-0006 headless tick runner",
+      "registeredAt": "2026-06-23T16:22:21.578Z"
     }
   },
-  "updatedAt": "2026-06-23T16:05:26.504Z"
+  "updatedAt": "2026-06-23T16:22:21.579Z"
 }

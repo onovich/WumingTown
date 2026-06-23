@@ -2,7 +2,7 @@
   "id": "WM-0006",
   "title": "Implement the deterministic headless fixed-tick runner",
   "summary": "Create a Node-runnable authoritative simulation loop with 30 TPS semantics, pause/speed stepping, explicit seed input and no dependency on DOM or wall clock.",
-  "state": "ready",
+  "state": "review_requested",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -27,7 +27,7 @@
   ],
   "branch": "task/WM-0006-headless-tick-runner",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T15:20:56.259Z",
+  "updatedAt": "2026-06-23T16:43:13.188Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
@@ -40,6 +40,22 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-23T16:24:30.518Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Tally"
+    },
+    {
+      "at": "2026-06-23T16:43:13.187Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented deterministic 30 TPS headless fixed-tick runner, CLI and empty-tick benchmark; owner recheck confirmed literal sim-core test, million-tick CLI, benchmark, lint/content/boundary/handoff/taskctl/diff checks pass."
     }
-  ]
+  ],
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Tally",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0006.md"
 }

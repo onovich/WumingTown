@@ -45,7 +45,7 @@ function readFilter(args) {
 
   return {
     error:
-      "Unsupported test arguments. Use no arguments, --filter sim-protocol, or --filter worker-smoke.",
+      "Unsupported test arguments. Use no arguments, --filter sim-core, --filter sim-protocol, or --filter worker-smoke.",
   };
 }
 
@@ -57,6 +57,10 @@ function selectVitestTargets(selectedMode, selectedFilter) {
 
     if (selectedFilter === "sim-protocol") {
       return { ok: true, targets: ["packages/sim-protocol/src/protocol-validation.test.ts"] };
+    }
+
+    if (selectedFilter === "sim-core") {
+      return { ok: true, targets: ["packages/sim-core/src/runner.test.ts"] };
     }
 
     return {
