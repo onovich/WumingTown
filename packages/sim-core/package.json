@@ -1,0 +1,19 @@
+{
+  "name": "@wuming-town/sim-core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@wuming-town/content-schema": "workspace:0.0.0",
+    "@wuming-town/foundation": "workspace:0.0.0"
+  },
+  "wumingBoundary": {
+    "allowedInternalDependencies": [
+      "@wuming-town/content-schema",
+      "@wuming-town/foundation"
+    ]
+  }
+}

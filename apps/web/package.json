@@ -1,0 +1,25 @@
+{
+  "name": "@wuming-town/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@wuming-town/foundation": "workspace:0.0.0",
+    "@wuming-town/platform": "workspace:0.0.0",
+    "@wuming-town/renderer-pixi": "workspace:0.0.0",
+    "@wuming-town/sim-protocol": "workspace:0.0.0",
+    "@wuming-town/ui-react": "workspace:0.0.0"
+  },
+  "wumingBoundary": {
+    "allowedInternalDependencies": [
+      "@wuming-town/foundation",
+      "@wuming-town/platform",
+      "@wuming-town/renderer-pixi",
+      "@wuming-town/sim-protocol",
+      "@wuming-town/ui-react"
+    ]
+  }
+}

@@ -2,8 +2,8 @@
 
 在 `coordination/decisions/ADR-XXXX.md` 创建。初始需要：
 
-- ADR-0001 Monorepo 与包边界
-- ADR-0002 精确工具版本
+- [ADR-0001 Monorepo 与包边界](../../coordination/decisions/ADR-0001.md) — Accepted
+- [ADR-0002 精确工具版本](../../coordination/decisions/ADR-0002.md) — Accepted
 - ADR-0003 Entity/Store 内存布局
 - ADR-0004 Worker Snapshot 编码
 - ADR-0005 Save Container v1

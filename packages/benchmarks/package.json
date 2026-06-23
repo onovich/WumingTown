@@ -1,0 +1,21 @@
+{
+  "name": "@wuming-town/benchmarks",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@wuming-town/foundation": "workspace:0.0.0",
+    "@wuming-town/sim-core": "workspace:0.0.0",
+    "@wuming-town/testkit": "workspace:0.0.0"
+  },
+  "wumingBoundary": {
+    "allowedInternalDependencies": [
+      "@wuming-town/foundation",
+      "@wuming-town/sim-core",
+      "@wuming-town/testkit"
+    ]
+  }
+}

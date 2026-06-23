@@ -1,0 +1,21 @@
+{
+  "name": "@wuming-town/platform",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@wuming-town/foundation": "workspace:0.0.0",
+    "@wuming-town/persistence": "workspace:0.0.0",
+    "@wuming-town/sim-protocol": "workspace:0.0.0"
+  },
+  "wumingBoundary": {
+    "allowedInternalDependencies": [
+      "@wuming-town/foundation",
+      "@wuming-town/persistence",
+      "@wuming-town/sim-protocol"
+    ]
+  }
+}

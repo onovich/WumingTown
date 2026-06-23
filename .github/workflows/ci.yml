@@ -1,0 +1,53 @@
+name: quality-gates
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "task/**"
+
+jobs:
+  root-gates:
+    name: Root quality gates
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Setup pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.8.0 --activate
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Format check
+        run: pnpm format:check
+
+      - name: Content validation
+        run: pnpm content:validate
+
+      - name: Package boundaries
+        run: pnpm boundaries:check
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Handoff validation
+        run: node tools/validate-handoff.mjs
+
+      - name: Coordination validation
+        run: node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate

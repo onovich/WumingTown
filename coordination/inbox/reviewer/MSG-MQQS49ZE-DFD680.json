@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQQS49ZE-DFD680",
+  "from": "systems-architect",
+  "to": "reviewer",
+  "taskId": "WM-0002",
+  "kind": "review-request",
+  "subject": "WM-0002 ready for review",
+  "body": "Bootstrapped pinned pnpm TypeScript monorepo skeleton, strict root gates, package boundary/content validators, CI skeleton, ADRs and WM-0002 report; owner recheck reran frozen install, typecheck, lint, format check, content validation, boundary check, tests, handoff validation, taskctl validation/status and git diff check successfully.",
+  "artifacts": [
+    "coordination/reports/WM-0002.md",
+    "task/WM-0002-bootstrap-monorepo"
+  ],
+  "createdAt": "2026-06-23T15:08:20.234Z",
+  "acknowledgedAt": null
+}
