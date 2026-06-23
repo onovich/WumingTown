@@ -2,7 +2,7 @@
   "id": "WM-0006",
   "title": "Implement the deterministic headless fixed-tick runner",
   "summary": "Create a Node-runnable authoritative simulation loop with 30 TPS semantics, pause/speed stepping, explicit seed input and no dependency on DOM or wall clock.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -27,13 +27,19 @@
   ],
   "branch": "task/WM-0006-headless-tick-runner",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T12:00:00.000Z",
+  "updatedAt": "2026-06-23T15:20:56.259Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
       "actor": "handoff-author",
       "action": "create",
       "details": "Initial roadmap task"
+    },
+    {
+      "at": "2026-06-23T15:20:56.259Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ]
 }

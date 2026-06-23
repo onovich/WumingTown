@@ -2,7 +2,7 @@
   "id": "WM-0002",
   "title": "Bootstrap the TypeScript monorepo and quality gates",
   "summary": "Initialize the pnpm workspace, exact tool versions, strict TypeScript configs, formatting/linting, package boundaries, test commands and CI skeleton described by M0.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -28,7 +28,7 @@
   ],
   "branch": "task/WM-0002-bootstrap-monorepo",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T15:16:39.835Z",
+  "updatedAt": "2026-06-23T15:20:56.250Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
@@ -59,6 +59,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings; acceptance evidence confirmed for pinned monorepo bootstrap and root gates"
+    },
+    {
+      "at": "2026-06-23T15:20:48.767Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified branch task/WM-0002-bootstrap-monorepo at df6bfb7; owner and reviewer gates passed locally; ready for safe main integration."
+    },
+    {
+      "at": "2026-06-23T15:20:56.249Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "claimedBy": "systems-architect",
@@ -70,5 +82,10 @@
     "verdict": "verified",
     "summary": "No blocking findings; acceptance evidence confirmed for pinned monorepo bootstrap and root gates",
     "at": "2026-06-23T15:16:39.835Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified branch task/WM-0002-bootstrap-monorepo at df6bfb7; owner and reviewer gates passed locally; ready for safe main integration.",
+    "at": "2026-06-23T15:20:48.767Z"
   }
 }

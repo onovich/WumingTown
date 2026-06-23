@@ -2,7 +2,7 @@
   "id": "WM-0009",
   "title": "Build the content schema validator and Def compiler spike",
   "summary": "Validate JSON5 source content, namespace IDs, references, patch ordering and localization keys, then compile a small immutable runtime catalog.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "content-worker",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -27,13 +27,19 @@
   ],
   "branch": "task/WM-0009-content-compiler",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T12:00:00.000Z",
+  "updatedAt": "2026-06-23T15:20:56.259Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
       "actor": "handoff-author",
       "action": "create",
       "details": "Initial roadmap task"
+    },
+    {
+      "at": "2026-06-23T15:20:56.259Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ]
 }

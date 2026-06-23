@@ -2,7 +2,7 @@
   "id": "WM-0005",
   "title": "Define and spike the simulation Worker protocol",
   "summary": "Implement typed command, snapshot, UI-delta, lifecycle and error envelopes between client and authoritative simulation Worker, including protocol version rejection.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -26,13 +26,19 @@
   ],
   "branch": "task/WM-0005-worker-protocol",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T12:00:00.000Z",
+  "updatedAt": "2026-06-23T15:20:56.258Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
       "actor": "handoff-author",
       "action": "create",
       "details": "Initial roadmap task"
+    },
+    {
+      "at": "2026-06-23T15:20:56.258Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ]
 }
