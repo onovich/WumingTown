@@ -56,6 +56,38 @@ describe("content compiler", () => {
     ).toBe(true);
   });
 
+  it("keeps json5 patch diagnostics anchored to unquoted fields", async () => {
+    const fixtureRoot = await createJson5PatchLocationFixtureRoot();
+    const result = await compileContentFixture(fixtureRoot);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error("expected compilation failure");
+    }
+
+    const missingDefReference = result.diagnostics.find(
+      (diagnostic) => diagnostic.code === "missing_def_reference",
+    );
+    expect(missingDefReference).toBeDefined();
+    if (!missingDefReference) {
+      throw new Error("expected missing_def_reference diagnostic");
+    }
+    expect(missingDefReference.location.filePath.endsWith("bad_patch.json5")).toBe(true);
+    expect(missingDefReference.location.line).toBe(5);
+    expect(missingDefReference.location.column).toBe(21);
+
+    const missingLocalization = result.diagnostics.find(
+      (diagnostic) => diagnostic.code === "missing_localization_key",
+    );
+    expect(missingLocalization).toBeDefined();
+    if (!missingLocalization) {
+      throw new Error("expected missing_localization_key diagnostic");
+    }
+    expect(missingLocalization.location.filePath.endsWith("bad_patch.json5")).toBe(true);
+    expect(missingLocalization.location.line).toBe(4);
+    expect(missingLocalization.location.column).toBe(19);
+  });
+
   it("rejects unknown and wrong-type patch fields", async () => {
     const fixtureRoot = await createInvalidPatchFixtureRoot();
     const result = await compileContentFixture(fixtureRoot);
@@ -191,6 +223,44 @@ async function createInvalidPatchFixtureRoot(): Promise<string> {
       tags: [1],
     },
   });
+
+  return root;
+}
+
+async function createJson5PatchLocationFixtureRoot(): Promise<string> {
+  const root = await mkdtemp(path.join(os.tmpdir(), "wuming-content-json5-patch-"));
+  await mkdir(path.join(root, "defs"), { recursive: true });
+  await mkdir(path.join(root, "locales"), { recursive: true });
+  await mkdir(path.join(root, "patches"), { recursive: true });
+
+  await writeJson(path.join(root, "defs", "sample.json"), {
+    schemaVersion: 1,
+    id: "core.anomaly.json5_patch",
+    kind: "anomaly",
+    labelKey: "content.core.anomaly.json5_patch.label",
+    descriptionKey: "content.core.anomaly.json5_patch.description",
+    tags: ["anomaly"],
+    references: [],
+    sourceNotes: ["JSON5 patch location test"],
+  });
+  await writeJson(path.join(root, "locales", "en.json"), {
+    "content.core.anomaly.json5_patch.label": "JSON5 Patch",
+    "content.core.anomaly.json5_patch.description": "JSON5 patch description",
+  });
+  await writeJson(path.join(root, "locales", "zh.json"), {
+    "content.core.anomaly.json5_patch.label": "JSON5 琛ヤ竵",
+    "content.core.anomaly.json5_patch.description": "JSON5 琛ヤ竵璇存槑",
+  });
+  await writeText(
+    path.join(root, "patches", "bad_patch.json5"),
+    `{
+      targetId: "core.anomaly.json5_patch",
+      changes: {
+        labelKey: "content.core.anomaly.missing.label",
+        references: ["core.anomaly.missing"],
+      },
+    }\n`,
+  );
 
   return root;
 }

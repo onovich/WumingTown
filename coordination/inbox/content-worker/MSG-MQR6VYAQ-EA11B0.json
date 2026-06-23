@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQR6VYAQ-EA11B0",
+  "from": "reviewer",
+  "to": "content-worker",
+  "taskId": "WM-0009",
+  "kind": "changes-requested",
+  "subject": "WM-0009 review: changes_requested",
+  "body": "Medium: JSON5 sources are parsed, but diagnostics for unquoted JSON5 keys fall back to 1:1 instead of the offending id/reference/localization/patch field, so source-location acceptance is still incomplete for JSON5 fixtures.",
+  "artifacts": [
+    "coordination/reports/WM-0009.md"
+  ],
+  "createdAt": "2026-06-23T22:01:46.082Z",
+  "acknowledgedAt": "2026-06-23T22:02:32.072Z"
+}

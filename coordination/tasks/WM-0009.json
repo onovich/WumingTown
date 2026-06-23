@@ -27,7 +27,7 @@
   ],
   "branch": "task/WM-0009-content-compiler",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T21:52:18.974Z",
+  "updatedAt": "2026-06-23T22:07:56.714Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
@@ -64,6 +64,18 @@
       "actor": "content-worker",
       "action": "complete",
       "details": "Fixed reviewer-requested regressions in WM-0009: patch application now revalidates references/localization after cloning and patching, patch field shape/type issues now emit structured diagnostics with source locations, and JSON5 fixture sources are parsed or explicitly rejected instead of being silently ignored. Re-ran content validation, content tests, compile smoke, typecheck, lint, format, boundaries, and diff checks."
+    },
+    {
+      "at": "2026-06-23T22:01:46.069Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: Medium: JSON5 sources are parsed, but diagnostics for unquoted JSON5 keys fall back to 1:1 instead of the offending id/reference/localization/patch field, so source-location acceptance is still incomplete for JSON5 fixtures."
+    },
+    {
+      "at": "2026-06-23T22:07:56.714Z",
+      "actor": "content-worker",
+      "action": "complete",
+      "details": "Fixed the remaining JSON5 source-location gap for unquoted keys. Property lookup now recognizes bare JSON5 keys so missing reference and localization diagnostics stay anchored to the offending patch fields instead of falling back to 1:1. Added a targeted JSON5 patch-location regression test and re-ran content tests, content validation, core-smoke compile, typecheck, lint, format, boundaries, and diff checks."
     }
   ],
   "claimedBy": "content-worker",
@@ -73,7 +85,7 @@
   "review": {
     "reviewer": "reviewer",
     "verdict": "changes_requested",
-    "summary": "High: patch-applied references/localization are not revalidated and can compile missing refs or throw TypeError; Medium: invalid/unknown patch changes and JSON5 files are silently accepted or ignored.",
-    "at": "2026-06-23T21:40:16.827Z"
+    "summary": "Medium: JSON5 sources are parsed, but diagnostics for unquoted JSON5 keys fall back to 1:1 instead of the offending id/reference/localization/patch field, so source-location acceptance is still incomplete for JSON5 fixtures.",
+    "at": "2026-06-23T22:01:46.069Z"
   }
 }

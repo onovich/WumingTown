@@ -669,9 +669,7 @@ function findPropertyLocation(
   text: string,
   propertyName: string,
 ): ContentSourceLocation {
-  const pattern = new RegExp(`"${escapeRegex(propertyName)}"\\s*:`, "m");
-  const match = pattern.exec(text);
-  const offset = match?.index !== undefined ? match.index + match[0].length : 0;
+  const offset = findPropertyValueOffset(text, propertyName) ?? 0;
   return offsetToLocation(filePath, text, skipWhitespace(text, offset));
 }
 
@@ -719,13 +717,24 @@ function findArrayItemLocations(
   return locations;
 }
 
-function findPropertyValueStart(text: string, propertyName: string): number | undefined {
-  const pattern = new RegExp(`"${escapeRegex(propertyName)}"\\s*:`, "m");
+function findPropertyValueOffset(text: string, propertyName: string): number | undefined {
+  const pattern = new RegExp(
+    `(?:"${escapeRegex(propertyName)}"|\\b${escapeRegex(propertyName)}\\b)\\s*:`,
+    "m",
+  );
   const match = pattern.exec(text);
   if (match?.index === undefined) {
     return undefined;
   }
-  return skipWhitespace(text, match.index + match[0].length);
+  return match.index + match[0].length;
+}
+
+function findPropertyValueStart(text: string, propertyName: string): number | undefined {
+  const offset = findPropertyValueOffset(text, propertyName);
+  if (offset === undefined) {
+    return undefined;
+  }
+  return skipWhitespace(text, offset);
 }
 
 function offsetToLocation(filePath: string, text: string, offset: number): ContentSourceLocation {
