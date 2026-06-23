@@ -8,9 +8,11 @@ on:
       - "task/**"
 
 jobs:
-  root-gates:
-    name: Root quality gates
+  ci-local:
+    name: Local CI parity
     runs-on: windows-latest
+    env:
+      WM_ARTIFACT_DIR: coordination/artifacts/WM-0010/ci-local
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -19,6 +21,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "24"
+          cache: "pnpm"
 
       - name: Setup pnpm
         run: |
@@ -28,26 +31,87 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      - name: Typecheck
-        run: pnpm typecheck
+      - name: Record environment
+        run: node tools/write-environment-report.mjs
 
-      - name: Lint
-        run: pnpm lint
+      - name: Run local CI parity gate
+        run: pnpm ci:local
 
-      - name: Format check
-        run: pnpm format:check
+      - name: Upload CI parity artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wm-0010-ci-local
+          path: coordination/artifacts/WM-0010/ci-local
 
-      - name: Content validation
-        run: pnpm content:validate
+  benchmarks:
+    name: Benchmarks
+    runs-on: windows-latest
+    env:
+      WM_ARTIFACT_DIR: coordination/artifacts/WM-0010/benchmarks
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Package boundaries
-        run: pnpm boundaries:check
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "pnpm"
 
-      - name: Unit tests
-        run: pnpm test
+      - name: Setup pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.8.0 --activate
 
-      - name: Handoff validation
-        run: node tools/validate-handoff.mjs
+      - name: Install
+        run: pnpm install --frozen-lockfile
 
-      - name: Coordination validation
-        run: node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate
+      - name: Record environment
+        run: node tools/write-environment-report.mjs
+
+      - name: Run benchmark baseline comparison
+        run: pnpm bench
+
+      - name: Upload benchmark artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wm-0010-benchmarks
+          path: coordination/artifacts/WM-0010/benchmarks
+
+  audit-deps:
+    name: Dependency audit
+    runs-on: windows-latest
+    env:
+      WM_ARTIFACT_DIR: coordination/artifacts/WM-0010/audit-deps
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "pnpm"
+
+      - name: Setup pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.8.0 --activate
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Record environment
+        run: node tools/write-environment-report.mjs
+
+      - name: Run dependency audit
+        run: pnpm audit:deps
+
+      - name: Upload audit artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wm-0010-audit
+          path: coordination/artifacts/WM-0010/audit-deps

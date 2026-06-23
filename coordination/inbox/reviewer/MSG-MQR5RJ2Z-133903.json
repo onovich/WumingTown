@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQR5RJ2Z-133903",
+  "from": "qa-performance",
+  "to": "reviewer",
+  "taskId": "WM-0010",
+  "kind": "review-request",
+  "subject": "WM-0010 ready for review",
+  "body": "Added PR CI parity jobs, benchmark baseline comparison, deterministic long-run diagnostics, and no-retry guards; pnpm ci:local, pnpm bench, and pnpm audit:deps pass",
+  "artifacts": [
+    "coordination/reports/WM-0010.md",
+    "task/WM-0010-ci-benchmarks"
+  ],
+  "createdAt": "2026-06-23T21:30:20.123Z",
+  "acknowledgedAt": null
+}

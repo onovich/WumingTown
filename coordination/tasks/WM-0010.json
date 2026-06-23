@@ -2,7 +2,7 @@
   "id": "WM-0010",
   "title": "Establish CI, benchmark baselines and long-run diagnostics",
   "summary": "Create CI jobs for static checks, unit/integration/E2E tests, deterministic scenarios, benchmark artifact publication and dependency/security checks.",
-  "state": "ready",
+  "state": "review_requested",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -28,7 +28,7 @@
   ],
   "branch": "task/WM-0010-ci-benchmarks",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T16:54:45.940Z",
+  "updatedAt": "2026-06-23T21:30:20.122Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
@@ -41,6 +41,22 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-23T21:11:24.212Z",
+      "actor": "qa-performance",
+      "action": "claim",
+      "details": "thread=Gauge"
+    },
+    {
+      "at": "2026-06-23T21:30:20.122Z",
+      "actor": "qa-performance",
+      "action": "complete",
+      "details": "Added PR CI parity jobs, benchmark baseline comparison, deterministic long-run diagnostics, and no-retry guards; pnpm ci:local, pnpm bench, and pnpm audit:deps pass"
     }
-  ]
+  ],
+  "claimedBy": "qa-performance",
+  "threadLabel": "Gauge",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0010.md"
 }

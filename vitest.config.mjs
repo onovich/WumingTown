@@ -28,5 +28,6 @@ export default defineConfig({
   test: {
     include: ["{apps,packages,tools}/*/src/**/*.{test,e2e}.ts"],
     passWithNoTests: false,
+    retry: 0,
   },
 });

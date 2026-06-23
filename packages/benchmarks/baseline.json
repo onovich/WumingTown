@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-06-24T00:00:00.000Z",
+  "benchmarks": {
+    "empty-tick": {
+      "name": "empty-tick",
+      "medianElapsedMs": 8.176,
+      "warnRegressionPercent": 10,
+      "failRegressionPercent": 20,
+      "invariants": {
+        "requestedTicks": 1000000,
+        "advancedTicks": 1000000,
+        "finalTick": 1000000,
+        "commandHash": "0x340ca71c",
+        "worldHash": "0x74d843e0",
+        "randomStreamCount": 1
+      }
+    },
+    "entity-store": {
+      "name": "entity-store",
+      "medianElapsedMs": 244.507,
+      "warnRegressionPercent": 10,
+      "failRegressionPercent": 20,
+      "invariants": {
+        "capacity": 8192,
+        "queuedCommands": 8192,
+        "commitResultCount": 8192,
+        "appliedCommands": 8192,
+        "failedCommands": 0,
+        "attachedComponents": 8192,
+        "iterationChecksum": 134209536
+      }
+    }
+  }
+}

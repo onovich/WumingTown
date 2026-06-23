@@ -18,10 +18,14 @@ if (!selection.ok) {
   process.exit(1);
 }
 
-const result = spawnSync("pnpm", ["exec", "vitest", "run", ...selection.extraArgs, ...selection.targets], {
-  shell: process.platform === "win32",
-  stdio: "inherit",
-});
+const result = spawnSync(
+  "pnpm",
+  ["exec", "vitest", "run", ...selection.extraArgs, ...selection.targets],
+  {
+    shell: process.platform === "win32",
+    stdio: "inherit",
+  },
+);
 
 if (result.error !== undefined) {
   console.error(result.error.message);
