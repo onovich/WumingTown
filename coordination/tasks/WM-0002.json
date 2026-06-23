@@ -1,0 +1,40 @@
+{
+  "id": "WM-0002",
+  "title": "Bootstrap the TypeScript monorepo and quality gates",
+  "summary": "Initialize the pnpm workspace, exact tool versions, strict TypeScript configs, formatting/linting, package boundaries, test commands and CI skeleton described by M0.",
+  "state": "proposed",
+  "ownerRole": "systems-architect",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0001"
+  ],
+  "docs": [
+    "docs/05_tech/00_tech_stack.md",
+    "docs/05_tech/01_technical_architecture.md",
+    "docs/06_engineering/00_coding_standard.md",
+    "docs/06_engineering/06_dependency_security_policy.md"
+  ],
+  "acceptance": [
+    "Workspace contains agreed apps/packages with enforceable dependency direction",
+    "Typecheck, lint, unit-test and content-validation commands run from root",
+    "Tool versions are pinned and documented in an ADR",
+    "No product runtime behavior is implemented beyond a minimal smoke test"
+  ],
+  "requiredChecks": [
+    "pnpm install --frozen-lockfile",
+    "pnpm typecheck",
+    "pnpm lint",
+    "pnpm test"
+  ],
+  "branch": "task/WM-0002-bootstrap-monorepo",
+  "createdAt": "2026-06-23T12:00:00.000Z",
+  "updatedAt": "2026-06-23T12:00:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-23T12:00:00.000Z",
+      "actor": "handoff-author",
+      "action": "create",
+      "details": "Initial roadmap task"
+    }
+  ]
+}

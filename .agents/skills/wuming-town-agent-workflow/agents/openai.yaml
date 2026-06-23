@@ -1,0 +1,6 @@
+interface:
+  display_name: "Wuming Town Agent Workflow"
+  short_description: "Coordinate tasks, reviews, inboxes, and Codex role handoffs"
+  default_prompt: "Use $wuming-town-agent-workflow to inspect project state, route pending messages, and advance the next unblocked Wuming Town tasks under AGENTS.md."
+policy:
+  allow_implicit_invocation: true

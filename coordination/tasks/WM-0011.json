@@ -1,0 +1,44 @@
+{
+  "id": "WM-0011",
+  "title": "Integrate and close Milestone M0",
+  "summary": "Integrate the M0 foundations, run the complete gate on one commit, document residual risk, and make the repository ready for first gameplay simulation work.",
+  "state": "proposed",
+  "ownerRole": "project-director",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0003",
+    "WM-0004",
+    "WM-0005",
+    "WM-0006",
+    "WM-0009",
+    "WM-0010"
+  ],
+  "docs": [
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "Web shell, desktop shell and headless simulation use one protocol source",
+    "Full CI gate passes from a clean clone",
+    "M0 ADRs, benchmark baseline and known limitations are current",
+    "No placeholder is represented as completed gameplay"
+  ],
+  "requiredChecks": [
+    "pnpm install --frozen-lockfile",
+    "pnpm ci:local",
+    "pnpm build:web",
+    "pnpm build:desktop",
+    "pnpm sim:run -- --seed 1 --ticks 1000000"
+  ],
+  "branch": "task/WM-0011-integrate-m0",
+  "createdAt": "2026-06-23T12:00:00.000Z",
+  "updatedAt": "2026-06-23T12:00:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-23T12:00:00.000Z",
+      "actor": "handoff-author",
+      "action": "create",
+      "details": "Initial roadmap task"
+    }
+  ]
+}

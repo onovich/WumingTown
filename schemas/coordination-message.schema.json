@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wuming.invalid/schemas/coordination-message.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "from",
+    "to",
+    "taskId",
+    "kind",
+    "subject",
+    "body",
+    "artifacts",
+    "createdAt",
+    "acknowledgedAt"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^MSG-"
+    },
+    "from": {
+      "type": "string"
+    },
+    "to": {
+      "type": "string"
+    },
+    "taskId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "kind": {
+      "type": "string"
+    },
+    "subject": {
+      "type": "string"
+    },
+    "body": {
+      "type": "string"
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "createdAt": {
+      "type": "string"
+    },
+    "acknowledgedAt": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

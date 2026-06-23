@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wuming.invalid/schemas/def-base.schema.json",
+  "title": "Wuming Town base definition",
+  "type": "object",
+  "required": [
+    "id",
+    "kind",
+    "schemaVersion"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*(\\.[a-z][a-z0-9_-]*){2,}$"
+    },
+    "kind": {
+      "type": "string",
+      "minLength": 1
+    },
+    "labelKey": {
+      "type": "string"
+    },
+    "descriptionKey": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "sourceNotes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": true
+}

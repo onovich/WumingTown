@@ -1,0 +1,39 @@
+{
+  "id": "WM-0009",
+  "title": "Build the content schema validator and Def compiler spike",
+  "summary": "Validate JSON5 source content, namespace IDs, references, patch ordering and localization keys, then compile a small immutable runtime catalog.",
+  "state": "proposed",
+  "ownerRole": "content-worker",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0002"
+  ],
+  "docs": [
+    "docs/01_design/06_content_and_modding_overview.md",
+    "docs/04_content_balance/00_content_design_guide.md",
+    "docs/05_tech/04_persistence_mods_security.md",
+    "schemas/def-base.schema.json"
+  ],
+  "acceptance": [
+    "Invalid IDs, duplicate IDs, missing references and localization keys fail with source locations",
+    "Compiler output ordering is stable",
+    "Sample anomaly and incident content compile without custom runtime code",
+    "Patch conflicts are reported rather than silently accepted"
+  ],
+  "requiredChecks": [
+    "pnpm content:validate",
+    "pnpm test --filter content",
+    "pnpm content:compile -- --fixture core-smoke"
+  ],
+  "branch": "task/WM-0009-content-compiler",
+  "createdAt": "2026-06-23T12:00:00.000Z",
+  "updatedAt": "2026-06-23T12:00:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-23T12:00:00.000Z",
+      "actor": "handoff-author",
+      "action": "create",
+      "details": "Initial roadmap task"
+    }
+  ]
+}

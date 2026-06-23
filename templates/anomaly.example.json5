@@ -1,0 +1,21 @@
+{
+  id: 'core.anomaly.borrowed_shadow',
+  labelKey: 'anomaly.borrowed_shadow.label',
+  tags: ['borrowed-form', 'identity', 'lantern-boundary'],
+  activation: {
+    all: [
+      { type: 'lanternOutageNights', areaTag: 'dock', minimum: 2 },
+      { type: 'pawnEnteredHumanClaimBelow', value: 120 }
+    ]
+  },
+  states: ['latent', 'imitating', 'seeking-identity', 'bound', 'departed'],
+  traces: [
+    { type: 'shadowMismatch', evidenceWeight: 220 },
+    { type: 'childhoodMemoryGap', evidenceWeight: 180 },
+    { type: 'skillContinuity', evidenceWeight: 140 }
+  ],
+  constraints: [
+    { type: 'cannotReproduceRecordedPersonalEpisodes', requiredRecordQuality: 700 }
+  ],
+  resolutions: ['expose', 'expel', 'grant-new-identity', 'pact-night-watch']
+}

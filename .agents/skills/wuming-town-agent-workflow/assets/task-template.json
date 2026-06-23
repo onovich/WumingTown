@@ -1,0 +1,16 @@
+{
+  "id": "WM-0000",
+  "title": "Short title",
+  "summary": "Observable goal",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [],
+  "docs": ["AGENTS.md"],
+  "acceptance": ["A measurable condition"],
+  "requiredChecks": ["pnpm typecheck"],
+  "branch": "task/WM-0000-short-title",
+  "createdAt": "2026-06-23T00:00:00.000Z",
+  "updatedAt": "2026-06-23T00:00:00.000Z",
+  "history": []
+}

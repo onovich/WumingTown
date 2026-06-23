@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "test.winter_food_crisis",
+  "seed": 18372,
+  "initial": {
+    "map": "test.temperate.64",
+    "pawns": 6
+  },
+  "scheduled": [
+    {
+      "tick": 3000,
+      "type": "incident.cold_snap"
+    },
+    {
+      "tick": 4500,
+      "type": "debug.injury",
+      "pawn": "pawn.2",
+      "bodyPart": "right_arm"
+    }
+  ],
+  "assertions": [
+    {
+      "atTick": 6000,
+      "type": "resourceBelow",
+      "def": "core.food.meal",
+      "value": 100
+    },
+    {
+      "atTick": 8000,
+      "type": "noLeakedReservations"
+    }
+  ]
+}

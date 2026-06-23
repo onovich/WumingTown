@@ -1,0 +1,15 @@
+{
+  "name": "wuming-town",
+  "private": true,
+  "version": "0.0.0-handoff",
+  "description": "Wuming Town handoff and future monorepo root",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "handoff:validate": "node tools/validate-handoff.mjs",
+    "coord:validate": "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "coord:status": "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "coord:route": "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs route"
+  }
+}

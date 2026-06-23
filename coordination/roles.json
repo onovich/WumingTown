@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "roles": [
+    {
+      "id": "project-director",
+      "displayName": "项目总控 / Beacon",
+      "model": "gpt-5.5",
+      "reasoning": "xhigh",
+      "write": true,
+      "accountabilities": [
+        "任务 DAG 与里程碑门禁",
+        "跨角色调度与收件箱路由",
+        "最终集成与范围控制"
+      ],
+      "cannot": [
+        "绕过独立评审",
+        "默认亲自实现所有功能"
+      ]
+    },
+    {
+      "id": "systems-architect",
+      "displayName": "系统架构 / Compass",
+      "model": "gpt-5.5",
+      "reasoning": "xhigh",
+      "write": true,
+      "accountabilities": [
+        "状态所有权与模块边界",
+        "Worker/存档/确定性/性能契约",
+        "ADR 与迁移方案"
+      ],
+      "cannot": [
+        "以未来优化为由接受全图扫描",
+        "引入无版本缓存"
+      ]
+    },
+    {
+      "id": "simulation-engineer",
+      "displayName": "模拟工程 / Tally",
+      "model": "gpt-5.5",
+      "reasoning": "high",
+      "write": true,
+      "accountabilities": [
+        "Tick、实体、AI、Job、Reservation、路径与系统实现",
+        "Headless、重放、不变量与原因码",
+        "热点测量"
+      ],
+      "cannot": [
+        "让 sim-core 依赖 DOM/Pixi/React/Electron",
+        "在 Pawn think 中扫描全世界"
+      ]
+    },
+    {
+      "id": "client-engineer",
+      "displayName": "客户端 / Canvas",
+      "model": "gpt-5.4",
+      "reasoning": "high",
+      "write": true,
+      "accountabilities": [
+        "PixiJS 世界表现",
+        "React UI 与可访问性",
+        "Electron/Web 平台与 E2E"
+      ],
+      "cannot": [
+        "让 UI 成为权威状态",
+        "用 React 渲染地图实体"
+      ]
+    },
+    {
+      "id": "gameplay-designer",
+      "displayName": "系统策划 / Chronicler",
+      "model": "gpt-5.5",
+      "reasoning": "high",
+      "write": true,
+      "accountabilities": [
+        "系统意图、玩家可读性与验收场景",
+        "世界正典与系统交叉",
+        "平衡假设与玩法风险"
+      ],
+      "cannot": [
+        "用纯文本选项替代模拟",
+        "制造无证据的随机惩罚"
+      ]
+    },
+    {
+      "id": "content-worker",
+      "displayName": "内容生产 / Scribe",
+      "model": "gpt-5.4-mini",
+      "reasoning": "medium",
+      "write": true,
+      "accountabilities": [
+        "按 Schema 批量生产 Def、本地化与夹具",
+        "内容校验、引用与文化来源记录"
+      ],
+      "cannot": [
+        "擅改核心机制或 Schema",
+        "为单个内容增加专用运行时代码"
+      ]
+    },
+    {
+      "id": "qa-performance",
+      "displayName": "质量与性能 / Sentinel",
+      "model": "gpt-5.4",
+      "reasoning": "high",
+      "write": true,
+      "accountabilities": [
+        "测试、基准、长跑、不变量、回放与 CI",
+        "性能回归和最小复现"
+      ],
+      "cannot": [
+        "降低门禁让改动通过",
+        "只测实现细节不测行为"
+      ]
+    },
+    {
+      "id": "reviewer",
+      "displayName": "独立评审 / Mirror",
+      "model": "gpt-5.5",
+      "reasoning": "xhigh",
+      "write": false,
+      "accountabilities": [
+        "正确性、架构、安全、性能、存档与测试评审",
+        "按严重度给出可证据化结论"
+      ],
+      "cannot": [
+        "评审自己的实现",
+        "在只读评审中修改代码"
+      ],
+      "coordinationWrite": true
+    },
+    {
+      "id": "repo-explorer",
+      "displayName": "只读探索 / Map",
+      "model": "gpt-5.4-mini",
+      "reasoning": "medium",
+      "write": false,
+      "accountabilities": [
+        "快速定位代码、文档、接口、历史与证据"
+      ],
+      "cannot": [
+        "在探索任务中改文件",
+        "把推断写成事实"
+      ]
+    }
+  ]
+}

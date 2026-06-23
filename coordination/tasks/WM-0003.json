@@ -1,0 +1,38 @@
+{
+  "id": "WM-0003",
+  "title": "Build the Web client rendering and UI shell",
+  "summary": "Create a browser shell with PixiJS canvas, React DOM overlay, input plumbing, resize handling and a static read-model smoke screen.",
+  "state": "proposed",
+  "ownerRole": "client-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0002"
+  ],
+  "docs": [
+    "docs/01_design/05_ui_ux_information_design.md",
+    "docs/05_tech/01_technical_architecture.md",
+    "docs/05_tech/02_worker_protocol.md"
+  ],
+  "acceptance": [
+    "Pixi renders a chunked test map without per-cell React components",
+    "React renders a selected-entity inspector from a read model",
+    "Canvas/UI resize and input work in supported Chromium",
+    "Playwright smoke test captures a deterministic screenshot"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test",
+    "pnpm test:e2e"
+  ],
+  "branch": "task/WM-0003-web-client-shell",
+  "createdAt": "2026-06-23T12:00:00.000Z",
+  "updatedAt": "2026-06-23T12:00:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-23T12:00:00.000Z",
+      "actor": "handoff-author",
+      "action": "create",
+      "details": "Initial roadmap task"
+    }
+  ]
+}

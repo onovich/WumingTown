@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQQN9U6U-22B562",
+  "from": "project-director",
+  "to": "reviewer",
+  "taskId": "WM-0001",
+  "kind": "review-request",
+  "subject": "WM-0001 ready for review",
+  "body": "Changes requested addressed: adopted corpus will be committed on the task branch, validation evidence refreshed, and mutable checksum drift recorded in coordination/reports/WM-0001.md",
+  "artifacts": [
+    "coordination/reports/WM-0001.md",
+    "task/WM-0001-adopt-control-plane"
+  ],
+  "createdAt": "2026-06-23T12:52:41.622Z",
+  "acknowledgedAt": null
+}

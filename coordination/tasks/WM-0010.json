@@ -1,0 +1,40 @@
+{
+  "id": "WM-0010",
+  "title": "Establish CI, benchmark baselines and long-run diagnostics",
+  "summary": "Create CI jobs for static checks, unit/integration/E2E tests, deterministic scenarios, benchmark artifact publication and dependency/security checks.",
+  "state": "proposed",
+  "ownerRole": "qa-performance",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0002",
+    "WM-0005",
+    "WM-0006"
+  ],
+  "docs": [
+    "docs/05_tech/03_performance_budget.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "CI runs on pull requests and records exact environment/tool versions",
+    "Determinism and long-run failures emit seed, first divergent tick and artifact paths",
+    "Benchmark changes are compared to an explicit baseline",
+    "No test silently retries nondeterministic product behavior"
+  ],
+  "requiredChecks": [
+    "pnpm ci:local",
+    "pnpm bench",
+    "pnpm audit:deps"
+  ],
+  "branch": "task/WM-0010-ci-benchmarks",
+  "createdAt": "2026-06-23T12:00:00.000Z",
+  "updatedAt": "2026-06-23T12:00:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-23T12:00:00.000Z",
+      "actor": "handoff-author",
+      "action": "create",
+      "details": "Initial roadmap task"
+    }
+  ]
+}

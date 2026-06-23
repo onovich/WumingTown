@@ -1,0 +1,38 @@
+{
+  "id": "WM-0004",
+  "title": "Build the sandboxed Windows Electron shell",
+  "summary": "Wrap the Web client in Electron with context isolation, sandboxing, minimal preload ports and a smoke build; do not expose arbitrary Node APIs.",
+  "state": "proposed",
+  "ownerRole": "client-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0002"
+  ],
+  "docs": [
+    "docs/05_tech/00_tech_stack.md",
+    "docs/05_tech/04_persistence_mods_security.md",
+    "docs/05_tech/06_platform_matrix.md"
+  ],
+  "acceptance": [
+    "nodeIntegration is disabled and contextIsolation/sandbox are enabled",
+    "Preload exposes only typed placeholder platform ports",
+    "Development and packaged smoke builds launch on Windows CI or an approved equivalent",
+    "Security checklist has no unresolved high finding"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test",
+    "pnpm build:desktop"
+  ],
+  "branch": "task/WM-0004-electron-shell",
+  "createdAt": "2026-06-23T12:00:00.000Z",
+  "updatedAt": "2026-06-23T12:00:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-23T12:00:00.000Z",
+      "actor": "handoff-author",
+      "action": "create",
+      "details": "Initial roadmap task"
+    }
+  ]
+}

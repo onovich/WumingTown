@@ -1,0 +1,2 @@
+id,type,name,systems,unique_hook,implementation_cost,asset_cost,status,owner
+core.anomaly.borrowed_shadow,anomaly,借影客,"灯火|身份|家庭|医疗",身份分裂,medium,medium,concept,content-designer

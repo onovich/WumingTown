@@ -1,0 +1,38 @@
+{
+  "id": "WM-0008",
+  "title": "Implement deterministic RNG streams and world hashing",
+  "summary": "Add named deterministic random streams, serialization of RNG state, canonical world hashing and divergence diagnostics for replay tests.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0006",
+    "WM-0007"
+  ],
+  "docs": [
+    "docs/02_systems/01_time_scheduler_rng.md",
+    "docs/02_systems/13_save_replay_migration.md"
+  ],
+  "acceptance": [
+    "Random calls require an explicit named stream",
+    "RNG state survives a serialize/restore round trip",
+    "Canonical world hash ignores presentation state and object address/order accidents",
+    "A deliberately perturbed replay identifies the first divergent checkpoint"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter determinism",
+    "pnpm sim:replay-test"
+  ],
+  "branch": "task/WM-0008-rng-world-hash",
+  "createdAt": "2026-06-23T12:00:00.000Z",
+  "updatedAt": "2026-06-23T12:00:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-23T12:00:00.000Z",
+      "actor": "handoff-author",
+      "action": "create",
+      "details": "Initial roadmap task"
+    }
+  ]
+}

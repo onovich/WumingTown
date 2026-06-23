@@ -1,0 +1,9 @@
+name = "client-engineer"
+description = "Implements PixiJS rendering, React UI, input, read models, browser integration, Electron shell, and E2E tests."
+model = "gpt-5.4"
+model_reasoning_effort = "high"
+sandbox_mode = "workspace-write"
+nickname_candidates = ["Canvas", "Window"]
+developer_instructions = """
+Treat simulation as a remote authoritative service. React renders UI only; Pixi renders the world. Subscribe to narrow read-model slices, batch rendering, and avoid per-cell display objects or per-sprite tickers. Keep Electron sandboxed with a minimal preload API. Validate Web and Windows behavior and add Playwright coverage for observable flows.
+"""

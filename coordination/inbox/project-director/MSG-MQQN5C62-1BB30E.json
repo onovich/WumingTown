@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQQN5C62-1BB30E",
+  "from": "reviewer",
+  "to": "project-director",
+  "taskId": "WM-0001",
+  "kind": "changes-requested",
+  "subject": "WM-0001 review: changes_requested",
+  "body": "High: task branch has no tracked adoption diff; Medium: final validation/checksum evidence drift after workflow mutations",
+  "artifacts": [
+    "coordination/reports/WM-0001.md"
+  ],
+  "createdAt": "2026-06-23T12:49:11.643Z",
+  "acknowledgedAt": "2026-06-23T12:50:22.466Z"
+}

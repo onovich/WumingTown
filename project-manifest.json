@@ -1,0 +1,44 @@
+{
+  "project": "无明镇",
+  "workingEnglishTitle": "Wuming Town / The Lantern Frontier",
+  "handoffVersion": "0.1",
+  "handoffDate": "2026-06-23",
+  "status": "pre-production",
+  "locked": {
+    "genre": "2D/2.5D character-driven colony simulation with rule-based folklore anomalies",
+    "platforms": [
+      "Windows Electron",
+      "Chromium Web"
+    ],
+    "deferredPlatforms": [
+      "native macOS"
+    ],
+    "language": "TypeScript",
+    "renderer": "PixiJS 8",
+    "ui": "React DOM overlay",
+    "desktopShell": "Electron 42.x baseline",
+    "simulation": "Dedicated Web Worker, fixed 30 TPS",
+    "performanceEscapeHatch": "Rust/Wasm kernels only after profiling",
+    "corePillars": [
+      "灯火边界",
+      "镇志知识",
+      "旧债契约"
+    ],
+    "codeModsAtLaunch": false
+  },
+  "mvpTargets": {
+    "map": "128x128",
+    "residentRange": "8-16",
+    "anomalies": "12-15",
+    "humanFactions": 3,
+    "nonhumanSociety": 1,
+    "verticalCrisisChains": 4
+  },
+  "technicalStressTargets": {
+    "map": "256x256",
+    "activePawns": 100,
+    "runtimeEntities": 50000,
+    "normalTPS": 30,
+    "fastTPS": 90
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "id": "WM-0006",
+  "title": "Implement the deterministic headless fixed-tick runner",
+  "summary": "Create a Node-runnable authoritative simulation loop with 30 TPS semantics, pause/speed stepping, explicit seed input and no dependency on DOM or wall clock.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0002"
+  ],
+  "docs": [
+    "docs/02_systems/01_time_scheduler_rng.md",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/05_tech/05_testing_observability_ci.md"
+  ],
+  "acceptance": [
+    "A CLI advances an exact requested number of ticks",
+    "Simulation output for the same seed/commands is repeatable in the same build",
+    "No ambient Math.random, Date.now or DOM dependency exists in sim-core",
+    "A million empty ticks complete without unbounded memory growth"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter sim-core",
+    "pnpm sim:run -- --seed 1 --ticks 1000000",
+    "pnpm bench --filter empty-tick"
+  ],
+  "branch": "task/WM-0006-headless-tick-runner",
+  "createdAt": "2026-06-23T12:00:00.000Z",
+  "updatedAt": "2026-06-23T12:00:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-23T12:00:00.000Z",
+      "actor": "handoff-author",
+      "action": "create",
+      "details": "Initial roadmap task"
+    }
+  ]
+}

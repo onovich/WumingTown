@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "project": "Wuming Town / 无明镇",
+  "phase": "handoff",
+  "activeMilestone": "M0 Engineering Foundation",
+  "releaseTarget": "undated",
+  "updatedAt": "2026-06-23T12:00:00.000Z",
+  "lockedDecisions": [
+    "TypeScript-first authoritative simulation in a dedicated Worker",
+    "PixiJS world rendering + React DOM UI + Electron Windows shell",
+    "Web remains a gated target; native macOS is deferred",
+    "30 fixed simulation ticks per second",
+    "Lantern / Chronicle / Obligation are the three product pillars"
+  ],
+  "humanApprovalNeeded": [],
+  "notes": "Task JSON, reports and inbox files are the durable execution control plane."
+}

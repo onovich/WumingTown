@@ -1,0 +1,38 @@
+{
+  "id": "WM-0007",
+  "title": "Implement entity handles and foundational component stores",
+  "summary": "Create generation-checked entity handles, bounded component stores, stable iteration and deferred structural command application with invariant tests.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0005",
+    "WM-0006"
+  ],
+  "docs": [
+    "docs/02_systems/02_entities_defs_components.md",
+    "docs/06_engineering/01_performance_constitution.md"
+  ],
+  "acceptance": [
+    "Destroyed entity handles cannot alias newly allocated entities",
+    "Iteration and conflict resolution use documented stable ordering",
+    "Structural changes are deferred to explicit commit phases",
+    "Property/invariant tests cover allocation, destruction, reuse and capacity boundaries"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter entity-store",
+    "pnpm bench --filter entity-store"
+  ],
+  "branch": "task/WM-0007-entity-stores",
+  "createdAt": "2026-06-23T12:00:00.000Z",
+  "updatedAt": "2026-06-23T12:00:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-23T12:00:00.000Z",
+      "actor": "handoff-author",
+      "action": "create",
+      "details": "Initial roadmap task"
+    }
+  ]
+}

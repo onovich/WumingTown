@@ -1,0 +1,38 @@
+{
+  "id": "WM-0005",
+  "title": "Define and spike the simulation Worker protocol",
+  "summary": "Implement typed command, snapshot, UI-delta, lifecycle and error envelopes between client and authoritative simulation Worker, including protocol version rejection.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0002"
+  ],
+  "docs": [
+    "docs/05_tech/02_worker_protocol.md",
+    "docs/05_tech/01_technical_architecture.md",
+    "docs/02_systems/14_explainability_debug_observability.md"
+  ],
+  "acceptance": [
+    "Main thread cannot mutate simulation state directly",
+    "Protocol messages carry explicit schema/protocol version",
+    "Unknown or stale commands fail with structured reason codes",
+    "Round-trip integration test works in browser Worker and Node test harness"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter sim-protocol",
+    "pnpm test:e2e --filter worker-smoke"
+  ],
+  "branch": "task/WM-0005-worker-protocol",
+  "createdAt": "2026-06-23T12:00:00.000Z",
+  "updatedAt": "2026-06-23T12:00:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-23T12:00:00.000Z",
+      "actor": "handoff-author",
+      "action": "create",
+      "details": "Initial roadmap task"
+    }
+  ]
+}

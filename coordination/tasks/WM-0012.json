@@ -1,0 +1,39 @@
+{
+  "id": "WM-0012",
+  "title": "Produce the executable M1 simulation-kernel plan",
+  "summary": "Decompose M1 into reviewed tasks for map grids, spatial indexes, path request batching, jobs, reservations and the first hauling scenario with performance budgets.",
+  "state": "proposed",
+  "ownerRole": "systems-architect",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0007",
+    "WM-0008",
+    "WM-0011"
+  ],
+  "docs": [
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/02_systems/03_map_space_rooms_lanterns.md",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md"
+  ],
+  "acceptance": [
+    "Plan contains a dependency DAG of tasks small enough for independent worktrees",
+    "Every task has observable acceptance, tests, benchmark impact and docs",
+    "First vertical scenario is hauling/building rather than broad content production",
+    "No task depends on an unresolved hidden architecture decision"
+  ],
+  "requiredChecks": [
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node tools/validate-handoff.mjs"
+  ],
+  "branch": "task/WM-0012-plan-m1",
+  "createdAt": "2026-06-23T12:00:00.000Z",
+  "updatedAt": "2026-06-23T12:00:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-23T12:00:00.000Z",
+      "actor": "handoff-author",
+      "action": "create",
+      "details": "Initial roadmap task"
+    }
+  ]
+}

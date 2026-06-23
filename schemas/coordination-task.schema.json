@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wuming.invalid/schemas/coordination-task.schema.json",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "id",
+    "title",
+    "summary",
+    "state",
+    "ownerRole",
+    "reviewerRole",
+    "dependsOn",
+    "docs",
+    "acceptance",
+    "requiredChecks",
+    "branch",
+    "createdAt",
+    "updatedAt",
+    "history"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^WM-[0-9]{4,}$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 3
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 10
+    },
+    "state": {
+      "enum": [
+        "proposed",
+        "ready",
+        "claimed",
+        "in_progress",
+        "review_requested",
+        "changes_requested",
+        "verified",
+        "integrated",
+        "done",
+        "blocked"
+      ]
+    },
+    "ownerRole": {
+      "type": "string"
+    },
+    "reviewerRole": {
+      "type": "string"
+    },
+    "dependsOn": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^WM-[0-9]{4,}$"
+      },
+      "uniqueItems": true
+    },
+    "docs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "acceptance": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "requiredChecks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "branch": {
+      "type": "string"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "at",
+          "actor",
+          "action",
+          "details"
+        ],
+        "properties": {
+          "at": {
+            "type": "string"
+          },
+          "actor": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "details": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

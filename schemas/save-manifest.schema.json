@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wuming.invalid/schemas/save-manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "fileFormatVersion",
+    "gameBuild",
+    "worldSeed",
+    "contentManifest",
+    "chunks"
+  ],
+  "properties": {
+    "fileFormatVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "gameBuild": {
+      "type": "string"
+    },
+    "worldSeed": {
+      "type": "string"
+    },
+    "contentManifest": {
+      "type": "object",
+      "required": [
+        "contentHash",
+        "mods",
+        "defDictionary"
+      ],
+      "properties": {
+        "contentHash": {
+          "type": "string"
+        },
+        "mods": {
+          "type": "array"
+        },
+        "defDictionary": {
+          "type": "array"
+        }
+      }
+    },
+    "chunks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "type",
+          "schemaVersion",
+          "checksum",
+          "byteLength"
+        ],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "schemaVersion": {
+            "type": "integer"
+          },
+          "checksum": {
+            "type": "string"
+          },
+          "byteLength": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wuming.invalid/schemas/anomaly-def.schema.json",
+  "title": "Anomaly definition",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "id",
+    "kind",
+    "labelKey",
+    "appearance",
+    "rules",
+    "clues",
+    "resolutions",
+    "contentBudget"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*(\\.[a-z][a-z0-9_-]*){2,}$"
+    },
+    "kind": {
+      "const": "anomaly"
+    },
+    "labelKey": {
+      "type": "string"
+    },
+    "appearance": {
+      "type": "object",
+      "required": [
+        "conditions"
+      ],
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "rules": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "category",
+          "truth"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "category": {
+            "enum": [
+              "trigger",
+              "perception",
+              "movement",
+              "targeting",
+              "constraint",
+              "exchange",
+              "effect",
+              "escalation"
+            ]
+          },
+          "truth": {
+            "enum": [
+              "canonical",
+              "contextual"
+            ]
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "clues": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "reliability",
+          "supports"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "reliability": {
+            "enum": [
+              "rumor",
+              "testimony",
+              "observation",
+              "experiment",
+              "confirmed"
+            ]
+          },
+          "supports": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "resolutions": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "mode",
+          "costs",
+          "consequences"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "avoid",
+              "contain",
+              "expel",
+              "destroy",
+              "negotiate",
+              "integrate",
+              "repay",
+              "reinterpret"
+            ]
+          },
+          "costs": {
+            "type": "array"
+          },
+          "consequences": {
+            "type": "array"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "contentBudget": {
+      "type": "object",
+      "required": [
+        "bespokeRuntimeComponents",
+        "uniqueArtAssets"
+      ],
+      "properties": {
+        "bespokeRuntimeComponents": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "uniqueArtAssets": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "sourceNotes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}
