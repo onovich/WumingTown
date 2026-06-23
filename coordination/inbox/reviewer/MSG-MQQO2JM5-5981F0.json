@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQQO2JM5-5981F0",
+  "from": "project-director",
+  "to": "reviewer",
+  "taskId": "WM-0013",
+  "kind": "review-request",
+  "subject": "WM-0013 ready for review",
+  "body": "Spark rapid implementation lane added: rapid-implementer role, TOML, inbox, docs, workflow Skill classifier, smoke thread evidence, and validation results are recorded in coordination/reports/WM-0013.md",
+  "artifacts": [
+    "coordination/reports/WM-0013.md",
+    "task/WM-0013-add-spark-execution-lane"
+  ],
+  "createdAt": "2026-06-23T13:15:00.941Z",
+  "acknowledgedAt": "2026-06-23T13:15:47.807Z"
+}

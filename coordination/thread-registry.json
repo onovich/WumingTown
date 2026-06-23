@@ -7,9 +7,9 @@
       "registeredAt": "2026-06-23T12:42:34.400Z"
     },
     "reviewer": {
-      "threadId": "019ef481-a2ed-7122-9987-6552dfec9c5c",
-      "label": "WM-0001 handoff review",
-      "registeredAt": "2026-06-23T12:43:38.498Z"
+      "threadId": "019ef49f-27f6-74d1-a163-6afd70ca7346",
+      "label": "WM-0013 Spark lane review",
+      "registeredAt": "2026-06-23T13:15:47.765Z"
     },
     "rapid-implementer": {
       "threadId": "019ef49a-ffd5-72f1-863b-f6448c984775",
@@ -17,5 +17,5 @@
       "registeredAt": "2026-06-23T13:11:13.888Z"
     }
   },
-  "updatedAt": "2026-06-23T13:11:13.888Z"
+  "updatedAt": "2026-06-23T13:15:47.766Z"
 }
