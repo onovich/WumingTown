@@ -2,7 +2,7 @@
   "id": "WM-0003",
   "title": "Build the Web client rendering and UI shell",
   "summary": "Create a browser shell with PixiJS canvas, React DOM overlay, input plumbing, resize handling and a static read-model smoke screen.",
-  "state": "review_requested",
+  "state": "done",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -26,7 +26,7 @@
   ],
   "branch": "task/WM-0003-web-client-shell",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T20:58:25.452Z",
+  "updatedAt": "2026-06-23T21:03:11.126Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
@@ -63,6 +63,24 @@
       "actor": "client-engineer",
       "action": "complete",
       "details": "Addressed reviewer dependency-policy evidence and scoped TypeScript lib-check exception; pnpm typecheck, pnpm test, and pnpm test:e2e pass."
+    },
+    {
+      "at": "2026-06-23T21:01:49.460Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; acceptance evidence confirmed"
+    },
+    {
+      "at": "2026-06-23T21:03:11.088Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified branch a187ed8 plus reviewer approval; preparing fast-forward main integration and full gate."
+    },
+    {
+      "at": "2026-06-23T21:03:11.125Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "claimedBy": "client-engineer",
@@ -71,8 +89,13 @@
   "reportPath": "coordination/reports/WM-0003.md",
   "review": {
     "reviewer": "reviewer",
-    "verdict": "changes_requested",
-    "summary": "High: none; Medium: missing dependency policy/ADR evidence for new React/Pixi/Playwright stack and root skipLibCheck relaxation",
-    "at": "2026-06-23T20:46:40.249Z"
+    "verdict": "verified",
+    "summary": "No blocking findings; acceptance evidence confirmed",
+    "at": "2026-06-23T21:01:49.460Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified branch a187ed8 plus reviewer approval; preparing fast-forward main integration and full gate.",
+    "at": "2026-06-23T21:03:11.087Z"
   }
 }

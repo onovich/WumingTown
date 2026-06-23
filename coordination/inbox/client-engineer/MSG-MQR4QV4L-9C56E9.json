@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQR4QV4L-9C56E9",
+  "from": "reviewer",
+  "to": "client-engineer",
+  "taskId": "WM-0003",
+  "kind": "review-approved",
+  "subject": "WM-0003 review: verified",
+  "body": "No blocking findings; acceptance evidence confirmed",
+  "artifacts": [
+    "coordination/reports/WM-0003.md"
+  ],
+  "createdAt": "2026-06-23T21:01:49.461Z",
+  "acknowledgedAt": "2026-06-23T21:02:45.627Z"
+}
