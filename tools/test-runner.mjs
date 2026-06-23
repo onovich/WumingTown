@@ -18,10 +18,14 @@ if (!selection.ok) {
   process.exit(1);
 }
 
-const result = spawnSync("pnpm", ["exec", "vitest", "run", ...selection.extraArgs, ...selection.targets], {
-  shell: process.platform === "win32",
-  stdio: "inherit",
-});
+const result = spawnSync(
+  "pnpm",
+  ["exec", "vitest", "run", ...selection.extraArgs, ...selection.targets],
+  {
+    shell: process.platform === "win32",
+    stdio: "inherit",
+  },
+);
 
 if (result.error !== undefined) {
   console.error(result.error.message);
@@ -45,7 +49,7 @@ function readFilter(args) {
 
   return {
     error:
-      "Unsupported test arguments. Use no arguments, --filter determinism, --filter entity-store, --filter sim-core, --filter sim-protocol, --filter worker-smoke, or --filter web-shell.",
+      "Unsupported test arguments. Use no arguments, --filter content, --filter determinism, --filter entity-store, --filter sim-core, --filter sim-protocol, --filter worker-smoke, or --filter web-shell.",
   };
 }
 
@@ -84,6 +88,17 @@ function selectVitestTargets(selectedMode, selectedFilter) {
         ok: true,
         extraArgs: ["--exclude=**/*.e2e.test.ts"],
         targets: ["packages/sim-core/src/entity-store.invariants.test.ts"],
+      };
+    }
+
+    if (selectedFilter === "content") {
+      return {
+        ok: true,
+        extraArgs: ["--exclude=**/*.e2e.test.ts"],
+        targets: [
+          "packages/content-schema/src/content-fixtures.test.ts",
+          "packages/content-compiler/src/compiler.test.ts",
+        ],
       };
     }
 

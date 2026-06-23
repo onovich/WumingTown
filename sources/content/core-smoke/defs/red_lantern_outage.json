@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "core.incident.red_lantern_outage",
+  "kind": "incident",
+  "labelKey": "content.core.incident.red_lantern_outage.label",
+  "descriptionKey": "content.core.incident.red_lantern_outage.description",
+  "tags": ["incident", "lantern"],
+  "references": ["core.anomaly.borrowed_shadow"],
+  "sourceNotes": ["Triggers a lantern outage when pressure rises."]
+}

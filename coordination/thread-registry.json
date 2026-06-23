@@ -30,7 +30,12 @@
       "threadId": "019ef628-bea0-7483-9318-c04e48a04cd4",
       "label": "WM-0003 web client shell recovery",
       "registeredAt": "2026-06-23T20:25:41.247Z"
+    },
+    "content-worker": {
+      "threadId": "019ef650-24da-7c22-a896-40da4ce6f09f",
+      "label": "WM-0009 content compiler",
+      "registeredAt": "2026-06-23T21:08:57.632Z"
     }
   },
-  "updatedAt": "2026-06-23T20:39:18.505Z"
+  "updatedAt": "2026-06-23T21:08:57.632Z"
 }

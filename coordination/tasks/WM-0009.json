@@ -2,7 +2,7 @@
   "id": "WM-0009",
   "title": "Build the content schema validator and Def compiler spike",
   "summary": "Validate JSON5 source content, namespace IDs, references, patch ordering and localization keys, then compile a small immutable runtime catalog.",
-  "state": "ready",
+  "state": "review_requested",
   "ownerRole": "content-worker",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -27,7 +27,7 @@
   ],
   "branch": "task/WM-0009-content-compiler",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T15:20:56.259Z",
+  "updatedAt": "2026-06-23T21:29:01.426Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
@@ -40,6 +40,22 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-23T21:10:44.963Z",
+      "actor": "content-worker",
+      "action": "claim",
+      "details": "thread=Catalog"
+    },
+    {
+      "at": "2026-06-23T21:29:01.426Z",
+      "actor": "content-worker",
+      "action": "complete",
+      "details": "Added structured content validation and compiler spike; required checks pass."
     }
-  ]
+  ],
+  "claimedBy": "content-worker",
+  "threadLabel": "Catalog",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0009.md"
 }

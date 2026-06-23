@@ -1,0 +1,6 @@
+{
+  "content.core.anomaly.borrowed_shadow.label": "Borrowed Shadow",
+  "content.core.anomaly.borrowed_shadow.description": "A shadow that answers from the wrong lantern.",
+  "content.core.incident.red_lantern_outage.label": "Red Lantern Outage",
+  "content.core.incident.red_lantern_outage.description": "The lantern district loses power after a pressure spike."
+}

@@ -1,5 +1,17 @@
-import { CONTENT_SCHEMA_SMOKE } from "@wuming-town/content-schema";
 import { defineWorkspaceSmoke, type WorkspaceSmoke } from "@wuming-town/foundation";
+
+export { defineWorkspaceSmoke } from "@wuming-town/foundation";
+export {
+  compileContentFixture,
+  compileContentFixtureByName,
+  compileLoadedContentFixture,
+  formatCompilationFailure,
+} from "./compiler";
+export type {
+  CompiledContentDefinition,
+  ContentCompilationCatalog,
+  ContentCompilationOutcome,
+} from "./compiler";
 
 export const CONTENT_COMPILER_SMOKE: WorkspaceSmoke = defineWorkspaceSmoke(
   "@wuming-town/content-compiler",
@@ -7,5 +19,5 @@ export const CONTENT_COMPILER_SMOKE: WorkspaceSmoke = defineWorkspaceSmoke(
 );
 
 export const CONTENT_COMPILER_PUBLIC_DEPENDENCIES: readonly string[] = [
-  CONTENT_SCHEMA_SMOKE.packageName,
+  "@wuming-town/content-schema",
 ];
