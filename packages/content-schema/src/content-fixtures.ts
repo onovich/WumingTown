@@ -718,15 +718,57 @@ function findArrayItemLocations(
 }
 
 function findPropertyValueOffset(text: string, propertyName: string): number | undefined {
-  const pattern = new RegExp(
-    `(?:"${escapeRegex(propertyName)}"|\\b${escapeRegex(propertyName)}\\b)\\s*:`,
-    "m",
-  );
-  const match = pattern.exec(text);
-  if (match?.index === undefined) {
-    return undefined;
+  const quotedKeys = [`"${propertyName}"`, `'${propertyName}'`];
+  let index = 0;
+
+  while (index < text.length) {
+    const char = text[index];
+    const next = text[index + 1];
+
+    if (char === undefined) {
+      break;
+    }
+
+    if (char === "/" && next === "/") {
+      index = skipJson5LineComment(text, index + 2);
+      continue;
+    }
+
+    if (char === "/" && next === "*") {
+      index = skipJson5BlockComment(text, index + 2);
+      continue;
+    }
+
+    if (char === '"' || char === "'") {
+      index = skipJson5String(text, index);
+      continue;
+    }
+
+    for (const quotedKey of quotedKeys) {
+      if (!text.startsWith(quotedKey, index)) {
+        continue;
+      }
+
+      const afterKey = skipJson5WhitespaceAndComments(text, index + quotedKey.length);
+      if (text[afterKey] === ":") {
+        return afterKey + 1;
+      }
+    }
+
+    if (
+      text.startsWith(propertyName, index) &&
+      isBareKeyBoundary(text, index, propertyName.length)
+    ) {
+      const afterKey = skipJson5WhitespaceAndComments(text, index + propertyName.length);
+      if (text[afterKey] === ":") {
+        return afterKey + 1;
+      }
+    }
+
+    index += 1;
   }
-  return match.index + match[0].length;
+
+  return undefined;
 }
 
 function findPropertyValueStart(text: string, propertyName: string): number | undefined {
@@ -773,8 +815,89 @@ function skipWhitespace(text: string, offset: number): number {
   return index;
 }
 
-function escapeRegex(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+function skipJson5WhitespaceAndComments(text: string, offset: number): number {
+  let index = offset;
+  while (index < text.length) {
+    const char = text[index];
+    const next = text[index + 1];
+
+    if (char === undefined) {
+      break;
+    }
+
+    if (isWhitespace(char)) {
+      index += 1;
+      continue;
+    }
+
+    if (char === "/" && next === "/") {
+      index = skipJson5LineComment(text, index + 2);
+      continue;
+    }
+
+    if (char === "/" && next === "*") {
+      index = skipJson5BlockComment(text, index + 2);
+      continue;
+    }
+
+    break;
+  }
+
+  return index;
+}
+
+function skipJson5LineComment(text: string, offset: number): number {
+  let index = offset;
+  while (index < text.length && text[index] !== "\n") {
+    index += 1;
+  }
+  return index;
+}
+
+function skipJson5BlockComment(text: string, offset: number): number {
+  let index = offset;
+  while (index < text.length - 1) {
+    if (text[index] === "*" && text[index + 1] === "/") {
+      return index + 2;
+    }
+    index += 1;
+  }
+  return text.length;
+}
+
+function skipJson5String(text: string, offset: number): number {
+  const quote = text[offset];
+  if (quote !== '"' && quote !== "'") {
+    return offset;
+  }
+
+  let index = offset + 1;
+  let escaped = false;
+  while (index < text.length) {
+    const char = text[index];
+    if (char === undefined) {
+      break;
+    }
+    if (escaped) {
+      escaped = false;
+    } else if (char === "\\") {
+      escaped = true;
+    } else if (char === quote) {
+      return index + 1;
+    }
+    index += 1;
+  }
+  return text.length;
+}
+
+function isBareKeyBoundary(text: string, start: number, length: number): boolean {
+  const before = text[start - 1];
+  const after = text[start + length];
+  return !isIdentifierChar(before) && !isIdentifierChar(after);
+}
+
+function isIdentifierChar(char: string | undefined): boolean {
+  return char !== undefined && /[A-Za-z0-9_$-]/.test(char);
 }
 
 function stableSerialize(value: unknown): string {

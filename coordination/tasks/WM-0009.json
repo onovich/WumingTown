@@ -27,7 +27,7 @@
   ],
   "branch": "task/WM-0009-content-compiler",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T22:07:56.714Z",
+  "updatedAt": "2026-06-23T22:15:15.449Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
@@ -76,6 +76,18 @@
       "actor": "content-worker",
       "action": "complete",
       "details": "Fixed the remaining JSON5 source-location gap for unquoted keys. Property lookup now recognizes bare JSON5 keys so missing reference and localization diagnostics stay anchored to the offending patch fields instead of falling back to 1:1. Added a targeted JSON5 patch-location regression test and re-ran content tests, content validation, core-smoke compile, typecheck, lint, format, boundaries, and diff checks."
+    },
+    {
+      "at": "2026-06-23T22:11:51.831Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: Medium: JSON5 bare-key source lookup now avoids 1:1, but it also matches keys inside JSON5 comments; missing_def_reference/missing_localization_key diagnostics can point at comment lines instead of the offending patch fields, so JSON5 source-location acceptance is still incomplete."
+    },
+    {
+      "at": "2026-06-23T22:15:15.449Z",
+      "actor": "content-worker",
+      "action": "complete",
+      "details": "Fixed JSON5 source-location lookup to be comment-aware. Bare-key diagnostics now skip // and /* */ comment regions, so missing_def_reference and missing_localization_key stay anchored to the real patch fields rather than comment lines. Added a regression test covering comments that mention labelKey/references before the actual JSON5 fields, and re-ran content tests, content validation, core-smoke compile, typecheck, lint, format, boundaries, and diff checks."
     }
   ],
   "claimedBy": "content-worker",
@@ -85,7 +97,7 @@
   "review": {
     "reviewer": "reviewer",
     "verdict": "changes_requested",
-    "summary": "Medium: JSON5 sources are parsed, but diagnostics for unquoted JSON5 keys fall back to 1:1 instead of the offending id/reference/localization/patch field, so source-location acceptance is still incomplete for JSON5 fixtures.",
-    "at": "2026-06-23T22:01:46.069Z"
+    "summary": "Medium: JSON5 bare-key source lookup now avoids 1:1, but it also matches keys inside JSON5 comments; missing_def_reference/missing_localization_key diagnostics can point at comment lines instead of the offending patch fields, so JSON5 source-location acceptance is still incomplete.",
+    "at": "2026-06-23T22:11:51.831Z"
   }
 }

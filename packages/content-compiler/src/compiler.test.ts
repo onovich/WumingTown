@@ -73,7 +73,7 @@ describe("content compiler", () => {
       throw new Error("expected missing_def_reference diagnostic");
     }
     expect(missingDefReference.location.filePath.endsWith("bad_patch.json5")).toBe(true);
-    expect(missingDefReference.location.line).toBe(5);
+    expect(missingDefReference.location.line).toBe(9);
     expect(missingDefReference.location.column).toBe(21);
 
     const missingLocalization = result.diagnostics.find(
@@ -84,7 +84,7 @@ describe("content compiler", () => {
       throw new Error("expected missing_localization_key diagnostic");
     }
     expect(missingLocalization.location.filePath.endsWith("bad_patch.json5")).toBe(true);
-    expect(missingLocalization.location.line).toBe(4);
+    expect(missingLocalization.location.line).toBe(7);
     expect(missingLocalization.location.column).toBe(19);
   });
 
@@ -254,9 +254,13 @@ async function createJson5PatchLocationFixtureRoot(): Promise<string> {
   await writeText(
     path.join(root, "patches", "bad_patch.json5"),
     `{
+      // labelKey: comment only
+      /* references: comment only */
       targetId: "core.anomaly.json5_patch",
       changes: {
+        // labelKey: still ignore the comment line above
         labelKey: "content.core.anomaly.missing.label",
+        /* references: still ignore the block comment above */
         references: ["core.anomaly.missing"],
       },
     }\n`,
