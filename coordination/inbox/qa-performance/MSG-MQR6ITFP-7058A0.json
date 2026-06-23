@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQR6ITFP-7058A0",
+  "from": "reviewer",
+  "to": "qa-performance",
+  "taskId": "WM-0010",
+  "kind": "review-approved",
+  "subject": "WM-0010 review: verified",
+  "body": "No blocking findings; replay failure diagnostics now wrap crash/setup/divergence paths with seed, first divergent tick, and artifact paths; retry guard catches --retries/--repeat-each forms; required checks pass",
+  "artifacts": [
+    "coordination/reports/WM-0010.md"
+  ],
+  "createdAt": "2026-06-23T21:51:33.253Z",
+  "acknowledgedAt": "2026-06-23T21:52:35.044Z"
+}

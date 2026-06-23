@@ -2,7 +2,7 @@
   "id": "WM-0010",
   "title": "Establish CI, benchmark baselines and long-run diagnostics",
   "summary": "Create CI jobs for static checks, unit/integration/E2E tests, deterministic scenarios, benchmark artifact publication and dependency/security checks.",
-  "state": "review_requested",
+  "state": "done",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -28,7 +28,7 @@
   ],
   "branch": "task/WM-0010-ci-benchmarks",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T21:47:47.311Z",
+  "updatedAt": "2026-06-23T21:52:42.525Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
@@ -65,6 +65,24 @@
       "actor": "qa-performance",
       "action": "complete",
       "details": "Fixed replay failure wrapping so every failure path emits seed, first divergent tick, and summary artifact paths; expanded retry guard to catch --retries/--repeat-each CLI forms with self-check coverage; pnpm ci:local, pnpm bench, pnpm audit:deps pass"
+    },
+    {
+      "at": "2026-06-23T21:51:33.252Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; replay failure diagnostics now wrap crash/setup/divergence paths with seed, first divergent tick, and artifact paths; retry guard catches --retries/--repeat-each forms; required checks pass"
+    },
+    {
+      "at": "2026-06-23T21:52:42.484Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified branch 10658ec; replay diagnostics and retry guard review passed; preparing main integration."
+    },
+    {
+      "at": "2026-06-23T21:52:42.525Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "claimedBy": "qa-performance",
@@ -73,8 +91,13 @@
   "reportPath": "coordination/reports/WM-0010.md",
   "review": {
     "reviewer": "reviewer",
-    "verdict": "changes_requested",
-    "summary": "High: sim-replay-test has long-run/replay failure paths that still omit seed, first divergent tick, and artifact paths; Medium: retry guard misses common --retries/--repeat-each CLI retry flags",
-    "at": "2026-06-23T21:41:15.138Z"
+    "verdict": "verified",
+    "summary": "No blocking findings; replay failure diagnostics now wrap crash/setup/divergence paths with seed, first divergent tick, and artifact paths; retry guard catches --retries/--repeat-each forms; required checks pass",
+    "at": "2026-06-23T21:51:33.252Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified branch 10658ec; replay diagnostics and retry guard review passed; preparing main integration.",
+    "at": "2026-06-23T21:52:42.484Z"
   }
 }
