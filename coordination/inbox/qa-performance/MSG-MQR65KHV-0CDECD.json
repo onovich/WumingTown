@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQR65KHV-0CDECD",
+  "from": "reviewer",
+  "to": "qa-performance",
+  "taskId": "WM-0010",
+  "kind": "changes-requested",
+  "subject": "WM-0010 review: changes_requested",
+  "body": "High: sim-replay-test has long-run/replay failure paths that still omit seed, first divergent tick, and artifact paths; Medium: retry guard misses common --retries/--repeat-each CLI retry flags",
+  "artifacts": [
+    "coordination/reports/WM-0010.md"
+  ],
+  "createdAt": "2026-06-23T21:41:15.140Z",
+  "acknowledgedAt": "2026-06-23T21:42:02.585Z"
+}

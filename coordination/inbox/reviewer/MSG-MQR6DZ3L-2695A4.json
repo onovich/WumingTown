@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQR6DZ3L-2695A4",
+  "from": "qa-performance",
+  "to": "reviewer",
+  "taskId": "WM-0010",
+  "kind": "review-request",
+  "subject": "WM-0010 ready for review",
+  "body": "Fixed replay failure wrapping so every failure path emits seed, first divergent tick, and summary artifact paths; expanded retry guard to catch --retries/--repeat-each CLI forms with self-check coverage; pnpm ci:local, pnpm bench, pnpm audit:deps pass",
+  "artifacts": [
+    "coordination/reports/WM-0010.md",
+    "task/WM-0010-ci-benchmarks"
+  ],
+  "createdAt": "2026-06-23T21:47:47.313Z",
+  "acknowledgedAt": null
+}

@@ -4,6 +4,7 @@ import { spawnSync } from "node:child_process";
 const commands = [
   ["node", ["tools/write-environment-report.mjs"]],
   ["node", ["tools/assert-no-test-retries.mjs"]],
+  ["node", ["tools/assert-no-test-retries-self-check.mjs"]],
   ["pnpm", ["format:check"]],
   ["pnpm", ["lint"]],
   ["pnpm", ["typecheck"]],
@@ -11,6 +12,15 @@ const commands = [
   ["pnpm", ["boundaries:check"]],
   ["pnpm", ["test"]],
   ["pnpm", ["sim:replay-test"]],
+  [
+    "node",
+    [
+      "--experimental-strip-types",
+      "--import",
+      "./tools/register-ts-extension-loader.mjs",
+      "tools/sim-replay-test-self-check.mjs",
+    ],
+  ],
   ["pnpm", ["test:e2e"]],
   ["pnpm", ["handoff:validate"]],
   ["pnpm", ["coord:validate"]],
