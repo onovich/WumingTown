@@ -101,6 +101,7 @@ function selectVitestTargets(selectedMode, selectedFilter) {
         targets: [
           "packages/sim-worker/src/worker-smoke.e2e.test.ts",
           "apps/web/src/web-shell.e2e.test.ts",
+          "apps/desktop-electron/src/desktop-shell.e2e.test.ts",
         ],
       };
     }
@@ -118,6 +119,14 @@ function selectVitestTargets(selectedMode, selectedFilter) {
         ok: true,
         extraArgs: [],
         targets: ["apps/web/src/web-shell.e2e.test.ts"],
+      };
+    }
+
+    if (selectedFilter === "desktop-shell") {
+      return {
+        ok: true,
+        extraArgs: [],
+        targets: ["apps/desktop-electron/src/desktop-shell.e2e.test.ts"],
       };
     }
 

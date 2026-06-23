@@ -2,6 +2,7 @@
 
 import { createRoot } from "react-dom/client";
 
+import { resolvePlatformPorts, type PlatformHostInfo } from "@wuming-town/platform";
 import {
   createPixiWorldRenderer,
   type PixiWorldRendererDebugState,
@@ -10,7 +11,9 @@ import { createShellHudElement, createShellStore, type ShellState } from "@wumin
 
 import { WEB_SHELL_SMOKE_READ_MODEL } from "./smoke-read-model";
 
-export type WebShellDebugPayload = PixiWorldRendererDebugState;
+export interface WebShellDebugPayload extends PixiWorldRendererDebugState {
+  readonly platformHost: PlatformHostInfo;
+}
 
 export interface MountedWebShell {
   destroy(): Promise<void>;
@@ -18,6 +21,7 @@ export interface MountedWebShell {
 
 export async function mountWebClientShell(rootElement: HTMLElement): Promise<MountedWebShell> {
   prepareDocumentChrome();
+  const platformPorts = resolvePlatformPorts();
 
   const shellFrame = document.createElement("div");
   shellFrame.style.cssText =
@@ -64,7 +68,7 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
       });
       const activeRenderer = rendererRef.current;
       if (activeRenderer !== undefined) {
-        syncDebug(activeRenderer.readDebugState());
+        syncDebug(activeRenderer.readDebugState(), platformPorts.host);
       }
     },
     onStateChange(nextRendererState): void {
@@ -80,7 +84,7 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
       });
       const activeRenderer = rendererRef.current;
       if (activeRenderer !== undefined) {
-        syncDebug(activeRenderer.readDebugState());
+        syncDebug(activeRenderer.readDebugState(), platformPorts.host);
       }
     },
   });
@@ -90,12 +94,12 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
     const nextWidth = Math.max(shellFrame.clientWidth, 1);
     const nextHeight = Math.max(shellFrame.clientHeight, 1);
     renderer.resize(nextWidth, nextHeight, readDevicePixelRatio());
-    syncDebug(renderer.readDebugState());
+    syncDebug(renderer.readDebugState(), platformPorts.host);
   });
   resizeObserver.observe(shellFrame);
 
   renderer.resize(shellFrame.clientWidth, shellFrame.clientHeight, readDevicePixelRatio());
-  syncDebug(renderer.readDebugState());
+  syncDebug(renderer.readDebugState(), platformPorts.host);
 
   return {
     async destroy(): Promise<void> {
@@ -119,8 +123,11 @@ function readDevicePixelRatio(): number {
   return Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
 }
 
-function syncDebug(debugState: PixiWorldRendererDebugState): void {
-  const debugPayload: WebShellDebugPayload = debugState;
+function syncDebug(debugState: PixiWorldRendererDebugState, platformHost: PlatformHostInfo): void {
+  const debugPayload: WebShellDebugPayload = {
+    ...debugState,
+    platformHost,
+  };
   const debugNode = document.getElementById("wm-shell-debug");
   if (debugNode !== null) {
     debugNode.textContent = JSON.stringify(debugPayload);

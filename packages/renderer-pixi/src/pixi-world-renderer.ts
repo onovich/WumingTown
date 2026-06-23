@@ -1,5 +1,6 @@
 /// <reference lib="dom" />
 
+import "pixi.js/unsafe-eval";
 import { Application, Container, Graphics } from "pixi.js";
 
 import type { TileCoordinate, TerrainKind, WorldReadModel } from "@wuming-town/sim-protocol";

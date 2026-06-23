@@ -31,11 +31,13 @@ describe("web shell smoke", () => {
   it("renders the Pixi map shell, updates selection via canvas input, and writes a deterministic screenshot", async () => {
     const appRoot = path.join(process.cwd(), "apps", "web");
     const server = await createServer({
+      configFile: false,
       logLevel: "error",
       root: appRoot,
       server: {
         host: "127.0.0.1",
         port: 0,
+        strictPort: false,
       },
     });
     await server.listen();

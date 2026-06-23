@@ -20,6 +20,7 @@ export default tseslint.config(
     ignores: [
       ".agents/**",
       "node_modules/**",
+      "**/dist/**",
       "dist/**",
       "coverage/**",
       "docs/*.zip",
@@ -34,6 +35,20 @@ export default tseslint.config(
       ecmaVersion: "latest",
       globals: nodeGlobals,
       sourceType: "module",
+    },
+  },
+  {
+    files: ["**/*.cjs"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      globals: {
+        ...nodeGlobals,
+        __dirname: "readonly",
+        __filename: "readonly",
+        module: "readonly",
+        require: "readonly",
+      },
+      sourceType: "commonjs",
     },
   },
   ...tsOnly(tseslint.configs.strictTypeChecked),
