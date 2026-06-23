@@ -2,7 +2,7 @@
   "id": "WM-0011",
   "title": "Integrate and close Milestone M0",
   "summary": "Integrate the M0 foundations, run the complete gate on one commit, document residual risk, and make the repository ready for first gameplay simulation work.",
-  "state": "review_requested",
+  "state": "verified",
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,7 +32,7 @@
   ],
   "branch": "task/WM-0011-integrate-m0",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T22:49:52.002Z",
+  "updatedAt": "2026-06-23T22:54:17.872Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
@@ -57,10 +57,22 @@
       "actor": "project-director",
       "action": "complete",
       "details": "Prepared M0 closeout: added root build:web gate, documented M0 placeholder boundaries and known limitations, ran the full M0 closeout gate, and recorded evidence in coordination/reports/WM-0011.md."
+    },
+    {
+      "at": "2026-06-23T22:54:17.872Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; WM-0011 acceptance and M0 closeout evidence verified. Root build:web is a required-check alias to the existing web build, M0 placeholders are clearly documented as non-gameplay, and reproduced gates passed."
     }
   ],
   "claimedBy": "project-director",
   "threadLabel": "Beacon",
   "blocker": null,
-  "reportPath": "coordination/reports/WM-0011.md"
+  "reportPath": "coordination/reports/WM-0011.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; WM-0011 acceptance and M0 closeout evidence verified. Root build:web is a required-check alias to the existing web build, M0 placeholders are clearly documented as non-gameplay, and reproduced gates passed.",
+    "at": "2026-06-23T22:54:17.871Z"
+  }
 }

@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQR8RI8H-B86F0E",
+  "from": "reviewer",
+  "to": "project-director",
+  "taskId": "WM-0011",
+  "kind": "review-approved",
+  "subject": "WM-0011 review: verified",
+  "body": "No blocking findings; WM-0011 acceptance and M0 closeout evidence verified. Root build:web is a required-check alias to the existing web build, M0 placeholders are clearly documented as non-gameplay, and reproduced gates passed.",
+  "artifacts": [
+    "coordination/reports/WM-0011.md"
+  ],
+  "createdAt": "2026-06-23T22:54:17.873Z",
+  "acknowledgedAt": "2026-06-23T22:55:16.561Z"
+}
