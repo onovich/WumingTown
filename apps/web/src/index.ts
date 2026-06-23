@@ -4,6 +4,13 @@ import { RENDERER_PIXI_SMOKE } from "@wuming-town/renderer-pixi";
 import { SIM_PROTOCOL_SMOKE } from "@wuming-town/sim-protocol";
 import { UI_REACT_SMOKE } from "@wuming-town/ui-react";
 
+export {
+  mountWebClientShell,
+  type MountedWebShell,
+  type WebShellDebugPayload,
+} from "./shell-bootstrap";
+export { WEB_SHELL_SMOKE_READ_MODEL } from "./smoke-read-model";
+
 export const WEB_APP_SMOKE: WorkspaceSmoke = defineWorkspaceSmoke("@wuming-town/web", "app");
 
 export const WEB_APP_PUBLIC_DEPENDENCIES: readonly string[] = [

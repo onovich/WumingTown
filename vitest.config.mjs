@@ -26,7 +26,7 @@ export default defineConfig({
     },
   },
   test: {
-    include: ["{apps,packages,tools}/*/src/**/*.test.ts"],
+    include: ["{apps,packages,tools}/*/src/**/*.{test,e2e}.ts"],
     passWithNoTests: false,
   },
 });

@@ -11,7 +11,12 @@
     "@wuming-town/platform": "workspace:0.0.0",
     "@wuming-town/renderer-pixi": "workspace:0.0.0",
     "@wuming-town/sim-protocol": "workspace:0.0.0",
-    "@wuming-town/ui-react": "workspace:0.0.0"
+    "@wuming-town/ui-react": "workspace:0.0.0",
+    "react": "19.2.7",
+    "react-dom": "19.2.7"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 4173 --strictPort"
   },
   "wumingBoundary": {
     "allowedInternalDependencies": [

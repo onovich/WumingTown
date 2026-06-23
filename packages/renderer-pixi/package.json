@@ -8,7 +8,8 @@
   },
   "dependencies": {
     "@wuming-town/foundation": "workspace:0.0.0",
-    "@wuming-town/sim-protocol": "workspace:0.0.0"
+    "@wuming-town/sim-protocol": "workspace:0.0.0",
+    "pixi.js": "8.19.0"
   },
   "wumingBoundary": {
     "allowedInternalDependencies": [

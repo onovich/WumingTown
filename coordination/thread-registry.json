@@ -25,7 +25,12 @@
       "threadId": "019ef5a6-1ad8-72d3-bbc2-25127feca4c8",
       "label": "WM-0008 rng world hash",
       "registeredAt": "2026-06-23T18:02:55.895Z"
+    },
+    "client-engineer": {
+      "threadId": "019ef628-bea0-7483-9318-c04e48a04cd4",
+      "label": "WM-0003 web client shell recovery",
+      "registeredAt": "2026-06-23T20:25:41.247Z"
     }
   },
-  "updatedAt": "2026-06-23T19:25:20.606Z"
+  "updatedAt": "2026-06-23T20:25:41.248Z"
 }

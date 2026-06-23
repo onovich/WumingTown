@@ -57,6 +57,21 @@ export type {
   UiDeltaPayload,
   UiDetailSubject,
 } from "./types";
+export type {
+  EntityInspectorReadModel,
+  EntityNeedReadModel,
+  ResourceSummaryReadModel,
+} from "./web-read-model";
+export type {
+  TerrainKind,
+  TileCoordinate,
+  TownAlertReadModel,
+  TownOverviewReadModel,
+  WorldChunkReadModel,
+  WorldEntityKind,
+  WorldEntityReadModel,
+  WorldReadModel,
+} from "./web-read-model";
 
 export const SIM_PROTOCOL_SMOKE: WorkspaceSmoke = defineWorkspaceSmoke(
   "@wuming-town/sim-protocol",

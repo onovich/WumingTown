@@ -18,7 +18,7 @@ if (!selection.ok) {
   process.exit(1);
 }
 
-const result = spawnSync("pnpm", ["exec", "vitest", "run", ...selection.targets], {
+const result = spawnSync("pnpm", ["exec", "vitest", "run", ...selection.extraArgs, ...selection.targets], {
   shell: process.platform === "win32",
   stdio: "inherit",
 });
@@ -45,30 +45,46 @@ function readFilter(args) {
 
   return {
     error:
-      "Unsupported test arguments. Use no arguments, --filter determinism, --filter entity-store, --filter sim-core, --filter sim-protocol, or --filter worker-smoke.",
+      "Unsupported test arguments. Use no arguments, --filter determinism, --filter entity-store, --filter sim-core, --filter sim-protocol, --filter worker-smoke, or --filter web-shell.",
   };
 }
 
 function selectVitestTargets(selectedMode, selectedFilter) {
   if (selectedMode === "unit") {
     if (selectedFilter === undefined) {
-      return { ok: true, targets: [] };
+      return { ok: true, extraArgs: ["--exclude=**/*.e2e.test.ts"], targets: [] };
     }
 
     if (selectedFilter === "sim-protocol") {
-      return { ok: true, targets: ["packages/sim-protocol/src/protocol-validation.test.ts"] };
+      return {
+        ok: true,
+        extraArgs: ["--exclude=**/*.e2e.test.ts"],
+        targets: ["packages/sim-protocol/src/protocol-validation.test.ts"],
+      };
     }
 
     if (selectedFilter === "sim-core") {
-      return { ok: true, targets: ["packages/sim-core/src/runner.test.ts"] };
+      return {
+        ok: true,
+        extraArgs: ["--exclude=**/*.e2e.test.ts"],
+        targets: ["packages/sim-core/src/runner.test.ts"],
+      };
     }
 
     if (selectedFilter === "determinism") {
-      return { ok: true, targets: ["packages/sim-core/src/determinism.test.ts"] };
+      return {
+        ok: true,
+        extraArgs: ["--exclude=**/*.e2e.test.ts"],
+        targets: ["packages/sim-core/src/determinism.test.ts"],
+      };
     }
 
     if (selectedFilter === "entity-store") {
-      return { ok: true, targets: ["packages/sim-core/src/entity-store.invariants.test.ts"] };
+      return {
+        ok: true,
+        extraArgs: ["--exclude=**/*.e2e.test.ts"],
+        targets: ["packages/sim-core/src/entity-store.invariants.test.ts"],
+      };
     }
 
     return {
@@ -78,8 +94,31 @@ function selectVitestTargets(selectedMode, selectedFilter) {
   }
 
   if (selectedMode === "e2e") {
-    if (selectedFilter === undefined || selectedFilter === "worker-smoke") {
-      return { ok: true, targets: ["packages/sim-worker/src/worker-smoke.e2e.test.ts"] };
+    if (selectedFilter === undefined) {
+      return {
+        ok: true,
+        extraArgs: [],
+        targets: [
+          "packages/sim-worker/src/worker-smoke.e2e.test.ts",
+          "apps/web/src/web-shell.e2e.test.ts",
+        ],
+      };
+    }
+
+    if (selectedFilter === "worker-smoke") {
+      return {
+        ok: true,
+        extraArgs: [],
+        targets: ["packages/sim-worker/src/worker-smoke.e2e.test.ts"],
+      };
+    }
+
+    if (selectedFilter === "web-shell") {
+      return {
+        ok: true,
+        extraArgs: [],
+        targets: ["apps/web/src/web-shell.e2e.test.ts"],
+      };
     }
 
     return {

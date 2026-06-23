@@ -1,6 +1,14 @@
 import { defineWorkspaceSmoke, type WorkspaceSmoke } from "@wuming-town/foundation";
 import { SIM_PROTOCOL_SMOKE } from "@wuming-town/sim-protocol";
 
+export { createShellHudElement, ShellHudRoot, type ShellHudRootProps } from "./shell-hud";
+export {
+  createShellStore,
+  getSelectedEntity,
+  type ShellState,
+  type ShellStore,
+} from "./shell-store";
+
 export const UI_REACT_SMOKE: WorkspaceSmoke = defineWorkspaceSmoke(
   "@wuming-town/ui-react",
   "package",
