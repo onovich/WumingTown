@@ -2,7 +2,7 @@
   "id": "WM-0012",
   "title": "Produce the executable M1 simulation-kernel plan",
   "summary": "Decompose M1 into reviewed tasks for map grids, spatial indexes, path request batching, jobs, reservations and the first hauling scenario with performance budgets.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -27,13 +27,19 @@
   ],
   "branch": "task/WM-0012-plan-m1",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T12:00:00.000Z",
+  "updatedAt": "2026-06-23T22:57:37.094Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
       "actor": "handoff-author",
       "action": "create",
       "details": "Initial roadmap task"
+    },
+    {
+      "at": "2026-06-23T22:57:37.094Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ]
 }

@@ -2,7 +2,7 @@
   "id": "WM-0011",
   "title": "Integrate and close Milestone M0",
   "summary": "Integrate the M0 foundations, run the complete gate on one commit, document residual risk, and make the repository ready for first gameplay simulation work.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,7 +32,7 @@
   ],
   "branch": "task/WM-0011-integrate-m0",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T22:54:17.872Z",
+  "updatedAt": "2026-06-23T22:57:37.091Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
@@ -63,6 +63,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings; WM-0011 acceptance and M0 closeout evidence verified. Root build:web is a required-check alias to the existing web build, M0 placeholders are clearly documented as non-gameplay, and reproduced gates passed."
+    },
+    {
+      "at": "2026-06-23T22:57:37.050Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified branch d249eab; M0 closeout gate passed on main after fast-forward integration: frozen install, ci:local, build:web, build:desktop, million-tick sim run, bench, audit, handoff/coord validation and diff check."
+    },
+    {
+      "at": "2026-06-23T22:57:37.091Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "claimedBy": "project-director",
@@ -74,5 +86,10 @@
     "verdict": "verified",
     "summary": "No blocking findings; WM-0011 acceptance and M0 closeout evidence verified. Root build:web is a required-check alias to the existing web build, M0 placeholders are clearly documented as non-gameplay, and reproduced gates passed.",
     "at": "2026-06-23T22:54:17.871Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified branch d249eab; M0 closeout gate passed on main after fast-forward integration: frozen install, ci:local, build:web, build:desktop, million-tick sim run, bench, audit, handoff/coord validation and diff check.",
+    "at": "2026-06-23T22:57:37.050Z"
   }
 }
