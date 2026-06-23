@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQR8LT37-54C4FE",
+  "from": "project-director",
+  "to": "reviewer",
+  "taskId": "WM-0011",
+  "kind": "review-request",
+  "subject": "WM-0011 ready for review",
+  "body": "Prepared M0 closeout: added root build:web gate, documented M0 placeholder boundaries and known limitations, ran the full M0 closeout gate, and recorded evidence in coordination/reports/WM-0011.md.",
+  "artifacts": [
+    "coordination/reports/WM-0011.md",
+    "task/WM-0011-integrate-m0"
+  ],
+  "createdAt": "2026-06-23T22:49:52.003Z",
+  "acknowledgedAt": null
+}

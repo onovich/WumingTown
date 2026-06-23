@@ -10,6 +10,16 @@
 - 文档、Schema、ADR 与任务状态同步。
 - 独立 reviewer 通过。
 
+## M0 closeout 状态
+
+- Web shell、Electron shell、Worker protocol、Headless runner、Entity/Store、RNG/World Hash、内容 Schema/Compiler、CI/Benchmark/Audit 已通过独立任务评审后集成。
+- Web shell 和 Electron shell 仍是工程壳：它们证明渲染、HUD、检查器、平台端口、打包与 smoke 路径，不代表已经完成 gameplay。
+- Worker protocol 的 M0 Snapshot、UI Delta、Metrics、Save response 仍是协议占位或空世界输出；真实地图、角色、Job、Reservation、Pathing、存档容器和玩法命令属于 M1/M2 后续任务。
+- Headless runner 当前证明固定 30 TPS、显式 seed、可重放 summary/hash、百万空 Tick 和基础结构命令；它不是完整镇模拟。
+- 内容管线当前覆盖 JSON5 fixture、Def ID、引用、本地化、Patch 冲突和稳定编译顺序；首批生产内容、文化审查和规则组件化仍在后续内容阶段。
+- 当前显式 benchmark baseline 位于 `packages/benchmarks/baseline.json`，`pnpm bench` 会写出 artifact 并按 10% 警告、20% 阻断阈值比较。
+- M0 关闭后，任何第一条 gameplay simulation work 必须以 WM-0012 产出的 M1 任务 DAG 为前置，不得把上述占位声明为已完成玩法。
+
 ## 杀项目/转向信号
 
 - M2 后 TypeScript 正常规模仍无法达到 30 TPS，且复杂度/索引优化无效；进入 Wasm Spike。

@@ -2,7 +2,7 @@
   "id": "WM-0011",
   "title": "Integrate and close Milestone M0",
   "summary": "Integrate the M0 foundations, run the complete gate on one commit, document residual risk, and make the repository ready for first gameplay simulation work.",
-  "state": "ready",
+  "state": "review_requested",
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,7 +32,7 @@
   ],
   "branch": "task/WM-0011-integrate-m0",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T22:40:32.743Z",
+  "updatedAt": "2026-06-23T22:49:52.002Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
@@ -45,6 +45,22 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-23T22:41:44.415Z",
+      "actor": "project-director",
+      "action": "claim",
+      "details": "thread=Beacon"
+    },
+    {
+      "at": "2026-06-23T22:49:52.002Z",
+      "actor": "project-director",
+      "action": "complete",
+      "details": "Prepared M0 closeout: added root build:web gate, documented M0 placeholder boundaries and known limitations, ran the full M0 closeout gate, and recorded evidence in coordination/reports/WM-0011.md."
     }
-  ]
+  ],
+  "claimedBy": "project-director",
+  "threadLabel": "Beacon",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0011.md"
 }
