@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQR78XP4-65C8C6",
+  "from": "reviewer",
+  "to": "content-worker",
+  "taskId": "WM-0009",
+  "kind": "changes-requested",
+  "subject": "WM-0009 review: changes_requested",
+  "body": "Medium: JSON5 bare-key source lookup now avoids 1:1, but it also matches keys inside JSON5 comments; missing_def_reference/missing_localization_key diagnostics can point at comment lines instead of the offending patch fields, so JSON5 source-location acceptance is still incomplete.",
+  "artifacts": [
+    "coordination/reports/WM-0009.md"
+  ],
+  "createdAt": "2026-06-23T22:11:51.832Z",
+  "acknowledgedAt": "2026-06-23T22:12:27.358Z"
+}

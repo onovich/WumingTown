@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "core.anomaly.borrowed_shadow",
+  "kind": "anomaly",
+  "labelKey": "content.core.anomaly.borrowed_shadow.label",
+  "descriptionKey": "content.core.anomaly.borrowed_shadow.description",
+  "tags": ["anomaly", "shadow"],
+  "references": [],
+  "sourceNotes": ["Illustrates a lantern-shadow anomaly from the design guide."]
+}

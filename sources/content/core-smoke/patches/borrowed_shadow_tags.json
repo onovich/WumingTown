@@ -1,0 +1,10 @@
+{
+  "targetId": "core.anomaly.borrowed_shadow",
+  "changes": {
+    "tags": ["anomaly", "shadow", "fog"],
+    "sourceNotes": [
+      "Illustrates a lantern-shadow anomaly from the design guide.",
+      "Patched for the smoke fixture."
+    ]
+  }
+}

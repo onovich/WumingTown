@@ -1,6 +1,13 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 
+import {
+  discoverContentFixtureRoots,
+  formatContentDiagnostic,
+  loadContentFixture,
+  validateContentFixture,
+} from "../packages/content-schema/src/index.ts";
+
 const root = process.cwd();
 const errors = [];
 const expectedWorkspacePaths = [
@@ -72,6 +79,24 @@ const validateManifest = async (relativePath) => {
   }
 };
 
+const validateContentFixtures = async () => {
+  const contentRoot = path.join(root, "sources", "content");
+  const fixtureRoots = await discoverContentFixtureRoots(contentRoot);
+  for (const fixtureRoot of fixtureRoots) {
+    const loaded = await loadContentFixture(fixtureRoot);
+    const result = validateContentFixture(loaded);
+    if (result.ok) {
+      continue;
+    }
+
+    const relativeFixtureRoot = path.relative(root, fixtureRoot);
+    errors.push(`Content validation failed for ${relativeFixtureRoot}:`);
+    for (const diagnostic of result.diagnostics) {
+      errors.push(`- ${formatContentDiagnostic(diagnostic)}`);
+    }
+  }
+};
+
 const rootManifest = await readJson("package.json");
 if (rootManifest.packageManager !== "pnpm@11.8.0") {
   errors.push("Root packageManager must be pnpm@11.8.0.");
@@ -91,6 +116,8 @@ for (const entry of schemaEntries) {
     await readJson(`schemas/${entry.name}`);
   }
 }
+
+await validateContentFixtures();
 
 if (errors.length > 0) {
   console.error("Content validation failed:");

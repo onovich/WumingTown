@@ -1,0 +1,6 @@
+{
+  "content.core.anomaly.borrowed_shadow.label": "借影",
+  "content.core.anomaly.borrowed_shadow.description": "一团会从错灯下回应的影子。",
+  "content.core.incident.red_lantern_outage.label": "红灯失明",
+  "content.core.incident.red_lantern_outage.description": "灯火区在压力暴涨后突然断电。"
+}

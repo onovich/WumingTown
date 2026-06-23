@@ -7,9 +7,9 @@
       "registeredAt": "2026-06-23T12:42:34.400Z"
     },
     "reviewer": {
-      "threadId": "019ef67d-0b68-7351-945e-9c8867cfe482",
-      "label": "WM-0004 review",
-      "registeredAt": "2026-06-23T21:57:47.083Z"
+      "threadId": "019ef664-ce4f-7f41-9d9d-fc326a0e4370",
+      "label": "WM-0009 review",
+      "registeredAt": "2026-06-23T21:31:15.871Z"
     },
     "rapid-implementer": {
       "threadId": "019ef49a-ffd5-72f1-863b-f6448c984775",
@@ -35,7 +35,12 @@
       "threadId": "019ef650-38e6-7ca0-bcb5-d6145728be23",
       "label": "WM-0010 CI benchmarks",
       "registeredAt": "2026-06-23T21:08:57.634Z"
+    },
+    "content-worker": {
+      "threadId": "019ef650-24da-7c22-a896-40da4ce6f09f",
+      "label": "WM-0009 content compiler",
+      "registeredAt": "2026-06-23T21:08:57.632Z"
     }
   },
-  "updatedAt": "2026-06-23T21:57:47.084Z"
+  "updatedAt": "2026-06-23T22:28:20.219Z"
 }

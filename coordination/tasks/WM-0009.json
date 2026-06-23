@@ -2,7 +2,7 @@
   "id": "WM-0009",
   "title": "Build the content schema validator and Def compiler spike",
   "summary": "Validate JSON5 source content, namespace IDs, references, patch ordering and localization keys, then compile a small immutable runtime catalog.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "content-worker",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -27,7 +27,7 @@
   ],
   "branch": "task/WM-0009-content-compiler",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T15:20:56.259Z",
+  "updatedAt": "2026-06-23T22:29:09.185Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
@@ -40,6 +40,99 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-23T21:10:44.963Z",
+      "actor": "content-worker",
+      "action": "claim",
+      "details": "thread=Catalog"
+    },
+    {
+      "at": "2026-06-23T21:29:01.426Z",
+      "actor": "content-worker",
+      "action": "complete",
+      "details": "Added structured content validation and compiler spike; required checks pass."
+    },
+    {
+      "at": "2026-06-23T21:40:16.827Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: patch-applied references/localization are not revalidated and can compile missing refs or throw TypeError; Medium: invalid/unknown patch changes and JSON5 files are silently accepted or ignored."
+    },
+    {
+      "at": "2026-06-23T21:52:18.973Z",
+      "actor": "content-worker",
+      "action": "complete",
+      "details": "Fixed reviewer-requested regressions in WM-0009: patch application now revalidates references/localization after cloning and patching, patch field shape/type issues now emit structured diagnostics with source locations, and JSON5 fixture sources are parsed or explicitly rejected instead of being silently ignored. Re-ran content validation, content tests, compile smoke, typecheck, lint, format, boundaries, and diff checks."
+    },
+    {
+      "at": "2026-06-23T22:01:46.069Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: Medium: JSON5 sources are parsed, but diagnostics for unquoted JSON5 keys fall back to 1:1 instead of the offending id/reference/localization/patch field, so source-location acceptance is still incomplete for JSON5 fixtures."
+    },
+    {
+      "at": "2026-06-23T22:07:56.714Z",
+      "actor": "content-worker",
+      "action": "complete",
+      "details": "Fixed the remaining JSON5 source-location gap for unquoted keys. Property lookup now recognizes bare JSON5 keys so missing reference and localization diagnostics stay anchored to the offending patch fields instead of falling back to 1:1. Added a targeted JSON5 patch-location regression test and re-ran content tests, content validation, core-smoke compile, typecheck, lint, format, boundaries, and diff checks."
+    },
+    {
+      "at": "2026-06-23T22:11:51.831Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: Medium: JSON5 bare-key source lookup now avoids 1:1, but it also matches keys inside JSON5 comments; missing_def_reference/missing_localization_key diagnostics can point at comment lines instead of the offending patch fields, so JSON5 source-location acceptance is still incomplete."
+    },
+    {
+      "at": "2026-06-23T22:15:15.449Z",
+      "actor": "content-worker",
+      "action": "complete",
+      "details": "Fixed JSON5 source-location lookup to be comment-aware. Bare-key diagnostics now skip // and /* */ comment regions, so missing_def_reference and missing_localization_key stay anchored to the real patch fields rather than comment lines. Added a regression test covering comments that mention labelKey/references before the actual JSON5 fields, and re-ran content tests, content validation, core-smoke compile, typecheck, lint, format, boundaries, and diff checks."
+    },
+    {
+      "at": "2026-06-23T22:18:34.760Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: comment-aware JSON5 lookup skips quoted keys before matching them, so normal JSON diagnostics for invalid IDs and missing references regress to 1:1 instead of the offending id/reference fields; source-location acceptance remains broken despite required checks passing."
+    },
+    {
+      "at": "2026-06-23T22:25:14.904Z",
+      "actor": "content-worker",
+      "action": "complete",
+      "details": "Fixed source-location regression by restoring quoted-key lookup for plain JSON while keeping JSON5 bare-key lookup comment-aware. Plain JSON invalid IDs and missing references now resolve to the offending quoted field/value instead of 1:1, and JSON5 bare keys still skip // and /* */ comments. Added regression coverage for quoted JSON source locations and comment-aware JSON5 bare-key source locations, then re-ran content tests, content validation, core-smoke compile, typecheck, lint, format, boundaries, and diff checks."
+    },
+    {
+      "at": "2026-06-23T22:28:20.219Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; quoted JSON source locations and comment-aware JSON5 bare-key locations verified, required content checks and engineering gates pass."
+    },
+    {
+      "at": "2026-06-23T22:29:09.142Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified branch 0b2006a; source-located content validation and compiler spike reviewed; preparing main merge."
+    },
+    {
+      "at": "2026-06-23T22:29:09.184Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
-  ]
+  ],
+  "claimedBy": "content-worker",
+  "threadLabel": "Catalog",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0009.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; quoted JSON source locations and comment-aware JSON5 bare-key locations verified, required content checks and engineering gates pass.",
+    "at": "2026-06-23T22:28:20.219Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified branch 0b2006a; source-located content validation and compiler spike reviewed; preparing main merge.",
+    "at": "2026-06-23T22:29:09.141Z"
+  }
 }

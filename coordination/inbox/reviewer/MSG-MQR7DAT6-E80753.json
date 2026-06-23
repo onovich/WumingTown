@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQR7DAT6-E80753",
+  "from": "content-worker",
+  "to": "reviewer",
+  "taskId": "WM-0009",
+  "kind": "review-request",
+  "subject": "WM-0009 ready for review",
+  "body": "Fixed JSON5 source-location lookup to be comment-aware. Bare-key diagnostics now skip // and /* */ comment regions, so missing_def_reference and missing_localization_key stay anchored to the real patch fields rather than comment lines. Added a regression test covering comments that mention labelKey/references before the actual JSON5 fields, and re-ran content tests, content validation, core-smoke compile, typecheck, lint, format, boundaries, and diff checks.",
+  "artifacts": [
+    "coordination/reports/WM-0009.md",
+    "task/WM-0009-content-compiler"
+  ],
+  "createdAt": "2026-06-23T22:15:15.450Z",
+  "acknowledgedAt": "2026-06-23T22:16:17.592Z"
+}

@@ -49,7 +49,7 @@ function readFilter(args) {
 
   return {
     error:
-      "Unsupported test arguments. Use no arguments, --filter determinism, --filter entity-store, --filter sim-core, --filter sim-protocol, --filter worker-smoke, or --filter web-shell.",
+      "Unsupported test arguments. Use no arguments, --filter content, --filter determinism, --filter entity-store, --filter sim-core, --filter sim-protocol, --filter worker-smoke, or --filter web-shell.",
   };
 }
 
@@ -88,6 +88,17 @@ function selectVitestTargets(selectedMode, selectedFilter) {
         ok: true,
         extraArgs: ["--exclude=**/*.e2e.test.ts"],
         targets: ["packages/sim-core/src/entity-store.invariants.test.ts"],
+      };
+    }
+
+    if (selectedFilter === "content") {
+      return {
+        ok: true,
+        extraArgs: ["--exclude=**/*.e2e.test.ts"],
+        targets: [
+          "packages/content-schema/src/content-fixtures.test.ts",
+          "packages/content-compiler/src/compiler.test.ts",
+        ],
       };
     }
 
