@@ -21,6 +21,7 @@ export interface ContentRawFile {
   readonly kind: "definition" | "locale" | "patch";
   readonly text: string;
   readonly json: unknown;
+  parseError?: string;
 }
 
 export interface ContentFixture {
@@ -62,7 +63,13 @@ export interface ValidatedPatchFile {
   readonly filePath: string;
   readonly targetId: string;
   readonly targetLocation: ContentSourceLocation;
-  readonly changes: ReadonlyMap<string, unknown>;
+  readonly changes: readonly ValidatedPatchChange[];
+}
+
+export interface ValidatedPatchChange {
+  readonly key: string;
+  readonly value: unknown;
+  readonly location: ContentSourceLocation;
 }
 
 export interface ValidatedContentFixture {
@@ -84,13 +91,17 @@ export async function loadContentFixture(rootDir: string): Promise<ContentFixtur
 
   for (const filePath of filePaths) {
     const text = await readFile(filePath, "utf8");
-    const json: unknown = JSON.parse(text);
-    files.push({
+    const parsed = parseContentDocument(filePath, text);
+    const contentFile: ContentRawFile = {
       filePath,
       kind: classifyContentFile(rootDir, filePath),
       text,
-      json,
-    });
+      json: parsed.ok ? parsed.json : undefined,
+    };
+    if (!parsed.ok) {
+      contentFile.parseError = parsed.error;
+    }
+    files.push(contentFile);
   }
 
   return {
@@ -107,6 +118,11 @@ export function validateContentFixture(fixture: ContentFixture): ContentValidati
   const definitionsById = new Map<string, ValidatedDefinitionFile>();
 
   for (const file of fixture.files) {
+    if (file.parseError !== undefined) {
+      diagnostics.push(buildSyntaxDiagnostic(file.filePath, file.parseError));
+      continue;
+    }
+
     if (file.kind === "definition") {
       const parsed = parseDefinitionFile(file, diagnostics);
       if (parsed !== undefined) {
@@ -210,21 +226,21 @@ export function validateContentFixture(fixture: ContentFixture): ContentValidati
     const targetChanges =
       patchValuesByTarget.get(patch.targetId) ??
       new Map<string, { value: string; location: ContentSourceLocation }>();
-    for (const [pathName, value] of patch.changes.entries()) {
-      const stableValue = stableSerialize(value);
-      const existing = targetChanges.get(pathName);
+    for (const change of patch.changes) {
+      const stableValue = stableSerialize(change.value);
+      const existing = targetChanges.get(change.key);
       if (existing !== undefined && existing.value !== stableValue) {
         diagnostics.push({
           code: "patch_conflict",
-          message: `Patch conflict on ${patch.targetId}.${pathName}`,
-          location: patch.targetLocation,
+          message: `Patch conflict on ${patch.targetId}.${change.key}`,
+          location: change.location,
           relatedLocations: [existing.location],
         });
       }
       if (existing === undefined) {
-        targetChanges.set(pathName, {
+        targetChanges.set(change.key, {
           value: stableValue,
-          location: patch.targetLocation,
+          location: change.location,
         });
       }
     }
@@ -301,7 +317,7 @@ async function collectJsonFiles(directoryPath: string): Promise<readonly string[
       continue;
     }
 
-    if (entry.isFile() && entry.name.endsWith(".json")) {
+    if (entry.isFile() && isSupportedContentExtension(entry.name)) {
       filePaths.push(entryPath);
     }
   }
@@ -315,13 +331,13 @@ function classifyContentFile(rootDir: string, filePath: string): "definition" | 
   const segments = relativePath.split(path.sep);
   const category = segments[0];
 
-  if (category === "defs") {
+  if (category === "defs" && isSupportedContentExtension(filePath)) {
     return "definition";
   }
-  if (category === "locales") {
+  if (category === "locales" && isSupportedContentExtension(filePath)) {
     return "locale";
   }
-  if (category === "patches") {
+  if (category === "patches" && isSupportedContentExtension(filePath)) {
     return "patch";
   }
 
@@ -408,7 +424,7 @@ function parseLocaleFile(
     entries.set(key, value);
   }
 
-  const locale = path.basename(file.filePath, ".json");
+  const locale = path.basename(file.filePath, path.extname(file.filePath));
 
   return {
     filePath: file.filePath,
@@ -443,9 +459,78 @@ function parsePatchFile(
     return undefined;
   }
 
-  const changes = new Map<string, unknown>();
+  const changes: ValidatedPatchChange[] = [];
   for (const [key, value] of Object.entries(changesObject)) {
-    changes.set(key, value);
+    const location = findPropertyLocation(file.filePath, file.text, key);
+
+    if (key === "tags" || key === "sourceNotes" || key === "references") {
+      if (!Array.isArray(value)) {
+        diagnostics.push({
+          code: "invalid_patch_change_type",
+          message: `Patch field ${key} must be an array of strings`,
+          location,
+          relatedLocations: [],
+        });
+        continue;
+      }
+
+      const items = readPatchStringArray(value, key, location, diagnostics);
+      if (items === undefined) {
+        continue;
+      }
+
+      changes.push({
+        key,
+        value: items,
+        location,
+      });
+      continue;
+    }
+
+    if (key === "labelKey" || key === "descriptionKey" || key === "kind") {
+      if (typeof value !== "string") {
+        diagnostics.push({
+          code: "invalid_patch_change_type",
+          message: `Patch field ${key} must be a string`,
+          location,
+          relatedLocations: [],
+        });
+        continue;
+      }
+
+      changes.push({
+        key,
+        value,
+        location,
+      });
+      continue;
+    }
+
+    if (key === "schemaVersion") {
+      if (typeof value !== "number" || !Number.isInteger(value)) {
+        diagnostics.push({
+          code: "invalid_patch_change_type",
+          message: "Patch field schemaVersion must be an integer",
+          location,
+          relatedLocations: [],
+        });
+        continue;
+      }
+
+      changes.push({
+        key,
+        value,
+        location,
+      });
+      continue;
+    }
+
+    diagnostics.push({
+      code: "unknown_patch_change",
+      message: `Unknown patch field ${key}`,
+      location,
+      relatedLocations: [],
+    });
   }
 
   const targetLocation = findPropertyLocation(file.filePath, file.text, "targetId");
@@ -557,6 +642,19 @@ function buildTypeDiagnostic(filePath: string, kind: string, expected: string): 
   return {
     code: "invalid_document_type",
     message: `${kind} file must be ${expected}`,
+    location: {
+      filePath,
+      line: 1,
+      column: 1,
+    },
+    relatedLocations: [],
+  };
+}
+
+function buildSyntaxDiagnostic(filePath: string, message: string): ContentDiagnostic {
+  return {
+    code: "invalid_document_syntax",
+    message,
     location: {
       filePath,
       line: 1,
@@ -698,4 +796,180 @@ function compareStrings(left: string, right: string): number {
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isSupportedContentExtension(filePath: string): boolean {
+  return filePath.endsWith(".json") || filePath.endsWith(".json5");
+}
+
+function parseContentDocument(
+  filePath: string,
+  text: string,
+): { ok: true; json: unknown } | { ok: false; error: string } {
+  try {
+    if (filePath.endsWith(".json5")) {
+      return {
+        ok: true,
+        json: JSON.parse(stripJson5ToJson(text)),
+      };
+    }
+
+    return {
+      ok: true,
+      json: JSON.parse(text),
+    };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Failed to parse content file.",
+    };
+  }
+}
+
+function stripJson5ToJson(text: string): string {
+  let result = "";
+  let index = 0;
+  let inString = false;
+  let stringQuote = "";
+  let escaped = false;
+
+  while (index < text.length) {
+    const char = text[index];
+    if (char === undefined) {
+      break;
+    }
+    const next = text[index + 1];
+
+    if (inString) {
+      result += char;
+      if (escaped) {
+        escaped = false;
+      } else if (char === "\\") {
+        escaped = true;
+      } else if (char === stringQuote) {
+        inString = false;
+        stringQuote = "";
+      }
+      index += 1;
+      continue;
+    }
+
+    if (char === '"' || char === "'") {
+      inString = true;
+      stringQuote = char;
+      result += char;
+      index += 1;
+      continue;
+    }
+
+    if (char === "/" && next === "/") {
+      index += 2;
+      while (index < text.length && text[index] !== "\n") {
+        index += 1;
+      }
+      continue;
+    }
+
+    if (char === "/" && next === "*") {
+      index += 2;
+      while (index < text.length - 1 && !(text[index] === "*" && text[index + 1] === "/")) {
+        index += 1;
+      }
+      index += 2;
+      continue;
+    }
+
+    result += char;
+    index += 1;
+  }
+
+  return quoteJson5Keys(removeTrailingJsonCommas(result));
+}
+
+function removeTrailingJsonCommas(text: string): string {
+  let result = "";
+  let index = 0;
+  let inString = false;
+  let stringQuote = "";
+  let escaped = false;
+
+  while (index < text.length) {
+    const char = text[index];
+    if (char === undefined) {
+      break;
+    }
+
+    if (inString) {
+      result += char;
+      if (escaped) {
+        escaped = false;
+      } else if (char === "\\") {
+        escaped = true;
+      } else if (char === stringQuote) {
+        inString = false;
+        stringQuote = "";
+      }
+      index += 1;
+      continue;
+    }
+
+    if (char === '"' || char === "'") {
+      inString = true;
+      stringQuote = char;
+      result += char;
+      index += 1;
+      continue;
+    }
+
+    if (char === ",") {
+      let lookahead = index + 1;
+      while (lookahead < text.length) {
+        const lookaheadChar = text[lookahead];
+        if (lookaheadChar === undefined || !isWhitespace(lookaheadChar)) {
+          break;
+        }
+        lookahead += 1;
+      }
+      if (lookahead < text.length && (text[lookahead] === "}" || text[lookahead] === "]")) {
+        index += 1;
+        continue;
+      }
+    }
+
+    result += char;
+    index += 1;
+  }
+
+  return result;
+}
+
+function isWhitespace(char: string): boolean {
+  return char === " " || char === "\n" || char === "\r" || char === "\t";
+}
+
+function quoteJson5Keys(text: string): string {
+  return text.replace(/([,{]\s*)([A-Za-z_$][A-Za-z0-9_$-]*)\s*:/g, '$1"$2":');
+}
+
+function readPatchStringArray(
+  value: unknown[],
+  fieldName: string,
+  baseLocation: ContentSourceLocation,
+  diagnostics: ContentDiagnostic[],
+): readonly string[] | undefined {
+  const items: string[] = [];
+  for (let index = 0; index < value.length; index += 1) {
+    const item: unknown = value[index];
+    if (typeof item !== "string") {
+      diagnostics.push({
+        code: "invalid_patch_change_type",
+        message: `Patch field ${fieldName}[${String(index)}] must be a string`,
+        location: baseLocation,
+        relatedLocations: [],
+      });
+      return undefined;
+    }
+    items.push(item);
+  }
+  return items;
 }

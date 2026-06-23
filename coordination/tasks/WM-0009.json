@@ -27,7 +27,7 @@
   ],
   "branch": "task/WM-0009-content-compiler",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T21:29:01.426Z",
+  "updatedAt": "2026-06-23T21:52:18.974Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
@@ -52,10 +52,28 @@
       "actor": "content-worker",
       "action": "complete",
       "details": "Added structured content validation and compiler spike; required checks pass."
+    },
+    {
+      "at": "2026-06-23T21:40:16.827Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: patch-applied references/localization are not revalidated and can compile missing refs or throw TypeError; Medium: invalid/unknown patch changes and JSON5 files are silently accepted or ignored."
+    },
+    {
+      "at": "2026-06-23T21:52:18.973Z",
+      "actor": "content-worker",
+      "action": "complete",
+      "details": "Fixed reviewer-requested regressions in WM-0009: patch application now revalidates references/localization after cloning and patching, patch field shape/type issues now emit structured diagnostics with source locations, and JSON5 fixture sources are parsed or explicitly rejected instead of being silently ignored. Re-ran content validation, content tests, compile smoke, typecheck, lint, format, boundaries, and diff checks."
     }
   ],
   "claimedBy": "content-worker",
   "threadLabel": "Catalog",
   "blocker": null,
-  "reportPath": "coordination/reports/WM-0009.md"
+  "reportPath": "coordination/reports/WM-0009.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "changes_requested",
+    "summary": "High: patch-applied references/localization are not revalidated and can compile missing refs or throw TypeError; Medium: invalid/unknown patch changes and JSON5 files are silently accepted or ignored.",
+    "at": "2026-06-23T21:40:16.827Z"
+  }
 }

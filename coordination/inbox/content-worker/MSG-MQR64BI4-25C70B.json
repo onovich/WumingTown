@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQR64BI4-25C70B",
+  "from": "reviewer",
+  "to": "content-worker",
+  "taskId": "WM-0009",
+  "kind": "changes-requested",
+  "subject": "WM-0009 review: changes_requested",
+  "body": "High: patch-applied references/localization are not revalidated and can compile missing refs or throw TypeError; Medium: invalid/unknown patch changes and JSON5 files are silently accepted or ignored.",
+  "artifacts": [
+    "coordination/reports/WM-0009.md"
+  ],
+  "createdAt": "2026-06-23T21:40:16.828Z",
+  "acknowledgedAt": "2026-06-23T21:41:35.258Z"
+}

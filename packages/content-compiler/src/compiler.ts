@@ -60,10 +60,22 @@ export function compileLoadedContentFixture(fixture: ContentFixture): ContentCom
     };
   }
 
+  const appliedDefinitions = applyPatches(validated.fixture.definitions, validated.fixture.patches);
+  const postPatchDiagnostics = validatePatchedContentFixture(
+    appliedDefinitions,
+    validated.fixture.locales,
+  );
+  if (postPatchDiagnostics.length > 0) {
+    return {
+      ok: false,
+      diagnostics: postPatchDiagnostics,
+    };
+  }
+
   return {
     ok: true,
     diagnostics: [],
-    catalog: buildCatalog(validated.fixture),
+    catalog: buildCatalog(validated.fixture, appliedDefinitions),
   };
 }
 
@@ -71,8 +83,10 @@ export function formatCompilationFailure(diagnostics: readonly ContentDiagnostic
   return diagnostics.map((diagnostic) => formatContentDiagnostic(diagnostic)).join("\n");
 }
 
-function buildCatalog(fixture: ValidatedContentFixture): ContentCompilationCatalog {
-  const appliedDefinitions = applyPatches(fixture.definitions, fixture.patches);
+function buildCatalog(
+  fixture: ValidatedContentFixture,
+  appliedDefinitions: readonly ValidatedDefinitionFile[],
+): ContentCompilationCatalog {
   const sortedDefinitions = appliedDefinitions
     .slice()
     .sort((left, right) => compareStrings(left.id, right.id));
@@ -107,7 +121,7 @@ function applyPatches(
   definitions: readonly ValidatedDefinitionFile[],
   patches: readonly ValidatedPatchFile[],
 ): readonly ValidatedDefinitionFile[] {
-  const clonedDefinitions = definitions.map((definition) => ({
+  const clonedDefinitions: MutableValidatedDefinitionFile[] = definitions.map((definition) => ({
     filePath: definition.filePath,
     id: definition.id,
     kind: definition.kind,
@@ -130,7 +144,8 @@ function applyPatches(
       continue;
     }
 
-    for (const [pathName, value] of patch.changes.entries()) {
+    for (const change of patch.changes) {
+      const { key: pathName, value } = change;
       if (
         pathName === "tags" &&
         Array.isArray(value) &&
@@ -156,33 +171,80 @@ function applyPatches(
       ) {
         target.references = value.map((entry) => ({
           id: entry,
-          location: target.locations.id,
+          location: change.location,
         }));
         continue;
       }
 
       if (pathName === "labelKey" && typeof value === "string") {
         target.labelKey = value;
+        target.locations.labelKey = change.location;
         continue;
       }
 
       if (pathName === "descriptionKey" && typeof value === "string") {
         target.descriptionKey = value;
+        target.locations.descriptionKey = change.location;
         continue;
       }
 
       if (pathName === "kind" && typeof value === "string") {
         target.kind = value;
+        target.locations.kind = change.location;
         continue;
       }
 
       if (pathName === "schemaVersion" && typeof value === "number" && Number.isInteger(value)) {
         target.schemaVersion = value;
+        target.locations.schemaVersion = change.location;
       }
     }
   }
 
   return clonedDefinitions;
+}
+
+function validatePatchedContentFixture(
+  definitions: readonly ValidatedDefinitionFile[],
+  locales: readonly ValidatedLocaleFile[],
+): readonly ContentDiagnostic[] {
+  const diagnostics: ContentDiagnostic[] = [];
+  const definitionsById = new Map<string, ValidatedDefinitionFile>();
+
+  for (const definition of definitions) {
+    definitionsById.set(definition.id, definition);
+  }
+
+  for (const definition of definitions) {
+    for (const reference of definition.references) {
+      if (!definitionsById.has(reference.id)) {
+        diagnostics.push({
+          code: "missing_def_reference",
+          message: `Missing referenced def ${reference.id} in ${definition.id}`,
+          location: reference.location,
+          relatedLocations: [],
+        });
+      }
+    }
+
+    const missingLocaleKeys = [definition.labelKey, definition.descriptionKey].filter(
+      (key) => !allLocalesContainKey(locales, key),
+    );
+
+    for (const key of missingLocaleKeys) {
+      diagnostics.push({
+        code: "missing_localization_key",
+        message: `Missing localization key ${key} for ${definition.id}`,
+        location:
+          key === definition.labelKey
+            ? definition.locations.labelKey
+            : definition.locations.descriptionKey,
+        relatedLocations: [],
+      });
+    }
+  }
+
+  return diagnostics;
 }
 
 function buildLocaleBundles(
@@ -231,6 +293,34 @@ function collectLocalizedValues(
     values[localeName] = bundle[key] ?? "";
   }
   return values;
+}
+
+function allLocalesContainKey(locales: readonly ValidatedLocaleFile[], key: string): boolean {
+  for (const locale of locales) {
+    if (!locale.entries.has(key)) {
+      return false;
+    }
+  }
+  return locales.length > 0;
+}
+
+interface MutableValidatedDefinitionFile {
+  filePath: string;
+  id: string;
+  kind: string;
+  schemaVersion: number;
+  labelKey: string;
+  descriptionKey: string;
+  tags: string[];
+  references: ValidatedDefinitionFile["references"];
+  sourceNotes: string[];
+  locations: {
+    schemaVersion: { filePath: string; line: number; column: number };
+    id: { filePath: string; line: number; column: number };
+    kind: { filePath: string; line: number; column: number };
+    labelKey: { filePath: string; line: number; column: number };
+    descriptionKey: { filePath: string; line: number; column: number };
+  };
 }
 
 function freezeValue<T>(value: T): T {
