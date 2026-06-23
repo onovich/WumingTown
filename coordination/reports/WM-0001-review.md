@@ -45,3 +45,52 @@ The report also records a checksum inspection after claim with one expected mism
 ## Verdict Summary
 
 Changes requested: High Git tracking/integration blocker; Medium final evidence drift. Do not verify WM-0001 until the adopted control plane and final reviewable evidence are present in the task branch.
+
+---
+
+# WM-0001 Re-Review
+
+Reviewer: reviewer / Mirror
+Verdict: verified
+Reviewed at: 2026-06-23
+
+## Findings
+
+No blocking findings.
+
+The previous high finding is resolved: `task/WM-0001-adopt-control-plane` now has a tracked adoption diff from `main`, with 171 added files and 6959 insertions. `HEAD` is `760327922d74456f8be4152ee247e2dcc1bd82f6`, with the task branch three commits ahead of baseline `main` commit `e9578ee3f2d65480a3e8f630cbb0c728b96ef11a`.
+
+The previous medium finding is resolved for verification purposes: the report now classifies checksum and validator digest drift as expected mutable control-plane behavior, and re-review commands confirm the current tracked state passes required validators.
+
+## Commands Run
+
+- `git status --short --branch` -> clean on `task/WM-0001-adopt-control-plane` before review evidence update.
+- `git rev-parse HEAD` -> `760327922d74456f8be4152ee247e2dcc1bd82f6`.
+- `git diff --stat main...task/WM-0001-adopt-control-plane` -> non-empty tracked adoption diff, 171 files changed.
+- `git diff --name-status main...task/WM-0001-adopt-control-plane` -> adoption files are tracked additions.
+- `git log --oneline --decorate --all --max-count=8` -> task branch commits sit on baseline `main`.
+- `node tools/validate-handoff.mjs` -> passed: 171 files, 12 tasks, 9 roles; digest `07633bde45710744363430f6a459b8424e4a4fb8e0420e9e83f9460da7ae8fa5`.
+- `node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate` -> passed: 12 tasks, 9 roles.
+- `node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status` -> proposed 11, review_requested 1, unread inbox 0.
+- `node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs route` -> no messages require routing.
+- `CHECKSUMS.sha256` inspection -> 163 entries, 0 missing, expected mutable mismatches only for `coordination/tasks/WM-0001.json` and `coordination/thread-registry.json`.
+- ZIP hash verification -> original archive hash matches the recorded `.sha256` value.
+- UTF-8 BOM check -> `SKILL.md` starts `45 45 45`; `agents/openai.yaml` starts `105 110 116`.
+- `git diff --check main...task/WM-0001-adopt-control-plane` -> only Markdown trailing spaces in `README.md`, allowed by `.editorconfig` for `*.md` and not a verification blocker.
+
+## Acceptance Review
+
+| Acceptance criterion | Re-review evidence |
+|---|---|
+| `taskctl validate` and handoff validator pass | Both pass in the tracked branch state. |
+| A report lists every discovered contradiction or states that none were found | `coordination/reports/WM-0001.md` records manifest/file-count nuance, checksum drift, skill discovery limitation, routing limitation, and operational risks. |
+| M0 execution plan assigns ownership without exceeding three concurrent write-heavy tasks | `coordination/reports/WM-0001-plan.md` and `coordination/reports/WM-0001.md` dispatch WM-0002 first, then at most WM-0003, WM-0005, and WM-0009 as concurrent write-heavy lanes. |
+| No locked decision is silently changed | Locked decisions in `CODEX_START_HERE.md`, `docs/00_project/05_decision_register.md`, and `coordination/project-state.json` remain aligned: TypeScript-first, Dedicated Worker authority, PixiJS world rendering plus React UI, Windows/Web first, 30 TPS, no early Rust rewrite, no arbitrary code mods. |
+
+## Residual Notes
+
+The `tools/validate-handoff.mjs` structure digest is intentionally volatile because coordination reports and inbox messages are part of the validator walk. Integration should rerun the same validators after the `verified` state transition because `taskctl review` will mutate `coordination/tasks/WM-0001.json` and add a project-director inbox message.
+
+## Verdict Summary
+
+Verified: no blocking findings; acceptance evidence confirmed after tracked adoption diff and refreshed validation evidence.

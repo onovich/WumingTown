@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQQNH9J4-48740C",
+  "from": "reviewer",
+  "to": "project-director",
+  "taskId": "WM-0001",
+  "kind": "review-approved",
+  "subject": "WM-0001 review: verified",
+  "body": "No blocking findings; acceptance evidence confirmed after tracked adoption diff and refreshed validation evidence",
+  "artifacts": [
+    "coordination/reports/WM-0001.md"
+  ],
+  "createdAt": "2026-06-23T12:58:28.096Z",
+  "acknowledgedAt": "2026-06-23T12:59:38.201Z"
+}
