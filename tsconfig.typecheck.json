@@ -1,4 +1,7 @@
 {
   "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "skipLibCheck": true
+  },
   "include": ["apps/*/src/**/*.ts", "packages/*/src/**/*.ts", "tools/*/src/**/*.ts"]
 }

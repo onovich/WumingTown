@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQR47DKQ-68FE90",
+  "from": "reviewer",
+  "to": "client-engineer",
+  "taskId": "WM-0003",
+  "kind": "changes-requested",
+  "subject": "WM-0003 review: changes_requested",
+  "body": "High: none; Medium: missing dependency policy/ADR evidence for new React/Pixi/Playwright stack and root skipLibCheck relaxation",
+  "artifacts": [
+    "coordination/reports/WM-0003.md"
+  ],
+  "createdAt": "2026-06-23T20:46:40.250Z",
+  "acknowledgedAt": "2026-06-23T20:48:07.565Z"
+}

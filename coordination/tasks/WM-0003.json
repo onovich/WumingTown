@@ -26,7 +26,7 @@
   ],
   "branch": "task/WM-0003-web-client-shell",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T20:38:04.280Z",
+  "updatedAt": "2026-06-23T20:58:25.452Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
@@ -51,10 +51,28 @@
       "actor": "client-engineer",
       "action": "complete",
       "details": "Built Web shell with Pixi chunk map, React HUD/inspector, resize/input plumbing, deterministic Chromium screenshot smoke; owner gates passed."
+    },
+    {
+      "at": "2026-06-23T20:46:40.249Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: none; Medium: missing dependency policy/ADR evidence for new React/Pixi/Playwright stack and root skipLibCheck relaxation"
+    },
+    {
+      "at": "2026-06-23T20:58:25.451Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Addressed reviewer dependency-policy evidence and scoped TypeScript lib-check exception; pnpm typecheck, pnpm test, and pnpm test:e2e pass."
     }
   ],
   "claimedBy": "client-engineer",
   "threadLabel": "Canvas",
   "blocker": null,
-  "reportPath": "coordination/reports/WM-0003.md"
+  "reportPath": "coordination/reports/WM-0003.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "changes_requested",
+    "summary": "High: none; Medium: missing dependency policy/ADR evidence for new React/Pixi/Playwright stack and root skipLibCheck relaxation",
+    "at": "2026-06-23T20:46:40.249Z"
+  }
 }
