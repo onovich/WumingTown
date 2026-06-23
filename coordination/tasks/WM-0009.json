@@ -2,7 +2,7 @@
   "id": "WM-0009",
   "title": "Build the content schema validator and Def compiler spike",
   "summary": "Validate JSON5 source content, namespace IDs, references, patch ordering and localization keys, then compile a small immutable runtime catalog.",
-  "state": "review_requested",
+  "state": "done",
   "ownerRole": "content-worker",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -27,7 +27,7 @@
   ],
   "branch": "task/WM-0009-content-compiler",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T22:25:14.905Z",
+  "updatedAt": "2026-06-23T22:29:09.185Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
@@ -100,6 +100,24 @@
       "actor": "content-worker",
       "action": "complete",
       "details": "Fixed source-location regression by restoring quoted-key lookup for plain JSON while keeping JSON5 bare-key lookup comment-aware. Plain JSON invalid IDs and missing references now resolve to the offending quoted field/value instead of 1:1, and JSON5 bare keys still skip // and /* */ comments. Added regression coverage for quoted JSON source locations and comment-aware JSON5 bare-key source locations, then re-ran content tests, content validation, core-smoke compile, typecheck, lint, format, boundaries, and diff checks."
+    },
+    {
+      "at": "2026-06-23T22:28:20.219Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; quoted JSON source locations and comment-aware JSON5 bare-key locations verified, required content checks and engineering gates pass."
+    },
+    {
+      "at": "2026-06-23T22:29:09.142Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified branch 0b2006a; source-located content validation and compiler spike reviewed; preparing main merge."
+    },
+    {
+      "at": "2026-06-23T22:29:09.184Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "claimedBy": "content-worker",
@@ -108,8 +126,13 @@
   "reportPath": "coordination/reports/WM-0009.md",
   "review": {
     "reviewer": "reviewer",
-    "verdict": "changes_requested",
-    "summary": "High: comment-aware JSON5 lookup skips quoted keys before matching them, so normal JSON diagnostics for invalid IDs and missing references regress to 1:1 instead of the offending id/reference fields; source-location acceptance remains broken despite required checks passing.",
-    "at": "2026-06-23T22:18:34.760Z"
+    "verdict": "verified",
+    "summary": "No blocking findings; quoted JSON source locations and comment-aware JSON5 bare-key locations verified, required content checks and engineering gates pass.",
+    "at": "2026-06-23T22:28:20.219Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified branch 0b2006a; source-located content validation and compiler spike reviewed; preparing main merge.",
+    "at": "2026-06-23T22:29:09.141Z"
   }
 }
