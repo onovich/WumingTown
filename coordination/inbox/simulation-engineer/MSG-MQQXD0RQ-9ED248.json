@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQQXD0RQ-9ED248",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0007",
+  "kind": "changes-requested",
+  "subject": "WM-0007 review: changes_requested",
+  "body": "High: stale destroyed handles can still read components through Int32ComponentStore.read/has when EntityRegistry.destroy is used directly; Medium: StructuralCommandBuffer silently wraps out-of-range Int32 command values before commit; Medium: iteration/commit APIs allocate proportional entity/result objects in sim-core hot paths.",
+  "artifacts": [
+    "coordination/reports/WM-0007.md"
+  ],
+  "createdAt": "2026-06-23T17:35:06.279Z",
+  "acknowledgedAt": "2026-06-23T17:36:17.217Z"
+}

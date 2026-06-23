@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQQXYUE0-20EA41",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0007",
+  "kind": "review-request",
+  "subject": "WM-0007 ready for review",
+  "body": "Addressed reviewer findings: registry-backed component read/has validation, queue-time Int32 bounds checks, primitive iteration callbacks, reusable typed commit result buffers, and line-count/report corrections; owner gates passed.",
+  "artifacts": [
+    "coordination/reports/WM-0007.md",
+    "task/WM-0007-entity-stores"
+  ],
+  "createdAt": "2026-06-23T17:52:04.441Z",
+  "acknowledgedAt": null
+}

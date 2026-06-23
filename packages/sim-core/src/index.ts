@@ -20,7 +20,12 @@ export {
   stepHeadlessFrames,
   summarizeHeadlessRun,
 } from "./runner";
-export { StructuralCommandBuffer, createStructuralCommandBuffer } from "./structural-commands";
+export {
+  StructuralCommandBuffer,
+  createStructuralCommandBuffer,
+  createStructuralCommandResultView,
+  readStructuralCommandResult,
+} from "./structural-commands";
 export type {
   ComponentReadResult,
   ComponentStoreReason,
@@ -49,6 +54,7 @@ export type {
   StructuralCommandKind,
   StructuralCommandReason,
   StructuralCommandResult,
+  StructuralCommandResultView,
   StructuralCommitReport,
 } from "./structural-commands";
 export type { RunnerSpeed, Tick } from "./time";

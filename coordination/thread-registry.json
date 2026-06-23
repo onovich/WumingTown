@@ -7,9 +7,9 @@
       "registeredAt": "2026-06-23T12:42:34.400Z"
     },
     "reviewer": {
-      "threadId": "019ef55e-3dc1-7450-bc85-a9982ee5c378",
-      "label": "WM-0006 headless tick review",
-      "registeredAt": "2026-06-23T16:44:29.078Z"
+      "threadId": "019ef586-b4f5-7e31-8716-979eac810bb6",
+      "label": "WM-0007 review",
+      "registeredAt": "2026-06-23T17:28:36.455Z"
     },
     "rapid-implementer": {
       "threadId": "019ef49a-ffd5-72f1-863b-f6448c984775",
@@ -27,5 +27,5 @@
       "registeredAt": "2026-06-23T16:58:40.243Z"
     }
   },
-  "updatedAt": "2026-06-23T16:58:40.244Z"
+  "updatedAt": "2026-06-23T17:28:36.456Z"
 }

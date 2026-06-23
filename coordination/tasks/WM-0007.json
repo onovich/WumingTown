@@ -26,7 +26,7 @@
   ],
   "branch": "task/WM-0007-entity-stores",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T17:27:01.483Z",
+  "updatedAt": "2026-06-23T17:52:04.439Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
@@ -51,10 +51,28 @@
       "actor": "simulation-engineer",
       "action": "complete",
       "details": "Implemented generation-checked EntityId registry, bounded Int32 component stores, deterministic structural command commit phase, invariant tests, and entity-store benchmark; required checks passed."
+    },
+    {
+      "at": "2026-06-23T17:35:06.277Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: stale destroyed handles can still read components through Int32ComponentStore.read/has when EntityRegistry.destroy is used directly; Medium: StructuralCommandBuffer silently wraps out-of-range Int32 command values before commit; Medium: iteration/commit APIs allocate proportional entity/result objects in sim-core hot paths."
+    },
+    {
+      "at": "2026-06-23T17:52:04.439Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Addressed reviewer findings: registry-backed component read/has validation, queue-time Int32 bounds checks, primitive iteration callbacks, reusable typed commit result buffers, and line-count/report corrections; owner gates passed."
     }
   ],
   "claimedBy": "simulation-engineer",
   "threadLabel": "Tally",
   "blocker": null,
-  "reportPath": "coordination/reports/WM-0007.md"
+  "reportPath": "coordination/reports/WM-0007.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "changes_requested",
+    "summary": "High: stale destroyed handles can still read components through Int32ComponentStore.read/has when EntityRegistry.destroy is used directly; Medium: StructuralCommandBuffer silently wraps out-of-range Int32 command values before commit; Medium: iteration/commit APIs allocate proportional entity/result objects in sim-core hot paths.",
+    "at": "2026-06-23T17:35:06.277Z"
+  }
 }

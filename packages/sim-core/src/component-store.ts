@@ -57,7 +57,7 @@ export class Int32ComponentStore {
       return validation;
     }
 
-    if (this.has(entity)) {
+    if (this.hasLocal(entity)) {
       return {
         ok: false,
         reason: "component_already_attached",
@@ -85,7 +85,7 @@ export class Int32ComponentStore {
       return validation;
     }
 
-    if (!this.has(entity)) {
+    if (!this.hasLocal(entity)) {
       return {
         ok: false,
         reason: "component_missing",
@@ -105,7 +105,7 @@ export class Int32ComponentStore {
       return validation;
     }
 
-    if (!this.has(entity)) {
+    if (!this.hasLocal(entity)) {
       return {
         ok: false,
         reason: "component_missing",
@@ -118,15 +118,14 @@ export class Int32ComponentStore {
     };
   }
 
-  read(entity: EntityId): ComponentReadResult {
-    if (!this.isEntityIndexInRange(entity.index)) {
-      return {
-        ok: false,
-        reason: "component_index_out_of_range",
-      };
+  read(entity: EntityId, registry: EntityRegistry): ComponentReadResult {
+    const validation = this.validateLiveEntity(entity, registry);
+
+    if (!validation.ok) {
+      return validation;
     }
 
-    if (!this.has(entity)) {
+    if (!this.hasLocal(entity)) {
       return {
         ok: false,
         reason: "component_missing",
@@ -139,12 +138,8 @@ export class Int32ComponentStore {
     };
   }
 
-  has(entity: EntityId): boolean {
-    if (!this.isEntityIndexInRange(entity.index)) {
-      return false;
-    }
-
-    return this.active[entity.index] === 1 && this.generations[entity.index] === entity.generation;
+  has(entity: EntityId, registry: EntityRegistry): boolean {
+    return this.validateLiveEntity(entity, registry).ok && this.hasLocal(entity);
   }
 
   removeByIndex(index: number): boolean {
@@ -158,17 +153,11 @@ export class Int32ComponentStore {
 
   forEachAttachedAscending(
     registry: EntityRegistry,
-    visitor: (entity: EntityId, value: number) => void,
+    visitor: (index: number, generation: number, value: number) => void,
   ): void {
     for (let index = 0; index < this.capacity; index += 1) {
       if (this.isLiveAttachedIndex(index, registry)) {
-        visitor(
-          {
-            index,
-            generation: this.generations[index] ?? 0,
-          },
-          this.values[index] ?? 0,
-        );
+        visitor(index, this.generations[index] ?? 0, this.values[index] ?? 0);
       }
     }
   }
@@ -208,6 +197,14 @@ export class Int32ComponentStore {
       registry.isIndexActive(index) &&
       registry.generationAt(index) === this.generations[index]
     );
+  }
+
+  private hasLocal(entity: EntityId): boolean {
+    if (!this.isEntityIndexInRange(entity.index)) {
+      return false;
+    }
+
+    return this.active[entity.index] === 1 && this.generations[entity.index] === entity.generation;
   }
 
   private clearIndex(index: number): void {

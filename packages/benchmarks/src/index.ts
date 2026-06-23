@@ -44,6 +44,7 @@ export interface EntityStoreBenchmarkReport {
   readonly name: "entity-store";
   readonly capacity: number;
   readonly queuedCommands: number;
+  readonly commitResultCount: number;
   readonly appliedCommands: number;
   readonly failedCommands: number;
   readonly attachedComponents: number;
@@ -119,8 +120,8 @@ export function runEntityStoreBenchmark(): EntityStoreBenchmarkReport {
   const report = buffer.commit(registry, store);
   let iterationChecksum = 0;
 
-  store.forEachAttachedAscending(registry, (entity, value) => {
-    iterationChecksum = (iterationChecksum + entity.index + value) >>> 0;
+  store.forEachAttachedAscending(registry, (index, generation, value) => {
+    iterationChecksum = (iterationChecksum + index + generation + value) >>> 0;
   });
 
   const elapsedMs = performance.now() - startedAtMs;
@@ -130,6 +131,7 @@ export function runEntityStoreBenchmark(): EntityStoreBenchmarkReport {
     name: "entity-store",
     capacity,
     queuedCommands: capacity,
+    commitResultCount: report.resultCount,
     appliedCommands: report.appliedCount,
     failedCommands: report.failedCount,
     attachedComponents: store.activeCount,
@@ -152,7 +154,11 @@ export function runBenchmarksCli(argv: readonly string[]): number {
   if (parsed.filter === "entity-store") {
     const report = runEntityStoreBenchmark();
 
-    if (report.appliedCommands !== report.queuedCommands || report.failedCommands !== 0) {
+    if (
+      report.appliedCommands !== report.queuedCommands ||
+      report.commitResultCount !== report.queuedCommands ||
+      report.failedCommands !== 0
+    ) {
       console.error("entity-store benchmark did not apply every queued command");
       return 1;
     }

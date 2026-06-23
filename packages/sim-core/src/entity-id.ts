@@ -171,13 +171,10 @@ export class EntityRegistry {
     return this.active[index] === 1;
   }
 
-  forEachAliveAscending(visitor: (entity: EntityId) => void): void {
+  forEachAliveAscending(visitor: (index: number, generation: number) => void): void {
     for (let index = 0; index < this.capacity; index += 1) {
       if (this.active[index] === 1) {
-        visitor({
-          index,
-          generation: this.generations[index] ?? 0,
-        });
+        visitor(index, this.generations[index] ?? 0);
       }
     }
   }

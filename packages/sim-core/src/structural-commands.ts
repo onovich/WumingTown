@@ -8,16 +8,22 @@ import {
   COMMAND_SET_I32,
   commandPriority,
   isCommandCode,
+  isInt32,
   type CommandCode,
+  type MutableStructuralCommitReport,
   type QueueStructuralCommandResult,
-  type StructuralCommandKind,
+  type StructuralCommandReasonSlot,
   type StructuralCommandReason,
-  type StructuralCommandResult,
   type StructuralCommitReport,
 } from "./structural-command-types";
 
+export {
+  createStructuralCommandResultView,
+  readStructuralCommandResult,
+} from "./structural-command-types";
 export type {
   QueueStructuralCommandResult,
+  StructuralCommandResultView,
   StructuralCommandKind,
   StructuralCommandReason,
   StructuralCommandResult,
@@ -37,6 +43,15 @@ export class StructuralCommandBuffer {
   private readonly values: Int32Array;
   private readonly sequences: Uint32Array;
   private readonly orderedSlots: Uint32Array;
+  private readonly resultOk: Uint8Array;
+  private readonly resultKinds: Uint8Array;
+  private readonly resultSequences: Uint32Array;
+  private readonly resultIndexes: Int32Array;
+  private readonly resultGenerations: Uint32Array;
+  private readonly resultValues: Float64Array;
+  private readonly resultReasons: StructuralCommandReasonSlot[];
+  private readonly report: MutableStructuralCommitReport;
+  private readonly scratchEntity = { index: -1, generation: 0 };
   private count = 0;
   private nextSequence = 0;
 
@@ -52,6 +67,25 @@ export class StructuralCommandBuffer {
     this.values = new Int32Array(options.capacity);
     this.sequences = new Uint32Array(options.capacity);
     this.orderedSlots = new Uint32Array(options.capacity);
+    this.resultOk = new Uint8Array(options.capacity);
+    this.resultKinds = new Uint8Array(options.capacity);
+    this.resultSequences = new Uint32Array(options.capacity);
+    this.resultIndexes = new Int32Array(options.capacity);
+    this.resultGenerations = new Uint32Array(options.capacity);
+    this.resultValues = new Float64Array(options.capacity);
+    this.resultReasons = new Array<StructuralCommandReasonSlot>(options.capacity).fill("none");
+    this.report = {
+      appliedCount: 0,
+      failedCount: 0,
+      resultCount: 0,
+      ok: this.resultOk,
+      kinds: this.resultKinds,
+      sequences: this.resultSequences,
+      indexes: this.resultIndexes,
+      generations: this.resultGenerations,
+      values: this.resultValues,
+      reasons: this.resultReasons,
+    };
   }
 
   get queuedCount(): number {
@@ -67,6 +101,13 @@ export class StructuralCommandBuffer {
   }
 
   queueAttachInt32(entity: EntityId, value: number): QueueStructuralCommandResult {
+    if (!isInt32(value)) {
+      return {
+        ok: false,
+        reason: "command_value_out_of_range",
+      };
+    }
+
     return this.record(COMMAND_ATTACH_I32, entity.index, entity.generation, value);
   }
 
@@ -75,34 +116,36 @@ export class StructuralCommandBuffer {
   }
 
   queueSetInt32(entity: EntityId, value: number): QueueStructuralCommandResult {
+    if (!isInt32(value)) {
+      return {
+        ok: false,
+        reason: "command_value_out_of_range",
+      };
+    }
+
     return this.record(COMMAND_SET_I32, entity.index, entity.generation, value);
   }
 
   commit(registry: EntityRegistry, componentStore: Int32ComponentStore): StructuralCommitReport {
     this.orderQueuedSlots();
 
-    const results: StructuralCommandResult[] = [];
-    let appliedCount = 0;
-    let failedCount = 0;
+    this.report.appliedCount = 0;
+    this.report.failedCount = 0;
+    this.report.resultCount = 0;
 
     for (let cursor = 0; cursor < this.count; cursor += 1) {
       const slot = this.orderedSlots[cursor] ?? 0;
-      const result = this.applySlot(slot, registry, componentStore);
-      results.push(result);
+      const ok = this.applySlot(slot, registry, componentStore);
 
-      if (result.ok) {
-        appliedCount += 1;
+      if (ok) {
+        this.report.appliedCount += 1;
       } else {
-        failedCount += 1;
+        this.report.failedCount += 1;
       }
     }
 
     this.clear();
-    return {
-      appliedCount,
-      failedCount,
-      results,
-    };
+    return this.report;
   }
 
   clear(): void {
@@ -178,141 +221,165 @@ export class StructuralCommandBuffer {
     slot: number,
     registry: EntityRegistry,
     componentStore: Int32ComponentStore,
-  ): StructuralCommandResult {
+  ): boolean {
     const kind = this.readKind(slot);
 
     if (kind === COMMAND_ALLOCATE) {
       return this.applyAllocate(slot, registry);
     }
 
-    const entity = this.readEntity(slot);
+    this.readEntityInto(slot);
 
     if (kind === COMMAND_DESTROY) {
-      return this.applyDestroy(slot, entity, registry, componentStore);
+      return this.applyDestroy(slot, registry, componentStore);
     }
 
     if (kind === COMMAND_ATTACH_I32) {
-      return this.applyAttach(slot, entity, registry, componentStore);
+      return this.applyAttach(slot, registry, componentStore);
     }
 
     if (kind === COMMAND_DETACH_I32) {
-      return this.applyDetach(slot, entity, registry, componentStore);
+      return this.applyDetach(slot, registry, componentStore);
     }
 
-    return this.applySet(slot, entity, registry, componentStore);
+    return this.applySet(slot, registry, componentStore);
   }
 
-  private applyAllocate(slot: number, registry: EntityRegistry): StructuralCommandResult {
+  private applyAllocate(slot: number, registry: EntityRegistry): boolean {
     const result = registry.allocate();
-    const sequence = this.sequences[slot] ?? 0;
 
     if (!result.ok) {
-      return {
-        ok: false,
-        sequence,
-        kind: "allocate",
-        reason: result.reason,
-      };
+      this.recordResult(slot, COMMAND_ALLOCATE, false, -1, 0, 0, result.reason);
+      return false;
     }
 
-    return {
-      ok: true,
-      sequence,
-      kind: "allocate",
-      entity: result.entity,
-    };
+    this.recordResult(
+      slot,
+      COMMAND_ALLOCATE,
+      true,
+      result.entity.index,
+      result.entity.generation,
+      0,
+      "none",
+    );
+    return true;
   }
 
   private applyDestroy(
     slot: number,
-    entity: EntityId,
     registry: EntityRegistry,
     componentStore: Int32ComponentStore,
-  ): StructuralCommandResult {
-    const result = registry.destroy(entity);
-    const sequence = this.sequences[slot] ?? 0;
+  ): boolean {
+    const result = registry.destroy(this.scratchEntity);
 
     if (!result.ok) {
-      return {
-        ok: false,
-        sequence,
-        kind: "destroy",
-        reason: result.reason,
-      };
+      this.recordResult(
+        slot,
+        COMMAND_DESTROY,
+        false,
+        this.scratchEntity.index,
+        this.scratchEntity.generation,
+        0,
+        result.reason,
+      );
+      return false;
     }
 
-    componentStore.removeByIndex(entity.index);
-    return {
-      ok: true,
-      sequence,
-      kind: "destroy",
-      entity,
-      value: result.nextGeneration,
-    };
+    componentStore.removeByIndex(this.scratchEntity.index);
+    this.recordResult(
+      slot,
+      COMMAND_DESTROY,
+      true,
+      this.scratchEntity.index,
+      this.scratchEntity.generation,
+      result.nextGeneration,
+      "none",
+    );
+    return true;
   }
 
   private applyAttach(
     slot: number,
-    entity: EntityId,
     registry: EntityRegistry,
     componentStore: Int32ComponentStore,
-  ): StructuralCommandResult {
-    const result = componentStore.attach(entity, registry, this.values[slot] ?? 0);
-    return this.componentResult(slot, "attach-i32", result, entity);
+  ): boolean {
+    const result = componentStore.attach(this.scratchEntity, registry, this.values[slot] ?? 0);
+    return this.componentResult(slot, COMMAND_ATTACH_I32, result);
   }
 
   private applyDetach(
     slot: number,
-    entity: EntityId,
     registry: EntityRegistry,
     componentStore: Int32ComponentStore,
-  ): StructuralCommandResult {
-    const result = componentStore.detach(entity, registry);
-    return this.componentResult(slot, "detach-i32", result, entity);
+  ): boolean {
+    const result = componentStore.detach(this.scratchEntity, registry);
+    return this.componentResult(slot, COMMAND_DETACH_I32, result);
   }
 
   private applySet(
     slot: number,
-    entity: EntityId,
     registry: EntityRegistry,
     componentStore: Int32ComponentStore,
-  ): StructuralCommandResult {
-    const result = componentStore.set(entity, registry, this.values[slot] ?? 0);
-    return this.componentResult(slot, "set-i32", result, entity);
+  ): boolean {
+    const result = componentStore.set(this.scratchEntity, registry, this.values[slot] ?? 0);
+    return this.componentResult(slot, COMMAND_SET_I32, result);
   }
 
   private componentResult(
     slot: number,
-    kind: StructuralCommandKind,
+    kind: CommandCode,
     result:
       | { readonly ok: true }
       | { readonly ok: false; readonly reason: StructuralCommandReason },
-    entity: EntityId,
-  ): StructuralCommandResult {
-    const sequence = this.sequences[slot] ?? 0;
-
+  ): boolean {
     if (!result.ok) {
-      return {
-        ok: false,
-        sequence,
+      this.recordResult(
+        slot,
         kind,
-        reason: result.reason,
-      };
+        false,
+        this.scratchEntity.index,
+        this.scratchEntity.generation,
+        0,
+        result.reason,
+      );
+      return false;
     }
 
-    return {
-      ok: true,
-      sequence,
+    this.recordResult(
+      slot,
       kind,
-      entity,
-    };
+      true,
+      this.scratchEntity.index,
+      this.scratchEntity.generation,
+      this.values[slot] ?? 0,
+      "none",
+    );
+    return true;
   }
 
-  private readEntity(slot: number): EntityId {
-    return {
-      index: this.indexes[slot] ?? -1,
-      generation: this.generations[slot] ?? 0,
-    };
+  private recordResult(
+    slot: number,
+    kind: CommandCode,
+    ok: boolean,
+    index: number,
+    generation: number,
+    value: number,
+    reason: StructuralCommandReasonSlot,
+  ): void {
+    const resultIndex = this.report.resultCount;
+    this.resultOk[resultIndex] = ok ? 1 : 0;
+    this.resultKinds[resultIndex] = kind;
+    this.resultSequences[resultIndex] = this.sequences[slot] ?? 0;
+    this.resultIndexes[resultIndex] = index;
+    this.resultGenerations[resultIndex] = generation;
+    this.resultValues[resultIndex] = value;
+    this.resultReasons[resultIndex] = reason;
+    this.report.resultCount += 1;
+  }
+
+  private readEntityInto(slot: number): void {
+    this.scratchEntity.index = this.indexes[slot] ?? -1;
+    this.scratchEntity.generation = this.generations[slot] ?? 0;
   }
 
   private readKind(slot: number): CommandCode {
@@ -326,8 +393,6 @@ export class StructuralCommandBuffer {
   }
 }
 
-export function createStructuralCommandBuffer(
+export const createStructuralCommandBuffer = (
   options: StructuralCommandBufferOptions,
-): StructuralCommandBuffer {
-  return new StructuralCommandBuffer(options);
-}
+): StructuralCommandBuffer => new StructuralCommandBuffer(options);
