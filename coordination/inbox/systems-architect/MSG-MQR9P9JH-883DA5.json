@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQR9P9JH-883DA5",
+  "from": "reviewer",
+  "to": "systems-architect",
+  "taskId": "WM-0012",
+  "kind": "review-approved",
+  "subject": "WM-0012 review: verified",
+  "body": "No blocking findings; M1 task DAG is acyclic and small-tasked, WM-0014..WM-0030 remain proposed, ADR gates are explicit, first vertical is hauling/building, and validation/handoff/diff checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0012.md"
+  ],
+  "createdAt": "2026-06-23T23:20:32.909Z",
+  "acknowledgedAt": "2026-06-23T23:21:28.246Z"
+}

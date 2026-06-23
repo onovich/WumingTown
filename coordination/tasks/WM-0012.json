@@ -2,7 +2,7 @@
   "id": "WM-0012",
   "title": "Produce the executable M1 simulation-kernel plan",
   "summary": "Decompose M1 into reviewed tasks for map grids, spatial indexes, path request batching, jobs, reservations and the first hauling scenario with performance budgets.",
-  "state": "review_requested",
+  "state": "verified",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -27,7 +27,7 @@
   ],
   "branch": "task/WM-0012-plan-m1",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T23:14:59.172Z",
+  "updatedAt": "2026-06-23T23:20:32.908Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
@@ -52,10 +52,22 @@
       "actor": "systems-architect",
       "action": "complete",
       "details": "Produced executable M1 simulation-kernel plan and proposed WM-0014..WM-0030 DAG with explicit ADR gates, hauling/building first vertical, per-task scope/checks/bench/docs, and validation evidence."
+    },
+    {
+      "at": "2026-06-23T23:20:32.908Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; M1 task DAG is acyclic and small-tasked, WM-0014..WM-0030 remain proposed, ADR gates are explicit, first vertical is hauling/building, and validation/handoff/diff checks pass."
     }
   ],
   "claimedBy": "systems-architect",
   "threadLabel": "Keystone",
   "blocker": null,
-  "reportPath": "coordination/reports/WM-0012.md"
+  "reportPath": "coordination/reports/WM-0012.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; M1 task DAG is acyclic and small-tasked, WM-0014..WM-0030 remain proposed, ADR gates are explicit, first vertical is hauling/building, and validation/handoff/diff checks pass.",
+    "at": "2026-06-23T23:20:32.907Z"
+  }
 }
