@@ -2,7 +2,7 @@
   "id": "WM-0004",
   "title": "Build the sandboxed Windows Electron shell",
   "summary": "Wrap the Web client in Electron with context isolation, sandboxing, minimal preload ports and a smoke build; do not expose arbitrary Node APIs.",
-  "state": "review_requested",
+  "state": "done",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -26,7 +26,7 @@
   ],
   "branch": "task/WM-0004-electron-shell",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T22:11:26.847Z",
+  "updatedAt": "2026-06-23T22:16:46.708Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
@@ -63,6 +63,24 @@
       "actor": "client-engineer",
       "action": "complete",
       "details": "Fixed packaged renderer trust boundary so packaged Electron always loads file content, cleaned/whitelisted main bundle outputs, and added smoke coverage proving dev URL is ignored and stale compiled tests stay out of win-unpacked."
+    },
+    {
+      "at": "2026-06-23T22:15:50.077Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Prior High fixed: packaged Electron ignores WM_DESKTOP_DEV_SERVER_URL via app.isPackaged guard and packaged smoke asserts file:/// while dev URL is set. Prior Medium fixed: build cleans dist/main and packager copies only dist/main/main.js; post-smoke artifact contains no desktop-shell.e2e.test.js. Required checks and targeted e2e passed."
+    },
+    {
+      "at": "2026-06-23T22:16:46.636Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified branch 043dc89; packaged Electron trust boundary and deterministic package contents reviewed; preparing main merge."
+    },
+    {
+      "at": "2026-06-23T22:16:46.708Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "claimedBy": "client-engineer",
@@ -71,8 +89,13 @@
   "reportPath": "coordination/reports/WM-0004.md",
   "review": {
     "reviewer": "reviewer",
-    "verdict": "changes_requested",
-    "summary": "High: packaged Electron still trusts WM_DESKTOP_DEV_SERVER_URL for the main renderer URL, allowing packaged launches to load arbitrary remote/dev content with the preload bridge and leaving packaged smoke unable to prove file renderer loading. Medium: package-dir copies the whole dist/main directory without cleaning it, so stale compiled files such as desktop-shell.e2e.test.js leaked into win-unpacked during review build.",
-    "at": "2026-06-23T22:05:38.154Z"
+    "verdict": "verified",
+    "summary": "No blocking findings. Prior High fixed: packaged Electron ignores WM_DESKTOP_DEV_SERVER_URL via app.isPackaged guard and packaged smoke asserts file:/// while dev URL is set. Prior Medium fixed: build cleans dist/main and packager copies only dist/main/main.js; post-smoke artifact contains no desktop-shell.e2e.test.js. Required checks and targeted e2e passed.",
+    "at": "2026-06-23T22:15:50.077Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified branch 043dc89; packaged Electron trust boundary and deterministic package contents reviewed; preparing main merge.",
+    "at": "2026-06-23T22:16:46.635Z"
   }
 }

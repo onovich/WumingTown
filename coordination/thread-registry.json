@@ -7,9 +7,9 @@
       "registeredAt": "2026-06-23T12:42:34.400Z"
     },
     "reviewer": {
-      "threadId": "019ef635-368a-78f1-86a2-28a71ceeb4d5",
-      "label": "WM-0003 review",
-      "registeredAt": "2026-06-23T20:39:18.505Z"
+      "threadId": "019ef67d-0b68-7351-945e-9c8867cfe482",
+      "label": "WM-0004 review",
+      "registeredAt": "2026-06-23T21:57:47.083Z"
     },
     "rapid-implementer": {
       "threadId": "019ef49a-ffd5-72f1-863b-f6448c984775",
@@ -27,10 +27,10 @@
       "registeredAt": "2026-06-23T18:02:55.895Z"
     },
     "client-engineer": {
-      "threadId": "019ef628-bea0-7483-9318-c04e48a04cd4",
-      "label": "WM-0003 web client shell recovery",
-      "registeredAt": "2026-06-23T20:25:41.247Z"
+      "threadId": "019ef650-10ca-7e13-b072-9be37575c2be",
+      "label": "WM-0004 Electron shell",
+      "registeredAt": "2026-06-23T21:08:57.616Z"
     }
   },
-  "updatedAt": "2026-06-23T20:39:18.505Z"
+  "updatedAt": "2026-06-23T21:57:47.084Z"
 }
