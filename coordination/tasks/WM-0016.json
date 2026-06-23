@@ -1,0 +1,41 @@
+{
+  "id": "WM-0016",
+  "title": "Propose ADR 0005 for M1 save container v1",
+  "summary": "Produce the proposed Save Container v1 ADR for M1 map chunks, entity stores, jobs, reservations, random streams, command-log tail and migration boundaries.",
+  "state": "proposed",
+  "ownerRole": "systems-architect",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0012",
+    "WM-0008"
+  ],
+  "docs": [
+    "docs/07_roadmap/06_m1_simulation_kernel_plan.md",
+    "docs/05_tech/07_architecture_decision_records.md",
+    "templates/ADR.md",
+    "docs/02_systems/13_save_replay_migration.md",
+    "docs/05_tech/04_persistence_mods_security.md"
+  ],
+  "acceptance": [
+    "ADR-0005 is created with Status Proposed and covers alternatives, migration, rollback, test and performance implications",
+    "Container sections include MapChunks, EntityStores, JobsReservations, RandomStreams and CommandLogTail with explicit version fields",
+    "Load order includes rebuild of indexes and invariant validation before the first resumed tick",
+    "No external save data is trusted without validation boundaries"
+  ],
+  "requiredChecks": [
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node tools/validate-handoff.mjs",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0016-propose-adr-0005-for-m1-save-container-v1",
+  "createdAt": "2026-06-23T23:08:01.984Z",
+  "updatedAt": "2026-06-23T23:08:01.984Z",
+  "history": [
+    {
+      "at": "2026-06-23T23:08:01.984Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    }
+  ]
+}

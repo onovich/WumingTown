@@ -1,0 +1,42 @@
+{
+  "id": "WM-0021",
+  "title": "Implement incremental region room rebuild and navigation versions",
+  "summary": "Implement local Region/Room invalidation and rebuild, navigation versioning, and room consistency checks for terrain, walls, doors and occupancy-affecting changes.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0019",
+    "WM-0020"
+  ],
+  "docs": [
+    "docs/02_systems/03_map_space_rooms_lanterns.md",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/06_engineering/05_testing_policy.md",
+    "docs/07_roadmap/06_m1_simulation_kernel_plan.md"
+  ],
+  "acceptance": [
+    "Wall, door and terrain changes mark affected chunks or regions without synchronous full-map rebuilds",
+    "Region graph and room ids expose monotonic navigation versions consumed by pathing",
+    "Tests cover local wall removal, door toggles, cross-boundary movement and room consistency",
+    "Dirty rebuild benchmark records queue length, processed cells and no sustained growth"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter region-room",
+    "pnpm bench --filter region-room",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0021-implement-incremental-region-room-rebuild-and-na",
+  "createdAt": "2026-06-23T23:08:02.185Z",
+  "updatedAt": "2026-06-23T23:08:02.185Z",
+  "history": [
+    {
+      "at": "2026-06-23T23:08:02.185Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    }
+  ]
+}

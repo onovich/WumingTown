@@ -1,0 +1,45 @@
+{
+  "id": "WM-0030",
+  "title": "Close the M1 simulation kernel gate",
+  "summary": "Integrate reviewed M1 simulation-kernel work, run the full M1 gate, update roadmap status and prepare the project for the next gameplay slice without skipping independent review.",
+  "state": "proposed",
+  "ownerRole": "project-director",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0029"
+  ],
+  "docs": [
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "docs/07_roadmap/06_m1_simulation_kernel_plan.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "Headless 100k tick hauling/building scenario is reproducible and reviewed",
+    "Browser Worker and Node produce the same authoritative hash for the M1 scenario",
+    "50k empty or inert entities show no sustained queue or memory growth",
+    "M1 residual risks, benchmark artifacts, save/replay impact and next M2 entry criteria are documented"
+  ],
+  "requiredChecks": [
+    "pnpm install --frozen-lockfile",
+    "pnpm ci:local",
+    "pnpm build:web",
+    "pnpm build:desktop",
+    "pnpm sim:run -- --seed 1 --scenario hauling-building --ticks 100000",
+    "pnpm bench",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0030-close-the-m1-simulation-kernel-gate",
+  "createdAt": "2026-06-23T23:08:02.548Z",
+  "updatedAt": "2026-06-23T23:08:02.549Z",
+  "history": [
+    {
+      "at": "2026-06-23T23:08:02.549Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    }
+  ]
+}

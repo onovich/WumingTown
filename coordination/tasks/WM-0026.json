@@ -1,0 +1,42 @@
+{
+  "id": "WM-0026",
+  "title": "Implement minimal item storage and hauling jobs",
+  "summary": "Implement the minimal item stack, storage demand/supply index and hauling job path needed by the first hauling/building vertical scenario.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0014",
+    "WM-0025"
+  ],
+  "docs": [
+    "docs/02_systems/06_economy_logistics_production.md",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/07_roadmap/06_m1_simulation_kernel_plan.md"
+  ],
+  "acceptance": [
+    "Item quantities are integer authoritative state and cannot become negative or duplicate across map, carrier and storage",
+    "Demand and supply indexes update on stack, storage and reservation state changes",
+    "Hauling reserves source amount, destination capacity and interaction cells before pickup",
+    "Scenario tests prove multiple haulers do not reserve the same quantity or leak carried items after cancellation"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter hauling",
+    "pnpm bench --filter logistics-10k",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0026-implement-minimal-item-storage-and-hauling-jobs",
+  "createdAt": "2026-06-23T23:08:02.385Z",
+  "updatedAt": "2026-06-23T23:08:02.385Z",
+  "history": [
+    {
+      "at": "2026-06-23T23:08:02.385Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    }
+  ]
+}

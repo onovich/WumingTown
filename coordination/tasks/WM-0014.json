@@ -1,0 +1,39 @@
+{
+  "id": "WM-0014",
+  "title": "Define the M1 hauling building vertical scenario contract",
+  "summary": "Specify the first executable gameplay scenario as hauling materials into a build site, including fixture bounds, invariants, reason expectations, and non-goals so implementation does not drift into broad content production.",
+  "state": "proposed",
+  "ownerRole": "gameplay-designer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0012"
+  ],
+  "docs": [
+    "docs/07_roadmap/06_m1_simulation_kernel_plan.md",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "docs/02_systems/06_economy_logistics_production.md",
+    "docs/06_engineering/05_testing_policy.md"
+  ],
+  "acceptance": [
+    "Scenario uses hauling/building as the first vertical slice and explicitly excludes broad production/content expansion",
+    "Fixture defines map size, item stacks, storage slots, build site, pawns, command stream, seeds and tick horizon",
+    "Acceptance lists invariants for reservations, carried items, material counts, build progress, reason traces and no queue growth",
+    "Allowed and forbidden paths are documented for implementation tasks"
+  ],
+  "requiredChecks": [
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node tools/validate-handoff.mjs",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0014-define-the-m1-hauling-building-vertical-scenario",
+  "createdAt": "2026-06-23T23:08:01.899Z",
+  "updatedAt": "2026-06-23T23:08:01.899Z",
+  "history": [
+    {
+      "at": "2026-06-23T23:08:01.899Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    }
+  ]
+}

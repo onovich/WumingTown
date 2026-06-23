@@ -1,0 +1,42 @@
+{
+  "id": "WM-0019",
+  "title": "Implement deterministic map grid and chunk dirty queues",
+  "summary": "Implement the M1 authoritative map grid, chunk metadata, terrain/walk/occupancy fields, local dirty queues, rebuild budgets and canonical hash/snapshot hooks.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0015",
+    "WM-0018"
+  ],
+  "docs": [
+    "docs/02_systems/03_map_space_rooms_lanterns.md",
+    "docs/02_systems/13_save_replay_migration.md",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/07_roadmap/06_m1_simulation_kernel_plan.md"
+  ],
+  "acceptance": [
+    "Map data uses contiguous numeric storage rather than per-cell object graphs",
+    "Terrain, occupancy, walk cost, region id, room id and per-cell/chunk version fields are authoritative in sim-core",
+    "Dirty queues are local, budgeted per tick and cannot grow in unchanged worlds",
+    "World hash and save snapshot include map state in stable order"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter map-grid",
+    "pnpm bench --filter map-dirty",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0019-implement-deterministic-map-grid-and-chunk-dirty",
+  "createdAt": "2026-06-23T23:08:02.104Z",
+  "updatedAt": "2026-06-23T23:08:02.105Z",
+  "history": [
+    {
+      "at": "2026-06-23T23:08:02.105Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    }
+  ]
+}

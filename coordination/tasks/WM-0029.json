@@ -1,0 +1,42 @@
+{
+  "id": "WM-0029",
+  "title": "Add M1 benchmark suite and long run invariants",
+  "summary": "Add the M1 benchmark suite, baseline comparisons, long-run invariant checks and CI reporting for map dirty rebuilds, pathing, work offers, reservations and hauling/building.",
+  "state": "proposed",
+  "ownerRole": "qa-performance",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0028"
+  ],
+  "docs": [
+    "docs/05_tech/03_performance_budget.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "docs/06_engineering/05_testing_policy.md",
+    "docs/07_roadmap/06_m1_simulation_kernel_plan.md"
+  ],
+  "acceptance": [
+    "Benchmarks cover map dirty rebuild, spatial index, 100 paths, 10k logistics, reservations and hauling/building long run",
+    "Long run checks cover reservation leaks, stale entity references, negative resources, queue growth, save round trip and hash divergence",
+    "Baseline updates are explicit artifacts with 10 percent warning and 20 percent blocking thresholds preserved",
+    "Reports include Node, pnpm, OS, CPU, commit and scenario seed metadata"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m1-invariants",
+    "pnpm bench",
+    "pnpm sim:run -- --seed 1 --scenario hauling-building --ticks 100000",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0029-add-m1-benchmark-suite-and-long-run-invariants",
+  "createdAt": "2026-06-23T23:08:02.507Z",
+  "updatedAt": "2026-06-23T23:08:02.508Z",
+  "history": [
+    {
+      "at": "2026-06-23T23:08:02.508Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    }
+  ]
+}

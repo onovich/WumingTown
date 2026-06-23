@@ -1,0 +1,42 @@
+{
+  "id": "WM-0017",
+  "title": "Propose ADR 0004 for Worker snapshot and read model encoding",
+  "summary": "Produce the proposed Worker Snapshot encoding ADR for M1 render snapshots, UI detail, metrics and headless/Worker hash parity without moving authority to UI.",
+  "state": "proposed",
+  "ownerRole": "systems-architect",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0012",
+    "WM-0005"
+  ],
+  "docs": [
+    "docs/07_roadmap/06_m1_simulation_kernel_plan.md",
+    "docs/05_tech/07_architecture_decision_records.md",
+    "templates/ADR.md",
+    "docs/05_tech/02_worker_protocol.md",
+    "docs/05_tech/01_technical_architecture.md",
+    "docs/02_systems/14_explainability_debug_observability.md"
+  ],
+  "acceptance": [
+    "ADR-0004 is created with Status Proposed and covers alternatives, migration, rollback, test and performance implications",
+    "Snapshot/read-model ownership keeps Simulation Worker authoritative and UI read-only",
+    "Encoding records versioning, sequence handling, backpressure, metrics fields and stale result rejection",
+    "Worker and Node parity tests required by later tasks are specified"
+  ],
+  "requiredChecks": [
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node tools/validate-handoff.mjs",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0017-propose-adr-0004-for-worker-snapshot-and-read-mo",
+  "createdAt": "2026-06-23T23:08:02.025Z",
+  "updatedAt": "2026-06-23T23:08:02.025Z",
+  "history": [
+    {
+      "at": "2026-06-23T23:08:02.026Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    }
+  ]
+}

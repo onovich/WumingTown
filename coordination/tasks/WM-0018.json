@@ -1,0 +1,42 @@
+{
+  "id": "WM-0018",
+  "title": "Propose ADR 0006 for deterministic numeric and phase contracts",
+  "summary": "Produce the proposed PRNG/fixed-point/phase contract ADR for M1 deterministic numeric semantics, command phases, async version checks and stable ordering.",
+  "state": "proposed",
+  "ownerRole": "systems-architect",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0012",
+    "WM-0006",
+    "WM-0008"
+  ],
+  "docs": [
+    "docs/07_roadmap/06_m1_simulation_kernel_plan.md",
+    "docs/05_tech/07_architecture_decision_records.md",
+    "templates/ADR.md",
+    "docs/02_systems/01_time_scheduler_rng.md",
+    "docs/06_engineering/01_performance_constitution.md"
+  ],
+  "acceptance": [
+    "ADR-0006 is created with Status Proposed and covers alternatives, migration, rollback, test and performance implications",
+    "Integer and fixed-point conventions are explicit for map cost, job progress, item quantities and scores",
+    "Tick phases, command commit order and async result version rejection are specified",
+    "No reliance on Math.random, real time, promise chains or thread completion order enters authoritative state"
+  ],
+  "requiredChecks": [
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node tools/validate-handoff.mjs",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0018-propose-adr-0006-for-deterministic-numeric-and-p",
+  "createdAt": "2026-06-23T23:08:02.064Z",
+  "updatedAt": "2026-06-23T23:08:02.064Z",
+  "history": [
+    {
+      "at": "2026-06-23T23:08:02.065Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    }
+  ]
+}

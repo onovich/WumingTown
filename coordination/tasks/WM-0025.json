@@ -1,0 +1,44 @@
+{
+  "id": "WM-0025",
+  "title": "Implement serializable Job Driver state machines",
+  "summary": "Implement explicit serializable Job and Driver state machines, interruption policies, cancellation cleanup, structured failures and save fields.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0016",
+    "WM-0022",
+    "WM-0023",
+    "WM-0024"
+  ],
+  "docs": [
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "docs/02_systems/13_save_replay_migration.md",
+    "docs/02_systems/14_explainability_debug_observability.md",
+    "docs/07_roadmap/06_m1_simulation_kernel_plan.md"
+  ],
+  "acceptance": [
+    "Job drivers expose explicit enter, tick, complete, fail, cancel and save fields with no Promise or Generator execution position",
+    "Interruption policies Never, AtSafePoint, Immediate and EmergencyOnly share cleanup for reservation and carried state",
+    "Structured reason codes distinguish permission, material, reservation, path, risk, time and target-state failures",
+    "Save/load round trip resumes a job at the same explicit step and preserves world hash"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter jobs",
+    "pnpm sim:replay-test",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0025-implement-serializable-job-driver-state-machines",
+  "createdAt": "2026-06-23T23:08:02.344Z",
+  "updatedAt": "2026-06-23T23:08:02.344Z",
+  "history": [
+    {
+      "at": "2026-06-23T23:08:02.344Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQR9I411-60A3BC",
+  "from": "systems-architect",
+  "to": "reviewer",
+  "taskId": "WM-0012",
+  "kind": "review-request",
+  "subject": "WM-0012 ready for review",
+  "body": "Produced executable M1 simulation-kernel plan and proposed WM-0014..WM-0030 DAG with explicit ADR gates, hauling/building first vertical, per-task scope/checks/bench/docs, and validation evidence.",
+  "artifacts": [
+    "coordination/reports/WM-0012.md",
+    "task/WM-0012-plan-m1"
+  ],
+  "createdAt": "2026-06-23T23:14:59.173Z",
+  "acknowledgedAt": null
+}

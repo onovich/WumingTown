@@ -1,0 +1,41 @@
+{
+  "id": "WM-0015",
+  "title": "Propose ADR 0003 for M1 entity store memory layout",
+  "summary": "Produce the proposed Entity/Store memory layout ADR for M1 map, location, item, job and reservation state ownership without accepting the decision inside an implementation task.",
+  "state": "proposed",
+  "ownerRole": "systems-architect",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0012",
+    "WM-0007"
+  ],
+  "docs": [
+    "docs/07_roadmap/06_m1_simulation_kernel_plan.md",
+    "docs/05_tech/07_architecture_decision_records.md",
+    "templates/ADR.md",
+    "docs/02_systems/02_entities_defs_components.md",
+    "docs/06_engineering/01_performance_constitution.md"
+  ],
+  "acceptance": [
+    "ADR-0003 is created with Status Proposed and records alternatives, migration, rollback, tests and performance implications",
+    "Contracts identify authoritative owners for map location, item quantity, job core, reservation ledger and index cleanup",
+    "ADR does not introduce UI-owned simulation state, hidden shared state, global scans or unversioned caches",
+    "Implementation tasks blocked on this ADR reference it explicitly"
+  ],
+  "requiredChecks": [
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node tools/validate-handoff.mjs",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0015-propose-adr-0003-for-m1-entity-store-memory-layo",
+  "createdAt": "2026-06-23T23:08:01.943Z",
+  "updatedAt": "2026-06-23T23:08:01.943Z",
+  "history": [
+    {
+      "at": "2026-06-23T23:08:01.943Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "id": "WM-0028",
+  "title": "Implement M1 save replay and Worker headless parity harness",
+  "summary": "Wire the M1 kernel through save/load, replay checkpoints, Worker execution and Node headless execution so the hauling/building scenario has identical authoritative hash.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0016",
+    "WM-0017",
+    "WM-0027"
+  ],
+  "docs": [
+    "docs/05_tech/02_worker_protocol.md",
+    "docs/02_systems/13_save_replay_migration.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "docs/07_roadmap/06_m1_simulation_kernel_plan.md"
+  ],
+  "acceptance": [
+    "Node headless and browser Worker run the same hauling/building command stream to the same periodic world hash",
+    "Save at an interruption point, load, rebuild indexes and resume produces the same final hash as uninterrupted replay",
+    "Snapshot and UI detail remain read-only projections and cannot mutate authoritative state",
+    "Diagnostics output seed, scenario id, first divergent tick and artifact paths on failure"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m1-save-replay",
+    "pnpm test:e2e --filter worker-smoke",
+    "pnpm sim:replay-test",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0028-implement-m1-save-replay-and-worker-headless-par",
+  "createdAt": "2026-06-23T23:08:02.466Z",
+  "updatedAt": "2026-06-23T23:08:02.467Z",
+  "history": [
+    {
+      "at": "2026-06-23T23:08:02.467Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    }
+  ]
+}
