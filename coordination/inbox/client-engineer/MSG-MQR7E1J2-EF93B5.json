@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQR7E1J2-EF93B5",
+  "from": "reviewer",
+  "to": "client-engineer",
+  "taskId": "WM-0004",
+  "kind": "review-approved",
+  "subject": "WM-0004 review: verified",
+  "body": "No blocking findings. Prior High fixed: packaged Electron ignores WM_DESKTOP_DEV_SERVER_URL via app.isPackaged guard and packaged smoke asserts file:/// while dev URL is set. Prior Medium fixed: build cleans dist/main and packager copies only dist/main/main.js; post-smoke artifact contains no desktop-shell.e2e.test.js. Required checks and targeted e2e passed.",
+  "artifacts": [
+    "coordination/reports/WM-0004.md"
+  ],
+  "createdAt": "2026-06-23T22:15:50.078Z",
+  "acknowledgedAt": "2026-06-23T22:16:46.594Z"
+}

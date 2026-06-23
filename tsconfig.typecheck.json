@@ -3,5 +3,5 @@
   "compilerOptions": {
     "skipLibCheck": true
   },
-  "include": ["apps/*/src/**/*.ts", "packages/*/src/**/*.ts", "tools/*/src/**/*.ts"]
+  "include": ["apps/*/*.ts", "apps/*/src/**/*.ts", "packages/*/src/**/*.ts", "tools/*/src/**/*.ts"]
 }
