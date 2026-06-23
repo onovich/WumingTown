@@ -2,7 +2,7 @@
   "id": "WM-0008",
   "title": "Implement deterministic RNG streams and world hashing",
   "summary": "Add named deterministic random streams, serialization of RNG state, canonical world hashing and divergence diagnostics for replay tests.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -26,13 +26,19 @@
   ],
   "branch": "task/WM-0008-rng-world-hash",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T12:00:00.000Z",
+  "updatedAt": "2026-06-23T17:57:03.030Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
       "actor": "handoff-author",
       "action": "create",
       "details": "Initial roadmap task"
+    },
+    {
+      "at": "2026-06-23T17:57:03.030Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ]
 }

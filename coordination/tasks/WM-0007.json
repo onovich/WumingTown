@@ -2,7 +2,7 @@
   "id": "WM-0007",
   "title": "Implement entity handles and foundational component stores",
   "summary": "Create generation-checked entity handles, bounded component stores, stable iteration and deferred structural command application with invariant tests.",
-  "state": "review_requested",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -26,7 +26,7 @@
   ],
   "branch": "task/WM-0007-entity-stores",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T17:52:04.439Z",
+  "updatedAt": "2026-06-23T17:57:03.028Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
@@ -63,6 +63,24 @@
       "actor": "simulation-engineer",
       "action": "complete",
       "details": "Addressed reviewer findings: registry-backed component read/has validation, queue-time Int32 bounds checks, primitive iteration callbacks, reusable typed commit result buffers, and line-count/report corrections; owner gates passed."
+    },
+    {
+      "at": "2026-06-23T17:56:00.085Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; prior review findings resolved; acceptance evidence confirmed"
+    },
+    {
+      "at": "2026-06-23T17:56:56.997Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified branch 398a998; owner gates and independent reviewer re-verification passed; ready for main fast-forward integration."
+    },
+    {
+      "at": "2026-06-23T17:57:03.027Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "claimedBy": "simulation-engineer",
@@ -71,8 +89,13 @@
   "reportPath": "coordination/reports/WM-0007.md",
   "review": {
     "reviewer": "reviewer",
-    "verdict": "changes_requested",
-    "summary": "High: stale destroyed handles can still read components through Int32ComponentStore.read/has when EntityRegistry.destroy is used directly; Medium: StructuralCommandBuffer silently wraps out-of-range Int32 command values before commit; Medium: iteration/commit APIs allocate proportional entity/result objects in sim-core hot paths.",
-    "at": "2026-06-23T17:35:06.277Z"
+    "verdict": "verified",
+    "summary": "No blocking findings; prior review findings resolved; acceptance evidence confirmed",
+    "at": "2026-06-23T17:56:00.084Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified branch 398a998; owner gates and independent reviewer re-verification passed; ready for main fast-forward integration.",
+    "at": "2026-06-23T17:56:56.996Z"
   }
 }
