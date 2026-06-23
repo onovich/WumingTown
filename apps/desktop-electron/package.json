@@ -17,7 +17,7 @@
   },
   "scripts": {
     "build": "pnpm build:renderer && pnpm build:main",
-    "build:main": "tsc --project tsconfig.build.json --pretty false",
+    "build:main": "node --eval \"require('node:fs').rmSync('dist/main', { force: true, recursive: true })\" && tsc --project tsconfig.build.json --pretty false",
     "build:renderer": "pnpm --filter @wuming-town/web build",
     "package:dir": "node --experimental-strip-types package-dir.ts"
   },

@@ -1,7 +1,7 @@
 /// <reference lib="dom" />
 
 import { spawn } from "node:child_process";
-import { mkdir } from "node:fs/promises";
+import { access, mkdir, rm, writeFile } from "node:fs/promises";
 import * as path from "node:path";
 
 import { _electron as electron, type Page } from "playwright";
@@ -18,6 +18,17 @@ const MAIN_ENTRY_PATH = path.join(
   "main.js",
 );
 const PACKAGED_EXE_PATH = path.join(DESKTOP_DIST_ROOT, "win-unpacked", "WumingTown.exe");
+const MAIN_DIST_DIR = path.join(process.cwd(), "apps", "desktop-electron", "dist", "main");
+const STALE_MAIN_OUTPUT_PATH = path.join(MAIN_DIST_DIR, "desktop-shell.e2e.test.js");
+const PACKAGED_MAIN_DIR = path.join(
+  DESKTOP_DIST_ROOT,
+  "win-unpacked",
+  "resources",
+  "app",
+  "dist",
+  "main",
+);
+const PACKAGED_STALE_OUTPUT_PATH = path.join(PACKAGED_MAIN_DIR, "desktop-shell.e2e.test.js");
 
 let mainBuildPromise: Promise<void> | undefined;
 let packagedBuildPromise: Promise<void> | undefined;
@@ -64,16 +75,36 @@ describe("desktop Electron shell smoke", () => {
 
     await ensureDesktopPackagedBuild();
 
+    const appRoot = path.join(process.cwd(), "apps", "web");
+    const server = await createServer({
+      configFile: false,
+      logLevel: "error",
+      root: appRoot,
+      server: {
+        host: "127.0.0.1",
+        port: 0,
+        strictPort: false,
+      },
+    });
+    await server.listen();
+
     const electronApp = await electron.launch({
       executablePath: PACKAGED_EXE_PATH,
+      env: {
+        ...process.env,
+        WM_DESKTOP_DEV_SERVER_URL: readServerUrl(server),
+      },
     });
 
     try {
       const page = await electronApp.firstWindow();
       await assertShellReady(page, "electron");
       await assertRendererSandbox(page);
+      assertPackagedRendererLoadedFromFile(page);
+      await assertPackagedMainBundleSanitized();
     } finally {
       await electronApp.close();
+      await server.close();
     }
   }, 180000);
 });
@@ -150,9 +181,32 @@ async function ensureDesktopPackagedBuild(): Promise<void> {
     await mkdir(DESKTOP_DIST_ROOT, {
       recursive: true,
     });
+    await seedStaleMainOutput();
     await runCommand("pnpm", ["build:desktop"]);
   })();
   await packagedBuildPromise;
+}
+
+async function seedStaleMainOutput(): Promise<void> {
+  await rm(MAIN_DIST_DIR, {
+    force: true,
+    recursive: true,
+  });
+  await mkdir(MAIN_DIST_DIR, {
+    recursive: true,
+  });
+  await writeFile(STALE_MAIN_OUTPUT_PATH, "export const stale = true;\n", "utf8");
+}
+
+async function assertPackagedMainBundleSanitized(): Promise<void> {
+  expect(await pathExists(path.join(MAIN_DIST_DIR, "main.js"))).toBe(true);
+  expect(await pathExists(STALE_MAIN_OUTPUT_PATH)).toBe(false);
+  expect(await pathExists(path.join(PACKAGED_MAIN_DIR, "main.js"))).toBe(true);
+  expect(await pathExists(PACKAGED_STALE_OUTPUT_PATH)).toBe(false);
+}
+
+function assertPackagedRendererLoadedFromFile(page: Page): void {
+  expect(page.url().startsWith("file:///")).toBe(true);
 }
 
 async function readDebugPayload(page: Page): Promise<Record<string, unknown>> {
@@ -209,4 +263,13 @@ async function runCommand(command: string, args: readonly string[]): Promise<voi
       reject(new Error(`${command} ${args.join(" ")} exited with code ${String(code)}`));
     });
   });
+}
+
+async function pathExists(targetPath: string): Promise<boolean> {
+  try {
+    await access(targetPath);
+    return true;
+  } catch {
+    return false;
+  }
 }

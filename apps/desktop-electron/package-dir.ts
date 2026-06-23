@@ -8,6 +8,10 @@ const APP_ROOT = fileURLToPath(new URL(".", import.meta.url));
 const DIST_ROOT = path.join(APP_ROOT, "..", "..", "dist", "desktop");
 const OUTPUT_DIR = path.join(DIST_ROOT, "win-unpacked");
 const APP_BUNDLE_DIR = path.join(OUTPUT_DIR, "resources", "app");
+const MAIN_DIST_DIR = path.join(APP_ROOT, "dist", "main");
+const MAIN_ENTRY_PATH = path.join(MAIN_DIST_DIR, "main.js");
+const RENDERER_DIST_DIR = path.join(APP_ROOT, "dist", "renderer");
+const PRELOAD_ENTRY_PATH = path.join(APP_ROOT, "src", "preload.cjs");
 const EXE_NAME = "WumingTown.exe";
 const CACHE_ROOT = path.join(DIST_ROOT, ".cache");
 const require = createRequire(import.meta.url);
@@ -24,8 +28,9 @@ const ELECTRON_DOWNLOAD_URL = `https://github.com/electron/electron/releases/dow
 const ELECTRON_DIST_DIR = await resolveElectronDistDir();
 
 await access(ELECTRON_DIST_DIR);
-await access(path.join(APP_ROOT, "dist", "main", "main.js"));
-await access(path.join(APP_ROOT, "dist", "renderer", "index.html"));
+await access(MAIN_ENTRY_PATH);
+await access(path.join(RENDERER_DIST_DIR, "index.html"));
+await access(PRELOAD_ENTRY_PATH);
 
 await rm(OUTPUT_DIR, {
   force: true,
@@ -39,19 +44,17 @@ await rename(path.join(OUTPUT_DIR, "electron.exe"), path.join(OUTPUT_DIR, EXE_NA
 await mkdir(path.join(APP_BUNDLE_DIR, "dist"), {
   recursive: true,
 });
+await mkdir(path.join(APP_BUNDLE_DIR, "dist", "main"), {
+  recursive: true,
+});
 await mkdir(path.join(APP_BUNDLE_DIR, "src"), {
   recursive: true,
 });
-await cp(path.join(APP_ROOT, "dist", "main"), path.join(APP_BUNDLE_DIR, "dist", "main"), {
+await cp(MAIN_ENTRY_PATH, path.join(APP_BUNDLE_DIR, "dist", "main", "main.js"));
+await cp(RENDERER_DIST_DIR, path.join(APP_BUNDLE_DIR, "dist", "renderer"), {
   recursive: true,
 });
-await cp(path.join(APP_ROOT, "dist", "renderer"), path.join(APP_BUNDLE_DIR, "dist", "renderer"), {
-  recursive: true,
-});
-await cp(
-  path.join(APP_ROOT, "src", "preload.cjs"),
-  path.join(APP_BUNDLE_DIR, "src", "preload.cjs"),
-);
+await cp(PRELOAD_ENTRY_PATH, path.join(APP_BUNDLE_DIR, "src", "preload.cjs"));
 
 await writeFile(
   path.join(APP_BUNDLE_DIR, "package.json"),

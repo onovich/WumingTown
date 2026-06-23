@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQR70XD7-821EA0",
+  "from": "reviewer",
+  "to": "client-engineer",
+  "taskId": "WM-0004",
+  "kind": "changes-requested",
+  "subject": "WM-0004 review: changes_requested",
+  "body": "High: packaged Electron still trusts WM_DESKTOP_DEV_SERVER_URL for the main renderer URL, allowing packaged launches to load arbitrary remote/dev content with the preload bridge and leaving packaged smoke unable to prove file renderer loading. Medium: package-dir copies the whole dist/main directory without cleaning it, so stale compiled files such as desktop-shell.e2e.test.js leaked into win-unpacked during review build.",
+  "artifacts": [
+    "coordination/reports/WM-0004.md"
+  ],
+  "createdAt": "2026-06-23T22:05:38.156Z",
+  "acknowledgedAt": "2026-06-23T22:06:19.923Z"
+}

@@ -43,8 +43,8 @@ async function openMainWindow(): Promise<void> {
 }
 
 async function loadRenderer(mainWindow: BrowserWindow): Promise<void> {
-  const devServerUrl = process.env[DEV_SERVER_URL_ENV];
-  if (typeof devServerUrl === "string" && devServerUrl.length > 0) {
+  const devServerUrl = readDevServerUrl();
+  if (devServerUrl !== undefined) {
     const launchUrl = new URL("./", devServerUrl);
     launchUrl.searchParams.set("wmDesktop", "1");
     await mainWindow.loadURL(launchUrl.toString());
@@ -55,6 +55,19 @@ async function loadRenderer(mainWindow: BrowserWindow): Promise<void> {
   const launchUrl = pathToFileURL(RENDERER_INDEX_PATH);
   launchUrl.searchParams.set("wmDesktop", "1");
   await mainWindow.loadURL(launchUrl.toString());
+}
+
+function readDevServerUrl(): string | undefined {
+  if (app.isPackaged) {
+    return undefined;
+  }
+
+  const devServerUrl = process.env[DEV_SERVER_URL_ENV];
+  if (typeof devServerUrl !== "string" || devServerUrl.length === 0) {
+    return undefined;
+  }
+
+  return devServerUrl;
 }
 
 function registerApplicationLifecycle(): void {

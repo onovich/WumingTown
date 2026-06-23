@@ -26,7 +26,7 @@
   ],
   "branch": "task/WM-0004-electron-shell",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T21:52:08.480Z",
+  "updatedAt": "2026-06-23T22:11:26.847Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
@@ -51,10 +51,28 @@
       "actor": "client-engineer",
       "action": "complete",
       "details": "Built sandboxed Windows Electron shell with typed preload ports, custom unpacked packaging, Windows smoke coverage, and zero high security findings."
+    },
+    {
+      "at": "2026-06-23T22:05:38.155Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: packaged Electron still trusts WM_DESKTOP_DEV_SERVER_URL for the main renderer URL, allowing packaged launches to load arbitrary remote/dev content with the preload bridge and leaving packaged smoke unable to prove file renderer loading. Medium: package-dir copies the whole dist/main directory without cleaning it, so stale compiled files such as desktop-shell.e2e.test.js leaked into win-unpacked during review build."
+    },
+    {
+      "at": "2026-06-23T22:11:26.847Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Fixed packaged renderer trust boundary so packaged Electron always loads file content, cleaned/whitelisted main bundle outputs, and added smoke coverage proving dev URL is ignored and stale compiled tests stay out of win-unpacked."
     }
   ],
   "claimedBy": "client-engineer",
   "threadLabel": "Electron",
   "blocker": null,
-  "reportPath": "coordination/reports/WM-0004.md"
+  "reportPath": "coordination/reports/WM-0004.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "changes_requested",
+    "summary": "High: packaged Electron still trusts WM_DESKTOP_DEV_SERVER_URL for the main renderer URL, allowing packaged launches to load arbitrary remote/dev content with the preload bridge and leaving packaged smoke unable to prove file renderer loading. Medium: package-dir copies the whole dist/main directory without cleaning it, so stale compiled files such as desktop-shell.e2e.test.js leaked into win-unpacked during review build.",
+    "at": "2026-06-23T22:05:38.154Z"
+  }
 }
