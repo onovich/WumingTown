@@ -20,7 +20,12 @@
       "threadId": "019ef4e4-1a64-73e3-a9c0-46746007ef7b",
       "label": "WM-0002 monorepo bootstrap",
       "registeredAt": "2026-06-23T15:10:49.598Z"
+    },
+    "simulation-engineer": {
+      "threadId": "019ef516-f9a1-75b2-bce1-e19c040a179b",
+      "label": "WM-0005 worker protocol",
+      "registeredAt": "2026-06-23T15:26:42.310Z"
     }
   },
-  "updatedAt": "2026-06-23T15:10:56.816Z"
+  "updatedAt": "2026-06-23T15:26:42.310Z"
 }

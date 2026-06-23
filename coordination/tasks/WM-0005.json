@@ -2,7 +2,7 @@
   "id": "WM-0005",
   "title": "Define and spike the simulation Worker protocol",
   "summary": "Implement typed command, snapshot, UI-delta, lifecycle and error envelopes between client and authoritative simulation Worker, including protocol version rejection.",
-  "state": "ready",
+  "state": "review_requested",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -26,7 +26,7 @@
   ],
   "branch": "task/WM-0005-worker-protocol",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T15:20:56.258Z",
+  "updatedAt": "2026-06-23T16:03:39.753Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
@@ -39,6 +39,22 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-23T15:29:03.012Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Tally"
+    },
+    {
+      "at": "2026-06-23T16:03:39.753Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented typed simulation Worker protocol envelopes, boundary validation, structured reason codes, minimal authoritative worker state machine, Node and Worker-port round-trip tests; owner recheck confirmed literal required checks pass and protocol files are split below review thresholds."
     }
-  ]
+  ],
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Tally",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0005.md"
 }

@@ -29,7 +29,33 @@
 - `MetricsSample`
 - `FatalSimulationError`
 
-每条消息包含 `protocolVersion`, `sessionId`, `sequence`. 不可信输入在边界验证；内部热点不重复 Schema 校验。
+每条消息包含 `protocolVersion`, `schemaVersion`, `sessionId`, `sequence`. 不可信输入在 Worker 边界验证；内部热点不重复 Schema 校验。
+
+M0 spike 固定：
+
+- `protocolVersion = 1`
+- `schemaVersion = 1`
+- `sequence` 为主线程和 Worker 各自递增的正整数流。Worker 对每个 session 记录已处理的主线程 sequence，旧 sequence 必须拒绝。
+- `sessionId` 在 `InitSession` / `LoadSession` 后由 Worker 绑定；后续不同 session 的消息必须拒绝。
+
+## 结构化失败
+
+边界或生命周期失败必须返回 `CommandResult` 或 `FatalSimulationError` 携带结构化 `reason`，不得只返回字符串。M0 spike 定义以下 reason code：
+
+- `UnsupportedProtocolVersion`
+- `UnsupportedSchemaVersion`
+- `UnknownMessageKind`
+- `UnknownCommandKind`
+- `StaleSequence`
+- `StaleSession`
+- `InvalidPayload`
+- `LifecycleError`
+
+未知消息族在 payload 分发前拒绝；未知玩家命令或开发命令以 `UnknownCommandKind` 拒绝；版本不兼容时不尝试兼容热连接。
+
+## M0 Worker Spike
+
+`packages/sim-protocol` 暴露 typed envelopes 与 `validateMainToSimulationMessage`。`packages/sim-worker` 暴露最小权威 session 状态机和 Worker-compatible port adapter。该 spike 只证明路由、版本/Schema 校验、session/sequence 拒绝和 round-trip；不实现地图、实体 Store、真实 Tick、存档格式或玩法规则。
 
 ## Snapshot
 
