@@ -1,0 +1,69 @@
+{
+  "id": "WM-0013",
+  "title": "Add the Codex Spark rapid implementation lane",
+  "summary": "Add a bounded gpt-5.3-codex-spark rapid implementation role, routing classifier, documentation, validation, and review evidence without changing existing core role assignments or concurrency limits.",
+  "state": "in_progress",
+  "ownerRole": "project-director",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0001"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "docs/08_codex/00_multi_agent_operating_model.md",
+    "docs/08_codex/01_model_assignment.md",
+    "docs/08_codex/02_thread_communication_protocol.md",
+    "docs/08_codex/06_bootstrap_prompts.md",
+    "docs/08_codex/08_spark_execution_lane.md",
+    ".agents/skills/wuming-town-agent-workflow/SKILL.md",
+    "coordination/roles.json"
+  ],
+  "acceptance": [
+    "coordination/roles.json contains rapid-implementer",
+    ".codex/agents/rapid-implementer.toml exists and follows the project agent TOML style",
+    "coordination/inbox/rapid-implementer/ exists",
+    "Related multi-agent documentation is synchronized",
+    "The agent workflow Skill contains Spark task classification and routing rules",
+    "Maximum thread count remains 6",
+    "At most 3 write-heavy tasks may run concurrently",
+    "The original 9 role model assignments are not changed without cause",
+    "Spark does not own architecture, final review, or high-risk core implementation",
+    "Spark tasks must explicitly run tests",
+    "Spark unavailable fallback is explicit and auditable",
+    "Original handoff ZIP, SHA-256, HANDOFF_MANIFEST.json, and CHECKSUMS.sha256 are unchanged",
+    "handoff validator, taskctl validator, taskctl status, and git diff check pass",
+    "reviewer gives an independent verified verdict"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0013-add-spark-execution-lane",
+  "createdAt": "2026-06-23T13:05:47.376Z",
+  "updatedAt": "2026-06-23T13:10:21.858Z",
+  "history": [
+    {
+      "at": "2026-06-23T13:05:47.376Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    },
+    {
+      "at": "2026-06-23T13:07:00.000Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "WM-0001 already done; taskctl has no standalone promote command"
+    },
+    {
+      "at": "2026-06-23T13:10:21.858Z",
+      "actor": "project-director",
+      "action": "claim",
+      "details": "thread=Beacon"
+    }
+  ],
+  "claimedBy": "project-director",
+  "threadLabel": "Beacon",
+  "blocker": null
+}

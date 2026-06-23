@@ -17,3 +17,13 @@
 ```text
 使用 $wuming-town-agent-workflow 读取所有未确认 inbox 消息。把每条消息路由给其 to 角色的活跃 agent；没有活跃 agent 时按 .codex/agents 配置生成。不要仅摘要后忽略消息。
 ```
+
+## Spark 快速实现通道
+
+```text
+当 ready backlog 中存在小范围、规格已批准、允许/禁止路径明确、自动验收完整、且不涉及架构/协议/存档/Schema/并发/安全/锁定决策的任务时，project-director 可以生成 rapid-implementer / Quickhand。给它完整任务包：目标、允许路径、禁止路径、验收命令、owner、完成后通知对象。通常只保持一个 Spark 写入线程；完成后仍交 reviewer 独立评审。
+```
+
+```text
+如果 Spark 不可用或当前会话不能动态发现 rapid-implementer，不要声称已使用 Spark。在任务报告记录 unavailable，并回退到 gpt-5.4-mini 或原 owner 角色。
+```

@@ -96,6 +96,26 @@ node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs done \
   --id WM-0000 --agent project-director
 ```
 
+## Spark dispatch classifier
+
+Before dispatching a task, project-director may route it to `rapid-implementer` only when all of these are true:
+
+A. The task has an approved spec or interface.
+B. It touches only one local module, one package, or one tightly bounded feature slice.
+C. The task packet lists allowed paths and forbidden paths.
+D. Complete automated acceptance exists.
+E. The work does not touch architecture, save formats, public or Worker protocols, Schema, concurrency ownership, security boundaries, locked decisions, ADR final decisions, new runtime dependencies, or high-risk deterministic simulation design.
+F. The expected diff fits the default Spark limit: no more than 8 modified files and about 300 net changed lines.
+G. The work does not depend on image understanding, screenshot interpretation, or visual taste.
+
+If any critical condition is false, do not assign the task to Spark to save model quota. Use the original owner role or split the task.
+
+Spark write work must have its own coordination task, or a clearly auditable child task with branch/worktree and file ownership. Messages may use `to: rapid-implementer`; `taskctl route` discovers this role through `coordination/roles.json`. If no active Spark thread exists, project-director may spawn `.codex/agents/rapid-implementer.toml`, register the returned thread id, and ack only after the message is truly delivered.
+
+Spark completion still goes to the task's `reviewerRole`. `reviewer` must not use Spark as the final review model.
+
+If Spark is unavailable, queued, or not accessible in the current account/session, do not pretend it was used. Record `rapid-implementer unavailable` in the task report, then explicitly fall back to `gpt-5.4-mini` or reassign to the original owner role. Record the actual model and reason.
+
 ## Communication rules
 
 - Messages contain summaries and repository paths, not giant logs or secrets.

@@ -48,6 +48,10 @@ node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs register-thre
 
 `project-director` 生成对应 `.codex/agents/<role>.toml` 自定义代理，把任务、报告和消息路径交给它，登记新线程后再投递。新线程不得依赖旧线程记忆。
 
+`rapid-implementer` 同样使用文件邮箱和线程登记。消息 `to` 可以是 `rapid-implementer`；没有活跃 Spark 线程时，project-director 可按 `.codex/agents/rapid-implementer.toml` 生成临时子代理，登记可获得的 thread id，真正投递后才 ack。完成后仍由 `taskctl complete` 发送给 `reviewer`，不得由 Spark 自评。
+
+如果当前 Codex 会话无法动态发现 `rapid-implementer` 或 Spark 模型不可用，不得伪称已使用 Spark。任务报告必须记录 unavailable，并明确回退到 `gpt-5.4-mini` 或重新分配给原 owner 角色。
+
 ## 防重复与确认
 
 接收消息的线程真正收到 follow-up 后，根线程才运行 `taskctl ack`。重复投递必须幂等；接收代理先读取任务状态、commit 和报告判断是否已执行。

@@ -42,6 +42,14 @@ node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs claim --id <T
 4. 运行 `taskctl complete`，向评审角色发消息。
 5. 等待独立评审；不得自行把状态改为 `done`。
 
+## Spark 快速执行通道
+
+项目有一个按需临时角色 `rapid-implementer` / Quickhand，使用 `gpt-5.3-codex-spark`。它只处理范围小、规格已批准、允许/禁止路径明确、自动验收完整、失败成本低的定点修改。默认不得超过 8 个修改文件或约 300 行净变更；超过时必须停止并要求拆分或重新分配。
+
+Spark 不得承担架构设计、技术选型、产品方向、锁定决策、ADR 最终决策、公共协议、Worker 协议、存档格式、Schema、并发所有权、安全边界、新运行时依赖、跨 package 大重构、隐蔽并发 Bug 自主修复或最终评审。Spark 输出仍必须运行任务列出的测试并交 `reviewer` 独立评审。
+
+Spark 不可用或当前会话不能动态发现时，不得伪称已使用；任务报告必须记录 unavailable，并明确回退到 `gpt-5.4-mini` 或原 owner 角色。详细规则见 `docs/08_codex/08_spark_execution_lane.md`。
+
 ## TypeScript 强制规则
 
 - `strict: true`，并启用 `noUncheckedIndexedAccess`、`exactOptionalPropertyTypes`、`useUnknownInCatchVariables`。
