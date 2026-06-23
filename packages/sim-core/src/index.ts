@@ -1,4 +1,3 @@
-import { CONTENT_SCHEMA_SMOKE } from "@wuming-town/content-schema";
 import { defineWorkspaceSmoke, type WorkspaceSmoke } from "@wuming-town/foundation";
 
 export { formatUint32Hex, hashStringToUint32, mixUint32 } from "./deterministic-hash";
@@ -97,4 +96,4 @@ export const SIM_CORE_SMOKE: WorkspaceSmoke = defineWorkspaceSmoke(
   "package",
 );
 
-export const SIM_CORE_ALLOWED_INPUTS: readonly string[] = [CONTENT_SCHEMA_SMOKE.packageName];
+export const SIM_CORE_ALLOWED_INPUTS: readonly string[] = ["@wuming-town/content-schema"];
