@@ -26,7 +26,7 @@
   ],
   "branch": "task/WM-0008-rng-world-hash",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T18:25:47.664Z",
+  "updatedAt": "2026-06-23T19:35:10.895Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
@@ -51,10 +51,28 @@
       "actor": "simulation-engineer",
       "action": "complete",
       "details": "Implemented named deterministic RNG streams, serializable/restorable headless RNG state, canonical world hashing, replay divergence diagnostics, and literal determinism/replay checks; owner gates passed."
+    },
+    {
+      "at": "2026-06-23T19:31:21.580Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: canonical world hash includes paused/speed scheduler control state; Medium: none"
+    },
+    {
+      "at": "2026-06-23T19:35:10.895Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Addressed reviewer finding by excluding playback controls from canonical world hash and adding regression coverage; determinism and replay gates passed."
     }
   ],
   "claimedBy": "simulation-engineer",
   "threadLabel": "Tally",
   "blocker": null,
-  "reportPath": "coordination/reports/WM-0008.md"
+  "reportPath": "coordination/reports/WM-0008.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "changes_requested",
+    "summary": "High: canonical world hash includes paused/speed scheduler control state; Medium: none",
+    "at": "2026-06-23T19:31:21.580Z"
+  }
 }

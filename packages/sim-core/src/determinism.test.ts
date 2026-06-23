@@ -10,6 +10,8 @@ import {
   queueHeadlessCommand,
   restoreHeadlessRunner,
   serializeHeadlessRunner,
+  setHeadlessPaused,
+  setHeadlessSpeed,
   summarizeHeadlessRun,
   type ReplayCheckpoint,
 } from "./index";
@@ -112,6 +114,26 @@ describe("deterministic RNG streams, world hashing, and replay diagnostics", () 
     expect(firstHash).toBe(secondHash);
   });
 
+  it("keeps playback controls out of canonical world hash", () => {
+    const normalPlayback = buildPlaybackControlRunner();
+    const alteredPlayback = buildPlaybackControlRunner();
+
+    setHeadlessSpeed(alteredPlayback, 3);
+    setHeadlessPaused(alteredPlayback, true);
+
+    const normalSummary = summarizeHeadlessRun(normalPlayback);
+    const alteredSummary = summarizeHeadlessRun(alteredPlayback);
+
+    expect(normalSummary.finalTick).toBe(alteredSummary.finalTick);
+    expect(normalSummary.appliedCommandCount).toBe(alteredSummary.appliedCommandCount);
+    expect(normalSummary.commandHash).toBe(alteredSummary.commandHash);
+    expect(normalSummary.worldHash).toBe(alteredSummary.worldHash);
+    expect(normalSummary.speed).toBe(1);
+    expect(normalSummary.paused).toBe(false);
+    expect(alteredSummary.speed).toBe(3);
+    expect(alteredSummary.paused).toBe(true);
+  });
+
   it("rejects duplicate canonical field and random stream names", () => {
     expect(() =>
       formatCanonicalWorldHash({
@@ -191,6 +213,15 @@ function buildReplayCheckpoints(seed: string): ReplayCheckpoint[] {
   }
 
   return checkpoints;
+}
+
+function buildPlaybackControlRunner(): ReturnType<typeof createHeadlessRunner> {
+  const runner = createHeadlessRunner({ seed: "playback-controls" });
+
+  queueOrThrow(runner, 2, "same-history");
+  advanceHeadlessTicks(runner, 5);
+
+  return runner;
 }
 
 function queueOrThrow(

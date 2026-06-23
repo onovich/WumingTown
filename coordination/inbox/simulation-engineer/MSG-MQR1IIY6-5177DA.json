@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQR1IIY6-5177DA",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0008",
+  "kind": "changes-requested",
+  "subject": "WM-0008 review: changes_requested",
+  "body": "High: canonical world hash includes paused/speed scheduler control state; Medium: none",
+  "artifacts": [
+    "coordination/reports/WM-0008.md"
+  ],
+  "createdAt": "2026-06-23T19:31:21.582Z",
+  "acknowledgedAt": "2026-06-23T19:32:15.453Z"
+}
