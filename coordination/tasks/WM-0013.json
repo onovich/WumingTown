@@ -2,7 +2,7 @@
   "id": "WM-0013",
   "title": "Add the Codex Spark rapid implementation lane",
   "summary": "Add a bounded gpt-5.3-codex-spark rapid implementation role, routing classifier, documentation, validation, and review evidence without changing existing core role assignments or concurrency limits.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -42,7 +42,7 @@
   ],
   "branch": "task/WM-0013-add-spark-execution-lane",
   "createdAt": "2026-06-23T13:05:47.376Z",
-  "updatedAt": "2026-06-23T13:21:49.469Z",
+  "updatedAt": "2026-06-23T13:23:28.665Z",
   "history": [
     {
       "at": "2026-06-23T13:05:47.376Z",
@@ -73,6 +73,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings; Spark lane acceptance evidence confirmed, original 9 role assignments and protected handoff records preserved, max_threads=6/max_depth=1, write-heavy limit remains 3, fallback and independent review requirements are explicit."
+    },
+    {
+      "at": "2026-06-23T13:23:28.624Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Spark lane amendment verified by reviewer; integration gate passed: validate-handoff 181 files/13 tasks/10 roles, taskctl validate passed, taskctl status verified 1/ready 1/done 1, git diff --check passed"
+    },
+    {
+      "at": "2026-06-23T13:23:28.664Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "claimedBy": "project-director",
@@ -84,5 +96,10 @@
     "verdict": "verified",
     "summary": "No blocking findings; Spark lane acceptance evidence confirmed, original 9 role assignments and protected handoff records preserved, max_threads=6/max_depth=1, write-heavy limit remains 3, fallback and independent review requirements are explicit.",
     "at": "2026-06-23T13:21:49.468Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Spark lane amendment verified by reviewer; integration gate passed: validate-handoff 181 files/13 tasks/10 roles, taskctl validate passed, taskctl status verified 1/ready 1/done 1, git diff --check passed",
+    "at": "2026-06-23T13:23:28.623Z"
   }
 }
