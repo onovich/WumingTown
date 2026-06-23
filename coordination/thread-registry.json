@@ -22,10 +22,10 @@
       "registeredAt": "2026-06-23T15:10:49.598Z"
     },
     "simulation-engineer": {
-      "threadId": "019ef549-faaa-78e0-9a71-18d749f1fa1b",
-      "label": "WM-0006 headless tick runner",
-      "registeredAt": "2026-06-23T16:22:21.578Z"
+      "threadId": "019ef56b-41c8-7d13-85a7-f7a3ecea1e2e",
+      "label": "WM-0007 entity stores",
+      "registeredAt": "2026-06-23T16:58:40.243Z"
     }
   },
-  "updatedAt": "2026-06-23T16:44:29.078Z"
+  "updatedAt": "2026-06-23T16:58:40.244Z"
 }

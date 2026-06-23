@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQQX2MP8-B54BCC",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0007",
+  "kind": "review-request",
+  "subject": "WM-0007 ready for review",
+  "body": "Implemented generation-checked EntityId registry, bounded Int32 component stores, deterministic structural command commit phase, invariant tests, and entity-store benchmark; required checks passed.",
+  "artifacts": [
+    "coordination/reports/WM-0007.md",
+    "task/WM-0007-entity-stores"
+  ],
+  "createdAt": "2026-06-23T17:27:01.484Z",
+  "acknowledgedAt": null
+}

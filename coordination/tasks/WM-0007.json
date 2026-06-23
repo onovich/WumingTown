@@ -2,7 +2,7 @@
   "id": "WM-0007",
   "title": "Implement entity handles and foundational component stores",
   "summary": "Create generation-checked entity handles, bounded component stores, stable iteration and deferred structural command application with invariant tests.",
-  "state": "ready",
+  "state": "review_requested",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -26,7 +26,7 @@
   ],
   "branch": "task/WM-0007-entity-stores",
   "createdAt": "2026-06-23T12:00:00.000Z",
-  "updatedAt": "2026-06-23T16:54:45.940Z",
+  "updatedAt": "2026-06-23T17:27:01.483Z",
   "history": [
     {
       "at": "2026-06-23T12:00:00.000Z",
@@ -39,6 +39,22 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-23T17:00:46.872Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Tally"
+    },
+    {
+      "at": "2026-06-23T17:27:01.483Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented generation-checked EntityId registry, bounded Int32 component stores, deterministic structural command commit phase, invariant tests, and entity-store benchmark; required checks passed."
     }
-  ]
+  ],
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Tally",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0007.md"
 }
