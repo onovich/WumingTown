@@ -25,8 +25,29 @@ describe("content fixture validation", () => {
 
     const invalidId = result.diagnostics.find((diagnostic) => diagnostic.code === "invalid_def_id");
     expect(invalidId?.location.filePath).toContain(path.join("defs", "invalid-id.json"));
-    expect(invalidId?.location.line ?? 0).toBeGreaterThan(0);
-    expect(invalidId?.location.column ?? 0).toBeGreaterThan(0);
+
+    const missingRef = result.diagnostics.find(
+      (diagnostic) => diagnostic.code === "missing_def_reference",
+    );
+    expect(missingRef?.location.filePath).toContain(path.join("defs", "missing-ref.json"));
+    expect(missingRef?.location.line).toBe(11);
+    expect(missingRef?.location.column).toBe(6);
+  });
+
+  it("reports quoted-json field locations instead of 1:1 fallbacks", async () => {
+    const fixtureRoot = await createFixtureRoot();
+    const fixture = await loadContentFixture(fixtureRoot);
+    const result = validateContentFixture(fixture);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error("expected validation failure");
+    }
+
+    const invalidId = result.diagnostics.find((diagnostic) => diagnostic.code === "invalid_def_id");
+    expect(invalidId?.location.filePath).toContain(path.join("defs", "invalid-id.json"));
+    expect(invalidId?.location.line).toBe(3);
+    expect(invalidId?.location.column).toBe(9);
   });
 });
 

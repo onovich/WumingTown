@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQR7HKLL-2A1131",
+  "from": "reviewer",
+  "to": "content-worker",
+  "taskId": "WM-0009",
+  "kind": "changes-requested",
+  "subject": "WM-0009 review: changes_requested",
+  "body": "High: comment-aware JSON5 lookup skips quoted keys before matching them, so normal JSON diagnostics for invalid IDs and missing references regress to 1:1 instead of the offending id/reference fields; source-location acceptance remains broken despite required checks passing.",
+  "artifacts": [
+    "coordination/reports/WM-0009.md"
+  ],
+  "createdAt": "2026-06-23T22:18:34.761Z",
+  "acknowledgedAt": "2026-06-23T22:22:23.068Z"
+}

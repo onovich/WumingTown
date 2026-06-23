@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQR7Q5CQ-E1FFE2",
+  "from": "content-worker",
+  "to": "reviewer",
+  "taskId": "WM-0009",
+  "kind": "review-request",
+  "subject": "WM-0009 ready for review",
+  "body": "Fixed source-location regression by restoring quoted-key lookup for plain JSON while keeping JSON5 bare-key lookup comment-aware. Plain JSON invalid IDs and missing references now resolve to the offending quoted field/value instead of 1:1, and JSON5 bare keys still skip // and /* */ comments. Added regression coverage for quoted JSON source locations and comment-aware JSON5 bare-key source locations, then re-ran content tests, content validation, core-smoke compile, typecheck, lint, format, boundaries, and diff checks.",
+  "artifacts": [
+    "coordination/reports/WM-0009.md",
+    "task/WM-0009-content-compiler"
+  ],
+  "createdAt": "2026-06-23T22:25:14.906Z",
+  "acknowledgedAt": null
+}

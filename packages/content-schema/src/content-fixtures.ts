@@ -729,6 +729,17 @@ function findPropertyValueOffset(text: string, propertyName: string): number | u
       break;
     }
 
+    for (const quotedKey of quotedKeys) {
+      if (!text.startsWith(quotedKey, index)) {
+        continue;
+      }
+
+      const afterKey = skipJson5WhitespaceAndComments(text, index + quotedKey.length);
+      if (text[afterKey] === ":") {
+        return afterKey + 1;
+      }
+    }
+
     if (char === "/" && next === "/") {
       index = skipJson5LineComment(text, index + 2);
       continue;
@@ -742,17 +753,6 @@ function findPropertyValueOffset(text: string, propertyName: string): number | u
     if (char === '"' || char === "'") {
       index = skipJson5String(text, index);
       continue;
-    }
-
-    for (const quotedKey of quotedKeys) {
-      if (!text.startsWith(quotedKey, index)) {
-        continue;
-      }
-
-      const afterKey = skipJson5WhitespaceAndComments(text, index + quotedKey.length);
-      if (text[afterKey] === ":") {
-        return afterKey + 1;
-      }
     }
 
     if (
