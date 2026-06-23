@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQQVU587-DB4049",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0006",
+  "kind": "review-approved",
+  "subject": "WM-0006 review: verified",
+  "body": "No blocking findings; acceptance evidence confirmed for deterministic headless tick runner",
+  "artifacts": [
+    "coordination/reports/WM-0006.md"
+  ],
+  "createdAt": "2026-06-23T16:52:25.975Z",
+  "acknowledgedAt": "2026-06-23T16:54:09.572Z"
+}
