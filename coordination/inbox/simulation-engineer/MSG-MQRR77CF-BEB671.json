@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQRR77CF-BEB671",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0020",
+  "kind": "review-approved",
+  "subject": "WM-0020 review: verified",
+  "body": "Verified WM-0020: LocationStore and SpatialIndex satisfy acceptance for exclusive membership, indexed cell/chunk/region queries, cleanup hooks, and 50k spatial-index benchmark with zero backlog; required typecheck/test/bench/lint/task validation/diff checks passed.",
+  "artifacts": [
+    "coordination/reports/WM-0020.md"
+  ],
+  "createdAt": "2026-06-24T07:30:23.343Z",
+  "acknowledgedAt": "2026-06-24T07:31:19.258Z"
+}
