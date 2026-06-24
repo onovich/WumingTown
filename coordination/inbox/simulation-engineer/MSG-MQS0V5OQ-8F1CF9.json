@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQS0V5OQ-8F1CF9",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0027",
+  "kind": "review-approved",
+  "subject": "WM-0027 review: verified",
+  "body": "Verified: WM-0027 build-site delivery/construction acceptance confirmed; required checks, 100k hauling-building scenario, lint, and boundary scan passed.",
+  "artifacts": [
+    "coordination/reports/WM-0027.md"
+  ],
+  "createdAt": "2026-06-24T12:00:57.483Z",
+  "acknowledgedAt": "2026-06-24T12:01:40.453Z"
+}

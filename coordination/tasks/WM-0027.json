@@ -2,7 +2,7 @@
   "id": "WM-0027",
   "title": "Implement build site material delivery and construction completion",
   "summary": "Implement the minimal build-site demand, material delivery and deterministic construction progress needed to complete the first hauling/building vertical scenario.",
-  "state": "review_requested",
+  "state": "verified",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0027-implement-build-site-material-delivery-and-const",
   "createdAt": "2026-06-23T23:08:02.425Z",
-  "updatedAt": "2026-06-24T11:53:36.046Z",
+  "updatedAt": "2026-06-24T12:00:57.482Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.426Z",
@@ -55,10 +55,22 @@
       "actor": "simulation-engineer",
       "action": "complete",
       "details": "Implemented minimal build-site material delivery, deterministic construction completion, building tests, and hauling-building headless scenario; required checks pass."
+    },
+    {
+      "at": "2026-06-24T12:00:57.482Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: Verified: WM-0027 build-site delivery/construction acceptance confirmed; required checks, 100k hauling-building scenario, lint, and boundary scan passed."
     }
   ],
   "claimedBy": "simulation-engineer",
   "threadLabel": "Sim-WM-0027",
   "blocker": null,
-  "reportPath": "coordination/reports/WM-0027.md"
+  "reportPath": "coordination/reports/WM-0027.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "Verified: WM-0027 build-site delivery/construction acceptance confirmed; required checks, 100k hauling-building scenario, lint, and boundary scan passed.",
+    "at": "2026-06-24T12:00:57.481Z"
+  }
 }
