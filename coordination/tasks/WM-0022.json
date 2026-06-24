@@ -2,7 +2,7 @@
   "id": "WM-0022",
   "title": "Implement versioned path request batching and Top K pathing",
   "summary": "Implement Region coarse pathing, local A star, batched path requests, Top-K candidate path resolution and stale navigation-version rejection.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0022-implement-versioned-path-request-batching-and-to",
   "createdAt": "2026-06-23T23:08:02.224Z",
-  "updatedAt": "2026-06-24T09:43:34.103Z",
+  "updatedAt": "2026-06-24T09:46:52.673Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.224Z",
@@ -61,6 +61,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: Verified WM-0022: full path basis is carried on requests/results, stale commits reject before path acceptance, Top-K exact pathing is bounded to caller candidates, sim-core boundary/determinism checks are clean, and required checks plus pathing-100 benchmark pass."
+    },
+    {
+      "at": "2026-06-24T09:46:47.584Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Fast-forward integrated verified WM-0022 into main after handoff, coordination, whitespace and quality gates passed."
+    },
+    {
+      "at": "2026-06-24T09:46:52.672Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "claimedBy": "simulation-engineer",
@@ -72,5 +84,10 @@
     "verdict": "verified",
     "summary": "Verified WM-0022: full path basis is carried on requests/results, stale commits reject before path acceptance, Top-K exact pathing is bounded to caller candidates, sim-core boundary/determinism checks are clean, and required checks plus pathing-100 benchmark pass.",
     "at": "2026-06-24T09:43:34.103Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Fast-forward integrated verified WM-0022 into main after handoff, coordination, whitespace and quality gates passed.",
+    "at": "2026-06-24T09:46:47.584Z"
   }
 }
