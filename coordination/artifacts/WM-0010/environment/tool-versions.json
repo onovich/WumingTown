@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-06-24T19:14:43.099Z",
-  "cwd": "D:\\WebProjects\\WumingTown-WM-0030",
+  "generatedAt": "2026-06-24T20:18:20.187Z",
+  "cwd": "D:\\WebProjects\\WumingTown",
   "nodeVersion": "v24.13.1",
   "npmVersion": "11.8.0",
   "pnpmVersion": "11.8.0",
-  "gitCommit": "aa62a9de4dbab7e21bf21e2f7489cef69bb29df7",
+  "gitCommit": "77396c60540ee28fd374031f0578936e2b8f399a",
   "platform": "win32",
   "arch": "x64",
   "osRelease": "10.0.26200",
