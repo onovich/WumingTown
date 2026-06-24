@@ -203,6 +203,92 @@ describe("minimal item storage hauling jobs", () => {
     });
     expect(totalWood(fixture)).toBe(6);
   });
+
+  it("keeps material conserved when pickup fails before JobCore transition", () => {
+    const fixture = createFixture();
+    refreshAll(fixture);
+
+    expect(createHaul(fixture, 0, 0, 4)).toMatchObject({ ok: true });
+    expect(
+      fixture.hauling.reserveBeforePickup(
+        0,
+        1,
+        fixture.registry,
+        fixture.items,
+        fixture.storage,
+        fixture.ledger,
+        fixture.jobCore,
+      ),
+    ).toMatchObject({ ok: true });
+
+    expect(fixture.hauling.pickup(0, -1, fixture.items, fixture.storage, fixture.jobCore)).toStrictEqual({
+      ok: false,
+      reason: "hauling_job_core_failed",
+    });
+    expect(fixture.items.readStack(0)).toMatchObject({ quantity: 6 });
+    expect(fixture.hauling.readJob(0)).toMatchObject({
+      step: "reserved",
+      carriedDefId: JOB_NONE,
+      carriedAmount: 0,
+    });
+    expect(fixture.jobCore.readJob(0)).toMatchObject({
+      step: "path_to_source",
+      carriedDefId: JOB_NONE,
+      carriedAmount: 0,
+    });
+    expect(fixture.ledger.createMetrics().activeCount).toBe(4);
+    expect(totalWood(fixture)).toBe(6);
+  });
+
+  it("keeps delivery fail-closed when JobCore completion rejects invalid tick", () => {
+    const fixture = createFixture();
+    refreshAll(fixture);
+
+    expect(createHaul(fixture, 0, 0, 4)).toMatchObject({ ok: true });
+    expect(
+      fixture.hauling.reserveBeforePickup(
+        0,
+        1,
+        fixture.registry,
+        fixture.items,
+        fixture.storage,
+        fixture.ledger,
+        fixture.jobCore,
+      ),
+    ).toMatchObject({ ok: true });
+    expect(fixture.hauling.pickup(0, 2, fixture.items, fixture.storage, fixture.jobCore)).toMatchObject({
+      ok: true,
+    });
+
+    expect(
+      fixture.hauling.deliver(
+        0,
+        -1,
+        fixture.items,
+        fixture.storage,
+        fixture.ledger,
+        fixture.jobCore,
+      ),
+    ).toStrictEqual({
+      ok: false,
+      reason: "hauling_job_core_failed",
+    });
+    expect(fixture.items.readStack(0)).toMatchObject({ quantity: 2 });
+    expect(fixture.items.readStack(1)).toMatchObject({ quantity: 0 });
+    expect(fixture.hauling.readJob(0)).toMatchObject({
+      step: "picked_up",
+      carriedDefId: WOOD_DEF,
+      carriedAmount: 4,
+    });
+    expect(fixture.jobCore.readJob(0)).toMatchObject({
+      status: "running",
+      step: "interact",
+      carriedDefId: WOOD_DEF,
+      carriedAmount: 4,
+    });
+    expect(fixture.ledger.createMetrics().activeCount).toBe(4);
+    expect(totalWood(fixture)).toBe(6);
+  });
 });
 
 const WOOD_DEF = 1;

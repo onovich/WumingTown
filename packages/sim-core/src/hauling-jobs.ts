@@ -217,6 +217,10 @@ export class HaulingJobStore {
       return { ok: false, reason: "hauling_slot_invalid" };
     }
 
+    if (!isSafeUint32(tick)) {
+      return { ok: false, reason: "hauling_job_core_failed" };
+    }
+
     const removed = items.removeQuantity(source.stackId, this.amounts[jobId] ?? 0, source.defId);
     if (!removed.ok) {
       return { ok: false, reason: "hauling_item_mutation_failed" };
@@ -224,11 +228,23 @@ export class HaulingJobStore {
 
     const carried = jobCore.setCarriedState(jobId, source.defId, this.amounts[jobId] ?? 0);
     if (!carried.ok) {
+      const restored = items.addQuantity(source.stackId, this.amounts[jobId] ?? 0, source.defId);
+      if (!restored.ok) {
+        throw new Error(`failed to rollback pickup quantity: ${restored.reason}`);
+      }
       return { ok: false, reason: "hauling_job_core_failed" };
     }
 
     const entered = jobCore.enterStep(jobId, "interact", tick);
     if (!entered.ok) {
+      const restored = items.addQuantity(source.stackId, this.amounts[jobId] ?? 0, source.defId);
+      if (!restored.ok) {
+        throw new Error(`failed to rollback pickup quantity: ${restored.reason}`);
+      }
+      const cleared = jobCore.setCarriedState(jobId, JOB_NONE, 0);
+      if (!cleared.ok) {
+        throw new Error(`failed to rollback pickup carried state: ${cleared.reason}`);
+      }
       return { ok: false, reason: "hauling_job_core_failed" };
     }
 
@@ -257,6 +273,10 @@ export class HaulingJobStore {
       return { ok: false, reason: "hauling_slot_invalid" };
     }
 
+    if (!isSafeUint32(tick)) {
+      return { ok: false, reason: "hauling_job_core_failed" };
+    }
+
     const added = items.addQuantity(
       destination.stackId,
       this.carriedAmounts[jobId] ?? 0,
@@ -268,6 +288,14 @@ export class HaulingJobStore {
 
     const completed = jobCore.completeJob(jobId, tick, ledger);
     if (!completed.ok) {
+      const removed = items.removeQuantity(
+        destination.stackId,
+        this.carriedAmounts[jobId] ?? 0,
+        this.carriedDefIds[jobId] ?? 0,
+      );
+      if (!removed.ok) {
+        throw new Error(`failed to rollback delivery quantity: ${removed.reason}`);
+      }
       return { ok: false, reason: "hauling_job_core_failed" };
     }
 

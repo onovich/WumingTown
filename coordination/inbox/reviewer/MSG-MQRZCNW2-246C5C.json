@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQRZCNW2-246C5C",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0026",
+  "kind": "review-request",
+  "subject": "WM-0026 ready for review",
+  "body": "Fixed hauling pickup and delivery fail-closed behavior; added invalid tick regression tests; required checks pass",
+  "artifacts": [
+    "coordination/reports/WM-0026.md",
+    "task/WM-0026-implement-minimal-item-storage-and-hauling-jobs"
+  ],
+  "createdAt": "2026-06-24T11:18:34.995Z",
+  "acknowledgedAt": null
+}

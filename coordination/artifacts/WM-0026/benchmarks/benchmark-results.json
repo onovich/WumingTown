@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-06-24T11:07:06.671Z",
+  "generatedAt": "2026-06-24T11:18:02.320Z",
   "baselinePath": "packages/benchmarks/baseline.json",
   "artifactPath": "coordination/artifacts/WM-0026/benchmarks/benchmark-results.json",
   "sampleCount": 5,
@@ -14,18 +14,18 @@
     {
       "name": "logistics-10k",
       "sampleElapsedMs": [
-        9.94980000000001,
-        4.233000000000004,
-        6.490300000000019,
-        3.1677999999999997,
-        4.218899999999991
+        8.6772,
+        6.862799999999993,
+        6.138999999999982,
+        3.7717999999999847,
+        3.8576000000000192
       ],
       "stats": {
         "sampleCount": 5,
-        "minElapsedMs": 3.1677999999999997,
-        "medianElapsedMs": 4.233000000000004,
-        "maxElapsedMs": 9.94980000000001,
-        "meanElapsedMs": 5.611960000000005
+        "minElapsedMs": 3.7717999999999847,
+        "medianElapsedMs": 6.138999999999982,
+        "maxElapsedMs": 8.6772,
+        "meanElapsedMs": 5.861679999999995
       },
       "invariants": {
         "sourceSlotCount": 10000,
@@ -51,9 +51,9 @@
       "comparison": {
         "name": "logistics-10k",
         "status": "ok",
-        "actualMedianElapsedMs": 4.233000000000004,
+        "actualMedianElapsedMs": 6.138999999999982,
         "baselineMedianElapsedMs": 30,
-        "regressionPercent": -85.88999999999999,
+        "regressionPercent": -79.53666666666673,
         "warnRegressionPercent": 10,
         "failRegressionPercent": 20,
         "invariantMismatches": []
