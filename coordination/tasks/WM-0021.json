@@ -2,7 +2,7 @@
   "id": "WM-0021",
   "title": "Implement incremental region room rebuild and navigation versions",
   "summary": "Implement local Region/Room invalidation and rebuild, navigation versioning, and room consistency checks for terrain, walls, doors and occupancy-affecting changes.",
-  "state": "review_requested",
+  "state": "verified",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0021-implement-incremental-region-room-rebuild-and-na",
   "createdAt": "2026-06-23T23:08:02.185Z",
-  "updatedAt": "2026-06-24T08:07:02.820Z",
+  "updatedAt": "2026-06-24T08:09:58.865Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.185Z",
@@ -67,6 +67,12 @@
       "actor": "simulation-engineer",
       "action": "complete",
       "details": "Addressed reviewer map-grid regression; required and adjacent checks pass"
+    },
+    {
+      "at": "2026-06-24T08:09:58.865Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: Verified WM-0021 re-review: prior map-grid MapCellView expectation regression is resolved; map-grid, region-room, benchmark, typecheck, lint, task validation, diff check and boundary check pass with no blocking findings."
     }
   ],
   "claimedBy": "simulation-engineer",
@@ -75,8 +81,8 @@
   "reportPath": "coordination/reports/WM-0021.md",
   "review": {
     "reviewer": "reviewer",
-    "verdict": "changes_requested",
-    "summary": "High: pnpm test --filter map-grid fails in touched packages/sim-core/src/map-grid.test.ts:67 because the expected MapCellView omits newly added wallMask/doorMask fields. Required WM-0021 checks otherwise pass, but this adjacent sim-core regression blocks verification.",
-    "at": "2026-06-24T08:04:06.048Z"
+    "verdict": "verified",
+    "summary": "Verified WM-0021 re-review: prior map-grid MapCellView expectation regression is resolved; map-grid, region-room, benchmark, typecheck, lint, task validation, diff check and boundary check pass with no blocking findings.",
+    "at": "2026-06-24T08:09:58.864Z"
   }
 }

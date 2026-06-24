@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQRSM4B6-33C6BC",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0021",
+  "kind": "review-approved",
+  "subject": "WM-0021 review: verified",
+  "body": "Verified WM-0021 re-review: prior map-grid MapCellView expectation regression is resolved; map-grid, region-room, benchmark, typecheck, lint, task validation, diff check and boundary check pass with no blocking findings.",
+  "artifacts": [
+    "coordination/reports/WM-0021.md"
+  ],
+  "createdAt": "2026-06-24T08:09:58.866Z",
+  "acknowledgedAt": "2026-06-24T08:10:44.551Z"
+}
