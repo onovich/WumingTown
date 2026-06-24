@@ -2,7 +2,7 @@
   "id": "WM-0015",
   "title": "Propose ADR 0003 for M1 entity store memory layout",
   "summary": "Produce the proposed Entity/Store memory layout ADR for M1 map, location, item, job and reservation state ownership without accepting the decision inside an implementation task.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -29,7 +29,7 @@
   ],
   "branch": "task/WM-0015-propose-adr-0003-for-m1-entity-store-memory-layo",
   "createdAt": "2026-06-23T23:08:01.943Z",
-  "updatedAt": "2026-06-24T04:33:39.706Z",
+  "updatedAt": "2026-06-24T04:44:00.521Z",
   "history": [
     {
       "at": "2026-06-23T23:08:01.943Z",
@@ -60,6 +60,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings; ADR-0003 remains Proposed, covers alternatives/migration/rollback/tests/performance and authoritative owners, introduces no implementation or UI-owned/hidden shared simulation state, and required checks pass."
+    },
+    {
+      "at": "2026-06-24T04:43:52.729Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Normal merged origin/task/WM-0015-propose-adr-0003-for-m1-entity-store-memory-layo via cafe12e after fast-forward was unavailable; resolved thread-registry by preserving both WM-0014 gameplay-designer and WM-0015 systems-architect records; reviewer verified; main gates passed: validate-handoff, taskctl validate/status, git diff --check, pnpm quality."
+    },
+    {
+      "at": "2026-06-24T04:44:00.520Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "claimedBy": "systems-architect",
@@ -71,5 +83,10 @@
     "verdict": "verified",
     "summary": "No blocking findings; ADR-0003 remains Proposed, covers alternatives/migration/rollback/tests/performance and authoritative owners, introduces no implementation or UI-owned/hidden shared simulation state, and required checks pass.",
     "at": "2026-06-24T04:33:39.705Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Normal merged origin/task/WM-0015-propose-adr-0003-for-m1-entity-store-memory-layo via cafe12e after fast-forward was unavailable; resolved thread-registry by preserving both WM-0014 gameplay-designer and WM-0015 systems-architect records; reviewer verified; main gates passed: validate-handoff, taskctl validate/status, git diff --check, pnpm quality.",
+    "at": "2026-06-24T04:43:52.728Z"
   }
 }
