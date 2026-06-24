@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQRMIHF6-8A0054",
+  "from": "systems-architect",
+  "to": "reviewer",
+  "taskId": "WM-0017",
+  "kind": "review-request",
+  "subject": "WM-0017 ready for review",
+  "body": "Proposed ADR-0004 for M1 Worker snapshot/read-model encoding; required checks pass",
+  "artifacts": [
+    "coordination/reports/WM-0017.md",
+    "task/WM-0017-propose-adr-0004-for-worker-snapshot-and-read-mo"
+  ],
+  "createdAt": "2026-06-24T05:19:11.538Z",
+  "acknowledgedAt": null
+}

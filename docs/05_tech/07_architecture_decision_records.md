@@ -5,7 +5,7 @@
 - [ADR-0001 Monorepo 与包边界](../../coordination/decisions/ADR-0001.md) — Accepted
 - [ADR-0002 精确工具版本](../../coordination/decisions/ADR-0002.md) — Accepted
 - [ADR-0003 Entity/Store 内存布局](../../coordination/decisions/ADR-0003.md) — Proposed
-- ADR-0004 Worker Snapshot 编码
+- [ADR-0004 Worker Snapshot 编码](../../coordination/decisions/ADR-0004.md) — Proposed
 - [ADR-0005 Save Container v1](../../coordination/decisions/ADR-0005.md) — Proposed
 - ADR-0006 PRNG 与定点约定
 - ADR-0007 内容 Schema 与 Patch 语义
