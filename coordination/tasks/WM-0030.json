@@ -2,7 +2,7 @@
   "id": "WM-0030",
   "title": "Close the M1 simulation kernel gate",
   "summary": "Integrate reviewed M1 simulation-kernel work, run the full M1 gate, update roadmap status and prepare the project for the next gameplay slice without skipping independent review.",
-  "state": "in_progress",
+  "state": "review_requested",
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -33,7 +33,7 @@
   ],
   "branch": "task/WM-0030-close-the-m1-simulation-kernel-gate",
   "createdAt": "2026-06-23T23:08:02.548Z",
-  "updatedAt": "2026-06-24T18:57:07.454Z",
+  "updatedAt": "2026-06-24T19:11:58.902Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.549Z",
@@ -52,9 +52,16 @@
       "actor": "project-director",
       "action": "claim",
       "details": "thread=Beacon"
+    },
+    {
+      "at": "2026-06-24T19:11:58.902Z",
+      "actor": "project-director",
+      "action": "complete",
+      "details": "Closed M1 gate evidence and docs; required closeout checks passed; M2 entry prompt prepared but M2 not started."
     }
   ],
   "claimedBy": "project-director",
   "threadLabel": "Beacon",
-  "blocker": null
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0030.md"
 }

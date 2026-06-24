@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQSG9GHJ-EE4558",
+  "from": "project-director",
+  "to": "reviewer",
+  "taskId": "WM-0030",
+  "kind": "review-request",
+  "subject": "WM-0030 ready for review",
+  "body": "Closed M1 gate evidence and docs; required closeout checks passed; M2 entry prompt prepared but M2 not started.",
+  "artifacts": [
+    "coordination/reports/WM-0030.md",
+    "task/WM-0030-close-the-m1-simulation-kernel-gate"
+  ],
+  "createdAt": "2026-06-24T19:11:58.903Z",
+  "acknowledgedAt": "2026-06-24T19:13:20.842Z"
+}
