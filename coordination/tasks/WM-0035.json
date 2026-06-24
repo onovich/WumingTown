@@ -2,7 +2,7 @@
   "id": "WM-0035",
   "title": "Integrate Region A star into work selection",
   "summary": "Make real work selection consume region reachability, local A star, stale-result rejection and bounded exact pathing without global pawn scans.",
-  "state": "ready",
+  "state": "in_progress",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,7 +32,7 @@
   ],
   "branch": "task/WM-0035-integrate-region-a-star-into-work-selection",
   "createdAt": "2026-06-24T21:14:35.180Z",
-  "updatedAt": "2026-06-24T22:10:36.807Z",
+  "updatedAt": "2026-06-24T22:15:47.484Z",
   "history": [
     {
       "at": "2026-06-24T21:14:35.180Z",
@@ -45,6 +45,12 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-24T22:15:47.483Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": ""
     }
   ],
   "objective": "Bind versioned pathing to indexed work selection for M2.",
@@ -84,5 +90,8 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Deterministic pathing and work-selection architecture are high-risk simulation work."
-  }
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": null,
+  "blocker": null
 }

@@ -22,9 +22,9 @@
       "registeredAt": "2026-06-24T21:54:12.299Z"
     },
     "simulation-engineer": {
-      "threadId": "019efa13-a03d-7b61-b4ff-a96eb613a509",
-      "label": "WM-0028-repair",
-      "registeredAt": "2026-06-24T14:41:13.602Z"
+      "threadId": "019efbb3-f53c-7670-9e09-d899285c6a4a",
+      "label": "WM-0035-path-work-selection",
+      "registeredAt": "2026-06-24T22:15:47.480Z"
     },
     "client-engineer": {
       "threadId": "019ef650-10ca-7e13-b072-9be37575c2be",
@@ -47,5 +47,5 @@
       "registeredAt": "2026-06-24T21:35:05.679Z"
     }
   },
-  "updatedAt": "2026-06-24T22:05:49.182Z"
+  "updatedAt": "2026-06-24T22:15:47.481Z"
 }
