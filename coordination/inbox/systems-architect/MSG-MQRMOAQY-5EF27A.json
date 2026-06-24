@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQRMOAQY-5EF27A",
+  "from": "reviewer",
+  "to": "systems-architect",
+  "taskId": "WM-0017",
+  "kind": "review-approved",
+  "subject": "WM-0017 review: verified",
+  "body": "No blocking findings; ADR-0004 remains Proposed, covers alternatives/migration/rollback/tests/performance, preserves Worker/Node authority with read-only UI projections, specifies versioning/sequences/backpressure/metrics/stale rejection and parity tests, and introduces no protocol implementation/runtime dependency/UI mutation authority/SAB requirement/deployment change.",
+  "artifacts": [
+    "coordination/reports/WM-0017.md"
+  ],
+  "createdAt": "2026-06-24T05:23:42.826Z",
+  "acknowledgedAt": "2026-06-24T05:24:43.818Z"
+}

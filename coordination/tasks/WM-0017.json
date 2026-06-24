@@ -2,10 +2,13 @@
   "id": "WM-0017",
   "title": "Propose ADR 0004 for Worker snapshot and read model encoding",
   "summary": "Produce the proposed Worker Snapshot encoding ADR for M1 render snapshots, UI detail, metrics and headless/Worker hash parity without moving authority to UI.",
-  "state": "review_requested",
+  "state": "verified",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
-  "dependsOn": ["WM-0012", "WM-0005"],
+  "dependsOn": [
+    "WM-0012",
+    "WM-0005"
+  ],
   "docs": [
     "docs/07_roadmap/06_m1_simulation_kernel_plan.md",
     "docs/05_tech/07_architecture_decision_records.md",
@@ -27,7 +30,7 @@
   ],
   "branch": "task/WM-0017-propose-adr-0004-for-worker-snapshot-and-read-mo",
   "createdAt": "2026-06-23T23:08:02.025Z",
-  "updatedAt": "2026-06-24T05:19:11.537Z",
+  "updatedAt": "2026-06-24T05:23:42.825Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.026Z",
@@ -52,10 +55,22 @@
       "actor": "systems-architect",
       "action": "complete",
       "details": "Proposed ADR-0004 for M1 Worker snapshot/read-model encoding; required checks pass"
+    },
+    {
+      "at": "2026-06-24T05:23:42.825Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; ADR-0004 remains Proposed, covers alternatives/migration/rollback/tests/performance, preserves Worker/Node authority with read-only UI projections, specifies versioning/sequences/backpressure/metrics/stale rejection and parity tests, and introduces no protocol implementation/runtime dependency/UI mutation authority/SAB requirement/deployment change."
     }
   ],
   "claimedBy": "systems-architect",
   "threadLabel": "Compass-WM-0017",
   "blocker": null,
-  "reportPath": "coordination/reports/WM-0017.md"
+  "reportPath": "coordination/reports/WM-0017.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; ADR-0004 remains Proposed, covers alternatives/migration/rollback/tests/performance, preserves Worker/Node authority with read-only UI projections, specifies versioning/sequences/backpressure/metrics/stale rejection and parity tests, and introduces no protocol implementation/runtime dependency/UI mutation authority/SAB requirement/deployment change.",
+    "at": "2026-06-24T05:23:42.825Z"
+  }
 }
