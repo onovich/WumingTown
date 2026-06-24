@@ -2,7 +2,7 @@
   "id": "WM-0016",
   "title": "Propose ADR 0005 for M1 save container v1",
   "summary": "Produce the proposed Save Container v1 ADR for M1 map chunks, entity stores, jobs, reservations, random streams, command-log tail and migration boundaries.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -29,7 +29,7 @@
   ],
   "branch": "task/WM-0016-propose-adr-0005-for-m1-save-container-v1",
   "createdAt": "2026-06-23T23:08:01.984Z",
-  "updatedAt": "2026-06-24T05:01:21.097Z",
+  "updatedAt": "2026-06-24T05:04:16.144Z",
   "history": [
     {
       "at": "2026-06-23T23:08:01.984Z",
@@ -60,6 +60,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings; ADR-0005 remains Proposed, covers alternatives/migration/rollback/tests/performance, defines versioned M1 save sections and untrusted validation boundaries, requires index/cache rebuild and invariant validation before resume, and introduces no serializer/runtime dependency/UI save authority or beyond-M1 compatibility promise."
+    },
+    {
+      "at": "2026-06-24T05:04:03.125Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Fast-forward merged origin/task/WM-0016-propose-adr-0005-for-m1-save-container-v1 at a047f722a7a9f180a5a74e81a693c564e575e673; reviewer verified ADR-0005; main gates passed: validate-handoff, taskctl validate/status, git diff --check, pnpm quality."
+    },
+    {
+      "at": "2026-06-24T05:04:16.143Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "claimedBy": "systems-architect",
@@ -71,5 +83,10 @@
     "verdict": "verified",
     "summary": "No blocking findings; ADR-0005 remains Proposed, covers alternatives/migration/rollback/tests/performance, defines versioned M1 save sections and untrusted validation boundaries, requires index/cache rebuild and invariant validation before resume, and introduces no serializer/runtime dependency/UI save authority or beyond-M1 compatibility promise.",
     "at": "2026-06-24T05:01:21.097Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Fast-forward merged origin/task/WM-0016-propose-adr-0005-for-m1-save-container-v1 at a047f722a7a9f180a5a74e81a693c564e575e673; reviewer verified ADR-0005; main gates passed: validate-handoff, taskctl validate/status, git diff --check, pnpm quality.",
+    "at": "2026-06-24T05:04:03.124Z"
   }
 }
