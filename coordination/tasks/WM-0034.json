@@ -2,7 +2,7 @@
   "id": "WM-0034",
   "title": "Record the M2 work logistics architecture gate",
   "summary": "Record the architecture gate for M2 work/logistics owner stores, derived indexes, cache/version boundaries, save/replay scope, Worker parity and performance budgets before implementation tasks start.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,13 +30,19 @@
   ],
   "branch": "task/WM-0034-record-m2-work-logistics-architecture-gate",
   "createdAt": "2026-06-24T21:14:35.180Z",
-  "updatedAt": "2026-06-24T21:14:35.180Z",
+  "updatedAt": "2026-06-24T21:51:09.149Z",
   "history": [
     {
       "at": "2026-06-24T21:14:35.180Z",
       "actor": "systems-architect",
       "action": "create",
       "details": "Created by WM-0032 M2 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-24T21:51:09.149Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "objective": "Make M2 state ownership and contract boundaries reviewable before implementation.",

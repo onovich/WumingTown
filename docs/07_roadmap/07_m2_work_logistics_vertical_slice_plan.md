@@ -114,6 +114,7 @@ The task JSONs are the durable control-plane packets. The summaries below mirror
 - Reviewer: `reviewer`
 - Dependencies: `WM-0032`
 - Objective: define the executable M2 scenario contract and invariants for 20 actors hauling/building and 100 versioned path requests.
+- Scenario contract: `docs/02_systems/16_m2_work_logistics_scenario.md` with id `m2.work_logistics.lantern_yard.v1`.
 - Allowed paths: scenario/system docs, M2 roadmap plan, WM-0033 task/report.
 - Forbidden paths: product/runtime/test implementation, package manifests, lockfiles, broad content/economy/town-life/anomaly/combat/UI implementation.
 - Acceptance: fixture bounds, actor/item/storage/build-order setup, command stream, seeds, tick horizons, structured reason expectations, invariants, and non-goals are explicit.

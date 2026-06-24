@@ -2,7 +2,7 @@
   "id": "WM-0033",
   "title": "Define the M2 work logistics scenario contract",
   "summary": "Specify the executable M2 work/logistics vertical-slice scenario, including 20 actors hauling/building, 100 versioned path requests, fixture bounds, invariants, structured reasons and non-goals.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "gameplay-designer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -29,7 +29,7 @@
   ],
   "branch": "task/WM-0033-define-m2-work-logistics-scenario-contract",
   "createdAt": "2026-06-24T21:14:35.180Z",
-  "updatedAt": "2026-06-24T21:32:34.989Z",
+  "updatedAt": "2026-06-24T21:51:09.146Z",
   "history": [
     {
       "at": "2026-06-24T21:14:35.180Z",
@@ -42,6 +42,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-24T21:37:09.826Z",
+      "actor": "gameplay-designer",
+      "action": "claim",
+      "details": ""
+    },
+    {
+      "at": "2026-06-24T21:43:33.181Z",
+      "actor": "gameplay-designer",
+      "action": "complete",
+      "details": "Defined m2.work_logistics.lantern_yard.v1 scenario contract with 20 actors, 100 versioned path requests, terminal state, invariants, failure variants, authority guardrails and non-goals; required checks pass."
+    },
+    {
+      "at": "2026-06-24T21:49:46.450Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings: scenario contract covers required fixture bounds, actors, sources, destinations, build/order targets, command stream, seeds, horizons, terminal state, 20 actors plus 100 versioned path probes, invariants, authority guardrails and non-goals; required checks pass locally."
+    },
+    {
+      "at": "2026-06-24T21:51:01.677Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified M2 scenario contract integrated on task branch; reviewer approved; integration gates passed: validate-handoff 561 files/43 tasks/10 roles, taskctl validate/status, git diff --check and pnpm quality."
+    },
+    {
+      "at": "2026-06-24T21:51:09.145Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Produce the executable M2 scenario contract before implementation starts.",
@@ -71,5 +101,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Scenario/specification design and vertical-slice invariant definition are not suitable for Spark."
+  },
+  "claimedBy": "gameplay-designer",
+  "threadLabel": null,
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0033.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings: scenario contract covers required fixture bounds, actors, sources, destinations, build/order targets, command stream, seeds, horizons, terminal state, 20 actors plus 100 versioned path probes, invariants, authority guardrails and non-goals; required checks pass locally.",
+    "at": "2026-06-24T21:49:46.450Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified M2 scenario contract integrated on task branch; reviewer approved; integration gates passed: validate-handoff 561 files/43 tasks/10 roles, taskctl validate/status, git diff --check and pnpm quality.",
+    "at": "2026-06-24T21:51:01.677Z"
   }
 }

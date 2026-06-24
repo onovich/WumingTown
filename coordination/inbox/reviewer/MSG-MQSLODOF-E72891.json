@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQSLODOF-E72891",
+  "from": "gameplay-designer",
+  "to": "reviewer",
+  "taskId": "WM-0033",
+  "kind": "review-request",
+  "subject": "WM-0033 ready for review",
+  "body": "Defined m2.work_logistics.lantern_yard.v1 scenario contract with 20 actors, 100 versioned path requests, terminal state, invariants, failure variants, authority guardrails and non-goals; required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0033.md",
+    "task/WM-0033-define-m2-work-logistics-scenario-contract"
+  ],
+  "createdAt": "2026-06-24T21:43:33.183Z",
+  "acknowledgedAt": "2026-06-24T21:45:21.673Z"
+}
