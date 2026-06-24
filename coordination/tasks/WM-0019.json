@@ -2,7 +2,7 @@
   "id": "WM-0019",
   "title": "Implement deterministic map grid and chunk dirty queues",
   "summary": "Implement the M1 authoritative map grid, chunk metadata, terrain/walk/occupancy fields, local dirty queues, rebuild budgets and canonical hash/snapshot hooks.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0019-implement-deterministic-map-grid-and-chunk-dirty",
   "createdAt": "2026-06-23T23:08:02.104Z",
-  "updatedAt": "2026-06-24T06:51:03.583Z",
+  "updatedAt": "2026-06-24T06:54:52.426Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.105Z",
@@ -73,6 +73,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings; prior map-grid-hash lint issue is resolved, root lint/typecheck/map-grid tests/taskctl validate/git diff check pass, and solo map-dirty benchmark remains OK versus baseline without reintroduced regression."
+    },
+    {
+      "at": "2026-06-24T06:54:52.384Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Fast-forward merged task/WM-0019-implement-deterministic-map-grid-and-chunk-dirty at 1895997e1bde368047195a830719db76f571b891; main gate passed"
+    },
+    {
+      "at": "2026-06-24T06:54:52.426Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "claimedBy": "simulation-engineer",
@@ -84,5 +96,10 @@
     "verdict": "verified",
     "summary": "No blocking findings; prior map-grid-hash lint issue is resolved, root lint/typecheck/map-grid tests/taskctl validate/git diff check pass, and solo map-dirty benchmark remains OK versus baseline without reintroduced regression.",
     "at": "2026-06-24T06:51:03.583Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Fast-forward merged task/WM-0019-implement-deterministic-map-grid-and-chunk-dirty at 1895997e1bde368047195a830719db76f571b891; main gate passed",
+    "at": "2026-06-24T06:54:52.383Z"
   }
 }
