@@ -2,7 +2,7 @@
   "id": "WM-0029",
   "title": "Add M1 benchmark suite and long run invariants",
   "summary": "Add the M1 benchmark suite, baseline comparisons, long-run invariant checks and CI reporting for map dirty rebuilds, pathing, work offers, reservations and hauling/building.",
-  "state": "review_requested",
+  "state": "verified",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0029-add-m1-benchmark-suite-and-long-run-invariants",
   "createdAt": "2026-06-23T23:08:02.507Z",
-  "updatedAt": "2026-06-24T18:32:39.078Z",
+  "updatedAt": "2026-06-24T18:36:08.142Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.508Z",
@@ -67,6 +67,12 @@
       "actor": "qa-performance",
       "action": "complete",
       "details": "Addressed reviewer finding: M1 long-run evidence now samples idle window from tick 2401 through 100000; benchmark artifact includes idle sample/no-growth/no-stale-reference invariants; required checks pass."
+    },
+    {
+      "at": "2026-06-24T18:36:08.142Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: Previous High finding resolved: idle-window samples cover tick 2401 through 100000, longRunStable depends on hash/no-growth/no-stale-reference evidence, benchmark artifact includes idle invariants; key checks pass."
     }
   ],
   "claimedBy": "qa-performance",
@@ -75,8 +81,8 @@
   "reportPath": "coordination/reports/WM-0029.md",
   "review": {
     "reviewer": "reviewer",
-    "verdict": "changes_requested",
-    "summary": "High: m1-invariants/benchmark mark 100000-tick long-run stable from scripted terminal state; they do not execute or sample the 2401..100000 idle window, queue growth, or stale entity references.",
-    "at": "2026-06-24T17:44:38.864Z"
+    "verdict": "verified",
+    "summary": "Previous High finding resolved: idle-window samples cover tick 2401 through 100000, longRunStable depends on hash/no-growth/no-stale-reference evidence, benchmark artifact includes idle invariants; key checks pass.",
+    "at": "2026-06-24T18:36:08.142Z"
   }
 }

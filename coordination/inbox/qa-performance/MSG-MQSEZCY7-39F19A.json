@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQSEZCY7-39F19A",
+  "from": "reviewer",
+  "to": "qa-performance",
+  "taskId": "WM-0029",
+  "kind": "review-approved",
+  "subject": "WM-0029 review: verified",
+  "body": "Previous High finding resolved: idle-window samples cover tick 2401 through 100000, longRunStable depends on hash/no-growth/no-stale-reference evidence, benchmark artifact includes idle invariants; key checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0029.md"
+  ],
+  "createdAt": "2026-06-24T18:36:08.143Z",
+  "acknowledgedAt": "2026-06-24T18:37:00.389Z"
+}
