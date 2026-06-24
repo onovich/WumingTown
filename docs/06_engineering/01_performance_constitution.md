@@ -12,3 +12,13 @@
 10. 不因微优化破坏可读性，除非热点报告证明收益。
 11. Wasm 边界只传连续数值数据，不传复杂对象。
 12. Web 与 Electron 都要测；Electron 快不代表 Web 合格。
+
+## WM-0020 spatial index budget note
+
+Spatial lookup for map entities must go through `SpatialIndex` cell, chunk, or
+region buckets. Normal pawn/work candidate lookup must not call an all-entity
+scan to answer proximity or region membership questions. The WM-0020 benchmark
+tracks 50k indexed inert entities, query count, moved entities, cleanup count,
+indexed membership, backlog count, stable checksums, elapsed time, and heap
+delta; backlog must remain zero because the index is updated synchronously from
+owner-store mutations.

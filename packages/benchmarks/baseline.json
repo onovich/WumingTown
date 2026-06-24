@@ -50,6 +50,32 @@
         "processedChecksum": 3385099136,
         "mapHash": "0x8af0174e"
       }
+    },
+    "spatial-index": {
+      "name": "spatial-index",
+      "medianElapsedMs": 1436.717,
+      "warnRegressionPercent": 10,
+      "failRegressionPercent": 20,
+      "invariants": {
+        "entityCount": 50000,
+        "capacity": 50000,
+        "width": 256,
+        "height": 256,
+        "chunkSize": 32,
+        "queryCount": 145,
+        "movedEntities": 1024,
+        "cleanupCount": 512,
+        "finalMapMemberships": 49488,
+        "finalIndexedEntities": 49488,
+        "finalBacklogCount": 0,
+        "occupancySetCount": 51024,
+        "occupancyClearedCount": 1536,
+        "indexAddedCount": 51024,
+        "indexRemovedCount": 1536,
+        "queryChecksum": 1919598032,
+        "movementChecksum": 2674197504,
+        "cleanupChecksum": 308407296
+      }
     }
   }
 }

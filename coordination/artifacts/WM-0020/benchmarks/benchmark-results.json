@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-06-24T07:20:56.682Z",
+  "baselinePath": "packages/benchmarks/baseline.json",
+  "artifactPath": "coordination/artifacts/WM-0020/benchmarks/benchmark-results.json",
+  "sampleCount": 5,
+  "warmupCount": 1,
+  "environment": {
+    "nodeVersion": "v24.13.1",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "results": [
+    {
+      "name": "spatial-index",
+      "sampleElapsedMs": [
+        1446.2109, 1467.5403000000001, 1476.0142999999998, 1441.7571000000007, 1437.4645999999993
+      ],
+      "stats": {
+        "sampleCount": 5,
+        "minElapsedMs": 1437.4645999999993,
+        "medianElapsedMs": 1446.2109,
+        "maxElapsedMs": 1476.0142999999998,
+        "meanElapsedMs": 1453.79744
+      },
+      "invariants": {
+        "entityCount": 50000,
+        "capacity": 50000,
+        "width": 256,
+        "height": 256,
+        "chunkSize": 32,
+        "queryCount": 145,
+        "movedEntities": 1024,
+        "cleanupCount": 512,
+        "finalMapMemberships": 49488,
+        "finalIndexedEntities": 49488,
+        "finalBacklogCount": 0,
+        "occupancySetCount": 51024,
+        "occupancyClearedCount": 1536,
+        "indexAddedCount": 51024,
+        "indexRemovedCount": 1536,
+        "queryChecksum": 1919598032,
+        "movementChecksum": 2674197504,
+        "cleanupChecksum": 308407296
+      },
+      "comparison": {
+        "name": "spatial-index",
+        "status": "ok",
+        "actualMedianElapsedMs": 1446.2109,
+        "baselineMedianElapsedMs": 1436.717,
+        "regressionPercent": 0.6608051550862096,
+        "warnRegressionPercent": 10,
+        "failRegressionPercent": 20,
+        "invariantMismatches": []
+      }
+    }
+  ]
+}

@@ -22,9 +22,9 @@
       "registeredAt": "2026-06-24T05:31:04.442Z"
     },
     "simulation-engineer": {
-      "threadId": "019ef839-e087-7b60-aa4f-7a7d455eefd8",
-      "label": "WM-0019 map grid",
-      "registeredAt": "2026-06-24T06:03:41.010Z"
+      "threadId": "019ef86c-aef7-7142-9faf-93fc5e7040cc",
+      "label": "WM-0020 spatial indexes",
+      "registeredAt": "2026-06-24T06:59:05.457Z"
     },
     "client-engineer": {
       "threadId": "019ef650-10ca-7e13-b072-9be37575c2be",
@@ -47,5 +47,5 @@
       "registeredAt": "2026-06-24T04:15:21.579Z"
     }
   },
-  "updatedAt": "2026-06-24T06:03:41.010Z"
+  "updatedAt": "2026-06-24T06:59:05.457Z"
 }

@@ -7,6 +7,13 @@ export {
   MapGrid,
   createMapGrid,
 } from "./map-grid";
+export {
+  LOCATION_CONTAINER,
+  LOCATION_MAP,
+  LOCATION_NONE,
+  LocationStore,
+  createLocationStore,
+} from "./location-store";
 export { createMapGridHashFields } from "./map-grid-hash";
 export {
   NamedRandomStreams,
@@ -27,6 +34,7 @@ export {
   createEntityRegistry,
   sameEntity,
 } from "./entity-id";
+export { SpatialIndex, createSpatialIndex } from "./spatial-index";
 export {
   HEADLESS_SUMMARY_VERSION,
   HEADLESS_SNAPSHOT_VERSION,
@@ -107,6 +115,25 @@ export type {
   MapGridReason,
   MapGridSnapshot,
 } from "./map-grid";
+export type {
+  LocationCleanupReason,
+  LocationDestroyResult,
+  LocationKind,
+  LocationLifecycleHooks,
+  LocationMutationResult,
+  LocationReadResult,
+  LocationStoreMetrics,
+  LocationStoreOptions,
+  LocationStoreReason,
+  LocationView,
+} from "./location-store";
+export type {
+  SpatialIndexMetrics,
+  SpatialIndexMutationResult,
+  SpatialIndexOptions,
+  SpatialIndexQueryResult,
+  SpatialIndexReason,
+} from "./spatial-index";
 
 export const SIM_CORE_SMOKE: WorkspaceSmoke = defineWorkspaceSmoke(
   "@wuming-town/sim-core",

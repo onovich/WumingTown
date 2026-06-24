@@ -49,7 +49,7 @@ function readFilter(args) {
 
   return {
     error:
-      "Unsupported test arguments. Use no arguments, --filter content, --filter determinism, --filter entity-store, --filter map-grid, --filter sim-core, --filter sim-protocol, --filter worker-smoke, or --filter web-shell.",
+      "Unsupported test arguments. Use no arguments, --filter content, --filter determinism, --filter entity-store, --filter map-grid, --filter spatial-index, --filter sim-core, --filter sim-protocol, --filter worker-smoke, or --filter web-shell.",
   };
 }
 
@@ -96,6 +96,14 @@ function selectVitestTargets(selectedMode, selectedFilter) {
         ok: true,
         extraArgs: ["--exclude=**/*.e2e.test.ts"],
         targets: ["packages/sim-core/src/map-grid.test.ts"],
+      };
+    }
+
+    if (selectedFilter === "spatial-index") {
+      return {
+        ok: true,
+        extraArgs: ["--exclude=**/*.e2e.test.ts"],
+        targets: ["packages/sim-core/src/spatial-index.test.ts"],
       };
     }
 

@@ -54,3 +54,13 @@ queued once, drained by an explicit per-tick budget, and represented in stable
 snapshot/hash order for future save and replay hooks. Region graph rebuild,
 room consistency rebuild, pathfinding, reservations and renderer projections
 remain out of scope for WM-0019.
+
+## WM-0020 implementation note
+
+`LocationStore` is the owner for entity map/container membership. `MapGrid`
+occupancy remains a derived numeric lane: map placement sets the entity index
+plus one, map movement clears the previous occupied cell, and container
+transfer/despawn/destroy cleanup clears occupancy through explicit lifecycle
+paths. `SpatialIndex` maintains deterministic per-cell, per-chunk, and
+per-region buckets so pawn/work queries can use indexed candidates rather than
+scanning all entities or the full map.

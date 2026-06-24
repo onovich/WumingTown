@@ -111,6 +111,7 @@ function parseBenchmarkArgs(
   let warmupCount = DEFAULT_BENCHMARK_WARMUP_COUNT;
   let baselinePath = path.join(process.cwd(), "packages", "benchmarks", "baseline.json");
   let artifactPath = path.join(resolveArtifactRoot(), "benchmarks", "benchmark-results.json");
+  let artifactPathWasConfigured = false;
 
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
@@ -120,7 +121,7 @@ function parseBenchmarkArgs(
 
       if (!isBenchmarkName(value)) {
         return failedArgs(
-          "Unsupported benchmark filter. Use empty-tick, entity-store, or map-dirty.",
+          "Unsupported benchmark filter. Use empty-tick, entity-store, map-dirty, or spatial-index.",
         );
       }
 
@@ -134,7 +135,7 @@ function parseBenchmarkArgs(
 
       if (!isBenchmarkName(value)) {
         return failedArgs(
-          "Unsupported benchmark filter. Use empty-tick, entity-store, or map-dirty.",
+          "Unsupported benchmark filter. Use empty-tick, entity-store, map-dirty, or spatial-index.",
         );
       }
 
@@ -221,6 +222,7 @@ function parseBenchmarkArgs(
       }
 
       artifactPath = path.resolve(process.cwd(), value, "benchmark-results.json");
+      artifactPathWasConfigured = true;
       index += 1;
       continue;
     }
@@ -233,11 +235,20 @@ function parseBenchmarkArgs(
       }
 
       artifactPath = path.resolve(process.cwd(), value, "benchmark-results.json");
+      artifactPathWasConfigured = true;
       continue;
     }
 
     return failedArgs(
       "Unsupported benchmark arguments. Use --filter, --samples, --warmup, --baseline, or --artifacts-dir.",
+    );
+  }
+
+  if (!artifactPathWasConfigured && filter === "spatial-index") {
+    artifactPath = path.join(
+      resolveArtifactRoot("WM-0020"),
+      "benchmarks",
+      "benchmark-results.json",
     );
   }
 
@@ -281,6 +292,7 @@ function loadBenchmarkBaseline(filePath: string): BenchmarkBaselineFile {
       "empty-tick": parseEmptyTickBaselineEntry(rawBenchmarks["empty-tick"]),
       "entity-store": parseEntityStoreBaselineEntry(rawBenchmarks["entity-store"]),
       "map-dirty": parseMapDirtyBaselineEntry(rawBenchmarks["map-dirty"]),
+      "spatial-index": parseSpatialIndexBaselineEntry(rawBenchmarks["spatial-index"]),
     },
   };
 }
@@ -359,6 +371,32 @@ function parseMapDirtyBaselineEntry(value: unknown): BenchmarkBaselineEntry<"map
   };
 }
 
+function parseSpatialIndexBaselineEntry(value: unknown): BenchmarkBaselineEntry<"spatial-index"> {
+  if (!isRecord(value)) {
+    throw new Error("benchmark baseline entry spatial-index must be an object");
+  }
+
+  if (value["name"] !== "spatial-index") {
+    throw new Error("benchmark baseline entry spatial-index must declare the same name");
+  }
+
+  return {
+    name: "spatial-index",
+    medianElapsedMs: requireNumber(value["medianElapsedMs"], "spatial-index.medianElapsedMs"),
+    warnRegressionPercent: requireNumber(
+      value["warnRegressionPercent"],
+      "spatial-index.warnRegressionPercent",
+    ),
+    failRegressionPercent: requireNumber(
+      value["failRegressionPercent"],
+      "spatial-index.failRegressionPercent",
+    ),
+    invariants: parseSpatialIndexBaselineInvariants(
+      requireRecord(value["invariants"], "spatial-index"),
+    ),
+  };
+}
+
 function parseEmptyTickBaselineInvariants(
   value: Record<string, unknown>,
 ): BenchmarkBaselineEntry<"empty-tick">["invariants"] {
@@ -414,6 +452,40 @@ function parseMapDirtyBaselineInvariants(
   };
 }
 
+function parseSpatialIndexBaselineInvariants(
+  value: Record<string, unknown>,
+): BenchmarkBaselineEntry<"spatial-index">["invariants"] {
+  return {
+    entityCount: requireNumber(value["entityCount"], "spatial-index.entityCount"),
+    capacity: requireNumber(value["capacity"], "spatial-index.capacity"),
+    width: requireNumber(value["width"], "spatial-index.width"),
+    height: requireNumber(value["height"], "spatial-index.height"),
+    chunkSize: requireNumber(value["chunkSize"], "spatial-index.chunkSize"),
+    queryCount: requireNumber(value["queryCount"], "spatial-index.queryCount"),
+    movedEntities: requireNumber(value["movedEntities"], "spatial-index.movedEntities"),
+    cleanupCount: requireNumber(value["cleanupCount"], "spatial-index.cleanupCount"),
+    finalMapMemberships: requireNumber(
+      value["finalMapMemberships"],
+      "spatial-index.finalMapMemberships",
+    ),
+    finalIndexedEntities: requireNumber(
+      value["finalIndexedEntities"],
+      "spatial-index.finalIndexedEntities",
+    ),
+    finalBacklogCount: requireNumber(value["finalBacklogCount"], "spatial-index.finalBacklogCount"),
+    occupancySetCount: requireNumber(value["occupancySetCount"], "spatial-index.occupancySetCount"),
+    occupancyClearedCount: requireNumber(
+      value["occupancyClearedCount"],
+      "spatial-index.occupancyClearedCount",
+    ),
+    indexAddedCount: requireNumber(value["indexAddedCount"], "spatial-index.indexAddedCount"),
+    indexRemovedCount: requireNumber(value["indexRemovedCount"], "spatial-index.indexRemovedCount"),
+    queryChecksum: requireNumber(value["queryChecksum"], "spatial-index.queryChecksum"),
+    movementChecksum: requireNumber(value["movementChecksum"], "spatial-index.movementChecksum"),
+    cleanupChecksum: requireNumber(value["cleanupChecksum"], "spatial-index.cleanupChecksum"),
+  };
+}
+
 function sampleNamedBenchmark(
   name: BenchmarkName,
   sampleCount: number,
@@ -433,7 +505,14 @@ function sampleNamedBenchmark(
     });
   }
 
-  return sampleBenchmark("map-dirty", {
+  if (name === "map-dirty") {
+    return sampleBenchmark("map-dirty", {
+      sampleCount,
+      warmupCount,
+    });
+  }
+
+  return sampleBenchmark("spatial-index", {
     sampleCount,
     warmupCount,
   });
@@ -451,7 +530,11 @@ function compareAgainstNamedBaseline(
     return compareBenchmarkToBaseline(result, baseline.benchmarks["entity-store"]);
   }
 
-  return compareBenchmarkToBaseline(result, baseline.benchmarks["map-dirty"]);
+  if (result.name === "map-dirty") {
+    return compareBenchmarkToBaseline(result, baseline.benchmarks["map-dirty"]);
+  }
+
+  return compareBenchmarkToBaseline(result, baseline.benchmarks["spatial-index"]);
 }
 
 function requireRecord(value: unknown, label: string): Record<string, unknown> {
@@ -514,14 +597,14 @@ function printBenchmarkSummary(results: readonly BenchmarkCliResult[], artifactP
   output(`Artifact: ${artifactPath}`);
 }
 
-function resolveArtifactRoot(): string {
+function resolveArtifactRoot(defaultTask = "WM-0010"): string {
   const configuredRoot = process.env["WM_ARTIFACT_DIR"];
 
   if (configuredRoot !== undefined && configuredRoot.length > 0) {
     return path.resolve(process.cwd(), configuredRoot);
   }
 
-  return path.resolve(process.cwd(), "coordination", "artifacts", "WM-0010");
+  return path.resolve(process.cwd(), "coordination", "artifacts", defaultTask);
 }
 
 function toRelativePath(targetPath: string): string {
@@ -536,7 +619,12 @@ function failedArgs(error: string): { readonly ok: false; readonly error: string
 }
 
 function isBenchmarkName(value: string | undefined): value is BenchmarkName {
-  return value === "empty-tick" || value === "entity-store" || value === "map-dirty";
+  return (
+    value === "empty-tick" ||
+    value === "entity-store" ||
+    value === "map-dirty" ||
+    value === "spatial-index"
+  );
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

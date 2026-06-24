@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQRQXYVF-B96916",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0020",
+  "kind": "review-request",
+  "subject": "WM-0020 ready for review",
+  "body": "Implemented LocationStore, spatial indexes, lifecycle cleanup hooks, focused tests, and 50k spatial-index benchmark; required checks pass",
+  "artifacts": [
+    "coordination/reports/WM-0020.md",
+    "task/WM-0020-implement-spatial-indexes-and-location-lifecycle"
+  ],
+  "createdAt": "2026-06-24T07:23:12.460Z",
+  "acknowledgedAt": null
+}

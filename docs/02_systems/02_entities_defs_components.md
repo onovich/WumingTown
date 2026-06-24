@@ -36,6 +36,16 @@ allocate id → attach required stores → initialize → spawn on map
 
 所有关系、Reservation、容器和索引必须在销毁时收到统一清理通知。
 
+## WM-0020 implementation note
+
+M1 location authority starts in `packages/sim-core/src/location-store.ts`.
+`LocationStore` owns each live entity's `none`, map-cell, or container
+membership with generation validation and typed numeric lanes. Map occupancy,
+cell/chunk/region spatial buckets, and future reservation release hooks are
+derived cleanup surfaces updated through explicit move, despawn, and
+destroy-cleanup calls; direct registry destruction without the lifecycle hook is
+treated as stale-generation input and rejected.
+
 ## 不变量
 
 - 活跃实体拥有合法 Def。
