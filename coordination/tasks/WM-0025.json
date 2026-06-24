@@ -2,7 +2,7 @@
   "id": "WM-0025",
   "title": "Implement serializable Job Driver state machines",
   "summary": "Implement explicit serializable Job and Driver state machines, interruption policies, cancellation cleanup, structured failures and save fields.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,13 +32,19 @@
   ],
   "branch": "task/WM-0025-implement-serializable-job-driver-state-machines",
   "createdAt": "2026-06-23T23:08:02.344Z",
-  "updatedAt": "2026-06-23T23:08:02.344Z",
+  "updatedAt": "2026-06-24T10:11:30.110Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.344Z",
       "actor": "taskctl",
       "action": "create",
       "details": ""
+    },
+    {
+      "at": "2026-06-24T10:11:30.110Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ]
 }

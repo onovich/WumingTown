@@ -2,7 +2,7 @@
   "id": "WM-0024",
   "title": "Implement WorkOffer indexes and bounded reason traces",
   "summary": "Implement state-change-driven WorkOffer registration, indexed candidate lookup, bounded Top-K scoring input and structured reason traces.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,7 +32,7 @@
   ],
   "branch": "task/WM-0024-implement-workoffer-indexes-and-bounded-reason-t",
   "createdAt": "2026-06-23T23:08:02.304Z",
-  "updatedAt": "2026-06-24T10:08:32.145Z",
+  "updatedAt": "2026-06-24T10:11:30.103Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.304Z",
@@ -63,6 +63,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: Verified WM-0024: WorkOfferIndex is derived state with state-change registration/update/removal, exact composite lookup is bounded by candidateCap, ReasonTraceStore is fixed-capacity structured storage, sim-core boundary/determinism checks are clean, and required work-offers tests/benchmark pass."
+    },
+    {
+      "at": "2026-06-24T10:11:22.194Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Fast-forward integrated verified WM-0024 into main after handoff, coordination, whitespace and quality gates passed."
+    },
+    {
+      "at": "2026-06-24T10:11:30.103Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "claimedBy": "simulation-engineer",
@@ -74,5 +86,10 @@
     "verdict": "verified",
     "summary": "Verified WM-0024: WorkOfferIndex is derived state with state-change registration/update/removal, exact composite lookup is bounded by candidateCap, ReasonTraceStore is fixed-capacity structured storage, sim-core boundary/determinism checks are clean, and required work-offers tests/benchmark pass.",
     "at": "2026-06-24T10:08:32.145Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Fast-forward integrated verified WM-0024 into main after handoff, coordination, whitespace and quality gates passed.",
+    "at": "2026-06-24T10:11:22.194Z"
   }
 }
