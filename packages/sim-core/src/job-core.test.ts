@@ -203,6 +203,42 @@ describe("JobCoreStore", () => {
       owner,
     });
   });
+
+  it("rejects malformed restore payloads without throwing or mutating existing jobs", () => {
+    const { owner, store } = createFixture();
+    expect(store.createJob(createJob({ owner }))).toMatchObject({ ok: true });
+    const snapshot = store.createSnapshot();
+    const firstRecord = snapshot.records[0];
+
+    if (firstRecord === undefined) {
+      throw new Error("expected fixture snapshot record");
+    }
+
+    expect(restoreUnknown(store, {
+      snapshotVersion: JOB_CORE_SNAPSHOT_VERSION,
+      capacity: snapshot.capacity,
+      storeVersion: snapshot.storeVersion,
+      activeCount: snapshot.activeCount,
+    })).toEqual({ ok: false, reason: "job_snapshot_shape_invalid" });
+    expect(store.readJob(0)).toMatchObject({ status: "ready", owner });
+
+    expect(restoreUnknown(store, {
+      ...snapshot,
+      records: [
+        {
+          ...firstRecord,
+          owner: undefined,
+        },
+      ],
+    })).toEqual({ ok: false, reason: "job_snapshot_record_invalid" });
+    expect(store.readJob(0)).toMatchObject({ status: "ready", owner });
+
+    expect(restoreUnknown(store, {
+      ...snapshot,
+      storeVersion: "bad",
+    })).toEqual({ ok: false, reason: "job_snapshot_shape_invalid" });
+    expect(store.createSnapshot()).toStrictEqual(snapshot);
+  });
 });
 
 function createFixture(capacity = 8): {
@@ -246,4 +282,11 @@ function hashJobSnapshot(
     randomStreams: [],
     queuedCommands: [],
   });
+}
+
+function restoreUnknown(
+  store: ReturnType<typeof createJobCoreStore>,
+  payload: unknown,
+): ReturnType<ReturnType<typeof createJobCoreStore>["restoreFromSnapshot"]> {
+  return store.restoreFromSnapshot(payload);
 }

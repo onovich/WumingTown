@@ -200,6 +200,29 @@ export interface JobCoreMetrics {
   readonly backlogCount: number;
 }
 
+interface JobCoreSnapshotCandidate {
+  readonly snapshotVersion: number;
+  readonly capacity: number;
+  readonly storeVersion: number;
+  readonly activeCount: number;
+  readonly records: readonly unknown[];
+}
+
+type JobSnapshotShapeResult =
+  | {
+      readonly ok: true;
+      readonly snapshot: JobCoreSnapshotCandidate;
+    }
+  | {
+      readonly ok: false;
+      readonly reason: Extract<
+        JobCoreReason,
+        | "job_snapshot_version_unsupported"
+        | "job_snapshot_shape_invalid"
+        | "job_snapshot_record_invalid"
+      >;
+    };
+
 export class JobCoreStore {
   readonly capacity: number;
 
@@ -448,26 +471,23 @@ export class JobCoreStore {
   }
 
   restoreFromSnapshot(
-    snapshot: JobCoreSnapshotInput,
+    snapshot: unknown,
     registry?: EntityRegistry,
   ): JobSnapshotResult {
-    if (snapshot.snapshotVersion !== JOB_CORE_SNAPSHOT_VERSION) {
-      return { ok: false, reason: "job_snapshot_version_unsupported" };
-    }
-
-    if (snapshot.capacity !== this.capacity || snapshot.records.length !== snapshot.activeCount) {
-      return { ok: false, reason: "job_snapshot_shape_invalid" };
+    const shape = this.validateSnapshotShape(snapshot);
+    if (!shape.ok) {
+      return shape;
     }
 
     const scratch = createJobCoreStore({ capacity: this.capacity });
-    const validated = scratch.restoreRecords(snapshot, registry);
+    const validated = scratch.restoreRecords(shape.snapshot, registry);
 
     if (!validated.ok) {
       return validated;
     }
 
     this.clearAll();
-    const restored = this.restoreRecords(snapshot, registry);
+    const restored = this.restoreRecords(shape.snapshot, registry);
 
     if (!restored.ok) {
       throw new Error(`validated job snapshot failed to restore: ${restored.reason}`);
@@ -552,17 +572,18 @@ export class JobCoreStore {
   }
 
   private restoreRecords(
-    snapshot: JobCoreSnapshotInput,
+    snapshot: JobCoreSnapshotCandidate,
     registry: EntityRegistry | undefined,
   ): JobSnapshotResult {
     let lastJobId = -1;
 
-    for (const record of snapshot.records) {
-      if (record.jobId <= lastJobId) {
+    for (const candidate of snapshot.records) {
+      if (!this.isValidSnapshotRecord(candidate)) {
         return { ok: false, reason: "job_snapshot_record_invalid" };
       }
 
-      if (!this.isValidSnapshotRecord(record)) {
+      const record = candidate;
+      if (record.jobId <= lastJobId) {
         return { ok: false, reason: "job_snapshot_record_invalid" };
       }
 
@@ -655,26 +676,93 @@ export class JobCoreStore {
     return { ok: true, jobId, version: this.storeVersion };
   }
 
-  private isValidSnapshotRecord(record: JobRecordSnapshot): boolean {
+  private validateSnapshotShape(snapshot: unknown): JobSnapshotShapeResult {
+    if (!isPlainObject(snapshot)) {
+      return { ok: false, reason: "job_snapshot_shape_invalid" };
+    }
+
+    const snapshotVersion = snapshot["snapshotVersion"];
+    if (!isSafeUint32(snapshotVersion)) {
+      return { ok: false, reason: "job_snapshot_shape_invalid" };
+    }
+
+    if (snapshotVersion !== JOB_CORE_SNAPSHOT_VERSION) {
+      return { ok: false, reason: "job_snapshot_version_unsupported" };
+    }
+
+    const capacity = snapshot["capacity"];
+    const storeVersion = snapshot["storeVersion"];
+    const activeCount = snapshot["activeCount"];
+    const records = snapshot["records"];
+
+    if (
+      !isSafeUint32(capacity) ||
+      capacity !== this.capacity ||
+      !isSafeUint32(storeVersion) ||
+      !isSafeUint32(activeCount) ||
+      activeCount > this.capacity ||
+      !Array.isArray(records) ||
+      records.length !== activeCount
+    ) {
+      return { ok: false, reason: "job_snapshot_shape_invalid" };
+    }
+
+    return {
+      ok: true,
+      snapshot: {
+        snapshotVersion,
+        capacity,
+        storeVersion,
+        activeCount,
+        records,
+      },
+    };
+  }
+
+  private isValidSnapshotRecord(record: unknown): record is JobRecordSnapshot {
+    if (!isPlainObject(record)) {
+      return false;
+    }
+
+    const owner = record["owner"];
+    if (!isPlainObject(owner)) {
+      return false;
+    }
+
+    const jobId = record["jobId"];
+    const jobKind = record["jobKind"];
+    const targetId = record["targetId"];
+    const status = record["status"];
+    const step = record["step"];
+    const interruptionPolicy = record["interruptionPolicy"];
+    const failureReason = record["failureReason"];
+    const createdTick = record["createdTick"];
+    const stepEnteredTick = record["stepEnteredTick"];
+    const stepTickCount = record["stepTickCount"];
+    const progressQ16 = record["progressQ16"];
+    const requiredWorkQ16 = record["requiredWorkQ16"];
+    const carriedDefId = record["carriedDefId"];
+    const carriedAmount = record["carriedAmount"];
+
     return (
-      isIndexInRange(record.jobId, this.capacity) &&
-      isSafeUint32(record.owner.index) &&
-      isSafeUint32(record.owner.generation) &&
-      isSafeUint32(record.jobKind) &&
-      isSafeUint32(record.targetId) &&
-      record.targetId < JOB_NONE &&
-      isJobStatus(record.status) &&
-      isJobStep(record.step) &&
-      record.step !== "unassigned" &&
-      isJobInterruptionPolicy(record.interruptionPolicy) &&
-      isJobFailureReason(record.failureReason) &&
-      isSafeUint32(record.createdTick) &&
-      isSafeUint32(record.stepEnteredTick) &&
-      isSafeUint32(record.stepTickCount) &&
-      isSafeUint32(record.progressQ16) &&
-      isSafeUint32(record.requiredWorkQ16) &&
-      isSafeUint32(record.carriedDefId) &&
-      isSafeUint32(record.carriedAmount)
+      isIndexInRange(jobId, this.capacity) &&
+      isSafeUint32(owner["index"]) &&
+      isSafeUint32(owner["generation"]) &&
+      isSafeUint32(jobKind) &&
+      isSafeUint32(targetId) &&
+      targetId < JOB_NONE &&
+      isJobStatus(status) &&
+      isJobStep(step) &&
+      step !== "unassigned" &&
+      isJobInterruptionPolicy(interruptionPolicy) &&
+      isJobFailureReason(failureReason) &&
+      isSafeUint32(createdTick) &&
+      isSafeUint32(stepEnteredTick) &&
+      isSafeUint32(stepTickCount) &&
+      isSafeUint32(progressQ16) &&
+      isSafeUint32(requiredWorkQ16) &&
+      isSafeUint32(carriedDefId) &&
+      isSafeUint32(carriedAmount)
     );
   }
 
@@ -847,7 +935,7 @@ function decodeStatus(code: number): JobStatus {
   return "canceled";
 }
 
-function isJobStatus(value: string): value is JobStatus {
+function isJobStatus(value: unknown): value is JobStatus {
   return (
     value === "ready" ||
     value === "running" ||
@@ -905,7 +993,7 @@ function decodeStep(code: number): JobDriverStep {
   return "unassigned";
 }
 
-function isJobStep(value: string): value is JobDriverStep {
+function isJobStep(value: unknown): value is JobDriverStep {
   return (
     value === "unassigned" ||
     value === "reserve" ||
@@ -947,7 +1035,7 @@ function decodePolicy(code: number): JobInterruptionPolicy {
   return "never";
 }
 
-function isJobInterruptionPolicy(value: string): value is JobInterruptionPolicy {
+function isJobInterruptionPolicy(value: unknown): value is JobInterruptionPolicy {
   return (
     value === "never" ||
     value === "at_safe_point" ||
@@ -1040,7 +1128,7 @@ function decodeFailureReason(code: number): JobFailureReason {
   return "none";
 }
 
-function isJobFailureReason(value: string): value is JobFailureReason {
+function isJobFailureReason(value: unknown): value is JobFailureReason {
   return (
     value === "none" ||
     value === "permission" ||
@@ -1054,12 +1142,16 @@ function isJobFailureReason(value: string): value is JobFailureReason {
   );
 }
 
-function isIndexInRange(value: number, upperBound: number): boolean {
-  return Number.isSafeInteger(value) && value >= 0 && value < upperBound;
+function isIndexInRange(value: unknown, upperBound: number): value is number {
+  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0 && value < upperBound;
 }
 
-function isSafeUint32(value: number): boolean {
-  return Number.isSafeInteger(value) && value >= 0 && value <= 0xffff_ffff;
+function isSafeUint32(value: unknown): value is number {
+  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0 && value <= 0xffff_ffff;
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function clampUint32(value: number): number {

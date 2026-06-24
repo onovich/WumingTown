@@ -32,7 +32,7 @@
   ],
   "branch": "task/WM-0025-implement-serializable-job-driver-state-machines",
   "createdAt": "2026-06-23T23:08:02.344Z",
-  "updatedAt": "2026-06-24T10:24:41.877Z",
+  "updatedAt": "2026-06-24T10:36:56.194Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.344Z",
@@ -57,10 +57,28 @@
       "actor": "simulation-engineer",
       "action": "complete",
       "details": "Implemented explicit serializable JobCore state machines, interruption cleanup, structured failure reasons, snapshot/hash helpers, jobs tests, replay check, docs and report."
+    },
+    {
+      "at": "2026-06-24T10:30:30.550Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: Medium: JobCore restore does not fail closed for malformed snapshot input; malformed records throw TypeError and nonnumeric storeVersion is accepted into store state, violating the documented scratch-validated save/load boundary."
+    },
+    {
+      "at": "2026-06-24T10:36:56.193Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Fixed Mirror changes_requested by making JobCore restore accept unknown payloads, validating snapshot shape before iteration, rejecting malformed records and bad storeVersion without mutation, and adding jobs regression coverage. Re-ran typecheck, lint, jobs, replay, taskctl validate and diff check."
     }
   ],
   "claimedBy": "simulation-engineer",
   "threadLabel": "Beacon-WM-0025",
   "blocker": null,
-  "reportPath": "coordination/reports/WM-0025.md"
+  "reportPath": "coordination/reports/WM-0025.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "changes_requested",
+    "summary": "Medium: JobCore restore does not fail closed for malformed snapshot input; malformed records throw TypeError and nonnumeric storeVersion is accepted into store state, violating the documented scratch-validated save/load boundary.",
+    "at": "2026-06-24T10:30:30.550Z"
+  }
 }

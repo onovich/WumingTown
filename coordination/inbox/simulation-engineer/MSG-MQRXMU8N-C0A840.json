@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQRXMU8N-C0A840",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0025",
+  "kind": "changes-requested",
+  "subject": "WM-0025 review: changes_requested",
+  "body": "Medium: JobCore restore does not fail closed for malformed snapshot input; malformed records throw TypeError and nonnumeric storeVersion is accepted into store state, violating the documented scratch-validated save/load boundary.",
+  "artifacts": [
+    "coordination/reports/WM-0025.md"
+  ],
+  "createdAt": "2026-06-24T10:30:30.552Z",
+  "acknowledgedAt": "2026-06-24T10:36:21.516Z"
+}
