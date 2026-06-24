@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQRWUKYA-2C5B25",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0024",
+  "kind": "review-approved",
+  "subject": "WM-0024 review: verified",
+  "body": "Verified WM-0024: WorkOfferIndex is derived state with state-change registration/update/removal, exact composite lookup is bounded by candidateCap, ReasonTraceStore is fixed-capacity structured storage, sim-core boundary/determinism checks are clean, and required work-offers tests/benchmark pass.",
+  "artifacts": [
+    "coordination/reports/WM-0024.md"
+  ],
+  "createdAt": "2026-06-24T10:08:32.146Z",
+  "acknowledgedAt": "2026-06-24T10:09:19.869Z"
+}

@@ -2,7 +2,7 @@
   "id": "WM-0024",
   "title": "Implement WorkOffer indexes and bounded reason traces",
   "summary": "Implement state-change-driven WorkOffer registration, indexed candidate lookup, bounded Top-K scoring input and structured reason traces.",
-  "state": "review_requested",
+  "state": "verified",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,7 +32,7 @@
   ],
   "branch": "task/WM-0024-implement-workoffer-indexes-and-bounded-reason-t",
   "createdAt": "2026-06-23T23:08:02.304Z",
-  "updatedAt": "2026-06-24T10:04:21.979Z",
+  "updatedAt": "2026-06-24T10:08:32.145Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.304Z",
@@ -57,10 +57,22 @@
       "actor": "simulation-engineer",
       "action": "complete",
       "details": "Implemented derived WorkOffer composite indexes, bounded top-offer selection, ReasonTrace ring storage, work-offers tests, benchmark, docs and report."
+    },
+    {
+      "at": "2026-06-24T10:08:32.145Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: Verified WM-0024: WorkOfferIndex is derived state with state-change registration/update/removal, exact composite lookup is bounded by candidateCap, ReasonTraceStore is fixed-capacity structured storage, sim-core boundary/determinism checks are clean, and required work-offers tests/benchmark pass."
     }
   ],
   "claimedBy": "simulation-engineer",
   "threadLabel": "Beacon-WM-0024",
   "blocker": null,
-  "reportPath": "coordination/reports/WM-0024.md"
+  "reportPath": "coordination/reports/WM-0024.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "Verified WM-0024: WorkOfferIndex is derived state with state-change registration/update/removal, exact composite lookup is bounded by candidateCap, ReasonTraceStore is fixed-capacity structured storage, sim-core boundary/determinism checks are clean, and required work-offers tests/benchmark pass.",
+    "at": "2026-06-24T10:08:32.145Z"
+  }
 }
