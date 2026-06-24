@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQSK8S4R-6DA986",
+  "from": "reviewer",
+  "to": "project-director",
+  "taskId": "WM-0031",
+  "kind": "review-approved",
+  "subject": "WM-0031 review: verified",
+  "body": "No blocking findings; Beacon 019efb60-ec5e-78f0-8a7c-7fb1754539cd is the sole project-director route, old root evidence is preserved without registry schema changes, WM-0001..0030 are done/verified/integrated, M2 remains planning-only, and required gates pass.",
+  "artifacts": [
+    "coordination/reports/WM-0031.md"
+  ],
+  "createdAt": "2026-06-24T21:03:25.803Z",
+  "acknowledgedAt": "2026-06-24T21:03:49.574Z"
+}

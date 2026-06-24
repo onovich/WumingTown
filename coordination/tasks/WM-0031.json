@@ -1,0 +1,89 @@
+{
+  "id": "WM-0031",
+  "title": "Record root handoff from M1 closeout to M2 entry",
+  "summary": "Record the new active project-director root thread, preserve the previous root registration evidence, verify M1 closeout and prepare M2 planning without starting product implementation.",
+  "state": "done",
+  "ownerRole": "project-director",
+  "reviewerRole": "reviewer",
+  "dependsOn": [],
+  "docs": [
+    "AGENTS.md",
+    "CODEX_START_HERE.md",
+    "coordination/reports/WM-0030.md",
+    "coordination/reports/WM-0030-m2-entry-prompt.md",
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "docs/08_codex/00_multi_agent_operating_model.md",
+    "docs/08_codex/02_thread_communication_protocol.md"
+  ],
+  "acceptance": [
+    "Current thread is registered as the only active project-director route",
+    "Previous project-director registration is preserved in the handoff report",
+    "M0 and M1 baseline validation evidence is recorded",
+    "M2 remains unstarted except for the next planning task requirement",
+    "Owner gates pass before integration"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0031-record-root-handoff-from-m1-closeout-to-m2-entry",
+  "createdAt": "2026-06-24T20:52:40.510Z",
+  "updatedAt": "2026-06-24T21:04:39.237Z",
+  "history": [
+    {
+      "at": "2026-06-24T20:52:40.511Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    },
+    {
+      "at": "2026-06-24T20:52:47.316Z",
+      "actor": "project-director",
+      "action": "claim",
+      "details": "thread=Beacon"
+    },
+    {
+      "at": "2026-06-24T20:56:37.792Z",
+      "actor": "project-director",
+      "action": "complete",
+      "details": "Root handoff recorded: current Beacon thread is the sole project-director route, previous root evidence preserved in root-handoff-m1-to-m2.md, M1 closeout verified, M2 remains unstarted pending reviewed planning task; owner gates passed."
+    },
+    {
+      "at": "2026-06-24T21:03:25.802Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; Beacon 019efb60-ec5e-78f0-8a7c-7fb1754539cd is the sole project-director route, old root evidence is preserved without registry schema changes, WM-0001..0030 are done/verified/integrated, M2 remains planning-only, and required gates pass."
+    },
+    {
+      "at": "2026-06-24T21:04:34.326Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified root handoff integrated on task branch; reviewer approved; integration gates passed: validate-handoff 540 files/31 tasks/10 roles, taskctl validate/status, git diff --check and pnpm quality."
+    },
+    {
+      "at": "2026-06-24T21:04:39.237Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
+    }
+  ],
+  "claimedBy": "project-director",
+  "threadLabel": "Beacon",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0031.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; Beacon 019efb60-ec5e-78f0-8a7c-7fb1754539cd is the sole project-director route, old root evidence is preserved without registry schema changes, WM-0001..0030 are done/verified/integrated, M2 remains planning-only, and required gates pass.",
+    "at": "2026-06-24T21:03:25.801Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified root handoff integrated on task branch; reviewer approved; integration gates passed: validate-handoff 540 files/31 tasks/10 roles, taskctl validate/status, git diff --check and pnpm quality.",
+    "at": "2026-06-24T21:04:34.326Z"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQSK01B5-0D2177",
+  "from": "project-director",
+  "to": "reviewer",
+  "taskId": "WM-0031",
+  "kind": "review-request",
+  "subject": "WM-0031 ready for review",
+  "body": "Root handoff recorded: current Beacon thread is the sole project-director route, previous root evidence preserved in root-handoff-m1-to-m2.md, M1 closeout verified, M2 remains unstarted pending reviewed planning task; owner gates passed.",
+  "artifacts": [
+    "coordination/reports/WM-0031.md",
+    "task/WM-0031-record-root-handoff-from-m1-closeout-to-m2-entry"
+  ],
+  "createdAt": "2026-06-24T20:56:37.793Z",
+  "acknowledgedAt": "2026-06-24T20:57:53.088Z"
+}
