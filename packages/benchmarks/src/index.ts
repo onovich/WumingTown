@@ -17,6 +17,10 @@ export {
   runM2PathWorkSelectionBenchmark,
   writeM2PathWorkSelectionBenchmarkArtifact,
 } from "./m2-path-work-selection-benchmark";
+export {
+  runM2WorkOffer20PawnsBenchmark,
+  writeM2WorkOffer20PawnsBenchmarkArtifact,
+} from "./m2-work-offer-20-pawns-benchmark";
 export { runPathing100Benchmark } from "./pathing-100-benchmark";
 export { runWorkOffersBenchmark } from "./work-offers-benchmark";
 export { BENCHMARK_BASELINE_SCHEMA_VERSION, compareBenchmarkToBaseline } from "./baseline";
@@ -53,6 +57,11 @@ export type {
   M2PathWorkSelectionBenchmarkReport,
   SampledM2PathWorkSelectionBenchmark,
 } from "./m2-path-work-selection-benchmark";
+export type {
+  M2WorkOffer20PawnsBenchmarkInvariants,
+  M2WorkOffer20PawnsBenchmarkReport,
+  SampledM2WorkOffer20PawnsBenchmark,
+} from "./m2-work-offer-20-pawns-benchmark";
 export type {
   MapDirtyBenchmarkInvariants,
   MapDirtyBenchmarkReport,

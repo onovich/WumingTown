@@ -2,7 +2,7 @@
   "id": "WM-0036",
   "title": "Scale WorkOffer scoring for multiple pawns",
   "summary": "Scale WorkOffer lookup, scoring and assignment to multiple pawns with deterministic tie-breaking, bounded visits and ReasonTrace evidence.",
-  "state": "in_progress",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,7 +32,7 @@
   ],
   "branch": "task/WM-0036-scale-work-offer-scoring-for-multiple-pawns",
   "createdAt": "2026-06-24T21:14:35.180Z",
-  "updatedAt": "2026-06-24T22:52:51.578Z",
+  "updatedAt": "2026-06-24T23:17:20.222Z",
   "history": [
     {
       "at": "2026-06-24T21:14:35.180Z",
@@ -50,6 +50,30 @@
       "at": "2026-06-24T22:52:51.578Z",
       "actor": "simulation-engineer",
       "action": "claim",
+      "details": ""
+    },
+    {
+      "at": "2026-06-24T23:05:51.507Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented bounded deterministic 20-pawn WorkOffer scoring, trace counters and WM-0036 benchmark evidence; required checks pass with documented unsupported filter substitutions."
+    },
+    {
+      "at": "2026-06-24T23:15:49.802Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Verified bounded 20-pawn indexed WorkOffer selection, stable score/offer-id ordering, ReasonTrace cap evidence, no authority/protocol/save drift, and reproduced required checks including direct WM-0036 benchmark metrics."
+    },
+    {
+      "at": "2026-06-24T23:17:12.786Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integrated verified 20-pawn WorkOffer scoring with bounded indexed selection, ReasonTrace cap evidence, and reproducible WM-0036 benchmark artifact."
+    },
+    {
+      "at": "2026-06-24T23:17:20.222Z",
+      "actor": "project-director",
+      "action": "done",
       "details": ""
     }
   ],
@@ -91,5 +115,17 @@
   },
   "claimedBy": "simulation-engineer",
   "threadLabel": null,
-  "blocker": null
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0036.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Verified bounded 20-pawn indexed WorkOffer selection, stable score/offer-id ordering, ReasonTrace cap evidence, no authority/protocol/save drift, and reproduced required checks including direct WM-0036 benchmark metrics.",
+    "at": "2026-06-24T23:15:49.802Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integrated verified 20-pawn WorkOffer scoring with bounded indexed selection, ReasonTrace cap evidence, and reproducible WM-0036 benchmark artifact.",
+    "at": "2026-06-24T23:17:12.786Z"
+  }
 }

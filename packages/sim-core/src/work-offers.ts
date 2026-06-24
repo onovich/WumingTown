@@ -15,6 +15,7 @@ export type WorkOfferReason =
   | "work_offer_id_out_of_range"
   | "work_offer_already_registered"
   | "work_offer_not_registered"
+  | "work_offer_pawn_count_invalid"
   | "work_offer_work_type_out_of_range"
   | "work_offer_region_out_of_range"
   | "work_offer_def_out_of_range"
@@ -25,13 +26,21 @@ export type WorkOfferReason =
   | "work_offer_candidate_cap_invalid"
   | "work_offer_selected_cap_invalid"
   | "work_offer_candidate_buffer_too_small"
+  | "work_offer_pawn_query_buffer_too_small"
   | "work_offer_selection_buffer_too_small"
+  | "work_offer_multi_output_buffer_too_small"
   | "work_offer_trace_capacity_invalid";
 
 export type WorkOfferTraceReason =
   | "work_offer_trace_none"
   | "work_offer_candidate_cap"
+  | "work_offer_selected_cap"
   | "work_offer_no_candidate";
+
+export type WorkOfferRejectionClass =
+  | "work_offer_rejection_candidate_cap"
+  | "work_offer_rejection_selected_cap"
+  | "work_offer_rejection_no_candidate";
 
 export type WorkOfferPathSelectionReason =
   | "work_path_selected"
@@ -96,6 +105,7 @@ export type WorkOfferSelectionResult =
       readonly visitedCount: number;
       readonly scoredCount: number;
       readonly rejectedByCandidateCap: number;
+      readonly rejectedBySelectedCap: number;
       readonly traceSequence: number;
     }
   | {
@@ -111,6 +121,38 @@ export type WorkOfferSelectionResult =
         | "work_offer_selected_cap_invalid"
         | "work_offer_candidate_buffer_too_small"
         | "work_offer_selection_buffer_too_small"
+      >;
+    };
+
+export type WorkOfferMultiPawnSelectionResult =
+  | {
+      readonly ok: true;
+      readonly pawnCount: number;
+      readonly selectedOfferCount: number;
+      readonly totalBucketCandidateCount: number;
+      readonly totalVisitedCount: number;
+      readonly totalScoredCount: number;
+      readonly totalRejectedByCandidateCap: number;
+      readonly totalRejectedBySelectedCap: number;
+      readonly candidateCapHitCount: number;
+      readonly selectedCapHitCount: number;
+    }
+  | {
+      readonly ok: false;
+      readonly reason: Extract<
+        WorkOfferReason,
+        | "work_offer_pawn_count_invalid"
+        | "work_offer_work_type_out_of_range"
+        | "work_offer_region_out_of_range"
+        | "work_offer_def_out_of_range"
+        | "work_offer_urgency_out_of_range"
+        | "work_offer_permission_out_of_range"
+        | "work_offer_candidate_cap_invalid"
+        | "work_offer_selected_cap_invalid"
+        | "work_offer_candidate_buffer_too_small"
+        | "work_offer_pawn_query_buffer_too_small"
+        | "work_offer_selection_buffer_too_small"
+        | "work_offer_multi_output_buffer_too_small"
       >;
     };
 
@@ -147,6 +189,36 @@ export interface WorkOfferQuery {
 export interface WorkOfferSelectionOptions extends WorkOfferQuery {
   readonly pawnId: number;
   readonly maxSelectedOffers: number;
+}
+
+export interface WorkOfferMultiPawnSelectionOptions {
+  readonly pawnCount: number;
+  readonly pawnIds: Uint32Array;
+  readonly workTypes: Uint32Array;
+  readonly regionIds: Uint32Array;
+  readonly defIds: Uint32Array;
+  readonly urgencyBuckets: Uint32Array;
+  readonly permissionIds: Uint32Array;
+  readonly candidateCap: number;
+  readonly maxSelectedOffers: number;
+}
+
+export interface WorkOfferMultiPawnSelectionScratch {
+  readonly candidateOfferIds: Uint32Array;
+  readonly selectedOfferIds: Uint32Array;
+  readonly selectedScoresMilli: Int32Array;
+}
+
+export interface WorkOfferMultiPawnSelectionOutput {
+  readonly selectedOfferIds: Uint32Array;
+  readonly selectedScoresMilli: Int32Array;
+  readonly selectedCounts: Uint32Array;
+  readonly bucketCandidateCounts: Uint32Array;
+  readonly visitedCounts: Uint32Array;
+  readonly scoredCounts: Uint32Array;
+  readonly rejectedByCandidateCaps: Uint32Array;
+  readonly rejectedBySelectedCaps: Uint32Array;
+  readonly traceSequences: Uint32Array;
 }
 
 export interface WorkOfferPathSelectionOptions extends WorkOfferSelectionOptions {
@@ -227,6 +299,8 @@ export interface WorkOfferReasonTraceInput {
   readonly selectedOfferId: number;
   readonly selectedScoreMilli: number;
   readonly rejectedByCandidateCap: number;
+  readonly rejectedBySelectedCap: number;
+  readonly rejectionMask: number;
   readonly reason: WorkOfferTraceReason;
 }
 
@@ -400,63 +474,112 @@ export class WorkOfferIndex {
     }
 
     clearSelection(selectedOfferIds, selectedScoresMilli, options.maxSelectedOffers);
-    const queried = this.queryCandidates(options, candidateScratch);
+    return this.selectTopOffersForValues(
+      options.pawnId,
+      options.workType,
+      options.regionId,
+      options.defId,
+      options.urgencyBucket,
+      options.permissionId,
+      options.candidateCap,
+      options.maxSelectedOffers,
+      candidateScratch,
+      selectedOfferIds,
+      selectedScoresMilli,
+      traceStore,
+    );
+  }
 
-    if (!queried.ok) {
-      return queried;
+  selectTopOffersForPawns(
+    options: WorkOfferMultiPawnSelectionOptions,
+    scratch: WorkOfferMultiPawnSelectionScratch,
+    output: WorkOfferMultiPawnSelectionOutput,
+    traceStore?: ReasonTraceStore,
+  ): WorkOfferMultiPawnSelectionResult {
+    const validation = this.validateMultiPawnSelection(options, scratch, output);
+
+    if (!validation.ok) {
+      return validation;
     }
 
-    let selectedCount = 0;
+    clearMultiPawnOutput(output, options.pawnCount, options.maxSelectedOffers);
+    let selectedOfferCount = 0;
+    let totalBucketCandidateCount = 0;
+    let totalVisitedCount = 0;
+    let totalScoredCount = 0;
+    let totalRejectedByCandidateCap = 0;
+    let totalRejectedBySelectedCap = 0;
+    let candidateCapHitCount = 0;
+    let selectedCapHitCount = 0;
 
-    for (let index = 0; index < queried.count; index += 1) {
-      const offerId = candidateScratch[index] ?? WORK_OFFER_NONE;
+    for (let pawnOffset = 0; pawnOffset < options.pawnCount; pawnOffset += 1) {
+      clearSelection(
+        scratch.selectedOfferIds,
+        scratch.selectedScoresMilli,
+        options.maxSelectedOffers,
+      );
+      const selected = this.selectTopOffersForValues(
+        options.pawnIds[pawnOffset] ?? 0,
+        options.workTypes[pawnOffset] ?? 0,
+        options.regionIds[pawnOffset] ?? 0,
+        options.defIds[pawnOffset] ?? 0,
+        options.urgencyBuckets[pawnOffset] ?? 0,
+        options.permissionIds[pawnOffset] ?? 0,
+        options.candidateCap,
+        options.maxSelectedOffers,
+        scratch.candidateOfferIds,
+        scratch.selectedOfferIds,
+        scratch.selectedScoresMilli,
+        traceStore,
+      );
 
-      if (offerId !== WORK_OFFER_NONE) {
-        selectedCount = insertTopOffer(
-          selectedOfferIds,
-          selectedScoresMilli,
-          selectedCount,
-          options.maxSelectedOffers,
-          offerId,
-          this.scoresMilli[offerId] ?? 0,
-        );
+      if (!selected.ok) {
+        return selected;
+      }
+
+      const outputOffset = pawnOffset * options.maxSelectedOffers;
+      for (let selectedOffset = 0; selectedOffset < selected.selectedCount; selectedOffset += 1) {
+        const writeOffset = outputOffset + selectedOffset;
+        output.selectedOfferIds[writeOffset] =
+          scratch.selectedOfferIds[selectedOffset] ?? WORK_OFFER_NONE;
+        output.selectedScoresMilli[writeOffset] = scratch.selectedScoresMilli[selectedOffset] ?? 0;
+      }
+
+      output.selectedCounts[pawnOffset] = selected.selectedCount;
+      output.bucketCandidateCounts[pawnOffset] = selected.bucketCandidateCount;
+      output.visitedCounts[pawnOffset] = selected.visitedCount;
+      output.scoredCounts[pawnOffset] = selected.scoredCount;
+      output.rejectedByCandidateCaps[pawnOffset] = selected.rejectedByCandidateCap;
+      output.rejectedBySelectedCaps[pawnOffset] = selected.rejectedBySelectedCap;
+      output.traceSequences[pawnOffset] = selected.traceSequence;
+
+      selectedOfferCount += selected.selectedCount;
+      totalBucketCandidateCount += selected.bucketCandidateCount;
+      totalVisitedCount += selected.visitedCount;
+      totalScoredCount += selected.scoredCount;
+      totalRejectedByCandidateCap += selected.rejectedByCandidateCap;
+      totalRejectedBySelectedCap += selected.rejectedBySelectedCap;
+
+      if (selected.rejectedByCandidateCap > 0) {
+        candidateCapHitCount += 1;
+      }
+
+      if (selected.rejectedBySelectedCap > 0) {
+        selectedCapHitCount += 1;
       }
     }
 
-    const rejectedByCandidateCap =
-      queried.bucketCandidateCount > queried.visitedCount
-        ? queried.bucketCandidateCount - queried.visitedCount
-        : 0;
-    const selectedOfferId =
-      selectedCount > 0 ? (selectedOfferIds[0] ?? WORK_OFFER_NONE) : WORK_OFFER_NONE;
-    const selectedScoreMilli = selectedCount > 0 ? (selectedScoresMilli[0] ?? 0) : 0;
-    const traceSequence =
-      traceStore?.recordWorkOfferSelection({
-        pawnId: options.pawnId,
-        workType: options.workType,
-        regionId: options.regionId,
-        defId: options.defId,
-        urgencyBucket: options.urgencyBucket,
-        permissionId: options.permissionId,
-        bucketCandidateCount: queried.bucketCandidateCount,
-        visitedCount: queried.visitedCount,
-        scoredCount: queried.count,
-        candidateCap: options.candidateCap,
-        selectedCap: options.maxSelectedOffers,
-        selectedOfferId,
-        selectedScoreMilli,
-        rejectedByCandidateCap,
-        reason: readTraceReason(queried.bucketCandidateCount, rejectedByCandidateCap),
-      }) ?? 0;
-
     return {
       ok: true,
-      selectedCount,
-      bucketCandidateCount: queried.bucketCandidateCount,
-      visitedCount: queried.visitedCount,
-      scoredCount: queried.count,
-      rejectedByCandidateCap,
-      traceSequence,
+      pawnCount: options.pawnCount,
+      selectedOfferCount,
+      totalBucketCandidateCount,
+      totalVisitedCount,
+      totalScoredCount,
+      totalRejectedByCandidateCap,
+      totalRejectedBySelectedCap,
+      candidateCapHitCount,
+      selectedCapHitCount,
     };
   }
 
@@ -630,6 +753,227 @@ export class WorkOfferIndex {
     return { ok: true };
   }
 
+  private validateMultiPawnSelection(
+    options: WorkOfferMultiPawnSelectionOptions,
+    scratch: WorkOfferMultiPawnSelectionScratch,
+    output: WorkOfferMultiPawnSelectionOutput,
+  ):
+    | { readonly ok: true }
+    | {
+        readonly ok: false;
+        readonly reason: Extract<
+          WorkOfferReason,
+          | "work_offer_pawn_count_invalid"
+          | "work_offer_work_type_out_of_range"
+          | "work_offer_region_out_of_range"
+          | "work_offer_def_out_of_range"
+          | "work_offer_urgency_out_of_range"
+          | "work_offer_permission_out_of_range"
+          | "work_offer_candidate_cap_invalid"
+          | "work_offer_selected_cap_invalid"
+          | "work_offer_candidate_buffer_too_small"
+          | "work_offer_pawn_query_buffer_too_small"
+          | "work_offer_selection_buffer_too_small"
+          | "work_offer_multi_output_buffer_too_small"
+        >;
+      } {
+    if (!isPositiveSafeInteger(options.pawnCount)) {
+      return { ok: false, reason: "work_offer_pawn_count_invalid" };
+    }
+
+    if (!isPositiveSafeInteger(options.candidateCap)) {
+      return { ok: false, reason: "work_offer_candidate_cap_invalid" };
+    }
+
+    if (!isPositiveSafeInteger(options.maxSelectedOffers)) {
+      return { ok: false, reason: "work_offer_selected_cap_invalid" };
+    }
+
+    if (scratch.candidateOfferIds.length < options.candidateCap) {
+      return { ok: false, reason: "work_offer_candidate_buffer_too_small" };
+    }
+
+    if (
+      scratch.selectedOfferIds.length < options.maxSelectedOffers ||
+      scratch.selectedScoresMilli.length < options.maxSelectedOffers
+    ) {
+      return { ok: false, reason: "work_offer_selection_buffer_too_small" };
+    }
+
+    if (
+      options.pawnIds.length < options.pawnCount ||
+      options.workTypes.length < options.pawnCount ||
+      options.regionIds.length < options.pawnCount ||
+      options.defIds.length < options.pawnCount ||
+      options.urgencyBuckets.length < options.pawnCount ||
+      options.permissionIds.length < options.pawnCount
+    ) {
+      return { ok: false, reason: "work_offer_pawn_query_buffer_too_small" };
+    }
+
+    const selectedOutputCapacity = options.pawnCount * options.maxSelectedOffers;
+    if (
+      output.selectedOfferIds.length < selectedOutputCapacity ||
+      output.selectedScoresMilli.length < selectedOutputCapacity ||
+      output.selectedCounts.length < options.pawnCount ||
+      output.bucketCandidateCounts.length < options.pawnCount ||
+      output.visitedCounts.length < options.pawnCount ||
+      output.scoredCounts.length < options.pawnCount ||
+      output.rejectedByCandidateCaps.length < options.pawnCount ||
+      output.rejectedBySelectedCaps.length < options.pawnCount ||
+      output.traceSequences.length < options.pawnCount
+    ) {
+      return { ok: false, reason: "work_offer_multi_output_buffer_too_small" };
+    }
+
+    for (let pawnOffset = 0; pawnOffset < options.pawnCount; pawnOffset += 1) {
+      const keyValidation = this.validateKeyValues(
+        options.workTypes[pawnOffset] ?? WORK_OFFER_NONE,
+        options.regionIds[pawnOffset] ?? WORK_OFFER_NONE,
+        options.defIds[pawnOffset] ?? WORK_OFFER_NONE,
+        options.urgencyBuckets[pawnOffset] ?? WORK_OFFER_NONE,
+        options.permissionIds[pawnOffset] ?? WORK_OFFER_NONE,
+      );
+
+      if (!keyValidation.ok) {
+        return keyValidation;
+      }
+    }
+
+    return { ok: true };
+  }
+
+  private selectTopOffersForValues(
+    pawnId: number,
+    workType: number,
+    regionId: number,
+    defId: number,
+    urgencyBucket: number,
+    permissionId: number,
+    candidateCap: number,
+    maxSelectedOffers: number,
+    candidateScratch: Uint32Array,
+    selectedOfferIds: Uint32Array,
+    selectedScoresMilli: Int32Array,
+    traceStore: ReasonTraceStore | undefined,
+  ): WorkOfferSelectionResult {
+    const queried = this.queryCandidatesForValues(
+      workType,
+      regionId,
+      defId,
+      urgencyBucket,
+      permissionId,
+      candidateCap,
+      candidateScratch,
+    );
+
+    if (!queried.ok) {
+      return queried;
+    }
+
+    let selectedCount = 0;
+
+    for (let index = 0; index < queried.count; index += 1) {
+      const offerId = candidateScratch[index] ?? WORK_OFFER_NONE;
+
+      if (offerId !== WORK_OFFER_NONE) {
+        selectedCount = insertTopOffer(
+          selectedOfferIds,
+          selectedScoresMilli,
+          selectedCount,
+          maxSelectedOffers,
+          offerId,
+          this.scoresMilli[offerId] ?? 0,
+        );
+      }
+    }
+
+    const rejectedByCandidateCap =
+      queried.bucketCandidateCount > queried.visitedCount
+        ? queried.bucketCandidateCount - queried.visitedCount
+        : 0;
+    const rejectedBySelectedCap = queried.count > selectedCount ? queried.count - selectedCount : 0;
+    const selectedOfferId =
+      selectedCount > 0 ? (selectedOfferIds[0] ?? WORK_OFFER_NONE) : WORK_OFFER_NONE;
+    const selectedScoreMilli = selectedCount > 0 ? (selectedScoresMilli[0] ?? 0) : 0;
+    const rejectionMask = createRejectionMask(
+      queried.bucketCandidateCount,
+      rejectedByCandidateCap,
+      rejectedBySelectedCap,
+    );
+    const traceSequence =
+      traceStore?.recordWorkOfferSelection({
+        pawnId,
+        workType,
+        regionId,
+        defId,
+        urgencyBucket,
+        permissionId,
+        bucketCandidateCount: queried.bucketCandidateCount,
+        visitedCount: queried.visitedCount,
+        scoredCount: queried.count,
+        candidateCap,
+        selectedCap: maxSelectedOffers,
+        selectedOfferId,
+        selectedScoreMilli,
+        rejectedByCandidateCap,
+        rejectedBySelectedCap,
+        rejectionMask,
+        reason: readTraceReason(rejectionMask),
+      }) ?? 0;
+
+    return {
+      ok: true,
+      selectedCount,
+      bucketCandidateCount: queried.bucketCandidateCount,
+      visitedCount: queried.visitedCount,
+      scoredCount: queried.count,
+      rejectedByCandidateCap,
+      rejectedBySelectedCap,
+      traceSequence,
+    };
+  }
+
+  private queryCandidatesForValues(
+    workType: number,
+    regionId: number,
+    defId: number,
+    urgencyBucket: number,
+    permissionId: number,
+    candidateCap: number,
+    outputOfferIds: Uint32Array,
+  ): WorkOfferQueryResult {
+    const key = createCompositeKey(workType, regionId, defId, urgencyBucket, permissionId, this);
+    const bucketCandidateCount = this.bucketCounts[key] ?? 0;
+    const outputLimit = Math.min(outputOfferIds.length, candidateCap);
+    let current = this.bucketHeads[key] ?? -1;
+    let count = 0;
+    let visitedCount = 0;
+
+    while (current >= 0 && visitedCount < candidateCap) {
+      if (count < outputLimit) {
+        outputOfferIds[count] = current;
+        count += 1;
+      }
+
+      visitedCount += 1;
+      current = this.nextOffer[current] ?? -1;
+
+      if (count >= outputLimit) {
+        break;
+      }
+    }
+
+    return {
+      ok: true,
+      count,
+      bucketCandidateCount,
+      visitedCount,
+      candidateCapHit: bucketCandidateCount > visitedCount,
+      outputTruncated: bucketCandidateCount > count,
+    };
+  }
+
   private validateKey(key: Omit<WorkOfferQuery, "candidateCap">):
     | { readonly ok: true }
     | {
@@ -643,23 +987,51 @@ export class WorkOfferIndex {
           | "work_offer_permission_out_of_range"
         >;
       } {
-    if (!isIndexInRange(key.workType, this.workTypeCapacity)) {
+    return this.validateKeyValues(
+      key.workType,
+      key.regionId,
+      key.defId,
+      key.urgencyBucket,
+      key.permissionId,
+    );
+  }
+
+  private validateKeyValues(
+    workType: number,
+    regionId: number,
+    defId: number,
+    urgencyBucket: number,
+    permissionId: number,
+  ):
+    | { readonly ok: true }
+    | {
+        readonly ok: false;
+        readonly reason: Extract<
+          WorkOfferReason,
+          | "work_offer_work_type_out_of_range"
+          | "work_offer_region_out_of_range"
+          | "work_offer_def_out_of_range"
+          | "work_offer_urgency_out_of_range"
+          | "work_offer_permission_out_of_range"
+        >;
+      } {
+    if (!isIndexInRange(workType, this.workTypeCapacity)) {
       return { ok: false, reason: "work_offer_work_type_out_of_range" };
     }
 
-    if (!isIndexInRange(key.regionId, this.regionCapacity)) {
+    if (!isIndexInRange(regionId, this.regionCapacity)) {
       return { ok: false, reason: "work_offer_region_out_of_range" };
     }
 
-    if (!isIndexInRange(key.defId, this.defCapacity)) {
+    if (!isIndexInRange(defId, this.defCapacity)) {
       return { ok: false, reason: "work_offer_def_out_of_range" };
     }
 
-    if (!isIndexInRange(key.urgencyBucket, this.urgencyBucketCount)) {
+    if (!isIndexInRange(urgencyBucket, this.urgencyBucketCount)) {
       return { ok: false, reason: "work_offer_urgency_out_of_range" };
     }
 
-    if (!isIndexInRange(key.permissionId, this.permissionCapacity)) {
+    if (!isIndexInRange(permissionId, this.permissionCapacity)) {
       return { ok: false, reason: "work_offer_permission_out_of_range" };
     }
 
@@ -849,6 +1221,8 @@ export class ReasonTraceStore {
   private readonly selectedOfferIds: Uint32Array;
   private readonly selectedScoresMilli: Int32Array;
   private readonly rejectedByCandidateCaps: Uint32Array;
+  private readonly rejectedBySelectedCaps: Uint32Array;
+  private readonly rejectionMasks: Uint8Array;
   private readonly reasonCodes: Uint8Array;
   private writeCursor = 0;
   private stored = 0;
@@ -876,6 +1250,8 @@ export class ReasonTraceStore {
     this.selectedOfferIds.fill(WORK_OFFER_NONE);
     this.selectedScoresMilli = new Int32Array(capacity);
     this.rejectedByCandidateCaps = new Uint32Array(capacity);
+    this.rejectedBySelectedCaps = new Uint32Array(capacity);
+    this.rejectionMasks = new Uint8Array(capacity);
     this.reasonCodes = new Uint8Array(capacity);
   }
 
@@ -902,6 +1278,8 @@ export class ReasonTraceStore {
     this.selectedOfferIds[slot] = input.selectedOfferId;
     this.selectedScoresMilli[slot] = input.selectedScoreMilli;
     this.rejectedByCandidateCaps[slot] = input.rejectedByCandidateCap;
+    this.rejectedBySelectedCaps[slot] = input.rejectedBySelectedCap;
+    this.rejectionMasks[slot] = input.rejectionMask;
     this.reasonCodes[slot] = encodeTraceReason(input.reason);
     this.writeCursor = (this.writeCursor + 1) % this.capacity;
     this.stored = Math.min(this.capacity, this.stored + 1);
@@ -931,6 +1309,8 @@ export class ReasonTraceStore {
       selectedOfferId: this.selectedOfferIds[slot] ?? WORK_OFFER_NONE,
       selectedScoreMilli: this.selectedScoresMilli[slot] ?? 0,
       rejectedByCandidateCap: this.rejectedByCandidateCaps[slot] ?? 0,
+      rejectedBySelectedCap: this.rejectedBySelectedCaps[slot] ?? 0,
+      rejectionMask: this.rejectionMasks[slot] ?? 0,
       reason: decodeTraceReason(this.reasonCodes[slot] ?? 0),
     };
   }
@@ -1154,6 +1534,29 @@ function clearSelection(
   }
 }
 
+function clearMultiPawnOutput(
+  output: WorkOfferMultiPawnSelectionOutput,
+  pawnCount: number,
+  maxSelectedOffers: number,
+): void {
+  const selectedCapacity = pawnCount * maxSelectedOffers;
+
+  for (let index = 0; index < selectedCapacity; index += 1) {
+    output.selectedOfferIds[index] = WORK_OFFER_NONE;
+    output.selectedScoresMilli[index] = 0;
+  }
+
+  for (let index = 0; index < pawnCount; index += 1) {
+    output.selectedCounts[index] = 0;
+    output.bucketCandidateCounts[index] = 0;
+    output.visitedCounts[index] = 0;
+    output.scoredCounts[index] = 0;
+    output.rejectedByCandidateCaps[index] = 0;
+    output.rejectedBySelectedCaps[index] = 0;
+    output.traceSequences[index] = 0;
+  }
+}
+
 function isBetterOffer(
   offerId: number,
   scoreMilli: number,
@@ -1171,16 +1574,43 @@ function isBetterOffer(
   return offerId < currentId;
 }
 
-function readTraceReason(
+const WORK_OFFER_REJECTION_CANDIDATE_CAP_MASK = 1;
+const WORK_OFFER_REJECTION_SELECTED_CAP_MASK = 2;
+const WORK_OFFER_REJECTION_NO_CANDIDATE_MASK = 4;
+
+function createRejectionMask(
   bucketCandidateCount: number,
   rejectedByCandidateCap: number,
-): WorkOfferTraceReason {
+  rejectedBySelectedCap: number,
+): number {
+  let mask = 0;
+
   if (bucketCandidateCount === 0) {
-    return "work_offer_no_candidate";
+    mask |= WORK_OFFER_REJECTION_NO_CANDIDATE_MASK;
   }
 
   if (rejectedByCandidateCap > 0) {
+    mask |= WORK_OFFER_REJECTION_CANDIDATE_CAP_MASK;
+  }
+
+  if (rejectedBySelectedCap > 0) {
+    mask |= WORK_OFFER_REJECTION_SELECTED_CAP_MASK;
+  }
+
+  return mask;
+}
+
+function readTraceReason(rejectionMask: number): WorkOfferTraceReason {
+  if ((rejectionMask & WORK_OFFER_REJECTION_NO_CANDIDATE_MASK) !== 0) {
+    return "work_offer_no_candidate";
+  }
+
+  if ((rejectionMask & WORK_OFFER_REJECTION_CANDIDATE_CAP_MASK) !== 0) {
     return "work_offer_candidate_cap";
+  }
+
+  if ((rejectionMask & WORK_OFFER_REJECTION_SELECTED_CAP_MASK) !== 0) {
+    return "work_offer_selected_cap";
   }
 
   return "work_offer_trace_none";
@@ -1195,6 +1625,10 @@ function encodeTraceReason(reason: WorkOfferTraceReason): number {
     return 2;
   }
 
+  if (reason === "work_offer_selected_cap") {
+    return 3;
+  }
+
   return 0;
 }
 
@@ -1205,6 +1639,10 @@ function decodeTraceReason(code: number): WorkOfferTraceReason {
 
   if (code === 2) {
     return "work_offer_no_candidate";
+  }
+
+  if (code === 3) {
+    return "work_offer_selected_cap";
   }
 
   return "work_offer_trace_none";

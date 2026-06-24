@@ -83,6 +83,27 @@ benchmark helper under
 `coordination/artifacts/WM-0035/benchmarks/m2-path-work-selection-results.json`
 while preserving the existing `pathing-100` baseline gate.
 
+## WM-0036 benchmark note
+
+`packages/benchmarks/src/m2-work-offer-20-pawns-benchmark.ts` measures focused
+multi-pawn WorkOffer scoring without changing the existing benchmark baseline
+file. The benchmark registers `600` fixture offers across `20` actor buckets,
+then runs one bounded indexed selection pass with `candidateCap = 24`,
+`selectedCap = 12` and `ReasonTraceStore` capacity `64`.
+
+The benchmark records bucket candidate totals, visited rows, scored rows,
+selected rows, candidate-cap hits, selected-cap hits, rejection counts,
+trace storage, equivalent-score stability and a deterministic checksum. The
+expected bounded evidence is `480` visited/scored rows instead of the
+`12,000` actor-by-all-offers scan equivalent.
+
+The existing benchmark CLI registry does not yet include a
+`m2-work-offer-20-pawns` filter, and that registry is outside WM-0036's allowed
+edit paths. WM-0036 therefore writes the focused artifact through the exported
+benchmark helper under
+`coordination/artifacts/WM-0036/benchmarks/m2-work-offer-20-pawns-results.json`
+while preserving the existing `work-offers` baseline gate.
+
 ## WM-0019 benchmark note
 
 `pnpm bench --filter map-dirty` measures the M1 authoritative map dirty path on

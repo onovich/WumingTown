@@ -130,6 +130,27 @@ no-route, node-budget and exact Top-K-cap outcomes. The helper returns only a
 selected path result and metrics; it does not create jobs, mutate reservations,
 move items, or persist actor-owned full paths.
 
+## WM-0036 implementation note
+
+`WorkOfferIndex.selectTopOffersForPawns` scales the indexed WorkOffer scoring
+path to multiple actors without changing ownership. Callers provide typed query
+lanes for pawn id, work type, region, def, urgency and permission; the index
+still reads only the exact composite bucket for each pawn. It does not scan all
+entities, all map cells or all WorkOffer rows.
+
+The provisional M2 caps are explicit in the call: `candidateCap = 24` visited
+and scored rows per pawn, `maxSelectedOffers = 12` retained offers per pawn,
+and `ReasonTraceStore` capacity `64` for the focused scenario evidence. The
+multi-pawn helper uses caller-owned candidate, selected and output buffers.
+Selection remains score-descending with offer id as the stable equivalent-score
+tie-break.
+
+The selector reports per-pawn and aggregate candidate totals, visited rows,
+scored rows, selected rows, candidate-cap rejections and selected-cap
+rejections. Those counters are diagnostic evidence only; WorkOffer rows remain
+derived from owner stores and cannot create jobs, reserve claims, move items or
+complete targets.
+
 ## WM-0025 implementation note
 
 `packages/sim-core/src/job-core.ts` adds `JobCoreStore`, the first explicit

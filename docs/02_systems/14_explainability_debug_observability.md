@@ -41,6 +41,20 @@ Runtime selection writes compact numeric lanes; debug/test reads can materialize
 structured views. Default task coverage uses a 16-trace store, matching the M1
 scenario contract's bounded latest-trace expectation.
 
+## WM-0036 implementation note
+
+WorkOffer traces now include both candidate-cap and selected-cap rejection
+counts plus a compact rejection mask. The materialized trace view exposes the
+same shared data used by tests and benchmark diagnostics: candidate total,
+visited count, scored count, caps, selected offer id, selected score, rejection
+classes and semantic reason. This keeps explanation logic in sim-core data
+instead of adding UI-only interpretation.
+
+For the focused M2 20-pawn evidence, `ReasonTraceStore` capacity is `64` and
+the selector writes one trace per pawn selection pass. Trace rows are bounded
+diagnostics, not job cursors, save authority, reservation owners or queues that
+can grow with world size.
+
 ## WM-0025 implementation note
 
 `JobCoreStore` stores job failure and interruption outcomes as structured

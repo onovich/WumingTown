@@ -146,6 +146,7 @@ describe("WorkOfferIndex", () => {
       visitedCount: 4,
       scoredCount: 4,
       rejectedByCandidateCap: 2,
+      rejectedBySelectedCap: 2,
       traceSequence: 0,
     });
     expect([...selectedOfferIds]).toEqual([1, 3]);
@@ -198,6 +199,8 @@ describe("WorkOfferIndex", () => {
       selectedOfferId: 1,
       selectedScoreMilli: 1_001,
       rejectedByCandidateCap: 2,
+      rejectedBySelectedCap: 1,
+      rejectionMask: 3,
       reason: "work_offer_candidate_cap",
     });
     expect(traces.readNewest(1)?.sequence).toBe(2);
@@ -224,11 +227,132 @@ describe("WorkOfferIndex", () => {
       selectedCount: 0,
       bucketCandidateCount: 0,
       rejectedByCandidateCap: 0,
+      rejectedBySelectedCap: 0,
       traceSequence: 1,
     });
     expect(traces.readNewest(0)).toMatchObject({
       selectedOfferId: WORK_OFFER_NONE,
+      rejectionMask: 4,
       reason: "work_offer_no_candidate",
+    });
+  });
+
+  it("selects bounded deterministic work offers for 20 pawns without all-offer scans", () => {
+    const pawnCount = 20;
+    const offersPerPawnBucket = 30;
+    const candidateCap = 24;
+    const selectedCap = 12;
+    const index = createWorkOfferIndex({
+      capacity: pawnCount * offersPerPawnBucket,
+      workTypeCapacity: 4,
+      regionCapacity: 32,
+      defCapacity: 4,
+      urgencyBucketCount: 4,
+      permissionCapacity: 4,
+    });
+    const traces = createReasonTraceStore(64);
+
+    for (let pawnId = pawnCount - 1; pawnId >= 0; pawnId -= 1) {
+      for (let offset = offersPerPawnBucket - 1; offset >= 0; offset -= 1) {
+        const offerId = pawnId * offersPerPawnBucket + offset;
+        expect(
+          index.registerOffer(
+            createOffer({
+              offerId,
+              regionId: pawnId,
+              defId: pawnId % 4,
+              urgencyBucket: 1,
+              permissionId: pawnId % 4,
+              scoreMilli: offset === 0 || offset === 1 ? 50_000 : 10_000 - offset,
+            }),
+          ),
+        ).toEqual({ ok: true });
+      }
+    }
+
+    const options = createMultiPawnOptions(pawnCount, candidateCap, selectedCap);
+    const output = createMultiPawnOutput(pawnCount, selectedCap);
+    const result = index.selectTopOffersForPawns(
+      options,
+      {
+        candidateOfferIds: new Uint32Array(candidateCap),
+        selectedOfferIds: new Uint32Array(selectedCap),
+        selectedScoresMilli: new Int32Array(selectedCap),
+      },
+      output,
+      traces,
+    );
+
+    expect(result).toEqual({
+      ok: true,
+      pawnCount,
+      selectedOfferCount: pawnCount * selectedCap,
+      totalBucketCandidateCount: pawnCount * offersPerPawnBucket,
+      totalVisitedCount: pawnCount * candidateCap,
+      totalScoredCount: pawnCount * candidateCap,
+      totalRejectedByCandidateCap: pawnCount * (offersPerPawnBucket - candidateCap),
+      totalRejectedBySelectedCap: pawnCount * (candidateCap - selectedCap),
+      candidateCapHitCount: pawnCount,
+      selectedCapHitCount: pawnCount,
+    });
+
+    expect(result.ok ? result.totalVisitedCount : 0).toBeLessThan(
+      pawnCount * index.activeOfferCount,
+    );
+
+    for (let pawnId = 0; pawnId < pawnCount; pawnId += 1) {
+      const outputOffset = pawnId * selectedCap;
+      expect(output.selectedCounts[pawnId]).toBe(selectedCap);
+      expect(output.bucketCandidateCounts[pawnId]).toBe(offersPerPawnBucket);
+      expect(output.visitedCounts[pawnId]).toBe(candidateCap);
+      expect(output.scoredCounts[pawnId]).toBe(candidateCap);
+      expect(output.rejectedByCandidateCaps[pawnId]).toBe(offersPerPawnBucket - candidateCap);
+      expect(output.rejectedBySelectedCaps[pawnId]).toBe(candidateCap - selectedCap);
+      expect(output.traceSequences[pawnId]).toBe(pawnId + 1);
+      expect(output.selectedOfferIds[outputOffset]).toBe(pawnId * offersPerPawnBucket);
+      expect(output.selectedOfferIds[outputOffset + 1]).toBe(pawnId * offersPerPawnBucket + 1);
+      expect(output.selectedScoresMilli[outputOffset]).toBe(50_000);
+      expect(output.selectedScoresMilli[outputOffset + 1]).toBe(50_000);
+    }
+
+    expect(traces.createMetrics()).toMatchObject({
+      capacity: 64,
+      storedCount: pawnCount,
+      nextSequence: pawnCount + 1,
+    });
+    expect(traces.readNewest(0)).toMatchObject({
+      pawnId: 19,
+      bucketCandidateCount: offersPerPawnBucket,
+      visitedCount: candidateCap,
+      scoredCount: candidateCap,
+      candidateCap,
+      selectedCap,
+      rejectedByCandidateCap: offersPerPawnBucket - candidateCap,
+      rejectedBySelectedCap: candidateCap - selectedCap,
+      rejectionMask: 3,
+      selectedOfferId: 19 * offersPerPawnBucket,
+      selectedScoreMilli: 50_000,
+    });
+  });
+
+  it("rejects undersized multi-pawn buffers before selection", () => {
+    const index = createTestIndex(4);
+    const options = createMultiPawnOptions(2, 3, 2);
+    const output = createMultiPawnOutput(2, 2);
+
+    expect(
+      index.selectTopOffersForPawns(
+        options,
+        {
+          candidateOfferIds: new Uint32Array(2),
+          selectedOfferIds: new Uint32Array(2),
+          selectedScoresMilli: new Int32Array(2),
+        },
+        output,
+      ),
+    ).toEqual({
+      ok: false,
+      reason: "work_offer_candidate_buffer_too_small",
     });
   });
 
@@ -546,6 +670,77 @@ function createPathScratch(
     candidateOfferIds: new Uint32Array(candidateCap),
     selectedOfferIds: new Uint32Array(selectedCap),
     selectedScoresMilli: new Int32Array(selectedCap),
+  };
+}
+
+function createMultiPawnOptions(
+  pawnCount: number,
+  candidateCap: number,
+  selectedCap: number,
+): {
+  readonly pawnCount: number;
+  readonly pawnIds: Uint32Array;
+  readonly workTypes: Uint32Array;
+  readonly regionIds: Uint32Array;
+  readonly defIds: Uint32Array;
+  readonly urgencyBuckets: Uint32Array;
+  readonly permissionIds: Uint32Array;
+  readonly candidateCap: number;
+  readonly maxSelectedOffers: number;
+} {
+  const pawnIds = new Uint32Array(pawnCount);
+  const workTypes = new Uint32Array(pawnCount);
+  const regionIds = new Uint32Array(pawnCount);
+  const defIds = new Uint32Array(pawnCount);
+  const urgencyBuckets = new Uint32Array(pawnCount);
+  const permissionIds = new Uint32Array(pawnCount);
+
+  for (let pawnId = 0; pawnId < pawnCount; pawnId += 1) {
+    pawnIds[pawnId] = pawnId;
+    workTypes[pawnId] = 1;
+    regionIds[pawnId] = pawnId;
+    defIds[pawnId] = pawnId % 4;
+    urgencyBuckets[pawnId] = 1;
+    permissionIds[pawnId] = pawnId % 4;
+  }
+
+  return {
+    pawnCount,
+    pawnIds,
+    workTypes,
+    regionIds,
+    defIds,
+    urgencyBuckets,
+    permissionIds,
+    candidateCap,
+    maxSelectedOffers: selectedCap,
+  };
+}
+
+function createMultiPawnOutput(
+  pawnCount: number,
+  selectedCap: number,
+): {
+  readonly selectedOfferIds: Uint32Array;
+  readonly selectedScoresMilli: Int32Array;
+  readonly selectedCounts: Uint32Array;
+  readonly bucketCandidateCounts: Uint32Array;
+  readonly visitedCounts: Uint32Array;
+  readonly scoredCounts: Uint32Array;
+  readonly rejectedByCandidateCaps: Uint32Array;
+  readonly rejectedBySelectedCaps: Uint32Array;
+  readonly traceSequences: Uint32Array;
+} {
+  return {
+    selectedOfferIds: new Uint32Array(pawnCount * selectedCap),
+    selectedScoresMilli: new Int32Array(pawnCount * selectedCap),
+    selectedCounts: new Uint32Array(pawnCount),
+    bucketCandidateCounts: new Uint32Array(pawnCount),
+    visitedCounts: new Uint32Array(pawnCount),
+    scoredCounts: new Uint32Array(pawnCount),
+    rejectedByCandidateCaps: new Uint32Array(pawnCount),
+    rejectedBySelectedCaps: new Uint32Array(pawnCount),
+    traceSequences: new Uint32Array(pawnCount),
   };
 }
 

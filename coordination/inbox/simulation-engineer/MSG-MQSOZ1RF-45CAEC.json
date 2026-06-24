@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQSOZ1RF-45CAEC",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0036",
+  "kind": "review-approved",
+  "subject": "WM-0036 review: verified",
+  "body": "No blocking findings. Verified bounded 20-pawn indexed WorkOffer selection, stable score/offer-id ordering, ReasonTrace cap evidence, no authority/protocol/save drift, and reproduced required checks including direct WM-0036 benchmark metrics.",
+  "artifacts": [
+    "coordination/reports/WM-0036.md"
+  ],
+  "createdAt": "2026-06-24T23:15:49.803Z",
+  "acknowledgedAt": "2026-06-24T23:17:06.192Z"
+}
