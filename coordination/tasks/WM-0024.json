@@ -2,7 +2,7 @@
   "id": "WM-0024",
   "title": "Implement WorkOffer indexes and bounded reason traces",
   "summary": "Implement state-change-driven WorkOffer registration, indexed candidate lookup, bounded Top-K scoring input and structured reason traces.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,13 +32,19 @@
   ],
   "branch": "task/WM-0024-implement-workoffer-indexes-and-bounded-reason-t",
   "createdAt": "2026-06-23T23:08:02.304Z",
-  "updatedAt": "2026-06-23T23:08:02.304Z",
+  "updatedAt": "2026-06-24T09:19:51.921Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.304Z",
       "actor": "taskctl",
       "action": "create",
       "details": ""
+    },
+    {
+      "at": "2026-06-24T09:19:51.921Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ]
 }

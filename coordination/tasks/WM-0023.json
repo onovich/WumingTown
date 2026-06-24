@@ -2,10 +2,14 @@
   "id": "WM-0023",
   "title": "Implement reservation ledger and atomic transactions",
   "summary": "Implement the authoritative reservation ledger for entities, cells, item quantities, interaction spots and capacity with all-or-nothing transactions and explicit release.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
-  "dependsOn": ["WM-0015", "WM-0018", "WM-0020"],
+  "dependsOn": [
+    "WM-0015",
+    "WM-0018",
+    "WM-0020"
+  ],
   "docs": [
     "docs/02_systems/04_ai_jobs_reservations_pathing.md",
     "docs/02_systems/13_save_replay_migration.md",
@@ -27,7 +31,7 @@
   ],
   "branch": "task/WM-0023-implement-reservation-ledger-and-atomic-transact",
   "createdAt": "2026-06-23T23:08:02.265Z",
-  "updatedAt": "2026-06-24T09:17:40.235Z",
+  "updatedAt": "2026-06-24T09:19:51.913Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.265Z",
@@ -70,6 +74,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: Verified WM-0023 re-review: fail-closed restore finding is fixed; unsupported snapshot versions and invalid records no longer mutate existing ledgers. Required checks, benchmark, boundary check, and targeted restore probe pass with no blocking findings."
+    },
+    {
+      "at": "2026-06-24T09:19:51.871Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Fast-forward merged c0e6ff731cf7011493d633400f667c8d5f98d633 into main; validate-handoff, taskctl validate/status, git diff --check and pnpm quality passed."
+    },
+    {
+      "at": "2026-06-24T09:19:51.913Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "claimedBy": "simulation-engineer",
@@ -81,5 +97,10 @@
     "verdict": "verified",
     "summary": "Verified WM-0023 re-review: fail-closed restore finding is fixed; unsupported snapshot versions and invalid records no longer mutate existing ledgers. Required checks, benchmark, boundary check, and targeted restore probe pass with no blocking findings.",
     "at": "2026-06-24T09:17:40.234Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Fast-forward merged c0e6ff731cf7011493d633400f667c8d5f98d633 into main; validate-handoff, taskctl validate/status, git diff --check and pnpm quality passed.",
+    "at": "2026-06-24T09:19:51.870Z"
   }
 }
