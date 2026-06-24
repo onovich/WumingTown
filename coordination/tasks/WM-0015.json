@@ -2,13 +2,10 @@
   "id": "WM-0015",
   "title": "Propose ADR 0003 for M1 entity store memory layout",
   "summary": "Produce the proposed Entity/Store memory layout ADR for M1 map, location, item, job and reservation state ownership without accepting the decision inside an implementation task.",
-  "state": "ready",
+  "state": "review_requested",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
-  "dependsOn": [
-    "WM-0012",
-    "WM-0007"
-  ],
+  "dependsOn": ["WM-0012", "WM-0007"],
   "docs": [
     "docs/07_roadmap/06_m1_simulation_kernel_plan.md",
     "docs/05_tech/07_architecture_decision_records.md",
@@ -29,7 +26,7 @@
   ],
   "branch": "task/WM-0015-propose-adr-0003-for-m1-entity-store-memory-layo",
   "createdAt": "2026-06-23T23:08:01.943Z",
-  "updatedAt": "2026-06-23T23:22:41.082Z",
+  "updatedAt": "2026-06-24T04:23:00.790Z",
   "history": [
     {
       "at": "2026-06-23T23:08:01.943Z",
@@ -42,6 +39,22 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-24T04:17:32.756Z",
+      "actor": "systems-architect",
+      "action": "claim",
+      "details": "thread=Compass"
+    },
+    {
+      "at": "2026-06-24T04:23:00.789Z",
+      "actor": "systems-architect",
+      "action": "complete",
+      "details": "Proposed ADR-0003 for M1 entity/store memory layout and authoritative owners; checks passed; no implementation performed"
     }
-  ]
+  ],
+  "claimedBy": "systems-architect",
+  "threadLabel": "Compass",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0015.md"
 }

@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQRKI8JB-DD7953",
+  "from": "systems-architect",
+  "to": "reviewer",
+  "taskId": "WM-0015",
+  "kind": "review-request",
+  "subject": "WM-0015 ready for review",
+  "body": "Proposed ADR-0003 for M1 entity/store memory layout and authoritative owners; checks passed; no implementation performed",
+  "artifacts": [
+    "coordination/reports/WM-0015.md",
+    "task/WM-0015-propose-adr-0003-for-m1-entity-store-memory-layo"
+  ],
+  "createdAt": "2026-06-24T04:23:00.791Z",
+  "acknowledgedAt": null
+}
