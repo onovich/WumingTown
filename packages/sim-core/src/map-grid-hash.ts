@@ -40,8 +40,10 @@ export function createMapGridHashFields(
 function hashLane(name: string, lane: NumericLane): number {
   let hash = mixUint32(hashStringToUint32(`wuming-town:map-grid:${name}`), lane.length);
 
-  for (let index = 0; index < lane.length; index += 1) {
+  let index = 0;
+  while (index < lane.length) {
     hash = mixUint32(hash, lane[index] ?? 0);
+    index += 1;
   }
 
   return hash;

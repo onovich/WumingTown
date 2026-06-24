@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0019-implement-deterministic-map-grid-and-chunk-dirty",
   "createdAt": "2026-06-23T23:08:02.104Z",
-  "updatedAt": "2026-06-24T06:31:42.231Z",
+  "updatedAt": "2026-06-24T06:46:18.152Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.105Z",
@@ -55,10 +55,28 @@
       "actor": "simulation-engineer",
       "action": "complete",
       "details": "Implemented deterministic typed-array map grid, stable map hash/snapshot hooks, map-grid tests, and map-dirty benchmark; required checks pass."
+    },
+    {
+      "at": "2026-06-24T06:40:19.809Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: Medium: touched sim-core file fails root lint at packages/sim-core/src/map-grid-hash.ts:43 (@typescript-eslint/prefer-for-of). Task-required checks otherwise reproduced, but this will block the broader project lint/integration gate."
+    },
+    {
+      "at": "2026-06-24T06:46:18.152Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Addressed reviewer lint/performance finding; required checks and lint pass"
     }
   ],
   "claimedBy": "simulation-engineer",
   "threadLabel": "Tally-WM-0019",
   "blocker": null,
-  "reportPath": "coordination/reports/WM-0019.md"
+  "reportPath": "coordination/reports/WM-0019.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "changes_requested",
+    "summary": "Medium: touched sim-core file fails root lint at packages/sim-core/src/map-grid-hash.ts:43 (@typescript-eslint/prefer-for-of). Task-required checks otherwise reproduced, but this will block the broader project lint/integration gate.",
+    "at": "2026-06-24T06:40:19.809Z"
+  }
 }

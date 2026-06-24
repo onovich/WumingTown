@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQRPETSY-D3B64F",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0019",
+  "kind": "changes-requested",
+  "subject": "WM-0019 review: changes_requested",
+  "body": "Medium: touched sim-core file fails root lint at packages/sim-core/src/map-grid-hash.ts:43 (@typescript-eslint/prefer-for-of). Task-required checks otherwise reproduced, but this will block the broader project lint/integration gate.",
+  "artifacts": [
+    "coordination/reports/WM-0019.md"
+  ],
+  "createdAt": "2026-06-24T06:40:19.810Z",
+  "acknowledgedAt": "2026-06-24T06:41:25.184Z"
+}
