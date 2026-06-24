@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQS0LP2N-2DE09E",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0027",
+  "kind": "review-request",
+  "subject": "WM-0027 ready for review",
+  "body": "Implemented minimal build-site material delivery, deterministic construction completion, building tests, and hauling-building headless scenario; required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0027.md",
+    "task/WM-0027-implement-build-site-material-delivery-and-const"
+  ],
+  "createdAt": "2026-06-24T11:53:36.047Z",
+  "acknowledgedAt": null
+}

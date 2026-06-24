@@ -1,8 +1,11 @@
 import { defineWorkspaceSmoke, type WorkspaceSmoke } from "@wuming-town/foundation";
 import {
+  HAULING_BUILDING_SCENARIO_ID,
   SIM_CORE_SMOKE,
   isSafeTick,
+  runHaulingBuildingScenario,
   runHeadlessTicks,
+  type HaulingBuildingScenarioSummary,
   type HeadlessRunSummary,
 } from "@wuming-town/sim-core";
 import { TESTKIT_SMOKE } from "@wuming-town/testkit";
@@ -25,12 +28,13 @@ export interface HeadlessCliIo {
 export interface HeadlessCliOptions {
   readonly seed: string;
   readonly ticks: number;
+  readonly scenario?: "hauling-building";
 }
 
 export type HeadlessCliResult =
   | {
       readonly ok: true;
-      readonly summary: HeadlessRunSummary;
+      readonly summary: HeadlessRunSummary | HaulingBuildingScenarioSummary;
     }
   | {
       readonly ok: false;
@@ -45,7 +49,10 @@ export function runHeadlessCli(argv: readonly string[], io: HeadlessCliIo): numb
     return 1;
   }
 
-  const summary = runHeadlessTicks(parsed.options.seed, parsed.options.ticks);
+  const summary =
+    parsed.options.scenario === "hauling-building"
+      ? runHaulingBuildingScenario({ seed: parsed.options.seed, ticks: parsed.options.ticks })
+      : runHeadlessTicks(parsed.options.seed, parsed.options.ticks);
   io.writeLine(JSON.stringify(summary, undefined, 2));
   return 0;
 }
@@ -53,6 +60,7 @@ export function runHeadlessCli(argv: readonly string[], io: HeadlessCliIo): numb
 export function parseHeadlessCliOptions(argv: readonly string[]): HeadlessCliResultOptions {
   let seed: string | undefined;
   let ticks: number | undefined;
+  let scenario: "hauling-building" | undefined;
   let index = 0;
 
   while (index < argv.length) {
@@ -84,6 +92,19 @@ export function parseHeadlessCliOptions(argv: readonly string[]): HeadlessCliRes
       continue;
     }
 
+    if (arg === "--scenario") {
+      const value = argv[index + 1];
+      if (value !== "hauling-building") {
+        return failedOptions(
+          `--scenario currently supports only hauling-building (${HAULING_BUILDING_SCENARIO_ID})`,
+        );
+      }
+
+      scenario = value;
+      index += 2;
+      continue;
+    }
+
     return failedOptions(`unsupported argument: ${arg ?? ""}`);
   }
 
@@ -95,11 +116,22 @@ export function parseHeadlessCliOptions(argv: readonly string[]): HeadlessCliRes
     return failedOptions("--ticks is required");
   }
 
+  if (scenario === undefined) {
+    return {
+      ok: true,
+      options: {
+        seed,
+        ticks,
+      },
+    };
+  }
+
   return {
     ok: true,
     options: {
       seed,
       ticks,
+      scenario,
     },
   };
 }

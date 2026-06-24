@@ -123,3 +123,18 @@ destination `interaction_spot`. If any claim fails, no item quantity moves and
 no partial reservation remains. Cancellation after pickup returns carried
 quantity to the source stack before JobCore cancellation releases owner/job
 claims.
+
+## WM-0027 implementation note
+
+`packages/sim-core/src/build-site.ts` adds explicit delivery and construction
+state machines for M1 build sites. Delivery jobs use
+`created -> reserved -> picked_up -> delivered`; construction jobs use
+`created -> building -> built`. Job position is stored in typed lanes plus
+`JobCoreStore`; no Promise, Generator, coroutine or closure stores progress.
+
+Build-site delivery reserves source item quantity, site material capacity and
+source/destination interaction spots before pickup. Construction reserves the
+site entity and one interaction spot before ticking integer build progress.
+Structured reasons distinguish `material.insufficient_required_amount`,
+`material.def_not_required`, `reservation.destination_capacity_conflict`,
+`path.no_route_to_destination`, `site.blocked` and `target.invalid_state`.

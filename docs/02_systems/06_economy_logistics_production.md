@@ -51,3 +51,17 @@ capacity and source/destination interaction spots before pickup. Pickup moves
 integer quantity from `ItemStackStore` into explicit JobCore carried lanes, and
 delivery or cancellation returns the carried quantity through owner-store
 transactions before releasing reservations.
+
+## WM-0027 implementation note
+
+`packages/sim-core/src/build-site.ts` adds the minimal M1 build-site material
+buffer. The buffer owns delivered site inventory and is not registered as general
+storage supply. Build-site material demand and build work are exposed through
+`WorkOfferIndex` only while the site still needs material or is ready for
+construction.
+
+Build-site delivery reserves source item quantity, site material capacity and
+source/destination interaction spots before pickup. Pickup removes quantity from
+`ItemStackStore` and records carried state in `JobCoreStore`; delivery converts
+that carried quantity into the build-site buffer exactly once and releases
+claims through terminal JobCore completion.

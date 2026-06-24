@@ -269,3 +269,11 @@ An implementation claiming this contract must provide evidence for:
 - Required failure variants or equivalent focused tests.
 - ReasonTrace coverage, including the decoy counterevidence.
 - Headless determinism now, and Worker/headless parity once the Worker harness task is active.
+
+## WM-0027 implementation note
+
+`runHaulingBuildingScenario` implements the Node/headless M1 scenario surface
+for `pnpm sim:run -- --seed 1 --scenario hauling-building --ticks 100000`.
+The JSON summary includes scenario id, final tick, world hash, end-state
+quantities, build-site/building state, reservation/job/offer counters and
+invariant booleans for the tick-2400 and tick-100000 expectations.

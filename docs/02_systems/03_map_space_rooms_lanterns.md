@@ -91,3 +91,11 @@ The first local pathfinder reads only `MapGrid` public passability and cardinal
 neighbor APIs, so wall, door and terrain edits remain owned by the map and
 region-room rebuild systems. Later region-graph pathing can replace or precede
 the local A star without changing the stale-result contract.
+
+## WM-0027 implementation note
+
+The M1 road-lantern-frame completion path creates one entity and places it at
+the build anchor through `LocationStore.placeOnMap`, which commits occupancy
+into `MapGrid`. The completed fixture records `unlit_pending_fuel` lantern
+state for later systems, but WM-0027 does not run light diffusion, human-claim
+spread, night-risk updates or social consequences.

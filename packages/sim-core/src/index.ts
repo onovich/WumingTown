@@ -54,6 +54,23 @@ export {
 export { StorageLogisticsIndex, createStorageLogisticsIndex } from "./storage-logistics-index";
 export { HAULING_JOB_KIND, HaulingJobStore, createHaulingJobStore } from "./hauling-jobs";
 export {
+  BUILD_SITE_CONSTRUCTION_JOB_KIND,
+  BUILD_SITE_DELIVERY_JOB_KIND,
+  BUILD_SITE_LANTERN_STATE_UNLIT_PENDING_FUEL,
+  BuildSiteStore,
+  createBuildSiteStore,
+  mapPathFailure,
+} from "./build-site";
+export {
+  HAULING_BUILDING_SCENARIO_ID,
+  M1_BLUEPRINT_ROAD_LANTERN_FRAME,
+  M1_BUILDING_ROAD_LANTERN_FRAME,
+  M1_ITEM_PAPER,
+  M1_ITEM_STONE,
+  M1_ITEM_WOOD,
+  runHaulingBuildingScenario,
+} from "./hauling-building-scenario";
+export {
   LOCATION_CONTAINER,
   LOCATION_MAP,
   LOCATION_NONE,
@@ -254,6 +271,29 @@ export type {
   HaulingReason,
   HaulingStep,
 } from "./hauling-jobs";
+export type {
+  BuildSiteBuildJobInput,
+  BuildSiteBuildReservationInput,
+  BuildSiteCompletionResult,
+  BuildSiteCreateInput,
+  BuildSiteDeliveryJobInput,
+  BuildSiteJobResult,
+  BuildSiteJobStep,
+  BuildSiteJobView,
+  BuildSiteMetrics,
+  BuildSiteMutationResult,
+  BuildSiteReason,
+  BuildSiteReservationInput,
+  BuildSiteView,
+} from "./build-site";
+export type {
+  HaulingBuildingCounters,
+  HaulingBuildingEndState,
+  HaulingBuildingFailureReasons,
+  HaulingBuildingInvariants,
+  HaulingBuildingScenarioOptions,
+  HaulingBuildingScenarioSummary,
+} from "./hauling-building-scenario";
 export type {
   LocationCleanupReason,
   LocationDestroyResult,

@@ -22,9 +22,9 @@
       "registeredAt": "2026-06-24T05:31:04.442Z"
     },
     "simulation-engineer": {
-      "threadId": "Sim-WM-0026",
-      "label": "WM-0026-hauling",
-      "registeredAt": "2026-06-24T10:49:54.221Z"
+      "threadId": "Sim-WM-0027",
+      "label": "WM-0027-building",
+      "registeredAt": "2026-06-24T11:32:16.866Z"
     },
     "client-engineer": {
       "threadId": "019ef650-10ca-7e13-b072-9be37575c2be",
@@ -47,5 +47,5 @@
       "registeredAt": "2026-06-24T04:15:21.579Z"
     }
   },
-  "updatedAt": "2026-06-24T10:49:54.222Z"
+  "updatedAt": "2026-06-24T11:32:16.866Z"
 }

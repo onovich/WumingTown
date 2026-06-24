@@ -241,6 +241,13 @@ WM-0027.
 - Benchmark impact: turns hauling/building into the first long-run scenario target.
 - Docs update: logistics/production, AI/jobs and map/space docs.
 
+Implementation note: WM-0027 adds `BuildSiteStore`,
+`runHaulingBuildingScenario`, `pnpm test --filter building` and
+`pnpm sim:run -- --seed 1 --scenario hauling-building --ticks 100000`. The
+scope remains the M1 road-lantern-frame slice: build-site material buffers are
+not general storage supply, and completion creates only an unlit pending-fuel
+road lantern frame.
+
 ### WM-0028 - M1 Save/Replay and Worker/Headless Parity Harness
 
 - Owner: `simulation-engineer`
