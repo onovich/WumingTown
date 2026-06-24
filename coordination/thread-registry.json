@@ -22,9 +22,9 @@
       "registeredAt": "2026-06-24T05:31:04.442Z"
     },
     "simulation-engineer": {
-      "threadId": "019ef890-b659-7222-beb5-6bb4914a6b2d",
-      "label": "WM-0021 region room",
-      "registeredAt": "2026-06-24T07:38:25.852Z"
+      "threadId": "Beacon",
+      "label": "WM-0023-fallback-implementation",
+      "registeredAt": "2026-06-24T09:04:25.011Z"
     },
     "client-engineer": {
       "threadId": "019ef650-10ca-7e13-b072-9be37575c2be",
@@ -47,5 +47,5 @@
       "registeredAt": "2026-06-24T04:15:21.579Z"
     }
   },
-  "updatedAt": "2026-06-24T07:38:25.853Z"
+  "updatedAt": "2026-06-24T09:04:25.011Z"
 }

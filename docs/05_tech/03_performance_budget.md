@@ -57,3 +57,12 @@ edges, peak dirty queue length, rebuild budget, drain ticks, processed cells,
 processed regions, map updates, remaining dirty cells, active backlog,
 no-sustained-growth evidence, monotonic navigation/region/room/graph versions,
 processed checksum and canonical region-room hash.
+
+## WM-0023 benchmark note
+
+`pnpm bench --filter reservations` measures the authoritative reservation ledger
+under deterministic item-quantity and capacity contention. The report records
+transaction attempts, accepted and rejected transactions, conflict count,
+cleanup releases, final active claims, per-channel active counts and stable
+transaction/cleanup checksums. The benchmark artifact is written under
+`coordination/artifacts/WM-0023/benchmarks/benchmark-results.json`.

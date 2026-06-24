@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQRUKT8W-6BF7DD",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0023",
+  "kind": "review-request",
+  "subject": "WM-0023 ready for review",
+  "body": "Implemented ReservationLedger atomic transactions, lifecycle cleanup, snapshot round trip, reservations tests and benchmark; required checks pass. Beacon fallback implemented after simulation-engineer subagents stalled; independent reviewer required.",
+  "artifacts": [
+    "coordination/reports/WM-0023.md",
+    "task/WM-0023-implement-reservation-ledger-and-atomic-transact"
+  ],
+  "createdAt": "2026-06-24T09:04:57.105Z",
+  "acknowledgedAt": "2026-06-24T09:05:30.212Z"
+}

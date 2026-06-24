@@ -51,6 +51,27 @@
         "mapHash": "0x8af0174e"
       }
     },
+    "reservations": {
+      "name": "reservations",
+      "medianElapsedMs": 10,
+      "warnRegressionPercent": 10,
+      "failRegressionPercent": 20,
+      "invariants": {
+        "ownerCount": 64,
+        "itemTargetCount": 128,
+        "capacityTargetCount": 128,
+        "transactionAttempts": 4608,
+        "acceptedTransactions": 4096,
+        "rejectedTransactions": 512,
+        "releasedByCleanup": 512,
+        "finalActiveClaims": 7680,
+        "conflictCount": 512,
+        "itemQuantityReservationCount": 3840,
+        "capacityReservationCount": 3840,
+        "transactionChecksum": 2856632320,
+        "cleanupChecksum": 1674513408
+      }
+    },
     "region-room": {
       "name": "region-room",
       "medianElapsedMs": 10,

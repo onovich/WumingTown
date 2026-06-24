@@ -41,9 +41,18 @@ Reserve(lamp, oil stack, interaction cell)
 
 支持实体、格子、数量、交互位和容量。多目标通过事务一次获取。记录 Owner、JobId、Channel、Amount、CreatedTick、LeaseExpiry。租约只作异常恢复，正常流程必须显式释放。
 
+WM-0023 通过 `ReservationLedger` 实现首个权威账本：
+
+- 事务先校验所有 claim，再一次性提交；失败不会留下部分预订。
+- 支持 `entity`、`cell`、`item_quantity`、`interaction_spot`、`capacity` 五类 channel。
+- `item_quantity` 和 `capacity` 使用整数 Amount 与调用方提供的当前上限核算；后续 Item/Storage owner store 负责提交真实数量变化。
+- `LocationStore` 的生命周期 hook 会在 despawn/destroy 时调用账本清理相关 owner/target 预订。
+- `LeaseExpiry` 仅进入记录和快照，用于恢复诊断；正常 Job 完成、取消和中断必须显式 release。
+- 失败原因区分 stale entity handle、实体/格子/交互位冲突、数量不足、容量不足和无效参数。
+
 ## 寻路
 
-粗 Region 路径 + 局部 A*。请求携带地图导航版本；异步结果返回后版本不符即丢弃。只对 Top-K 候选做精确路径。常用目标可缓存 Region 距离，不缓存角色完整路径过久。
+粗 Region 路径 + 局部 A\*。请求携带地图导航版本；异步结果返回后版本不符即丢弃。只对 Top-K 候选做精确路径。常用目标可缓存 Region 距离，不缓存角色完整路径过久。
 
 ## 可解释性
 

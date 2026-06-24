@@ -16,6 +16,23 @@ CommandLogTail
 
 数字 Store 使用固定布局二进制块；稀疏元数据可用规范化 JSON。压缩在 Chunk 层可选，Codec 必须隔离并可迁移。
 
+## JobsReservations / ReservationLedger v1
+
+WM-0023 增加 `ReservationLedger` 快照面，作为未来 `JobsReservations`
+section 的 reservation 子结构。当前不实现完整 save container，只要求账本
+自身可以 round-trip：
+
+- `snapshotVersion = 1`
+- `capacity`、`entityCapacity`、`cellCount`、interaction/capacity slot limit
+- `ledgerVersion`、`activeCount`
+- 按 claim id 稳定排序的 records
+- 每条 record 包含 owner entity、job id、channel、amount、created tick、
+  lease expiry tick，以及 channel 所需的 target entity、cell index 或 slot
+
+加载时先验证版本、id 范围、整数 tick/amount、owner/target entity shape，并在
+提供 `EntityRegistry` 时校验 generation。重建时只恢复 owner state 和索引；
+派生可用量、WorkOffer、路径缓存和 UI read model 不进入该快照。
+
 ## 写入
 
 桌面：临时文件 → Flush → 校验 → 原子替换 → 保留上一版本。Web：A/B Slot → 校验 → Manifest 指针切换。Web 必须提供导入导出。

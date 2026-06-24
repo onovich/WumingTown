@@ -32,9 +32,17 @@ import {
   type RegionRoomBenchmarkReport,
   type SampledRegionRoomBenchmark,
 } from "./region-room-benchmark";
+import {
+  reservationsInvariantsFromReport,
+  runReservationsBenchmark,
+  type ReservationsBenchmarkInvariants,
+  type ReservationsBenchmarkReport,
+  type SampledReservationsBenchmark,
+} from "./reservations-benchmark";
 
 export { runEntityStoreBenchmark } from "./entity-store-benchmark";
 export { runRegionRoomBenchmark } from "./region-room-benchmark";
+export { runReservationsBenchmark } from "./reservations-benchmark";
 export { runSpatialIndexBenchmark } from "./spatial-index-benchmark";
 
 export const BENCHMARKS_SMOKE: WorkspaceSmoke = defineWorkspaceSmoke(
@@ -54,6 +62,7 @@ export type BenchmarkName =
   | "empty-tick"
   | "entity-store"
   | "map-dirty"
+  | "reservations"
   | "region-room"
   | "spatial-index";
 
@@ -140,18 +149,21 @@ export type BenchmarkReport =
   | EmptyTickBenchmarkReport
   | EntityStoreBenchmarkReport
   | MapDirtyBenchmarkReport
+  | ReservationsBenchmarkReport
   | RegionRoomBenchmarkReport
   | SpatialIndexBenchmarkReport;
 export type BenchmarkInvariants =
   | EmptyTickBenchmarkInvariants
   | EntityStoreBenchmarkInvariants
   | MapDirtyBenchmarkInvariants
+  | ReservationsBenchmarkInvariants
   | RegionRoomBenchmarkInvariants
   | SpatialIndexBenchmarkInvariants;
 export type SampledBenchmarkResult =
   | SampledEmptyTickBenchmark
   | SampledEntityStoreBenchmark
   | SampledMapDirtyBenchmark
+  | SampledReservationsBenchmark
   | SampledRegionRoomBenchmark
   | SampledSpatialIndexBenchmark;
 
@@ -159,6 +171,7 @@ export interface BenchmarkReportMap {
   readonly "empty-tick": EmptyTickBenchmarkReport;
   readonly "entity-store": EntityStoreBenchmarkReport;
   readonly "map-dirty": MapDirtyBenchmarkReport;
+  readonly reservations: ReservationsBenchmarkReport;
   readonly "region-room": RegionRoomBenchmarkReport;
   readonly "spatial-index": SpatialIndexBenchmarkReport;
 }
@@ -167,6 +180,7 @@ export interface BenchmarkInvariantMap {
   readonly "empty-tick": EmptyTickBenchmarkInvariants;
   readonly "entity-store": EntityStoreBenchmarkInvariants;
   readonly "map-dirty": MapDirtyBenchmarkInvariants;
+  readonly reservations: ReservationsBenchmarkInvariants;
   readonly "region-room": RegionRoomBenchmarkInvariants;
   readonly "spatial-index": SpatialIndexBenchmarkInvariants;
 }
@@ -203,6 +217,9 @@ export function benchmarkInvariantsFromReport(
   report: MapDirtyBenchmarkReport,
 ): MapDirtyBenchmarkInvariants;
 export function benchmarkInvariantsFromReport(
+  report: ReservationsBenchmarkReport,
+): ReservationsBenchmarkInvariants;
+export function benchmarkInvariantsFromReport(
   report: RegionRoomBenchmarkReport,
 ): RegionRoomBenchmarkInvariants;
 export function benchmarkInvariantsFromReport(
@@ -236,6 +253,10 @@ export function benchmarkInvariantsFromReport(report: BenchmarkReport): Benchmar
     return mapDirtyInvariantsFromReport(report);
   }
 
+  if (report.name === "reservations") {
+    return reservationsInvariantsFromReport(report);
+  }
+
   if (report.name === "region-room") {
     return regionRoomInvariantsFromReport(report);
   }
@@ -246,6 +267,7 @@ export function benchmarkInvariantsFromReport(report: BenchmarkReport): Benchmar
 export function runBenchmarkByName(name: "empty-tick"): EmptyTickBenchmarkReport;
 export function runBenchmarkByName(name: "entity-store"): EntityStoreBenchmarkReport;
 export function runBenchmarkByName(name: "map-dirty"): MapDirtyBenchmarkReport;
+export function runBenchmarkByName(name: "reservations"): ReservationsBenchmarkReport;
 export function runBenchmarkByName(name: "region-room"): RegionRoomBenchmarkReport;
 export function runBenchmarkByName(name: "spatial-index"): SpatialIndexBenchmarkReport;
 export function runBenchmarkByName(name: BenchmarkName): BenchmarkReport {
@@ -262,6 +284,10 @@ export function runBenchmarkByName(name: BenchmarkName): BenchmarkReport {
 
   if (name === "map-dirty") {
     return runMapDirtyBenchmark();
+  }
+
+  if (name === "reservations") {
+    return runReservationsBenchmark();
   }
 
   if (name === "region-room") {
@@ -283,6 +309,10 @@ export function sampleBenchmark(
   name: "map-dirty",
   options?: BenchmarkSamplingOptions,
 ): SampledMapDirtyBenchmark;
+export function sampleBenchmark(
+  name: "reservations",
+  options?: BenchmarkSamplingOptions,
+): SampledReservationsBenchmark;
 export function sampleBenchmark(
   name: "region-room",
   options?: BenchmarkSamplingOptions,
@@ -306,6 +336,8 @@ export function sampleBenchmark(
       runBenchmarkByName("entity-store");
     } else if (name === "map-dirty") {
       runBenchmarkByName("map-dirty");
+    } else if (name === "reservations") {
+      runBenchmarkByName("reservations");
     } else if (name === "region-room") {
       runBenchmarkByName("region-room");
     } else {
@@ -325,6 +357,10 @@ export function sampleBenchmark(
     return sampleMapDirtyBenchmark(sampleCount);
   }
 
+  if (name === "reservations") {
+    return sampleReservationsBenchmark(sampleCount);
+  }
+
   if (name === "region-room") {
     return sampleRegionRoomBenchmark(sampleCount);
   }
@@ -339,6 +375,7 @@ export function runDefaultBenchmarkSuite(
     sampleBenchmark("empty-tick", options),
     sampleBenchmark("entity-store", options),
     sampleBenchmark("map-dirty", options),
+    sampleBenchmark("reservations", options),
     sampleBenchmark("region-room", options),
     sampleBenchmark("spatial-index", options),
   ];
@@ -387,6 +424,22 @@ function sampleMapDirtyBenchmark(sampleCount: number): SampledMapDirtyBenchmark 
     name: "map-dirty",
     report: reports[reports.length - 1] ?? failMissingReport(),
     invariants: validateInvariantConsistency("map-dirty", reports),
+    sampleElapsedMs: reports.map((report) => report.elapsedMs),
+    stats: createBenchmarkStats(reports.map((report) => report.elapsedMs)),
+  };
+}
+
+function sampleReservationsBenchmark(sampleCount: number): SampledReservationsBenchmark {
+  const reports: ReservationsBenchmarkReport[] = [];
+
+  for (let index = 0; index < sampleCount; index += 1) {
+    reports.push(runReservationsBenchmark());
+  }
+
+  return {
+    name: "reservations",
+    report: reports[reports.length - 1] ?? failMissingReport(),
+    invariants: validateInvariantConsistency("reservations", reports),
     sampleElapsedMs: reports.map((report) => report.elapsedMs),
     stats: createBenchmarkStats(reports.map((report) => report.elapsedMs)),
   };
@@ -446,6 +499,10 @@ function validateInvariantConsistency(
   name: "map-dirty",
   reports: readonly MapDirtyBenchmarkReport[],
 ): MapDirtyBenchmarkInvariants;
+function validateInvariantConsistency(
+  name: "reservations",
+  reports: readonly ReservationsBenchmarkReport[],
+): ReservationsBenchmarkInvariants;
 function validateInvariantConsistency(
   name: "region-room",
   reports: readonly RegionRoomBenchmarkReport[],
@@ -525,6 +582,10 @@ function readInvariantUnion(report: BenchmarkReport): BenchmarkInvariants {
   }
 
   if (report.name === "map-dirty") {
+    return benchmarkInvariantsFromReport(report);
+  }
+
+  if (report.name === "reservations") {
     return benchmarkInvariantsFromReport(report);
   }
 

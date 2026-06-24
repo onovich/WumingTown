@@ -121,7 +121,7 @@ function parseBenchmarkArgs(
 
       if (!isBenchmarkName(value)) {
         return failedArgs(
-          "Unsupported benchmark filter. Use empty-tick, entity-store, map-dirty, region-room, or spatial-index.",
+          "Unsupported benchmark filter. Use empty-tick, entity-store, map-dirty, reservations, region-room, or spatial-index.",
         );
       }
 
@@ -135,7 +135,7 @@ function parseBenchmarkArgs(
 
       if (!isBenchmarkName(value)) {
         return failedArgs(
-          "Unsupported benchmark filter. Use empty-tick, entity-store, map-dirty, region-room, or spatial-index.",
+          "Unsupported benchmark filter. Use empty-tick, entity-store, map-dirty, reservations, region-room, or spatial-index.",
         );
       }
 
@@ -244,7 +244,13 @@ function parseBenchmarkArgs(
     );
   }
 
-  if (!artifactPathWasConfigured && filter === "region-room") {
+  if (!artifactPathWasConfigured && filter === "reservations") {
+    artifactPath = path.join(
+      resolveArtifactRoot("WM-0023"),
+      "benchmarks",
+      "benchmark-results.json",
+    );
+  } else if (!artifactPathWasConfigured && filter === "region-room") {
     artifactPath = path.join(
       resolveArtifactRoot("WM-0021"),
       "benchmarks",
@@ -298,6 +304,7 @@ function loadBenchmarkBaseline(filePath: string): BenchmarkBaselineFile {
       "empty-tick": parseEmptyTickBaselineEntry(rawBenchmarks["empty-tick"]),
       "entity-store": parseEntityStoreBaselineEntry(rawBenchmarks["entity-store"]),
       "map-dirty": parseMapDirtyBaselineEntry(rawBenchmarks["map-dirty"]),
+      reservations: parseReservationsBaselineEntry(rawBenchmarks["reservations"]),
       "region-room": parseRegionRoomBaselineEntry(rawBenchmarks["region-room"]),
       "spatial-index": parseSpatialIndexBaselineEntry(rawBenchmarks["spatial-index"]),
     },
@@ -375,6 +382,32 @@ function parseMapDirtyBaselineEntry(value: unknown): BenchmarkBaselineEntry<"map
       "map-dirty.failRegressionPercent",
     ),
     invariants: parseMapDirtyBaselineInvariants(requireRecord(value["invariants"], "map-dirty")),
+  };
+}
+
+function parseReservationsBaselineEntry(value: unknown): BenchmarkBaselineEntry<"reservations"> {
+  if (!isRecord(value)) {
+    throw new Error("benchmark baseline entry reservations must be an object");
+  }
+
+  if (value["name"] !== "reservations") {
+    throw new Error("benchmark baseline entry reservations must declare the same name");
+  }
+
+  return {
+    name: "reservations",
+    medianElapsedMs: requireNumber(value["medianElapsedMs"], "reservations.medianElapsedMs"),
+    warnRegressionPercent: requireNumber(
+      value["warnRegressionPercent"],
+      "reservations.warnRegressionPercent",
+    ),
+    failRegressionPercent: requireNumber(
+      value["failRegressionPercent"],
+      "reservations.failRegressionPercent",
+    ),
+    invariants: parseReservationsBaselineInvariants(
+      requireRecord(value["invariants"], "reservations"),
+    ),
   };
 }
 
@@ -485,6 +518,47 @@ function parseMapDirtyBaselineInvariants(
   };
 }
 
+function parseReservationsBaselineInvariants(
+  value: Record<string, unknown>,
+): BenchmarkBaselineEntry<"reservations">["invariants"] {
+  return {
+    ownerCount: requireNumber(value["ownerCount"], "reservations.ownerCount"),
+    itemTargetCount: requireNumber(value["itemTargetCount"], "reservations.itemTargetCount"),
+    capacityTargetCount: requireNumber(
+      value["capacityTargetCount"],
+      "reservations.capacityTargetCount",
+    ),
+    transactionAttempts: requireNumber(
+      value["transactionAttempts"],
+      "reservations.transactionAttempts",
+    ),
+    acceptedTransactions: requireNumber(
+      value["acceptedTransactions"],
+      "reservations.acceptedTransactions",
+    ),
+    rejectedTransactions: requireNumber(
+      value["rejectedTransactions"],
+      "reservations.rejectedTransactions",
+    ),
+    releasedByCleanup: requireNumber(value["releasedByCleanup"], "reservations.releasedByCleanup"),
+    finalActiveClaims: requireNumber(value["finalActiveClaims"], "reservations.finalActiveClaims"),
+    conflictCount: requireNumber(value["conflictCount"], "reservations.conflictCount"),
+    itemQuantityReservationCount: requireNumber(
+      value["itemQuantityReservationCount"],
+      "reservations.itemQuantityReservationCount",
+    ),
+    capacityReservationCount: requireNumber(
+      value["capacityReservationCount"],
+      "reservations.capacityReservationCount",
+    ),
+    transactionChecksum: requireNumber(
+      value["transactionChecksum"],
+      "reservations.transactionChecksum",
+    ),
+    cleanupChecksum: requireNumber(value["cleanupChecksum"], "reservations.cleanupChecksum"),
+  };
+}
+
 function parseRegionRoomBaselineInvariants(
   value: Record<string, unknown>,
 ): BenchmarkBaselineEntry<"region-room">["invariants"] {
@@ -580,6 +654,13 @@ function sampleNamedBenchmark(
     });
   }
 
+  if (name === "reservations") {
+    return sampleBenchmark("reservations", {
+      sampleCount,
+      warmupCount,
+    });
+  }
+
   if (name === "region-room") {
     return sampleBenchmark("region-room", {
       sampleCount,
@@ -607,6 +688,10 @@ function compareAgainstNamedBaseline(
 
   if (result.name === "map-dirty") {
     return compareBenchmarkToBaseline(result, baseline.benchmarks["map-dirty"]);
+  }
+
+  if (result.name === "reservations") {
+    return compareBenchmarkToBaseline(result, baseline.benchmarks.reservations);
   }
 
   if (result.name === "region-room") {
@@ -710,6 +795,7 @@ function isBenchmarkName(value: string | undefined): value is BenchmarkName {
     value === "empty-tick" ||
     value === "entity-store" ||
     value === "map-dirty" ||
+    value === "reservations" ||
     value === "region-room" ||
     value === "spatial-index"
   );

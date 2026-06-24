@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-06-24T09:02:53.663Z",
+  "baselinePath": "packages/benchmarks/baseline.json",
+  "artifactPath": "coordination/artifacts/WM-0023/benchmarks/benchmark-results.json",
+  "sampleCount": 5,
+  "warmupCount": 1,
+  "environment": {
+    "nodeVersion": "v24.13.1",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "results": [
+    {
+      "name": "reservations",
+      "sampleElapsedMs": [
+        2.4512,
+        4.191800000000015,
+        1.2635999999999967,
+        1.3552999999999997,
+        1.4642000000000053
+      ],
+      "stats": {
+        "sampleCount": 5,
+        "minElapsedMs": 1.2635999999999967,
+        "medianElapsedMs": 1.4642000000000053,
+        "maxElapsedMs": 4.191800000000015,
+        "meanElapsedMs": 2.1452200000000032
+      },
+      "invariants": {
+        "ownerCount": 64,
+        "itemTargetCount": 128,
+        "capacityTargetCount": 128,
+        "transactionAttempts": 4608,
+        "acceptedTransactions": 4096,
+        "rejectedTransactions": 512,
+        "releasedByCleanup": 512,
+        "finalActiveClaims": 7680,
+        "conflictCount": 512,
+        "itemQuantityReservationCount": 3840,
+        "capacityReservationCount": 3840,
+        "transactionChecksum": 2856632320,
+        "cleanupChecksum": 1674513408
+      },
+      "comparison": {
+        "name": "reservations",
+        "status": "ok",
+        "actualMedianElapsedMs": 1.4642000000000053,
+        "baselineMedianElapsedMs": 10,
+        "regressionPercent": -85.35799999999995,
+        "warnRegressionPercent": 10,
+        "failRegressionPercent": 20,
+        "invariantMismatches": []
+      }
+    }
+  ]
+}

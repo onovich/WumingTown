@@ -29,6 +29,17 @@ export {
   LocationStore,
   createLocationStore,
 } from "./location-store";
+export {
+  RESERVATION_CAPACITY,
+  RESERVATION_CELL,
+  RESERVATION_ENTITY,
+  RESERVATION_INTERACTION_SPOT,
+  RESERVATION_ITEM_QUANTITY,
+  RESERVATION_LEDGER_SNAPSHOT_VERSION,
+  ReservationLedger,
+  createReservationLedger,
+  restoreReservationLedger,
+} from "./reservation-ledger";
 export { createMapGridHashFields } from "./map-grid-hash";
 export {
   NamedRandomStreams,
@@ -154,6 +165,20 @@ export type {
   LocationStoreReason,
   LocationView,
 } from "./location-store";
+export type {
+  ReservationAcquireResult,
+  ReservationChannel,
+  ReservationChannelCode,
+  ReservationClaimRequest,
+  ReservationLedgerMetrics,
+  ReservationLedgerOptions,
+  ReservationLedgerSnapshot,
+  ReservationReason,
+  ReservationRecordSnapshot,
+  ReservationRecordView,
+  ReservationReleaseResult,
+  ReservationTransactionRequest,
+} from "./reservation-ledger";
 export type {
   SpatialIndexMetrics,
   SpatialIndexMutationResult,
