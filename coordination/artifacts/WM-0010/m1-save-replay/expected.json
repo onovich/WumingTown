@@ -1,0 +1,30 @@
+{
+  "scenarioId": "m1.hauling_building.road_lantern_frame.v1",
+  "seed": "1",
+  "checkpoints": [
+    {
+      "tick": 0,
+      "worldHash": "0xf406ea9e",
+      "readModelHash": "0x5d9b40b8",
+      "renderSnapshotHash": "0xa0d27230",
+      "uiDetailHash": "0xeb5826d1"
+    },
+    {
+      "tick": 2400,
+      "worldHash": "0x887f5a49",
+      "readModelHash": "0xe04bfff8",
+      "renderSnapshotHash": "0x265046d1",
+      "uiDetailHash": "0xaadba795"
+    },
+    {
+      "tick": 100000,
+      "worldHash": "0xf7815189",
+      "readModelHash": "0x53fe1af9",
+      "renderSnapshotHash": "0x4e8d3053",
+      "uiDetailHash": "0x5271e41c"
+    }
+  ],
+  "finalTick": 100000,
+  "finalWorldHash": "0xf7815189",
+  "finalReadModelHash": "0x53fe1af9"
+}

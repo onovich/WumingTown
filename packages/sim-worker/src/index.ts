@@ -1,5 +1,14 @@
 import { defineWorkspaceSmoke, type WorkspaceSmoke } from "@wuming-town/foundation";
-import { SIM_CORE_SMOKE } from "@wuming-town/sim-core";
+import {
+  HAULING_BUILDING_SCENARIO_ID,
+  SIM_CORE_SMOKE,
+  createM1AdvanceCommandId,
+  createM1HaulingBuildingSaveEnvelope,
+  createM1ReadOnlyProjection,
+  parseM1AdvanceCommandId,
+  runHaulingBuildingScenario,
+  type M1ReadOnlyProjection,
+} from "@wuming-town/sim-core";
 import {
   MAIN_TO_SIMULATION_MESSAGE_KIND,
   SIMULATION_PROTOCOL_REASON_CODE,
@@ -57,6 +66,12 @@ interface SimulationWorkerState {
   queuedReliableMessages: number;
   speed: 0 | 1 | 2 | 3;
   paused: boolean;
+  m1Scenario: M1WorkerScenarioState | undefined;
+}
+
+interface M1WorkerScenarioState {
+  readonly seed: string;
+  checkpointCount: number;
 }
 
 export function createSimulationWorker(): SimulationWorker {
@@ -70,6 +85,7 @@ export function createSimulationWorker(): SimulationWorker {
     queuedReliableMessages: 0,
     speed: 1,
     paused: false,
+    m1Scenario: undefined,
   };
 
   return {
@@ -172,6 +188,10 @@ function handleAcceptedMessage(
       state.lifecycle = "ready";
       state.sessionId = message.sessionId;
       state.tick = 0;
+      state.m1Scenario =
+        message.payload.catalogVersion === HAULING_BUILDING_SCENARIO_ID
+          ? { seed: message.payload.seed, checkpointCount: 1 }
+          : undefined;
       return [
         makeReady(state),
         makeRenderSnapshot(state, message.sequence),
@@ -183,6 +203,7 @@ function handleAcceptedMessage(
       state.lifecycle = "ready";
       state.sessionId = message.sessionId;
       state.tick = message.payload.checkpointSequence;
+      state.m1Scenario = undefined;
       return [
         makeReady(state),
         makeRenderSnapshot(state, message.sequence),
@@ -191,7 +212,11 @@ function handleAcceptedMessage(
       ];
 
     case MAIN_TO_SIMULATION_MESSAGE_KIND.PlayerCommandBatch:
-      state.tick += message.payload.commands.length;
+      if (state.m1Scenario === undefined) {
+        state.tick += message.payload.commands.length;
+      } else {
+        applyM1Commands(state, message.payload.commands);
+      }
       return [
         makeAcceptedCommandResult(state, message.sequence),
         makeRenderSnapshot(state, message.sequence),
@@ -256,6 +281,24 @@ function makeRenderSnapshot(
   state: SimulationWorkerState,
   sourceSequence: number,
 ): SimulationToMainMessage {
+  const projection = readM1Projection(state);
+
+  if (projection !== undefined) {
+    return {
+      ...nextEnvelopeBase(state, state.sessionId),
+      kind: SIMULATION_TO_MAIN_MESSAGE_KIND.RenderSnapshot,
+      payload: {
+        snapshotSequence: sourceSequence,
+        tick: state.tick,
+        entityCount: projection.renderSnapshot.entityCount,
+        scenarioId: projection.scenarioId,
+        worldHash: projection.worldHash,
+        readModelHash: projection.readModelHash,
+        readOnly: true,
+      },
+    };
+  }
+
   return {
     ...nextEnvelopeBase(state, state.sessionId),
     kind: SIMULATION_TO_MAIN_MESSAGE_KIND.RenderSnapshot,
@@ -268,6 +311,23 @@ function makeRenderSnapshot(
 }
 
 function makeUiDelta(state: SimulationWorkerState): SimulationToMainMessage {
+  const projection = readM1Projection(state);
+
+  if (projection !== undefined) {
+    return {
+      ...nextEnvelopeBase(state, state.sessionId),
+      kind: SIMULATION_TO_MAIN_MESSAGE_KIND.UiDelta,
+      payload: {
+        tick: state.tick,
+        summaries: projection.uiDetail.summaries,
+        scenarioId: projection.scenarioId,
+        readModelHash: projection.readModelHash,
+        detailHash: projection.uiDetail.detailHash,
+        readOnly: true,
+      },
+    };
+  }
+
   return {
     ...nextEnvelopeBase(state, state.sessionId),
     kind: SIMULATION_TO_MAIN_MESSAGE_KIND.UiDelta,
@@ -328,6 +388,25 @@ function makeSaveReady(
   state: SimulationWorkerState,
   sourceSequence: number,
 ): SimulationToMainMessage {
+  const saved =
+    state.m1Scenario === undefined
+      ? undefined
+      : createM1HaulingBuildingSaveEnvelope(state.m1Scenario.seed, state.tick);
+
+  if (saved?.ok === true) {
+    return {
+      ...nextEnvelopeBase(state, state.sessionId),
+      kind: SIMULATION_TO_MAIN_MESSAGE_KIND.SaveReady,
+      payload: {
+        saveId: `${state.sessionId}:${String(sourceSequence)}`,
+        sourceSequence,
+        scenarioId: saved.save.scenarioId,
+        checkpointTick: saved.save.createdTick,
+        worldHash: saved.save.sections.commandLogTail.checkpointWorldHash,
+      },
+    };
+  }
+
   return {
     ...nextEnvelopeBase(state, state.sessionId),
     kind: SIMULATION_TO_MAIN_MESSAGE_KIND.SaveReady,
@@ -339,6 +418,23 @@ function makeSaveReady(
 }
 
 function makeMetricsSample(state: SimulationWorkerState): SimulationToMainMessage {
+  const projection = readM1Projection(state);
+
+  if (projection !== undefined) {
+    return {
+      ...nextEnvelopeBase(state, state.sessionId),
+      kind: SIMULATION_TO_MAIN_MESSAGE_KIND.MetricsSample,
+      payload: {
+        tick: state.tick,
+        droppedSnapshots: state.droppedSnapshots,
+        queuedReliableMessages: state.queuedReliableMessages,
+        scenarioId: projection.scenarioId,
+        worldHash: projection.worldHash,
+        checkpointCount: state.m1Scenario?.checkpointCount ?? 0,
+      },
+    };
+  }
+
   return {
     ...nextEnvelopeBase(state, state.sessionId),
     kind: SIMULATION_TO_MAIN_MESSAGE_KIND.MetricsSample,
@@ -348,6 +444,43 @@ function makeMetricsSample(state: SimulationWorkerState): SimulationToMainMessag
       queuedReliableMessages: state.queuedReliableMessages,
     },
   };
+}
+
+function applyM1Commands(
+  state: SimulationWorkerState,
+  commands: readonly { readonly commandId: string }[],
+): void {
+  for (const command of commands) {
+    const tick = parseM1AdvanceCommandId(command.commandId);
+    if (tick !== undefined && tick >= state.tick) {
+      state.tick = tick;
+      if (state.m1Scenario !== undefined) {
+        state.m1Scenario.checkpointCount += 1;
+      }
+    }
+  }
+}
+
+function readM1Projection(state: SimulationWorkerState): M1ReadOnlyProjection | undefined {
+  const scenario = state.m1Scenario;
+  if (scenario === undefined) {
+    return undefined;
+  }
+
+  const summary = runHaulingBuildingScenario({ seed: scenario.seed, ticks: state.tick });
+  return createM1ReadOnlyProjection(summary, scenario.checkpointCount - 1);
+}
+
+export function createM1WorkerAdvanceCommandIds(
+  checkpointTicks: readonly number[],
+): readonly string[] {
+  const commandIds: string[] = [];
+
+  for (const tick of checkpointTicks) {
+    commandIds.push(createM1AdvanceCommandId(tick));
+  }
+
+  return commandIds;
 }
 
 interface OutgoingEnvelopeBase {

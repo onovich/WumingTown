@@ -3,12 +3,18 @@ import * as path from "node:path";
 
 import {
   advanceHeadlessTicks,
+  compareM1ReplayRuns,
   compareReplayCheckpoints,
+  createM1HaulingBuildingSaveEnvelope,
   createHeadlessReplayCheckpoint,
   createHeadlessRunner,
   queueHeadlessCommand,
+  resumeM1HaulingBuildingFromSave,
+  runM1HaulingBuildingReplay,
   summarizeHeadlessRun,
 } from "../packages/sim-core/src/index.ts";
+
+const M1_SCENARIO_ID = "m1.hauling_building.road_lantern_frame.v1";
 
 const DEFAULT_SEED = "WM-0010-long-run";
 const DEFAULT_SEGMENT_TICKS = 5_000;
@@ -101,6 +107,21 @@ export function runReplayDiagnostics(options = {}) {
       );
     }
 
+    const m1Scenario = runM1ReplayDiagnostics(seed, artifactPaths.m1);
+
+    if (!m1Scenario.ok) {
+      return createReplayFailure(
+        "m1_hauling_building_divergence",
+        "M1 hauling-building save/replay diagnostics diverged.",
+        failureContext,
+        {
+          scenarioId: M1_SCENARIO_ID,
+          firstDivergentTick: m1Scenario.firstDivergentTick,
+          divergence: m1Scenario,
+        },
+      );
+    }
+
     const summary = {
       ok: true,
       seed,
@@ -108,6 +129,7 @@ export function runReplayDiagnostics(options = {}) {
       segmentTicks,
       segmentCount,
       cleanCheckpointCount: cleanComparison.checkpointCount,
+      m1Scenario,
       expectedFinalSummary: summarizeReplay(seed, {
         segmentTicks,
         segmentCount,
@@ -148,6 +170,7 @@ export function printReplayDiagnosticsResult(result) {
           cleanCheckpointCount: result.cleanCheckpointCount,
           perturbedFirstDivergentTick: result.perturbedFirstDivergence.tick,
           artifactPaths: result.artifactPaths,
+          m1Scenario: result.m1Scenario ?? null,
         },
         null,
         2,
@@ -161,6 +184,7 @@ export function printReplayDiagnosticsResult(result) {
     JSON.stringify(
       {
         seed: result.seed,
+        scenarioId: result.scenarioId ?? null,
         firstDivergentTick: result.firstDivergentTick,
         failureKind: result.failureKind,
         artifactPaths: result.artifactPaths,
@@ -235,6 +259,7 @@ function createReplayFailure(failureKind, message, failureContext, details = {})
   const failure = {
     ok: false,
     seed: failureContext.seed,
+    scenarioId: details.scenarioId ?? null,
     firstDivergentTick: details.firstDivergentTick ?? null,
     failureKind,
     message,
@@ -265,12 +290,20 @@ function serializeError(error) {
 
 function createArtifactPaths(customArtifactRoot) {
   const artifactDir = path.join(resolveArtifactRoot(customArtifactRoot), "determinism");
+  const m1Dir = path.join(resolveArtifactRoot(customArtifactRoot), "m1-save-replay");
 
   return {
     expected: path.join(artifactDir, "expected-checkpoints.json"),
     actual: path.join(artifactDir, "actual-checkpoints.json"),
     perturbed: path.join(artifactDir, "perturbed-checkpoints.json"),
     summary: path.join(artifactDir, "replay-diagnostics-summary.json"),
+    m1: {
+      expected: path.join(m1Dir, "expected.json"),
+      actual: path.join(m1Dir, "actual.json"),
+      resumed: path.join(m1Dir, "resumed.json"),
+      save: path.join(m1Dir, "save.json"),
+      summary: path.join(m1Dir, "summary.json"),
+    },
   };
 }
 
@@ -294,6 +327,13 @@ function toRelativeArtifactPaths(artifactPaths) {
     actual: toRelativePath(artifactPaths.actual),
     perturbed: toRelativePath(artifactPaths.perturbed),
     summary: toRelativePath(artifactPaths.summary),
+    m1: {
+      expected: toRelativePath(artifactPaths.m1.expected),
+      actual: toRelativePath(artifactPaths.m1.actual),
+      resumed: toRelativePath(artifactPaths.m1.resumed),
+      save: toRelativePath(artifactPaths.m1.save),
+      summary: toRelativePath(artifactPaths.m1.summary),
+    },
   };
 }
 
@@ -303,4 +343,86 @@ function writeJson(targetPath, value) {
 
 function toRelativePath(targetPath) {
   return path.relative(process.cwd(), targetPath).replaceAll("\\", "/");
+}
+
+function runM1ReplayDiagnostics(seed, artifactPaths) {
+  mkdirSync(path.dirname(artifactPaths.summary), { recursive: true });
+
+  const checkpointTicks = [0, 2_400, 100_000];
+  const expected = readM1Replay(runM1HaulingBuildingReplay({ seed: "1", checkpointTicks }));
+  const actual = readM1Replay(runM1HaulingBuildingReplay({ seed: "1", checkpointTicks }));
+  const expectedResume = readM1Replay(
+    runM1HaulingBuildingReplay({ seed: "1", checkpointTicks: [2_400, 100_000] }),
+  );
+  const save = readM1Save(createM1HaulingBuildingSaveEnvelope("1", 2_400));
+  const resumed = readM1Replay(
+    resumeM1HaulingBuildingFromSave({
+      save,
+      finalTick: 100_000,
+      checkpointTicks: [2_400, 100_000],
+    }),
+  );
+
+  writeJson(artifactPaths.expected, expected);
+  writeJson(artifactPaths.actual, actual);
+  writeJson(artifactPaths.save, save);
+  writeJson(artifactPaths.resumed, resumed);
+
+  const comparison = compareM1ReplayRuns(expected, actual, {
+    expected: toRelativePath(artifactPaths.expected),
+    actual: toRelativePath(artifactPaths.actual),
+    resumed: toRelativePath(artifactPaths.resumed),
+    save: toRelativePath(artifactPaths.save),
+    summary: toRelativePath(artifactPaths.summary),
+  });
+  const resumedComparison = compareM1ReplayRuns(expectedResume, resumed, {
+    expected: toRelativePath(artifactPaths.expected),
+    actual: toRelativePath(artifactPaths.actual),
+    resumed: toRelativePath(artifactPaths.resumed),
+    save: toRelativePath(artifactPaths.save),
+    summary: toRelativePath(artifactPaths.summary),
+  });
+
+  const summary = {
+    ok: comparison.ok && resumedComparison.ok,
+    scenarioId: M1_SCENARIO_ID,
+    seed: "1",
+    requestedSeed: seed,
+    finalWorldHash: expected.finalWorldHash,
+    finalReadModelHash: expected.finalReadModelHash,
+    checkpointCount: expected.checkpoints.length,
+    saveTick: save.createdTick,
+    firstDivergentTick:
+      comparison.ok && resumedComparison.ok
+        ? null
+        : comparison.ok
+          ? resumedComparison.firstDivergentTick
+          : comparison.firstDivergentTick,
+    artifactPaths: {
+      expected: toRelativePath(artifactPaths.expected),
+      actual: toRelativePath(artifactPaths.actual),
+      resumed: toRelativePath(artifactPaths.resumed),
+      save: toRelativePath(artifactPaths.save),
+      summary: toRelativePath(artifactPaths.summary),
+    },
+  };
+
+  writeJson(artifactPaths.summary, summary);
+  return summary;
+}
+
+function readM1Replay(result) {
+  if (!result.ok) {
+    throw new Error(result.reason);
+  }
+
+  return result.replay;
+}
+
+function readM1Save(result) {
+  if (!result.ok) {
+    throw new Error(result.reason);
+  }
+
+  return result.save;
 }

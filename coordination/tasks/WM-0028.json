@@ -2,7 +2,7 @@
   "id": "WM-0028",
   "title": "Implement M1 save replay and Worker headless parity harness",
   "summary": "Wire the M1 kernel through save/load, replay checkpoints, Worker execution and Node headless execution so the hauling/building scenario has identical authoritative hash.",
-  "state": "ready",
+  "state": "review_requested",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,7 +32,7 @@
   ],
   "branch": "task/WM-0028-implement-m1-save-replay-and-worker-headless-par",
   "createdAt": "2026-06-23T23:08:02.466Z",
-  "updatedAt": "2026-06-24T12:03:20.474Z",
+  "updatedAt": "2026-06-24T13:14:43.329Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.467Z",
@@ -45,6 +45,22 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-24T12:06:02.941Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Sim-WM-0028"
+    },
+    {
+      "at": "2026-06-24T13:14:43.329Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented focused M1 save/replay and Worker/headless parity harness; required checks pass: typecheck, m1-save-replay, worker-smoke, sim:replay-test, taskctl validate, git diff --check; extra gates format:check and lint pass."
     }
-  ]
+  ],
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Sim-WM-0028",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0028.md"
 }

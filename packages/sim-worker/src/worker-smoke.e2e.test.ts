@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  HAULING_BUILDING_SCENARIO_ID,
+  createM1AdvanceCommandId,
+  runM1HaulingBuildingReplay,
+  type M1ReplayRun,
+} from "@wuming-town/sim-core";
+import {
   MAIN_TO_SIMULATION_MESSAGE_KIND,
   PLAYER_COMMAND_KIND,
   SIMULATION_PROTOCOL_REASON_CODE,
@@ -8,8 +14,12 @@ import {
   SIM_PROTOCOL_VERSION,
   SIM_SCHEMA_VERSION,
   type CommandResultMessage,
+  type MetricsSampleMessage,
   type MainToSimulationMessage,
+  type RenderSnapshotMessage as ProtocolRenderSnapshotMessage,
+  type SaveReadyMessage as ProtocolSaveReadyMessage,
   type SimulationToMainMessage,
+  type UiDeltaMessage,
 } from "@wuming-town/sim-protocol";
 
 import {
@@ -87,6 +97,61 @@ describe("worker-smoke simulation Worker protocol", () => {
     expect(kinds(port.messages)).toContain(SIMULATION_TO_MAIN_MESSAGE_KIND.CommandResult);
     expect(commandResult(port.messages).payload.accepted).toBe(true);
   });
+
+  it("matches Node headless hashes for the M1 hauling-building command stream", () => {
+    const worker = createSimulationWorker();
+    const expected = readReplay(
+      runM1HaulingBuildingReplay({ seed: "1", checkpointTicks: [0, 2_400, 100_000] }),
+    );
+    const init = worker.receive(makeM1InitSession(1));
+    const atZero = renderSnapshot(init);
+
+    expect(atZero.payload).toMatchObject({
+      scenarioId: HAULING_BUILDING_SCENARIO_ID,
+      tick: 0,
+      worldHash: expected.checkpoints[0]?.worldHash,
+      readOnly: true,
+    });
+
+    const at2400 = renderSnapshot(worker.receive(makeM1AdvanceBatch(2, 2_400)));
+    const at100000Responses = worker.receive(makeM1AdvanceBatch(3, 100_000));
+    const at100000 = renderSnapshot(at100000Responses);
+
+    expect(at2400.payload).toMatchObject({
+      tick: 2_400,
+      worldHash: expected.checkpoints[1]?.worldHash,
+      readModelHash: expected.checkpoints[1]?.readModelHash,
+      readOnly: true,
+    });
+    expect(at100000.payload).toMatchObject({
+      tick: 100_000,
+      worldHash: expected.checkpoints[2]?.worldHash,
+      readModelHash: expected.checkpoints[2]?.readModelHash,
+      readOnly: true,
+    });
+    expect(uiDelta(at100000Responses).payload).toMatchObject({
+      scenarioId: HAULING_BUILDING_SCENARIO_ID,
+      readModelHash: expected.checkpoints[2]?.readModelHash,
+      readOnly: true,
+    });
+    expect(metricsSample(at100000Responses).payload).toMatchObject({
+      scenarioId: HAULING_BUILDING_SCENARIO_ID,
+      worldHash: expected.finalWorldHash,
+      checkpointCount: 3,
+    });
+  });
+
+  it("returns M1 save metadata without exposing mutable authority through the Worker", () => {
+    const worker = createSimulationWorker();
+
+    worker.receive(makeM1InitSession(1));
+    worker.receive(makeM1AdvanceBatch(2, 2_400));
+    const saveReady = saveReadyMessage(worker.receive(makeRequestSave(3)));
+
+    expect(saveReady.payload.scenarioId).toBe(HAULING_BUILDING_SCENARIO_ID);
+    expect(saveReady.payload.checkpointTick).toBe(2_400);
+    expect(saveReady.payload.worldHash).toMatch(/^0x[0-9a-f]{8}$/);
+  });
 });
 
 class MemoryWorkerPort implements SimulationWorkerPort {
@@ -136,6 +201,20 @@ function makeInitSession(sequence: number): MainToSimulationMessage {
   };
 }
 
+function makeM1InitSession(sequence: number): MainToSimulationMessage {
+  return {
+    protocolVersion: SIM_PROTOCOL_VERSION,
+    schemaVersion: SIM_SCHEMA_VERSION,
+    sessionId: "session-a",
+    sequence,
+    kind: MAIN_TO_SIMULATION_MESSAGE_KIND.InitSession,
+    payload: {
+      seed: "1",
+      catalogVersion: HAULING_BUILDING_SCENARIO_ID,
+    },
+  };
+}
+
 function makeNoopBatch(sequence: number): MainToSimulationMessage {
   return {
     protocolVersion: SIM_PROTOCOL_VERSION,
@@ -147,6 +226,24 @@ function makeNoopBatch(sequence: number): MainToSimulationMessage {
       commands: [
         {
           commandId: `command-${String(sequence)}`,
+          kind: PLAYER_COMMAND_KIND.Noop,
+        },
+      ],
+    },
+  };
+}
+
+function makeM1AdvanceBatch(sequence: number, tick: number): MainToSimulationMessage {
+  return {
+    protocolVersion: SIM_PROTOCOL_VERSION,
+    schemaVersion: SIM_SCHEMA_VERSION,
+    sessionId: "session-a",
+    sequence,
+    kind: MAIN_TO_SIMULATION_MESSAGE_KIND.PlayerCommandBatch,
+    payload: {
+      commands: [
+        {
+          commandId: createM1AdvanceCommandId(tick),
           kind: PLAYER_COMMAND_KIND.Noop,
         },
       ],
@@ -167,6 +264,19 @@ function makePause(sequence: number): MainToSimulationMessage {
   };
 }
 
+function makeRequestSave(sequence: number): MainToSimulationMessage {
+  return {
+    protocolVersion: SIM_PROTOCOL_VERSION,
+    schemaVersion: SIM_SCHEMA_VERSION,
+    sessionId: "session-a",
+    sequence,
+    kind: MAIN_TO_SIMULATION_MESSAGE_KIND.RequestSave,
+    payload: {
+      reason: "manual",
+    },
+  };
+}
+
 function kinds(messages: readonly SimulationToMainMessage[]): readonly string[] {
   return messages.map((message) => message.kind);
 }
@@ -179,4 +289,54 @@ function commandResult(messages: readonly SimulationToMainMessage[]): CommandRes
   }
 
   throw new Error("expected CommandResult message");
+}
+
+function renderSnapshot(
+  messages: readonly SimulationToMainMessage[],
+): ProtocolRenderSnapshotMessage {
+  for (const message of messages) {
+    if (message.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.RenderSnapshot) {
+      return message;
+    }
+  }
+
+  throw new Error("expected RenderSnapshot message");
+}
+
+function uiDelta(messages: readonly SimulationToMainMessage[]): UiDeltaMessage {
+  for (const message of messages) {
+    if (message.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.UiDelta) {
+      return message;
+    }
+  }
+
+  throw new Error("expected UiDelta message");
+}
+
+function metricsSample(messages: readonly SimulationToMainMessage[]): MetricsSampleMessage {
+  for (const message of messages) {
+    if (message.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.MetricsSample) {
+      return message;
+    }
+  }
+
+  throw new Error("expected MetricsSample message");
+}
+
+function saveReadyMessage(messages: readonly SimulationToMainMessage[]): ProtocolSaveReadyMessage {
+  for (const message of messages) {
+    if (message.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.SaveReady) {
+      return message;
+    }
+  }
+
+  throw new Error("expected SaveReady message");
+}
+
+function readReplay(result: ReturnType<typeof runM1HaulingBuildingReplay>): M1ReplayRun {
+  if (!result.ok) {
+    throw new Error(result.reason);
+  }
+
+  return result.replay;
 }

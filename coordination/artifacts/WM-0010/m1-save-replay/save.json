@@ -1,0 +1,70 @@
+{
+  "magic": "wuming-town.m1.save",
+  "formatVersion": 1,
+  "scenarioId": "m1.hauling_building.road_lantern_frame.v1",
+  "seed": "1",
+  "createdTick": 2400,
+  "sectionDirectoryVersion": 1,
+  "sections": {
+    "mapChunks": {
+      "mapChunksVersion": 1,
+      "width": 16,
+      "height": 12,
+      "anchorCellIndex": 124
+    },
+    "entityStores": {
+      "entityStoresVersion": 1,
+      "completedBuildingCount": 1,
+      "buildSiteCompleted": true,
+      "sourceWoodQuantity": 0,
+      "sourceStoneQuantity": 0,
+      "decoyPaperQuantity": 1
+    },
+    "jobsReservations": {
+      "jobsReservationsVersion": 1,
+      "activeReservationCount": 0,
+      "runningJobCount": 0,
+      "carriedAmount": 0
+    },
+    "randomStreams": {
+      "randomStreamsVersion": 1,
+      "seed": "1",
+      "streamCount": 0
+    },
+    "commandLogTail": {
+      "commandLogTailVersion": 1,
+      "checkpointTick": 2400,
+      "checkpointWorldHash": "0x887f5a49",
+      "nextCommandSequence": 1
+    }
+  },
+  "readOnlyProjection": {
+    "projectionVersion": 1,
+    "scenarioId": "m1.hauling_building.road_lantern_frame.v1",
+    "tick": 2400,
+    "worldHash": "0x887f5a49",
+    "readModelHash": "0x86dc70a2",
+    "renderSnapshot": {
+      "renderSnapshotSchemaVersion": 1,
+      "snapshotSequence": 0,
+      "tick": 2400,
+      "entityCount": 1,
+      "worldHash": "0x887f5a49",
+      "readModelHash": "0x263deabc"
+    },
+    "uiDetail": {
+      "uiReadModelSchemaVersion": 1,
+      "requestId": "m1-hauling-building-session",
+      "targetKind": "scenario",
+      "scenarioId": "m1.hauling_building.road_lantern_frame.v1",
+      "basisTick": 2400,
+      "basisWorldHash": "0x887f5a49",
+      "detailHash": "0xaadba795",
+      "summaries": [
+        "completed=1",
+        "wood=6",
+        "stone=2"
+      ]
+    }
+  }
+}

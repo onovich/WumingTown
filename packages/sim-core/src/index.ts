@@ -71,6 +71,22 @@ export {
   runHaulingBuildingScenario,
 } from "./hauling-building-scenario";
 export {
+  M1_COMMAND_PREFIX,
+  M1_READ_MODEL_HASH_VERSION,
+  M1_SAVE_FORMAT_VERSION,
+  M1_SAVE_MAGIC,
+  M1_SECTION_DIRECTORY_VERSION,
+  M1_SECTION_VERSION,
+  compareM1ReplayRuns,
+  createM1AdvanceCommandId,
+  createM1HaulingBuildingSaveEnvelope,
+  createM1ReadOnlyProjection,
+  loadM1HaulingBuildingSaveEnvelope,
+  parseM1AdvanceCommandId,
+  resumeM1HaulingBuildingFromSave,
+  runM1HaulingBuildingReplay,
+} from "./m1-save-replay";
+export {
   LOCATION_CONTAINER,
   LOCATION_MAP,
   LOCATION_NONE,
@@ -294,6 +310,28 @@ export type {
   HaulingBuildingScenarioOptions,
   HaulingBuildingScenarioSummary,
 } from "./hauling-building-scenario";
+export type {
+  M1CommandLogTailSection,
+  M1EntityStoresSection,
+  M1HaulingBuildingSaveEnvelope,
+  M1HaulingBuildingSaveSections,
+  M1JobsReservationsSection,
+  M1MapChunksSection,
+  M1RandomStreamsSection,
+  M1ReadOnlyProjection,
+  M1RenderSnapshotProjection,
+  M1ReplayArtifactPaths,
+  M1ReplayCheckpoint,
+  M1ReplayComparison,
+  M1ReplayOptions,
+  M1ReplayResult,
+  M1ReplayRun,
+  M1ResumeOptions,
+  M1SaveEnvelopeResult,
+  M1SaveLoadResult,
+  M1SaveReplayReason,
+  M1UiDetailProjection,
+} from "./m1-save-replay";
 export type {
   LocationCleanupReason,
   LocationDestroyResult,

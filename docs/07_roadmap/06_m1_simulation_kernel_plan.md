@@ -259,6 +259,13 @@ road lantern frame.
 - Benchmark impact: measures save/load size, rebuild time, Worker latency and parity overhead.
 - Docs update: Worker protocol, save/replay and CI observability docs.
 
+Implementation note: WM-0028 adds the focused M1 save/replay harness,
+`pnpm test --filter m1-save-replay`, Worker/headless parity coverage in
+`worker-smoke`, and M1 artifacts in `pnpm sim:replay-test`. The implementation
+uses the hauling-building scenario runner and a minimal validated M1 envelope;
+it does not implement full save compatibility, platform save UI, WM-0029
+benchmarks or WM-0030 closeout.
+
 ### WM-0029 - M1 Benchmark Suite and Long-Run Invariants
 
 - Owner: `qa-performance`

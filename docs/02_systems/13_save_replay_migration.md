@@ -66,3 +66,17 @@ Restore validates version, shape, sorted job ids, owner handles and integer
 lanes through a scratch store before mutating the target store. Derived
 WorkOffer indexes, path requests and UI read models still rebuild from owner
 state rather than entering the authoritative snapshot.
+
+## WM-0028 implementation note
+
+`packages/sim-core/src/m1-save-replay.ts` implements the focused M1
+hauling-building save/replay harness. It is not the full Save Container v1 and
+does not create a cross-version compatibility promise. The envelope validates
+magic, format version, scenario id, section versions, tick ranges and projection
+hashes before load succeeds.
+
+The minimal sections mirror the ADR-0005 names needed by this scenario:
+`MapChunks`, `EntityStores`, `JobsReservations`, `RandomStreams` and
+`CommandLogTail`. Load returns rebuilt derived indexes for work offers,
+reservations and read models before resume. Read-only render/UI projections are
+copied hash payloads and are not owner stores or mutation APIs.

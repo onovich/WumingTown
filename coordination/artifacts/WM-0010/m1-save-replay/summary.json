@@ -1,0 +1,18 @@
+{
+  "ok": true,
+  "scenarioId": "m1.hauling_building.road_lantern_frame.v1",
+  "seed": "1",
+  "requestedSeed": "WM-0010-long-run",
+  "finalWorldHash": "0xf7815189",
+  "finalReadModelHash": "0x53fe1af9",
+  "checkpointCount": 3,
+  "saveTick": 2400,
+  "firstDivergentTick": null,
+  "artifactPaths": {
+    "expected": "coordination/artifacts/WM-0010/m1-save-replay/expected.json",
+    "actual": "coordination/artifacts/WM-0010/m1-save-replay/actual.json",
+    "resumed": "coordination/artifacts/WM-0010/m1-save-replay/resumed.json",
+    "save": "coordination/artifacts/WM-0010/m1-save-replay/save.json",
+    "summary": "coordination/artifacts/WM-0010/m1-save-replay/summary.json"
+  }
+}

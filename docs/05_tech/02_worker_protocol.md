@@ -18,6 +18,21 @@
 - `DevCommand`
 - `Shutdown`
 
+## WM-0028 implementation note
+
+`packages/sim-worker` now has a focused M1 parity mode for
+`m1.hauling_building.road_lantern_frame.v1`. The mode is selected by
+`InitSession.catalogVersion` and still runs inside the Simulation Worker or
+Node worker harness; UI and renderer consumers receive read-only projection
+payloads only.
+
+M1 parity command streams use existing `PlayerCommandBatch` messages with
+deterministic no-op command ids such as
+`m1.hauling-building.advance.100000`. Worker `RenderSnapshot`, `UiDelta`,
+`MetricsSample` and `SaveReady` payloads may include optional scenario id,
+world hash, read-model hash and read-only flags. Existing M0 protocol messages
+remain valid.
+
 ### Simulation → Main
 
 - `Ready`

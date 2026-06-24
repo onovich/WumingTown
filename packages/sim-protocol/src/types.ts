@@ -139,11 +139,19 @@ export interface RenderSnapshotPayload {
   readonly snapshotSequence: number;
   readonly tick: number;
   readonly entityCount: number;
+  readonly scenarioId?: string;
+  readonly worldHash?: string;
+  readonly readModelHash?: string;
+  readonly readOnly?: true;
 }
 
 export interface UiDeltaPayload {
   readonly tick: number;
   readonly summaries: readonly string[];
+  readonly scenarioId?: string;
+  readonly readModelHash?: string;
+  readonly detailHash?: string;
+  readonly readOnly?: true;
 }
 
 export interface CommandResultPayload {
@@ -159,12 +167,18 @@ export interface AlertBatchPayload {
 export interface SaveReadyPayload {
   readonly saveId: string;
   readonly sourceSequence: number;
+  readonly scenarioId?: string;
+  readonly checkpointTick?: number;
+  readonly worldHash?: string;
 }
 
 export interface MetricsSamplePayload {
   readonly tick: number;
   readonly droppedSnapshots: number;
   readonly queuedReliableMessages: number;
+  readonly scenarioId?: string;
+  readonly worldHash?: string;
+  readonly checkpointCount?: number;
 }
 
 export interface FatalSimulationErrorPayload {

@@ -36,3 +36,15 @@ Determinism / long-run 诊断失败必须输出 seed、首个分歧 tick 和 art
 Tick 系统耗时、队列、候选、路径节点、快照大小、消息延迟、内容加载、存档大小与迁移耗时。指标 ID 稳定，报告可机器比较。
 
 测试框架与工作流不得静默重试 nondeterministic product 行为。允许等待 ready 条件的显式轮询，但禁止配置非零 `retry` / `retries` / `repeatEach` 来掩盖不稳定结果。
+
+## WM-0028 implementation note
+
+`pnpm test --filter m1-save-replay` covers the focused M1 save/load/resume
+harness and divergence diagnostics. `pnpm test:e2e --filter worker-smoke` now
+also compares Worker and Node headless M1 checkpoint hashes.
+
+`pnpm sim:replay-test` preserves the existing deterministic replay probe and
+adds M1 hauling-building artifacts under
+`coordination/artifacts/WM-0010/m1-save-replay/`. The structured output names
+the seed, scenario id, first divergent tick and artifact paths when a divergence
+is detected.
