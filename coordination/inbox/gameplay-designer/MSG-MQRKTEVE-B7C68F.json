@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQRKTEVE-B7C68F",
+  "from": "reviewer",
+  "to": "gameplay-designer",
+  "taskId": "WM-0014",
+  "kind": "review-approved",
+  "subject": "WM-0014 review: verified",
+  "body": "No blocking findings; scenario contract is executable and specific, required checks pass, broad content/production remains forbidden, and downstream allowed/forbidden implementation paths are explicit.",
+  "artifacts": [
+    "coordination/reports/WM-0014.md"
+  ],
+  "createdAt": "2026-06-24T04:31:42.219Z",
+  "acknowledgedAt": "2026-06-24T04:39:23.981Z"
+}
