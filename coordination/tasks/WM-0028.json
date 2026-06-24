@@ -2,7 +2,7 @@
   "id": "WM-0028",
   "title": "Implement M1 save replay and Worker headless parity harness",
   "summary": "Wire the M1 kernel through save/load, replay checkpoints, Worker execution and Node headless execution so the hauling/building scenario has identical authoritative hash.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,7 +32,7 @@
   ],
   "branch": "task/WM-0028-implement-m1-save-replay-and-worker-headless-par",
   "createdAt": "2026-06-23T23:08:02.466Z",
-  "updatedAt": "2026-06-24T15:17:20.613Z",
+  "updatedAt": "2026-06-24T15:21:15.852Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.467Z",
@@ -81,6 +81,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings on re-review; nested save projection validation now fails closed, real Chromium module Worker parity is covered, and required checks plus format/lint pass."
+    },
+    {
+      "at": "2026-06-24T15:21:06.355Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Fast-forward merged origin/task/WM-0028-implement-m1-save-replay-and-worker-headless-par at f26bdb8 into main; pre-close gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality."
+    },
+    {
+      "at": "2026-06-24T15:21:15.852Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "claimedBy": "simulation-engineer",
@@ -92,5 +104,10 @@
     "verdict": "verified",
     "summary": "No blocking findings on re-review; nested save projection validation now fails closed, real Chromium module Worker parity is covered, and required checks plus format/lint pass.",
     "at": "2026-06-24T15:17:20.613Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Fast-forward merged origin/task/WM-0028-implement-m1-save-replay-and-worker-headless-par at f26bdb8 into main; pre-close gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality.",
+    "at": "2026-06-24T15:21:06.354Z"
   }
 }
