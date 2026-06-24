@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQRSICH1-A86CE9",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0021",
+  "kind": "review-request",
+  "subject": "WM-0021 ready for review",
+  "body": "Addressed reviewer map-grid regression; required and adjacent checks pass",
+  "artifacts": [
+    "coordination/reports/WM-0021.md",
+    "task/WM-0021-implement-incremental-region-room-rebuild-and-na"
+  ],
+  "createdAt": "2026-06-24T08:07:02.821Z",
+  "acknowledgedAt": null
+}

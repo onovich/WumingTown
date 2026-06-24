@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQRSEK2Q-4BCC24",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0021",
+  "kind": "changes-requested",
+  "subject": "WM-0021 review: changes_requested",
+  "body": "High: pnpm test --filter map-grid fails in touched packages/sim-core/src/map-grid.test.ts:67 because the expected MapCellView omits newly added wallMask/doorMask fields. Required WM-0021 checks otherwise pass, but this adjacent sim-core regression blocks verification.",
+  "artifacts": [
+    "coordination/reports/WM-0021.md"
+  ],
+  "createdAt": "2026-06-24T08:04:06.050Z",
+  "acknowledgedAt": "2026-06-24T08:05:11.412Z"
+}

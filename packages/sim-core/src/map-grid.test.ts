@@ -72,6 +72,8 @@ describe("deterministic map grid and chunk dirty queues", () => {
         terrain: 2,
         occupancy: 17,
         walkCostMilli: 1_500,
+        wallMask: 0,
+        doorMask: 0,
         regionId: 3,
         roomId: 9,
         cellVersion: 1,

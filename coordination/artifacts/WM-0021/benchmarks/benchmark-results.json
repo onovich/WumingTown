@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-06-24T07:57:44.321Z",
+  "generatedAt": "2026-06-24T08:06:03.116Z",
   "baselinePath": "packages/benchmarks/baseline.json",
   "artifactPath": "coordination/artifacts/WM-0021/benchmarks/benchmark-results.json",
   "sampleCount": 5,
@@ -14,18 +14,18 @@
     {
       "name": "region-room",
       "sampleElapsedMs": [
-        7.996099999999984,
-        5.329399999999993,
-        7.5578000000000145,
-        3.871700000000004,
-        4.2601999999999975
+        10.008099999999985,
+        4.331299999999999,
+        5.086699999999979,
+        6.151099999999985,
+        6.33959999999999
       ],
       "stats": {
         "sampleCount": 5,
-        "minElapsedMs": 3.871700000000004,
-        "medianElapsedMs": 5.329399999999993,
-        "maxElapsedMs": 7.996099999999984,
-        "meanElapsedMs": 5.803039999999998
+        "minElapsedMs": 4.331299999999999,
+        "medianElapsedMs": 6.151099999999985,
+        "maxElapsedMs": 10.008099999999985,
+        "meanElapsedMs": 6.383359999999987
       },
       "invariants": {
         "width": 128,
@@ -51,9 +51,9 @@
       "comparison": {
         "name": "region-room",
         "status": "ok",
-        "actualMedianElapsedMs": 5.329399999999993,
+        "actualMedianElapsedMs": 6.151099999999985,
         "baselineMedianElapsedMs": 10,
-        "regressionPercent": -46.706000000000074,
+        "regressionPercent": -38.489000000000146,
         "warnRegressionPercent": 10,
         "failRegressionPercent": 20,
         "invariantMismatches": []
