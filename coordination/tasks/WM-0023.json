@@ -2,7 +2,7 @@
   "id": "WM-0023",
   "title": "Implement reservation ledger and atomic transactions",
   "summary": "Implement the authoritative reservation ledger for entities, cells, item quantities, interaction spots and capacity with all-or-nothing transactions and explicit release.",
-  "state": "review_requested",
+  "state": "verified",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": ["WM-0015", "WM-0018", "WM-0020"],
@@ -27,7 +27,7 @@
   ],
   "branch": "task/WM-0023-implement-reservation-ledger-and-atomic-transact",
   "createdAt": "2026-06-23T23:08:02.265Z",
-  "updatedAt": "2026-06-24T09:15:15.563Z",
+  "updatedAt": "2026-06-24T09:17:40.235Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.265Z",
@@ -64,6 +64,12 @@
       "actor": "simulation-engineer",
       "action": "complete",
       "details": "Addressed reviewer restore safety finding: restoreFromSnapshot now rejects unsupported versions, validates snapshot shape and records via scratch ledger before mutating, and has regression tests proving invalid restores preserve existing claims. Required checks rerun and pass."
+    },
+    {
+      "at": "2026-06-24T09:17:40.235Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: Verified WM-0023 re-review: fail-closed restore finding is fixed; unsupported snapshot versions and invalid records no longer mutate existing ledgers. Required checks, benchmark, boundary check, and targeted restore probe pass with no blocking findings."
     }
   ],
   "claimedBy": "simulation-engineer",
@@ -72,8 +78,8 @@
   "reportPath": "coordination/reports/WM-0023.md",
   "review": {
     "reviewer": "reviewer",
-    "verdict": "changes_requested",
-    "summary": "Medium: ReservationLedger restore is not fail-closed. restoreFromSnapshot clears current state before validating snapshot records and never rejects unsupported snapshotVersion; an unsupported version restores successfully and an invalid restore leaves the existing ledger empty. Required checks pass, but snapshot/restore safety acceptance needs a fix.",
-    "at": "2026-06-24T09:09:12.414Z"
+    "verdict": "verified",
+    "summary": "Verified WM-0023 re-review: fail-closed restore finding is fixed; unsupported snapshot versions and invalid records no longer mutate existing ledgers. Required checks, benchmark, boundary check, and targeted restore probe pass with no blocking findings.",
+    "at": "2026-06-24T09:17:40.234Z"
   }
 }
