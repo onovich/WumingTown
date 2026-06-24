@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "project": "Wuming Town / 无明镇",
-  "phase": "handoff",
-  "activeMilestone": "M0 Engineering Foundation",
+  "phase": "m1-closeout",
+  "activeMilestone": "M1 Simulation Kernel closeout",
   "releaseTarget": "undated",
-  "updatedAt": "2026-06-23T12:00:00.000Z",
+  "updatedAt": "2026-06-24T19:04:39.587Z",
   "lockedDecisions": [
     "TypeScript-first authoritative simulation in a dedicated Worker",
     "PixiJS world rendering + React DOM UI + Electron Windows shell",
@@ -13,5 +13,5 @@
     "Lantern / Chronicle / Obligation are the three product pillars"
   ],
   "humanApprovalNeeded": [],
-  "notes": "Task JSON, reports and inbox files are the durable execution control plane."
+  "notes": "Task JSON, reports and inbox files are the durable execution control plane. WM-0030 closes the M1 simulation kernel gate and prepares M2 entry criteria without starting M2."
 }

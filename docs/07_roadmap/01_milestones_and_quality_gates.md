@@ -26,3 +26,27 @@
 - M4 玩家反复认为规则死亡不可推断；重新设计证据玩法，而非继续加异类。
 - M5 内容每项都需要专用代码；暂停内容生产，重构规则组件。
 - Web 门禁连续两轮失败；降级平台，不让 Web 拖累 Windows。
+
+## M1 Closeout Status
+
+WM-0030 closes M1 as a simulation-kernel milestone, not as a product-content
+milestone. The reviewed M1 task chain establishes deterministic Entity/Store
+ownership, map/chunk/region/pathing primitives, reservations, indexed work
+offers, serializable job drivers, the minimal hauling/building scenario,
+save/replay coverage, Worker/headless parity, and benchmark-backed long-run
+invariants.
+
+Closeout evidence:
+
+- Headless hauling/building: `pnpm sim:run -- --seed 1 --scenario hauling-building --ticks 100000` passed with final world hash `0xf7815189` and `longRunStable=true`.
+- Worker parity: `pnpm test:e2e --filter worker-smoke` passed, including Node/Worker M1 authoritative-hash parity.
+- Save/replay: `pnpm ci:local` ran the replay diagnostics and M1 save/resume checks; the M1 final world/read-model hashes were `0xf7815189` and `0x53fe1af9`.
+- 50000-entity pressure: `pnpm bench` passed the spatial-index benchmark with `finalBacklogCount=0`, `finalMapMemberships=49488`, and `finalIndexedEntities=49488`.
+- Benchmark threshold policy remains 10 percent warning and 20 percent blocking regression.
+
+Residuals that are deliberately not M1 scope: broad town-life simulation,
+economy/content expansion, public save compatibility beyond the M1 envelope,
+platform save UI, and longer product-scale memory soaks beyond the current
+benchmark pressure gates. Existing nonblocking warnings remain tracked: Node
+`DEP0190` warnings from local scripts and Vite chunk-size warnings during web
+and desktop builds.

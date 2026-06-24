@@ -1,0 +1,74 @@
+{
+  "ok": true,
+  "seed": "WM-0010-long-run",
+  "firstDivergentTick": 10000,
+  "segmentTicks": 5000,
+  "segmentCount": 24,
+  "cleanCheckpointCount": 25,
+  "m1Scenario": {
+    "ok": true,
+    "scenarioId": "m1.hauling_building.road_lantern_frame.v1",
+    "seed": "1",
+    "requestedSeed": "WM-0010-long-run",
+    "finalWorldHash": "0xf7815189",
+    "finalReadModelHash": "0x53fe1af9",
+    "checkpointCount": 3,
+    "saveTick": 2400,
+    "firstDivergentTick": null,
+    "artifactPaths": {
+      "expected": "coordination/artifacts/WM-0010/m1-save-replay/expected.json",
+      "actual": "coordination/artifacts/WM-0010/m1-save-replay/actual.json",
+      "resumed": "coordination/artifacts/WM-0010/m1-save-replay/resumed.json",
+      "save": "coordination/artifacts/WM-0010/m1-save-replay/save.json",
+      "summary": "coordination/artifacts/WM-0010/m1-save-replay/summary.json"
+    }
+  },
+  "expectedFinalSummary": {
+    "version": 2,
+    "ticksPerSecond": 30,
+    "ticksPerDay": 36000,
+    "seed": "WM-0010-long-run",
+    "seedHash": "0x6c270576",
+    "finalTick": 120000,
+    "paused": false,
+    "speed": 1,
+    "queuedCommandCount": 72,
+    "appliedCommandCount": 72,
+    "commandHash": "0x20a41026",
+    "worldHash": "0x5ea61e93",
+    "randomStreamCount": 1
+  },
+  "actualFinalSummary": {
+    "version": 2,
+    "ticksPerSecond": 30,
+    "ticksPerDay": 36000,
+    "seed": "WM-0010-long-run",
+    "seedHash": "0x6c270576",
+    "finalTick": 120000,
+    "paused": false,
+    "speed": 1,
+    "queuedCommandCount": 72,
+    "appliedCommandCount": 72,
+    "commandHash": "0x20a41026",
+    "worldHash": "0x5ea61e93",
+    "randomStreamCount": 1
+  },
+  "perturbedFirstDivergence": {
+    "checkpointIndex": 2,
+    "tick": 10000,
+    "reason": "world_hash_mismatch"
+  },
+  "artifactPaths": {
+    "expected": "coordination/artifacts/WM-0010/determinism/expected-checkpoints.json",
+    "actual": "coordination/artifacts/WM-0010/determinism/actual-checkpoints.json",
+    "perturbed": "coordination/artifacts/WM-0010/determinism/perturbed-checkpoints.json",
+    "summary": "coordination/artifacts/WM-0010/determinism/replay-diagnostics-summary.json",
+    "m1": {
+      "expected": "coordination/artifacts/WM-0010/m1-save-replay/expected.json",
+      "actual": "coordination/artifacts/WM-0010/m1-save-replay/actual.json",
+      "resumed": "coordination/artifacts/WM-0010/m1-save-replay/resumed.json",
+      "save": "coordination/artifacts/WM-0010/m1-save-replay/save.json",
+      "summary": "coordination/artifacts/WM-0010/m1-save-replay/summary.json"
+    }
+  }
+}

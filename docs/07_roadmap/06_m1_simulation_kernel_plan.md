@@ -1,6 +1,6 @@
 # M1 Simulation Kernel Execution Plan
 
-Status: proposed by WM-0012. This plan is executable only after WM-0012 is independently reviewed and integrated. It does not start product implementation.
+Status: closed by WM-0030. The WM-0014 through WM-0030 task chain has been independently reviewed and integrated as the M1 simulation-kernel milestone. This closeout does not start M2 product implementation.
 
 ## Objective
 
@@ -298,6 +298,13 @@ observations. WM-0030 closeout has not started.
 - Benchmark impact: final M1 benchmark comparison and closeout evidence.
 - Docs update: roadmap, milestone quality gates and closeout report.
 
+Implementation note: WM-0030 records the M1 gate evidence without adding new
+simulation behavior. The closeout verifies the 100000-tick hauling/building
+hash `0xf7815189`, browser Worker/Node parity, save/replay diagnostics,
+50000-entity spatial-index pressure invariants, web and desktop builds, and
+the final M1 benchmark artifact. It also prepares an M2 entry prompt for a
+future reviewed planning task; M2 remains unstarted.
+
 ## Migration and Rollback Model
 
 - Before ADR acceptance, rollback is abandoning the task branch or proposed ADR files.
@@ -318,6 +325,10 @@ Minimum M1 gate by closeout:
 - Dirty map pressure: local wall/door/terrain invalidation with bounded rebuild backlog.
 - Save/replay: interruption save, load, index rebuild and resume matches uninterrupted replay.
 - Benchmarks preserve the current 10 percent warning and 20 percent blocking regression thresholds.
+
+WM-0030 satisfied this M1 gate summary through the closeout checks and
+artifacts recorded in `coordination/reports/WM-0030.md`. Any M2 work must start
+from a new reviewed plan/task DAG rather than extending this closeout task.
 
 ## Spark Classification
 
