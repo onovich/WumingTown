@@ -31,3 +31,23 @@
 ## 解释
 
 订单面板必须回答：缺什么、最近可用供给在哪、为何不可达、被谁预订、哪个政策阻止、预计何时完成。
+
+## WM-0026 implementation note
+
+`packages/sim-core/src/item-stack-store.ts` adds the first minimal
+`ItemStackStore`. It is the only owner of item definition, integer quantity and
+stack capacity for M1 hauling; storage indexes and reservations read derived
+availability but do not duplicate or own quantity.
+
+`packages/sim-core/src/storage-logistics-index.ts` adds a state-change-driven
+dirty queue for storage supply and demand. Stack quantity changes, storage slot
+changes and reservation changes mark exact slots dirty; `refreshDirty` updates
+available supply, available capacity, demand amount and WorkOffer supply rows
+without pawn-side world scans.
+
+`packages/sim-core/src/hauling-jobs.ts` adds the minimal hauling path for
+source-to-storage delivery. A hauling job reserves source quantity, destination
+capacity and source/destination interaction spots before pickup. Pickup moves
+integer quantity from `ItemStackStore` into explicit JobCore carried lanes, and
+delivery or cancellation returns the carried quantity through owner-store
+transactions before releasing reservations.

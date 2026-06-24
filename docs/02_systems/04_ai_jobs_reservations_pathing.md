@@ -108,3 +108,18 @@ Driver movement is exposed through `createJob`, `enterStep`, `tickJob`,
 Generator, coroutine, closure or UI execution position is stored. Terminal
 paths share cleanup that releases `ReservationLedger` owner/job claims and
 clears carried state.
+
+## WM-0026 implementation note
+
+`packages/sim-core/src/hauling-jobs.ts` layers a hauling-specific explicit state
+machine on top of `JobCoreStore`: `created -> reserved -> picked_up ->
+delivered/canceled`. The hauling lanes store source slot, destination slot,
+amount and carried item facts as serializable integers; no Promise, Generator,
+coroutine or closure stores execution position.
+
+The reservation step acquires all claims atomically through `ReservationLedger`:
+source `item_quantity`, destination `capacity`, source `interaction_spot` and
+destination `interaction_spot`. If any claim fails, no item quantity moves and
+no partial reservation remains. Cancellation after pickup returns carried
+quantity to the source stack before JobCore cancellation releases owner/job
+claims.

@@ -19,6 +19,13 @@ import {
   type SampledMapDirtyBenchmark,
 } from "./map-dirty-benchmark";
 import {
+  logistics10kInvariantsFromReport,
+  runLogistics10kBenchmark,
+  type Logistics10kBenchmarkInvariants,
+  type Logistics10kBenchmarkReport,
+  type SampledLogistics10kBenchmark,
+} from "./logistics-10k-benchmark";
+import {
   runSpatialIndexBenchmark,
   spatialIndexInvariantsFromReport,
   type SampledSpatialIndexBenchmark,
@@ -55,6 +62,7 @@ import {
 } from "./work-offers-benchmark";
 
 export { runEntityStoreBenchmark } from "./entity-store-benchmark";
+export { runLogistics10kBenchmark } from "./logistics-10k-benchmark";
 export { runPathing100Benchmark } from "./pathing-100-benchmark";
 export { runRegionRoomBenchmark } from "./region-room-benchmark";
 export { runReservationsBenchmark } from "./reservations-benchmark";
@@ -77,6 +85,7 @@ export const DEFAULT_BENCHMARK_WARMUP_COUNT = 1;
 export type BenchmarkName =
   | "empty-tick"
   | "entity-store"
+  | "logistics-10k"
   | "map-dirty"
   | "pathing-100"
   | "reservations"
@@ -166,6 +175,7 @@ export interface SampledEntityStoreBenchmark {
 export type BenchmarkReport =
   | EmptyTickBenchmarkReport
   | EntityStoreBenchmarkReport
+  | Logistics10kBenchmarkReport
   | MapDirtyBenchmarkReport
   | Pathing100BenchmarkReport
   | ReservationsBenchmarkReport
@@ -175,6 +185,7 @@ export type BenchmarkReport =
 export type BenchmarkInvariants =
   | EmptyTickBenchmarkInvariants
   | EntityStoreBenchmarkInvariants
+  | Logistics10kBenchmarkInvariants
   | MapDirtyBenchmarkInvariants
   | Pathing100BenchmarkInvariants
   | ReservationsBenchmarkInvariants
@@ -184,6 +195,7 @@ export type BenchmarkInvariants =
 export type SampledBenchmarkResult =
   | SampledEmptyTickBenchmark
   | SampledEntityStoreBenchmark
+  | SampledLogistics10kBenchmark
   | SampledMapDirtyBenchmark
   | SampledPathing100Benchmark
   | SampledReservationsBenchmark
@@ -194,6 +206,7 @@ export type SampledBenchmarkResult =
 export interface BenchmarkReportMap {
   readonly "empty-tick": EmptyTickBenchmarkReport;
   readonly "entity-store": EntityStoreBenchmarkReport;
+  readonly "logistics-10k": Logistics10kBenchmarkReport;
   readonly "map-dirty": MapDirtyBenchmarkReport;
   readonly "pathing-100": Pathing100BenchmarkReport;
   readonly reservations: ReservationsBenchmarkReport;
@@ -205,6 +218,7 @@ export interface BenchmarkReportMap {
 export interface BenchmarkInvariantMap {
   readonly "empty-tick": EmptyTickBenchmarkInvariants;
   readonly "entity-store": EntityStoreBenchmarkInvariants;
+  readonly "logistics-10k": Logistics10kBenchmarkInvariants;
   readonly "map-dirty": MapDirtyBenchmarkInvariants;
   readonly "pathing-100": Pathing100BenchmarkInvariants;
   readonly reservations: ReservationsBenchmarkInvariants;
@@ -241,6 +255,9 @@ export function benchmarkInvariantsFromReport(
 export function benchmarkInvariantsFromReport(
   report: EntityStoreBenchmarkReport,
 ): EntityStoreBenchmarkInvariants;
+export function benchmarkInvariantsFromReport(
+  report: Logistics10kBenchmarkReport,
+): Logistics10kBenchmarkInvariants;
 export function benchmarkInvariantsFromReport(
   report: MapDirtyBenchmarkReport,
 ): MapDirtyBenchmarkInvariants;
@@ -283,6 +300,10 @@ export function benchmarkInvariantsFromReport(report: BenchmarkReport): Benchmar
     };
   }
 
+  if (report.name === "logistics-10k") {
+    return logistics10kInvariantsFromReport(report);
+  }
+
   if (report.name === "map-dirty") {
     return mapDirtyInvariantsFromReport(report);
   }
@@ -308,6 +329,7 @@ export function benchmarkInvariantsFromReport(report: BenchmarkReport): Benchmar
 
 export function runBenchmarkByName(name: "empty-tick"): EmptyTickBenchmarkReport;
 export function runBenchmarkByName(name: "entity-store"): EntityStoreBenchmarkReport;
+export function runBenchmarkByName(name: "logistics-10k"): Logistics10kBenchmarkReport;
 export function runBenchmarkByName(name: "map-dirty"): MapDirtyBenchmarkReport;
 export function runBenchmarkByName(name: "pathing-100"): Pathing100BenchmarkReport;
 export function runBenchmarkByName(name: "reservations"): ReservationsBenchmarkReport;
@@ -324,6 +346,10 @@ export function runBenchmarkByName(name: BenchmarkName): BenchmarkReport {
 
   if (name === "entity-store") {
     return runEntityStoreBenchmark();
+  }
+
+  if (name === "logistics-10k") {
+    return runLogistics10kBenchmark();
   }
 
   if (name === "map-dirty") {
@@ -357,6 +383,10 @@ export function sampleBenchmark(
   name: "entity-store",
   options?: BenchmarkSamplingOptions,
 ): SampledEntityStoreBenchmark;
+export function sampleBenchmark(
+  name: "logistics-10k",
+  options?: BenchmarkSamplingOptions,
+): SampledLogistics10kBenchmark;
 export function sampleBenchmark(
   name: "map-dirty",
   options?: BenchmarkSamplingOptions,
@@ -394,6 +424,8 @@ export function sampleBenchmark(
       runBenchmarkByName("empty-tick");
     } else if (name === "entity-store") {
       runBenchmarkByName("entity-store");
+    } else if (name === "logistics-10k") {
+      runBenchmarkByName("logistics-10k");
     } else if (name === "map-dirty") {
       runBenchmarkByName("map-dirty");
     } else if (name === "pathing-100") {
@@ -415,6 +447,10 @@ export function sampleBenchmark(
 
   if (name === "entity-store") {
     return sampleEntityStoreBenchmark(sampleCount);
+  }
+
+  if (name === "logistics-10k") {
+    return sampleLogistics10kBenchmark(sampleCount);
   }
 
   if (name === "map-dirty") {
@@ -446,6 +482,7 @@ export function runDefaultBenchmarkSuite(
   return [
     sampleBenchmark("empty-tick", options),
     sampleBenchmark("entity-store", options),
+    sampleBenchmark("logistics-10k", options),
     sampleBenchmark("map-dirty", options),
     sampleBenchmark("pathing-100", options),
     sampleBenchmark("reservations", options),
@@ -482,6 +519,22 @@ function sampleEntityStoreBenchmark(sampleCount: number): SampledEntityStoreBenc
     name: "entity-store",
     report: reports[reports.length - 1] ?? failMissingReport(),
     invariants: validateInvariantConsistency("entity-store", reports),
+    sampleElapsedMs: reports.map((report) => report.elapsedMs),
+    stats: createBenchmarkStats(reports.map((report) => report.elapsedMs)),
+  };
+}
+
+function sampleLogistics10kBenchmark(sampleCount: number): SampledLogistics10kBenchmark {
+  const reports: Logistics10kBenchmarkReport[] = [];
+
+  for (let index = 0; index < sampleCount; index += 1) {
+    reports.push(runLogistics10kBenchmark());
+  }
+
+  return {
+    name: "logistics-10k",
+    report: reports[reports.length - 1] ?? failMissingReport(),
+    invariants: validateInvariantConsistency("logistics-10k", reports),
     sampleElapsedMs: reports.map((report) => report.elapsedMs),
     stats: createBenchmarkStats(reports.map((report) => report.elapsedMs)),
   };
@@ -602,6 +655,10 @@ function validateInvariantConsistency(
   reports: readonly EntityStoreBenchmarkReport[],
 ): EntityStoreBenchmarkInvariants;
 function validateInvariantConsistency(
+  name: "logistics-10k",
+  reports: readonly Logistics10kBenchmarkReport[],
+): Logistics10kBenchmarkInvariants;
+function validateInvariantConsistency(
   name: "map-dirty",
   reports: readonly MapDirtyBenchmarkReport[],
 ): MapDirtyBenchmarkInvariants;
@@ -692,6 +749,10 @@ function readInvariantUnion(report: BenchmarkReport): BenchmarkInvariants {
   }
 
   if (report.name === "entity-store") {
+    return benchmarkInvariantsFromReport(report);
+  }
+
+  if (report.name === "logistics-10k") {
     return benchmarkInvariantsFromReport(report);
   }
 

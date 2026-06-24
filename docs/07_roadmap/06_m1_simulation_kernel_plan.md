@@ -224,6 +224,12 @@ Safe concurrency after WM-0012:
 - Benchmark impact: adds 10k logistics benchmark and item/reservation leak counters.
 - Docs update: logistics/production and AI/jobs docs.
 
+Implementation note: WM-0026 adds `ItemStackStore`,
+`StorageLogisticsIndex`, `HaulingJobStore`, `pnpm test --filter hauling` and
+`pnpm bench --filter logistics-10k`. It remains inside the hauling half of the
+vertical scenario; build-site completion and construction progress stay in
+WM-0027.
+
 ### WM-0027 - Build-Site Delivery and Construction Completion
 
 - Owner: `simulation-engineer`

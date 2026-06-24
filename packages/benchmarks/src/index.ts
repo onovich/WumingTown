@@ -10,6 +10,7 @@ export {
   runBenchmarkByName,
   sampleBenchmark,
 } from "./benchmarks";
+export { runLogistics10kBenchmark } from "./logistics-10k-benchmark";
 export { runMapDirtyBenchmark } from "./map-dirty-benchmark";
 export { runPathing100Benchmark } from "./pathing-100-benchmark";
 export { runWorkOffersBenchmark } from "./work-offers-benchmark";
@@ -32,6 +33,11 @@ export type {
   SampledEmptyTickBenchmark,
   SampledEntityStoreBenchmark,
 } from "./benchmarks";
+export type {
+  Logistics10kBenchmarkInvariants,
+  Logistics10kBenchmarkReport,
+  SampledLogistics10kBenchmark,
+} from "./logistics-10k-benchmark";
 export type {
   MapDirtyBenchmarkInvariants,
   MapDirtyBenchmarkReport,

@@ -22,9 +22,9 @@
       "registeredAt": "2026-06-24T05:31:04.442Z"
     },
     "simulation-engineer": {
-      "threadId": "Beacon",
-      "label": "WM-0025-job-driver-fallback",
-      "registeredAt": "2026-06-24T10:13:48.791Z"
+      "threadId": "Sim-WM-0026",
+      "label": "WM-0026-hauling",
+      "registeredAt": "2026-06-24T10:49:54.221Z"
     },
     "client-engineer": {
       "threadId": "019ef650-10ca-7e13-b072-9be37575c2be",
@@ -47,5 +47,5 @@
       "registeredAt": "2026-06-24T04:15:21.579Z"
     }
   },
-  "updatedAt": "2026-06-24T10:13:48.791Z"
+  "updatedAt": "2026-06-24T10:49:54.222Z"
 }

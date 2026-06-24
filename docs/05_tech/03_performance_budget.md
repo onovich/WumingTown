@@ -75,3 +75,15 @@ transaction attempts, accepted and rejected transactions, conflict count,
 cleanup releases, final active claims, per-channel active counts and stable
 transaction/cleanup checksums. The benchmark artifact is written under
 `coordination/artifacts/WM-0023/benchmarks/benchmark-results.json`.
+
+## WM-0026 benchmark note
+
+`pnpm bench --filter logistics-10k` measures 10,000 source storage supply slots,
+100 destination slots and 100 hauling reserve/pickup/deliver cycles through the
+minimal item/storage/hauling core. The benchmark reports bounded WorkOffer
+candidate visits, candidate-cap hits, delivered job count, final active
+reservation claims, item quantity conservation, storage dirty backlog and
+stable selection/quantity checksums.
+
+The benchmark artifact is written under
+`coordination/artifacts/WM-0026/benchmarks/benchmark-results.json`.

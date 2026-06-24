@@ -31,6 +31,33 @@
         "iterationChecksum": 134209536
       }
     },
+    "logistics-10k": {
+      "name": "logistics-10k",
+      "medianElapsedMs": 30,
+      "warnRegressionPercent": 10,
+      "failRegressionPercent": 20,
+      "invariants": {
+        "sourceSlotCount": 10000,
+        "destinationSlotCount": 100,
+        "pawnCount": 100,
+        "candidateCap": 8,
+        "selectedCap": 1,
+        "totalBucketCandidates": 5000,
+        "visitedCandidates": 800,
+        "selectedOffers": 100,
+        "candidateCapHits": 100,
+        "haulingJobs": 100,
+        "deliveredJobs": 100,
+        "finalActiveClaims": 0,
+        "initialQuantity": 40000,
+        "finalQuantity": 40000,
+        "activeSupplySlots": 10100,
+        "activeDemandSlots": 100,
+        "dirtyBacklog": 0,
+        "selectionChecksum": 1148929120,
+        "quantityChecksum": 1647230824
+      }
+    },
     "map-dirty": {
       "name": "map-dirty",
       "medianElapsedMs": 1,

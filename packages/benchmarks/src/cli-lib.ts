@@ -121,7 +121,7 @@ function parseBenchmarkArgs(
 
       if (!isBenchmarkName(value)) {
         return failedArgs(
-          "Unsupported benchmark filter. Use empty-tick, entity-store, map-dirty, pathing-100, reservations, region-room, spatial-index, or work-offers.",
+          "Unsupported benchmark filter. Use empty-tick, entity-store, logistics-10k, map-dirty, pathing-100, reservations, region-room, spatial-index, or work-offers.",
         );
       }
 
@@ -135,7 +135,7 @@ function parseBenchmarkArgs(
 
       if (!isBenchmarkName(value)) {
         return failedArgs(
-          "Unsupported benchmark filter. Use empty-tick, entity-store, map-dirty, pathing-100, reservations, region-room, spatial-index, or work-offers.",
+          "Unsupported benchmark filter. Use empty-tick, entity-store, logistics-10k, map-dirty, pathing-100, reservations, region-room, spatial-index, or work-offers.",
         );
       }
 
@@ -244,7 +244,13 @@ function parseBenchmarkArgs(
     );
   }
 
-  if (!artifactPathWasConfigured && filter === "work-offers") {
+  if (!artifactPathWasConfigured && filter === "logistics-10k") {
+    artifactPath = path.join(
+      resolveArtifactRoot("WM-0026"),
+      "benchmarks",
+      "benchmark-results.json",
+    );
+  } else if (!artifactPathWasConfigured && filter === "work-offers") {
     artifactPath = path.join(
       resolveArtifactRoot("WM-0024"),
       "benchmarks",
@@ -315,6 +321,7 @@ function loadBenchmarkBaseline(filePath: string): BenchmarkBaselineFile {
     benchmarks: {
       "empty-tick": parseEmptyTickBaselineEntry(rawBenchmarks["empty-tick"]),
       "entity-store": parseEntityStoreBaselineEntry(rawBenchmarks["entity-store"]),
+      "logistics-10k": parseLogistics10kBaselineEntry(rawBenchmarks["logistics-10k"]),
       "map-dirty": parseMapDirtyBaselineEntry(rawBenchmarks["map-dirty"]),
       "pathing-100": parsePathing100BaselineEntry(rawBenchmarks["pathing-100"]),
       reservations: parseReservationsBaselineEntry(rawBenchmarks["reservations"]),
@@ -371,6 +378,34 @@ function parseEntityStoreBaselineEntry(value: unknown): BenchmarkBaselineEntry<"
     ),
     invariants: parseEntityStoreBaselineInvariants(
       requireRecord(value["invariants"], "entity-store"),
+    ),
+  };
+}
+
+function parseLogistics10kBaselineEntry(
+  value: unknown,
+): BenchmarkBaselineEntry<"logistics-10k"> {
+  if (!isRecord(value)) {
+    throw new Error("benchmark baseline entry logistics-10k must be an object");
+  }
+
+  if (value["name"] !== "logistics-10k") {
+    throw new Error("benchmark baseline entry logistics-10k must declare the same name");
+  }
+
+  return {
+    name: "logistics-10k",
+    medianElapsedMs: requireNumber(value["medianElapsedMs"], "logistics-10k.medianElapsedMs"),
+    warnRegressionPercent: requireNumber(
+      value["warnRegressionPercent"],
+      "logistics-10k.warnRegressionPercent",
+    ),
+    failRegressionPercent: requireNumber(
+      value["failRegressionPercent"],
+      "logistics-10k.failRegressionPercent",
+    ),
+    invariants: parseLogistics10kBaselineInvariants(
+      requireRecord(value["invariants"], "logistics-10k"),
     ),
   };
 }
@@ -556,6 +591,56 @@ function parseEntityStoreBaselineInvariants(
       "entity-store.attachedComponents",
     ),
     iterationChecksum: requireNumber(value["iterationChecksum"], "entity-store.iterationChecksum"),
+  };
+}
+
+function parseLogistics10kBaselineInvariants(
+  value: Record<string, unknown>,
+): BenchmarkBaselineEntry<"logistics-10k">["invariants"] {
+  return {
+    sourceSlotCount: requireNumber(value["sourceSlotCount"], "logistics-10k.sourceSlotCount"),
+    destinationSlotCount: requireNumber(
+      value["destinationSlotCount"],
+      "logistics-10k.destinationSlotCount",
+    ),
+    pawnCount: requireNumber(value["pawnCount"], "logistics-10k.pawnCount"),
+    candidateCap: requireNumber(value["candidateCap"], "logistics-10k.candidateCap"),
+    selectedCap: requireNumber(value["selectedCap"], "logistics-10k.selectedCap"),
+    totalBucketCandidates: requireNumber(
+      value["totalBucketCandidates"],
+      "logistics-10k.totalBucketCandidates",
+    ),
+    visitedCandidates: requireNumber(
+      value["visitedCandidates"],
+      "logistics-10k.visitedCandidates",
+    ),
+    selectedOffers: requireNumber(value["selectedOffers"], "logistics-10k.selectedOffers"),
+    candidateCapHits: requireNumber(
+      value["candidateCapHits"],
+      "logistics-10k.candidateCapHits",
+    ),
+    haulingJobs: requireNumber(value["haulingJobs"], "logistics-10k.haulingJobs"),
+    deliveredJobs: requireNumber(value["deliveredJobs"], "logistics-10k.deliveredJobs"),
+    finalActiveClaims: requireNumber(
+      value["finalActiveClaims"],
+      "logistics-10k.finalActiveClaims",
+    ),
+    initialQuantity: requireNumber(value["initialQuantity"], "logistics-10k.initialQuantity"),
+    finalQuantity: requireNumber(value["finalQuantity"], "logistics-10k.finalQuantity"),
+    activeSupplySlots: requireNumber(
+      value["activeSupplySlots"],
+      "logistics-10k.activeSupplySlots",
+    ),
+    activeDemandSlots: requireNumber(
+      value["activeDemandSlots"],
+      "logistics-10k.activeDemandSlots",
+    ),
+    dirtyBacklog: requireNumber(value["dirtyBacklog"], "logistics-10k.dirtyBacklog"),
+    selectionChecksum: requireNumber(
+      value["selectionChecksum"],
+      "logistics-10k.selectionChecksum",
+    ),
+    quantityChecksum: requireNumber(value["quantityChecksum"], "logistics-10k.quantityChecksum"),
   };
 }
 
@@ -766,6 +851,13 @@ function sampleNamedBenchmark(
     });
   }
 
+  if (name === "logistics-10k") {
+    return sampleBenchmark("logistics-10k", {
+      sampleCount,
+      warmupCount,
+    });
+  }
+
   if (name === "map-dirty") {
     return sampleBenchmark("map-dirty", {
       sampleCount,
@@ -817,6 +909,10 @@ function compareAgainstNamedBaseline(
 
   if (result.name === "entity-store") {
     return compareBenchmarkToBaseline(result, baseline.benchmarks["entity-store"]);
+  }
+
+  if (result.name === "logistics-10k") {
+    return compareBenchmarkToBaseline(result, baseline.benchmarks["logistics-10k"]);
   }
 
   if (result.name === "map-dirty") {
@@ -935,6 +1031,7 @@ function isBenchmarkName(value: string | undefined): value is BenchmarkName {
   return (
     value === "empty-tick" ||
     value === "entity-store" ||
+    value === "logistics-10k" ||
     value === "map-dirty" ||
     value === "pathing-100" ||
     value === "reservations" ||

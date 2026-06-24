@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-06-24T11:07:06.671Z",
+  "baselinePath": "packages/benchmarks/baseline.json",
+  "artifactPath": "coordination/artifacts/WM-0026/benchmarks/benchmark-results.json",
+  "sampleCount": 5,
+  "warmupCount": 1,
+  "environment": {
+    "nodeVersion": "v24.13.1",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "results": [
+    {
+      "name": "logistics-10k",
+      "sampleElapsedMs": [
+        9.94980000000001,
+        4.233000000000004,
+        6.490300000000019,
+        3.1677999999999997,
+        4.218899999999991
+      ],
+      "stats": {
+        "sampleCount": 5,
+        "minElapsedMs": 3.1677999999999997,
+        "medianElapsedMs": 4.233000000000004,
+        "maxElapsedMs": 9.94980000000001,
+        "meanElapsedMs": 5.611960000000005
+      },
+      "invariants": {
+        "sourceSlotCount": 10000,
+        "destinationSlotCount": 100,
+        "pawnCount": 100,
+        "candidateCap": 8,
+        "selectedCap": 1,
+        "totalBucketCandidates": 5000,
+        "visitedCandidates": 800,
+        "selectedOffers": 100,
+        "candidateCapHits": 100,
+        "haulingJobs": 100,
+        "deliveredJobs": 100,
+        "finalActiveClaims": 0,
+        "initialQuantity": 40000,
+        "finalQuantity": 40000,
+        "activeSupplySlots": 10100,
+        "activeDemandSlots": 100,
+        "dirtyBacklog": 0,
+        "selectionChecksum": 1148929120,
+        "quantityChecksum": 1647230824
+      },
+      "comparison": {
+        "name": "logistics-10k",
+        "status": "ok",
+        "actualMedianElapsedMs": 4.233000000000004,
+        "baselineMedianElapsedMs": 30,
+        "regressionPercent": -85.88999999999999,
+        "warnRegressionPercent": 10,
+        "failRegressionPercent": 20,
+        "invariantMismatches": []
+      }
+    }
+  ]
+}

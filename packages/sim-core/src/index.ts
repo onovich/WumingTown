@@ -47,6 +47,20 @@ export {
   restoreJobCoreStore,
 } from "./job-core";
 export {
+  ITEM_STACK_SNAPSHOT_VERSION,
+  ItemStackStore,
+  createItemStackStore,
+} from "./item-stack-store";
+export {
+  StorageLogisticsIndex,
+  createStorageLogisticsIndex,
+} from "./storage-logistics-index";
+export {
+  HAULING_JOB_KIND,
+  HaulingJobStore,
+  createHaulingJobStore,
+} from "./hauling-jobs";
+export {
   LOCATION_CONTAINER,
   LOCATION_MAP,
   LOCATION_NONE,
@@ -225,6 +239,28 @@ export type {
   JobTerminalResult,
   JobTickResult,
 } from "./job-core";
+export type {
+  ItemStackCreateInput,
+  ItemStackMetrics,
+  ItemStackMutationResult,
+  ItemStackReason,
+  ItemStackView,
+} from "./item-stack-store";
+export type {
+  StorageLogisticsMetrics,
+  StorageLogisticsMutationResult,
+  StorageLogisticsReason,
+  StorageSlotInput,
+  StorageSlotView,
+} from "./storage-logistics-index";
+export type {
+  HaulingJobCreateInput,
+  HaulingJobView,
+  HaulingMetrics,
+  HaulingMutationResult,
+  HaulingReason,
+  HaulingStep,
+} from "./hauling-jobs";
 export type {
   LocationCleanupReason,
   LocationDestroyResult,
