@@ -135,6 +135,43 @@ describe("versioned path request batching and Top-K pathing", () => {
     expect(readGoal(resolved.results[1])).toBe(56);
   });
 
+  it("distinguishes blocked, no-route and node-budget path failures", () => {
+    const blockedFixture = createPathFixture(4, 4);
+    const blockedPathfinder = createGridPathfinder(blockedFixture.grid.cellCount);
+
+    expect(blockedFixture.grid.updateCell(0, 0, { terrain: MAP_TERRAIN_BLOCKED }).ok).toBe(true);
+    expect(
+      blockedPathfinder.findPath(
+        blockedFixture.grid,
+        createRequest(1, 0, 0, 15, blockedFixture.basis),
+      ),
+    ).toMatchObject({ ok: false, reason: "path_start_blocked", nodeExpansions: 0 });
+
+    const noRouteFixture = createPathFixture(3, 3);
+    const noRoutePathfinder = createGridPathfinder(noRouteFixture.grid.cellCount);
+
+    for (let x = 0; x < noRouteFixture.grid.width; x += 1) {
+      expect(noRouteFixture.grid.updateCell(x, 1, { terrain: MAP_TERRAIN_BLOCKED }).ok).toBe(true);
+    }
+
+    expect(
+      noRoutePathfinder.findPath(
+        noRouteFixture.grid,
+        createRequest(2, 0, 0, 8, noRouteFixture.basis),
+      ),
+    ).toMatchObject({ ok: false, reason: "path_no_route" });
+
+    const budgetFixture = createPathFixture(8, 8);
+    const budgetPathfinder = createGridPathfinder(budgetFixture.grid.cellCount);
+
+    expect(
+      budgetPathfinder.findPath(budgetFixture.grid, {
+        ...createRequest(3, 0, 0, 63, budgetFixture.basis),
+        maxNodeExpansions: 1,
+      }),
+    ).toMatchObject({ ok: false, reason: "path_node_budget_exhausted" });
+  });
+
   it("reissues a fresh request after version changes instead of reusing an old complete path", () => {
     const { grid, rebuild, basis } = createPathFixture(6, 6);
     const pathfinder = createGridPathfinder(grid.cellCount);

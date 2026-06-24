@@ -48,7 +48,7 @@ work/logistics vertical slice without changing baseline thresholds.
 M2 implementation and benchmark tasks must report:
 
 - visited WorkOffer rows, scored rows, selected rows and candidate-cap hits;
-- exact-path Top-K candidates, A* node visits, accepted results and stale
+- exact-path Top-K candidates, A\* node visits, accepted results and stale
   version-basis rejects;
 - reservation transaction attempts, accepted/rejected claims, conflict classes,
   cleanup releases and final active claim count;
@@ -65,6 +65,23 @@ Normal M2 ticks must still avoid global scans, unbounded sorts and per-entity
 allocation in actor thinking, work selection, reservation, pathing, cleanup and
 read-model production. Load-time rebuild scans are allowed only before resumed
 ticks and must be measured.
+
+## WM-0035 benchmark note
+
+`packages/benchmarks/src/m2-path-work-selection-benchmark.ts` measures the M2
+Region/A* work-selection bind without changing the existing benchmark baseline
+file. The benchmark registers indexed WorkOffer rows, performs 100 bounded
+selection attempts with `candidateCap = 24`, `selectedCap = 12` and
+`exactPathCap = 4`, and records visited/scored/selected candidates, cap hits,
+exact path requests, accepted path results, stale basis rejects, queue backlog,
+A* node expansions and a deterministic checksum.
+
+The existing benchmark CLI registry does not yet include a
+`m2-path-work-selection` filter, and that registry is outside WM-0035's allowed
+edit paths. WM-0035 therefore writes the focused artifact through the exported
+benchmark helper under
+`coordination/artifacts/WM-0035/benchmarks/m2-path-work-selection-results.json`
+while preserving the existing `pathing-100` baseline gate.
 
 ## WM-0019 benchmark note
 

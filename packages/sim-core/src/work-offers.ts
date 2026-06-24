@@ -1,4 +1,13 @@
 import { assertValidCapacity } from "./entity-id";
+import type { MapGrid } from "./map-grid";
+import {
+  samePathBasis,
+  type GridPathfinder,
+  type PathReason,
+  type PathRequest,
+  type PathSearchResult,
+  type PathVersionBasis,
+} from "./pathing";
 
 export const WORK_OFFER_NONE = 0xffff_ffff;
 
@@ -23,6 +32,18 @@ export type WorkOfferTraceReason =
   | "work_offer_trace_none"
   | "work_offer_candidate_cap"
   | "work_offer_no_candidate";
+
+export type WorkOfferPathSelectionReason =
+  | "work_path_selected"
+  | "work_path_no_indexed_candidate"
+  | "work_path_region_unreachable"
+  | "work_path_version_basis_stale"
+  | "work_path_invalid_candidate"
+  | "work_path_blocked"
+  | "work_path_no_route"
+  | "work_path_node_budget_exhausted"
+  | "work_path_exact_topk_cap"
+  | "work_path_selection_failed";
 
 export type WorkOfferMutationResult =
   | {
@@ -127,6 +148,63 @@ export interface WorkOfferSelectionOptions extends WorkOfferQuery {
   readonly pawnId: number;
   readonly maxSelectedOffers: number;
 }
+
+export interface WorkOfferPathSelectionOptions extends WorkOfferSelectionOptions {
+  readonly originCellIndex: number;
+  readonly originRegionId: number;
+  readonly issuedTick: number;
+  readonly requestSequenceStart: number;
+  readonly basis: PathVersionBasis;
+  readonly currentBasis: PathVersionBasis;
+  readonly maxExactPaths: number;
+  readonly maxNodeExpansions?: number;
+}
+
+export interface WorkOfferPathSelectionScratch {
+  readonly candidateOfferIds: Uint32Array;
+  readonly selectedOfferIds: Uint32Array;
+  readonly selectedScoresMilli: Int32Array;
+}
+
+export type WorkOfferPathSelectionResult =
+  | {
+      readonly ok: true;
+      readonly reason: WorkOfferPathSelectionReason;
+      readonly selectedOfferId: number;
+      readonly selectedTargetCellIndex: number;
+      readonly selectedPath: PathSearchResult | undefined;
+      readonly bucketCandidateCount: number;
+      readonly visitedCount: number;
+      readonly scoredCount: number;
+      readonly selectedCount: number;
+      readonly rejectedByCandidateCap: number;
+      readonly regionRejectedCount: number;
+      readonly invalidRejectedCount: number;
+      readonly blockedRejectedCount: number;
+      readonly noRouteRejectedCount: number;
+      readonly nodeBudgetRejectedCount: number;
+      readonly staleRejectedCount: number;
+      readonly exactPathCount: number;
+      readonly exactPathCapHit: boolean;
+      readonly nodeExpansions: number;
+      readonly traceSequence: number;
+    }
+  | {
+      readonly ok: false;
+      readonly reason: Extract<
+        WorkOfferReason,
+        | "work_offer_work_type_out_of_range"
+        | "work_offer_region_out_of_range"
+        | "work_offer_def_out_of_range"
+        | "work_offer_urgency_out_of_range"
+        | "work_offer_permission_out_of_range"
+        | "work_offer_candidate_cap_invalid"
+        | "work_offer_selected_cap_invalid"
+        | "work_offer_candidate_buffer_too_small"
+        | "work_offer_selection_buffer_too_small"
+        | "work_offer_trace_capacity_invalid"
+      >;
+    };
 
 export interface WorkOfferIndexMetrics {
   readonly activeOfferCount: number;
@@ -589,6 +667,170 @@ export class WorkOfferIndex {
   }
 }
 
+export function selectPathResolvedWorkOffer(
+  index: WorkOfferIndex,
+  grid: MapGrid,
+  pathfinder: GridPathfinder,
+  options: WorkOfferPathSelectionOptions,
+  scratch: WorkOfferPathSelectionScratch,
+  traceStore?: ReasonTraceStore,
+): WorkOfferPathSelectionResult {
+  const validation = validatePathSelection(options, scratch);
+
+  if (!validation.ok) {
+    return validation;
+  }
+
+  const selected = index.selectTopOffers(
+    options,
+    scratch.candidateOfferIds,
+    scratch.selectedOfferIds,
+    scratch.selectedScoresMilli,
+    traceStore,
+  );
+
+  if (!selected.ok) {
+    return selected;
+  }
+
+  let selectedReason: WorkOfferPathSelectionReason =
+    selected.selectedCount === 0 ? "work_path_no_indexed_candidate" : "work_path_selection_failed";
+  let regionRejectedCount = 0;
+  let invalidRejectedCount = 0;
+  let blockedRejectedCount = 0;
+  let noRouteRejectedCount = 0;
+  let nodeBudgetRejectedCount = 0;
+  let staleRejectedCount = 0;
+  let exactPathCount = 0;
+  let reachableCount = 0;
+  let nodeExpansions = 0;
+
+  for (let indexOffset = 0; indexOffset < selected.selectedCount; indexOffset += 1) {
+    const offerId = scratch.selectedOfferIds[indexOffset] ?? WORK_OFFER_NONE;
+
+    if (offerId === WORK_OFFER_NONE) {
+      invalidRejectedCount += 1;
+      selectedReason = firstFailureReason(selectedReason, "work_path_invalid_candidate");
+      continue;
+    }
+
+    const offer = index.readOffer(offerId);
+
+    if (offer === undefined) {
+      invalidRejectedCount += 1;
+      selectedReason = firstFailureReason(selectedReason, "work_path_invalid_candidate");
+      continue;
+    }
+
+    const targetCell = grid.readCellByIndex(offer.targetCellIndex);
+
+    if (!targetCell.ok) {
+      invalidRejectedCount += 1;
+      selectedReason = firstFailureReason(selectedReason, "work_path_invalid_candidate");
+      continue;
+    }
+
+    const passable = grid.isCellPassableByIndex(offer.targetCellIndex);
+
+    if (!passable.ok) {
+      invalidRejectedCount += 1;
+      selectedReason = firstFailureReason(selectedReason, "work_path_invalid_candidate");
+      continue;
+    }
+
+    if (!passable.passable) {
+      blockedRejectedCount += 1;
+      selectedReason = firstFailureReason(selectedReason, "work_path_blocked");
+      continue;
+    }
+
+    if (targetCell.cell.regionId !== options.originRegionId) {
+      regionRejectedCount += 1;
+      selectedReason = firstFailureReason(selectedReason, "work_path_region_unreachable");
+      continue;
+    }
+
+    reachableCount += 1;
+
+    if (exactPathCount >= options.maxExactPaths) {
+      selectedReason = firstFailureReason(selectedReason, "work_path_exact_topk_cap");
+      continue;
+    }
+
+    const request = createPathRequestForOffer(options, offer, exactPathCount);
+    const path = pathfinder.findPath(grid, request);
+    exactPathCount += 1;
+    nodeExpansions += path.nodeExpansions;
+
+    if (!samePathBasis(path.basis, options.currentBasis)) {
+      staleRejectedCount += 1;
+      selectedReason = firstFailureReason(selectedReason, "work_path_version_basis_stale");
+      continue;
+    }
+
+    if (path.ok) {
+      return {
+        ok: true,
+        reason: "work_path_selected",
+        selectedOfferId: offer.offerId,
+        selectedTargetCellIndex: offer.targetCellIndex,
+        selectedPath: path,
+        bucketCandidateCount: selected.bucketCandidateCount,
+        visitedCount: selected.visitedCount,
+        scoredCount: selected.scoredCount,
+        selectedCount: selected.selectedCount,
+        rejectedByCandidateCap: selected.rejectedByCandidateCap,
+        regionRejectedCount,
+        invalidRejectedCount,
+        blockedRejectedCount,
+        noRouteRejectedCount,
+        nodeBudgetRejectedCount,
+        staleRejectedCount,
+        exactPathCount,
+        exactPathCapHit: selected.selectedCount > options.maxExactPaths,
+        nodeExpansions,
+        traceSequence: selected.traceSequence,
+      };
+    }
+
+    const pathReason = mapPathReasonToWorkReason(path.reason);
+    selectedReason = firstFailureReason(selectedReason, pathReason);
+
+    if (pathReason === "work_path_blocked") {
+      blockedRejectedCount += 1;
+    } else if (pathReason === "work_path_no_route") {
+      noRouteRejectedCount += 1;
+    } else if (pathReason === "work_path_node_budget_exhausted") {
+      nodeBudgetRejectedCount += 1;
+    } else {
+      invalidRejectedCount += 1;
+    }
+  }
+
+  return {
+    ok: true,
+    reason: selectedReason,
+    selectedOfferId: WORK_OFFER_NONE,
+    selectedTargetCellIndex: WORK_OFFER_NONE,
+    selectedPath: undefined,
+    bucketCandidateCount: selected.bucketCandidateCount,
+    visitedCount: selected.visitedCount,
+    scoredCount: selected.scoredCount,
+    selectedCount: selected.selectedCount,
+    rejectedByCandidateCap: selected.rejectedByCandidateCap,
+    regionRejectedCount,
+    invalidRejectedCount,
+    blockedRejectedCount,
+    noRouteRejectedCount,
+    nodeBudgetRejectedCount,
+    staleRejectedCount,
+    exactPathCount,
+    exactPathCapHit: reachableCount > options.maxExactPaths,
+    nodeExpansions,
+    traceSequence: selected.traceSequence,
+  };
+}
+
 export class ReasonTraceStore {
   readonly capacity: number;
 
@@ -709,6 +951,102 @@ export function createWorkOfferIndex(options: WorkOfferIndexOptions): WorkOfferI
 
 export function createReasonTraceStore(capacity: number): ReasonTraceStore {
   return new ReasonTraceStore(capacity);
+}
+
+function validatePathSelection(
+  options: WorkOfferPathSelectionOptions,
+  scratch: WorkOfferPathSelectionScratch,
+):
+  | { readonly ok: true }
+  | {
+      readonly ok: false;
+      readonly reason: Extract<
+        WorkOfferReason,
+        | "work_offer_candidate_cap_invalid"
+        | "work_offer_selected_cap_invalid"
+        | "work_offer_candidate_buffer_too_small"
+        | "work_offer_selection_buffer_too_small"
+        | "work_offer_trace_capacity_invalid"
+      >;
+    } {
+  if (!isPositiveSafeInteger(options.maxExactPaths)) {
+    return { ok: false, reason: "work_offer_trace_capacity_invalid" };
+  }
+
+  if (scratch.candidateOfferIds.length < options.candidateCap) {
+    return { ok: false, reason: "work_offer_candidate_buffer_too_small" };
+  }
+
+  if (
+    scratch.selectedOfferIds.length < options.maxSelectedOffers ||
+    scratch.selectedScoresMilli.length < options.maxSelectedOffers
+  ) {
+    return { ok: false, reason: "work_offer_selection_buffer_too_small" };
+  }
+
+  return { ok: true };
+}
+
+function createPathRequestForOffer(
+  options: WorkOfferPathSelectionOptions,
+  offer: WorkOfferInput,
+  exactPathOffset: number,
+): PathRequest {
+  const request = {
+    requestSequence: options.requestSequenceStart + exactPathOffset,
+    issuedTick: options.issuedTick,
+    startCellIndex: options.originCellIndex,
+    goalCellIndex: offer.targetCellIndex,
+    basis: options.basis,
+  };
+
+  if (options.maxNodeExpansions === undefined) {
+    return request;
+  }
+
+  return {
+    ...request,
+    maxNodeExpansions: options.maxNodeExpansions,
+  };
+}
+
+function mapPathReasonToWorkReason(reason: PathReason): WorkOfferPathSelectionReason {
+  if (reason === "path_stale_result") {
+    return "work_path_version_basis_stale";
+  }
+
+  if (reason === "path_start_blocked" || reason === "path_goal_blocked") {
+    return "work_path_blocked";
+  }
+
+  if (reason === "path_no_route") {
+    return "work_path_no_route";
+  }
+
+  if (reason === "path_node_budget_exhausted") {
+    return "work_path_node_budget_exhausted";
+  }
+
+  return "work_path_invalid_candidate";
+}
+
+function firstFailureReason(
+  current: WorkOfferPathSelectionReason,
+  next: WorkOfferPathSelectionReason,
+): WorkOfferPathSelectionReason {
+  if (current === "work_path_selection_failed") {
+    return next;
+  }
+
+  if (current === "work_path_no_indexed_candidate") {
+    return next;
+  }
+
+  if (current === "work_path_exact_topk_cap" && next !== "work_path_exact_topk_cap") {
+    return next;
+  }
+
+  return current;
 }
 
 function createEmptyLinks(length: number): Int32Array {

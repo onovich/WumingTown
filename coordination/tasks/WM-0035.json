@@ -2,7 +2,7 @@
   "id": "WM-0035",
   "title": "Integrate Region A star into work selection",
   "summary": "Make real work selection consume region reachability, local A star, stale-result rejection and bounded exact pathing without global pawn scans.",
-  "state": "in_progress",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,7 +32,7 @@
   ],
   "branch": "task/WM-0035-integrate-region-a-star-into-work-selection",
   "createdAt": "2026-06-24T21:14:35.180Z",
-  "updatedAt": "2026-06-24T22:15:47.484Z",
+  "updatedAt": "2026-06-24T22:50:00.125Z",
   "history": [
     {
       "at": "2026-06-24T21:14:35.180Z",
@@ -50,6 +50,42 @@
       "at": "2026-06-24T22:15:47.483Z",
       "actor": "simulation-engineer",
       "action": "claim",
+      "details": ""
+    },
+    {
+      "at": "2026-06-24T22:33:34.075Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Integrated bounded versioned pathing into indexed work selection; focused tests pass; M2 benchmark artifact records 100 exact paths and 25 stale rejects"
+    },
+    {
+      "at": "2026-06-24T22:44:51.470Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: Medium: pnpm quality fails ESLint in packages/sim-core/src/work-offers.ts:696-698 (prefer-const/no-unassigned-vars dead selected result state). Required focused gates pass, but full quality gate is not integration-ready."
+    },
+    {
+      "at": "2026-06-24T22:47:18.907Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Addressed reviewer lint blocker; full quality gate passes for bounded path work selection."
+    },
+    {
+      "at": "2026-06-24T22:49:13.439Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: Re-review verified: dead selected-result locals removed from work-offers.ts; pnpm quality passes including lint/typecheck/tests; taskctl validate and git diff --check pass; WM-0022 artifact remains clean."
+    },
+    {
+      "at": "2026-06-24T22:49:55.041Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integrated verified bounded pathing into indexed work selection; reviewer confirmed quality gate and artifact-backed metrics."
+    },
+    {
+      "at": "2026-06-24T22:50:00.124Z",
+      "actor": "project-director",
+      "action": "done",
       "details": ""
     }
   ],
@@ -93,5 +129,17 @@
   },
   "claimedBy": "simulation-engineer",
   "threadLabel": null,
-  "blocker": null
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0035.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "Re-review verified: dead selected-result locals removed from work-offers.ts; pnpm quality passes including lint/typecheck/tests; taskctl validate and git diff --check pass; WM-0022 artifact remains clean.",
+    "at": "2026-06-24T22:49:13.439Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integrated verified bounded pathing into indexed work selection; reviewer confirmed quality gate and artifact-backed metrics.",
+    "at": "2026-06-24T22:49:55.041Z"
+  }
 }

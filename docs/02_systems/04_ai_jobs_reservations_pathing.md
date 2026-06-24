@@ -115,6 +115,21 @@ most `candidateCap` offers from one indexed bucket, selects at most
 bounded ReasonTrace data. The documented M1 cap remains 8 scored offers per
 pawn before exact pathing.
 
+## WM-0035 implementation note
+
+`selectPathResolvedWorkOffer` binds the indexed WorkOffer selection path to
+versioned local pathing for M2. The caller supplies the indexed query and typed
+scratch buffers; the helper never discovers work by scanning map cells or
+entities. The provisional M2 caps are explicit in the call: visit up to the
+query `candidateCap`, score up to `maxSelectedOffers`, and exact-path no more
+than `maxExactPaths` Top-K candidates.
+
+The returned reason and counters distinguish indexed no-candidate,
+region-unreachable, stale path basis, invalid candidate, blocked target,
+no-route, node-budget and exact Top-K-cap outcomes. The helper returns only a
+selected path result and metrics; it does not create jobs, mutate reservations,
+move items, or persist actor-owned full paths.
+
 ## WM-0025 implementation note
 
 `packages/sim-core/src/job-core.ts` adds `JobCoreStore`, the first explicit

@@ -92,6 +92,16 @@ neighbor APIs, so wall, door and terrain edits remain owned by the map and
 region-room rebuild systems. Later region-graph pathing can replace or precede
 the local A star without changing the stale-result contract.
 
+## WM-0035 implementation note
+
+M2 work selection now resolves pathing only for caller-supplied WorkOffer
+candidates that already came from the indexed bucket query. Candidate rows are
+checked against current target cell passability and region id before exact
+pathing; stale region rows reject as `work_path_region_unreachable` without
+running A\*. Exact path requests still carry map, navigation, region, room and
+region-graph versions, and the selection result rejects stale path bases before
+returning a selectable work path.
+
 ## WM-0027 implementation note
 
 The M1 road-lantern-frame completion path creates one entity and places it at

@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQSNYDMK-2A2B71",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0035",
+  "kind": "review-request",
+  "subject": "WM-0035 ready for review",
+  "body": "Addressed reviewer lint blocker; full quality gate passes for bounded path work selection.",
+  "artifacts": [
+    "coordination/reports/WM-0035.md",
+    "task/WM-0035-integrate-region-a-star-into-work-selection"
+  ],
+  "createdAt": "2026-06-24T22:47:18.908Z",
+  "acknowledgedAt": "2026-06-24T22:47:53.303Z"
+}

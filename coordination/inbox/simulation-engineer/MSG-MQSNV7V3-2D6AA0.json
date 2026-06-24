@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQSNV7V3-2D6AA0",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0035",
+  "kind": "changes-requested",
+  "subject": "WM-0035 review: changes_requested",
+  "body": "Medium: pnpm quality fails ESLint in packages/sim-core/src/work-offers.ts:696-698 (prefer-const/no-unassigned-vars dead selected result state). Required focused gates pass, but full quality gate is not integration-ready.",
+  "artifacts": [
+    "coordination/reports/WM-0035.md"
+  ],
+  "createdAt": "2026-06-24T22:44:51.471Z",
+  "acknowledgedAt": "2026-06-24T22:47:53.303Z"
+}

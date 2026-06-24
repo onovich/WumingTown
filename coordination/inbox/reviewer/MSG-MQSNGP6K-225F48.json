@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQSNGP6K-225F48",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0035",
+  "kind": "review-request",
+  "subject": "WM-0035 ready for review",
+  "body": "Integrated bounded versioned pathing into indexed work selection; focused tests pass; M2 benchmark artifact records 100 exact paths and 25 stale rejects",
+  "artifacts": [
+    "coordination/reports/WM-0035.md",
+    "task/WM-0035-integrate-region-a-star-into-work-selection"
+  ],
+  "createdAt": "2026-06-24T22:33:34.076Z",
+  "acknowledgedAt": "2026-06-24T22:36:42.562Z"
+}

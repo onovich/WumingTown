@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQSO0U00-8FF570",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0035",
+  "kind": "review-approved",
+  "subject": "WM-0035 review: verified",
+  "body": "Re-review verified: dead selected-result locals removed from work-offers.ts; pnpm quality passes including lint/typecheck/tests; taskctl validate and git diff --check pass; WM-0022 artifact remains clean.",
+  "artifacts": [
+    "coordination/reports/WM-0035.md"
+  ],
+  "createdAt": "2026-06-24T22:49:13.440Z",
+  "acknowledgedAt": "2026-06-24T22:49:49.385Z"
+}

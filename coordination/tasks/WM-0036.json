@@ -2,7 +2,7 @@
   "id": "WM-0036",
   "title": "Scale WorkOffer scoring for multiple pawns",
   "summary": "Scale WorkOffer lookup, scoring and assignment to multiple pawns with deterministic tie-breaking, bounded visits and ReasonTrace evidence.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,13 +32,19 @@
   ],
   "branch": "task/WM-0036-scale-work-offer-scoring-for-multiple-pawns",
   "createdAt": "2026-06-24T21:14:35.180Z",
-  "updatedAt": "2026-06-24T21:14:35.180Z",
+  "updatedAt": "2026-06-24T22:50:00.128Z",
   "history": [
     {
       "at": "2026-06-24T21:14:35.180Z",
       "actor": "systems-architect",
       "action": "create",
       "details": "Created by WM-0032 M2 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-24T22:50:00.128Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "objective": "Make multi-pawn work selection bounded, deterministic and explainable.",
