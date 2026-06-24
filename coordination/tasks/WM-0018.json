@@ -2,7 +2,7 @@
   "id": "WM-0018",
   "title": "Propose ADR 0006 for deterministic numeric and phase contracts",
   "summary": "Produce the proposed PRNG/fixed-point/phase contract ADR for M1 deterministic numeric semantics, command phases, async version checks and stable ordering.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0018-propose-adr-0006-for-deterministic-numeric-and-p",
   "createdAt": "2026-06-23T23:08:02.064Z",
-  "updatedAt": "2026-06-24T05:53:39.448Z",
+  "updatedAt": "2026-06-24T05:58:10.547Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.065Z",
@@ -61,6 +61,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings; reviewed branch/origin HEAD 26e4187e7491643083af5f40a4e726b017bcea03. ADR-0006 remains Proposed, covers numeric scales/phases/order/RNG/async stale rejection/prohibitions, and required checks pass without implementation or dependency changes."
+    },
+    {
+      "at": "2026-06-24T05:57:57.133Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Fast-forward merged origin/task/WM-0018-propose-adr-0006-for-deterministic-numeric-and-p at 5588571857fcccbd0c3c67232e87a66cc593c597; reviewer verified ADR-0006; main gates passed: validate-handoff, taskctl validate/status, git diff --check, pnpm quality."
+    },
+    {
+      "at": "2026-06-24T05:58:10.547Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "claimedBy": "systems-architect",
@@ -72,5 +84,10 @@
     "verdict": "verified",
     "summary": "No blocking findings; reviewed branch/origin HEAD 26e4187e7491643083af5f40a4e726b017bcea03. ADR-0006 remains Proposed, covers numeric scales/phases/order/RNG/async stale rejection/prohibitions, and required checks pass without implementation or dependency changes.",
     "at": "2026-06-24T05:53:39.447Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Fast-forward merged origin/task/WM-0018-propose-adr-0006-for-deterministic-numeric-and-p at 5588571857fcccbd0c3c67232e87a66cc593c597; reviewer verified ADR-0006; main gates passed: validate-handoff, taskctl validate/status, git diff --check, pnpm quality.",
+    "at": "2026-06-24T05:57:57.133Z"
   }
 }
