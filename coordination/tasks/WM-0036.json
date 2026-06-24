@@ -2,7 +2,7 @@
   "id": "WM-0036",
   "title": "Scale WorkOffer scoring for multiple pawns",
   "summary": "Scale WorkOffer lookup, scoring and assignment to multiple pawns with deterministic tie-breaking, bounded visits and ReasonTrace evidence.",
-  "state": "ready",
+  "state": "in_progress",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,7 +32,7 @@
   ],
   "branch": "task/WM-0036-scale-work-offer-scoring-for-multiple-pawns",
   "createdAt": "2026-06-24T21:14:35.180Z",
-  "updatedAt": "2026-06-24T22:50:00.128Z",
+  "updatedAt": "2026-06-24T22:52:51.578Z",
   "history": [
     {
       "at": "2026-06-24T21:14:35.180Z",
@@ -45,6 +45,12 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-24T22:52:51.578Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": ""
     }
   ],
   "objective": "Make multi-pawn work selection bounded, deterministic and explainable.",
@@ -82,5 +88,8 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Multi-pawn deterministic scoring and performance-sensitive selection are not suitable for Spark."
-  }
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": null,
+  "blocker": null
 }
