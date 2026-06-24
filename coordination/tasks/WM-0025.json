@@ -2,7 +2,7 @@
   "id": "WM-0025",
   "title": "Implement serializable Job Driver state machines",
   "summary": "Implement explicit serializable Job and Driver state machines, interruption policies, cancellation cleanup, structured failures and save fields.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,7 +32,7 @@
   ],
   "branch": "task/WM-0025-implement-serializable-job-driver-state-machines",
   "createdAt": "2026-06-23T23:08:02.344Z",
-  "updatedAt": "2026-06-24T10:39:34.496Z",
+  "updatedAt": "2026-06-24T10:47:30.442Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.344Z",
@@ -75,6 +75,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: Verified WM-0025 rereview: malformed JobCore snapshot inputs now fail closed with structured reasons without mutation, jobs regression coverage passes, and required typecheck/jobs/replay/taskctl/diff checks pass."
+    },
+    {
+      "at": "2026-06-24T10:47:22.353Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Fast-forward integrated verified WM-0025 JobCore explicit state-machine work into main at 10ae9d1 after main gates and pnpm quality passed."
+    },
+    {
+      "at": "2026-06-24T10:47:30.442Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "claimedBy": "simulation-engineer",
@@ -86,5 +98,10 @@
     "verdict": "verified",
     "summary": "Verified WM-0025 rereview: malformed JobCore snapshot inputs now fail closed with structured reasons without mutation, jobs regression coverage passes, and required typecheck/jobs/replay/taskctl/diff checks pass.",
     "at": "2026-06-24T10:39:34.495Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Fast-forward integrated verified WM-0025 JobCore explicit state-machine work into main at 10ae9d1 after main gates and pnpm quality passed.",
+    "at": "2026-06-24T10:47:22.353Z"
   }
 }

@@ -2,7 +2,7 @@
   "id": "WM-0026",
   "title": "Implement minimal item storage and hauling jobs",
   "summary": "Implement the minimal item stack, storage demand/supply index and hauling job path needed by the first hauling/building vertical scenario.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,13 +30,19 @@
   ],
   "branch": "task/WM-0026-implement-minimal-item-storage-and-hauling-jobs",
   "createdAt": "2026-06-23T23:08:02.385Z",
-  "updatedAt": "2026-06-23T23:08:02.385Z",
+  "updatedAt": "2026-06-24T10:47:30.449Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.385Z",
       "actor": "taskctl",
       "action": "create",
       "details": ""
+    },
+    {
+      "at": "2026-06-24T10:47:30.449Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ]
 }
