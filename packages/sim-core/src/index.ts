@@ -39,6 +39,14 @@ export {
   createWorkOfferIndex,
 } from "./work-offers";
 export {
+  JOB_CORE_SNAPSHOT_VERSION,
+  JOB_NONE,
+  JobCoreStore,
+  createJobCoreHashFields,
+  createJobCoreStore,
+  restoreJobCoreStore,
+} from "./job-core";
+export {
   LOCATION_CONTAINER,
   LOCATION_MAP,
   LOCATION_NONE,
@@ -197,6 +205,26 @@ export type {
   WorkOfferSelectionResult,
   WorkOfferTraceReason,
 } from "./work-offers";
+export type {
+  JobCoreMetrics,
+  JobCoreMutationResult,
+  JobCoreReason,
+  JobCoreSnapshot,
+  JobCoreSnapshotInput,
+  JobCoreStoreOptions,
+  JobCreateInput,
+  JobDriverStep,
+  JobFailureReason,
+  JobInterruptResult,
+  JobInterruptionKind,
+  JobInterruptionPolicy,
+  JobRecordSnapshot,
+  JobRecordView,
+  JobSnapshotResult,
+  JobStatus,
+  JobTerminalResult,
+  JobTickResult,
+} from "./job-core";
 export type {
   LocationCleanupReason,
   LocationDestroyResult,

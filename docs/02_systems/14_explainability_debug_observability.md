@@ -40,3 +40,15 @@ offer id/score, candidate-cap rejection count and semantic reason class.
 Runtime selection writes compact numeric lanes; debug/test reads can materialize
 structured views. Default task coverage uses a 16-trace store, matching the M1
 scenario contract's bounded latest-trace expectation.
+
+## WM-0025 implementation note
+
+`JobCoreStore` stores job failure and interruption outcomes as structured
+numeric lanes that materialize to reason classes: permission, material,
+reservation, path, risk, time, target-state and cancelled. These are shared by
+complete/fail/cancel/interruption paths instead of being UI-only explanation
+strings.
+
+The job snapshot hash helper exposes deterministic fields for replay and debug
+comparison. Later scenario traces can reference these job reason classes
+without duplicating separate explanation logic.

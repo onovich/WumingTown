@@ -94,3 +94,17 @@ most `candidateCap` offers from one indexed bucket, selects at most
 `maxSelectedOffers`, orders by score descending and stable offer id, and records
 bounded ReasonTrace data. The documented M1 cap remains 8 scored offers per
 pawn before exact pathing.
+
+## WM-0025 implementation note
+
+`packages/sim-core/src/job-core.ts` adds `JobCoreStore`, the first explicit
+serializable Job Driver state surface. Jobs store owner handle, kind, target,
+status, current driver step, interruption policy, step-entered tick, per-step
+tick count, integer Q16 progress, required work, carried state and structured
+failure reason in numeric lanes.
+
+Driver movement is exposed through `createJob`, `enterStep`, `tickJob`,
+`completeJob`, `failJob`, `cancelJob` and `requestInterruption`. No Promise,
+Generator, coroutine, closure or UI execution position is stored. Terminal
+paths share cleanup that releases `ReservationLedger` owner/job claims and
+clears carried state.

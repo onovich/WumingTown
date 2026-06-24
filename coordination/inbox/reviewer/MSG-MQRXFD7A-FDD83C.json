@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQRXFD7A-FDD83C",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0025",
+  "kind": "review-request",
+  "subject": "WM-0025 ready for review",
+  "body": "Implemented explicit serializable JobCore state machines, interruption cleanup, structured failure reasons, snapshot/hash helpers, jobs tests, replay check, docs and report.",
+  "artifacts": [
+    "coordination/reports/WM-0025.md",
+    "task/WM-0025-implement-serializable-job-driver-state-machines"
+  ],
+  "createdAt": "2026-06-24T10:24:41.878Z",
+  "acknowledgedAt": null
+}
