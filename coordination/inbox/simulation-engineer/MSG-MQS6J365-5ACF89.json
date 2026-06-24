@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQS6J365-5ACF89",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0028",
+  "kind": "changes-requested",
+  "subject": "WM-0028 review: changes_requested",
+  "body": "High: loadM1HaulingBuildingSaveEnvelope accepts tampered nested read-only projection payloads while returning ok; Medium: worker-smoke M1 parity uses in-process worker only and does not instantiate browser-worker-entry in a real browser Worker.",
+  "artifacts": [
+    "coordination/reports/WM-0028.md"
+  ],
+  "createdAt": "2026-06-24T14:39:32.045Z",
+  "acknowledgedAt": "2026-06-24T14:41:20.946Z"
+}

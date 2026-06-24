@@ -22,9 +22,9 @@
       "registeredAt": "2026-06-24T05:31:04.442Z"
     },
     "simulation-engineer": {
-      "threadId": "Sim-WM-0028",
-      "label": "WM-0028-save-worker-parity",
-      "registeredAt": "2026-06-24T12:06:03.208Z"
+      "threadId": "019efa13-a03d-7b61-b4ff-a96eb613a509",
+      "label": "WM-0028-repair",
+      "registeredAt": "2026-06-24T14:41:13.602Z"
     },
     "client-engineer": {
       "threadId": "019ef650-10ca-7e13-b072-9be37575c2be",
@@ -47,5 +47,5 @@
       "registeredAt": "2026-06-24T04:15:21.579Z"
     }
   },
-  "updatedAt": "2026-06-24T14:33:26.707Z"
+  "updatedAt": "2026-06-24T14:41:13.602Z"
 }

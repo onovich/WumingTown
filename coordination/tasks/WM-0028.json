@@ -2,7 +2,7 @@
   "id": "WM-0028",
   "title": "Implement M1 save replay and Worker headless parity harness",
   "summary": "Wire the M1 kernel through save/load, replay checkpoints, Worker execution and Node headless execution so the hauling/building scenario has identical authoritative hash.",
-  "state": "review_requested",
+  "state": "in_progress",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,7 +32,7 @@
   ],
   "branch": "task/WM-0028-implement-m1-save-replay-and-worker-headless-par",
   "createdAt": "2026-06-23T23:08:02.466Z",
-  "updatedAt": "2026-06-24T13:14:43.329Z",
+  "updatedAt": "2026-06-24T14:43:09.544Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.467Z",
@@ -57,10 +57,28 @@
       "actor": "simulation-engineer",
       "action": "complete",
       "details": "Implemented focused M1 save/replay and Worker/headless parity harness; required checks pass: typecheck, m1-save-replay, worker-smoke, sim:replay-test, taskctl validate, git diff --check; extra gates format:check and lint pass."
+    },
+    {
+      "at": "2026-06-24T14:39:32.044Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: loadM1HaulingBuildingSaveEnvelope accepts tampered nested read-only projection payloads while returning ok; Medium: worker-smoke M1 parity uses in-process worker only and does not instantiate browser-worker-entry in a real browser Worker."
+    },
+    {
+      "at": "2026-06-24T14:43:09.543Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Sim-WM-0028-repair"
     }
   ],
   "claimedBy": "simulation-engineer",
-  "threadLabel": "Sim-WM-0028",
+  "threadLabel": "Sim-WM-0028-repair",
   "blocker": null,
-  "reportPath": "coordination/reports/WM-0028.md"
+  "reportPath": "coordination/reports/WM-0028.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "changes_requested",
+    "summary": "High: loadM1HaulingBuildingSaveEnvelope accepts tampered nested read-only projection payloads while returning ok; Medium: worker-smoke M1 parity uses in-process worker only and does not instantiate browser-worker-entry in a real browser Worker.",
+    "at": "2026-06-24T14:39:32.043Z"
+  }
 }
