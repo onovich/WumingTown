@@ -2,7 +2,7 @@
   "id": "WM-0028",
   "title": "Implement M1 save replay and Worker headless parity harness",
   "summary": "Wire the M1 kernel through save/load, replay checkpoints, Worker execution and Node headless execution so the hauling/building scenario has identical authoritative hash.",
-  "state": "review_requested",
+  "state": "verified",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,7 +32,7 @@
   ],
   "branch": "task/WM-0028-implement-m1-save-replay-and-worker-headless-par",
   "createdAt": "2026-06-23T23:08:02.466Z",
-  "updatedAt": "2026-06-24T15:12:56.375Z",
+  "updatedAt": "2026-06-24T15:17:20.613Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.467Z",
@@ -75,6 +75,12 @@
       "actor": "simulation-engineer",
       "action": "complete",
       "details": "Fixed reviewer findings: nested read-only projection tampering now fails closed, and worker-smoke now covers a real Chromium module Worker using browser-worker-entry.ts; required checks pass including typecheck, m1-save-replay, worker-smoke, sim:replay-test, taskctl validate and git diff --check; format:check and lint also pass."
+    },
+    {
+      "at": "2026-06-24T15:17:20.613Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings on re-review; nested save projection validation now fails closed, real Chromium module Worker parity is covered, and required checks plus format/lint pass."
     }
   ],
   "claimedBy": "simulation-engineer",
@@ -83,8 +89,8 @@
   "reportPath": "coordination/reports/WM-0028.md",
   "review": {
     "reviewer": "reviewer",
-    "verdict": "changes_requested",
-    "summary": "High: loadM1HaulingBuildingSaveEnvelope accepts tampered nested read-only projection payloads while returning ok; Medium: worker-smoke M1 parity uses in-process worker only and does not instantiate browser-worker-entry in a real browser Worker.",
-    "at": "2026-06-24T14:39:32.043Z"
+    "verdict": "verified",
+    "summary": "No blocking findings on re-review; nested save projection validation now fails closed, real Chromium module Worker parity is covered, and required checks plus format/lint pass.",
+    "at": "2026-06-24T15:17:20.613Z"
   }
 }
