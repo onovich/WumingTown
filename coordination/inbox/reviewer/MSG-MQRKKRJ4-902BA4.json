@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQRKKRJ4-902BA4",
+  "from": "gameplay-designer",
+  "to": "reviewer",
+  "taskId": "WM-0014",
+  "kind": "review-request",
+  "subject": "WM-0014 ready for review",
+  "body": "Defined M1 hauling/building scenario contract m1.hauling_building.road_lantern_frame.v1 with fixture bounds, command stream, expected end state, invariants, failure reasons, pillar guardrails and implementation path constraints; required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0014.md",
+    "task/WM-0014-define-the-m1-hauling-building-vertical-scenario"
+  ],
+  "createdAt": "2026-06-24T04:24:58.720Z",
+  "acknowledgedAt": null
+}

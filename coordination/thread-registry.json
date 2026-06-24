@@ -40,7 +40,12 @@
       "threadId": "019ef650-24da-7c22-a896-40da4ce6f09f",
       "label": "WM-0009 content compiler",
       "registeredAt": "2026-06-23T21:08:57.632Z"
+    },
+    "gameplay-designer": {
+      "threadId": "019ef7d6-a842-7920-892f-6a5ab64e75c7",
+      "label": "WM-0014 scenario contract",
+      "registeredAt": "2026-06-24T04:15:21.579Z"
     }
   },
-  "updatedAt": "2026-06-23T23:00:02.819Z"
+  "updatedAt": "2026-06-24T04:15:21.579Z"
 }

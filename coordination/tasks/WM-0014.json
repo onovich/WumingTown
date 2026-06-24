@@ -2,7 +2,7 @@
   "id": "WM-0014",
   "title": "Define the M1 hauling building vertical scenario contract",
   "summary": "Specify the first executable gameplay scenario as hauling materials into a build site, including fixture bounds, invariants, reason expectations, and non-goals so implementation does not drift into broad content production.",
-  "state": "ready",
+  "state": "review_requested",
   "ownerRole": "gameplay-designer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -27,7 +27,7 @@
   ],
   "branch": "task/WM-0014-define-the-m1-hauling-building-vertical-scenario",
   "createdAt": "2026-06-23T23:08:01.899Z",
-  "updatedAt": "2026-06-23T23:22:41.081Z",
+  "updatedAt": "2026-06-24T04:24:58.719Z",
   "history": [
     {
       "at": "2026-06-23T23:08:01.899Z",
@@ -40,6 +40,22 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-24T04:17:37.569Z",
+      "actor": "gameplay-designer",
+      "action": "claim",
+      "details": "thread=Chronicler"
+    },
+    {
+      "at": "2026-06-24T04:24:58.718Z",
+      "actor": "gameplay-designer",
+      "action": "complete",
+      "details": "Defined M1 hauling/building scenario contract m1.hauling_building.road_lantern_frame.v1 with fixture bounds, command stream, expected end state, invariants, failure reasons, pillar guardrails and implementation path constraints; required checks pass."
     }
-  ]
+  ],
+  "claimedBy": "gameplay-designer",
+  "threadLabel": "Chronicler",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0014.md"
 }

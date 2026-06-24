@@ -8,6 +8,8 @@ M1 turns the M0 engineering foundation into an authoritative, deterministic simu
 
 The plan is intentionally split into small task packets for independent worktrees. All new tasks are `proposed`; none should be promoted to `ready` until their dependencies are done and project workflow explicitly allows promotion.
 
+The executable contract for the first vertical scenario is `docs/02_systems/15_m1_hauling_building_scenario.md`. Downstream hauling, building, replay and benchmark tasks must treat that contract as the fixture source unless a reviewed task explicitly updates it.
+
 ## Non-Negotiable Boundaries
 
 - Simulation Worker or Node headless owns all authoritative world state.
@@ -85,10 +87,10 @@ Safe concurrency after WM-0012:
 - Depends on: `WM-0012`
 - Allowed scope: scenario spec, fixture bounds, seed/command/tick horizon, invariant list, reason expectations, task acceptance refinements.
 - Forbidden scope: runtime implementation, broad production chains, item/content catalog expansion beyond named test fixture needs.
-- Observable acceptance: one concrete hauling/building scenario with map bounds, pawns, storage/source stacks, build site, command stream, expected end state, failure reasons and no-leak invariants.
+- Observable acceptance: one concrete hauling/building scenario contract with map bounds, pawns, storage/source stacks, build site, command stream, expected end state, failure reasons, pillar guardrails and no-leak invariants.
 - Required checks: `taskctl validate`, `validate-handoff`, `git diff --check`.
 - Benchmark impact: defines scenario dimensions used by later benchmark filters; no baseline change.
-- Docs update: this plan, AI/jobs, logistics and testing docs if the scenario contract exposes gaps.
+- Docs update: `docs/02_systems/15_m1_hauling_building_scenario.md`, this plan, AI/jobs, logistics and testing docs if the scenario contract exposes gaps.
 
 ### WM-0015 - ADR-0003 Entity/Store Memory Layout
 
@@ -171,7 +173,7 @@ Safe concurrency after WM-0012:
 
 - Owner: `simulation-engineer`
 - Depends on: `WM-0018`, `WM-0021`
-- Allowed scope: Region coarse paths, local A*, batched requests, candidate caps, stale result rejection.
+- Allowed scope: Region coarse paths, local A\*, batched requests, candidate caps, stale result rejection.
 - Forbidden scope: Pawn world scans, long-lived complete path caches across navigation versions, reservation acquisition.
 - Observable acceptance: path requests carry navigation versions, stale results are discarded, only bounded Top-K work candidates receive exact paths, 100-path stress benchmark reports queue behavior.
 - Required checks: `pnpm typecheck`, `pnpm test --filter pathing`, `pnpm bench --filter pathing-100`, `taskctl validate`, `git diff --check`.
@@ -217,7 +219,7 @@ Safe concurrency after WM-0012:
 - Depends on: `WM-0014`, `WM-0025`
 - Allowed scope: minimal item stacks, storage demand/supply indexes, hauling job path for the vertical scenario.
 - Forbidden scope: broad economy, crafting, production orders, balance tuning, content catalog expansion beyond fixture needs.
-- Observable acceptance: item quantities cannot duplicate or go negative; hauling reserves source amount, destination capacity and interaction cells before pickup; cancellation does not leak carried items.
+- Observable acceptance: item quantities cannot duplicate or go negative; hauling reserves source amount, destination capacity and interaction cells before pickup; cancellation does not leak carried items; the hauling portions of `m1.hauling_building.road_lantern_frame.v1` satisfy the scenario contract.
 - Required checks: `pnpm typecheck`, `pnpm test --filter hauling`, `pnpm bench --filter logistics-10k`, `taskctl validate`, `git diff --check`.
 - Benchmark impact: adds 10k logistics benchmark and item/reservation leak counters.
 - Docs update: logistics/production and AI/jobs docs.
@@ -228,7 +230,7 @@ Safe concurrency after WM-0012:
 - Depends on: `WM-0014`, `WM-0026`
 - Allowed scope: minimal build-site demand, material delivery, deterministic build progress and map/entity result.
 - Forbidden scope: production chains, building catalog, UI construction tools, balance/content expansion.
-- Observable acceptance: build site demand creates WorkOffers, delivered material converts once, progress uses deterministic integer ticks, completion commits through command phases, failures are structured.
+- Observable acceptance: build site demand creates WorkOffers, delivered material converts once, progress uses deterministic integer ticks, completion commits through command phases, failures are structured; `m1.hauling_building.road_lantern_frame.v1` reaches the expected tick-2400 end state.
 - Required checks: `pnpm typecheck`, `pnpm test --filter building`, `pnpm sim:run -- --seed 1 --scenario hauling-building --ticks 100000`, `taskctl validate`, `git diff --check`.
 - Benchmark impact: turns hauling/building into the first long-run scenario target.
 - Docs update: logistics/production, AI/jobs and map/space docs.
