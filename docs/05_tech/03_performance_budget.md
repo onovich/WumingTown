@@ -58,6 +58,15 @@ processed regions, map updates, remaining dirty cells, active backlog,
 no-sustained-growth evidence, monotonic navigation/region/room/graph versions,
 processed checksum and canonical region-room hash.
 
+## WM-0022 benchmark note
+
+`pnpm bench --filter pathing-100` measures 100 deterministic path requests on a
+32x32 map with local barriers, then processes one stale result after a version
+bump. The report records request count, accepted results, stale rejects, node
+expansions, peak/final queue backlog, reached paths and a stable path checksum.
+The benchmark artifact is written under
+`coordination/artifacts/WM-0022/benchmarks/benchmark-results.json`.
+
 ## WM-0023 benchmark note
 
 `pnpm bench --filter reservations` measures the authoritative reservation ledger

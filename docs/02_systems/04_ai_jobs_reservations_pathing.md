@@ -61,3 +61,21 @@ WM-0023 通过 `ReservationLedger` 实现首个权威账本：
 ## 性能底线
 
 任何新增 WorkGiver/WorkOffer 查询必须在文档标明候选上限和复杂度。禁止 `Pawn × WorkType × AllEntities`。
+
+## WM-0022 implementation note
+
+`packages/sim-core/src/pathing.ts` introduces the first M1 path request
+surface. `PathVersionBasis` records map, navigation, region, room and
+region-graph versions; every request and result carries that basis, and
+`PathRequestBatcher.commitResult` rejects stale results before callers can
+mutate authoritative state.
+
+`GridPathfinder` runs bounded local A star over `MapGrid` public APIs with
+caller-owned request limits and reusable typed scratch lanes. It returns
+structured reasons such as invalid cells, blocked starts/goals, no route and
+node-budget exhaustion instead of ambiguous failure strings.
+
+`resolveTopKPathCandidates` performs bounded deterministic Top-K selection over
+already indexed caller-supplied candidates, then runs exact local pathing only
+for those selected entries. The pathing layer does not scan world entities, does
+not discover work, and does not store actor-owned long-lived complete paths.

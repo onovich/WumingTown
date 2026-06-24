@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-06-24T09:37:26.041Z",
+  "baselinePath": "packages/benchmarks/baseline.json",
+  "artifactPath": "coordination/artifacts/WM-0022/benchmarks/benchmark-results.json",
+  "sampleCount": 5,
+  "warmupCount": 1,
+  "environment": {
+    "nodeVersion": "v24.13.1",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "results": [
+    {
+      "name": "pathing-100",
+      "sampleElapsedMs": [
+        4.350300000000004,
+        5.370200000000011,
+        3.966000000000008,
+        4.278199999999998,
+        5.7774
+      ],
+      "stats": {
+        "sampleCount": 5,
+        "minElapsedMs": 3.966000000000008,
+        "medianElapsedMs": 4.350300000000004,
+        "maxElapsedMs": 5.7774,
+        "meanElapsedMs": 4.748420000000005
+      },
+      "invariants": {
+        "width": 32,
+        "height": 32,
+        "requestCount": 100,
+        "staleProbeCount": 1,
+        "processedRequests": 101,
+        "acceptedResults": 100,
+        "staleRejectedResults": 1,
+        "reachedPaths": 82,
+        "nodeExpansions": 21865,
+        "queueBacklogPeak": 100,
+        "finalQueueBacklog": 0,
+        "pathChecksum": 267449330
+      },
+      "comparison": {
+        "name": "pathing-100",
+        "status": "ok",
+        "actualMedianElapsedMs": 4.350300000000004,
+        "baselineMedianElapsedMs": 10,
+        "regressionPercent": -56.49699999999995,
+        "warnRegressionPercent": 10,
+        "failRegressionPercent": 20,
+        "invariantMismatches": []
+      }
+    }
+  ]
+}

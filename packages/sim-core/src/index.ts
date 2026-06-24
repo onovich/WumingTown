@@ -23,6 +23,15 @@ export {
   createRegionRoomRebuilder,
 } from "./region-room-rebuild";
 export {
+  GridPathfinder,
+  PathRequestBatcher,
+  createGridPathfinder,
+  createPathRequestBatcher,
+  createPathVersionBasis,
+  resolveTopKPathCandidates,
+  samePathBasis,
+} from "./pathing";
+export {
   LOCATION_CONTAINER,
   LOCATION_MAP,
   LOCATION_NONE,
@@ -153,6 +162,19 @@ export type {
   RegionRoomReason,
   RegionRoomSnapshot,
 } from "./region-room-rebuild";
+export type {
+  PathBatchProcessResult,
+  PathBatcherMetrics,
+  PathCandidate,
+  PathCommitResult,
+  PathEnqueueResult,
+  PathReason,
+  PathRequest,
+  PathSearchResult,
+  PathVersionBasis,
+  TopKPathResolutionOptions,
+  TopKPathResolutionResult,
+} from "./pathing";
 export type {
   LocationCleanupReason,
   LocationDestroyResult,

@@ -23,8 +23,8 @@
     },
     "simulation-engineer": {
       "threadId": "Beacon",
-      "label": "WM-0023-fallback-implementation",
-      "registeredAt": "2026-06-24T09:04:25.011Z"
+      "label": "WM-0022-pathing-fallback",
+      "registeredAt": "2026-06-24T09:23:12.909Z"
     },
     "client-engineer": {
       "threadId": "019ef650-10ca-7e13-b072-9be37575c2be",
@@ -47,5 +47,5 @@
       "registeredAt": "2026-06-24T04:15:21.579Z"
     }
   },
-  "updatedAt": "2026-06-24T09:04:25.011Z"
+  "updatedAt": "2026-06-24T09:23:12.910Z"
 }

@@ -51,6 +51,26 @@
         "mapHash": "0x8af0174e"
       }
     },
+    "pathing-100": {
+      "name": "pathing-100",
+      "medianElapsedMs": 10,
+      "warnRegressionPercent": 10,
+      "failRegressionPercent": 20,
+      "invariants": {
+        "width": 32,
+        "height": 32,
+        "requestCount": 100,
+        "staleProbeCount": 1,
+        "processedRequests": 101,
+        "acceptedResults": 100,
+        "staleRejectedResults": 1,
+        "reachedPaths": 82,
+        "nodeExpansions": 21865,
+        "queueBacklogPeak": 100,
+        "finalQueueBacklog": 0,
+        "pathChecksum": 267449330
+      }
+    },
     "reservations": {
       "name": "reservations",
       "medianElapsedMs": 10,

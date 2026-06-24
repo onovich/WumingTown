@@ -2,7 +2,7 @@
   "id": "WM-0022",
   "title": "Implement versioned path request batching and Top K pathing",
   "summary": "Implement Region coarse pathing, local A star, batched path requests, Top-K candidate path resolution and stale navigation-version rejection.",
-  "state": "ready",
+  "state": "review_requested",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0022-implement-versioned-path-request-batching-and-to",
   "createdAt": "2026-06-23T23:08:02.224Z",
-  "updatedAt": "2026-06-24T08:14:14.675Z",
+  "updatedAt": "2026-06-24T09:38:28.808Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.224Z",
@@ -43,6 +43,22 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-24T09:22:36.967Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Beacon-WM-0022"
+    },
+    {
+      "at": "2026-06-24T09:38:28.808Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented versioned path request batching, stale basis rejection, bounded Top-K exact pathing, pathing tests, pathing-100 benchmark, docs and report."
     }
-  ]
+  ],
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Beacon-WM-0022",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0022.md"
 }

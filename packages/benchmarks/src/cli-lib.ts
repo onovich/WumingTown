@@ -121,7 +121,7 @@ function parseBenchmarkArgs(
 
       if (!isBenchmarkName(value)) {
         return failedArgs(
-          "Unsupported benchmark filter. Use empty-tick, entity-store, map-dirty, reservations, region-room, or spatial-index.",
+          "Unsupported benchmark filter. Use empty-tick, entity-store, map-dirty, pathing-100, reservations, region-room, or spatial-index.",
         );
       }
 
@@ -135,7 +135,7 @@ function parseBenchmarkArgs(
 
       if (!isBenchmarkName(value)) {
         return failedArgs(
-          "Unsupported benchmark filter. Use empty-tick, entity-store, map-dirty, reservations, region-room, or spatial-index.",
+          "Unsupported benchmark filter. Use empty-tick, entity-store, map-dirty, pathing-100, reservations, region-room, or spatial-index.",
         );
       }
 
@@ -244,7 +244,13 @@ function parseBenchmarkArgs(
     );
   }
 
-  if (!artifactPathWasConfigured && filter === "reservations") {
+  if (!artifactPathWasConfigured && filter === "pathing-100") {
+    artifactPath = path.join(
+      resolveArtifactRoot("WM-0022"),
+      "benchmarks",
+      "benchmark-results.json",
+    );
+  } else if (!artifactPathWasConfigured && filter === "reservations") {
     artifactPath = path.join(
       resolveArtifactRoot("WM-0023"),
       "benchmarks",
@@ -304,6 +310,7 @@ function loadBenchmarkBaseline(filePath: string): BenchmarkBaselineFile {
       "empty-tick": parseEmptyTickBaselineEntry(rawBenchmarks["empty-tick"]),
       "entity-store": parseEntityStoreBaselineEntry(rawBenchmarks["entity-store"]),
       "map-dirty": parseMapDirtyBaselineEntry(rawBenchmarks["map-dirty"]),
+      "pathing-100": parsePathing100BaselineEntry(rawBenchmarks["pathing-100"]),
       reservations: parseReservationsBaselineEntry(rawBenchmarks["reservations"]),
       "region-room": parseRegionRoomBaselineEntry(rawBenchmarks["region-room"]),
       "spatial-index": parseSpatialIndexBaselineEntry(rawBenchmarks["spatial-index"]),
@@ -407,6 +414,32 @@ function parseReservationsBaselineEntry(value: unknown): BenchmarkBaselineEntry<
     ),
     invariants: parseReservationsBaselineInvariants(
       requireRecord(value["invariants"], "reservations"),
+    ),
+  };
+}
+
+function parsePathing100BaselineEntry(value: unknown): BenchmarkBaselineEntry<"pathing-100"> {
+  if (!isRecord(value)) {
+    throw new Error("benchmark baseline entry pathing-100 must be an object");
+  }
+
+  if (value["name"] !== "pathing-100") {
+    throw new Error("benchmark baseline entry pathing-100 must declare the same name");
+  }
+
+  return {
+    name: "pathing-100",
+    medianElapsedMs: requireNumber(value["medianElapsedMs"], "pathing-100.medianElapsedMs"),
+    warnRegressionPercent: requireNumber(
+      value["warnRegressionPercent"],
+      "pathing-100.warnRegressionPercent",
+    ),
+    failRegressionPercent: requireNumber(
+      value["failRegressionPercent"],
+      "pathing-100.failRegressionPercent",
+    ),
+    invariants: parsePathing100BaselineInvariants(
+      requireRecord(value["invariants"], "pathing-100"),
     ),
   };
 }
@@ -559,6 +592,28 @@ function parseReservationsBaselineInvariants(
   };
 }
 
+function parsePathing100BaselineInvariants(
+  value: Record<string, unknown>,
+): BenchmarkBaselineEntry<"pathing-100">["invariants"] {
+  return {
+    width: requireNumber(value["width"], "pathing-100.width"),
+    height: requireNumber(value["height"], "pathing-100.height"),
+    requestCount: requireNumber(value["requestCount"], "pathing-100.requestCount"),
+    staleProbeCount: requireNumber(value["staleProbeCount"], "pathing-100.staleProbeCount"),
+    processedRequests: requireNumber(value["processedRequests"], "pathing-100.processedRequests"),
+    acceptedResults: requireNumber(value["acceptedResults"], "pathing-100.acceptedResults"),
+    staleRejectedResults: requireNumber(
+      value["staleRejectedResults"],
+      "pathing-100.staleRejectedResults",
+    ),
+    reachedPaths: requireNumber(value["reachedPaths"], "pathing-100.reachedPaths"),
+    nodeExpansions: requireNumber(value["nodeExpansions"], "pathing-100.nodeExpansions"),
+    queueBacklogPeak: requireNumber(value["queueBacklogPeak"], "pathing-100.queueBacklogPeak"),
+    finalQueueBacklog: requireNumber(value["finalQueueBacklog"], "pathing-100.finalQueueBacklog"),
+    pathChecksum: requireNumber(value["pathChecksum"], "pathing-100.pathChecksum"),
+  };
+}
+
 function parseRegionRoomBaselineInvariants(
   value: Record<string, unknown>,
 ): BenchmarkBaselineEntry<"region-room">["invariants"] {
@@ -654,6 +709,13 @@ function sampleNamedBenchmark(
     });
   }
 
+  if (name === "pathing-100") {
+    return sampleBenchmark("pathing-100", {
+      sampleCount,
+      warmupCount,
+    });
+  }
+
   if (name === "reservations") {
     return sampleBenchmark("reservations", {
       sampleCount,
@@ -688,6 +750,10 @@ function compareAgainstNamedBaseline(
 
   if (result.name === "map-dirty") {
     return compareBenchmarkToBaseline(result, baseline.benchmarks["map-dirty"]);
+  }
+
+  if (result.name === "pathing-100") {
+    return compareBenchmarkToBaseline(result, baseline.benchmarks["pathing-100"]);
   }
 
   if (result.name === "reservations") {
@@ -795,6 +861,7 @@ function isBenchmarkName(value: string | undefined): value is BenchmarkName {
     value === "empty-tick" ||
     value === "entity-store" ||
     value === "map-dirty" ||
+    value === "pathing-100" ||
     value === "reservations" ||
     value === "region-room" ||
     value === "spatial-index"

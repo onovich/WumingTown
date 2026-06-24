@@ -26,6 +26,13 @@ import {
   type SpatialIndexBenchmarkReport,
 } from "./spatial-index-benchmark";
 import {
+  pathing100InvariantsFromReport,
+  runPathing100Benchmark,
+  type Pathing100BenchmarkInvariants,
+  type Pathing100BenchmarkReport,
+  type SampledPathing100Benchmark,
+} from "./pathing-100-benchmark";
+import {
   regionRoomInvariantsFromReport,
   runRegionRoomBenchmark,
   type RegionRoomBenchmarkInvariants,
@@ -41,6 +48,7 @@ import {
 } from "./reservations-benchmark";
 
 export { runEntityStoreBenchmark } from "./entity-store-benchmark";
+export { runPathing100Benchmark } from "./pathing-100-benchmark";
 export { runRegionRoomBenchmark } from "./region-room-benchmark";
 export { runReservationsBenchmark } from "./reservations-benchmark";
 export { runSpatialIndexBenchmark } from "./spatial-index-benchmark";
@@ -62,6 +70,7 @@ export type BenchmarkName =
   | "empty-tick"
   | "entity-store"
   | "map-dirty"
+  | "pathing-100"
   | "reservations"
   | "region-room"
   | "spatial-index";
@@ -149,6 +158,7 @@ export type BenchmarkReport =
   | EmptyTickBenchmarkReport
   | EntityStoreBenchmarkReport
   | MapDirtyBenchmarkReport
+  | Pathing100BenchmarkReport
   | ReservationsBenchmarkReport
   | RegionRoomBenchmarkReport
   | SpatialIndexBenchmarkReport;
@@ -156,6 +166,7 @@ export type BenchmarkInvariants =
   | EmptyTickBenchmarkInvariants
   | EntityStoreBenchmarkInvariants
   | MapDirtyBenchmarkInvariants
+  | Pathing100BenchmarkInvariants
   | ReservationsBenchmarkInvariants
   | RegionRoomBenchmarkInvariants
   | SpatialIndexBenchmarkInvariants;
@@ -163,6 +174,7 @@ export type SampledBenchmarkResult =
   | SampledEmptyTickBenchmark
   | SampledEntityStoreBenchmark
   | SampledMapDirtyBenchmark
+  | SampledPathing100Benchmark
   | SampledReservationsBenchmark
   | SampledRegionRoomBenchmark
   | SampledSpatialIndexBenchmark;
@@ -171,6 +183,7 @@ export interface BenchmarkReportMap {
   readonly "empty-tick": EmptyTickBenchmarkReport;
   readonly "entity-store": EntityStoreBenchmarkReport;
   readonly "map-dirty": MapDirtyBenchmarkReport;
+  readonly "pathing-100": Pathing100BenchmarkReport;
   readonly reservations: ReservationsBenchmarkReport;
   readonly "region-room": RegionRoomBenchmarkReport;
   readonly "spatial-index": SpatialIndexBenchmarkReport;
@@ -180,6 +193,7 @@ export interface BenchmarkInvariantMap {
   readonly "empty-tick": EmptyTickBenchmarkInvariants;
   readonly "entity-store": EntityStoreBenchmarkInvariants;
   readonly "map-dirty": MapDirtyBenchmarkInvariants;
+  readonly "pathing-100": Pathing100BenchmarkInvariants;
   readonly reservations: ReservationsBenchmarkInvariants;
   readonly "region-room": RegionRoomBenchmarkInvariants;
   readonly "spatial-index": SpatialIndexBenchmarkInvariants;
@@ -217,6 +231,9 @@ export function benchmarkInvariantsFromReport(
   report: MapDirtyBenchmarkReport,
 ): MapDirtyBenchmarkInvariants;
 export function benchmarkInvariantsFromReport(
+  report: Pathing100BenchmarkReport,
+): Pathing100BenchmarkInvariants;
+export function benchmarkInvariantsFromReport(
   report: ReservationsBenchmarkReport,
 ): ReservationsBenchmarkInvariants;
 export function benchmarkInvariantsFromReport(
@@ -253,6 +270,10 @@ export function benchmarkInvariantsFromReport(report: BenchmarkReport): Benchmar
     return mapDirtyInvariantsFromReport(report);
   }
 
+  if (report.name === "pathing-100") {
+    return pathing100InvariantsFromReport(report);
+  }
+
   if (report.name === "reservations") {
     return reservationsInvariantsFromReport(report);
   }
@@ -267,6 +288,7 @@ export function benchmarkInvariantsFromReport(report: BenchmarkReport): Benchmar
 export function runBenchmarkByName(name: "empty-tick"): EmptyTickBenchmarkReport;
 export function runBenchmarkByName(name: "entity-store"): EntityStoreBenchmarkReport;
 export function runBenchmarkByName(name: "map-dirty"): MapDirtyBenchmarkReport;
+export function runBenchmarkByName(name: "pathing-100"): Pathing100BenchmarkReport;
 export function runBenchmarkByName(name: "reservations"): ReservationsBenchmarkReport;
 export function runBenchmarkByName(name: "region-room"): RegionRoomBenchmarkReport;
 export function runBenchmarkByName(name: "spatial-index"): SpatialIndexBenchmarkReport;
@@ -284,6 +306,10 @@ export function runBenchmarkByName(name: BenchmarkName): BenchmarkReport {
 
   if (name === "map-dirty") {
     return runMapDirtyBenchmark();
+  }
+
+  if (name === "pathing-100") {
+    return runPathing100Benchmark();
   }
 
   if (name === "reservations") {
@@ -309,6 +335,10 @@ export function sampleBenchmark(
   name: "map-dirty",
   options?: BenchmarkSamplingOptions,
 ): SampledMapDirtyBenchmark;
+export function sampleBenchmark(
+  name: "pathing-100",
+  options?: BenchmarkSamplingOptions,
+): SampledPathing100Benchmark;
 export function sampleBenchmark(
   name: "reservations",
   options?: BenchmarkSamplingOptions,
@@ -336,6 +366,8 @@ export function sampleBenchmark(
       runBenchmarkByName("entity-store");
     } else if (name === "map-dirty") {
       runBenchmarkByName("map-dirty");
+    } else if (name === "pathing-100") {
+      runBenchmarkByName("pathing-100");
     } else if (name === "reservations") {
       runBenchmarkByName("reservations");
     } else if (name === "region-room") {
@@ -357,6 +389,10 @@ export function sampleBenchmark(
     return sampleMapDirtyBenchmark(sampleCount);
   }
 
+  if (name === "pathing-100") {
+    return samplePathing100Benchmark(sampleCount);
+  }
+
   if (name === "reservations") {
     return sampleReservationsBenchmark(sampleCount);
   }
@@ -375,6 +411,7 @@ export function runDefaultBenchmarkSuite(
     sampleBenchmark("empty-tick", options),
     sampleBenchmark("entity-store", options),
     sampleBenchmark("map-dirty", options),
+    sampleBenchmark("pathing-100", options),
     sampleBenchmark("reservations", options),
     sampleBenchmark("region-room", options),
     sampleBenchmark("spatial-index", options),
@@ -424,6 +461,22 @@ function sampleMapDirtyBenchmark(sampleCount: number): SampledMapDirtyBenchmark 
     name: "map-dirty",
     report: reports[reports.length - 1] ?? failMissingReport(),
     invariants: validateInvariantConsistency("map-dirty", reports),
+    sampleElapsedMs: reports.map((report) => report.elapsedMs),
+    stats: createBenchmarkStats(reports.map((report) => report.elapsedMs)),
+  };
+}
+
+function samplePathing100Benchmark(sampleCount: number): SampledPathing100Benchmark {
+  const reports: Pathing100BenchmarkReport[] = [];
+
+  for (let index = 0; index < sampleCount; index += 1) {
+    reports.push(runPathing100Benchmark());
+  }
+
+  return {
+    name: "pathing-100",
+    report: reports[reports.length - 1] ?? failMissingReport(),
+    invariants: validateInvariantConsistency("pathing-100", reports),
     sampleElapsedMs: reports.map((report) => report.elapsedMs),
     stats: createBenchmarkStats(reports.map((report) => report.elapsedMs)),
   };
@@ -499,6 +552,10 @@ function validateInvariantConsistency(
   name: "map-dirty",
   reports: readonly MapDirtyBenchmarkReport[],
 ): MapDirtyBenchmarkInvariants;
+function validateInvariantConsistency(
+  name: "pathing-100",
+  reports: readonly Pathing100BenchmarkReport[],
+): Pathing100BenchmarkInvariants;
 function validateInvariantConsistency(
   name: "reservations",
   reports: readonly ReservationsBenchmarkReport[],
@@ -582,6 +639,10 @@ function readInvariantUnion(report: BenchmarkReport): BenchmarkInvariants {
   }
 
   if (report.name === "map-dirty") {
+    return benchmarkInvariantsFromReport(report);
+  }
+
+  if (report.name === "pathing-100") {
     return benchmarkInvariantsFromReport(report);
   }
 

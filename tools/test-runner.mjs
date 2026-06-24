@@ -49,7 +49,7 @@ function readFilter(args) {
 
   return {
     error:
-      "Unsupported test arguments. Use no arguments, --filter content, --filter determinism, --filter entity-store, --filter map-grid, --filter region-room, --filter reservations, --filter spatial-index, --filter sim-core, --filter sim-protocol, --filter worker-smoke, or --filter web-shell.",
+      "Unsupported test arguments. Use no arguments, --filter content, --filter determinism, --filter entity-store, --filter map-grid, --filter pathing, --filter region-room, --filter reservations, --filter spatial-index, --filter sim-core, --filter sim-protocol, --filter worker-smoke, or --filter web-shell.",
   };
 }
 
@@ -120,6 +120,14 @@ function selectVitestTargets(selectedMode, selectedFilter) {
         ok: true,
         extraArgs: ["--exclude=**/*.e2e.test.ts"],
         targets: ["packages/sim-core/src/reservation-ledger.test.ts"],
+      };
+    }
+
+    if (selectedFilter === "pathing") {
+      return {
+        ok: true,
+        extraArgs: ["--exclude=**/*.e2e.test.ts"],
+        targets: ["packages/sim-core/src/pathing.test.ts"],
       };
     }
 

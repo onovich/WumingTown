@@ -11,6 +11,7 @@ export {
   sampleBenchmark,
 } from "./benchmarks";
 export { runMapDirtyBenchmark } from "./map-dirty-benchmark";
+export { runPathing100Benchmark } from "./pathing-100-benchmark";
 export { BENCHMARK_BASELINE_SCHEMA_VERSION, compareBenchmarkToBaseline } from "./baseline";
 export { runBenchmarksCli } from "./cli-lib";
 export type {
@@ -35,6 +36,11 @@ export type {
   MapDirtyBenchmarkReport,
   SampledMapDirtyBenchmark,
 } from "./map-dirty-benchmark";
+export type {
+  Pathing100BenchmarkInvariants,
+  Pathing100BenchmarkReport,
+  SampledPathing100Benchmark,
+} from "./pathing-100-benchmark";
 export type {
   BenchmarkBaselineEntry,
   BenchmarkBaselineFile,

@@ -78,3 +78,16 @@ processed regions and map update counts.
 Navigation, region, room and region-graph versions advance monotonically when
 topology is invalidated. Future pathing must carry these versions as stale
 rejection basis data and must not assume a queued rebuild has already drained.
+
+## WM-0022 implementation note
+
+Path requests now use that monotonic version basis directly. A queued request
+captures `MapGrid.globalVersion` plus the current navigation, region, room and
+region-graph versions; the commit step compares the full basis against the
+current map/rebuild state and rejects incompatible results before movement or
+job state can consume them.
+
+The first local pathfinder reads only `MapGrid` public passability and cardinal
+neighbor APIs, so wall, door and terrain edits remain owned by the map and
+region-room rebuild systems. Later region-graph pathing can replace or precede
+the local A star without changing the stale-result contract.
