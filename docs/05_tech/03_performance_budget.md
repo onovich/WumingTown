@@ -40,6 +40,32 @@
 
 当前仓库将基准基线固定在 `packages/benchmarks/baseline.json`。`pnpm bench` 必须在相同脚本入口下同时输出机器可比较 artifact，并把当前采样中位数与该显式基线比较；超过 10% 记为警告，超过 20% 视为默认阻止合并的回退。
 
+## M2 work/logistics gate metrics
+
+`coordination/decisions/ADR-0007.md` extends the performance gate for the M2
+work/logistics vertical slice without changing baseline thresholds.
+
+M2 implementation and benchmark tasks must report:
+
+- visited WorkOffer rows, scored rows, selected rows and candidate-cap hits;
+- exact-path Top-K candidates, A* node visits, accepted results and stale
+  version-basis rejects;
+- reservation transaction attempts, accepted/rejected claims, conflict classes,
+  cleanup releases and final active claim count;
+- dirty storage slots, WorkOffer dirty backlog, path queue backlog, read-model
+  queue depth and steady-state idle evidence;
+- material conservation counters across source, depot, carried, build buffer
+  and consumed completion audit lanes;
+- save/load rebuild time, rebuilt index counts, first resumed hash and
+  uninterrupted/resume/Worker hash checkpoints;
+- render/read-model snapshot bytes and Worker parity overhead when WM-0041 adds
+  focused parity evidence.
+
+Normal M2 ticks must still avoid global scans, unbounded sorts and per-entity
+allocation in actor thinking, work selection, reservation, pathing, cleanup and
+read-model production. Load-time rebuild scans are allowed only before resumed
+ticks and must be measured.
+
 ## WM-0019 benchmark note
 
 `pnpm bench --filter map-dirty` measures the M1 authoritative map dirty path on

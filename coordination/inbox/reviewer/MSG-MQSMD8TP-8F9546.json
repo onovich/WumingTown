@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQSMD8TP-8F9546",
+  "from": "systems-architect",
+  "to": "reviewer",
+  "taskId": "WM-0034",
+  "kind": "review-request",
+  "subject": "WM-0034 ready for review",
+  "body": "Recorded ADR-0007 M2 work/logistics architecture gate; linked owner/cache/save/Worker/performance boundaries in docs; required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0034.md",
+    "task/WM-0034-record-m2-work-logistics-architecture-gate"
+  ],
+  "createdAt": "2026-06-24T22:02:53.294Z",
+  "acknowledgedAt": "2026-06-24T22:05:49.182Z"
+}

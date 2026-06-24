@@ -2,7 +2,7 @@
   "id": "WM-0034",
   "title": "Record the M2 work logistics architecture gate",
   "summary": "Record the architecture gate for M2 work/logistics owner stores, derived indexes, cache/version boundaries, save/replay scope, Worker parity and performance budgets before implementation tasks start.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0034-record-m2-work-logistics-architecture-gate",
   "createdAt": "2026-06-24T21:14:35.180Z",
-  "updatedAt": "2026-06-24T21:51:09.149Z",
+  "updatedAt": "2026-06-24T22:10:36.803Z",
   "history": [
     {
       "at": "2026-06-24T21:14:35.180Z",
@@ -43,6 +43,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-24T21:57:01.123Z",
+      "actor": "systems-architect",
+      "action": "claim",
+      "details": ""
+    },
+    {
+      "at": "2026-06-24T22:02:53.292Z",
+      "actor": "systems-architect",
+      "action": "complete",
+      "details": "Recorded ADR-0007 M2 work/logistics architecture gate; linked owner/cache/save/Worker/performance boundaries in docs; required checks pass."
+    },
+    {
+      "at": "2026-06-24T22:09:37.348Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; ADR-0007 names M2 owner stores and non-authoritative derived surfaces, forbids ungated public protocol/save/schema/dependency/package-boundary changes, documents migration/rollback/tests/perf, and required checks pass."
+    },
+    {
+      "at": "2026-06-24T22:10:32.604Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integrated verified ADR-0007 architecture gate for M2 work/logistics; independent reviewer found no blockers and required checks pass."
+    },
+    {
+      "at": "2026-06-24T22:10:36.802Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Make M2 state ownership and contract boundaries reviewable before implementation.",
@@ -78,5 +108,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Architecture, state ownership, save/replay and performance-boundary work is explicitly outside Spark scope."
+  },
+  "claimedBy": "systems-architect",
+  "threadLabel": null,
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0034.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; ADR-0007 names M2 owner stores and non-authoritative derived surfaces, forbids ungated public protocol/save/schema/dependency/package-boundary changes, documents migration/rollback/tests/perf, and required checks pass.",
+    "at": "2026-06-24T22:09:37.348Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integrated verified ADR-0007 architecture gate for M2 work/logistics; independent reviewer found no blockers and required checks pass.",
+    "at": "2026-06-24T22:10:32.604Z"
   }
 }

@@ -32,6 +32,30 @@
 
 订单面板必须回答：缺什么、最近可用供给在哪、为何不可达、被谁预订、哪个政策阻止、预计何时完成。
 
+## M2 architecture gate note
+
+`coordination/decisions/ADR-0007.md` is the M2 work/logistics architecture gate
+for this surface.
+
+- `ItemStackStore` owns source/depot stack definition, integer quantity and
+  stack capacity. `JobCoreStore` owns carried quantity after pickup.
+  `BuildSiteStore` owns delivered build-site buffers and consumed completion
+  audit lanes.
+- Storage owner state owns slot membership, accepted defs, capacity, demand
+  targets, terminal remainders, priority and access policy. `StorageLogisticsIndex`
+  is derived and rebuildable from storage, item and reservation owner versions.
+- `BuildOrderStore` owns order activation, required sites, allowed materials,
+  demand targets and terminal order state. `BuildSiteStore` owns sockets,
+  material buffers, build progress and site terminal state. WorkOffer rows and
+  UI order panels are derived.
+- M2 storage/build implementation must preserve integer material conservation
+  across source stacks, depot stacks, carried lanes, site buffers and consumed
+  completion audit. Cancellation or invalidation resolves through owner-store
+  transactions exactly once.
+- Broad economy, content catalog expansion, public schema changes, public save
+  compatibility, new runtime dependencies and UI-owned logistics remain outside
+  this gate.
+
 ## WM-0026 implementation note
 
 `packages/sim-core/src/item-stack-store.ts` adds the first minimal

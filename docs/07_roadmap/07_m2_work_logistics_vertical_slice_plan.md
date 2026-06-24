@@ -57,6 +57,17 @@ M2 must compose these pieces at scale instead of replacing owner stores or movin
 
 `WM-0034` is the visible M2 architecture gate. It must record state ownership, public contract boundaries, alternatives, migration, rollback, test, and performance implications before implementation tasks can run. If `WM-0034` cannot be accepted, downstream implementation remains `proposed` or blocked through `taskctl block`.
 
+The architecture record for this gate is
+`coordination/decisions/ADR-0007.md`. Downstream M2 implementation must cite it
+in task reports and must block before implementation if a mutable fact has no
+named owner store, a derived index/cache would become authoritative, a normal
+tick would require a global scan, or a public Worker protocol, save format,
+schema, dependency, or package-boundary change is needed.
+
+ADR-0007 does not approve runtime implementation, Worker protocol changes, save
+format changes, schema changes, new dependencies, package-boundary changes, or
+M3 work. Those remain separately gated.
+
 ## DAG
 
 ```text

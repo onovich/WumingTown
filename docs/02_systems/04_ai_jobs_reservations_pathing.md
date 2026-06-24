@@ -62,6 +62,26 @@ WM-0023 通过 `ReservationLedger` 实现首个权威账本：
 
 任何新增 WorkGiver/WorkOffer 查询必须在文档标明候选上限和复杂度。禁止 `Pawn × WorkType × AllEntities`。
 
+## M2 architecture gate note
+
+`coordination/decisions/ADR-0007.md` is the M2 work/logistics architecture gate
+for this surface.
+
+- WorkOffer rows remain derived from owner stores. Storage owners, build/order
+  owners, `JobCoreStore`, `ReservationLedger`, actor permission lanes and
+  map/region versions own the facts behind a row.
+- A WorkOffer row must carry its owner target id and owner-store version. A
+  stale row is rejected or refreshed before reservation; it cannot create jobs,
+  move quantities, release claims or complete builds.
+- `ReservationLedger` remains the sole owner of active claims. Availability
+  counters and UI explanations are projections only.
+- Path requests/results carry map, navigation, region, room and region-graph
+  version basis. Stale results are rejected before job, reservation, actor,
+  item or build-site mutation.
+- Any M2 implementation that needs global work scans, unversioned path/work
+  caches, UI-owned correction, public Worker protocol drift or save/schema
+  drift must block and request a separate gate before coding.
+
 ## WM-0022 implementation note
 
 `packages/sim-core/src/pathing.ts` introduces the first M1 path request
