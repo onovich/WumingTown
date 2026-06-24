@@ -2,7 +2,7 @@
   "id": "WM-0028",
   "title": "Implement M1 save replay and Worker headless parity harness",
   "summary": "Wire the M1 kernel through save/load, replay checkpoints, Worker execution and Node headless execution so the hauling/building scenario has identical authoritative hash.",
-  "state": "in_progress",
+  "state": "review_requested",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,7 +32,7 @@
   ],
   "branch": "task/WM-0028-implement-m1-save-replay-and-worker-headless-par",
   "createdAt": "2026-06-23T23:08:02.466Z",
-  "updatedAt": "2026-06-24T14:43:09.544Z",
+  "updatedAt": "2026-06-24T15:12:56.375Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.467Z",
@@ -69,6 +69,12 @@
       "actor": "simulation-engineer",
       "action": "claim",
       "details": "thread=Sim-WM-0028-repair"
+    },
+    {
+      "at": "2026-06-24T15:12:56.375Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Fixed reviewer findings: nested read-only projection tampering now fails closed, and worker-smoke now covers a real Chromium module Worker using browser-worker-entry.ts; required checks pass including typecheck, m1-save-replay, worker-smoke, sim:replay-test, taskctl validate and git diff --check; format:check and lint also pass."
     }
   ],
   "claimedBy": "simulation-engineer",

@@ -1,3 +1,7 @@
+/// <reference lib="dom" />
+
+import { chromium } from "playwright";
+import { createServer, type ViteDevServer } from "vite";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -28,6 +32,12 @@ import {
   type SimulationWorkerMessageEvent,
   type SimulationWorkerPort,
 } from "./index";
+
+interface BrowserWorkerRunInput {
+  readonly expectedCount: number;
+  readonly inputMessages: readonly MainToSimulationMessage[];
+  readonly workerPath: string;
+}
 
 describe("worker-smoke simulation Worker protocol", () => {
   it("round-trips through the Node harness without exposing mutable simulation state", () => {
@@ -140,6 +150,46 @@ describe("worker-smoke simulation Worker protocol", () => {
       checkpointCount: 3,
     });
   });
+
+  it("matches Node headless hashes in a real browser module Worker", async () => {
+    const expected = readReplay(
+      runM1HaulingBuildingReplay({ seed: "1", checkpointTicks: [0, 2_400, 100_000] }),
+    );
+    const browserMessages = await runBrowserWorker([
+      makeM1InitSession(1),
+      makeM1AdvanceBatch(2, 2_400),
+      makeM1AdvanceBatch(3, 100_000),
+    ]);
+    const snapshots = renderSnapshots(browserMessages);
+
+    expect(snapshots).toHaveLength(3);
+    expect(snapshots[0]?.payload).toMatchObject({
+      scenarioId: HAULING_BUILDING_SCENARIO_ID,
+      tick: 0,
+      worldHash: expected.checkpoints[0]?.worldHash,
+      readModelHash: expected.checkpoints[0]?.readModelHash,
+      readOnly: true,
+    });
+    expect(snapshots[1]?.payload).toMatchObject({
+      scenarioId: HAULING_BUILDING_SCENARIO_ID,
+      tick: 2_400,
+      worldHash: expected.checkpoints[1]?.worldHash,
+      readModelHash: expected.checkpoints[1]?.readModelHash,
+      readOnly: true,
+    });
+    expect(snapshots[2]?.payload).toMatchObject({
+      scenarioId: HAULING_BUILDING_SCENARIO_ID,
+      tick: 100_000,
+      worldHash: expected.finalWorldHash,
+      readModelHash: expected.finalReadModelHash,
+      readOnly: true,
+    });
+    expect(lastMetricsSample(browserMessages).payload).toMatchObject({
+      scenarioId: HAULING_BUILDING_SCENARIO_ID,
+      worldHash: expected.finalWorldHash,
+      checkpointCount: 3,
+    });
+  }, 120000);
 
   it("returns M1 save metadata without exposing mutable authority through the Worker", () => {
     const worker = createSimulationWorker();
@@ -323,6 +373,22 @@ function metricsSample(messages: readonly SimulationToMainMessage[]): MetricsSam
   throw new Error("expected MetricsSample message");
 }
 
+function lastMetricsSample(messages: readonly SimulationToMainMessage[]): MetricsSampleMessage {
+  let latest: MetricsSampleMessage | undefined;
+
+  for (const message of messages) {
+    if (message.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.MetricsSample) {
+      latest = message;
+    }
+  }
+
+  if (latest !== undefined) {
+    return latest;
+  }
+
+  throw new Error("expected MetricsSample message");
+}
+
 function saveReadyMessage(messages: readonly SimulationToMainMessage[]): ProtocolSaveReadyMessage {
   for (const message of messages) {
     if (message.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.SaveReady) {
@@ -333,10 +399,134 @@ function saveReadyMessage(messages: readonly SimulationToMainMessage[]): Protoco
   throw new Error("expected SaveReady message");
 }
 
+function renderSnapshots(
+  messages: readonly SimulationToMainMessage[],
+): readonly ProtocolRenderSnapshotMessage[] {
+  const snapshots: ProtocolRenderSnapshotMessage[] = [];
+
+  for (const message of messages) {
+    if (message.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.RenderSnapshot) {
+      snapshots.push(message);
+    }
+  }
+
+  return snapshots;
+}
+
 function readReplay(result: ReturnType<typeof runM1HaulingBuildingReplay>): M1ReplayRun {
   if (!result.ok) {
     throw new Error(result.reason);
   }
 
   return result.replay;
+}
+
+async function runBrowserWorker(
+  inputMessages: readonly MainToSimulationMessage[],
+): Promise<readonly SimulationToMainMessage[]> {
+  const server = await createServer({
+    configFile: false,
+    logLevel: "error",
+    root: process.cwd(),
+    server: {
+      host: "127.0.0.1",
+      port: 0,
+      strictPort: false,
+    },
+  });
+  await server.listen();
+
+  const browser = await chromium.launch();
+
+  try {
+    const page = await browser.newPage();
+    await page.goto(readServerUrl(server), { waitUntil: "domcontentloaded" });
+    const rawMessages: unknown = await page.evaluate(
+      ({
+        expectedCount,
+        inputMessages: browserInputMessages,
+        workerPath,
+      }: BrowserWorkerRunInput): Promise<unknown[]> =>
+        new Promise<unknown[]>((resolve, reject) => {
+          const worker = new Worker(new URL(workerPath, window.location.href), {
+            type: "module",
+          });
+          const received: unknown[] = [];
+          const timeout = window.setTimeout((): void => {
+            worker.terminate();
+            reject(new Error(`Timed out waiting for ${String(expectedCount)} Worker messages.`));
+          }, 10_000);
+
+          worker.onerror = (event: ErrorEvent): void => {
+            window.clearTimeout(timeout);
+            worker.terminate();
+            reject(new Error(`Browser Worker error: ${event.message}`));
+          };
+          worker.onmessage = (event: MessageEvent<unknown>): void => {
+            received.push(event.data);
+            if (received.length >= expectedCount) {
+              window.clearTimeout(timeout);
+              worker.terminate();
+              resolve(received);
+            }
+          };
+
+          for (const message of browserInputMessages) {
+            worker.postMessage(message);
+          }
+        }),
+      {
+        expectedCount: inputMessages.length * 4,
+        inputMessages,
+        workerPath: "/packages/sim-worker/src/browser-worker-entry.ts",
+      },
+    );
+
+    return readSimulationMessages(rawMessages);
+  } finally {
+    await browser.close();
+    await server.close();
+  }
+}
+
+function readServerUrl(server: ViteDevServer): string {
+  const localUrl = server.resolvedUrls?.local[0];
+  if (localUrl === undefined) {
+    throw new Error("Vite dev server did not expose a local URL.");
+  }
+
+  return localUrl;
+}
+
+function readSimulationMessages(value: unknown): readonly SimulationToMainMessage[] {
+  if (!Array.isArray(value)) {
+    throw new Error("Browser Worker returned a non-array payload.");
+  }
+
+  const messages: SimulationToMainMessage[] = [];
+  for (const entry of value) {
+    if (!isSimulationMessage(entry)) {
+      throw new Error("Browser Worker returned an unexpected message payload.");
+    }
+
+    messages.push(entry);
+  }
+
+  return messages;
+}
+
+function isSimulationMessage(value: unknown): value is SimulationToMainMessage {
+  return (
+    isRecord(value) &&
+    value["protocolVersion"] === SIM_PROTOCOL_VERSION &&
+    value["schemaVersion"] === SIM_SCHEMA_VERSION &&
+    typeof value["sessionId"] === "string" &&
+    typeof value["sequence"] === "number" &&
+    typeof value["kind"] === "string" &&
+    isRecord(value["payload"])
+  );
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
 }

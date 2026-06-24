@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQS7Q1Q1-F5EAEF",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0028",
+  "kind": "review-request",
+  "subject": "WM-0028 ready for review",
+  "body": "Fixed reviewer findings: nested read-only projection tampering now fails closed, and worker-smoke now covers a real Chromium module Worker using browser-worker-entry.ts; required checks pass including typecheck, m1-save-replay, worker-smoke, sim:replay-test, taskctl validate and git diff --check; format:check and lint also pass.",
+  "artifacts": [
+    "coordination/reports/WM-0028.md",
+    "task/WM-0028-implement-m1-save-replay-and-worker-headless-par"
+  ],
+  "createdAt": "2026-06-24T15:12:56.377Z",
+  "acknowledgedAt": null
+}

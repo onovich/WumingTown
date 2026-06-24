@@ -327,10 +327,7 @@ export function loadM1HaulingBuildingSaveEnvelope(input: unknown): M1SaveLoadRes
     return { ok: false, reason: "m1_save_section_invalid" };
   }
 
-  if (
-    save.save.readOnlyProjection.worldHash !== expectedProjection.worldHash ||
-    save.save.readOnlyProjection.readModelHash !== expectedProjection.readModelHash
-  ) {
+  if (!projectionMatchesExpected(save.save.readOnlyProjection, expectedProjection)) {
     return { ok: false, reason: "m1_save_projection_invalid" };
   }
 
@@ -706,6 +703,27 @@ function sectionsMatchScenario(
   );
 }
 
+function projectionMatchesExpected(
+  actual: M1ReadOnlyProjection,
+  expected: M1ReadOnlyProjection,
+): boolean {
+  return (
+    actual.tick === expected.tick &&
+    actual.worldHash === expected.worldHash &&
+    actual.readModelHash === expected.readModelHash &&
+    actual.renderSnapshot.snapshotSequence === expected.renderSnapshot.snapshotSequence &&
+    actual.renderSnapshot.tick === expected.renderSnapshot.tick &&
+    actual.renderSnapshot.entityCount === expected.renderSnapshot.entityCount &&
+    actual.renderSnapshot.worldHash === expected.renderSnapshot.worldHash &&
+    actual.renderSnapshot.readModelHash === expected.renderSnapshot.readModelHash &&
+    actual.uiDetail.requestId === expected.uiDetail.requestId &&
+    actual.uiDetail.basisTick === expected.uiDetail.basisTick &&
+    actual.uiDetail.basisWorldHash === expected.uiDetail.basisWorldHash &&
+    actual.uiDetail.detailHash === expected.uiDetail.detailHash &&
+    stringArraysEqual(actual.uiDetail.summaries, expected.uiDetail.summaries)
+  );
+}
+
 function createRenderSnapshotHash(
   summary: HaulingBuildingScenarioSummary,
   snapshotSequence: number,
@@ -766,6 +784,20 @@ function isTickValue(value: unknown): value is Tick {
 function everyString(values: readonly unknown[]): boolean {
   for (const value of values) {
     if (typeof value !== "string") {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function stringArraysEqual(left: readonly string[], right: readonly string[]): boolean {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  for (let index = 0; index < left.length; index += 1) {
+    if (left[index] !== right[index]) {
       return false;
     }
   }

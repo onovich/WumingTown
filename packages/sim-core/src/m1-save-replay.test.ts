@@ -61,6 +61,27 @@ describe("M1 hauling-building save replay harness", () => {
         },
       },
     };
+    const mutatedNestedProjection = {
+      ...save,
+      readOnlyProjection: {
+        ...save.readOnlyProjection,
+        renderSnapshot: {
+          ...save.readOnlyProjection.renderSnapshot,
+          readModelHash: "0x00000000",
+        },
+      },
+    };
+    const mutatedUiDetail = {
+      ...save,
+      readOnlyProjection: {
+        ...save.readOnlyProjection,
+        uiDetail: {
+          ...save.readOnlyProjection.uiDetail,
+          detailHash: "0x00000000",
+          summaries: ["tampered inside save"],
+        },
+      },
+    };
 
     expect(loadM1HaulingBuildingSaveEnvelope({})).toStrictEqual({
       ok: false,
@@ -77,6 +98,14 @@ describe("M1 hauling-building save replay harness", () => {
     expect(loadM1HaulingBuildingSaveEnvelope(mutatedSection)).toStrictEqual({
       ok: false,
       reason: "m1_save_section_invalid",
+    });
+    expect(loadM1HaulingBuildingSaveEnvelope(mutatedNestedProjection)).toStrictEqual({
+      ok: false,
+      reason: "m1_save_projection_invalid",
+    });
+    expect(loadM1HaulingBuildingSaveEnvelope(mutatedUiDetail)).toStrictEqual({
+      ok: false,
+      reason: "m1_save_projection_invalid",
     });
   });
 
