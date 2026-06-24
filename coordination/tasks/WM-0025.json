@@ -2,7 +2,7 @@
   "id": "WM-0025",
   "title": "Implement serializable Job Driver state machines",
   "summary": "Implement explicit serializable Job and Driver state machines, interruption policies, cancellation cleanup, structured failures and save fields.",
-  "state": "review_requested",
+  "state": "verified",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,7 +32,7 @@
   ],
   "branch": "task/WM-0025-implement-serializable-job-driver-state-machines",
   "createdAt": "2026-06-23T23:08:02.344Z",
-  "updatedAt": "2026-06-24T10:36:56.194Z",
+  "updatedAt": "2026-06-24T10:39:34.496Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.344Z",
@@ -69,6 +69,12 @@
       "actor": "simulation-engineer",
       "action": "complete",
       "details": "Fixed Mirror changes_requested by making JobCore restore accept unknown payloads, validating snapshot shape before iteration, rejecting malformed records and bad storeVersion without mutation, and adding jobs regression coverage. Re-ran typecheck, lint, jobs, replay, taskctl validate and diff check."
+    },
+    {
+      "at": "2026-06-24T10:39:34.496Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: Verified WM-0025 rereview: malformed JobCore snapshot inputs now fail closed with structured reasons without mutation, jobs regression coverage passes, and required typecheck/jobs/replay/taskctl/diff checks pass."
     }
   ],
   "claimedBy": "simulation-engineer",
@@ -77,8 +83,8 @@
   "reportPath": "coordination/reports/WM-0025.md",
   "review": {
     "reviewer": "reviewer",
-    "verdict": "changes_requested",
-    "summary": "Medium: JobCore restore does not fail closed for malformed snapshot input; malformed records throw TypeError and nonnumeric storeVersion is accepted into store state, violating the documented scratch-validated save/load boundary.",
-    "at": "2026-06-24T10:30:30.550Z"
+    "verdict": "verified",
+    "summary": "Verified WM-0025 rereview: malformed JobCore snapshot inputs now fail closed with structured reasons without mutation, jobs regression coverage passes, and required typecheck/jobs/replay/taskctl/diff checks pass.",
+    "at": "2026-06-24T10:39:34.495Z"
   }
 }

@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQRXYHY9-A1C771",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0025",
+  "kind": "review-approved",
+  "subject": "WM-0025 review: verified",
+  "body": "Verified WM-0025 rereview: malformed JobCore snapshot inputs now fail closed with structured reasons without mutation, jobs regression coverage passes, and required typecheck/jobs/replay/taskctl/diff checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0025.md"
+  ],
+  "createdAt": "2026-06-24T10:39:34.497Z",
+  "acknowledgedAt": "2026-06-24T10:40:10.482Z"
+}
