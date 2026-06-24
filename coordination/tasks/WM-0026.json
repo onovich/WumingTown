@@ -2,7 +2,7 @@
   "id": "WM-0026",
   "title": "Implement minimal item storage and hauling jobs",
   "summary": "Implement the minimal item stack, storage demand/supply index and hauling job path needed by the first hauling/building vertical scenario.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0026-implement-minimal-item-storage-and-hauling-jobs",
   "createdAt": "2026-06-23T23:08:02.385Z",
-  "updatedAt": "2026-06-24T11:22:17.145Z",
+  "updatedAt": "2026-06-24T11:29:47.190Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.385Z",
@@ -73,6 +73,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings after fail-closed repair. Re-ran prior pickup repro and delivery invalid-tick repro: material totals remain conserved, reservations/carry state remain coherent. Required checks pass: typecheck, hauling tests, logistics-10k benchmark, taskctl validate, git diff --check; lint also passes."
+    },
+    {
+      "at": "2026-06-24T11:29:37.552Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Fast-forward integrated verified WM-0026 item storage and hauling jobs into main at be19ddc after main gates and pnpm quality passed."
+    },
+    {
+      "at": "2026-06-24T11:29:47.189Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "claimedBy": "simulation-engineer",
@@ -84,5 +96,10 @@
     "verdict": "verified",
     "summary": "No blocking findings after fail-closed repair. Re-ran prior pickup repro and delivery invalid-tick repro: material totals remain conserved, reservations/carry state remain coherent. Required checks pass: typecheck, hauling tests, logistics-10k benchmark, taskctl validate, git diff --check; lint also passes.",
     "at": "2026-06-24T11:22:17.145Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Fast-forward integrated verified WM-0026 item storage and hauling jobs into main at be19ddc after main gates and pnpm quality passed.",
+    "at": "2026-06-24T11:29:37.551Z"
   }
 }
