@@ -2,7 +2,7 @@
   "id": "WM-0016",
   "title": "Propose ADR 0005 for M1 save container v1",
   "summary": "Produce the proposed Save Container v1 ADR for M1 map chunks, entity stores, jobs, reservations, random streams, command-log tail and migration boundaries.",
-  "state": "review_requested",
+  "state": "verified",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -29,7 +29,7 @@
   ],
   "branch": "task/WM-0016-propose-adr-0005-for-m1-save-container-v1",
   "createdAt": "2026-06-23T23:08:01.984Z",
-  "updatedAt": "2026-06-24T04:57:10.146Z",
+  "updatedAt": "2026-06-24T05:01:21.097Z",
   "history": [
     {
       "at": "2026-06-23T23:08:01.984Z",
@@ -54,10 +54,22 @@
       "actor": "systems-architect",
       "action": "complete",
       "details": "Proposed ADR-0005 Save Container v1; documented versioned M1 sections, untrusted validation boundary, load/rebuild/invariant order, migration/rollback, tests and performance implications; required checks passed."
+    },
+    {
+      "at": "2026-06-24T05:01:21.097Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; ADR-0005 remains Proposed, covers alternatives/migration/rollback/tests/performance, defines versioned M1 save sections and untrusted validation boundaries, requires index/cache rebuild and invariant validation before resume, and introduces no serializer/runtime dependency/UI save authority or beyond-M1 compatibility promise."
     }
   ],
   "claimedBy": "systems-architect",
   "threadLabel": "Compass-WM-0016",
   "blocker": null,
-  "reportPath": "coordination/reports/WM-0016.md"
+  "reportPath": "coordination/reports/WM-0016.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; ADR-0005 remains Proposed, covers alternatives/migration/rollback/tests/performance, defines versioned M1 save sections and untrusted validation boundaries, requires index/cache rebuild and invariant validation before resume, and introduces no serializer/runtime dependency/UI save authority or beyond-M1 compatibility promise.",
+    "at": "2026-06-24T05:01:21.097Z"
+  }
 }
