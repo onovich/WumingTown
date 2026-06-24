@@ -2,10 +2,14 @@
   "id": "WM-0018",
   "title": "Propose ADR 0006 for deterministic numeric and phase contracts",
   "summary": "Produce the proposed PRNG/fixed-point/phase contract ADR for M1 deterministic numeric semantics, command phases, async version checks and stable ordering.",
-  "state": "review_requested",
+  "state": "verified",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
-  "dependsOn": ["WM-0012", "WM-0006", "WM-0008"],
+  "dependsOn": [
+    "WM-0012",
+    "WM-0006",
+    "WM-0008"
+  ],
   "docs": [
     "docs/07_roadmap/06_m1_simulation_kernel_plan.md",
     "docs/05_tech/07_architecture_decision_records.md",
@@ -26,7 +30,7 @@
   ],
   "branch": "task/WM-0018-propose-adr-0006-for-deterministic-numeric-and-p",
   "createdAt": "2026-06-23T23:08:02.064Z",
-  "updatedAt": "2026-06-24T05:46:06.828Z",
+  "updatedAt": "2026-06-24T05:53:39.448Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.065Z",
@@ -51,10 +55,22 @@
       "actor": "systems-architect",
       "action": "complete",
       "details": "Proposed ADR-0006 for deterministic numeric and phase contracts; updated ADR index and report; required checks pass"
+    },
+    {
+      "at": "2026-06-24T05:53:39.448Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; reviewed branch/origin HEAD 26e4187e7491643083af5f40a4e726b017bcea03. ADR-0006 remains Proposed, covers numeric scales/phases/order/RNG/async stale rejection/prohibitions, and required checks pass without implementation or dependency changes."
     }
   ],
   "claimedBy": "systems-architect",
   "threadLabel": "Compass-WM-0018",
   "blocker": null,
-  "reportPath": "coordination/reports/WM-0018.md"
+  "reportPath": "coordination/reports/WM-0018.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; reviewed branch/origin HEAD 26e4187e7491643083af5f40a4e726b017bcea03. ADR-0006 remains Proposed, covers numeric scales/phases/order/RNG/async stale rejection/prohibitions, and required checks pass without implementation or dependency changes.",
+    "at": "2026-06-24T05:53:39.447Z"
+  }
 }
