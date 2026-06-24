@@ -1,5 +1,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { cpus, release } from "node:os";
 import * as path from "node:path";
+import { spawnSync } from "node:child_process";
 
 import {
   BENCHMARK_BASELINE_SCHEMA_VERSION,
@@ -26,8 +28,13 @@ export interface BenchmarkCliReport {
   readonly warmupCount: number;
   readonly environment: {
     readonly nodeVersion: string;
+    readonly pnpmVersion: string;
+    readonly osRelease: string;
     readonly platform: NodeJS.Platform;
     readonly arch: string;
+    readonly cpuModel: string;
+    readonly cpuCount: number;
+    readonly gitCommit: string;
   };
   readonly results: readonly BenchmarkCliResult[];
 }
@@ -88,8 +95,13 @@ export function runBenchmarksCli(argv: readonly string[]): number {
     warmupCount: parsed.value.warmupCount,
     environment: {
       nodeVersion: process.version,
+      pnpmVersion: readCommandOutput("pnpm", ["--version"]),
+      osRelease: release(),
       platform: process.platform,
       arch: process.arch,
+      cpuModel: cpus()[0]?.model ?? "unknown",
+      cpuCount: cpus().length,
+      gitCommit: readCommandOutput("git", ["rev-parse", "HEAD"]),
     },
     results,
   };
@@ -110,7 +122,11 @@ function parseBenchmarkArgs(
   let sampleCount = DEFAULT_BENCHMARK_SAMPLE_COUNT;
   let warmupCount = DEFAULT_BENCHMARK_WARMUP_COUNT;
   let baselinePath = path.join(process.cwd(), "packages", "benchmarks", "baseline.json");
-  let artifactPath = path.join(resolveArtifactRoot(), "benchmarks", "benchmark-results.json");
+  let artifactPath = path.join(
+    resolveArtifactRoot("WM-0029"),
+    "benchmarks",
+    "benchmark-results.json",
+  );
   let artifactPathWasConfigured = false;
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -121,7 +137,7 @@ function parseBenchmarkArgs(
 
       if (!isBenchmarkName(value)) {
         return failedArgs(
-          "Unsupported benchmark filter. Use empty-tick, entity-store, logistics-10k, map-dirty, pathing-100, reservations, region-room, spatial-index, or work-offers.",
+          "Unsupported benchmark filter. Use empty-tick, entity-store, logistics-10k, m1-hauling-building-long-run, map-dirty, pathing-100, reservations, region-room, spatial-index, or work-offers.",
         );
       }
 
@@ -135,7 +151,7 @@ function parseBenchmarkArgs(
 
       if (!isBenchmarkName(value)) {
         return failedArgs(
-          "Unsupported benchmark filter. Use empty-tick, entity-store, logistics-10k, map-dirty, pathing-100, reservations, region-room, spatial-index, or work-offers.",
+          "Unsupported benchmark filter. Use empty-tick, entity-store, logistics-10k, m1-hauling-building-long-run, map-dirty, pathing-100, reservations, region-room, spatial-index, or work-offers.",
         );
       }
 
@@ -322,6 +338,9 @@ function loadBenchmarkBaseline(filePath: string): BenchmarkBaselineFile {
       "empty-tick": parseEmptyTickBaselineEntry(rawBenchmarks["empty-tick"]),
       "entity-store": parseEntityStoreBaselineEntry(rawBenchmarks["entity-store"]),
       "logistics-10k": parseLogistics10kBaselineEntry(rawBenchmarks["logistics-10k"]),
+      "m1-hauling-building-long-run": parseM1HaulingBuildingLongRunBaselineEntry(
+        rawBenchmarks["m1-hauling-building-long-run"],
+      ),
       "map-dirty": parseMapDirtyBaselineEntry(rawBenchmarks["map-dirty"]),
       "pathing-100": parsePathing100BaselineEntry(rawBenchmarks["pathing-100"]),
       reservations: parseReservationsBaselineEntry(rawBenchmarks["reservations"]),
@@ -404,6 +423,39 @@ function parseLogistics10kBaselineEntry(value: unknown): BenchmarkBaselineEntry<
     ),
     invariants: parseLogistics10kBaselineInvariants(
       requireRecord(value["invariants"], "logistics-10k"),
+    ),
+  };
+}
+
+function parseM1HaulingBuildingLongRunBaselineEntry(
+  value: unknown,
+): BenchmarkBaselineEntry<"m1-hauling-building-long-run"> {
+  if (!isRecord(value)) {
+    throw new Error("benchmark baseline entry m1-hauling-building-long-run must be an object");
+  }
+
+  if (value["name"] !== "m1-hauling-building-long-run") {
+    throw new Error(
+      "benchmark baseline entry m1-hauling-building-long-run must declare the same name",
+    );
+  }
+
+  return {
+    name: "m1-hauling-building-long-run",
+    medianElapsedMs: requireNumber(
+      value["medianElapsedMs"],
+      "m1-hauling-building-long-run.medianElapsedMs",
+    ),
+    warnRegressionPercent: requireNumber(
+      value["warnRegressionPercent"],
+      "m1-hauling-building-long-run.warnRegressionPercent",
+    ),
+    failRegressionPercent: requireNumber(
+      value["failRegressionPercent"],
+      "m1-hauling-building-long-run.failRegressionPercent",
+    ),
+    invariants: parseM1HaulingBuildingLongRunBaselineInvariants(
+      requireRecord(value["invariants"], "m1-hauling-building-long-run"),
     ),
   };
 }
@@ -624,6 +676,61 @@ function parseLogistics10kBaselineInvariants(
   };
 }
 
+function parseM1HaulingBuildingLongRunBaselineInvariants(
+  value: Record<string, unknown>,
+): BenchmarkBaselineEntry<"m1-hauling-building-long-run">["invariants"] {
+  return {
+    scenarioId: requireString(value["scenarioId"], "m1-hauling-building-long-run.scenarioId"),
+    scenarioSeed: requireString(value["scenarioSeed"], "m1-hauling-building-long-run.scenarioSeed"),
+    finalTick: requireNumber(value["finalTick"], "m1-hauling-building-long-run.finalTick"),
+    saveTick: requireNumber(value["saveTick"], "m1-hauling-building-long-run.saveTick"),
+    completedBuildingCount: requireNumber(
+      value["completedBuildingCount"],
+      "m1-hauling-building-long-run.completedBuildingCount",
+    ),
+    finalWorldHash: requireString(
+      value["finalWorldHash"],
+      "m1-hauling-building-long-run.finalWorldHash",
+    ),
+    finalReadModelHash: requireString(
+      value["finalReadModelHash"],
+      "m1-hauling-building-long-run.finalReadModelHash",
+    ),
+    replayMatches: requireBoolean(
+      value["replayMatches"],
+      "m1-hauling-building-long-run.replayMatches",
+    ),
+    saveRoundTripMatches: requireBoolean(
+      value["saveRoundTripMatches"],
+      "m1-hauling-building-long-run.saveRoundTripMatches",
+    ),
+    noReservationLeaks: requireBoolean(
+      value["noReservationLeaks"],
+      "m1-hauling-building-long-run.noReservationLeaks",
+    ),
+    noStaleEntityReferences: requireBoolean(
+      value["noStaleEntityReferences"],
+      "m1-hauling-building-long-run.noStaleEntityReferences",
+    ),
+    noNegativeResources: requireBoolean(
+      value["noNegativeResources"],
+      "m1-hauling-building-long-run.noNegativeResources",
+    ),
+    noQueueGrowth: requireBoolean(
+      value["noQueueGrowth"],
+      "m1-hauling-building-long-run.noQueueGrowth",
+    ),
+    noHashDivergence: requireBoolean(
+      value["noHashDivergence"],
+      "m1-hauling-building-long-run.noHashDivergence",
+    ),
+    materialConserved: requireBoolean(
+      value["materialConserved"],
+      "m1-hauling-building-long-run.materialConserved",
+    ),
+  };
+}
+
 function parseMapDirtyBaselineInvariants(
   value: Record<string, unknown>,
 ): BenchmarkBaselineEntry<"map-dirty">["invariants"] {
@@ -838,6 +945,13 @@ function sampleNamedBenchmark(
     });
   }
 
+  if (name === "m1-hauling-building-long-run") {
+    return sampleBenchmark("m1-hauling-building-long-run", {
+      sampleCount,
+      warmupCount,
+    });
+  }
+
   if (name === "map-dirty") {
     return sampleBenchmark("map-dirty", {
       sampleCount,
@@ -893,6 +1007,10 @@ function compareAgainstNamedBaseline(
 
   if (result.name === "logistics-10k") {
     return compareBenchmarkToBaseline(result, baseline.benchmarks["logistics-10k"]);
+  }
+
+  if (result.name === "m1-hauling-building-long-run") {
+    return compareBenchmarkToBaseline(result, baseline.benchmarks["m1-hauling-building-long-run"]);
   }
 
   if (result.name === "map-dirty") {
@@ -1012,6 +1130,7 @@ function isBenchmarkName(value: string | undefined): value is BenchmarkName {
     value === "empty-tick" ||
     value === "entity-store" ||
     value === "logistics-10k" ||
+    value === "m1-hauling-building-long-run" ||
     value === "map-dirty" ||
     value === "pathing-100" ||
     value === "reservations" ||
@@ -1019,6 +1138,38 @@ function isBenchmarkName(value: string | undefined): value is BenchmarkName {
     value === "spatial-index" ||
     value === "work-offers"
   );
+}
+
+function readCommandOutput(command: string, args: readonly string[]): string {
+  const invocation = createCommandInvocation(command, args);
+  const result = spawnSync(invocation.command, invocation.args, {
+    cwd: process.cwd(),
+    encoding: "utf8",
+    windowsHide: true,
+  });
+
+  if (result.status !== 0 || typeof result.stdout !== "string") {
+    return "unknown";
+  }
+
+  return result.stdout.trim() || "unknown";
+}
+
+function createCommandInvocation(
+  command: string,
+  args: readonly string[],
+): { readonly command: string; readonly args: readonly string[] } {
+  if (process.platform === "win32" && command === "pnpm") {
+    return {
+      command: "cmd.exe",
+      args: ["/d", "/s", "/c", ["pnpm", ...args].join(" ")],
+    };
+  }
+
+  return {
+    command,
+    args: [...args],
+  };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

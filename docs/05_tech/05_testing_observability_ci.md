@@ -48,3 +48,18 @@ adds M1 hauling-building artifacts under
 `coordination/artifacts/WM-0010/m1-save-replay/`. The structured output names
 the seed, scenario id, first divergent tick and artifact paths when a divergence
 is detected.
+
+## WM-0029 implementation note
+
+`pnpm test --filter m1-invariants` is the focused M1 long-run invariant gate for
+the hauling/building scenario. It runs seed `1` to 100000 ticks, checks replay
+and save-resume consistency, and fails on reservation leaks, stale work offers,
+negative resource counts, queue growth and hash divergence.
+
+`pnpm bench` writes the WM-0029 artifact to
+`coordination/artifacts/WM-0029/benchmarks/benchmark-results.json`. The artifact
+records `nodeVersion`, `pnpmVersion`, `osRelease`, `platform`, `arch`,
+`cpuModel`, `cpuCount` and `gitCommit` so benchmark comparisons can name the
+actual runtime. The documented pnpm forwarding form
+`pnpm sim:run -- --seed 1 --scenario hauling-building --ticks 100000` is a
+supported local reproduction command.

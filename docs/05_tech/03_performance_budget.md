@@ -87,3 +87,20 @@ stable selection/quantity checksums.
 
 The benchmark artifact is written under
 `coordination/artifacts/WM-0026/benchmarks/benchmark-results.json`.
+
+## WM-0029 benchmark note
+
+`pnpm bench` now includes the focused `m1-hauling-building-long-run` benchmark
+alongside the existing map dirty rebuild, spatial index, 100-path, reservation,
+work-offer and 10k logistics checks. The M1 benchmark runs the
+`m1.hauling_building.road_lantern_frame.v1` scenario to 100000 ticks with seed
+`1`, verifies replay and save-resume hashes, and records reservation, stale
+reference, negative resource, queue growth, hash divergence and material
+conservation invariants.
+
+The WM-0029 benchmark artifact is written under
+`coordination/artifacts/WM-0029/benchmarks/benchmark-results.json`. The
+artifact-backed baseline update preserves the existing 10 percent warning and
+20 percent blocking thresholds. `map-dirty` also receives an explicit canonical
+hash refresh to `0xba7253ca`; its timing budget and regression thresholds are
+unchanged.

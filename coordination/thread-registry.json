@@ -32,9 +32,9 @@
       "registeredAt": "2026-06-23T21:08:57.616Z"
     },
     "qa-performance": {
-      "threadId": "019efa3c-d23d-7022-878c-f1fe7bcf0f98",
-      "label": "WM-0029-bench-invariants",
-      "registeredAt": "2026-06-24T15:26:12.623Z"
+      "threadId": "019efa73-1b5c-74d1-b84d-6234c2424c4c",
+      "label": "WM-0029-bench-invariants-active",
+      "registeredAt": "2026-06-24T16:27:44.151Z"
     },
     "content-worker": {
       "threadId": "019ef650-24da-7c22-a896-40da4ce6f09f",
@@ -47,5 +47,5 @@
       "registeredAt": "2026-06-24T04:15:21.579Z"
     }
   },
-  "updatedAt": "2026-06-24T15:26:12.623Z"
+  "updatedAt": "2026-06-24T16:27:44.152Z"
 }

@@ -58,6 +58,29 @@
         "quantityChecksum": 1647230824
       }
     },
+    "m1-hauling-building-long-run": {
+      "name": "m1-hauling-building-long-run",
+      "medianElapsedMs": 10,
+      "warnRegressionPercent": 10,
+      "failRegressionPercent": 20,
+      "invariants": {
+        "scenarioId": "m1.hauling_building.road_lantern_frame.v1",
+        "scenarioSeed": "1",
+        "finalTick": 100000,
+        "saveTick": 2400,
+        "completedBuildingCount": 1,
+        "finalWorldHash": "0xf7815189",
+        "finalReadModelHash": "0x53fe1af9",
+        "replayMatches": true,
+        "saveRoundTripMatches": true,
+        "noReservationLeaks": true,
+        "noStaleEntityReferences": true,
+        "noNegativeResources": true,
+        "noQueueGrowth": true,
+        "noHashDivergence": true,
+        "materialConserved": true
+      }
+    },
     "map-dirty": {
       "name": "map-dirty",
       "medianElapsedMs": 1,
@@ -75,7 +98,7 @@
         "remainingDirtyChunks": 0,
         "finalGlobalVersion": 1024,
         "processedChecksum": 3385099136,
-        "mapHash": "0x8af0174e"
+        "mapHash": "0xba7253ca"
       }
     },
     "pathing-100": {

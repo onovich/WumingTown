@@ -277,6 +277,14 @@ benchmarks or WM-0030 closeout.
 - Benchmark impact: updates `packages/benchmarks/baseline.json` through reviewed artifacts while preserving 10 percent warning and 20 percent blocking thresholds.
 - Docs update: performance budget, testing/CI and this roadmap plan if gates change.
 
+Implementation note: WM-0029 adds the `m1-hauling-building-long-run` benchmark,
+`pnpm test --filter m1-invariants`, WM-0029 benchmark artifact metadata, and the
+explicit artifact-backed `map-dirty` canonical hash refresh to `0xba7253ca`.
+The benchmark artifact lives at
+`coordination/artifacts/WM-0029/benchmarks/benchmark-results.json`; warning and
+blocking thresholds remain 10 percent and 20 percent. WM-0030 closeout has not
+started.
+
 ### WM-0030 - M1 Simulation Kernel Closeout
 
 - Owner: `project-director`

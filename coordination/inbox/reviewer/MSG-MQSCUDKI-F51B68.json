@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQSCUDKI-F51B68",
+  "from": "qa-performance",
+  "to": "reviewer",
+  "taskId": "WM-0029",
+  "kind": "review-request",
+  "subject": "WM-0029 ready for review",
+  "body": "Added the M1 long-run benchmark suite, invariant gate, benchmark environment metadata, explicit map-dirty baseline hash refresh, and the headless CLI forwarded-argument regression fix; required checks passed.",
+  "artifacts": [
+    "coordination/reports/WM-0029.md",
+    "task/WM-0029-add-m1-benchmark-suite-and-long-run-invariants"
+  ],
+  "createdAt": "2026-06-24T17:36:16.434Z",
+  "acknowledgedAt": null
+}

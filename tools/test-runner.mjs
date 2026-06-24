@@ -49,7 +49,7 @@ function readFilter(args) {
 
   return {
     error:
-      "Unsupported test arguments. Use no arguments, --filter building, --filter content, --filter determinism, --filter entity-store, --filter hauling, --filter jobs, --filter m1-save-replay, --filter map-grid, --filter pathing, --filter region-room, --filter reservations, --filter spatial-index, --filter sim-core, --filter sim-protocol, --filter work-offers, --filter worker-smoke, or --filter web-shell.",
+      "Unsupported test arguments. Use no arguments, --filter building, --filter content, --filter determinism, --filter entity-store, --filter hauling, --filter jobs, --filter m1-invariants, --filter m1-save-replay, --filter map-grid, --filter pathing, --filter region-room, --filter reservations, --filter spatial-index, --filter sim-core, --filter sim-protocol, --filter work-offers, --filter worker-smoke, or --filter web-shell.",
   };
 }
 
@@ -160,6 +160,14 @@ function selectVitestTargets(selectedMode, selectedFilter) {
         ok: true,
         extraArgs: ["--exclude=**/*.e2e.test.ts"],
         targets: ["packages/sim-core/src/m1-save-replay.test.ts"],
+      };
+    }
+
+    if (selectedFilter === "m1-invariants") {
+      return {
+        ok: true,
+        extraArgs: ["--exclude=**/*.e2e.test.ts"],
+        targets: ["packages/sim-core/src/m1-invariants.test.ts"],
       };
     }
 

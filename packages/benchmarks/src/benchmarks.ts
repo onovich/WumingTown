@@ -26,6 +26,13 @@ import {
   type SampledLogistics10kBenchmark,
 } from "./logistics-10k-benchmark";
 import {
+  m1HaulingBuildingLongRunInvariantsFromReport,
+  runM1HaulingBuildingLongRunBenchmark,
+  type M1HaulingBuildingLongRunBenchmarkInvariants,
+  type M1HaulingBuildingLongRunBenchmarkReport,
+  type SampledM1HaulingBuildingLongRunBenchmark,
+} from "./m1-hauling-building-long-run-benchmark";
+import {
   runSpatialIndexBenchmark,
   spatialIndexInvariantsFromReport,
   type SampledSpatialIndexBenchmark,
@@ -63,6 +70,7 @@ import {
 
 export { runEntityStoreBenchmark } from "./entity-store-benchmark";
 export { runLogistics10kBenchmark } from "./logistics-10k-benchmark";
+export { runM1HaulingBuildingLongRunBenchmark } from "./m1-hauling-building-long-run-benchmark";
 export { runPathing100Benchmark } from "./pathing-100-benchmark";
 export { runRegionRoomBenchmark } from "./region-room-benchmark";
 export { runReservationsBenchmark } from "./reservations-benchmark";
@@ -86,6 +94,7 @@ export type BenchmarkName =
   | "empty-tick"
   | "entity-store"
   | "logistics-10k"
+  | "m1-hauling-building-long-run"
   | "map-dirty"
   | "pathing-100"
   | "reservations"
@@ -176,6 +185,7 @@ export type BenchmarkReport =
   | EmptyTickBenchmarkReport
   | EntityStoreBenchmarkReport
   | Logistics10kBenchmarkReport
+  | M1HaulingBuildingLongRunBenchmarkReport
   | MapDirtyBenchmarkReport
   | Pathing100BenchmarkReport
   | ReservationsBenchmarkReport
@@ -186,6 +196,7 @@ export type BenchmarkInvariants =
   | EmptyTickBenchmarkInvariants
   | EntityStoreBenchmarkInvariants
   | Logistics10kBenchmarkInvariants
+  | M1HaulingBuildingLongRunBenchmarkInvariants
   | MapDirtyBenchmarkInvariants
   | Pathing100BenchmarkInvariants
   | ReservationsBenchmarkInvariants
@@ -196,6 +207,7 @@ export type SampledBenchmarkResult =
   | SampledEmptyTickBenchmark
   | SampledEntityStoreBenchmark
   | SampledLogistics10kBenchmark
+  | SampledM1HaulingBuildingLongRunBenchmark
   | SampledMapDirtyBenchmark
   | SampledPathing100Benchmark
   | SampledReservationsBenchmark
@@ -207,6 +219,7 @@ export interface BenchmarkReportMap {
   readonly "empty-tick": EmptyTickBenchmarkReport;
   readonly "entity-store": EntityStoreBenchmarkReport;
   readonly "logistics-10k": Logistics10kBenchmarkReport;
+  readonly "m1-hauling-building-long-run": M1HaulingBuildingLongRunBenchmarkReport;
   readonly "map-dirty": MapDirtyBenchmarkReport;
   readonly "pathing-100": Pathing100BenchmarkReport;
   readonly reservations: ReservationsBenchmarkReport;
@@ -219,6 +232,7 @@ export interface BenchmarkInvariantMap {
   readonly "empty-tick": EmptyTickBenchmarkInvariants;
   readonly "entity-store": EntityStoreBenchmarkInvariants;
   readonly "logistics-10k": Logistics10kBenchmarkInvariants;
+  readonly "m1-hauling-building-long-run": M1HaulingBuildingLongRunBenchmarkInvariants;
   readonly "map-dirty": MapDirtyBenchmarkInvariants;
   readonly "pathing-100": Pathing100BenchmarkInvariants;
   readonly reservations: ReservationsBenchmarkInvariants;
@@ -258,6 +272,9 @@ export function benchmarkInvariantsFromReport(
 export function benchmarkInvariantsFromReport(
   report: Logistics10kBenchmarkReport,
 ): Logistics10kBenchmarkInvariants;
+export function benchmarkInvariantsFromReport(
+  report: M1HaulingBuildingLongRunBenchmarkReport,
+): M1HaulingBuildingLongRunBenchmarkInvariants;
 export function benchmarkInvariantsFromReport(
   report: MapDirtyBenchmarkReport,
 ): MapDirtyBenchmarkInvariants;
@@ -304,6 +321,10 @@ export function benchmarkInvariantsFromReport(report: BenchmarkReport): Benchmar
     return logistics10kInvariantsFromReport(report);
   }
 
+  if (report.name === "m1-hauling-building-long-run") {
+    return m1HaulingBuildingLongRunInvariantsFromReport(report);
+  }
+
   if (report.name === "map-dirty") {
     return mapDirtyInvariantsFromReport(report);
   }
@@ -330,6 +351,9 @@ export function benchmarkInvariantsFromReport(report: BenchmarkReport): Benchmar
 export function runBenchmarkByName(name: "empty-tick"): EmptyTickBenchmarkReport;
 export function runBenchmarkByName(name: "entity-store"): EntityStoreBenchmarkReport;
 export function runBenchmarkByName(name: "logistics-10k"): Logistics10kBenchmarkReport;
+export function runBenchmarkByName(
+  name: "m1-hauling-building-long-run",
+): M1HaulingBuildingLongRunBenchmarkReport;
 export function runBenchmarkByName(name: "map-dirty"): MapDirtyBenchmarkReport;
 export function runBenchmarkByName(name: "pathing-100"): Pathing100BenchmarkReport;
 export function runBenchmarkByName(name: "reservations"): ReservationsBenchmarkReport;
@@ -350,6 +374,10 @@ export function runBenchmarkByName(name: BenchmarkName): BenchmarkReport {
 
   if (name === "logistics-10k") {
     return runLogistics10kBenchmark();
+  }
+
+  if (name === "m1-hauling-building-long-run") {
+    return runM1HaulingBuildingLongRunBenchmark();
   }
 
   if (name === "map-dirty") {
@@ -387,6 +415,10 @@ export function sampleBenchmark(
   name: "logistics-10k",
   options?: BenchmarkSamplingOptions,
 ): SampledLogistics10kBenchmark;
+export function sampleBenchmark(
+  name: "m1-hauling-building-long-run",
+  options?: BenchmarkSamplingOptions,
+): SampledM1HaulingBuildingLongRunBenchmark;
 export function sampleBenchmark(
   name: "map-dirty",
   options?: BenchmarkSamplingOptions,
@@ -426,6 +458,8 @@ export function sampleBenchmark(
       runBenchmarkByName("entity-store");
     } else if (name === "logistics-10k") {
       runBenchmarkByName("logistics-10k");
+    } else if (name === "m1-hauling-building-long-run") {
+      runBenchmarkByName("m1-hauling-building-long-run");
     } else if (name === "map-dirty") {
       runBenchmarkByName("map-dirty");
     } else if (name === "pathing-100") {
@@ -451,6 +485,10 @@ export function sampleBenchmark(
 
   if (name === "logistics-10k") {
     return sampleLogistics10kBenchmark(sampleCount);
+  }
+
+  if (name === "m1-hauling-building-long-run") {
+    return sampleM1HaulingBuildingLongRunBenchmark(sampleCount);
   }
 
   if (name === "map-dirty") {
@@ -483,6 +521,7 @@ export function runDefaultBenchmarkSuite(
     sampleBenchmark("empty-tick", options),
     sampleBenchmark("entity-store", options),
     sampleBenchmark("logistics-10k", options),
+    sampleBenchmark("m1-hauling-building-long-run", options),
     sampleBenchmark("map-dirty", options),
     sampleBenchmark("pathing-100", options),
     sampleBenchmark("reservations", options),
@@ -535,6 +574,24 @@ function sampleLogistics10kBenchmark(sampleCount: number): SampledLogistics10kBe
     name: "logistics-10k",
     report: reports[reports.length - 1] ?? failMissingReport(),
     invariants: validateInvariantConsistency("logistics-10k", reports),
+    sampleElapsedMs: reports.map((report) => report.elapsedMs),
+    stats: createBenchmarkStats(reports.map((report) => report.elapsedMs)),
+  };
+}
+
+function sampleM1HaulingBuildingLongRunBenchmark(
+  sampleCount: number,
+): SampledM1HaulingBuildingLongRunBenchmark {
+  const reports: M1HaulingBuildingLongRunBenchmarkReport[] = [];
+
+  for (let index = 0; index < sampleCount; index += 1) {
+    reports.push(runM1HaulingBuildingLongRunBenchmark());
+  }
+
+  return {
+    name: "m1-hauling-building-long-run",
+    report: reports[reports.length - 1] ?? failMissingReport(),
+    invariants: validateInvariantConsistency("m1-hauling-building-long-run", reports),
     sampleElapsedMs: reports.map((report) => report.elapsedMs),
     stats: createBenchmarkStats(reports.map((report) => report.elapsedMs)),
   };
@@ -659,6 +716,10 @@ function validateInvariantConsistency(
   reports: readonly Logistics10kBenchmarkReport[],
 ): Logistics10kBenchmarkInvariants;
 function validateInvariantConsistency(
+  name: "m1-hauling-building-long-run",
+  reports: readonly M1HaulingBuildingLongRunBenchmarkReport[],
+): M1HaulingBuildingLongRunBenchmarkInvariants;
+function validateInvariantConsistency(
   name: "map-dirty",
   reports: readonly MapDirtyBenchmarkReport[],
 ): MapDirtyBenchmarkInvariants;
@@ -753,6 +814,10 @@ function readInvariantUnion(report: BenchmarkReport): BenchmarkInvariants {
   }
 
   if (report.name === "logistics-10k") {
+    return benchmarkInvariantsFromReport(report);
+  }
+
+  if (report.name === "m1-hauling-building-long-run") {
     return benchmarkInvariantsFromReport(report);
   }
 

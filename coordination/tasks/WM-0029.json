@@ -2,7 +2,7 @@
   "id": "WM-0029",
   "title": "Add M1 benchmark suite and long run invariants",
   "summary": "Add the M1 benchmark suite, baseline comparisons, long-run invariant checks and CI reporting for map dirty rebuilds, pathing, work offers, reservations and hauling/building.",
-  "state": "in_progress",
+  "state": "review_requested",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0029-add-m1-benchmark-suite-and-long-run-invariants",
   "createdAt": "2026-06-23T23:08:02.507Z",
-  "updatedAt": "2026-06-24T15:25:05.332Z",
+  "updatedAt": "2026-06-24T17:36:16.433Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.508Z",
@@ -49,9 +49,16 @@
       "actor": "qa-performance",
       "action": "claim",
       "details": "thread=QA-WM-0029"
+    },
+    {
+      "at": "2026-06-24T17:36:16.433Z",
+      "actor": "qa-performance",
+      "action": "complete",
+      "details": "Added the M1 long-run benchmark suite, invariant gate, benchmark environment metadata, explicit map-dirty baseline hash refresh, and the headless CLI forwarded-argument regression fix; required checks passed."
     }
   ],
   "claimedBy": "qa-performance",
   "threadLabel": "QA-WM-0029",
-  "blocker": null
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0029.md"
 }

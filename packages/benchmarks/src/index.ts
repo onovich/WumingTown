@@ -11,6 +11,7 @@ export {
   sampleBenchmark,
 } from "./benchmarks";
 export { runLogistics10kBenchmark } from "./logistics-10k-benchmark";
+export { runM1HaulingBuildingLongRunBenchmark } from "./m1-hauling-building-long-run-benchmark";
 export { runMapDirtyBenchmark } from "./map-dirty-benchmark";
 export { runPathing100Benchmark } from "./pathing-100-benchmark";
 export { runWorkOffersBenchmark } from "./work-offers-benchmark";
@@ -38,6 +39,11 @@ export type {
   Logistics10kBenchmarkReport,
   SampledLogistics10kBenchmark,
 } from "./logistics-10k-benchmark";
+export type {
+  M1HaulingBuildingLongRunBenchmarkInvariants,
+  M1HaulingBuildingLongRunBenchmarkReport,
+  SampledM1HaulingBuildingLongRunBenchmark,
+} from "./m1-hauling-building-long-run-benchmark";
 export type {
   MapDirtyBenchmarkInvariants,
   MapDirtyBenchmarkReport,

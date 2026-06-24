@@ -66,6 +66,11 @@ export function parseHeadlessCliOptions(argv: readonly string[]): HeadlessCliRes
   while (index < argv.length) {
     const arg = argv[index];
 
+    if (arg === "--") {
+      index += 1;
+      continue;
+    }
+
     if (arg === "--seed") {
       const value = argv[index + 1];
       if (value === undefined || value.length === 0) {

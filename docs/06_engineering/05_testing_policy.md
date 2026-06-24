@@ -19,3 +19,8 @@
 ## 长跑
 
 每日运行 1M Tick 场景：Reservation 泄漏、实体引用、资源负数、队列增长、存档 round-trip 和 Hash 分歧。
+
+WM-0029 adds `pnpm test --filter m1-invariants` as the focused M1
+hauling/building 100000-tick long-run entry. It fails on reservation leaks,
+stale work offers or entity references, negative resources, sustained queue
+growth, save round-trip mismatch and replay/hash divergence.
