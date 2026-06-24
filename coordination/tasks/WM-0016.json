@@ -2,7 +2,7 @@
   "id": "WM-0016",
   "title": "Propose ADR 0005 for M1 save container v1",
   "summary": "Produce the proposed Save Container v1 ADR for M1 map chunks, entity stores, jobs, reservations, random streams, command-log tail and migration boundaries.",
-  "state": "ready",
+  "state": "review_requested",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -29,7 +29,7 @@
   ],
   "branch": "task/WM-0016-propose-adr-0005-for-m1-save-container-v1",
   "createdAt": "2026-06-23T23:08:01.984Z",
-  "updatedAt": "2026-06-23T23:22:41.082Z",
+  "updatedAt": "2026-06-24T04:57:10.146Z",
   "history": [
     {
       "at": "2026-06-23T23:08:01.984Z",
@@ -42,6 +42,22 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-24T04:47:44.450Z",
+      "actor": "systems-architect",
+      "action": "claim",
+      "details": "thread=Compass-WM-0016"
+    },
+    {
+      "at": "2026-06-24T04:57:10.145Z",
+      "actor": "systems-architect",
+      "action": "complete",
+      "details": "Proposed ADR-0005 Save Container v1; documented versioned M1 sections, untrusted validation boundary, load/rebuild/invariant order, migration/rollback, tests and performance implications; required checks passed."
     }
-  ]
+  ],
+  "claimedBy": "systems-architect",
+  "threadLabel": "Compass-WM-0016",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0016.md"
 }

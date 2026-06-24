@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQRLQ5TV-3F9248",
+  "from": "systems-architect",
+  "to": "reviewer",
+  "taskId": "WM-0016",
+  "kind": "review-request",
+  "subject": "WM-0016 ready for review",
+  "body": "Proposed ADR-0005 Save Container v1; documented versioned M1 sections, untrusted validation boundary, load/rebuild/invariant order, migration/rollback, tests and performance implications; required checks passed.",
+  "artifacts": [
+    "coordination/reports/WM-0016.md",
+    "task/WM-0016-propose-adr-0005-for-m1-save-container-v1"
+  ],
+  "createdAt": "2026-06-24T04:57:10.147Z",
+  "acknowledgedAt": null
+}
