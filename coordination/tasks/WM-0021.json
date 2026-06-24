@@ -2,7 +2,7 @@
   "id": "WM-0021",
   "title": "Implement incremental region room rebuild and navigation versions",
   "summary": "Implement local Region/Room invalidation and rebuild, navigation versioning, and room consistency checks for terrain, walls, doors and occupancy-affecting changes.",
-  "state": "ready",
+  "state": "review_requested",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0021-implement-incremental-region-room-rebuild-and-na",
   "createdAt": "2026-06-23T23:08:02.185Z",
-  "updatedAt": "2026-06-24T07:34:52.061Z",
+  "updatedAt": "2026-06-24T07:59:32.226Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.185Z",
@@ -43,6 +43,22 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-24T07:37:43.742Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Tally-WM-0021"
+    },
+    {
+      "at": "2026-06-24T07:59:32.225Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented incremental region/room rebuild, topology lanes, navigation versions, focused tests and region-room benchmark; required checks and lint pass"
     }
-  ]
+  ],
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Tally-WM-0021",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0021.md"
 }

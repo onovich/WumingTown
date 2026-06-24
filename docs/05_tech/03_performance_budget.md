@@ -48,3 +48,12 @@ dirty queue length, rebuild budget, processed chunk count, remaining backlog,
 processed checksum and canonical map hash. The normal dirty-drain path uses a
 caller-owned typed output buffer so unchanged worlds do not allocate or grow
 queues.
+
+## WM-0021 benchmark note
+
+`pnpm bench --filter region-room` measures dirty terrain, wall and door
+invalidation through the region/room rebuild queue. The report records changed
+edges, peak dirty queue length, rebuild budget, drain ticks, processed cells,
+processed regions, map updates, remaining dirty cells, active backlog,
+no-sustained-growth evidence, monotonic navigation/region/room/graph versions,
+processed checksum and canonical region-room hash.

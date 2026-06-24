@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-06-24T07:57:44.321Z",
+  "baselinePath": "packages/benchmarks/baseline.json",
+  "artifactPath": "coordination/artifacts/WM-0021/benchmarks/benchmark-results.json",
+  "sampleCount": 5,
+  "warmupCount": 1,
+  "environment": {
+    "nodeVersion": "v24.13.1",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "results": [
+    {
+      "name": "region-room",
+      "sampleElapsedMs": [
+        7.996099999999984,
+        5.329399999999993,
+        7.5578000000000145,
+        3.871700000000004,
+        4.2601999999999975
+      ],
+      "stats": {
+        "sampleCount": 5,
+        "minElapsedMs": 3.871700000000004,
+        "medianElapsedMs": 5.329399999999993,
+        "maxElapsedMs": 7.996099999999984,
+        "meanElapsedMs": 5.803039999999998
+      },
+      "invariants": {
+        "width": 128,
+        "height": 128,
+        "chunkSize": 16,
+        "changedEdges": 128,
+        "dirtyQueuePeak": 632,
+        "rebuildBudgetPerTick": 256,
+        "drainTicks": 130,
+        "processedCells": 32768,
+        "processedRegions": 2,
+        "mapUpdates": 32768,
+        "remainingDirtyCells": 0,
+        "activeCellBacklog": 0,
+        "noSustainedGrowth": true,
+        "navigationVersion": 129,
+        "regionVersion": 129,
+        "roomVersion": 129,
+        "regionGraphVersion": 129,
+        "processedChecksum": 2639483583,
+        "regionRoomHash": "0x8c6c6b2d"
+      },
+      "comparison": {
+        "name": "region-room",
+        "status": "ok",
+        "actualMedianElapsedMs": 5.329399999999993,
+        "baselineMedianElapsedMs": 10,
+        "regressionPercent": -46.706000000000074,
+        "warnRegressionPercent": 10,
+        "failRegressionPercent": 20,
+        "invariantMismatches": []
+      }
+    }
+  ]
+}

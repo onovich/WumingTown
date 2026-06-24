@@ -17,6 +17,8 @@ describe("deterministic map grid and chunk dirty queues", () => {
     expect(snapshot.terrain).toBeInstanceOf(Uint16Array);
     expect(snapshot.occupancy).toBeInstanceOf(Int32Array);
     expect(snapshot.walkCostMilli).toBeInstanceOf(Uint32Array);
+    expect(snapshot.wallMask).toBeInstanceOf(Uint8Array);
+    expect(snapshot.doorMask).toBeInstanceOf(Uint8Array);
     expect(snapshot.regionId).toBeInstanceOf(Uint32Array);
     expect(snapshot.roomId).toBeInstanceOf(Uint32Array);
     expect(snapshot.cellVersion).toBeInstanceOf(Uint32Array);
@@ -30,6 +32,8 @@ describe("deterministic map grid and chunk dirty queues", () => {
         terrain: 0,
         occupancy: 0,
         walkCostMilli: DEFAULT_WALK_COST_MILLI,
+        wallMask: 0,
+        doorMask: 0,
         regionId: 0,
         roomId: 0,
         cellVersion: 0,
@@ -45,6 +49,8 @@ describe("deterministic map grid and chunk dirty queues", () => {
         terrain: 2,
         occupancy: 17,
         walkCostMilli: 1_500,
+        wallMask: 0,
+        doorMask: 0,
         regionId: 3,
         roomId: 9,
       }),
@@ -145,6 +151,8 @@ describe("deterministic map grid and chunk dirty queues", () => {
         terrain: 4,
         occupancy: 0,
         walkCostMilli: 2_000,
+        wallMask: 0,
+        doorMask: 0,
         regionId: 0,
         roomId: 0,
         cellVersion: 1,

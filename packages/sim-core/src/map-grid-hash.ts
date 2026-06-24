@@ -25,6 +25,8 @@ export function createMapGridHashFields(
       name: `${prefix}.walkCostMilliHash`,
       value: hashLane("walkCostMilli", snapshot.walkCostMilli),
     },
+    { name: `${prefix}.wallMaskHash`, value: hashLane("wallMask", snapshot.wallMask) },
+    { name: `${prefix}.doorMaskHash`, value: hashLane("doorMask", snapshot.doorMask) },
     { name: `${prefix}.regionIdHash`, value: hashLane("regionId", snapshot.regionId) },
     { name: `${prefix}.roomIdHash`, value: hashLane("roomId", snapshot.roomId) },
     { name: `${prefix}.cellVersionHash`, value: hashLane("cellVersion", snapshot.cellVersion) },

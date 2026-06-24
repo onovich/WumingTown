@@ -64,3 +64,17 @@ transfer/despawn/destroy cleanup clears occupancy through explicit lifecycle
 paths. `SpatialIndex` maintains deterministic per-cell, per-chunk, and
 per-region buckets so pawn/work queries can use indexed candidates rather than
 scanning all entities or the full map.
+
+## WM-0021 implementation note
+
+`MapGrid` now records cardinal wall and closed-door masks as integer topology
+lanes. `RegionRoomRebuilder` owns derived region and room ids through an
+explicit dirty-cell queue and a budgeted flood-fill state machine. Terrain,
+wall and door edits enqueue only the changed cell and cardinal neighbors; load
+or debug rebuild may enqueue all cells, but normal rebuilds drain by caller
+budget and report remaining dirty cells, active backlog, processed cells,
+processed regions and map update counts.
+
+Navigation, region, room and region-graph versions advance monotonically when
+topology is invalidated. Future pathing must carry these versions as stale
+rejection basis data and must not assume a queued rebuild has already drained.

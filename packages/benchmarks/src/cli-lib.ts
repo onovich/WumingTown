@@ -121,7 +121,7 @@ function parseBenchmarkArgs(
 
       if (!isBenchmarkName(value)) {
         return failedArgs(
-          "Unsupported benchmark filter. Use empty-tick, entity-store, map-dirty, or spatial-index.",
+          "Unsupported benchmark filter. Use empty-tick, entity-store, map-dirty, region-room, or spatial-index.",
         );
       }
 
@@ -135,7 +135,7 @@ function parseBenchmarkArgs(
 
       if (!isBenchmarkName(value)) {
         return failedArgs(
-          "Unsupported benchmark filter. Use empty-tick, entity-store, map-dirty, or spatial-index.",
+          "Unsupported benchmark filter. Use empty-tick, entity-store, map-dirty, region-room, or spatial-index.",
         );
       }
 
@@ -244,7 +244,13 @@ function parseBenchmarkArgs(
     );
   }
 
-  if (!artifactPathWasConfigured && filter === "spatial-index") {
+  if (!artifactPathWasConfigured && filter === "region-room") {
+    artifactPath = path.join(
+      resolveArtifactRoot("WM-0021"),
+      "benchmarks",
+      "benchmark-results.json",
+    );
+  } else if (!artifactPathWasConfigured && filter === "spatial-index") {
     artifactPath = path.join(
       resolveArtifactRoot("WM-0020"),
       "benchmarks",
@@ -292,6 +298,7 @@ function loadBenchmarkBaseline(filePath: string): BenchmarkBaselineFile {
       "empty-tick": parseEmptyTickBaselineEntry(rawBenchmarks["empty-tick"]),
       "entity-store": parseEntityStoreBaselineEntry(rawBenchmarks["entity-store"]),
       "map-dirty": parseMapDirtyBaselineEntry(rawBenchmarks["map-dirty"]),
+      "region-room": parseRegionRoomBaselineEntry(rawBenchmarks["region-room"]),
       "spatial-index": parseSpatialIndexBaselineEntry(rawBenchmarks["spatial-index"]),
     },
   };
@@ -368,6 +375,32 @@ function parseMapDirtyBaselineEntry(value: unknown): BenchmarkBaselineEntry<"map
       "map-dirty.failRegressionPercent",
     ),
     invariants: parseMapDirtyBaselineInvariants(requireRecord(value["invariants"], "map-dirty")),
+  };
+}
+
+function parseRegionRoomBaselineEntry(value: unknown): BenchmarkBaselineEntry<"region-room"> {
+  if (!isRecord(value)) {
+    throw new Error("benchmark baseline entry region-room must be an object");
+  }
+
+  if (value["name"] !== "region-room") {
+    throw new Error("benchmark baseline entry region-room must declare the same name");
+  }
+
+  return {
+    name: "region-room",
+    medianElapsedMs: requireNumber(value["medianElapsedMs"], "region-room.medianElapsedMs"),
+    warnRegressionPercent: requireNumber(
+      value["warnRegressionPercent"],
+      "region-room.warnRegressionPercent",
+    ),
+    failRegressionPercent: requireNumber(
+      value["failRegressionPercent"],
+      "region-room.failRegressionPercent",
+    ),
+    invariants: parseRegionRoomBaselineInvariants(
+      requireRecord(value["invariants"], "region-room"),
+    ),
   };
 }
 
@@ -452,6 +485,41 @@ function parseMapDirtyBaselineInvariants(
   };
 }
 
+function parseRegionRoomBaselineInvariants(
+  value: Record<string, unknown>,
+): BenchmarkBaselineEntry<"region-room">["invariants"] {
+  return {
+    width: requireNumber(value["width"], "region-room.width"),
+    height: requireNumber(value["height"], "region-room.height"),
+    chunkSize: requireNumber(value["chunkSize"], "region-room.chunkSize"),
+    changedEdges: requireNumber(value["changedEdges"], "region-room.changedEdges"),
+    dirtyQueuePeak: requireNumber(value["dirtyQueuePeak"], "region-room.dirtyQueuePeak"),
+    rebuildBudgetPerTick: requireNumber(
+      value["rebuildBudgetPerTick"],
+      "region-room.rebuildBudgetPerTick",
+    ),
+    drainTicks: requireNumber(value["drainTicks"], "region-room.drainTicks"),
+    processedCells: requireNumber(value["processedCells"], "region-room.processedCells"),
+    processedRegions: requireNumber(value["processedRegions"], "region-room.processedRegions"),
+    mapUpdates: requireNumber(value["mapUpdates"], "region-room.mapUpdates"),
+    remainingDirtyCells: requireNumber(
+      value["remainingDirtyCells"],
+      "region-room.remainingDirtyCells",
+    ),
+    activeCellBacklog: requireNumber(value["activeCellBacklog"], "region-room.activeCellBacklog"),
+    noSustainedGrowth: requireBoolean(value["noSustainedGrowth"], "region-room.noSustainedGrowth"),
+    navigationVersion: requireNumber(value["navigationVersion"], "region-room.navigationVersion"),
+    regionVersion: requireNumber(value["regionVersion"], "region-room.regionVersion"),
+    roomVersion: requireNumber(value["roomVersion"], "region-room.roomVersion"),
+    regionGraphVersion: requireNumber(
+      value["regionGraphVersion"],
+      "region-room.regionGraphVersion",
+    ),
+    processedChecksum: requireNumber(value["processedChecksum"], "region-room.processedChecksum"),
+    regionRoomHash: requireString(value["regionRoomHash"], "region-room.regionRoomHash"),
+  };
+}
+
 function parseSpatialIndexBaselineInvariants(
   value: Record<string, unknown>,
 ): BenchmarkBaselineEntry<"spatial-index">["invariants"] {
@@ -512,6 +580,13 @@ function sampleNamedBenchmark(
     });
   }
 
+  if (name === "region-room") {
+    return sampleBenchmark("region-room", {
+      sampleCount,
+      warmupCount,
+    });
+  }
+
   return sampleBenchmark("spatial-index", {
     sampleCount,
     warmupCount,
@@ -532,6 +607,10 @@ function compareAgainstNamedBaseline(
 
   if (result.name === "map-dirty") {
     return compareBenchmarkToBaseline(result, baseline.benchmarks["map-dirty"]);
+  }
+
+  if (result.name === "region-room") {
+    return compareBenchmarkToBaseline(result, baseline.benchmarks["region-room"]);
   }
 
   return compareBenchmarkToBaseline(result, baseline.benchmarks["spatial-index"]);
@@ -556,6 +635,14 @@ function requireNumber(value: unknown, label: string): number {
 function requireString(value: unknown, label: string): string {
   if (typeof value !== "string" || value.length === 0) {
     throw new Error(`${label} must be a non-empty string`);
+  }
+
+  return value;
+}
+
+function requireBoolean(value: unknown, label: string): boolean {
+  if (typeof value !== "boolean") {
+    throw new Error(`${label} must be a boolean`);
   }
 
   return value;
@@ -623,6 +710,7 @@ function isBenchmarkName(value: string | undefined): value is BenchmarkName {
     value === "empty-tick" ||
     value === "entity-store" ||
     value === "map-dirty" ||
+    value === "region-room" ||
     value === "spatial-index"
   );
 }

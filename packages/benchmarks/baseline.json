@@ -51,6 +51,33 @@
         "mapHash": "0x8af0174e"
       }
     },
+    "region-room": {
+      "name": "region-room",
+      "medianElapsedMs": 10,
+      "warnRegressionPercent": 10,
+      "failRegressionPercent": 20,
+      "invariants": {
+        "width": 128,
+        "height": 128,
+        "chunkSize": 16,
+        "changedEdges": 128,
+        "dirtyQueuePeak": 632,
+        "rebuildBudgetPerTick": 256,
+        "drainTicks": 130,
+        "processedCells": 32768,
+        "processedRegions": 2,
+        "mapUpdates": 32768,
+        "remainingDirtyCells": 0,
+        "activeCellBacklog": 0,
+        "noSustainedGrowth": true,
+        "navigationVersion": 129,
+        "regionVersion": 129,
+        "roomVersion": 129,
+        "regionGraphVersion": 129,
+        "processedChecksum": 2639483583,
+        "regionRoomHash": "0x8c6c6b2d"
+      }
+    },
     "spatial-index": {
       "name": "spatial-index",
       "medianElapsedMs": 1436.717,

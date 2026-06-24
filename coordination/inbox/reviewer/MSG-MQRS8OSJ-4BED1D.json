@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQRS8OSJ-4BED1D",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0021",
+  "kind": "review-request",
+  "subject": "WM-0021 ready for review",
+  "body": "Implemented incremental region/room rebuild, topology lanes, navigation versions, focused tests and region-room benchmark; required checks and lint pass",
+  "artifacts": [
+    "coordination/reports/WM-0021.md",
+    "task/WM-0021-implement-incremental-region-room-rebuild-and-na"
+  ],
+  "createdAt": "2026-06-24T07:59:32.227Z",
+  "acknowledgedAt": null
+}

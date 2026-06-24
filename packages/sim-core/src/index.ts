@@ -3,10 +3,25 @@ import { defineWorkspaceSmoke, type WorkspaceSmoke } from "@wuming-town/foundati
 export { formatUint32Hex, hashStringToUint32, mixUint32 } from "./deterministic-hash";
 export {
   DEFAULT_WALK_COST_MILLI,
+  MAP_DIRECTION_EAST,
+  MAP_DIRECTION_MASK_CARDINAL,
+  MAP_DIRECTION_MASK_EAST,
+  MAP_DIRECTION_MASK_NORTH,
+  MAP_DIRECTION_MASK_SOUTH,
+  MAP_DIRECTION_MASK_WEST,
+  MAP_DIRECTION_NORTH,
+  MAP_DIRECTION_SOUTH,
+  MAP_DIRECTION_WEST,
   MAP_GRID_SNAPSHOT_VERSION,
+  MAP_TERRAIN_BLOCKED,
   MapGrid,
   createMapGrid,
 } from "./map-grid";
+export {
+  REGION_ROOM_REBUILD_SNAPSHOT_VERSION,
+  RegionRoomRebuilder,
+  createRegionRoomRebuilder,
+} from "./region-room-rebuild";
 export {
   LOCATION_CONTAINER,
   LOCATION_MAP,
@@ -107,6 +122,7 @@ export type {
 } from "./world-hash";
 export type {
   MapCellReadResult,
+  MapCellIndexReadResult,
   MapCellUpdate,
   MapCellUpdateResult,
   MapCellView,
@@ -114,7 +130,18 @@ export type {
   MapGridOptions,
   MapGridReason,
   MapGridSnapshot,
+  MapMovementResult,
 } from "./map-grid";
+export type {
+  RegionGraphBasis,
+  RegionRoomCellBasis,
+  RegionRoomMarkResult,
+  RegionRoomMetrics,
+  RegionRoomMutationResult,
+  RegionRoomProcessResult,
+  RegionRoomReason,
+  RegionRoomSnapshot,
+} from "./region-room-rebuild";
 export type {
   LocationCleanupReason,
   LocationDestroyResult,
