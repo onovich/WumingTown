@@ -2,7 +2,7 @@
   "id": "WM-0030",
   "title": "Close the M1 simulation kernel gate",
   "summary": "Integrate reviewed M1 simulation-kernel work, run the full M1 gate, update roadmap status and prepare the project for the next gameplay slice without skipping independent review.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -33,13 +33,19 @@
   ],
   "branch": "task/WM-0030-close-the-m1-simulation-kernel-gate",
   "createdAt": "2026-06-23T23:08:02.548Z",
-  "updatedAt": "2026-06-23T23:08:02.549Z",
+  "updatedAt": "2026-06-24T18:42:46.851Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.549Z",
       "actor": "taskctl",
       "action": "create",
       "details": ""
+    },
+    {
+      "at": "2026-06-24T18:42:46.851Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ]
 }

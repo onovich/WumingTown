@@ -2,7 +2,7 @@
   "id": "WM-0029",
   "title": "Add M1 benchmark suite and long run invariants",
   "summary": "Add the M1 benchmark suite, baseline comparisons, long-run invariant checks and CI reporting for map dirty rebuilds, pathing, work offers, reservations and hauling/building.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0029-add-m1-benchmark-suite-and-long-run-invariants",
   "createdAt": "2026-06-23T23:08:02.507Z",
-  "updatedAt": "2026-06-24T18:36:08.142Z",
+  "updatedAt": "2026-06-24T18:42:46.848Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.508Z",
@@ -73,6 +73,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: Previous High finding resolved: idle-window samples cover tick 2401 through 100000, longRunStable depends on hash/no-growth/no-stale-reference evidence, benchmark artifact includes idle invariants; key checks pass."
+    },
+    {
+      "at": "2026-06-24T18:42:40.994Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Fast-forwarded main to 41d2675; integration gates passed including validate-handoff, taskctl validate, diff check, typecheck, m1-invariants, bench, and hauling-building 100000-tick sim."
+    },
+    {
+      "at": "2026-06-24T18:42:46.847Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "claimedBy": "qa-performance",
@@ -84,5 +96,10 @@
     "verdict": "verified",
     "summary": "Previous High finding resolved: idle-window samples cover tick 2401 through 100000, longRunStable depends on hash/no-growth/no-stale-reference evidence, benchmark artifact includes idle invariants; key checks pass.",
     "at": "2026-06-24T18:36:08.142Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Fast-forwarded main to 41d2675; integration gates passed including validate-handoff, taskctl validate, diff check, typecheck, m1-invariants, bench, and hauling-building 100000-tick sim.",
+    "at": "2026-06-24T18:42:40.994Z"
   }
 }
