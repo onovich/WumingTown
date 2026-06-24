@@ -2,7 +2,7 @@
   "id": "WM-0022",
   "title": "Implement versioned path request batching and Top K pathing",
   "summary": "Implement Region coarse pathing, local A star, batched path requests, Top-K candidate path resolution and stale navigation-version rejection.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,13 +30,19 @@
   ],
   "branch": "task/WM-0022-implement-versioned-path-request-batching-and-to",
   "createdAt": "2026-06-23T23:08:02.224Z",
-  "updatedAt": "2026-06-23T23:08:02.224Z",
+  "updatedAt": "2026-06-24T08:14:14.675Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.224Z",
       "actor": "taskctl",
       "action": "create",
       "details": ""
+    },
+    {
+      "at": "2026-06-24T08:14:14.675Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ]
 }

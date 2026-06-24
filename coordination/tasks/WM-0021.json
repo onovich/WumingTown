@@ -2,7 +2,7 @@
   "id": "WM-0021",
   "title": "Implement incremental region room rebuild and navigation versions",
   "summary": "Implement local Region/Room invalidation and rebuild, navigation versioning, and room consistency checks for terrain, walls, doors and occupancy-affecting changes.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0021-implement-incremental-region-room-rebuild-and-na",
   "createdAt": "2026-06-23T23:08:02.185Z",
-  "updatedAt": "2026-06-24T08:09:58.865Z",
+  "updatedAt": "2026-06-24T08:14:14.669Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.185Z",
@@ -73,6 +73,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: Verified WM-0021 re-review: prior map-grid MapCellView expectation regression is resolved; map-grid, region-room, benchmark, typecheck, lint, task validation, diff check and boundary check pass with no blocking findings."
+    },
+    {
+      "at": "2026-06-24T08:14:14.627Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Fast-forward merged task/WM-0021-implement-incremental-region-room-rebuild-and-na at 8d34a5d37954d05cb2a28fcc04ecc287ad903077; main gate passed"
+    },
+    {
+      "at": "2026-06-24T08:14:14.669Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "claimedBy": "simulation-engineer",
@@ -84,5 +96,10 @@
     "verdict": "verified",
     "summary": "Verified WM-0021 re-review: prior map-grid MapCellView expectation regression is resolved; map-grid, region-room, benchmark, typecheck, lint, task validation, diff check and boundary check pass with no blocking findings.",
     "at": "2026-06-24T08:09:58.864Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Fast-forward merged task/WM-0021-implement-incremental-region-room-rebuild-and-na at 8d34a5d37954d05cb2a28fcc04ecc287ad903077; main gate passed",
+    "at": "2026-06-24T08:14:14.627Z"
   }
 }
