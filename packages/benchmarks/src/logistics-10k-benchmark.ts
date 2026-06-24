@@ -41,8 +41,7 @@ export interface Logistics10kBenchmarkReport {
   readonly heapDeltaBytes: number;
 }
 
-export interface Logistics10kBenchmarkInvariants
-  extends Record<string, boolean | number | string> {
+export interface Logistics10kBenchmarkInvariants extends Record<string, boolean | number | string> {
   readonly sourceSlotCount: number;
   readonly destinationSlotCount: number;
   readonly pawnCount: number;
@@ -105,7 +104,15 @@ export function runLogistics10kBenchmark(): Logistics10kBenchmarkReport {
   const startedAtMs = performance.now();
 
   for (let slotId = 0; slotId < sourceSlotCount; slotId += 1) {
-    createStack(items, registry, stackEntities[slotId] ?? failMissingEntity(), slotId, defForSlot(slotId), 4, 8);
+    createStack(
+      items,
+      registry,
+      stackEntities[slotId] ?? failMissingEntity(),
+      slotId,
+      defForSlot(slotId),
+      4,
+      8,
+    );
     configureSlot(
       storage,
       registry,
@@ -120,7 +127,15 @@ export function runLogistics10kBenchmark(): Logistics10kBenchmarkReport {
 
   for (let index = 0; index < destinationSlotCount; index += 1) {
     const slotId = sourceSlotCount + index;
-    createStack(items, registry, stackEntities[slotId] ?? failMissingEntity(), slotId, index % 8, 0, 4);
+    createStack(
+      items,
+      registry,
+      stackEntities[slotId] ?? failMissingEntity(),
+      slotId,
+      index % 8,
+      0,
+      4,
+    );
     configureSlot(
       storage,
       registry,

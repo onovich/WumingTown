@@ -108,10 +108,19 @@ describe("minimal item storage hauling jobs", () => {
       capacityReservationCount: 1,
       interactionReservationCount: 2,
     });
-    expect(fixture.ledger.reservedAmountForItem(fixture.stackEntities[0] ?? failMissingEntity())).toBe(4);
-    expect(fixture.ledger.reservedAmountForCapacity(fixture.storageEntities[1] ?? failMissingEntity(), 1)).toBe(4);
+    expect(
+      fixture.ledger.reservedAmountForItem(fixture.stackEntities[0] ?? failMissingEntity()),
+    ).toBe(4);
+    expect(
+      fixture.ledger.reservedAmountForCapacity(
+        fixture.storageEntities[1] ?? failMissingEntity(),
+        1,
+      ),
+    ).toBe(4);
 
-    expect(fixture.hauling.pickup(0, 3, fixture.items, fixture.storage, fixture.jobCore)).toMatchObject({
+    expect(
+      fixture.hauling.pickup(0, 3, fixture.items, fixture.storage, fixture.jobCore),
+    ).toMatchObject({
       ok: true,
     });
     expect(fixture.items.readStack(0, fixture.ledger)).toMatchObject({
@@ -152,7 +161,9 @@ describe("minimal item storage hauling jobs", () => {
         fixture.jobCore,
       ),
     ).toStrictEqual({ ok: false, reason: "hauling_source_unavailable" });
-    expect(fixture.ledger.reservedAmountForItem(fixture.stackEntities[0] ?? failMissingEntity())).toBe(4);
+    expect(
+      fixture.ledger.reservedAmountForItem(fixture.stackEntities[0] ?? failMissingEntity()),
+    ).toBe(4);
     expect(fixture.ledger.createMetrics().activeCount).toBe(4);
   });
 
@@ -172,20 +183,15 @@ describe("minimal item storage hauling jobs", () => {
         fixture.jobCore,
       ),
     ).toMatchObject({ ok: true });
-    expect(fixture.hauling.pickup(0, 2, fixture.items, fixture.storage, fixture.jobCore)).toMatchObject({
+    expect(
+      fixture.hauling.pickup(0, 2, fixture.items, fixture.storage, fixture.jobCore),
+    ).toMatchObject({
       ok: true,
     });
     expect(fixture.items.readStack(0)).toMatchObject({ quantity: 2 });
 
     expect(
-      fixture.hauling.cancel(
-        0,
-        3,
-        fixture.items,
-        fixture.storage,
-        fixture.ledger,
-        fixture.jobCore,
-      ),
+      fixture.hauling.cancel(0, 3, fixture.items, fixture.storage, fixture.ledger, fixture.jobCore),
     ).toMatchObject({ ok: true });
 
     expect(fixture.items.readStack(0)).toMatchObject({ quantity: 6 });
@@ -221,7 +227,9 @@ describe("minimal item storage hauling jobs", () => {
       ),
     ).toMatchObject({ ok: true });
 
-    expect(fixture.hauling.pickup(0, -1, fixture.items, fixture.storage, fixture.jobCore)).toStrictEqual({
+    expect(
+      fixture.hauling.pickup(0, -1, fixture.items, fixture.storage, fixture.jobCore),
+    ).toStrictEqual({
       ok: false,
       reason: "hauling_job_core_failed",
     });
@@ -256,7 +264,9 @@ describe("minimal item storage hauling jobs", () => {
         fixture.jobCore,
       ),
     ).toMatchObject({ ok: true });
-    expect(fixture.hauling.pickup(0, 2, fixture.items, fixture.storage, fixture.jobCore)).toMatchObject({
+    expect(
+      fixture.hauling.pickup(0, 2, fixture.items, fixture.storage, fixture.jobCore),
+    ).toMatchObject({
       ok: true,
     });
 

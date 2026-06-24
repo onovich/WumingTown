@@ -382,9 +382,7 @@ function parseEntityStoreBaselineEntry(value: unknown): BenchmarkBaselineEntry<"
   };
 }
 
-function parseLogistics10kBaselineEntry(
-  value: unknown,
-): BenchmarkBaselineEntry<"logistics-10k"> {
+function parseLogistics10kBaselineEntry(value: unknown): BenchmarkBaselineEntry<"logistics-10k"> {
   if (!isRecord(value)) {
     throw new Error("benchmark baseline entry logistics-10k must be an object");
   }
@@ -610,36 +608,18 @@ function parseLogistics10kBaselineInvariants(
       value["totalBucketCandidates"],
       "logistics-10k.totalBucketCandidates",
     ),
-    visitedCandidates: requireNumber(
-      value["visitedCandidates"],
-      "logistics-10k.visitedCandidates",
-    ),
+    visitedCandidates: requireNumber(value["visitedCandidates"], "logistics-10k.visitedCandidates"),
     selectedOffers: requireNumber(value["selectedOffers"], "logistics-10k.selectedOffers"),
-    candidateCapHits: requireNumber(
-      value["candidateCapHits"],
-      "logistics-10k.candidateCapHits",
-    ),
+    candidateCapHits: requireNumber(value["candidateCapHits"], "logistics-10k.candidateCapHits"),
     haulingJobs: requireNumber(value["haulingJobs"], "logistics-10k.haulingJobs"),
     deliveredJobs: requireNumber(value["deliveredJobs"], "logistics-10k.deliveredJobs"),
-    finalActiveClaims: requireNumber(
-      value["finalActiveClaims"],
-      "logistics-10k.finalActiveClaims",
-    ),
+    finalActiveClaims: requireNumber(value["finalActiveClaims"], "logistics-10k.finalActiveClaims"),
     initialQuantity: requireNumber(value["initialQuantity"], "logistics-10k.initialQuantity"),
     finalQuantity: requireNumber(value["finalQuantity"], "logistics-10k.finalQuantity"),
-    activeSupplySlots: requireNumber(
-      value["activeSupplySlots"],
-      "logistics-10k.activeSupplySlots",
-    ),
-    activeDemandSlots: requireNumber(
-      value["activeDemandSlots"],
-      "logistics-10k.activeDemandSlots",
-    ),
+    activeSupplySlots: requireNumber(value["activeSupplySlots"], "logistics-10k.activeSupplySlots"),
+    activeDemandSlots: requireNumber(value["activeDemandSlots"], "logistics-10k.activeDemandSlots"),
     dirtyBacklog: requireNumber(value["dirtyBacklog"], "logistics-10k.dirtyBacklog"),
-    selectionChecksum: requireNumber(
-      value["selectionChecksum"],
-      "logistics-10k.selectionChecksum",
-    ),
+    selectionChecksum: requireNumber(value["selectionChecksum"], "logistics-10k.selectionChecksum"),
     quantityChecksum: requireNumber(value["quantityChecksum"], "logistics-10k.quantityChecksum"),
   };
 }

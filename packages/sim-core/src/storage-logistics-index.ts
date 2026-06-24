@@ -116,7 +116,10 @@ export class StorageLogisticsIndex {
     this.dirtyQueue = new Uint32Array(capacity);
   }
 
-  configureSlot(input: StorageSlotInput, registry?: EntityRegistry): StorageLogisticsMutationResult {
+  configureSlot(
+    input: StorageSlotInput,
+    registry?: EntityRegistry,
+  ): StorageLogisticsMutationResult {
     const validation = this.validateInput(input, registry);
 
     if (!validation.ok) {

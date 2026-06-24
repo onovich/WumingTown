@@ -13,7 +13,13 @@ const HAUL_STEP_PICKED_UP = 3;
 const HAUL_STEP_DELIVERED = 4;
 const HAUL_STEP_CANCELED = 5;
 
-export type HaulingStep = "unassigned" | "created" | "reserved" | "picked_up" | "delivered" | "canceled";
+export type HaulingStep =
+  | "unassigned"
+  | "created"
+  | "reserved"
+  | "picked_up"
+  | "delivered"
+  | "canceled";
 
 export type HaulingReason =
   | "hauling_job_id_out_of_range"

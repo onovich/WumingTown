@@ -51,15 +51,8 @@ export {
   ItemStackStore,
   createItemStackStore,
 } from "./item-stack-store";
-export {
-  StorageLogisticsIndex,
-  createStorageLogisticsIndex,
-} from "./storage-logistics-index";
-export {
-  HAULING_JOB_KIND,
-  HaulingJobStore,
-  createHaulingJobStore,
-} from "./hauling-jobs";
+export { StorageLogisticsIndex, createStorageLogisticsIndex } from "./storage-logistics-index";
+export { HAULING_JOB_KIND, HaulingJobStore, createHaulingJobStore } from "./hauling-jobs";
 export {
   LOCATION_CONTAINER,
   LOCATION_MAP,
