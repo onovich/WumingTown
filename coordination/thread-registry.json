@@ -17,9 +17,9 @@
       "registeredAt": "2026-06-23T13:11:13.888Z"
     },
     "systems-architect": {
-      "threadId": "019efb77-85c6-7e10-8a44-3b9813261769",
-      "label": "WM-0032-M2-plan",
-      "registeredAt": "2026-06-24T21:09:50.986Z"
+      "threadId": "019efba0-2f98-7032-b9f2-1a41e5f810af",
+      "label": "WM-0034-architecture-gate",
+      "registeredAt": "2026-06-24T21:54:12.299Z"
     },
     "simulation-engineer": {
       "threadId": "019efa13-a03d-7b61-b4ff-a96eb613a509",
@@ -47,5 +47,5 @@
       "registeredAt": "2026-06-24T21:35:05.679Z"
     }
   },
-  "updatedAt": "2026-06-24T21:45:21.673Z"
+  "updatedAt": "2026-06-24T21:54:12.300Z"
 }
