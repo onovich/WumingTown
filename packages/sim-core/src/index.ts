@@ -173,6 +173,7 @@ export type {
   ReservationLedgerMetrics,
   ReservationLedgerOptions,
   ReservationLedgerSnapshot,
+  ReservationLedgerSnapshotInput,
   ReservationReason,
   ReservationRecordSnapshot,
   ReservationRecordView,

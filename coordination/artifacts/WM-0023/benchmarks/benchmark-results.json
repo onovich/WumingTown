@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-06-24T09:02:53.663Z",
+  "generatedAt": "2026-06-24T09:13:02.245Z",
   "baselinePath": "packages/benchmarks/baseline.json",
   "artifactPath": "coordination/artifacts/WM-0023/benchmarks/benchmark-results.json",
   "sampleCount": 5,
@@ -14,18 +14,15 @@
     {
       "name": "reservations",
       "sampleElapsedMs": [
-        2.4512,
-        4.191800000000015,
-        1.2635999999999967,
-        1.3552999999999997,
-        1.4642000000000053
+        2.186800000000005, 4.018300000000011, 1.1078999999999866, 1.1610999999999905,
+        1.1696000000000026
       ],
       "stats": {
         "sampleCount": 5,
-        "minElapsedMs": 1.2635999999999967,
-        "medianElapsedMs": 1.4642000000000053,
-        "maxElapsedMs": 4.191800000000015,
-        "meanElapsedMs": 2.1452200000000032
+        "minElapsedMs": 1.1078999999999866,
+        "medianElapsedMs": 1.1696000000000026,
+        "maxElapsedMs": 4.018300000000011,
+        "meanElapsedMs": 1.928739999999999
       },
       "invariants": {
         "ownerCount": 64,
@@ -45,9 +42,9 @@
       "comparison": {
         "name": "reservations",
         "status": "ok",
-        "actualMedianElapsedMs": 1.4642000000000053,
+        "actualMedianElapsedMs": 1.1696000000000026,
         "baselineMedianElapsedMs": 10,
-        "regressionPercent": -85.35799999999995,
+        "regressionPercent": -88.30399999999997,
         "warnRegressionPercent": 10,
         "failRegressionPercent": 20,
         "invariantMismatches": []

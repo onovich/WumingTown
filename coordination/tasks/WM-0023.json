@@ -5,11 +5,7 @@
   "state": "review_requested",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
-  "dependsOn": [
-    "WM-0015",
-    "WM-0018",
-    "WM-0020"
-  ],
+  "dependsOn": ["WM-0015", "WM-0018", "WM-0020"],
   "docs": [
     "docs/02_systems/04_ai_jobs_reservations_pathing.md",
     "docs/02_systems/13_save_replay_migration.md",
@@ -31,7 +27,7 @@
   ],
   "branch": "task/WM-0023-implement-reservation-ledger-and-atomic-transact",
   "createdAt": "2026-06-23T23:08:02.265Z",
-  "updatedAt": "2026-06-24T09:04:57.103Z",
+  "updatedAt": "2026-06-24T09:15:15.563Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.265Z",
@@ -56,10 +52,28 @@
       "actor": "simulation-engineer",
       "action": "complete",
       "details": "Implemented ReservationLedger atomic transactions, lifecycle cleanup, snapshot round trip, reservations tests and benchmark; required checks pass. Beacon fallback implemented after simulation-engineer subagents stalled; independent reviewer required."
+    },
+    {
+      "at": "2026-06-24T09:09:12.414Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: Medium: ReservationLedger restore is not fail-closed. restoreFromSnapshot clears current state before validating snapshot records and never rejects unsupported snapshotVersion; an unsupported version restores successfully and an invalid restore leaves the existing ledger empty. Required checks pass, but snapshot/restore safety acceptance needs a fix."
+    },
+    {
+      "at": "2026-06-24T09:15:15.563Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Addressed reviewer restore safety finding: restoreFromSnapshot now rejects unsupported versions, validates snapshot shape and records via scratch ledger before mutating, and has regression tests proving invalid restores preserve existing claims. Required checks rerun and pass."
     }
   ],
   "claimedBy": "simulation-engineer",
   "threadLabel": "Tally-WM-0023",
   "blocker": null,
-  "reportPath": "coordination/reports/WM-0023.md"
+  "reportPath": "coordination/reports/WM-0023.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "changes_requested",
+    "summary": "Medium: ReservationLedger restore is not fail-closed. restoreFromSnapshot clears current state before validating snapshot records and never rejects unsupported snapshotVersion; an unsupported version restores successfully and an invalid restore leaves the existing ledger empty. Required checks pass, but snapshot/restore safety acceptance needs a fix.",
+    "at": "2026-06-24T09:09:12.414Z"
+  }
 }

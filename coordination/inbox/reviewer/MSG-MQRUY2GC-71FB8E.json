@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQRUY2GC-71FB8E",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0023",
+  "kind": "review-request",
+  "subject": "WM-0023 ready for review",
+  "body": "Addressed reviewer restore safety finding: restoreFromSnapshot now rejects unsupported versions, validates snapshot shape and records via scratch ledger before mutating, and has regression tests proving invalid restores preserve existing claims. Required checks rerun and pass.",
+  "artifacts": [
+    "coordination/reports/WM-0023.md",
+    "task/WM-0023-implement-reservation-ledger-and-atomic-transact"
+  ],
+  "createdAt": "2026-06-24T09:15:15.564Z",
+  "acknowledgedAt": null
+}

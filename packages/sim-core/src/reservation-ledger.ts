@@ -135,8 +135,8 @@ export interface ReservationRecordSnapshot {
   readonly slot?: number;
 }
 
-export interface ReservationLedgerSnapshot {
-  readonly snapshotVersion: typeof RESERVATION_LEDGER_SNAPSHOT_VERSION;
+export interface ReservationLedgerSnapshotInput {
+  readonly snapshotVersion: number;
   readonly capacity: number;
   readonly entityCapacity: number;
   readonly cellCount: number;
@@ -145,6 +145,10 @@ export interface ReservationLedgerSnapshot {
   readonly ledgerVersion: number;
   readonly activeCount: number;
   readonly records: readonly ReservationRecordSnapshot[];
+}
+
+export interface ReservationLedgerSnapshot extends ReservationLedgerSnapshotInput {
+  readonly snapshotVersion: typeof RESERVATION_LEDGER_SNAPSHOT_VERSION;
 }
 
 export interface ReservationRecordView extends ReservationRecordSnapshot {
@@ -540,16 +544,48 @@ export class ReservationLedger implements LocationLifecycleHooks {
   }
 
   restoreFromSnapshot(
-    snapshot: ReservationLedgerSnapshot,
+    snapshot: ReservationLedgerSnapshotInput,
     registry?: EntityRegistry,
   ): ReservationReleaseResult {
-    this.clearAllState();
+    if (snapshot.snapshotVersion !== RESERVATION_LEDGER_SNAPSHOT_VERSION) {
+      return { ok: false, reason: "reservation_snapshot_version_unsupported" };
+    }
 
+    if (!this.isCompatibleSnapshotShape(snapshot)) {
+      return { ok: false, reason: "reservation_capacity_invalid" };
+    }
+
+    const scratch = createReservationLedger({
+      capacity: this.capacity,
+      entityCapacity: this.entityCapacity,
+      cellCount: this.cellCount,
+      interactionSpotLimit: this.interactionSpotLimit,
+      capacitySlotLimit: this.capacitySlotLimit,
+    });
+    const validated = scratch.restoreSnapshotRecords(snapshot, registry);
+
+    if (!validated.ok) {
+      return validated;
+    }
+
+    this.clearAllState();
+    const restored = this.restoreSnapshotRecords(snapshot, registry);
+
+    if (!restored.ok) {
+      failInternal(`validated reservation snapshot failed to apply: ${restored.reason}`);
+    }
+
+    return restored;
+  }
+
+  private restoreSnapshotRecords(
+    snapshot: ReservationLedgerSnapshotInput,
+    registry: EntityRegistry | undefined,
+  ): ReservationReleaseResult {
     for (const record of snapshot.records) {
       const restored = this.restoreRecord(record, registry);
 
       if (!restored.ok) {
-        this.clearAllState();
         return restored;
       }
     }
@@ -1322,6 +1358,16 @@ export class ReservationLedger implements LocationLifecycleHooks {
     return isIndexInRange(claimId, this.capacity);
   }
 
+  private isCompatibleSnapshotShape(snapshot: ReservationLedgerSnapshotInput): boolean {
+    return (
+      snapshot.capacity === this.capacity &&
+      snapshot.entityCapacity === this.entityCapacity &&
+      snapshot.cellCount === this.cellCount &&
+      snapshot.interactionSpotLimit === this.interactionSpotLimit &&
+      snapshot.capacitySlotLimit === this.capacitySlotLimit
+    );
+  }
+
   private isEntityIndexInRange(index: number): boolean {
     return isIndexInRange(index, this.entityCapacity);
   }
@@ -1382,7 +1428,7 @@ export function createReservationLedger(options: ReservationLedgerOptions): Rese
 }
 
 export function restoreReservationLedger(
-  snapshot: ReservationLedgerSnapshot,
+  snapshot: ReservationLedgerSnapshotInput,
   registry?: EntityRegistry,
 ): ReservationLedger {
   const ledger = createReservationLedger({

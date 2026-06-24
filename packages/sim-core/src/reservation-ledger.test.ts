@@ -239,6 +239,59 @@ describe("reservation ledger", () => {
     expect(restored.reservedAmountForCapacity(buildSite, 3)).toBe(2);
   });
 
+  it("rejects unsupported snapshot versions without mutating the current ledger", () => {
+    const { registry, ledger, owner, item } = createFixture();
+    const acquired = ledger.acquire(
+      {
+        owner,
+        jobId: 70,
+        createdTick: 5,
+        leaseExpiryTick: 45,
+        claims: [{ channel: "item_quantity", item, amount: 2, availableAmount: 10 }],
+      },
+      registry,
+    );
+
+    expect(acquired.ok).toBe(true);
+    const before = ledger.createSnapshot();
+    const unsupportedSnapshot = { ...before, snapshotVersion: 999 };
+
+    expect(ledger.restoreFromSnapshot(unsupportedSnapshot, registry)).toStrictEqual({
+      ok: false,
+      reason: "reservation_snapshot_version_unsupported",
+    });
+    expect(ledger.createSnapshot()).toStrictEqual(before);
+  });
+
+  it("rejects invalid snapshot records without clearing existing claims", () => {
+    const { registry, ledger, owner, item } = createFixture();
+    const acquired = ledger.acquire(
+      {
+        owner,
+        jobId: 80,
+        createdTick: 5,
+        leaseExpiryTick: 45,
+        claims: [{ channel: "item_quantity", item, amount: 2, availableAmount: 10 }],
+      },
+      registry,
+    );
+
+    expect(acquired.ok).toBe(true);
+    const before = ledger.createSnapshot();
+    const firstRecord = before.records[0] ?? failMissingRecord();
+    const invalidSnapshot = {
+      ...before,
+      records: [{ ...firstRecord, claimId: before.capacity }],
+    };
+
+    expect(ledger.restoreFromSnapshot(invalidSnapshot, registry)).toStrictEqual({
+      ok: false,
+      reason: "reservation_claim_id_invalid",
+      claimId: before.capacity,
+    });
+    expect(ledger.createSnapshot()).toStrictEqual(before);
+  });
+
   it("keeps deterministic contention bounded without leaked partials", () => {
     const registry = createEntityRegistry({ capacity: 16 });
     const owners = allocateMany(registry, 4);
@@ -333,4 +386,8 @@ function nextDeterministic(state: number): number {
 
 function failMissingEntity(): never {
   throw new Error("missing deterministic fixture entity");
+}
+
+function failMissingRecord(): never {
+  throw new Error("missing reservation snapshot record");
 }
