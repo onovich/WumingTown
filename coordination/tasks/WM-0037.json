@@ -2,7 +2,7 @@
   "id": "WM-0037",
   "title": "Harden reservation contention and cleanup",
   "summary": "Prove ReservationLedger behavior remains atomic, structured and leak-free under M2 multi-actor contention and terminal cleanup paths.",
-  "state": "ready",
+  "state": "in_progress",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,7 +32,7 @@
   ],
   "branch": "task/WM-0037-harden-reservation-contention-and-cleanup",
   "createdAt": "2026-06-24T21:14:35.180Z",
-  "updatedAt": "2026-06-24T22:10:36.808Z",
+  "updatedAt": "2026-06-24T23:27:15.960Z",
   "history": [
     {
       "at": "2026-06-24T21:14:35.180Z",
@@ -45,6 +45,12 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-24T23:27:15.959Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": ""
     }
   ],
   "objective": "Make reservation contention safe before larger storage/build jobs depend on it.",
@@ -84,5 +90,8 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Reservation contention is concurrency ownership and deterministic cleanup work."
-  }
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": null,
+  "blocker": null
 }
