@@ -23,4 +23,6 @@
 WM-0029 adds `pnpm test --filter m1-invariants` as the focused M1
 hauling/building 100000-tick long-run entry. It fails on reservation leaks,
 stale work offers or entity references, negative resources, sustained queue
-growth, save round-trip mismatch and replay/hash divergence.
+growth, save round-trip mismatch and replay/hash divergence. Queue and stale
+reference checks come from repeated idle-window samples after the tick-2400
+terminal state.

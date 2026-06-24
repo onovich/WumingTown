@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0029-add-m1-benchmark-suite-and-long-run-invariants",
   "createdAt": "2026-06-23T23:08:02.507Z",
-  "updatedAt": "2026-06-24T17:36:16.433Z",
+  "updatedAt": "2026-06-24T18:32:39.078Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.508Z",
@@ -55,10 +55,28 @@
       "actor": "qa-performance",
       "action": "complete",
       "details": "Added the M1 long-run benchmark suite, invariant gate, benchmark environment metadata, explicit map-dirty baseline hash refresh, and the headless CLI forwarded-argument regression fix; required checks passed."
+    },
+    {
+      "at": "2026-06-24T17:44:38.865Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: m1-invariants/benchmark mark 100000-tick long-run stable from scripted terminal state; they do not execute or sample the 2401..100000 idle window, queue growth, or stale entity references."
+    },
+    {
+      "at": "2026-06-24T18:32:39.077Z",
+      "actor": "qa-performance",
+      "action": "complete",
+      "details": "Addressed reviewer finding: M1 long-run evidence now samples idle window from tick 2401 through 100000; benchmark artifact includes idle sample/no-growth/no-stale-reference invariants; required checks pass."
     }
   ],
   "claimedBy": "qa-performance",
   "threadLabel": "QA-WM-0029",
   "blocker": null,
-  "reportPath": "coordination/reports/WM-0029.md"
+  "reportPath": "coordination/reports/WM-0029.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "changes_requested",
+    "summary": "High: m1-invariants/benchmark mark 100000-tick long-run stable from scripted terminal state; they do not execute or sample the 2401..100000 idle window, queue growth, or stale entity references.",
+    "at": "2026-06-24T17:44:38.864Z"
+  }
 }

@@ -688,6 +688,42 @@ function parseM1HaulingBuildingLongRunBaselineInvariants(
       value["completedBuildingCount"],
       "m1-hauling-building-long-run.completedBuildingCount",
     ),
+    idleSampleCount: requireNumber(
+      value["idleSampleCount"],
+      "m1-hauling-building-long-run.idleSampleCount",
+    ),
+    idleFirstSampleTick: requireNumber(
+      value["idleFirstSampleTick"],
+      "m1-hauling-building-long-run.idleFirstSampleTick",
+    ),
+    idleLastSampleTick: requireNumber(
+      value["idleLastSampleTick"],
+      "m1-hauling-building-long-run.idleLastSampleTick",
+    ),
+    idleStateHashStable: requireBoolean(
+      value["idleStateHashStable"],
+      "m1-hauling-building-long-run.idleStateHashStable",
+    ),
+    idleMaxDemandOfferCount: requireNumber(
+      value["idleMaxDemandOfferCount"],
+      "m1-hauling-building-long-run.idleMaxDemandOfferCount",
+    ),
+    idleMaxBuildOfferCount: requireNumber(
+      value["idleMaxBuildOfferCount"],
+      "m1-hauling-building-long-run.idleMaxBuildOfferCount",
+    ),
+    idleMaxActiveOfferCount: requireNumber(
+      value["idleMaxActiveOfferCount"],
+      "m1-hauling-building-long-run.idleMaxActiveOfferCount",
+    ),
+    idleMaxActiveReservationCount: requireNumber(
+      value["idleMaxActiveReservationCount"],
+      "m1-hauling-building-long-run.idleMaxActiveReservationCount",
+    ),
+    idleMaxRunningJobCount: requireNumber(
+      value["idleMaxRunningJobCount"],
+      "m1-hauling-building-long-run.idleMaxRunningJobCount",
+    ),
     finalWorldHash: requireString(
       value["finalWorldHash"],
       "m1-hauling-building-long-run.finalWorldHash",

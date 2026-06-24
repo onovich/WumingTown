@@ -42,6 +42,8 @@ const WORK_TYPE_BUILD = 2;
 const REGION_ID = 0;
 const URGENCY = 1;
 const PERMISSION = 0;
+const IDLE_SAMPLE_START_TICK = 2_401;
+const IDLE_SAMPLE_STEP = 10_000;
 
 export interface HaulingBuildingScenarioOptions {
   readonly seed: string;
@@ -57,9 +59,27 @@ export interface HaulingBuildingScenarioSummary {
   readonly longRunStable: boolean;
   readonly worldHash: string;
   readonly endState: HaulingBuildingEndState;
+  readonly idleWindow: HaulingBuildingIdleWindowSummary;
   readonly counters: HaulingBuildingCounters;
   readonly invariants: HaulingBuildingInvariants;
   readonly failureReasons: HaulingBuildingFailureReasons;
+}
+
+export interface HaulingBuildingIdleWindowSummary {
+  readonly sampled: boolean;
+  readonly firstSampleTick: Tick | null;
+  readonly lastSampleTick: Tick | null;
+  readonly sampleCount: number;
+  readonly sampleStep: number;
+  readonly stableStateHash: string;
+  readonly hashStable: boolean;
+  readonly maxDemandOfferCount: number;
+  readonly maxBuildOfferCount: number;
+  readonly maxActiveOfferCount: number;
+  readonly maxActiveReservationCount: number;
+  readonly maxRunningJobCount: number;
+  readonly noQueueGrowth: boolean;
+  readonly noStaleEntityReferences: boolean;
 }
 
 export interface HaulingBuildingEndState {
@@ -124,6 +144,15 @@ interface ScenarioFixture {
   readonly sourceStackEntities: readonly EntityId[];
 }
 
+interface IdleWindowSnapshot {
+  readonly demandOfferCount: number;
+  readonly buildOfferCount: number;
+  readonly activeOfferCount: number;
+  readonly activeReservationCount: number;
+  readonly runningJobCount: number;
+  readonly stateHash: string;
+}
+
 export function runHaulingBuildingScenario(
   options: HaulingBuildingScenarioOptions,
 ): HaulingBuildingScenarioSummary {
@@ -133,6 +162,7 @@ export function runHaulingBuildingScenario(
 
   const fixture = createScenarioFixture();
   const counters = runScenarioScript(fixture);
+  const idleWindow = sampleIdleWindow(options.ticks, fixture);
   const endState = createEndState(fixture);
   const invariants = createInvariants(options.ticks, endState);
 
@@ -142,9 +172,16 @@ export function runHaulingBuildingScenario(
     seed: options.seed,
     finalTick: options.ticks,
     expectedTick2400Reached: options.ticks >= 2_400 && invariants.tick2400EndState,
-    longRunStable: options.ticks >= 100_000 && allInvariantsPass(invariants),
+    longRunStable:
+      options.ticks >= 100_000 &&
+      idleWindow.sampled &&
+      idleWindow.hashStable &&
+      idleWindow.noQueueGrowth &&
+      idleWindow.noStaleEntityReferences &&
+      allInvariantsPass(invariants),
     worldHash: createScenarioHash(options, endState, counters, invariants),
     endState,
+    idleWindow,
     counters,
     invariants,
     failureReasons: {
@@ -412,6 +449,83 @@ function syncAndTrackOffers(
   track(metrics.demandOfferCount, metrics.buildOfferCount);
 }
 
+function sampleIdleWindow(
+  finalTick: Tick,
+  fixture: ScenarioFixture,
+): HaulingBuildingIdleWindowSummary {
+  const sampleTicks = createIdleSampleTicks(finalTick);
+  let hashStable = true;
+  let stableStateHash = "";
+  let maxDemandOfferCount = 0;
+  let maxBuildOfferCount = 0;
+  let maxActiveOfferCount = 0;
+  let maxActiveReservationCount = 0;
+  let maxRunningJobCount = 0;
+
+  for (let index = 0; index < sampleTicks.length; index += 1) {
+    mustOk(fixture.buildSites.syncOffers(SITE_ID, fixture.offers, fixture.ledger));
+    const snapshot = readIdleWindowSnapshot(fixture);
+
+    if (index === 0) {
+      stableStateHash = snapshot.stateHash;
+    } else if (snapshot.stateHash !== stableStateHash) {
+      hashStable = false;
+    }
+
+    maxDemandOfferCount = Math.max(maxDemandOfferCount, snapshot.demandOfferCount);
+    maxBuildOfferCount = Math.max(maxBuildOfferCount, snapshot.buildOfferCount);
+    maxActiveOfferCount = Math.max(maxActiveOfferCount, snapshot.activeOfferCount);
+    maxActiveReservationCount = Math.max(
+      maxActiveReservationCount,
+      snapshot.activeReservationCount,
+    );
+    maxRunningJobCount = Math.max(maxRunningJobCount, snapshot.runningJobCount);
+  }
+
+  const firstSampleTick = sampleTicks[0] ?? null;
+  const lastSampleTick = sampleTicks[sampleTicks.length - 1] ?? null;
+  const noQueueGrowth =
+    maxDemandOfferCount === 0 && maxBuildOfferCount === 0 && maxActiveOfferCount === 0;
+  const noStaleEntityReferences =
+    maxActiveReservationCount === 0 && maxRunningJobCount === 0 && maxActiveOfferCount === 0;
+
+  return {
+    sampled: sampleTicks.length > 0,
+    firstSampleTick,
+    lastSampleTick,
+    sampleCount: sampleTicks.length,
+    sampleStep: IDLE_SAMPLE_STEP,
+    stableStateHash,
+    hashStable,
+    maxDemandOfferCount,
+    maxBuildOfferCount,
+    maxActiveOfferCount,
+    maxActiveReservationCount,
+    maxRunningJobCount,
+    noQueueGrowth,
+    noStaleEntityReferences,
+  };
+}
+
+function createIdleSampleTicks(finalTick: Tick): readonly Tick[] {
+  if (finalTick < IDLE_SAMPLE_START_TICK) {
+    return [];
+  }
+
+  const sampleTicks: Tick[] = [];
+
+  for (let tick = IDLE_SAMPLE_START_TICK; tick <= finalTick; tick += IDLE_SAMPLE_STEP) {
+    sampleTicks.push(tick);
+  }
+
+  const lastTick = sampleTicks[sampleTicks.length - 1];
+  if (lastTick !== finalTick) {
+    sampleTicks.push(finalTick);
+  }
+
+  return sampleTicks;
+}
+
 function createEndState(fixture: ScenarioFixture): HaulingBuildingEndState {
   const site = fixture.buildSites.readSite(SITE_ID, fixture.ledger);
   if (site === undefined) {
@@ -439,6 +553,33 @@ function createEndState(fixture: ScenarioFixture): HaulingBuildingEndState {
     activeReservationCount: fixture.ledger.createMetrics().activeCount,
     runningJobCount: fixture.jobCore.createMetrics().runningCount,
     staleOfferCount: fixture.offers.createMetrics().activeOfferCount,
+  };
+}
+
+function readIdleWindowSnapshot(fixture: ScenarioFixture): IdleWindowSnapshot {
+  const buildMetrics = fixture.buildSites.createMetrics();
+  const offerMetrics = fixture.offers.createMetrics();
+  const ledgerMetrics = fixture.ledger.createMetrics();
+  const jobMetrics = fixture.jobCore.createMetrics();
+
+  return {
+    demandOfferCount: buildMetrics.demandOfferCount,
+    buildOfferCount: buildMetrics.buildOfferCount,
+    activeOfferCount: offerMetrics.activeOfferCount,
+    activeReservationCount: ledgerMetrics.activeCount,
+    runningJobCount: jobMetrics.runningCount,
+    stateHash: formatCanonicalWorldHash({
+      fields: [
+        { name: "activeOfferCount", value: offerMetrics.activeOfferCount },
+        { name: "activeReservationCount", value: ledgerMetrics.activeCount },
+        { name: "buildOfferCount", value: buildMetrics.buildOfferCount },
+        { name: "completedBuildingCount", value: buildMetrics.completedBuildingCount },
+        { name: "demandOfferCount", value: buildMetrics.demandOfferCount },
+        { name: "runningJobCount", value: jobMetrics.runningCount },
+      ],
+      randomStreams: [],
+      queuedCommands: [],
+    }),
   };
 }
 

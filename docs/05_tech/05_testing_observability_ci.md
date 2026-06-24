@@ -54,7 +54,10 @@ is detected.
 `pnpm test --filter m1-invariants` is the focused M1 long-run invariant gate for
 the hauling/building scenario. It runs seed `1` to 100000 ticks, checks replay
 and save-resume consistency, and fails on reservation leaks, stale work offers,
-negative resource counts, queue growth and hash divergence.
+negative resource counts, queue growth and hash divergence. The long-run
+harness explicitly samples the idle window from tick `2401` through `100000`
+and records repeated queue, job, reservation and offer metrics in the
+scenario-backed benchmark artifact.
 
 `pnpm bench` writes the WM-0029 artifact to
 `coordination/artifacts/WM-0029/benchmarks/benchmark-results.json`. The artifact

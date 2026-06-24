@@ -22,6 +22,15 @@ export interface M1HaulingBuildingLongRunBenchmarkReport {
   readonly finalTick: number;
   readonly saveTick: number;
   readonly completedBuildingCount: number;
+  readonly idleSampleCount: number;
+  readonly idleFirstSampleTick: number | null;
+  readonly idleLastSampleTick: number | null;
+  readonly idleStateHashStable: boolean;
+  readonly idleMaxDemandOfferCount: number;
+  readonly idleMaxBuildOfferCount: number;
+  readonly idleMaxActiveOfferCount: number;
+  readonly idleMaxActiveReservationCount: number;
+  readonly idleMaxRunningJobCount: number;
   readonly finalWorldHash: string;
   readonly finalReadModelHash: string;
   readonly replayMatches: boolean;
@@ -47,6 +56,15 @@ export interface M1HaulingBuildingLongRunBenchmarkInvariants extends Record<
   readonly finalTick: number;
   readonly saveTick: number;
   readonly completedBuildingCount: number;
+  readonly idleSampleCount: number;
+  readonly idleFirstSampleTick: number;
+  readonly idleLastSampleTick: number;
+  readonly idleStateHashStable: boolean;
+  readonly idleMaxDemandOfferCount: number;
+  readonly idleMaxBuildOfferCount: number;
+  readonly idleMaxActiveOfferCount: number;
+  readonly idleMaxActiveReservationCount: number;
+  readonly idleMaxRunningJobCount: number;
   readonly finalWorldHash: string;
   readonly finalReadModelHash: string;
   readonly replayMatches: boolean;
@@ -116,6 +134,15 @@ export function runM1HaulingBuildingLongRunBenchmark(): M1HaulingBuildingLongRun
     finalTick: FINAL_TICK,
     saveTick: SAVE_TICK,
     completedBuildingCount: scenario.endState.completedBuildingCount,
+    idleSampleCount: scenario.idleWindow.sampleCount,
+    idleFirstSampleTick: scenario.idleWindow.firstSampleTick,
+    idleLastSampleTick: scenario.idleWindow.lastSampleTick,
+    idleStateHashStable: scenario.idleWindow.hashStable,
+    idleMaxDemandOfferCount: scenario.idleWindow.maxDemandOfferCount,
+    idleMaxBuildOfferCount: scenario.idleWindow.maxBuildOfferCount,
+    idleMaxActiveOfferCount: scenario.idleWindow.maxActiveOfferCount,
+    idleMaxActiveReservationCount: scenario.idleWindow.maxActiveReservationCount,
+    idleMaxRunningJobCount: scenario.idleWindow.maxRunningJobCount,
     finalWorldHash: scenario.worldHash,
     finalReadModelHash: replay.ok ? replay.replay.finalReadModelHash : "invalid",
     replayMatches:
@@ -124,10 +151,9 @@ export function runM1HaulingBuildingLongRunBenchmark(): M1HaulingBuildingLongRun
       replay.replay.finalTick === FINAL_TICK,
     saveRoundTripMatches,
     noReservationLeaks: scenario.endState.activeReservationCount === 0,
-    noStaleEntityReferences:
-      scenario.endState.runningJobCount === 0 && scenario.endState.staleOfferCount === 0,
+    noStaleEntityReferences: scenario.idleWindow.noStaleEntityReferences,
     noNegativeResources,
-    noQueueGrowth: scenario.endState.staleOfferCount === 0,
+    noQueueGrowth: scenario.idleWindow.noQueueGrowth,
     noHashDivergence: comparison.ok,
     materialConserved: scenario.invariants.materialConserved,
     elapsedMs,
@@ -146,6 +172,15 @@ export function m1HaulingBuildingLongRunInvariantsFromReport(
     finalTick: report.finalTick,
     saveTick: report.saveTick,
     completedBuildingCount: report.completedBuildingCount,
+    idleSampleCount: report.idleSampleCount,
+    idleFirstSampleTick: report.idleFirstSampleTick ?? -1,
+    idleLastSampleTick: report.idleLastSampleTick ?? -1,
+    idleStateHashStable: report.idleStateHashStable,
+    idleMaxDemandOfferCount: report.idleMaxDemandOfferCount,
+    idleMaxBuildOfferCount: report.idleMaxBuildOfferCount,
+    idleMaxActiveOfferCount: report.idleMaxActiveOfferCount,
+    idleMaxActiveReservationCount: report.idleMaxActiveReservationCount,
+    idleMaxRunningJobCount: report.idleMaxRunningJobCount,
     finalWorldHash: report.finalWorldHash,
     finalReadModelHash: report.finalReadModelHash,
     replayMatches: report.replayMatches,

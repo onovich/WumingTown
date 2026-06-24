@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQSD558Y-D3C136",
+  "from": "reviewer",
+  "to": "qa-performance",
+  "taskId": "WM-0029",
+  "kind": "changes-requested",
+  "subject": "WM-0029 review: changes_requested",
+  "body": "High: m1-invariants/benchmark mark 100000-tick long-run stable from scripted terminal state; they do not execute or sample the 2401..100000 idle window, queue growth, or stale entity references.",
+  "artifacts": [
+    "coordination/reports/WM-0029.md"
+  ],
+  "createdAt": "2026-06-24T17:44:38.866Z",
+  "acknowledgedAt": "2026-06-24T17:45:42.203Z"
+}

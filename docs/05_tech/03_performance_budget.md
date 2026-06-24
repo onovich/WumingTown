@@ -96,7 +96,9 @@ work-offer and 10k logistics checks. The M1 benchmark runs the
 `m1.hauling_building.road_lantern_frame.v1` scenario to 100000 ticks with seed
 `1`, verifies replay and save-resume hashes, and records reservation, stale
 reference, negative resource, queue growth, hash divergence and material
-conservation invariants.
+conservation invariants. Queue-growth and stale-reference invariants are
+derived from repeated idle-window samples from tick `2401` through `100000`, not
+only from a single terminal-state read.
 
 The WM-0029 benchmark artifact is written under
 `coordination/artifacts/WM-0029/benchmarks/benchmark-results.json`. The

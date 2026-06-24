@@ -53,6 +53,20 @@ describe("M1 hauling-building long-run invariants", () => {
     expect(summary.seed).toBe(SCENARIO_SEED);
     expect(summary.finalTick).toBe(FINAL_TICK);
     expect(summary.longRunStable).toBe(true);
+    expect(summary.idleWindow).toMatchObject({
+      sampled: true,
+      firstSampleTick: 2_401,
+      lastSampleTick: FINAL_TICK,
+      hashStable: true,
+      noQueueGrowth: true,
+      noStaleEntityReferences: true,
+      maxDemandOfferCount: 0,
+      maxBuildOfferCount: 0,
+      maxActiveOfferCount: 0,
+      maxActiveReservationCount: 0,
+      maxRunningJobCount: 0,
+    });
+    expect(summary.idleWindow.sampleCount).toBeGreaterThan(1);
     expect(summary.invariants).toMatchObject({
       buildCompletedExactlyOnce: true,
       materialConserved: true,

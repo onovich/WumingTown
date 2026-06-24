@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQSEUVMV-CDD2D3",
+  "from": "qa-performance",
+  "to": "reviewer",
+  "taskId": "WM-0029",
+  "kind": "review-request",
+  "subject": "WM-0029 ready for review",
+  "body": "Addressed reviewer finding: M1 long-run evidence now samples idle window from tick 2401 through 100000; benchmark artifact includes idle sample/no-growth/no-stale-reference invariants; required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0029.md",
+    "task/WM-0029-add-m1-benchmark-suite-and-long-run-invariants"
+  ],
+  "createdAt": "2026-06-24T18:32:39.079Z",
+  "acknowledgedAt": null
+}

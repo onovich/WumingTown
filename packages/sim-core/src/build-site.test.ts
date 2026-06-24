@@ -196,6 +196,15 @@ describe("minimal build-site material delivery and construction", () => {
     expect(summary.finalTick).toBe(100_000);
     expect(summary.expectedTick2400Reached).toBe(true);
     expect(summary.longRunStable).toBe(true);
+    expect(summary.idleWindow).toMatchObject({
+      sampled: true,
+      hashStable: true,
+      noQueueGrowth: true,
+      noStaleEntityReferences: true,
+      maxActiveOfferCount: 0,
+      maxActiveReservationCount: 0,
+      maxRunningJobCount: 0,
+    });
     expect(summary.endState).toMatchObject({
       completedBuildingCount: 1,
       sourceWoodQuantity: 0,
