@@ -1,0 +1,12 @@
+{
+  "id": "MSG-MQRY5XVE-27E3D6",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0025",
+  "kind": "review-followup",
+  "subject": "WM-0025 format-only follow-up verified",
+  "body": "Verified format-only follow-up at 2115cf3: diff from prior verified 8cb7a9c touches only packages/sim-core/src/job-core.ts and packages/sim-core/src/job-core.test.ts with Prettier-only wrapping; pnpm quality and git diff --check pass; no new behavior, boundary or determinism findings.",
+  "artifacts": [],
+  "createdAt": "2026-06-24T10:45:21.723Z",
+  "acknowledgedAt": "2026-06-24T10:46:08.263Z"
+}
