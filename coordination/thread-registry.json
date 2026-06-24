@@ -17,9 +17,9 @@
       "registeredAt": "2026-06-23T13:11:13.888Z"
     },
     "systems-architect": {
-      "threadId": "019ef806-414f-7ad3-b0a8-f0da3c8d4109",
-      "label": "WM-0017 ADR-0004",
-      "registeredAt": "2026-06-24T05:07:12.556Z"
+      "threadId": "019ef81c-0f40-7cf1-b063-0ac1e0826f4e",
+      "label": "WM-0018 ADR-0006",
+      "registeredAt": "2026-06-24T05:31:04.442Z"
     },
     "simulation-engineer": {
       "threadId": "019ef5a6-1ad8-72d3-bbc2-25127feca4c8",
@@ -47,5 +47,5 @@
       "registeredAt": "2026-06-24T04:15:21.579Z"
     }
   },
-  "updatedAt": "2026-06-24T05:07:12.556Z"
+  "updatedAt": "2026-06-24T05:31:04.443Z"
 }

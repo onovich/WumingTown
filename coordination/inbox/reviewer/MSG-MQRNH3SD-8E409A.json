@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQRNH3SD-8E409A",
+  "from": "systems-architect",
+  "to": "reviewer",
+  "taskId": "WM-0018",
+  "kind": "review-request",
+  "subject": "WM-0018 ready for review",
+  "body": "Proposed ADR-0006 for deterministic numeric and phase contracts; updated ADR index and report; required checks pass",
+  "artifacts": [
+    "coordination/reports/WM-0018.md",
+    "task/WM-0018-propose-adr-0006-for-deterministic-numeric-and-p"
+  ],
+  "createdAt": "2026-06-24T05:46:06.829Z",
+  "acknowledgedAt": null
+}
