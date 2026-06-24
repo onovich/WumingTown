@@ -79,3 +79,18 @@ node-budget exhaustion instead of ambiguous failure strings.
 already indexed caller-supplied candidates, then runs exact local pathing only
 for those selected entries. The pathing layer does not scan world entities, does
 not discover work, and does not store actor-owned long-lived complete paths.
+
+## WM-0024 implementation note
+
+`packages/sim-core/src/work-offers.ts` adds the first derived WorkOffer index.
+Work producers register, update or remove offers when owner state changes; the
+index does not own job, item, reservation or location facts. Offers are keyed by
+work type, region, def, urgency bucket and permission id in exact composite
+buckets, with stored bucket counts so pawn thinking can report candidate totals
+without traversing every offer.
+
+Candidate lookup and scoring use explicit caps. `selectTopOffers` visits at
+most `candidateCap` offers from one indexed bucket, selects at most
+`maxSelectedOffers`, orders by score descending and stable offer id, and records
+bounded ReasonTrace data. The documented M1 cap remains 8 scored offers per
+pawn before exact pathing.

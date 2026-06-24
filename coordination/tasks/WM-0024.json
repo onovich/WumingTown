@@ -2,7 +2,7 @@
   "id": "WM-0024",
   "title": "Implement WorkOffer indexes and bounded reason traces",
   "summary": "Implement state-change-driven WorkOffer registration, indexed candidate lookup, bounded Top-K scoring input and structured reason traces.",
-  "state": "ready",
+  "state": "review_requested",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,7 +32,7 @@
   ],
   "branch": "task/WM-0024-implement-workoffer-indexes-and-bounded-reason-t",
   "createdAt": "2026-06-23T23:08:02.304Z",
-  "updatedAt": "2026-06-24T09:19:51.921Z",
+  "updatedAt": "2026-06-24T10:04:21.979Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.304Z",
@@ -45,6 +45,22 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-24T09:49:30.683Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Beacon-WM-0024"
+    },
+    {
+      "at": "2026-06-24T10:04:21.979Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented derived WorkOffer composite indexes, bounded top-offer selection, ReasonTrace ring storage, work-offers tests, benchmark, docs and report."
     }
-  ]
+  ],
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Beacon-WM-0024",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0024.md"
 }

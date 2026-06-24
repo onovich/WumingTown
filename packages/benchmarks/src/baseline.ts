@@ -21,6 +21,7 @@ export interface BenchmarkBaselineFile {
     readonly reservations: BenchmarkBaselineEntry<"reservations">;
     readonly "region-room": BenchmarkBaselineEntry<"region-room">;
     readonly "spatial-index": BenchmarkBaselineEntry<"spatial-index">;
+    readonly "work-offers": BenchmarkBaselineEntry<"work-offers">;
   };
 }
 
@@ -65,6 +66,10 @@ export function compareBenchmarkToBaseline(
   actual: Extract<SampledBenchmarkResult, { readonly name: "spatial-index" }>,
   baseline: BenchmarkBaselineEntry<"spatial-index">,
 ): BenchmarkComparison<"spatial-index">;
+export function compareBenchmarkToBaseline(
+  actual: Extract<SampledBenchmarkResult, { readonly name: "work-offers" }>,
+  baseline: BenchmarkBaselineEntry<"work-offers">,
+): BenchmarkComparison<"work-offers">;
 export function compareBenchmarkToBaseline(
   actual: SampledBenchmarkResult,
   baseline: BenchmarkBaselineEntry<BenchmarkName>,

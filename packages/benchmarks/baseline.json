@@ -144,6 +144,29 @@
         "movementChecksum": 2674197504,
         "cleanupChecksum": 308407296
       }
+    },
+    "work-offers": {
+      "name": "work-offers",
+      "medianElapsedMs": 10,
+      "warnRegressionPercent": 10,
+      "failRegressionPercent": 20,
+      "invariants": {
+        "pawnCount": 100,
+        "offerCount": 10000,
+        "offersPerPawnBucket": 100,
+        "candidateCap": 8,
+        "selectedCap": 3,
+        "allEntityScanEquivalent": 1000000,
+        "totalBucketCandidates": 10000,
+        "visitedCandidates": 800,
+        "scoredCandidates": 800,
+        "selectedOffers": 300,
+        "candidateCapHits": 100,
+        "traceCapacity": 16,
+        "storedTraceCount": 16,
+        "indexActiveOffers": 10000,
+        "selectionChecksum": 22148512
+      }
     }
   }
 }

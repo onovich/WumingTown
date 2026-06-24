@@ -22,3 +22,15 @@ tracks 50k indexed inert entities, query count, moved entities, cleanup count,
 indexed membership, backlog count, stable checksums, elapsed time, and heap
 delta; backlog must remain zero because the index is updated synchronously from
 owner-store mutations.
+
+## WM-0024 work-offer budget note
+
+Work selection must query `WorkOfferIndex` composite buckets by work type,
+region, def, urgency bucket and permission id. Normal pawn thinking may inspect
+only the task-defined candidate cap, currently 8 offers before exact pathing,
+and must not scan all offers or all entities.
+
+`pnpm bench --filter work-offers` registers 10,000 offers and runs 100 pawn
+thinking queries. Each pawn bucket contains 100 offers, but the benchmark must
+visit and score only 800 total candidates, while reporting the one-million
+candidate `Pawn x AllOffers` scan equivalent as avoided work.

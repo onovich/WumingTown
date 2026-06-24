@@ -32,6 +32,13 @@ export {
   samePathBasis,
 } from "./pathing";
 export {
+  WORK_OFFER_NONE,
+  ReasonTraceStore,
+  WorkOfferIndex,
+  createReasonTraceStore,
+  createWorkOfferIndex,
+} from "./work-offers";
+export {
   LOCATION_CONTAINER,
   LOCATION_MAP,
   LOCATION_NONE,
@@ -175,6 +182,21 @@ export type {
   TopKPathResolutionOptions,
   TopKPathResolutionResult,
 } from "./pathing";
+export type {
+  ReasonTraceStoreMetrics,
+  WorkOfferIndexMetrics,
+  WorkOfferIndexOptions,
+  WorkOfferInput,
+  WorkOfferMutationResult,
+  WorkOfferQuery,
+  WorkOfferQueryResult,
+  WorkOfferReason,
+  WorkOfferReasonTraceInput,
+  WorkOfferReasonTraceView,
+  WorkOfferSelectionOptions,
+  WorkOfferSelectionResult,
+  WorkOfferTraceReason,
+} from "./work-offers";
 export type {
   LocationCleanupReason,
   LocationDestroyResult,

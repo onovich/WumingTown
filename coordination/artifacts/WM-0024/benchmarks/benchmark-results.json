@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-06-24T10:03:51.284Z",
+  "baselinePath": "packages/benchmarks/baseline.json",
+  "artifactPath": "coordination/artifacts/WM-0024/benchmarks/benchmark-results.json",
+  "sampleCount": 5,
+  "warmupCount": 1,
+  "environment": {
+    "nodeVersion": "v24.13.1",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "results": [
+    {
+      "name": "work-offers",
+      "sampleElapsedMs": [
+        3.362799999999993,
+        2.4305999999999983,
+        1.5090000000000146,
+        1.1265999999999963,
+        1.2746999999999957
+      ],
+      "stats": {
+        "sampleCount": 5,
+        "minElapsedMs": 1.1265999999999963,
+        "medianElapsedMs": 1.5090000000000146,
+        "maxElapsedMs": 3.362799999999993,
+        "meanElapsedMs": 1.9407399999999995
+      },
+      "invariants": {
+        "pawnCount": 100,
+        "offerCount": 10000,
+        "offersPerPawnBucket": 100,
+        "candidateCap": 8,
+        "selectedCap": 3,
+        "allEntityScanEquivalent": 1000000,
+        "totalBucketCandidates": 10000,
+        "visitedCandidates": 800,
+        "scoredCandidates": 800,
+        "selectedOffers": 300,
+        "candidateCapHits": 100,
+        "traceCapacity": 16,
+        "storedTraceCount": 16,
+        "indexActiveOffers": 10000,
+        "selectionChecksum": 22148512
+      },
+      "comparison": {
+        "name": "work-offers",
+        "status": "ok",
+        "actualMedianElapsedMs": 1.5090000000000146,
+        "baselineMedianElapsedMs": 10,
+        "regressionPercent": -84.90999999999985,
+        "warnRegressionPercent": 10,
+        "failRegressionPercent": 20,
+        "invariantMismatches": []
+      }
+    }
+  ]
+}

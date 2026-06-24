@@ -46,12 +46,20 @@ import {
   type ReservationsBenchmarkReport,
   type SampledReservationsBenchmark,
 } from "./reservations-benchmark";
+import {
+  runWorkOffersBenchmark,
+  workOffersInvariantsFromReport,
+  type SampledWorkOffersBenchmark,
+  type WorkOffersBenchmarkInvariants,
+  type WorkOffersBenchmarkReport,
+} from "./work-offers-benchmark";
 
 export { runEntityStoreBenchmark } from "./entity-store-benchmark";
 export { runPathing100Benchmark } from "./pathing-100-benchmark";
 export { runRegionRoomBenchmark } from "./region-room-benchmark";
 export { runReservationsBenchmark } from "./reservations-benchmark";
 export { runSpatialIndexBenchmark } from "./spatial-index-benchmark";
+export { runWorkOffersBenchmark } from "./work-offers-benchmark";
 
 export const BENCHMARKS_SMOKE: WorkspaceSmoke = defineWorkspaceSmoke(
   "@wuming-town/benchmarks",
@@ -73,7 +81,8 @@ export type BenchmarkName =
   | "pathing-100"
   | "reservations"
   | "region-room"
-  | "spatial-index";
+  | "spatial-index"
+  | "work-offers";
 
 export interface EmptyTickBenchmarkOptions {
   readonly seed: string;
@@ -161,7 +170,8 @@ export type BenchmarkReport =
   | Pathing100BenchmarkReport
   | ReservationsBenchmarkReport
   | RegionRoomBenchmarkReport
-  | SpatialIndexBenchmarkReport;
+  | SpatialIndexBenchmarkReport
+  | WorkOffersBenchmarkReport;
 export type BenchmarkInvariants =
   | EmptyTickBenchmarkInvariants
   | EntityStoreBenchmarkInvariants
@@ -169,7 +179,8 @@ export type BenchmarkInvariants =
   | Pathing100BenchmarkInvariants
   | ReservationsBenchmarkInvariants
   | RegionRoomBenchmarkInvariants
-  | SpatialIndexBenchmarkInvariants;
+  | SpatialIndexBenchmarkInvariants
+  | WorkOffersBenchmarkInvariants;
 export type SampledBenchmarkResult =
   | SampledEmptyTickBenchmark
   | SampledEntityStoreBenchmark
@@ -177,7 +188,8 @@ export type SampledBenchmarkResult =
   | SampledPathing100Benchmark
   | SampledReservationsBenchmark
   | SampledRegionRoomBenchmark
-  | SampledSpatialIndexBenchmark;
+  | SampledSpatialIndexBenchmark
+  | SampledWorkOffersBenchmark;
 
 export interface BenchmarkReportMap {
   readonly "empty-tick": EmptyTickBenchmarkReport;
@@ -187,6 +199,7 @@ export interface BenchmarkReportMap {
   readonly reservations: ReservationsBenchmarkReport;
   readonly "region-room": RegionRoomBenchmarkReport;
   readonly "spatial-index": SpatialIndexBenchmarkReport;
+  readonly "work-offers": WorkOffersBenchmarkReport;
 }
 
 export interface BenchmarkInvariantMap {
@@ -197,6 +210,7 @@ export interface BenchmarkInvariantMap {
   readonly reservations: ReservationsBenchmarkInvariants;
   readonly "region-room": RegionRoomBenchmarkInvariants;
   readonly "spatial-index": SpatialIndexBenchmarkInvariants;
+  readonly "work-offers": WorkOffersBenchmarkInvariants;
 }
 
 export function runEmptyTickBenchmark(
@@ -242,6 +256,9 @@ export function benchmarkInvariantsFromReport(
 export function benchmarkInvariantsFromReport(
   report: SpatialIndexBenchmarkReport,
 ): SpatialIndexBenchmarkInvariants;
+export function benchmarkInvariantsFromReport(
+  report: WorkOffersBenchmarkReport,
+): WorkOffersBenchmarkInvariants;
 export function benchmarkInvariantsFromReport(report: BenchmarkReport): BenchmarkInvariants {
   if (report.name === "empty-tick") {
     return {
@@ -282,7 +299,11 @@ export function benchmarkInvariantsFromReport(report: BenchmarkReport): Benchmar
     return regionRoomInvariantsFromReport(report);
   }
 
-  return spatialIndexInvariantsFromReport(report);
+  if (report.name === "spatial-index") {
+    return spatialIndexInvariantsFromReport(report);
+  }
+
+  return workOffersInvariantsFromReport(report);
 }
 
 export function runBenchmarkByName(name: "empty-tick"): EmptyTickBenchmarkReport;
@@ -292,6 +313,7 @@ export function runBenchmarkByName(name: "pathing-100"): Pathing100BenchmarkRepo
 export function runBenchmarkByName(name: "reservations"): ReservationsBenchmarkReport;
 export function runBenchmarkByName(name: "region-room"): RegionRoomBenchmarkReport;
 export function runBenchmarkByName(name: "spatial-index"): SpatialIndexBenchmarkReport;
+export function runBenchmarkByName(name: "work-offers"): WorkOffersBenchmarkReport;
 export function runBenchmarkByName(name: BenchmarkName): BenchmarkReport {
   if (name === "empty-tick") {
     return runEmptyTickBenchmark({
@@ -320,7 +342,11 @@ export function runBenchmarkByName(name: BenchmarkName): BenchmarkReport {
     return runRegionRoomBenchmark();
   }
 
-  return runSpatialIndexBenchmark();
+  if (name === "spatial-index") {
+    return runSpatialIndexBenchmark();
+  }
+
+  return runWorkOffersBenchmark();
 }
 
 export function sampleBenchmark(
@@ -352,6 +378,10 @@ export function sampleBenchmark(
   options?: BenchmarkSamplingOptions,
 ): SampledSpatialIndexBenchmark;
 export function sampleBenchmark(
+  name: "work-offers",
+  options?: BenchmarkSamplingOptions,
+): SampledWorkOffersBenchmark;
+export function sampleBenchmark(
   name: BenchmarkName,
   options: BenchmarkSamplingOptions = {},
 ): SampledBenchmarkResult {
@@ -372,8 +402,10 @@ export function sampleBenchmark(
       runBenchmarkByName("reservations");
     } else if (name === "region-room") {
       runBenchmarkByName("region-room");
-    } else {
+    } else if (name === "spatial-index") {
       runBenchmarkByName("spatial-index");
+    } else {
+      runBenchmarkByName("work-offers");
     }
   }
 
@@ -401,7 +433,11 @@ export function sampleBenchmark(
     return sampleRegionRoomBenchmark(sampleCount);
   }
 
-  return sampleSpatialIndexBenchmark(sampleCount);
+  if (name === "spatial-index") {
+    return sampleSpatialIndexBenchmark(sampleCount);
+  }
+
+  return sampleWorkOffersBenchmark(sampleCount);
 }
 
 export function runDefaultBenchmarkSuite(
@@ -415,6 +451,7 @@ export function runDefaultBenchmarkSuite(
     sampleBenchmark("reservations", options),
     sampleBenchmark("region-room", options),
     sampleBenchmark("spatial-index", options),
+    sampleBenchmark("work-offers", options),
   ];
 }
 
@@ -530,6 +567,22 @@ function sampleSpatialIndexBenchmark(sampleCount: number): SampledSpatialIndexBe
   };
 }
 
+function sampleWorkOffersBenchmark(sampleCount: number): SampledWorkOffersBenchmark {
+  const reports: WorkOffersBenchmarkReport[] = [];
+
+  for (let index = 0; index < sampleCount; index += 1) {
+    reports.push(runWorkOffersBenchmark());
+  }
+
+  return {
+    name: "work-offers",
+    report: reports[reports.length - 1] ?? failMissingReport(),
+    invariants: validateInvariantConsistency("work-offers", reports),
+    sampleElapsedMs: reports.map((report) => report.elapsedMs),
+    stats: createBenchmarkStats(reports.map((report) => report.elapsedMs)),
+  };
+}
+
 function validateSamplingOptions(sampleCount: number, warmupCount: number): void {
   if (!Number.isInteger(sampleCount) || sampleCount <= 0) {
     throw new Error("benchmark sampleCount must be a positive integer");
@@ -568,6 +621,10 @@ function validateInvariantConsistency(
   name: "spatial-index",
   reports: readonly SpatialIndexBenchmarkReport[],
 ): SpatialIndexBenchmarkInvariants;
+function validateInvariantConsistency(
+  name: "work-offers",
+  reports: readonly WorkOffersBenchmarkReport[],
+): WorkOffersBenchmarkInvariants;
 function validateInvariantConsistency(
   name: BenchmarkName,
   reports: readonly BenchmarkReport[],
@@ -651,6 +708,10 @@ function readInvariantUnion(report: BenchmarkReport): BenchmarkInvariants {
   }
 
   if (report.name === "region-room") {
+    return benchmarkInvariantsFromReport(report);
+  }
+
+  if (report.name === "spatial-index") {
     return benchmarkInvariantsFromReport(report);
   }
 

@@ -29,3 +29,14 @@
 ## 事故复盘
 
 正式游戏的黎明复盘显示结构化时间线、规则证据、镇规违反、角色决定和可避免环节。它既是玩法，也是调试成果的产品化。
+
+## WM-0024 implementation note
+
+`ReasonTraceStore` is a fixed-capacity ring buffer for work-offer selection
+diagnostics. Each trace records the pawn id, composite query key, total bucket
+candidate count, visited/scored count, candidate and selected caps, selected
+offer id/score, candidate-cap rejection count and semantic reason class.
+
+Runtime selection writes compact numeric lanes; debug/test reads can materialize
+structured views. Default task coverage uses a 16-trace store, matching the M1
+scenario contract's bounded latest-trace expectation.

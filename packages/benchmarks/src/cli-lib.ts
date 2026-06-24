@@ -121,7 +121,7 @@ function parseBenchmarkArgs(
 
       if (!isBenchmarkName(value)) {
         return failedArgs(
-          "Unsupported benchmark filter. Use empty-tick, entity-store, map-dirty, pathing-100, reservations, region-room, or spatial-index.",
+          "Unsupported benchmark filter. Use empty-tick, entity-store, map-dirty, pathing-100, reservations, region-room, spatial-index, or work-offers.",
         );
       }
 
@@ -135,7 +135,7 @@ function parseBenchmarkArgs(
 
       if (!isBenchmarkName(value)) {
         return failedArgs(
-          "Unsupported benchmark filter. Use empty-tick, entity-store, map-dirty, pathing-100, reservations, region-room, or spatial-index.",
+          "Unsupported benchmark filter. Use empty-tick, entity-store, map-dirty, pathing-100, reservations, region-room, spatial-index, or work-offers.",
         );
       }
 
@@ -244,7 +244,13 @@ function parseBenchmarkArgs(
     );
   }
 
-  if (!artifactPathWasConfigured && filter === "pathing-100") {
+  if (!artifactPathWasConfigured && filter === "work-offers") {
+    artifactPath = path.join(
+      resolveArtifactRoot("WM-0024"),
+      "benchmarks",
+      "benchmark-results.json",
+    );
+  } else if (!artifactPathWasConfigured && filter === "pathing-100") {
     artifactPath = path.join(
       resolveArtifactRoot("WM-0022"),
       "benchmarks",
@@ -314,6 +320,7 @@ function loadBenchmarkBaseline(filePath: string): BenchmarkBaselineFile {
       reservations: parseReservationsBaselineEntry(rawBenchmarks["reservations"]),
       "region-room": parseRegionRoomBaselineEntry(rawBenchmarks["region-room"]),
       "spatial-index": parseSpatialIndexBaselineEntry(rawBenchmarks["spatial-index"]),
+      "work-offers": parseWorkOffersBaselineEntry(rawBenchmarks["work-offers"]),
     },
   };
 }
@@ -492,6 +499,32 @@ function parseSpatialIndexBaselineEntry(value: unknown): BenchmarkBaselineEntry<
     ),
     invariants: parseSpatialIndexBaselineInvariants(
       requireRecord(value["invariants"], "spatial-index"),
+    ),
+  };
+}
+
+function parseWorkOffersBaselineEntry(value: unknown): BenchmarkBaselineEntry<"work-offers"> {
+  if (!isRecord(value)) {
+    throw new Error("benchmark baseline entry work-offers must be an object");
+  }
+
+  if (value["name"] !== "work-offers") {
+    throw new Error("benchmark baseline entry work-offers must declare the same name");
+  }
+
+  return {
+    name: "work-offers",
+    medianElapsedMs: requireNumber(value["medianElapsedMs"], "work-offers.medianElapsedMs"),
+    warnRegressionPercent: requireNumber(
+      value["warnRegressionPercent"],
+      "work-offers.warnRegressionPercent",
+    ),
+    failRegressionPercent: requireNumber(
+      value["failRegressionPercent"],
+      "work-offers.failRegressionPercent",
+    ),
+    invariants: parseWorkOffersBaselineInvariants(
+      requireRecord(value["invariants"], "work-offers"),
     ),
   };
 }
@@ -683,6 +716,37 @@ function parseSpatialIndexBaselineInvariants(
   };
 }
 
+function parseWorkOffersBaselineInvariants(
+  value: Record<string, unknown>,
+): BenchmarkBaselineEntry<"work-offers">["invariants"] {
+  return {
+    pawnCount: requireNumber(value["pawnCount"], "work-offers.pawnCount"),
+    offerCount: requireNumber(value["offerCount"], "work-offers.offerCount"),
+    offersPerPawnBucket: requireNumber(
+      value["offersPerPawnBucket"],
+      "work-offers.offersPerPawnBucket",
+    ),
+    candidateCap: requireNumber(value["candidateCap"], "work-offers.candidateCap"),
+    selectedCap: requireNumber(value["selectedCap"], "work-offers.selectedCap"),
+    allEntityScanEquivalent: requireNumber(
+      value["allEntityScanEquivalent"],
+      "work-offers.allEntityScanEquivalent",
+    ),
+    totalBucketCandidates: requireNumber(
+      value["totalBucketCandidates"],
+      "work-offers.totalBucketCandidates",
+    ),
+    visitedCandidates: requireNumber(value["visitedCandidates"], "work-offers.visitedCandidates"),
+    scoredCandidates: requireNumber(value["scoredCandidates"], "work-offers.scoredCandidates"),
+    selectedOffers: requireNumber(value["selectedOffers"], "work-offers.selectedOffers"),
+    candidateCapHits: requireNumber(value["candidateCapHits"], "work-offers.candidateCapHits"),
+    traceCapacity: requireNumber(value["traceCapacity"], "work-offers.traceCapacity"),
+    storedTraceCount: requireNumber(value["storedTraceCount"], "work-offers.storedTraceCount"),
+    indexActiveOffers: requireNumber(value["indexActiveOffers"], "work-offers.indexActiveOffers"),
+    selectionChecksum: requireNumber(value["selectionChecksum"], "work-offers.selectionChecksum"),
+  };
+}
+
 function sampleNamedBenchmark(
   name: BenchmarkName,
   sampleCount: number,
@@ -730,7 +794,14 @@ function sampleNamedBenchmark(
     });
   }
 
-  return sampleBenchmark("spatial-index", {
+  if (name === "spatial-index") {
+    return sampleBenchmark("spatial-index", {
+      sampleCount,
+      warmupCount,
+    });
+  }
+
+  return sampleBenchmark("work-offers", {
     sampleCount,
     warmupCount,
   });
@@ -764,7 +835,11 @@ function compareAgainstNamedBaseline(
     return compareBenchmarkToBaseline(result, baseline.benchmarks["region-room"]);
   }
 
-  return compareBenchmarkToBaseline(result, baseline.benchmarks["spatial-index"]);
+  if (result.name === "spatial-index") {
+    return compareBenchmarkToBaseline(result, baseline.benchmarks["spatial-index"]);
+  }
+
+  return compareBenchmarkToBaseline(result, baseline.benchmarks["work-offers"]);
 }
 
 function requireRecord(value: unknown, label: string): Record<string, unknown> {
@@ -864,7 +939,8 @@ function isBenchmarkName(value: string | undefined): value is BenchmarkName {
     value === "pathing-100" ||
     value === "reservations" ||
     value === "region-room" ||
-    value === "spatial-index"
+    value === "spatial-index" ||
+    value === "work-offers"
   );
 }
 
