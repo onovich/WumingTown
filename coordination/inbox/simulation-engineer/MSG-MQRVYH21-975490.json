@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQRVYH21-975490",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0022",
+  "kind": "review-approved",
+  "subject": "WM-0022 review: verified",
+  "body": "Verified WM-0022: full path basis is carried on requests/results, stale commits reject before path acceptance, Top-K exact pathing is bounded to caller candidates, sim-core boundary/determinism checks are clean, and required checks plus pathing-100 benchmark pass.",
+  "artifacts": [
+    "coordination/reports/WM-0022.md"
+  ],
+  "createdAt": "2026-06-24T09:43:34.105Z",
+  "acknowledgedAt": "2026-06-24T09:44:49.555Z"
+}
