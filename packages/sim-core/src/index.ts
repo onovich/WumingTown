@@ -2,6 +2,13 @@ import { defineWorkspaceSmoke, type WorkspaceSmoke } from "@wuming-town/foundati
 
 export { formatUint32Hex, hashStringToUint32, mixUint32 } from "./deterministic-hash";
 export {
+  DEFAULT_WALK_COST_MILLI,
+  MAP_GRID_SNAPSHOT_VERSION,
+  MapGrid,
+  createMapGrid,
+} from "./map-grid";
+export { createMapGridHashFields } from "./map-grid-hash";
+export {
   NamedRandomStreams,
   RANDOM_STREAMS_SNAPSHOT_VERSION,
   createNamedRandomStreams,
@@ -90,6 +97,16 @@ export type {
   CanonicalWorldField,
   CanonicalWorldHashInput,
 } from "./world-hash";
+export type {
+  MapCellReadResult,
+  MapCellUpdate,
+  MapCellUpdateResult,
+  MapCellView,
+  MapDirtyProcessResult,
+  MapGridOptions,
+  MapGridReason,
+  MapGridSnapshot,
+} from "./map-grid";
 
 export const SIM_CORE_SMOKE: WorkspaceSmoke = defineWorkspaceSmoke(
   "@wuming-town/sim-core",

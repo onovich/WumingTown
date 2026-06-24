@@ -10,6 +10,7 @@ export {
   runBenchmarkByName,
   sampleBenchmark,
 } from "./benchmarks";
+export { runMapDirtyBenchmark } from "./map-dirty-benchmark";
 export { BENCHMARK_BASELINE_SCHEMA_VERSION, compareBenchmarkToBaseline } from "./baseline";
 export { runBenchmarksCli } from "./cli-lib";
 export type {
@@ -29,6 +30,11 @@ export type {
   SampledEmptyTickBenchmark,
   SampledEntityStoreBenchmark,
 } from "./benchmarks";
+export type {
+  MapDirtyBenchmarkInvariants,
+  MapDirtyBenchmarkReport,
+  SampledMapDirtyBenchmark,
+} from "./map-dirty-benchmark";
 export type {
   BenchmarkBaselineEntry,
   BenchmarkBaselineFile,

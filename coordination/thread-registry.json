@@ -22,9 +22,9 @@
       "registeredAt": "2026-06-24T05:31:04.442Z"
     },
     "simulation-engineer": {
-      "threadId": "019ef5a6-1ad8-72d3-bbc2-25127feca4c8",
-      "label": "WM-0008 rng world hash",
-      "registeredAt": "2026-06-23T18:02:55.895Z"
+      "threadId": "019ef839-e087-7b60-aa4f-7a7d455eefd8",
+      "label": "WM-0019 map grid",
+      "registeredAt": "2026-06-24T06:03:41.010Z"
     },
     "client-engineer": {
       "threadId": "019ef650-10ca-7e13-b072-9be37575c2be",
@@ -47,5 +47,5 @@
       "registeredAt": "2026-06-24T04:15:21.579Z"
     }
   },
-  "updatedAt": "2026-06-24T05:31:04.443Z"
+  "updatedAt": "2026-06-24T06:03:41.010Z"
 }

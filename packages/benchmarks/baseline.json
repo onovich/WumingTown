@@ -30,6 +30,26 @@
         "attachedComponents": 8192,
         "iterationChecksum": 134209536
       }
+    },
+    "map-dirty": {
+      "name": "map-dirty",
+      "medianElapsedMs": 1,
+      "warnRegressionPercent": 10,
+      "failRegressionPercent": 20,
+      "invariants": {
+        "width": 256,
+        "height": 256,
+        "chunkSize": 32,
+        "changedCells": 1024,
+        "dirtyQueuePeak": 64,
+        "rebuildBudgetPerTick": 8,
+        "drainTicks": 8,
+        "processedChunks": 64,
+        "remainingDirtyChunks": 0,
+        "finalGlobalVersion": 1024,
+        "processedChecksum": 3385099136,
+        "mapHash": "0x8af0174e"
+      }
     }
   }
 }

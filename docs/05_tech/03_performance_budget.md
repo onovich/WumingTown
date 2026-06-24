@@ -11,13 +11,13 @@
 
 ## 门禁
 
-| 指标 | Windows Electron | Chromium Web |
-|---|---:|---:|
-| 正常 Tick P95 | ≤ 8 ms | ≤ 12 ms |
-| 3× 平均 Tick | ≤ 11 ms | ≤ 14 ms 或降上限 |
-| 主线程帧 P95 | ≤ 12 ms | ≤ 12 ms |
-| 队列 | 不持续增长 | 不持续增长 |
-| 长时内存 | 无持续增长 | 无持续增长 |
+| 指标          | Windows Electron |     Chromium Web |
+| ------------- | ---------------: | ---------------: |
+| 正常 Tick P95 |           ≤ 8 ms |          ≤ 12 ms |
+| 3× 平均 Tick  |          ≤ 11 ms | ≤ 14 ms 或降上限 |
+| 主线程帧 P95  |          ≤ 12 ms |          ≤ 12 ms |
+| 队列          |       不持续增长 |       不持续增长 |
+| 长时内存      |       无持续增长 |       无持续增长 |
 
 ## 热路径政策
 
@@ -39,3 +39,12 @@
 性能回退阈值：关键基准 P95 退化 >10% 必须解释，>20% 默认阻止合并。
 
 当前仓库将基准基线固定在 `packages/benchmarks/baseline.json`。`pnpm bench` 必须在相同脚本入口下同时输出机器可比较 artifact，并把当前采样中位数与该显式基线比较；超过 10% 记为警告，超过 20% 视为默认阻止合并的回退。
+
+## WM-0019 benchmark note
+
+`pnpm bench --filter map-dirty` measures the M1 authoritative map dirty path on
+a 256x256 grid with 32x32 chunks. The benchmark records changed cells, peak
+dirty queue length, rebuild budget, processed chunk count, remaining backlog,
+processed checksum and canonical map hash. The normal dirty-drain path uses a
+caller-owned typed output buffer so unchanged worlds do not allocate or grow
+queues.

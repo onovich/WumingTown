@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-06-24T06:16:21.135Z",
+  "baselinePath": "packages/benchmarks/baseline.json",
+  "artifactPath": "coordination/artifacts/WM-0019/benchmark-results.json",
+  "sampleCount": 5,
+  "warmupCount": 1,
+  "environment": {
+    "nodeVersion": "v24.13.1",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "results": [
+    {
+      "name": "map-dirty",
+      "sampleElapsedMs": [
+        0.7811999999999983,
+        3.174999999999997,
+        0.9372000000000043,
+        0.7899000000000029,
+        0.7627999999999986
+      ],
+      "stats": {
+        "sampleCount": 5,
+        "minElapsedMs": 0.7627999999999986,
+        "medianElapsedMs": 0.7899000000000029,
+        "maxElapsedMs": 3.174999999999997,
+        "meanElapsedMs": 1.2892200000000003
+      },
+      "invariants": {
+        "width": 256,
+        "height": 256,
+        "chunkSize": 32,
+        "changedCells": 1024,
+        "dirtyQueuePeak": 64,
+        "rebuildBudgetPerTick": 8,
+        "drainTicks": 8,
+        "processedChunks": 64,
+        "remainingDirtyChunks": 0,
+        "finalGlobalVersion": 1024,
+        "processedChecksum": 3385099136,
+        "mapHash": "0x8af0174e"
+      },
+      "comparison": {
+        "name": "map-dirty",
+        "status": "ok",
+        "actualMedianElapsedMs": 0.7899000000000029,
+        "baselineMedianElapsedMs": 1,
+        "regressionPercent": -21.009999999999707,
+        "warnRegressionPercent": 10,
+        "failRegressionPercent": 20,
+        "invariantMismatches": []
+      }
+    }
+  ]
+}

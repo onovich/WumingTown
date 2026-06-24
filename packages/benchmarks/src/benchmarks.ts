@@ -5,14 +5,21 @@ import {
   SIM_CORE_SMOKE,
   advanceHeadlessTicks,
   createHeadlessRunner,
-  createEntityRegistry,
-  createInt32ComponentStore,
-  createStructuralCommandBuffer,
   summarizeHeadlessRun,
-  type EntityId,
   type HeadlessRunSummary,
 } from "@wuming-town/sim-core";
 import { TESTKIT_SMOKE } from "@wuming-town/testkit";
+
+import { runEntityStoreBenchmark } from "./entity-store-benchmark";
+import {
+  mapDirtyInvariantsFromReport,
+  runMapDirtyBenchmark,
+  type MapDirtyBenchmarkInvariants,
+  type MapDirtyBenchmarkReport,
+  type SampledMapDirtyBenchmark,
+} from "./map-dirty-benchmark";
+
+export { runEntityStoreBenchmark } from "./entity-store-benchmark";
 
 export const BENCHMARKS_SMOKE: WorkspaceSmoke = defineWorkspaceSmoke(
   "@wuming-town/benchmarks",
@@ -27,7 +34,7 @@ export const BENCHMARKS_PUBLIC_DEPENDENCIES: readonly string[] = [
 export const DEFAULT_BENCHMARK_SAMPLE_COUNT = 5;
 export const DEFAULT_BENCHMARK_WARMUP_COUNT = 1;
 
-export type BenchmarkName = "empty-tick" | "entity-store";
+export type BenchmarkName = "empty-tick" | "entity-store" | "map-dirty";
 
 export interface EmptyTickBenchmarkOptions {
   readonly seed: string;
@@ -108,18 +115,29 @@ export interface SampledEntityStoreBenchmark {
   readonly stats: BenchmarkSampleStats;
 }
 
-export type BenchmarkReport = EmptyTickBenchmarkReport | EntityStoreBenchmarkReport;
-export type BenchmarkInvariants = EmptyTickBenchmarkInvariants | EntityStoreBenchmarkInvariants;
-export type SampledBenchmarkResult = SampledEmptyTickBenchmark | SampledEntityStoreBenchmark;
+export type BenchmarkReport =
+  | EmptyTickBenchmarkReport
+  | EntityStoreBenchmarkReport
+  | MapDirtyBenchmarkReport;
+export type BenchmarkInvariants =
+  | EmptyTickBenchmarkInvariants
+  | EntityStoreBenchmarkInvariants
+  | MapDirtyBenchmarkInvariants;
+export type SampledBenchmarkResult =
+  | SampledEmptyTickBenchmark
+  | SampledEntityStoreBenchmark
+  | SampledMapDirtyBenchmark;
 
 export interface BenchmarkReportMap {
   readonly "empty-tick": EmptyTickBenchmarkReport;
   readonly "entity-store": EntityStoreBenchmarkReport;
+  readonly "map-dirty": MapDirtyBenchmarkReport;
 }
 
 export interface BenchmarkInvariantMap {
   readonly "empty-tick": EmptyTickBenchmarkInvariants;
   readonly "entity-store": EntityStoreBenchmarkInvariants;
+  readonly "map-dirty": MapDirtyBenchmarkInvariants;
 }
 
 export function runEmptyTickBenchmark(
@@ -144,78 +162,15 @@ export function runEmptyTickBenchmark(
   };
 }
 
-export function runEntityStoreBenchmark(): EntityStoreBenchmarkReport {
-  const capacity = 8_192;
-  const registry = createEntityRegistry({ capacity });
-  const store = createInt32ComponentStore({ capacity });
-  const buffer = createStructuralCommandBuffer({ capacity });
-  const entities: EntityId[] = [];
-  const heapUsedBeforeBytes = process.memoryUsage().heapUsed;
-  const startedAtMs = performance.now();
-
-  for (let index = 0; index < capacity; index += 1) {
-    const allocation = registry.allocate();
-
-    if (!allocation.ok) {
-      throw new Error(allocation.reason);
-    }
-
-    const entity = allocation.entity;
-    const attached = store.attach(entity, registry, index);
-
-    if (!attached.ok) {
-      throw new Error(attached.reason);
-    }
-
-    entities.push(entity);
-  }
-
-  for (let index = capacity - 1; index >= 0; index -= 1) {
-    const entity = entities[index];
-
-    if (entity === undefined) {
-      throw new Error("missing benchmark entity");
-    }
-
-    const queued = buffer.queueSetInt32(entity, index * 3);
-
-    if (!queued.ok) {
-      throw new Error(queued.reason);
-    }
-  }
-
-  const report = buffer.commit(registry, store);
-  let iterationChecksum = 0;
-
-  store.forEachAttachedAscending(registry, (index, generation, value) => {
-    iterationChecksum = (iterationChecksum + index + generation + value) >>> 0;
-  });
-
-  const elapsedMs = performance.now() - startedAtMs;
-  const heapUsedAfterBytes = process.memoryUsage().heapUsed;
-
-  return {
-    name: "entity-store",
-    capacity,
-    queuedCommands: capacity,
-    commitResultCount: report.resultCount,
-    appliedCommands: report.appliedCount,
-    failedCommands: report.failedCount,
-    attachedComponents: store.activeCount,
-    iterationChecksum,
-    elapsedMs,
-    heapUsedBeforeBytes,
-    heapUsedAfterBytes,
-    heapDeltaBytes: heapUsedAfterBytes - heapUsedBeforeBytes,
-  };
-}
-
 export function benchmarkInvariantsFromReport(
   report: EmptyTickBenchmarkReport,
 ): EmptyTickBenchmarkInvariants;
 export function benchmarkInvariantsFromReport(
   report: EntityStoreBenchmarkReport,
 ): EntityStoreBenchmarkInvariants;
+export function benchmarkInvariantsFromReport(
+  report: MapDirtyBenchmarkReport,
+): MapDirtyBenchmarkInvariants;
 export function benchmarkInvariantsFromReport(report: BenchmarkReport): BenchmarkInvariants {
   if (report.name === "empty-tick") {
     return {
@@ -228,19 +183,24 @@ export function benchmarkInvariantsFromReport(report: BenchmarkReport): Benchmar
     };
   }
 
-  return {
-    capacity: report.capacity,
-    queuedCommands: report.queuedCommands,
-    commitResultCount: report.commitResultCount,
-    appliedCommands: report.appliedCommands,
-    failedCommands: report.failedCommands,
-    attachedComponents: report.attachedComponents,
-    iterationChecksum: report.iterationChecksum,
-  };
+  if (report.name === "entity-store") {
+    return {
+      capacity: report.capacity,
+      queuedCommands: report.queuedCommands,
+      commitResultCount: report.commitResultCount,
+      appliedCommands: report.appliedCommands,
+      failedCommands: report.failedCommands,
+      attachedComponents: report.attachedComponents,
+      iterationChecksum: report.iterationChecksum,
+    };
+  }
+
+  return mapDirtyInvariantsFromReport(report);
 }
 
 export function runBenchmarkByName(name: "empty-tick"): EmptyTickBenchmarkReport;
 export function runBenchmarkByName(name: "entity-store"): EntityStoreBenchmarkReport;
+export function runBenchmarkByName(name: "map-dirty"): MapDirtyBenchmarkReport;
 export function runBenchmarkByName(name: BenchmarkName): BenchmarkReport {
   if (name === "empty-tick") {
     return runEmptyTickBenchmark({
@@ -249,7 +209,11 @@ export function runBenchmarkByName(name: BenchmarkName): BenchmarkReport {
     });
   }
 
-  return runEntityStoreBenchmark();
+  if (name === "entity-store") {
+    return runEntityStoreBenchmark();
+  }
+
+  return runMapDirtyBenchmark();
 }
 
 export function sampleBenchmark(
@@ -261,6 +225,10 @@ export function sampleBenchmark(
   options?: BenchmarkSamplingOptions,
 ): SampledEntityStoreBenchmark;
 export function sampleBenchmark(
+  name: "map-dirty",
+  options?: BenchmarkSamplingOptions,
+): SampledMapDirtyBenchmark;
+export function sampleBenchmark(
   name: BenchmarkName,
   options: BenchmarkSamplingOptions = {},
 ): SampledBenchmarkResult {
@@ -271,8 +239,10 @@ export function sampleBenchmark(
   for (let index = 0; index < warmupCount; index += 1) {
     if (name === "empty-tick") {
       runBenchmarkByName("empty-tick");
-    } else {
+    } else if (name === "entity-store") {
       runBenchmarkByName("entity-store");
+    } else {
+      runBenchmarkByName("map-dirty");
     }
   }
 
@@ -280,13 +250,21 @@ export function sampleBenchmark(
     return sampleEmptyTickBenchmark(sampleCount);
   }
 
-  return sampleEntityStoreBenchmark(sampleCount);
+  if (name === "entity-store") {
+    return sampleEntityStoreBenchmark(sampleCount);
+  }
+
+  return sampleMapDirtyBenchmark(sampleCount);
 }
 
 export function runDefaultBenchmarkSuite(
   options: BenchmarkSamplingOptions = {},
 ): readonly SampledBenchmarkResult[] {
-  return [sampleBenchmark("empty-tick", options), sampleBenchmark("entity-store", options)];
+  return [
+    sampleBenchmark("empty-tick", options),
+    sampleBenchmark("entity-store", options),
+    sampleBenchmark("map-dirty", options),
+  ];
 }
 
 function sampleEmptyTickBenchmark(sampleCount: number): SampledEmptyTickBenchmark {
@@ -321,6 +299,22 @@ function sampleEntityStoreBenchmark(sampleCount: number): SampledEntityStoreBenc
   };
 }
 
+function sampleMapDirtyBenchmark(sampleCount: number): SampledMapDirtyBenchmark {
+  const reports: MapDirtyBenchmarkReport[] = [];
+
+  for (let index = 0; index < sampleCount; index += 1) {
+    reports.push(runMapDirtyBenchmark());
+  }
+
+  return {
+    name: "map-dirty",
+    report: reports[reports.length - 1] ?? failMissingReport(),
+    invariants: validateInvariantConsistency("map-dirty", reports),
+    sampleElapsedMs: reports.map((report) => report.elapsedMs),
+    stats: createBenchmarkStats(reports.map((report) => report.elapsedMs)),
+  };
+}
+
 function validateSamplingOptions(sampleCount: number, warmupCount: number): void {
   if (!Number.isInteger(sampleCount) || sampleCount <= 0) {
     throw new Error("benchmark sampleCount must be a positive integer");
@@ -339,6 +333,10 @@ function validateInvariantConsistency(
   name: "entity-store",
   reports: readonly EntityStoreBenchmarkReport[],
 ): EntityStoreBenchmarkInvariants;
+function validateInvariantConsistency(
+  name: "map-dirty",
+  reports: readonly MapDirtyBenchmarkReport[],
+): MapDirtyBenchmarkInvariants;
 function validateInvariantConsistency(
   name: BenchmarkName,
   reports: readonly BenchmarkReport[],
@@ -402,6 +400,10 @@ function failMissingReport(): never {
 
 function readInvariantUnion(report: BenchmarkReport): BenchmarkInvariants {
   if (report.name === "empty-tick") {
+    return benchmarkInvariantsFromReport(report);
+  }
+
+  if (report.name === "entity-store") {
     return benchmarkInvariantsFromReport(report);
   }
 

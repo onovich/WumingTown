@@ -2,7 +2,7 @@
   "id": "WM-0019",
   "title": "Implement deterministic map grid and chunk dirty queues",
   "summary": "Implement the M1 authoritative map grid, chunk metadata, terrain/walk/occupancy fields, local dirty queues, rebuild budgets and canonical hash/snapshot hooks.",
-  "state": "ready",
+  "state": "review_requested",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0019-implement-deterministic-map-grid-and-chunk-dirty",
   "createdAt": "2026-06-23T23:08:02.104Z",
-  "updatedAt": "2026-06-24T05:58:10.551Z",
+  "updatedAt": "2026-06-24T06:31:42.231Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.105Z",
@@ -43,6 +43,22 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-24T06:02:54.034Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Tally-WM-0019"
+    },
+    {
+      "at": "2026-06-24T06:31:42.231Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented deterministic typed-array map grid, stable map hash/snapshot hooks, map-grid tests, and map-dirty benchmark; required checks pass."
     }
-  ]
+  ],
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Tally-WM-0019",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0019.md"
 }

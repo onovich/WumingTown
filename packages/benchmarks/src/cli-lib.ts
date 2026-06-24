@@ -119,7 +119,9 @@ function parseBenchmarkArgs(
       const value = argv[index + 1];
 
       if (!isBenchmarkName(value)) {
-        return failedArgs("Unsupported benchmark filter. Use empty-tick or entity-store.");
+        return failedArgs(
+          "Unsupported benchmark filter. Use empty-tick, entity-store, or map-dirty.",
+        );
       }
 
       filter = value;
@@ -131,7 +133,9 @@ function parseBenchmarkArgs(
       const value = arg.slice("--filter=".length);
 
       if (!isBenchmarkName(value)) {
-        return failedArgs("Unsupported benchmark filter. Use empty-tick or entity-store.");
+        return failedArgs(
+          "Unsupported benchmark filter. Use empty-tick, entity-store, or map-dirty.",
+        );
       }
 
       filter = value;
@@ -276,6 +280,7 @@ function loadBenchmarkBaseline(filePath: string): BenchmarkBaselineFile {
     benchmarks: {
       "empty-tick": parseEmptyTickBaselineEntry(rawBenchmarks["empty-tick"]),
       "entity-store": parseEntityStoreBaselineEntry(rawBenchmarks["entity-store"]),
+      "map-dirty": parseMapDirtyBaselineEntry(rawBenchmarks["map-dirty"]),
     },
   };
 }
@@ -330,6 +335,30 @@ function parseEntityStoreBaselineEntry(value: unknown): BenchmarkBaselineEntry<"
   };
 }
 
+function parseMapDirtyBaselineEntry(value: unknown): BenchmarkBaselineEntry<"map-dirty"> {
+  if (!isRecord(value)) {
+    throw new Error("benchmark baseline entry map-dirty must be an object");
+  }
+
+  if (value["name"] !== "map-dirty") {
+    throw new Error("benchmark baseline entry map-dirty must declare the same name");
+  }
+
+  return {
+    name: "map-dirty",
+    medianElapsedMs: requireNumber(value["medianElapsedMs"], "map-dirty.medianElapsedMs"),
+    warnRegressionPercent: requireNumber(
+      value["warnRegressionPercent"],
+      "map-dirty.warnRegressionPercent",
+    ),
+    failRegressionPercent: requireNumber(
+      value["failRegressionPercent"],
+      "map-dirty.failRegressionPercent",
+    ),
+    invariants: parseMapDirtyBaselineInvariants(requireRecord(value["invariants"], "map-dirty")),
+  };
+}
+
 function parseEmptyTickBaselineInvariants(
   value: Record<string, unknown>,
 ): BenchmarkBaselineEntry<"empty-tick">["invariants"] {
@@ -360,6 +389,31 @@ function parseEntityStoreBaselineInvariants(
   };
 }
 
+function parseMapDirtyBaselineInvariants(
+  value: Record<string, unknown>,
+): BenchmarkBaselineEntry<"map-dirty">["invariants"] {
+  return {
+    width: requireNumber(value["width"], "map-dirty.width"),
+    height: requireNumber(value["height"], "map-dirty.height"),
+    chunkSize: requireNumber(value["chunkSize"], "map-dirty.chunkSize"),
+    changedCells: requireNumber(value["changedCells"], "map-dirty.changedCells"),
+    dirtyQueuePeak: requireNumber(value["dirtyQueuePeak"], "map-dirty.dirtyQueuePeak"),
+    rebuildBudgetPerTick: requireNumber(
+      value["rebuildBudgetPerTick"],
+      "map-dirty.rebuildBudgetPerTick",
+    ),
+    drainTicks: requireNumber(value["drainTicks"], "map-dirty.drainTicks"),
+    processedChunks: requireNumber(value["processedChunks"], "map-dirty.processedChunks"),
+    remainingDirtyChunks: requireNumber(
+      value["remainingDirtyChunks"],
+      "map-dirty.remainingDirtyChunks",
+    ),
+    finalGlobalVersion: requireNumber(value["finalGlobalVersion"], "map-dirty.finalGlobalVersion"),
+    processedChecksum: requireNumber(value["processedChecksum"], "map-dirty.processedChecksum"),
+    mapHash: requireString(value["mapHash"], "map-dirty.mapHash"),
+  };
+}
+
 function sampleNamedBenchmark(
   name: BenchmarkName,
   sampleCount: number,
@@ -372,7 +426,14 @@ function sampleNamedBenchmark(
     });
   }
 
-  return sampleBenchmark("entity-store", {
+  if (name === "entity-store") {
+    return sampleBenchmark("entity-store", {
+      sampleCount,
+      warmupCount,
+    });
+  }
+
+  return sampleBenchmark("map-dirty", {
     sampleCount,
     warmupCount,
   });
@@ -386,7 +447,11 @@ function compareAgainstNamedBaseline(
     return compareBenchmarkToBaseline(result, baseline.benchmarks["empty-tick"]);
   }
 
-  return compareBenchmarkToBaseline(result, baseline.benchmarks["entity-store"]);
+  if (result.name === "entity-store") {
+    return compareBenchmarkToBaseline(result, baseline.benchmarks["entity-store"]);
+  }
+
+  return compareBenchmarkToBaseline(result, baseline.benchmarks["map-dirty"]);
 }
 
 function requireRecord(value: unknown, label: string): Record<string, unknown> {
@@ -471,7 +536,7 @@ function failedArgs(error: string): { readonly ok: false; readonly error: string
 }
 
 function isBenchmarkName(value: string | undefined): value is BenchmarkName {
-  return value === "empty-tick" || value === "entity-store";
+  return value === "empty-tick" || value === "entity-store" || value === "map-dirty";
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

@@ -16,6 +16,7 @@ export interface BenchmarkBaselineFile {
   readonly benchmarks: {
     readonly "empty-tick": BenchmarkBaselineEntry<"empty-tick">;
     readonly "entity-store": BenchmarkBaselineEntry<"entity-store">;
+    readonly "map-dirty": BenchmarkBaselineEntry<"map-dirty">;
   };
 }
 
@@ -40,6 +41,10 @@ export function compareBenchmarkToBaseline(
   actual: Extract<SampledBenchmarkResult, { readonly name: "entity-store" }>,
   baseline: BenchmarkBaselineEntry<"entity-store">,
 ): BenchmarkComparison<"entity-store">;
+export function compareBenchmarkToBaseline(
+  actual: Extract<SampledBenchmarkResult, { readonly name: "map-dirty" }>,
+  baseline: BenchmarkBaselineEntry<"map-dirty">,
+): BenchmarkComparison<"map-dirty">;
 export function compareBenchmarkToBaseline(
   actual: SampledBenchmarkResult,
   baseline: BenchmarkBaselineEntry<BenchmarkName>,
