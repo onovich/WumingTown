@@ -2,7 +2,7 @@
   "id": "WM-0017",
   "title": "Propose ADR 0004 for Worker snapshot and read model encoding",
   "summary": "Produce the proposed Worker Snapshot encoding ADR for M1 render snapshots, UI detail, metrics and headless/Worker hash parity without moving authority to UI.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0017-propose-adr-0004-for-worker-snapshot-and-read-mo",
   "createdAt": "2026-06-23T23:08:02.025Z",
-  "updatedAt": "2026-06-24T05:23:42.825Z",
+  "updatedAt": "2026-06-24T05:26:44.023Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.026Z",
@@ -61,6 +61,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings; ADR-0004 remains Proposed, covers alternatives/migration/rollback/tests/performance, preserves Worker/Node authority with read-only UI projections, specifies versioning/sequences/backpressure/metrics/stale rejection and parity tests, and introduces no protocol implementation/runtime dependency/UI mutation authority/SAB requirement/deployment change."
+    },
+    {
+      "at": "2026-06-24T05:26:33.368Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Fast-forward merged origin/task/WM-0017-propose-adr-0004-for-worker-snapshot-and-read-mo at 37cd24df89d20f7c2fc575181e2b664ce3453a9a; reviewer verified ADR-0004; main gates passed: validate-handoff, taskctl validate/status, git diff --check, pnpm quality."
+    },
+    {
+      "at": "2026-06-24T05:26:44.022Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "claimedBy": "systems-architect",
@@ -72,5 +84,10 @@
     "verdict": "verified",
     "summary": "No blocking findings; ADR-0004 remains Proposed, covers alternatives/migration/rollback/tests/performance, preserves Worker/Node authority with read-only UI projections, specifies versioning/sequences/backpressure/metrics/stale rejection and parity tests, and introduces no protocol implementation/runtime dependency/UI mutation authority/SAB requirement/deployment change.",
     "at": "2026-06-24T05:23:42.825Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Fast-forward merged origin/task/WM-0017-propose-adr-0004-for-worker-snapshot-and-read-mo at 37cd24df89d20f7c2fc575181e2b664ce3453a9a; reviewer verified ADR-0004; main gates passed: validate-handoff, taskctl validate/status, git diff --check, pnpm quality.",
+    "at": "2026-06-24T05:26:33.368Z"
   }
 }
