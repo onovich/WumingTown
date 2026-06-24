@@ -32,9 +32,9 @@
       "registeredAt": "2026-06-23T21:08:57.616Z"
     },
     "qa-performance": {
-      "threadId": "019ef650-38e6-7ca0-bcb5-d6145728be23",
-      "label": "WM-0010 CI benchmarks",
-      "registeredAt": "2026-06-23T21:08:57.634Z"
+      "threadId": "019efa3c-d23d-7022-878c-f1fe7bcf0f98",
+      "label": "WM-0029-bench-invariants",
+      "registeredAt": "2026-06-24T15:26:12.623Z"
     },
     "content-worker": {
       "threadId": "019ef650-24da-7c22-a896-40da4ce6f09f",
@@ -47,5 +47,5 @@
       "registeredAt": "2026-06-24T04:15:21.579Z"
     }
   },
-  "updatedAt": "2026-06-24T14:41:13.602Z"
+  "updatedAt": "2026-06-24T15:26:12.623Z"
 }
