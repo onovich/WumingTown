@@ -1,0 +1,76 @@
+{
+  "id": "WM-0043",
+  "title": "Close the M2 work logistics gate",
+  "summary": "Close M2 only after the work/logistics vertical-slice evidence is verified, integrated and documented without starting M3.",
+  "state": "proposed",
+  "ownerRole": "project-director",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0042"
+  ],
+  "docs": [
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "docs/07_roadmap/07_m2_work_logistics_vertical_slice_plan.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "All M2 task packets WM-0033 through WM-0042 are verified integrated and done before closeout completion",
+    "Closeout report records final scenario hashes artifact paths benchmark comparison Worker parity save/replay evidence residual risks and known warnings",
+    "20 actors hauling/building and 100 path requests under versioned invalidation pass the documented M2 gates",
+    "Roadmap and milestone status are updated narrowly to reflect M2 closeout evidence",
+    "No M3 task is created promoted claimed or implemented by this closeout task"
+  ],
+  "requiredChecks": [
+    "pnpm ci:local",
+    "pnpm bench",
+    "pnpm sim:run -- --seed 2 --scenario m2-work-logistics --ticks 100000",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0043-close-the-m2-work-logistics-gate",
+  "createdAt": "2026-06-24T21:14:35.180Z",
+  "updatedAt": "2026-06-24T21:14:35.180Z",
+  "history": [
+    {
+      "at": "2026-06-24T21:14:35.180Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0032 M2 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Close M2 with evidence while keeping M3 blocked.",
+  "allowedPaths": [
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "docs/07_roadmap/07_m2_work_logistics_vertical_slice_plan.md",
+    "coordination/reports/WM-0043.md",
+    "coordination/tasks/WM-0043.json",
+    "coordination/project-state.json"
+  ],
+  "forbiddenPaths": [
+    "packages/**",
+    "apps/**",
+    "tools/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "coordination/tasks/WM-0044*.json unless explicitly reviewed as non-M3 follow-up",
+    "M3 planning or implementation",
+    "hidden product fixes during closeout"
+  ],
+  "benchmarkImpact": "Final M2 benchmark artifact comparison and gate verdict; no threshold changes.",
+  "reviewRouting": "Project-director completes to reviewer; integration and done remain separate taskctl steps after reviewer verification.",
+  "rollbackModel": "Leave M2 open, do not promote M3, and route blockers to the responsible owner task.",
+  "ownerGate": [
+    "Do not fix product code in closeout",
+    "Confirm every upstream task is verified integrated and done",
+    "Run every required check before taskctl complete"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Milestone closeout and final coordination gates cannot be assigned to Spark."
+  }
+}

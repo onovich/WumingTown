@@ -1,0 +1,79 @@
+{
+  "id": "WM-0040",
+  "title": "Add M2 save replay resume harness",
+  "summary": "Extend focused save/replay diagnostics to the M2 work/logistics vertical slice without broad save compatibility or platform save UI.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0039"
+  ],
+  "docs": [
+    "docs/07_roadmap/07_m2_work_logistics_vertical_slice_plan.md",
+    "docs/02_systems/13_save_replay_migration.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "M2 interrupt save load resume matches uninterrupted replay for the same seed command stream and checkpoint ticks",
+    "Load validates versions owner handles integer lanes sorted records and scenario id before mutating target stores",
+    "Derived indexes WorkOffers path caches reservations and read models rebuild from owner state before resumed ticks",
+    "Diagnostics name seed scenario first divergent tick and artifact paths on failure",
+    "No platform save UI or broad public save compatibility promise is introduced"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m2-save-replay",
+    "pnpm sim:replay-test -- --scenario m2-work-logistics",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0040-add-m2-save-replay-resume-harness",
+  "createdAt": "2026-06-24T21:14:35.180Z",
+  "updatedAt": "2026-06-24T21:14:35.180Z",
+  "history": [
+    {
+      "at": "2026-06-24T21:14:35.180Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0032 M2 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Make M2 save/load/replay deterministic and diagnosable before Worker parity and benchmark closeout.",
+  "allowedPaths": [
+    "packages/sim-core/src/m1-save-replay.ts",
+    "packages/sim-core/src/m1-save-replay.test.ts",
+    "packages/sim-core/src/m2-save-replay.ts",
+    "packages/sim-core/src/m2-save-replay.test.ts",
+    "packages/sim-core/src/replay-diagnostics.ts",
+    "packages/sim-core/src/m2-work-logistics-scenario.ts",
+    "tools/sim-replay-test.mjs",
+    "tools/sim-replay-diagnostics-lib.mjs",
+    "docs/02_systems/13_save_replay_migration.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "coordination/tasks/WM-0040.json",
+    "coordination/reports/WM-0040.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-worker/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "platform save UI",
+    "public save compatibility promise beyond the focused M2 harness",
+    "unversioned derived cache persistence",
+    "schema or codec dependency changes without architecture approval"
+  ],
+  "benchmarkImpact": "Records save size, rebuild time, resume hash checkpoints and divergence diagnostics for later benchmark comparison.",
+  "reviewRouting": "Owner completes to reviewer; systems-architect must block any save-format or migration scope expansion.",
+  "rollbackModel": "Revert focused M2 save/replay harness while preserving M1 save/replay behavior.",
+  "ownerGate": [
+    "Validate before mutating target stores",
+    "Rebuild derived indexes from owner state",
+    "Run every required check before taskctl complete"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Save/replay and migration-boundary work is explicitly outside Spark scope."
+  }
+}

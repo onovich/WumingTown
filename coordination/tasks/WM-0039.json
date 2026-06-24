@@ -1,0 +1,79 @@
+{
+  "id": "WM-0039",
+  "title": "Add build order and production order scaffold",
+  "summary": "Add only the build-order and production-order scaffolding needed by the M2 vertical slice, with serializable progress and structured failure reasons.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0038"
+  ],
+  "docs": [
+    "docs/07_roadmap/07_m2_work_logistics_vertical_slice_plan.md",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "docs/02_systems/06_economy_logistics_production.md",
+    "docs/02_systems/14_explainability_debug_observability.md"
+  ],
+  "acceptance": [
+    "Build/order demand registers and removes WorkOffers from owner-state changes",
+    "Required inputs are reserved before work starts and serializable progress is stored in explicit lanes",
+    "Completion commits deterministically through existing command/tick phases",
+    "Structured reasons distinguish missing materials invalid target blocked site reservation conflict path failure and policy failure",
+    "Scope is limited to the M2 vertical slice and excludes broad production chains or catalog expansion"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter building",
+    "pnpm test --filter m2-build-production-orders",
+    "pnpm sim:run -- --seed 2 --scenario m2-work-logistics --ticks 20000",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0039-add-build-and-production-order-scaffold",
+  "createdAt": "2026-06-24T21:14:35.180Z",
+  "updatedAt": "2026-06-24T21:14:35.180Z",
+  "history": [
+    {
+      "at": "2026-06-24T21:14:35.180Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0032 M2 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Provide the minimal serializable build/order scaffold required for the M2 scenario.",
+  "allowedPaths": [
+    "packages/sim-core/src/build-site.ts",
+    "packages/sim-core/src/build-site.test.ts",
+    "packages/sim-core/src/job-core.ts",
+    "packages/sim-core/src/hauling-building-scenario.ts",
+    "packages/sim-core/src/m2-work-logistics-scenario.ts",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "docs/02_systems/06_economy_logistics_production.md",
+    "docs/02_systems/14_explainability_debug_observability.md",
+    "coordination/tasks/WM-0039.json",
+    "coordination/reports/WM-0039.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-worker/**",
+    "packages/benchmarks/baseline.json",
+    "package.json",
+    "pnpm-lock.yaml",
+    "broad production chains",
+    "building catalog or balance content expansion",
+    "UI construction tools",
+    "ritual/investigation production systems"
+  ],
+  "benchmarkImpact": "Feeds the M2 long-run benchmark but does not independently update benchmark baselines.",
+  "reviewRouting": "Owner completes to reviewer; gameplay-designer may clarify fixture semantics but must not expand scope into broad content.",
+  "rollbackModel": "Revert branch; no persisted compatibility promise is created beyond the focused M2 harness.",
+  "ownerGate": [
+    "Keep job progress explicit and serializable",
+    "Document every reason class added",
+    "Run every required check before taskctl complete"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Build/order scaffold defines serializable job behavior and production-order ownership."
+  }
+}

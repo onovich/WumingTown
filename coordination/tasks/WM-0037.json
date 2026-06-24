@@ -1,0 +1,82 @@
+{
+  "id": "WM-0037",
+  "title": "Harden reservation contention and cleanup",
+  "summary": "Prove ReservationLedger behavior remains atomic, structured and leak-free under M2 multi-actor contention and terminal cleanup paths.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0034"
+  ],
+  "docs": [
+    "docs/07_roadmap/07_m2_work_logistics_vertical_slice_plan.md",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "docs/02_systems/13_save_replay_migration.md",
+    "docs/05_tech/03_performance_budget.md"
+  ],
+  "acceptance": [
+    "Multi-target claims remain all-or-nothing under entity cell item quantity interaction spot and capacity contention",
+    "Cancel fail complete destroy despawn and load-rebuild paths release or rebuild claims without leaks",
+    "Lease expiry remains diagnostic/recovery metadata and not normal control flow",
+    "Structured reasons distinguish conflict stale target invalid owner insufficient amount insufficient capacity and invalid parameter cases",
+    "Contention benchmark finishes with zero unexpected active claims and stable checksums"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter reservations",
+    "pnpm test --filter m2-reservation-contention",
+    "pnpm bench --filter reservations",
+    "pnpm bench --filter m2-reservation-contention",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0037-harden-reservation-contention-and-cleanup",
+  "createdAt": "2026-06-24T21:14:35.180Z",
+  "updatedAt": "2026-06-24T21:14:35.180Z",
+  "history": [
+    {
+      "at": "2026-06-24T21:14:35.180Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0032 M2 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Make reservation contention safe before larger storage/build jobs depend on it.",
+  "allowedPaths": [
+    "packages/sim-core/src/reservation-ledger.ts",
+    "packages/sim-core/src/reservation-ledger.test.ts",
+    "packages/sim-core/src/job-core.ts",
+    "packages/sim-core/src/hauling-jobs.ts",
+    "packages/sim-core/src/build-site.ts",
+    "packages/benchmarks/src/reservations-benchmark.ts",
+    "packages/benchmarks/src/m2-reservation-contention-benchmark.ts",
+    "packages/benchmarks/src/index.ts",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "docs/02_systems/13_save_replay_migration.md",
+    "docs/05_tech/03_performance_budget.md",
+    "coordination/tasks/WM-0037.json",
+    "coordination/reports/WM-0037.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-worker/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "work policy selection redesign",
+    "pathfinding redesign",
+    "UI-owned reservation state",
+    "lease expiry as normal job progression"
+  ],
+  "benchmarkImpact": "Extends reservation artifacts with M2 contention attempts, accepted/rejected counts, conflict classes, cleanup releases and final active claims.",
+  "reviewRouting": "Owner completes to reviewer; systems-architect must be consulted before owner-store or save-shape changes.",
+  "rollbackModel": "Revert task branch and benchmark additions. Do not weaken atomicity, fail-closed restore or leak checks.",
+  "ownerGate": [
+    "Prove terminal cleanup for every path touched",
+    "Keep ReservationLedger as authoritative claim owner",
+    "Run every required check before taskctl complete"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Reservation contention is concurrency ownership and deterministic cleanup work."
+  }
+}

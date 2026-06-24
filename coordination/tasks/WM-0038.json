@@ -1,0 +1,83 @@
+{
+  "id": "WM-0038",
+  "title": "Expand storage and hauling beyond the M1 fixture",
+  "summary": "Extend storage supply/demand and hauling jobs beyond the single M1 fixture while preserving integer quantity ownership and bounded indexed work selection.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0036",
+    "WM-0037"
+  ],
+  "docs": [
+    "docs/07_roadmap/07_m2_work_logistics_vertical_slice_plan.md",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "docs/02_systems/06_economy_logistics_production.md",
+    "docs/05_tech/03_performance_budget.md"
+  ],
+  "acceptance": [
+    "Multiple source stacks storage destinations and demand slots update indexes from owner-state changes only",
+    "Hauling jobs reserve source amount destination capacity and interaction spots before pickup",
+    "Pickup delivery cancellation fail and interruption paths conserve integer quantities exactly once",
+    "Storage supply/demand dirty queues drain without sustained backlog growth under the M2 fixture",
+    "No broad economy crafting balance or content catalog expansion is introduced"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter hauling",
+    "pnpm test --filter m2-storage-hauling",
+    "pnpm bench --filter logistics-10k",
+    "pnpm bench --filter m2-logistics-hauling",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0038-expand-storage-and-hauling-beyond-m1-fixture",
+  "createdAt": "2026-06-24T21:14:35.180Z",
+  "updatedAt": "2026-06-24T21:14:35.180Z",
+  "history": [
+    {
+      "at": "2026-06-24T21:14:35.180Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0032 M2 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Generalize M1 hauling enough for the M2 vertical slice without broad economy work.",
+  "allowedPaths": [
+    "packages/sim-core/src/item-stack-store.ts",
+    "packages/sim-core/src/storage-logistics-index.ts",
+    "packages/sim-core/src/hauling-jobs.ts",
+    "packages/sim-core/src/hauling-jobs.test.ts",
+    "packages/sim-core/src/hauling-building-scenario.ts",
+    "packages/benchmarks/src/logistics-10k-benchmark.ts",
+    "packages/benchmarks/src/m2-logistics-hauling-benchmark.ts",
+    "packages/benchmarks/src/index.ts",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "docs/02_systems/06_economy_logistics_production.md",
+    "docs/05_tech/03_performance_budget.md",
+    "coordination/tasks/WM-0038.json",
+    "coordination/reports/WM-0038.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-worker/** unless blocked for parity planning first",
+    "package.json",
+    "pnpm-lock.yaml",
+    "broad economy/crafting systems",
+    "balance tables or production content catalogs",
+    "duplicate item quantity ownership",
+    "platform save UI"
+  ],
+  "benchmarkImpact": "Extends logistics artifacts with multiple source/destination conservation, dirty backlog, reservation and candidate cap metrics.",
+  "reviewRouting": "Owner completes to reviewer; qa-performance confirms benchmark artifact reproducibility when baseline data changes.",
+  "rollbackModel": "Revert branch and M2 logistics artifacts while preserving M1 hauling/building scenario behavior.",
+  "ownerGate": [
+    "Document quantity owner invariants and dirty queue caps",
+    "Prove fail-closed pickup/delivery/cancel paths",
+    "Run every required check before taskctl complete"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Storage and hauling touch state ownership, reservations, quantities and deterministic logistics."
+  }
+}

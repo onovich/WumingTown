@@ -1,0 +1,79 @@
+{
+  "id": "WM-0042",
+  "title": "Add M2 benchmarks and long run invariants",
+  "summary": "Add the M2 benchmark and invariant gate for 20 actors hauling/building plus 100 path requests under versioned invalidation.",
+  "state": "proposed",
+  "ownerRole": "qa-performance",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0041"
+  ],
+  "docs": [
+    "docs/07_roadmap/07_m2_work_logistics_vertical_slice_plan.md",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "M2 invariant gate runs 20 actors hauling/building long enough to detect reservation leaks stale offers negative resources queue growth material loss and hash divergence",
+    "100 path requests under versioned invalidation report stale rejects node expansions queue backlog and reached-path checksums",
+    "Benchmark artifacts include Node pnpm OS CPU commit seed scenario tick horizon and final hashes",
+    "Baseline updates are reviewed artifacts and preserve 10 percent warning and 20 percent blocking thresholds",
+    "No product behavior fix threshold weakening silent retry or unrelated implementation is included"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m2-invariants",
+    "pnpm bench",
+    "pnpm sim:run -- --seed 2 --scenario m2-work-logistics --ticks 100000",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0042-add-m2-benchmarks-and-long-run-invariants",
+  "createdAt": "2026-06-24T21:14:35.180Z",
+  "updatedAt": "2026-06-24T21:14:35.180Z",
+  "history": [
+    {
+      "at": "2026-06-24T21:14:35.180Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0032 M2 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Create the artifact-backed M2 performance and invariant gate before closeout.",
+  "allowedPaths": [
+    "packages/sim-core/src/m2-invariants.test.ts",
+    "packages/sim-core/src/m2-work-logistics-scenario.ts",
+    "packages/benchmarks/src/m2-work-logistics-long-run-benchmark.ts",
+    "packages/benchmarks/src/m2-pathing-invalidation-benchmark.ts",
+    "packages/benchmarks/src/index.ts",
+    "packages/benchmarks/src/benchmarks.ts",
+    "packages/benchmarks/baseline.json",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "coordination/artifacts/WM-0042/**",
+    "coordination/tasks/WM-0042.json",
+    "coordination/reports/WM-0042.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "product behavior fixes to satisfy tests",
+    "threshold weakening",
+    "silent retries or repeatEach/retries changes",
+    "broad feature implementation"
+  ],
+  "benchmarkImpact": "Adds reviewed M2 long-run and path invalidation artifacts and updates baselines only with explicit 10/20 percent threshold preservation.",
+  "reviewRouting": "Owner completes to reviewer; project-director integrates only after artifact evidence and required checks are reproducible.",
+  "rollbackModel": "Revert benchmark tests artifacts and baseline changes; leave M2 open and do not advance closeout.",
+  "ownerGate": [
+    "Name exact artifact paths and hashes in the report",
+    "Preserve warning/blocking regression thresholds",
+    "Run every required check before taskctl complete"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Benchmark baselines and long-run invariant gates require qa-performance ownership and independent review."
+  }
+}

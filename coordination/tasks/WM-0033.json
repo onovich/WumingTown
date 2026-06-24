@@ -1,0 +1,75 @@
+{
+  "id": "WM-0033",
+  "title": "Define the M2 work logistics scenario contract",
+  "summary": "Specify the executable M2 work/logistics vertical-slice scenario, including 20 actors hauling/building, 100 versioned path requests, fixture bounds, invariants, structured reasons and non-goals.",
+  "state": "ready",
+  "ownerRole": "gameplay-designer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0032"
+  ],
+  "docs": [
+    "docs/07_roadmap/07_m2_work_logistics_vertical_slice_plan.md",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "docs/02_systems/06_economy_logistics_production.md",
+    "docs/05_tech/05_testing_observability_ci.md"
+  ],
+  "acceptance": [
+    "Scenario contract defines map bounds actors item sources storage destinations build/order targets command stream seeds tick horizons and expected terminal state",
+    "Scenario explicitly targets 20 actors hauling/building plus 100 path requests under versioned invalidation",
+    "Invariants cover reservation leaks stale work offers negative resources queue growth material conservation hash divergence and structured reason traces",
+    "Contract preserves Worker/headless authority sim-core purity indexed bounded work selection serializable jobs save/replay and Worker parity expectations",
+    "Contract explicitly excludes broad economy town-life anomaly combat platform save UI content expansion balance production and M3"
+  ],
+  "requiredChecks": [
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node tools/validate-handoff.mjs",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0033-define-m2-work-logistics-scenario-contract",
+  "createdAt": "2026-06-24T21:14:35.180Z",
+  "updatedAt": "2026-06-24T21:32:34.989Z",
+  "history": [
+    {
+      "at": "2026-06-24T21:14:35.180Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0032 M2 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-24T21:32:34.989Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
+    }
+  ],
+  "objective": "Produce the executable M2 scenario contract before implementation starts.",
+  "allowedPaths": [
+    "docs/02_systems/16_m2_work_logistics_scenario.md",
+    "docs/07_roadmap/07_m2_work_logistics_vertical_slice_plan.md",
+    "coordination/tasks/WM-0033.json",
+    "coordination/reports/WM-0033.md"
+  ],
+  "forbiddenPaths": [
+    "packages/**",
+    "apps/**",
+    "tools/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "coordination/decisions/**",
+    "M3 task creation or implementation claims"
+  ],
+  "benchmarkImpact": "Defines benchmark dimensions and invariant names only; no benchmark implementation or baseline change.",
+  "reviewRouting": "Owner completes with taskctl to reviewer; reviewer verifies the contract before project-director integration can promote WM-0034.",
+  "rollbackModel": "Revert the scenario docs, task packet and report. No runtime state or compatibility promise exists.",
+  "ownerGate": [
+    "Do not claim implementation tasks from this scenario task",
+    "Report all non-goals and any unresolved scenario assumptions",
+    "Run every required check before taskctl complete"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Scenario/specification design and vertical-slice invariant definition are not suitable for Spark."
+  }
+}

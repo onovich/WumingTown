@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQSKYMT3-18B342",
+  "from": "systems-architect",
+  "to": "reviewer",
+  "taskId": "WM-0032",
+  "kind": "review-request",
+  "subject": "WM-0032 ready for review",
+  "body": "Produced the reviewed M2 work/logistics planning package: added the M2 roadmap plan, WM-0033 through WM-0043 proposed task DAG with required packet fields, and WM-0032 report; no runtime implementation or M3 work started; required checks passed.",
+  "artifacts": [
+    "coordination/reports/WM-0032.md",
+    "task/WM-0032-produce-the-m2-work-logistics-vertical-slice-pla"
+  ],
+  "createdAt": "2026-06-24T21:23:31.959Z",
+  "acknowledgedAt": "2026-06-24T21:25:06.879Z"
+}

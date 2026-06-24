@@ -1,0 +1,80 @@
+{
+  "id": "WM-0036",
+  "title": "Scale WorkOffer scoring for multiple pawns",
+  "summary": "Scale WorkOffer lookup, scoring and assignment to multiple pawns with deterministic tie-breaking, bounded visits and ReasonTrace evidence.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0035"
+  ],
+  "docs": [
+    "docs/07_roadmap/07_m2_work_logistics_vertical_slice_plan.md",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "docs/02_systems/14_explainability_debug_observability.md",
+    "docs/05_tech/03_performance_budget.md"
+  ],
+  "acceptance": [
+    "20 actors query indexed WorkOffer buckets within explicit candidate and selected-offer caps",
+    "Selection ordering is deterministic and stable across equivalent scores",
+    "ReasonTrace records candidate totals visited scored cap hits rejection classes selected offer and score for test/debug consumption",
+    "No pawn scans all entities all map cells or all work offers",
+    "Content scope remains fixture-level and does not add broad work catalogs"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter work-offers",
+    "pnpm test --filter m2-work-offer-selection",
+    "pnpm bench --filter work-offers",
+    "pnpm bench --filter m2-work-offer-20-pawns",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0036-scale-work-offer-scoring-for-multiple-pawns",
+  "createdAt": "2026-06-24T21:14:35.180Z",
+  "updatedAt": "2026-06-24T21:14:35.180Z",
+  "history": [
+    {
+      "at": "2026-06-24T21:14:35.180Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0032 M2 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Make multi-pawn work selection bounded, deterministic and explainable.",
+  "allowedPaths": [
+    "packages/sim-core/src/work-offers.ts",
+    "packages/sim-core/src/work-offers.test.ts",
+    "packages/sim-core/src/job-core.ts",
+    "packages/sim-core/src/job-core.test.ts",
+    "packages/benchmarks/src/work-offers-benchmark.ts",
+    "packages/benchmarks/src/m2-work-offer-20-pawns-benchmark.ts",
+    "packages/benchmarks/src/index.ts",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "docs/02_systems/14_explainability_debug_observability.md",
+    "docs/05_tech/03_performance_budget.md",
+    "coordination/tasks/WM-0036.json",
+    "coordination/reports/WM-0036.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-worker/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "broad economy or town-life policy",
+    "unbounded sort or global scans",
+    "UI-only explanation logic"
+  ],
+  "benchmarkImpact": "Adds 20-pawn WorkOffer metrics for visited/scored counts, cap hits, deterministic selection checksums and trace capacity.",
+  "reviewRouting": "Owner completes to reviewer; qa-performance must be able to reproduce benchmark artifacts during review.",
+  "rollbackModel": "Revert task branch and M2 benchmark additions while preserving M1 WorkOffer behavior.",
+  "ownerGate": [
+    "State candidate cap values and complexity in docs",
+    "Prove traces are bounded and shared with tests/debug",
+    "Run every required check before taskctl complete"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Multi-pawn deterministic scoring and performance-sensitive selection are not suitable for Spark."
+  }
+}

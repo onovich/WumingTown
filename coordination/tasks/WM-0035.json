@@ -1,0 +1,82 @@
+{
+  "id": "WM-0035",
+  "title": "Integrate Region A star into work selection",
+  "summary": "Make real work selection consume region reachability, local A star, stale-result rejection and bounded exact pathing without global pawn scans.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0034"
+  ],
+  "docs": [
+    "docs/07_roadmap/07_m2_work_logistics_vertical_slice_plan.md",
+    "docs/02_systems/03_map_space_rooms_lanterns.md",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "docs/05_tech/03_performance_budget.md"
+  ],
+  "acceptance": [
+    "Work selection pathing consumes indexed caller-supplied candidates only and never scans the full map or all entities",
+    "Path requests carry map navigation region room and graph version bases and reject stale results before job mutation",
+    "Exact pathing is applied only to bounded Top-K candidates with deterministic ordering",
+    "Structured reasons distinguish unreachable stale invalid blocked no-route and node-budget outcomes",
+    "100 path requests under versioned invalidation produce artifact-backed queue node and stale-reject metrics"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter pathing",
+    "pnpm test --filter m2-path-work-selection",
+    "pnpm bench --filter pathing-100",
+    "pnpm bench --filter m2-path-work-selection",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0035-integrate-region-a-star-into-work-selection",
+  "createdAt": "2026-06-24T21:14:35.180Z",
+  "updatedAt": "2026-06-24T21:14:35.180Z",
+  "history": [
+    {
+      "at": "2026-06-24T21:14:35.180Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0032 M2 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Bind versioned pathing to indexed work selection for M2.",
+  "allowedPaths": [
+    "packages/sim-core/src/pathing.ts",
+    "packages/sim-core/src/pathing.test.ts",
+    "packages/sim-core/src/work-offers.ts",
+    "packages/sim-core/src/work-offers.test.ts",
+    "packages/sim-core/src/region-room-rebuild.ts",
+    "packages/benchmarks/src/pathing-100-benchmark.ts",
+    "packages/benchmarks/src/m2-path-work-selection-benchmark.ts",
+    "packages/benchmarks/src/index.ts",
+    "docs/02_systems/03_map_space_rooms_lanterns.md",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "docs/05_tech/03_performance_budget.md",
+    "coordination/tasks/WM-0035.json",
+    "coordination/reports/WM-0035.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "tools/headless-runner/** except invoking existing scenarios",
+    "packages/sim-worker/** unless blocked for architecture review first",
+    "package.json",
+    "pnpm-lock.yaml",
+    "save format or schema changes",
+    "UI-owned work/path state",
+    "unversioned path caches"
+  ],
+  "benchmarkImpact": "Extends 100-path evidence with work-selection candidate caps, path node counts, stale rejects and queue backlog.",
+  "reviewRouting": "Owner completes to reviewer; systems-architect must be consulted before any public contract or version-basis change.",
+  "rollbackModel": "Revert branch and benchmark additions. Do not merge full-map scans or unbounded queues as temporary workarounds.",
+  "ownerGate": [
+    "Document candidate caps and complexity",
+    "Keep sim-core pure and deterministic",
+    "Run every required check before taskctl complete"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Deterministic pathing and work-selection architecture are high-risk simulation work."
+  }
+}

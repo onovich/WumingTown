@@ -1,0 +1,76 @@
+{
+  "id": "WM-0034",
+  "title": "Record the M2 work logistics architecture gate",
+  "summary": "Record the architecture gate for M2 work/logistics owner stores, derived indexes, cache/version boundaries, save/replay scope, Worker parity and performance budgets before implementation tasks start.",
+  "state": "proposed",
+  "ownerRole": "systems-architect",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0033"
+  ],
+  "docs": [
+    "docs/07_roadmap/07_m2_work_logistics_vertical_slice_plan.md",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "docs/02_systems/06_economy_logistics_production.md",
+    "docs/02_systems/13_save_replay_migration.md",
+    "docs/05_tech/03_performance_budget.md"
+  ],
+  "acceptance": [
+    "Architecture record names authoritative owners for M2 work offers reservations item quantities storage build/order progress path requests save/replay and Worker read models",
+    "Alternatives migration rollback test and performance implications are documented",
+    "Derived indexes and caches are versioned or rebuilt from owner stores and are not authoritative",
+    "Public Worker protocol save format schema dependency or package-boundary changes are either explicitly forbidden or separately gated",
+    "Downstream implementation block conditions are explicit"
+  ],
+  "requiredChecks": [
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node tools/validate-handoff.mjs",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0034-record-m2-work-logistics-architecture-gate",
+  "createdAt": "2026-06-24T21:14:35.180Z",
+  "updatedAt": "2026-06-24T21:14:35.180Z",
+  "history": [
+    {
+      "at": "2026-06-24T21:14:35.180Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0032 M2 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Make M2 state ownership and contract boundaries reviewable before implementation.",
+  "allowedPaths": [
+    "coordination/decisions/ADR-0007.md",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "docs/02_systems/06_economy_logistics_production.md",
+    "docs/02_systems/13_save_replay_migration.md",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/07_roadmap/07_m2_work_logistics_vertical_slice_plan.md",
+    "coordination/tasks/WM-0034.json",
+    "coordination/reports/WM-0034.md"
+  ],
+  "forbiddenPaths": [
+    "packages/**",
+    "apps/**",
+    "tools/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "Worker protocol implementation",
+    "save format implementation",
+    "schema implementation",
+    "new runtime dependencies"
+  ],
+  "benchmarkImpact": "Defines required M2 metrics and regression gates only; no baseline update.",
+  "reviewRouting": "Owner completes to reviewer. If rejected, all downstream M2 implementation remains proposed or blocked.",
+  "rollbackModel": "Revert ADR/docs/task/report. Downstream tasks must not proceed without a verified architecture gate.",
+  "ownerGate": [
+    "Include alternatives migration rollback tests and performance implications",
+    "Reject hidden shared state global scans unversioned caches and UI-owned simulation",
+    "Run every required check before taskctl complete"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Architecture, state ownership, save/replay and performance-boundary work is explicitly outside Spark scope."
+  }
+}

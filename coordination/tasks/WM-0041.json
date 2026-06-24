@@ -1,0 +1,75 @@
+{
+  "id": "WM-0041",
+  "title": "Add M2 Worker headless parity",
+  "summary": "Prove browser Worker and Node headless run the M2 work/logistics scenario with matching authoritative hashes and read-only projections.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0040"
+  ],
+  "docs": [
+    "docs/07_roadmap/07_m2_work_logistics_vertical_slice_plan.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "docs/02_systems/13_save_replay_migration.md",
+    "docs/02_systems/14_explainability_debug_observability.md"
+  ],
+  "acceptance": [
+    "Browser Worker and Node headless consume the same M2 command stream and produce matching authoritative hashes",
+    "Read models and snapshots remain read-only projections and cannot mutate world state",
+    "Worker parity diagnostics include seed scenario checkpoint hash mismatch tick snapshot size and latency metrics",
+    "Existing M1 worker-smoke coverage remains intact",
+    "No UI or Electron layer becomes authoritative"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m2-worker-parity",
+    "pnpm test:e2e --filter worker-smoke",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0041-add-m2-worker-headless-parity",
+  "createdAt": "2026-06-24T21:14:35.180Z",
+  "updatedAt": "2026-06-24T21:14:35.180Z",
+  "history": [
+    {
+      "at": "2026-06-24T21:14:35.180Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0032 M2 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Gate M2 through Worker/headless authoritative parity while keeping UI read-only.",
+  "allowedPaths": [
+    "packages/sim-core/src/m2-work-logistics-scenario.ts",
+    "packages/sim-core/src/index.ts",
+    "packages/sim-worker/**",
+    "apps/web/src/**worker-smoke**",
+    "apps/web/src/web-shell.e2e.test.ts",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "docs/02_systems/14_explainability_debug_observability.md",
+    "coordination/tasks/WM-0041.json",
+    "coordination/reports/WM-0041.md"
+  ],
+  "forbiddenPaths": [
+    "apps/desktop-electron/**",
+    "Electron preload expansion",
+    "package.json",
+    "pnpm-lock.yaml",
+    "platform save UI",
+    "UI world mutation",
+    "Worker protocol redesign without WM-0034 follow-up approval"
+  ],
+  "benchmarkImpact": "Records Worker latency, snapshot size and parity overhead for M2, but baseline updates wait for WM-0042.",
+  "reviewRouting": "Owner completes to reviewer; client-engineer may inspect read-model usage but cannot own simulation authority.",
+  "rollbackModel": "Revert M2 parity additions and keep M1 Worker smoke intact.",
+  "ownerGate": [
+    "Prove authoritative hash parity rather than UI visual parity",
+    "Keep snapshots/read models read-only",
+    "Run every required check before taskctl complete"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Worker parity and authority boundaries are not suitable for Spark."
+  }
+}
