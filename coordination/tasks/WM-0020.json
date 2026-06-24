@@ -2,7 +2,7 @@
   "id": "WM-0020",
   "title": "Implement spatial indexes and location lifecycle cleanup",
   "summary": "Implement location stores and bounded spatial indexes for map cells, chunks and regions with cleanup on movement, despawn and destroy.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -29,7 +29,7 @@
   ],
   "branch": "task/WM-0020-implement-spatial-indexes-and-location-lifecycle",
   "createdAt": "2026-06-23T23:08:02.147Z",
-  "updatedAt": "2026-06-24T07:30:23.342Z",
+  "updatedAt": "2026-06-24T07:34:52.053Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.147Z",
@@ -60,6 +60,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: Verified WM-0020: LocationStore and SpatialIndex satisfy acceptance for exclusive membership, indexed cell/chunk/region queries, cleanup hooks, and 50k spatial-index benchmark with zero backlog; required typecheck/test/bench/lint/task validation/diff checks passed."
+    },
+    {
+      "at": "2026-06-24T07:34:52.009Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Fast-forward merged task/WM-0020-implement-spatial-indexes-and-location-lifecycle at 4a6b62b3587dbbde7673fe3cefd25cf8dbd8b107; main gate passed"
+    },
+    {
+      "at": "2026-06-24T07:34:52.053Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "claimedBy": "simulation-engineer",
@@ -71,5 +83,10 @@
     "verdict": "verified",
     "summary": "Verified WM-0020: LocationStore and SpatialIndex satisfy acceptance for exclusive membership, indexed cell/chunk/region queries, cleanup hooks, and 50k spatial-index benchmark with zero backlog; required typecheck/test/bench/lint/task validation/diff checks passed.",
     "at": "2026-06-24T07:30:23.342Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Fast-forward merged task/WM-0020-implement-spatial-indexes-and-location-lifecycle at 4a6b62b3587dbbde7673fe3cefd25cf8dbd8b107; main gate passed",
+    "at": "2026-06-24T07:34:52.009Z"
   }
 }

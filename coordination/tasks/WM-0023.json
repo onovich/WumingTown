@@ -2,7 +2,7 @@
   "id": "WM-0023",
   "title": "Implement reservation ledger and atomic transactions",
   "summary": "Implement the authoritative reservation ledger for entities, cells, item quantities, interaction spots and capacity with all-or-nothing transactions and explicit release.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,13 +31,19 @@
   ],
   "branch": "task/WM-0023-implement-reservation-ledger-and-atomic-transact",
   "createdAt": "2026-06-23T23:08:02.265Z",
-  "updatedAt": "2026-06-23T23:08:02.265Z",
+  "updatedAt": "2026-06-24T07:34:52.061Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.265Z",
       "actor": "taskctl",
       "action": "create",
       "details": ""
+    },
+    {
+      "at": "2026-06-24T07:34:52.061Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ]
 }

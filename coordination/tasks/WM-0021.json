@@ -2,7 +2,7 @@
   "id": "WM-0021",
   "title": "Implement incremental region room rebuild and navigation versions",
   "summary": "Implement local Region/Room invalidation and rebuild, navigation versioning, and room consistency checks for terrain, walls, doors and occupancy-affecting changes.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,13 +30,19 @@
   ],
   "branch": "task/WM-0021-implement-incremental-region-room-rebuild-and-na",
   "createdAt": "2026-06-23T23:08:02.185Z",
-  "updatedAt": "2026-06-23T23:08:02.185Z",
+  "updatedAt": "2026-06-24T07:34:52.061Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.185Z",
       "actor": "taskctl",
       "action": "create",
       "details": ""
+    },
+    {
+      "at": "2026-06-24T07:34:52.061Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ]
 }
