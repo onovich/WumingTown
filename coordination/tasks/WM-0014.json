@@ -2,7 +2,7 @@
   "id": "WM-0014",
   "title": "Define the M1 hauling building vertical scenario contract",
   "summary": "Specify the first executable gameplay scenario as hauling materials into a build site, including fixture bounds, invariants, reason expectations, and non-goals so implementation does not drift into broad content production.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "gameplay-designer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -27,7 +27,7 @@
   ],
   "branch": "task/WM-0014-define-the-m1-hauling-building-vertical-scenario",
   "createdAt": "2026-06-23T23:08:01.899Z",
-  "updatedAt": "2026-06-24T04:31:42.217Z",
+  "updatedAt": "2026-06-24T04:41:49.176Z",
   "history": [
     {
       "at": "2026-06-23T23:08:01.899Z",
@@ -58,6 +58,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings; scenario contract is executable and specific, required checks pass, broad content/production remains forbidden, and downstream allowed/forbidden implementation paths are explicit."
+    },
+    {
+      "at": "2026-06-24T04:41:40.527Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Fast-forward merged origin/task/WM-0014-define-the-m1-hauling-building-vertical-scenario at f54b08355a4a34d45c413cde4115ab2d8e190df2; reviewer verified; main gates passed: validate-handoff, taskctl validate/status, git diff --check, pnpm quality."
+    },
+    {
+      "at": "2026-06-24T04:41:49.175Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "claimedBy": "gameplay-designer",
@@ -69,5 +81,10 @@
     "verdict": "verified",
     "summary": "No blocking findings; scenario contract is executable and specific, required checks pass, broad content/production remains forbidden, and downstream allowed/forbidden implementation paths are explicit.",
     "at": "2026-06-24T04:31:42.217Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Fast-forward merged origin/task/WM-0014-define-the-m1-hauling-building-vertical-scenario at f54b08355a4a34d45c413cde4115ab2d8e190df2; reviewer verified; main gates passed: validate-handoff, taskctl validate/status, git diff --check, pnpm quality.",
+    "at": "2026-06-24T04:41:40.527Z"
   }
 }
