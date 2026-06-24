@@ -470,10 +470,7 @@ export class JobCoreStore {
     };
   }
 
-  restoreFromSnapshot(
-    snapshot: unknown,
-    registry?: EntityRegistry,
-  ): JobSnapshotResult {
+  restoreFromSnapshot(snapshot: unknown, registry?: EntityRegistry): JobSnapshotResult {
     const shape = this.validateSnapshotShape(snapshot);
     if (!shape.ok) {
       return shape;
@@ -1143,11 +1140,15 @@ function isJobFailureReason(value: unknown): value is JobFailureReason {
 }
 
 function isIndexInRange(value: unknown, upperBound: number): value is number {
-  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0 && value < upperBound;
+  return (
+    typeof value === "number" && Number.isSafeInteger(value) && value >= 0 && value < upperBound
+  );
 }
 
 function isSafeUint32(value: unknown): value is number {
-  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0 && value <= 0xffff_ffff;
+  return (
+    typeof value === "number" && Number.isSafeInteger(value) && value >= 0 && value <= 0xffff_ffff
+  );
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {

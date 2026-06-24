@@ -214,29 +214,35 @@ describe("JobCoreStore", () => {
       throw new Error("expected fixture snapshot record");
     }
 
-    expect(restoreUnknown(store, {
-      snapshotVersion: JOB_CORE_SNAPSHOT_VERSION,
-      capacity: snapshot.capacity,
-      storeVersion: snapshot.storeVersion,
-      activeCount: snapshot.activeCount,
-    })).toEqual({ ok: false, reason: "job_snapshot_shape_invalid" });
+    expect(
+      restoreUnknown(store, {
+        snapshotVersion: JOB_CORE_SNAPSHOT_VERSION,
+        capacity: snapshot.capacity,
+        storeVersion: snapshot.storeVersion,
+        activeCount: snapshot.activeCount,
+      }),
+    ).toEqual({ ok: false, reason: "job_snapshot_shape_invalid" });
     expect(store.readJob(0)).toMatchObject({ status: "ready", owner });
 
-    expect(restoreUnknown(store, {
-      ...snapshot,
-      records: [
-        {
-          ...firstRecord,
-          owner: undefined,
-        },
-      ],
-    })).toEqual({ ok: false, reason: "job_snapshot_record_invalid" });
+    expect(
+      restoreUnknown(store, {
+        ...snapshot,
+        records: [
+          {
+            ...firstRecord,
+            owner: undefined,
+          },
+        ],
+      }),
+    ).toEqual({ ok: false, reason: "job_snapshot_record_invalid" });
     expect(store.readJob(0)).toMatchObject({ status: "ready", owner });
 
-    expect(restoreUnknown(store, {
-      ...snapshot,
-      storeVersion: "bad",
-    })).toEqual({ ok: false, reason: "job_snapshot_shape_invalid" });
+    expect(
+      restoreUnknown(store, {
+        ...snapshot,
+        storeVersion: "bad",
+      }),
+    ).toEqual({ ok: false, reason: "job_snapshot_shape_invalid" });
     expect(store.createSnapshot()).toStrictEqual(snapshot);
   });
 });
