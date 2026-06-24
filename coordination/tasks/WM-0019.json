@@ -2,7 +2,7 @@
   "id": "WM-0019",
   "title": "Implement deterministic map grid and chunk dirty queues",
   "summary": "Implement the M1 authoritative map grid, chunk metadata, terrain/walk/occupancy fields, local dirty queues, rebuild budgets and canonical hash/snapshot hooks.",
-  "state": "review_requested",
+  "state": "verified",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0019-implement-deterministic-map-grid-and-chunk-dirty",
   "createdAt": "2026-06-23T23:08:02.104Z",
-  "updatedAt": "2026-06-24T06:46:18.152Z",
+  "updatedAt": "2026-06-24T06:51:03.583Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.105Z",
@@ -67,6 +67,12 @@
       "actor": "simulation-engineer",
       "action": "complete",
       "details": "Addressed reviewer lint/performance finding; required checks and lint pass"
+    },
+    {
+      "at": "2026-06-24T06:51:03.583Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; prior map-grid-hash lint issue is resolved, root lint/typecheck/map-grid tests/taskctl validate/git diff check pass, and solo map-dirty benchmark remains OK versus baseline without reintroduced regression."
     }
   ],
   "claimedBy": "simulation-engineer",
@@ -75,8 +81,8 @@
   "reportPath": "coordination/reports/WM-0019.md",
   "review": {
     "reviewer": "reviewer",
-    "verdict": "changes_requested",
-    "summary": "Medium: touched sim-core file fails root lint at packages/sim-core/src/map-grid-hash.ts:43 (@typescript-eslint/prefer-for-of). Task-required checks otherwise reproduced, but this will block the broader project lint/integration gate.",
-    "at": "2026-06-24T06:40:19.809Z"
+    "verdict": "verified",
+    "summary": "No blocking findings; prior map-grid-hash lint issue is resolved, root lint/typecheck/map-grid tests/taskctl validate/git diff check pass, and solo map-dirty benchmark remains OK versus baseline without reintroduced regression.",
+    "at": "2026-06-24T06:51:03.583Z"
   }
 }
