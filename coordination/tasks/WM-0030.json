@@ -2,7 +2,7 @@
   "id": "WM-0030",
   "title": "Close the M1 simulation kernel gate",
   "summary": "Integrate reviewed M1 simulation-kernel work, run the full M1 gate, update roadmap status and prepare the project for the next gameplay slice without skipping independent review.",
-  "state": "review_requested",
+  "state": "verified",
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -33,7 +33,7 @@
   ],
   "branch": "task/WM-0030-close-the-m1-simulation-kernel-gate",
   "createdAt": "2026-06-23T23:08:02.548Z",
-  "updatedAt": "2026-06-24T19:11:58.902Z",
+  "updatedAt": "2026-06-24T19:17:55.635Z",
   "history": [
     {
       "at": "2026-06-23T23:08:02.549Z",
@@ -58,10 +58,22 @@
       "actor": "project-director",
       "action": "complete",
       "details": "Closed M1 gate evidence and docs; required closeout checks passed; M2 entry prompt prepared but M2 not started."
+    },
+    {
+      "at": "2026-06-24T19:17:55.635Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; M1 closeout scope/docs/artifacts verified, M2 remains unstarted, Worker/Node parity/save-replay/100k sim/spatial benchmark evidence checked, and required checks pass. Bench had transient local timing failures but passed on final isolated rerun."
     }
   ],
   "claimedBy": "project-director",
   "threadLabel": "Beacon",
   "blocker": null,
-  "reportPath": "coordination/reports/WM-0030.md"
+  "reportPath": "coordination/reports/WM-0030.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; M1 closeout scope/docs/artifacts verified, M2 remains unstarted, Worker/Node parity/save-replay/100k sim/spatial benchmark evidence checked, and required checks pass. Bench had transient local timing failures but passed on final isolated rerun.",
+    "at": "2026-06-24T19:17:55.634Z"
+  }
 }
