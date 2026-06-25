@@ -2,7 +2,7 @@
   "id": "WM-0055",
   "title": "Add M3 relationship graph and social events",
   "summary": "Add relationship edges and ordinary social event facts for M3 ordinary-life consequences.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0055-add-m3-relationship-graph-and-social-events",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T14:30:25.339Z",
+  "updatedAt": "2026-06-25T14:33:49.890Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
@@ -73,6 +73,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings; repaired bounded explanation traversal, trust-lane source reporting, and malformed event-kind rejection verified; requested checks pass."
+    },
+    {
+      "at": "2026-06-25T14:33:39.551Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Owner integration rechecked WM-0055 after repair and reviewer verification, merged current main through WM-0053, acknowledged review approval, and confirmed typecheck, focused relationship+medical+rest+food+mood tests, task status, and diff check pass."
+    },
+    {
+      "at": "2026-06-25T14:33:49.889Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Create the relationship/social state needed for M3 scenario consequences without Chronicle or M4 social gameplay.",
@@ -124,5 +136,10 @@
     "verdict": "verified",
     "summary": "No blocking findings; repaired bounded explanation traversal, trust-lane source reporting, and malformed event-kind rejection verified; requested checks pass.",
     "at": "2026-06-25T14:30:25.338Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Owner integration rechecked WM-0055 after repair and reviewer verification, merged current main through WM-0053, acknowledged review approval, and confirmed typecheck, focused relationship+medical+rest+food+mood tests, task status, and diff check pass.",
+    "at": "2026-06-25T14:33:39.550Z"
   }
 }
