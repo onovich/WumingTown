@@ -2,7 +2,7 @@
   "id": "WM-0040",
   "title": "Add M2 save replay resume harness",
   "summary": "Extend focused save/replay diagnostics to the M2 work/logistics vertical slice without broad save compatibility or platform save UI.",
-  "state": "ready",
+  "state": "in_progress",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0040-add-m2-save-replay-resume-harness",
   "createdAt": "2026-06-24T21:14:35.180Z",
-  "updatedAt": "2026-06-25T03:46:03.890Z",
+  "updatedAt": "2026-06-25T03:50:48.788Z",
   "history": [
     {
       "at": "2026-06-24T21:14:35.180Z",
@@ -43,6 +43,12 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-25T03:50:48.788Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Beacon direct WM-0040"
     }
   ],
   "objective": "Make M2 save/load/replay deterministic and diagnosable before Worker parity and benchmark closeout.",
@@ -81,5 +87,8 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Save/replay and migration-boundary work is explicitly outside Spark scope."
-  }
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Beacon direct WM-0040",
+  "blocker": null
 }
