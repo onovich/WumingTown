@@ -50,3 +50,27 @@ platform save UI, and longer product-scale memory soaks beyond the current
 benchmark pressure gates. Existing nonblocking warnings remain tracked: Node
 `DEP0190` warnings from local scripts and Vite chunk-size warnings during web
 and desktop builds.
+
+## M2 Closeout Status
+
+WM-0043 closes M2 as a work/logistics vertical-slice milestone. The reviewed
+M2 task chain establishes the executable M2 scenario contract, ADR-0007
+ownership boundaries, Region/A\* work selection, multi-pawn WorkOffer scoring,
+reservation contention cleanup, storage hauling beyond the M1 fixture,
+build-order/production-order scaffolding, M2 save/replay resume, Worker/headless
+parity, and benchmark-backed long-run invariants.
+
+Closeout evidence:
+
+- Headless work/logistics: `pnpm sim:run -- --seed 2 --scenario m2-work-logistics --ticks 100000` passed with final world hash `0x9e689c8d`, 20 actors used, 4 completed build orders, 24 delivered wood, 12 delivered stone and zero active reservations/offers/jobs.
+- Save/replay: focused M2 replay diagnostics passed with save tick `6000`, save size `5522` bytes, rebuilt indexes `work-offers`, `path-caches`, `reservations`, `read-models`, and no first divergent tick; the 20000-tick replay hashes were world `0x9182c40d` and read model `0x7342625f`.
+- Worker parity: WM-0041 verified Node Worker and browser Worker coverage for the same M2 command stream without granting UI authority.
+- Benchmarks: `pnpm bench` passed with latest closeout rerun medians of `4.053ms` for M2 path invalidation and `2.451ms` for M2 long-run; final hash `0x9e689c8d`, 100 processed path requests, 20 stale rejects, final queue backlog 0 and reviewed artifact SHA-256 `7AAD7C5CA023F018A2B00F0F205C784EDCF2CACCA139C11C84A519A93891C8AC`.
+- Benchmark threshold policy remains 10 percent warning and 20 percent blocking regression.
+
+Residuals that are deliberately not M2 scope: broad economy, town-life needs,
+health, mood, relationships, day/night/weather, anomaly/combat/crisis chains,
+M4 lamp/social gameplay, platform save UI, public save compatibility beyond
+focused harnesses, content catalog expansion and balance production. Existing
+nonblocking warnings remain tracked: Node `DEP0190` warnings from local scripts
+and Vite chunk-size warnings during web and desktop builds.

@@ -18,7 +18,7 @@ EntityId、Store、固定 Tick、PRNG、Command Buffer、事件阶段、世界 H
 
 ## M2 — 工作与物流垂直切片
 
-Region/A*、WorkOffer、Job Driver、Reservation、物品、存储、搬运、建造、生产订单、原因解释。
+Region/A\*、WorkOffer、Job Driver、Reservation、物品、存储、搬运、建造、生产订单、原因解释。
 
 门禁：10 个角色长期搬运建造不争抢、不泄漏；存档中断恢复；100 路径压力基准。
 
@@ -63,3 +63,19 @@ Worker/Node parity for the same scenario, the 50000-entity spatial-index
 pressure benchmark, and the final benchmark artifact comparison. M2 has not
 started; the next phase requires a fresh reviewed M2 plan and task DAG before
 any product implementation begins.
+
+## M2 Closeout Addendum
+
+WM-0043 closes the M2 work/logistics vertical-slice gate after reviewed
+integration of WM-0033 through WM-0042. The closeout evidence records the
+100000-tick M2 work/logistics headless run for
+`m2.work_logistics.lantern_yard.v1` with seed `2`, final world hash
+`0x9e689c8d`, 20 participating actors, four completed build orders, zero
+terminal reservations/offers/running jobs, save/resume parity, browser
+Worker/Node parity, and benchmark-backed 100-path invalidation evidence with 20
+stale rejects.
+
+M2 is a simulation capability milestone, not a broad economy, town-life, UI
+construction, platform save, anomaly, combat or content-production milestone.
+M3 remains unstarted: no M3 task was created, promoted, claimed or implemented
+by this closeout.
