@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQT210ZI-8975C8",
+  "from": "reviewer",
+  "to": "qa-performance",
+  "taskId": "WM-0042",
+  "kind": "review-approved",
+  "subject": "WM-0042 review: verified",
+  "body": "No blocking findings; repair confirmed 20 actors, 20 stale rejects within 100 paths, committed-code artifact metadata, preserved thresholds, and required gates pass.",
+  "artifacts": [
+    "coordination/reports/WM-0042.md"
+  ],
+  "createdAt": "2026-06-25T05:21:17.118Z",
+  "acknowledgedAt": "2026-06-25T05:22:16.674Z"
+}
