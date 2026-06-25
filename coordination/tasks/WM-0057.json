@@ -2,7 +2,7 @@
   "id": "WM-0057",
   "title": "Add M3 save replay resume harness",
   "summary": "Add focused save/load/resume diagnostics for the M3 ordinary-life scenario without public save compatibility or platform save UI.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,13 +31,19 @@
   ],
   "branch": "task/WM-0057-add-m3-save-replay-resume-harness",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T07:30:00.000Z",
+  "updatedAt": "2026-06-25T15:40:49.557Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
       "actor": "systems-architect",
       "action": "create",
       "details": "Created by WM-0045 M3 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-25T15:40:49.557Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "objective": "Gate M3 ordinary-life state through deterministic focused save/replay before Worker parity and benchmarks.",

@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQTMVXIP-5E7698",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0056",
+  "kind": "review-request",
+  "subject": "WM-0056 ready for review",
+  "body": "Implemented m3-ordinary-life headless scenario with deterministic hashes, reason traces, queue/performance metrics, terminal invariant counters, focused tests, CLI support, docs, and report. Checks passed: typecheck, focused Vitest, sim:run seed 3 ticks 20000, taskctl validate, git diff --check, pnpm quality.",
+  "artifacts": [
+    "coordination/reports/WM-0056.md",
+    "task/WM-0056-integrate-m3-ordinary-life-scenario"
+  ],
+  "createdAt": "2026-06-25T15:05:11.281Z",
+  "acknowledgedAt": "2026-06-25T15:18:57.466Z"
+}

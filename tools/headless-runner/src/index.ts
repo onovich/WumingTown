@@ -2,13 +2,17 @@ import { defineWorkspaceSmoke, type WorkspaceSmoke } from "@wuming-town/foundati
 import {
   HAULING_BUILDING_SCENARIO_ID,
   M2_WORK_LOGISTICS_SCENARIO_ID,
+  M3_ORDINARY_LIFE_ALIAS,
+  M3_ORDINARY_LIFE_SCENARIO_ID,
   SIM_CORE_SMOKE,
   isSafeTick,
   runHaulingBuildingScenario,
   runHeadlessTicks,
+  runM3OrdinaryLifeScenario,
   runM2WorkLogisticsScenario,
   type HaulingBuildingScenarioSummary,
   type HeadlessRunSummary,
+  type M3OrdinaryLifeScenarioSummary,
   type M2WorkLogisticsScenarioSummary,
 } from "@wuming-town/sim-core";
 import { TESTKIT_SMOKE } from "@wuming-town/testkit";
@@ -31,7 +35,7 @@ export interface HeadlessCliIo {
 export interface HeadlessCliOptions {
   readonly seed: string;
   readonly ticks: number;
-  readonly scenario?: "hauling-building" | "m2-work-logistics";
+  readonly scenario?: "hauling-building" | "m2-work-logistics" | "m3-ordinary-life";
 }
 
 export type HeadlessCliResult =
@@ -40,6 +44,7 @@ export type HeadlessCliResult =
       readonly summary:
         | HeadlessRunSummary
         | HaulingBuildingScenarioSummary
+        | M3OrdinaryLifeScenarioSummary
         | M2WorkLogisticsScenarioSummary;
     }
   | {
@@ -63,7 +68,7 @@ export function runHeadlessCli(argv: readonly string[], io: HeadlessCliIo): numb
 export function parseHeadlessCliOptions(argv: readonly string[]): HeadlessCliResultOptions {
   let seed: string | undefined;
   let ticks: number | undefined;
-  let scenario: "hauling-building" | "m2-work-logistics" | undefined;
+  let scenario: "hauling-building" | "m2-work-logistics" | "m3-ordinary-life" | undefined;
   let index = 0;
 
   while (index < argv.length) {
@@ -102,9 +107,13 @@ export function parseHeadlessCliOptions(argv: readonly string[]): HeadlessCliRes
 
     if (arg === "--scenario") {
       const value = argv[index + 1];
-      if (value !== "hauling-building" && value !== "m2-work-logistics") {
+      if (
+        value !== "hauling-building" &&
+        value !== "m2-work-logistics" &&
+        value !== M3_ORDINARY_LIFE_ALIAS
+      ) {
         return failedOptions(
-          `--scenario supports hauling-building (${HAULING_BUILDING_SCENARIO_ID}) or m2-work-logistics (${M2_WORK_LOGISTICS_SCENARIO_ID})`,
+          `--scenario supports hauling-building (${HAULING_BUILDING_SCENARIO_ID}), m2-work-logistics (${M2_WORK_LOGISTICS_SCENARIO_ID}), or ${M3_ORDINARY_LIFE_ALIAS} (${M3_ORDINARY_LIFE_SCENARIO_ID})`,
         );
       }
 
@@ -156,13 +165,21 @@ type HeadlessCliResultOptions =
 
 function runSelectedHeadlessScenario(
   options: HeadlessCliOptions,
-): HeadlessRunSummary | HaulingBuildingScenarioSummary | M2WorkLogisticsScenarioSummary {
+):
+  | HeadlessRunSummary
+  | HaulingBuildingScenarioSummary
+  | M2WorkLogisticsScenarioSummary
+  | M3OrdinaryLifeScenarioSummary {
   if (options.scenario === "hauling-building") {
     return runHaulingBuildingScenario({ seed: options.seed, ticks: options.ticks });
   }
 
   if (options.scenario === "m2-work-logistics") {
     return runM2WorkLogisticsScenario({ seed: options.seed, ticks: options.ticks });
+  }
+
+  if (options.scenario === M3_ORDINARY_LIFE_ALIAS) {
+    return runM3OrdinaryLifeScenario({ seed: options.seed, ticks: options.ticks });
   }
 
   return runHeadlessTicks(options.seed, options.ticks);

@@ -340,6 +340,11 @@ intent; the JSON packets are authoritative for dispatch.
   no leaks, no global scans, and no M4 product systems.
 - Benchmark impact: establishes scenario metrics for save/replay, Worker
   parity, and long-run gates without updating baselines.
+- WM-0056 implementation note: `m3-ordinary-life` now runs through the
+  headless runner and emits hashes, bounded reason traces, queue metrics,
+  terminal invariant counters, replay evidence, and deterministic performance
+  counters for downstream WM-0057 through WM-0059 gates. It does not update
+  benchmark baselines or start save/Worker/M4 scope.
 
 ### WM-0057 - Add M3 Save/Replay Resume Harness
 
