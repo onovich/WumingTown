@@ -157,3 +157,23 @@ relationship, schedule, weather, WorkOffer, path, read-model, and trace
 materialization indexes rebuild before the first resumed tick. Derived caches,
 WorkOffer rows, path caches, read models, UI projections, and ability-cache
 rows are not authoritative save payloads.
+
+## WM-0057 implementation note
+
+`packages/sim-core/src/m3-save-replay.ts` implements the focused M3
+ordinary-life save/replay harness for
+`m3.ordinary_life.injured_caregiver.v1`. It remains a scenario harness only:
+no public save container, platform save UI, schema migration, codec dependency,
+Worker protocol change, or cross-version compatibility promise is introduced.
+
+The focused M3 envelope validates magic, format and section-directory versions,
+scenario id, section versions, owner handles, integer lanes, sorted owner and
+diagnostic records, command continuity, checkpoint hashes, and read-only
+projection hashes before load succeeds. The resume contract saves at tick
+`12000`, loads at tick `12001`, and compares through the full-day tick `36000`.
+
+Load reports rebuilt derived surfaces by name and hash for needs, WorkOffers,
+reservations, path caches, ability cache, mood/social read models, food, rest
+and medical indexes, weather and schedule projections, reason and metric
+materialization, and read models. These rebuilt surfaces are diagnostics and
+read-only projections, not authoritative save sections.

@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQTPVC1D-94265C",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0057",
+  "kind": "changes-requested",
+  "subject": "WM-0057 review: changes_requested",
+  "body": "High: packages/sim-core/src/m3-save-replay.ts:784-801 still advances resumed post-save checkpoints by rerunning runM3OrdinaryLifeScenario from requestedSeed/tick, not from hydrated loaded owner sections/rebuilt state; diagnostics/tests pass but do not prove true loaded-state resume.",
+  "artifacts": [
+    "coordination/reports/WM-0057.md"
+  ],
+  "createdAt": "2026-06-25T16:28:42.289Z",
+  "acknowledgedAt": "2026-06-25T16:30:27.880Z"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQTP07C9-FA9BC3",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0057",
+  "kind": "review-request",
+  "subject": "WM-0057 ready for review",
+  "body": "Implemented focused M3 save/load/resume replay harness; required checks pass; report at coordination/reports/WM-0057.md",
+  "artifacts": [
+    "coordination/reports/WM-0057.md",
+    "task/WM-0057-add-m3-save-replay-resume-harness"
+  ],
+  "createdAt": "2026-06-25T16:04:29.865Z",
+  "acknowledgedAt": "2026-06-25T16:13:31.760Z"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQTQ89FU-4AD0E3",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0057",
+  "kind": "review-request",
+  "subject": "WM-0057 ready for review",
+  "body": "Removed fresh scenario replay from loaded M3 resume advance path; hydrated resume now gates post-save checkpoints on loaded focused save state and rejects coherent metric tampering; diagnostics artifacts regenerated and required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0057.md",
+    "task/WM-0057-add-m3-save-replay-resume-harness"
+  ],
+  "createdAt": "2026-06-25T16:38:45.450Z",
+  "acknowledgedAt": "2026-06-25T16:47:15.719Z"
+}

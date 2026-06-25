@@ -114,3 +114,17 @@ The documented M2 headless reproduction command is
 `pnpm sim:run -- --seed 2 --scenario m2-work-logistics --ticks 100000`. The
 command prints the authoritative M2 scenario summary from the Node headless
 runner; UI and Electron remain read-only consumers.
+
+## WM-0057 implementation note
+
+`pnpm test --filter m3-save-replay` covers the focused M3 ordinary-life
+save/load/resume harness. It validates the 12000 save tick, 12001 load tick,
+36000 final horizon, versions, scenario id, owner handles, integer lanes,
+sorted records, section validation, rebuilt derived surfaces, and structured
+divergence diagnostics.
+
+`pnpm sim:replay-test -- --scenario m3-ordinary-life` runs the M3 replay gate
+with requested seed `3` and authoritative scenario seed `46`. It writes
+expected, actual, save, resumed, and summary artifacts under
+`coordination/artifacts/WM-0057/m3-save-replay/`, including checkpoint hashes,
+save byte size, rebuilt surface hashes, and `firstDivergentTick` on failure.

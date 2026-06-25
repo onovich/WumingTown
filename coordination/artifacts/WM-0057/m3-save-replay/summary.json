@@ -1,0 +1,143 @@
+{
+  "ok": true,
+  "scenarioId": "m3.ordinary_life.injured_caregiver.v1",
+  "seed": "46",
+  "requestedSeed": "3",
+  "finalWorldHash": "0x9b04b712",
+  "finalReadModelHash": "0x0f12213c",
+  "resumedFinalWorldHash": "0x9b04b712",
+  "resumedFinalReadModelHash": "0x0f12213c",
+  "resumedSource": "loaded-save",
+  "loadedStateHash": "0x0dbf661c",
+  "checkpointCount": 6,
+  "checkpointHashes": [
+    {
+      "tick": 0,
+      "worldHash": "0xf15f628c",
+      "readModelHash": "0xac8a6123",
+      "checkpointHash": "0xb19ad1c2"
+    },
+    {
+      "tick": 3600,
+      "worldHash": "0x05c64d9f",
+      "readModelHash": "0xdf39b8ce",
+      "checkpointHash": "0xec4b052f"
+    },
+    {
+      "tick": 7200,
+      "worldHash": "0x3333ab98",
+      "readModelHash": "0x16e05c50",
+      "checkpointHash": "0x78877afa"
+    },
+    {
+      "tick": 12000,
+      "worldHash": "0x02c1d128",
+      "readModelHash": "0x15456e7a",
+      "checkpointHash": "0x8249d7b6"
+    },
+    {
+      "tick": 18000,
+      "worldHash": "0x5a521286",
+      "readModelHash": "0x388fee3e",
+      "checkpointHash": "0x0ea47ad8"
+    },
+    {
+      "tick": 36000,
+      "worldHash": "0x9b04b712",
+      "readModelHash": "0x0f12213c",
+      "checkpointHash": "0x5f9923b0"
+    }
+  ],
+  "saveTick": 12000,
+  "loadTick": 12001,
+  "finalTick": 36000,
+  "saveBytes": 4941,
+  "rebuildTimeTicks": 1,
+  "rebuiltIndexes": [
+    "needs",
+    "work-offers",
+    "reservations",
+    "path-caches",
+    "ability-cache",
+    "mood-read-models",
+    "social-read-models",
+    "food-indexes",
+    "rest-indexes",
+    "medical-indexes",
+    "weather-projections",
+    "schedule-projections",
+    "reason-materialization",
+    "metric-materialization",
+    "read-models"
+  ],
+  "rebuiltSurfaces": [
+    {
+      "name": "needs",
+      "hash": "0x310a60eb"
+    },
+    {
+      "name": "work-offers",
+      "hash": "0x6367a6cf"
+    },
+    {
+      "name": "reservations",
+      "hash": "0x86546906"
+    },
+    {
+      "name": "path-caches",
+      "hash": "0x4132e04d"
+    },
+    {
+      "name": "ability-cache",
+      "hash": "0x744ebcb3"
+    },
+    {
+      "name": "mood-read-models",
+      "hash": "0x9a3bb45a"
+    },
+    {
+      "name": "social-read-models",
+      "hash": "0x4167caf8"
+    },
+    {
+      "name": "food-indexes",
+      "hash": "0xb55ac074"
+    },
+    {
+      "name": "rest-indexes",
+      "hash": "0x1de4cbca"
+    },
+    {
+      "name": "medical-indexes",
+      "hash": "0xff0a08b6"
+    },
+    {
+      "name": "weather-projections",
+      "hash": "0xd8ef1967"
+    },
+    {
+      "name": "schedule-projections",
+      "hash": "0xed74d8b7"
+    },
+    {
+      "name": "reason-materialization",
+      "hash": "0x2e2b8b25"
+    },
+    {
+      "name": "metric-materialization",
+      "hash": "0xaf4ccb6d"
+    },
+    {
+      "name": "read-models",
+      "hash": "0x83da0351"
+    }
+  ],
+  "firstDivergentTick": null,
+  "artifactPaths": {
+    "expected": "coordination/artifacts/WM-0057/m3-save-replay/expected.json",
+    "actual": "coordination/artifacts/WM-0057/m3-save-replay/actual.json",
+    "resumed": "coordination/artifacts/WM-0057/m3-save-replay/resumed.json",
+    "save": "coordination/artifacts/WM-0057/m3-save-replay/save.json",
+    "summary": "coordination/artifacts/WM-0057/m3-save-replay/summary.json"
+  }
+}
