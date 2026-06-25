@@ -111,6 +111,41 @@ evictions, expirations, scheduled mood update visits, dirty backlog peak/final
 backlog, and store version. `createHash()` covers actor mood lanes plus retained
 thought and memory rows for focused replay evidence.
 
+## WM-0055 implementation note
+
+`packages/sim-core/src/m3-relationships.ts` adds the focused M3
+`RelationshipGraphStore`. The store owns directed actor-to-actor relationship
+edges with stable edge ids derived from `actorId * actorCapacity +
+targetActorId`. Each edge stores integer kinship, care, trust, gratitude, and
+resentment lanes on the `-1000..1000` scale. Source tick and source event id
+are tracked per relationship lane so an explanation for trust cannot inherit a
+later care, gratitude, kinship, or resentment source. The edge also keeps a
+latest-update source and edge version for compact diagnostics.
+
+Ordinary social consequences are stored as structured social event facts, not
+text-only content. Event rows carry stable event id, source tick, affected actor
+ids, event kind (`care_received`, `meal_shared`, `work_burden_shifted`, or
+`care_delayed`), lane, delta, source owner version, reason code, edge id, and
+applied value. The helper `createM3OrdinarySocialEvent` maps those event kinds
+to focused M3 lane deltas only; it does not implement broader relationship
+gameplay, Chronicle evidence, town rules, obligations, dialogue production, UI
+interpretation, save schema, or Worker protocol changes.
+
+Relationship and social event queries use per-actor/per-lane indexes and
+caller-owned fixed buffers. Candidate reads are bounded by the ADR-0008 default
+social caps (`16` candidate visits, `8` retained selections), use deterministic
+ordering, and reject stale graph-version basis. Scenario-facing explanation
+views expose the trust lane source, trust value, bounded recent-event counts,
+candidate total, visited count, candidate cap, and cap-hit status. Social event
+rows can also materialize `M3MoodThoughtInput` with source kind `social` so
+WM-0054 mood/thought stores can consume the structured fact without treating
+prose as authority.
+
+Metrics report edge count, event count, event applications, candidate queries,
+visited candidates, cap hits, selected events, and graph version. `createHash()`
+and `createSnapshot()` provide deterministic replay evidence for later M3
+composition without creating a public save format.
+
 ## 内容边界
 
 避免把精神崩溃做成滑稽随机事件；避免以现实精神疾病标签当作负面 Trait；超自然影响必须与世界规则区分，不能暗示现实病症由鬼怪造成。

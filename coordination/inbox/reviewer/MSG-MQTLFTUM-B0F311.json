@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQTLFTUM-B0F311",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0055",
+  "kind": "review-request",
+  "subject": "WM-0055 ready for review",
+  "body": "Repaired WM-0055 review findings: bounded createExplanation traversal with cap/visited metrics and cap-hit trace evidence, lane-specific relationship source metadata so trust explanations cite trust sources, and runtime rejection for malformed social event kinds. Added regressions; typecheck, focused Vitest, supported sim-core wrapper, taskctl validate/status, git diff --check, and pnpm quality pass.",
+  "artifacts": [
+    "coordination/reports/WM-0055.md",
+    "task/WM-0055-add-m3-relationship-graph-and-social-events"
+  ],
+  "createdAt": "2026-06-25T14:24:40.414Z",
+  "acknowledgedAt": "2026-06-25T14:30:32.195Z"
+}

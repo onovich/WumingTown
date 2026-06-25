@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQTD5GK6-203EFF",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0055",
+  "kind": "review-request",
+  "subject": "WM-0055 ready for review",
+  "body": "Implemented focused M3 RelationshipGraphStore with stable integer edges, structured social event facts, bounded indexed edge/event candidate lanes, explanation traces, deterministic snapshots/hashes, docs and tests; typecheck, focused Vitest, supported sim-core wrapper, taskctl validate, git diff --check, and pnpm quality pass.",
+  "artifacts": [
+    "coordination/reports/WM-0055.md",
+    "task/WM-0055-add-m3-relationship-graph-and-social-events"
+  ],
+  "createdAt": "2026-06-25T10:32:39.703Z",
+  "acknowledgedAt": "2026-06-25T14:14:17.339Z"
+}

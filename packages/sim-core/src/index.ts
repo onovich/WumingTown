@@ -79,6 +79,28 @@ export {
   createMoodThoughtMemoryStore,
 } from "./m3-mood-thoughts";
 export {
+  M3_RELATIONSHIP_DEFAULT_CANDIDATE_CAP,
+  M3_RELATIONSHIP_DEFAULT_EVENT_CAPACITY,
+  M3_RELATIONSHIP_DEFAULT_SELECTED_CAP,
+  M3_RELATIONSHIP_DEFAULT_TRACE_CAPACITY,
+  M3_RELATIONSHIP_EDGE_NONE,
+  M3_RELATIONSHIP_LANE_CARE,
+  M3_RELATIONSHIP_LANE_COUNT,
+  M3_RELATIONSHIP_LANE_GRATITUDE,
+  M3_RELATIONSHIP_LANE_KINSHIP,
+  M3_RELATIONSHIP_LANE_RESENTMENT,
+  M3_RELATIONSHIP_LANE_TRUST,
+  M3_RELATIONSHIP_SNAPSHOT_VERSION,
+  M3_RELATIONSHIP_VALUE_MAX,
+  M3_RELATIONSHIP_VALUE_MIN,
+  M3_SOCIAL_EVENT_NONE,
+  M3RelationshipReasonTraceStore,
+  RelationshipGraphStore,
+  createM3OrdinarySocialEvent,
+  createM3RelationshipReasonTraceStore,
+  createRelationshipGraphStore,
+} from "./m3-relationships";
+export {
   JOB_CORE_SNAPSHOT_VERSION,
   JOB_NONE,
   JobCoreStore,
@@ -400,6 +422,24 @@ export type {
   M3MoodTraceView,
   M3MoodUpdateResult,
 } from "./m3-mood-thoughts";
+export type {
+  M3RelationshipEdgeView,
+  M3RelationshipEventInput,
+  M3RelationshipExplanationView,
+  M3RelationshipLane,
+  M3RelationshipMetrics,
+  M3RelationshipMutationResult,
+  M3RelationshipQuery,
+  M3RelationshipReason,
+  M3RelationshipSelectionResult,
+  M3RelationshipSnapshot,
+  M3RelationshipStoreOptions,
+  M3RelationshipTraceInput,
+  M3RelationshipTraceMetrics,
+  M3RelationshipTraceView,
+  M3SocialEventKind,
+  M3SocialEventView,
+} from "./m3-relationships";
 export type {
   JobCoreMetrics,
   JobCoreMutationResult,
