@@ -2,7 +2,7 @@
   "id": "WM-0051",
   "title": "Add M3 food and eating logistics slice",
   "summary": "Implement hunger-driven eating jobs using existing logistics, item, storage, reservation and pathing foundations.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,7 +31,7 @@
   ],
   "branch": "task/WM-0051-add-m3-food-and-eating-logistics-slice",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T10:15:10.041Z",
+  "updatedAt": "2026-06-25T10:23:39.594Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
@@ -74,6 +74,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings after repair; hungerRestore is bounded to NeedStore int32 contract, consume need failures no longer complete/release reservations, regression evidence and quality gates pass."
+    },
+    {
+      "at": "2026-06-25T10:23:32.402Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Owner integration rechecked WM-0051 after repair and reviewer verification, merged current main with WM-0050/WM-0054, resolved public export and docs conflicts preserving both slices, acknowledged review approval, and confirmed typecheck, focused food+rest+mood tests, task status, and diff check pass."
+    },
+    {
+      "at": "2026-06-25T10:23:39.594Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Connect M3 hunger to existing logistics without broad economy or content production.",
@@ -126,5 +138,10 @@
     "verdict": "verified",
     "summary": "No blocking findings after repair; hungerRestore is bounded to NeedStore int32 contract, consume need failures no longer complete/release reservations, regression evidence and quality gates pass.",
     "at": "2026-06-25T10:15:10.040Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Owner integration rechecked WM-0051 after repair and reviewer verification, merged current main with WM-0050/WM-0054, resolved public export and docs conflicts preserving both slices, acknowledged review approval, and confirmed typecheck, focused food+rest+mood tests, task status, and diff check pass.",
+    "at": "2026-06-25T10:23:32.402Z"
   }
 }

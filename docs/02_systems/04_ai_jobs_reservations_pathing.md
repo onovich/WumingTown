@@ -261,6 +261,14 @@ after pickup is also denied by `BuildSiteStore` so carried material cannot be
 deleted by a terminal JobCore cleanup path. Allowed interruptions go through
 `JobCoreStore.requestInterruption` and release owner/job reservations.
 
+## WM-0050 implementation note
+
+`packages/sim-core/src/m3-rest-sleep.ts` adds the focused M3 rest/sleep owner and job-driver slice. `RestSleepStore` owns rest fixture identity, region, schedule window, weather exposure, interaction spot, fixed-point recovery rate, and owner versions. `RestCandidateIndex` is derived, dirty-keyed by fixture id, and selection reads only exact region/rest-kind/schedule/weather/permission buckets with the M3 caps: 24 visited candidates, 12 retained candidates, and 4 exact path requests.
+
+`selectPathResolvedRestFixture` composes M3 needs, environment context, indexed rest candidates, and existing Top-K pathing. It rejects non-tired actors, emergency hunger/safety, ability denial, schedule mismatch, weather mismatch, no indexed rest spot, and no path with structured reasons. The helper does not create jobs, mutate reservations, scan global rest fixtures from actor thinking, or persist path state.
+
+`RestJobDriverStore` layers explicit serializable states over `JobCoreStore`: `created -> pathing_to_fixture -> resting/sleeping -> complete/failed/cancelled`. It reserves fixture entity plus interaction spot through `ReservationLedger`, stores claim ids and basis versions as numeric lanes, advances recovery with integer Q16 progress, and releases reservations through every terminal completion, failure, cancellation, or allowed interruption path. Sleep defaults to `emergency_only` interruption policy; denied interruptions return `job.interruption_denied` without cleanup side effects.
+
 ## WM-0051 implementation note
 
 `packages/sim-core/src/m3-food.ts` adds the focused M3 food availability

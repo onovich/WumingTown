@@ -61,6 +61,24 @@ export {
   createNeedUrgencyTraceStore,
 } from "./m3-needs";
 export {
+  M3_MOOD_ACTOR_NONE,
+  M3_MOOD_BASELINE,
+  M3_MOOD_DEFAULT_MEMORY_CAPACITY,
+  M3_MOOD_DEFAULT_THOUGHT_CAPACITY,
+  M3_MOOD_DEFAULT_TRACE_CAPACITY,
+  M3_MOOD_LANE_COUNT,
+  M3_MOOD_LANE_ENERGY,
+  M3_MOOD_LANE_TENSION,
+  M3_MOOD_LANE_VALENCE,
+  M3_MOOD_THOUGHT_MEMORY_SNAPSHOT_VERSION,
+  M3_MOOD_VALUE_MAX,
+  M3_MOOD_VALUE_MIN,
+  M3MoodReasonTraceStore,
+  MoodThoughtMemoryStore,
+  createM3MoodReasonTraceStore,
+  createMoodThoughtMemoryStore,
+} from "./m3-mood-thoughts";
+export {
   JOB_CORE_SNAPSHOT_VERSION,
   JOB_NONE,
   JobCoreStore,
@@ -188,6 +206,26 @@ export {
   runM3EnvironmentReplay,
 } from "./m3-environment";
 export {
+  M3_REST_DEFAULT_CANDIDATE_CAP,
+  M3_REST_DEFAULT_EXACT_PATH_CAP,
+  M3_REST_DEFAULT_SELECTED_CAP,
+  M3_REST_EMERGENCY_THRESHOLD,
+  M3_REST_FIXTURE_NONE,
+  M3_REST_SLEEP_JOB_KIND,
+  M3_REST_SLEEP_STORE_VERSION,
+  M3_REST_SLEEP_TRACE_CAPACITY,
+  M3_REST_URGENCY_THRESHOLD,
+  RestCandidateIndex,
+  RestJobDriverStore,
+  RestSleepStore,
+  RestSleepTraceStore,
+  createRestCandidateIndex,
+  createRestJobDriverStore,
+  createRestSleepStore,
+  createRestSleepTraceStore,
+  selectPathResolvedRestFixture,
+} from "./m3-rest-sleep";
+export {
   M3_FOOD_DEFAULT_CANDIDATE_CAP,
   M3_FOOD_DEFAULT_EXACT_PATH_CAP,
   M3_FOOD_DEFAULT_SELECTED_CAP,
@@ -299,6 +337,27 @@ export type {
   M3WeatherSeverityLanes,
 } from "./m3-environment-data";
 export type {
+  RestCandidateIndexOptions,
+  RestCandidateQuery,
+  RestCandidateQueryResult,
+  RestFixtureInput,
+  RestFixtureKind,
+  RestFixtureView,
+  RestFixtureWeatherExposure,
+  RestJobCreateInput,
+  RestJobDriverSnapshot,
+  RestJobStep,
+  RestJobView,
+  RestKind,
+  RestSelectionInput,
+  RestSelectionResult,
+  RestSleepMetrics,
+  RestSleepMutationResult,
+  RestSleepReason,
+  RestTraceInput,
+  RestTraceView,
+} from "./m3-rest-sleep";
+export type {
   M3FoodCandidateQuery,
   M3FoodCandidateQueryResult,
   M3FoodMetrics,
@@ -401,6 +460,21 @@ export type {
   NeedUrgencyTraceReason,
   NeedUrgencyTraceView,
 } from "./m3-needs";
+export type {
+  M3MoodActorView,
+  M3MoodLane,
+  M3MoodMetrics,
+  M3MoodMutationResult,
+  M3MoodReason,
+  M3MoodRowView,
+  M3MoodSourceKind,
+  M3MoodStoreOptions,
+  M3MoodThoughtInput,
+  M3MoodTraceInput,
+  M3MoodTraceMetrics,
+  M3MoodTraceView,
+  M3MoodUpdateResult,
+} from "./m3-mood-thoughts";
 export type {
   JobCoreMetrics,
   JobCoreMutationResult,
