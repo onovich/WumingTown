@@ -2,7 +2,7 @@
   "id": "WM-0047",
   "title": "Record M3 ordinary life architecture gate",
   "summary": "Record the M3 architecture decision for ordinary-life state ownership, derived indexes, jobs, save/replay, Worker parity and performance before implementation.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -35,13 +35,19 @@
   ],
   "branch": "task/WM-0047-record-m3-ordinary-life-architecture-gate",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T07:30:00.000Z",
+  "updatedAt": "2026-06-25T08:14:13.974Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
       "actor": "systems-architect",
       "action": "create",
       "details": "Created by WM-0045 M3 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-25T08:14:13.974Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "objective": "Create the reviewed M3 ADR gate so implementation cannot begin with ambiguous state ownership or hidden authority changes.",

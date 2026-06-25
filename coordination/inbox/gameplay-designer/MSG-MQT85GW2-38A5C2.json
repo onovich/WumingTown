@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQT85GW2-38A5C2",
+  "from": "reviewer",
+  "to": "gameplay-designer",
+  "taskId": "WM-0046",
+  "kind": "review-approved",
+  "subject": "WM-0046 review: verified",
+  "body": "No blocking findings; scenario contract satisfies WM-0046 acceptance, stays spec-only, and touches only allowed documentation/coordination paths. Required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0046.md"
+  ],
+  "createdAt": "2026-06-25T08:12:42.050Z",
+  "acknowledgedAt": "2026-06-25T08:13:50.821Z"
+}

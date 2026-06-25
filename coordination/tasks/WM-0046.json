@@ -2,7 +2,7 @@
   "id": "WM-0046",
   "title": "Define M3 ordinary life scenario contract",
   "summary": "Define the executable M3 ordinary-life scenario contract before architecture or implementation starts.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "gameplay-designer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,7 +31,7 @@
   ],
   "branch": "task/WM-0046-define-m3-ordinary-life-scenario-contract",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T07:54:33.867Z",
+  "updatedAt": "2026-06-25T08:14:13.968Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
@@ -44,6 +44,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-25T08:01:36.634Z",
+      "actor": "gameplay-designer",
+      "action": "claim",
+      "details": ""
+    },
+    {
+      "at": "2026-06-25T08:05:56.014Z",
+      "actor": "gameplay-designer",
+      "action": "complete",
+      "details": "Defined scenario contract m3.ordinary_life.injured_caregiver.v1 with deterministic fixture bounds, staged command stream, structured reasons, invariants, save/replay and Worker parity gates, benchmark dimensions, and explicit M4 exclusions; all required checks pass."
+    },
+    {
+      "at": "2026-06-25T08:12:42.049Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; scenario contract satisfies WM-0046 acceptance, stays spec-only, and touches only allowed documentation/coordination paths. Required checks pass."
+    },
+    {
+      "at": "2026-06-25T08:14:04.368Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "WM-0046 M3 ordinary-life scenario contract verified and integrated; no implementation or architecture work started."
+    },
+    {
+      "at": "2026-06-25T08:14:13.968Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Create the reviewed scenario contract that all M3 architecture and implementation tasks must satisfy.",
@@ -80,5 +110,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Scenario contract design for a milestone gate is gameplay/system specification work and is not suitable for Spark."
+  },
+  "claimedBy": "gameplay-designer",
+  "threadLabel": null,
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0046.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; scenario contract satisfies WM-0046 acceptance, stays spec-only, and touches only allowed documentation/coordination paths. Required checks pass.",
+    "at": "2026-06-25T08:12:42.048Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "WM-0046 M3 ordinary-life scenario contract verified and integrated; no implementation or architecture work started.",
+    "at": "2026-06-25T08:14:04.368Z"
   }
 }

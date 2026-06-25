@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQT7WRLB-C37F0E",
+  "from": "gameplay-designer",
+  "to": "reviewer",
+  "taskId": "WM-0046",
+  "kind": "review-request",
+  "subject": "WM-0046 ready for review",
+  "body": "Defined scenario contract m3.ordinary_life.injured_caregiver.v1 with deterministic fixture bounds, staged command stream, structured reasons, invariants, save/replay and Worker parity gates, benchmark dimensions, and explicit M4 exclusions; all required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0046.md",
+    "task/WM-0046-define-m3-ordinary-life-scenario-contract"
+  ],
+  "createdAt": "2026-06-25T08:05:56.015Z",
+  "acknowledgedAt": "2026-06-25T08:09:26.339Z"
+}

@@ -204,6 +204,8 @@ intent; the JSON packets are authoritative for dispatch.
 - Owner: `gameplay-designer`
 - Reviewer: `reviewer`
 - Dependencies: `WM-0045`
+- Contract: `docs/02_systems/17_m3_ordinary_life_scenario.md`, scenario id
+  `m3.ordinary_life.injured_caregiver.v1`
 - Objective: define the executable M3 scenario contract, named fixtures, seeds,
   tick horizons, visible consequences, and non-goals.
 - Acceptance focus: the scenario proves an injury affecting work, medical
