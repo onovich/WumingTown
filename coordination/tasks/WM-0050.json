@@ -2,7 +2,7 @@
   "id": "WM-0050",
   "title": "Add M3 rest and sleep job slice",
   "summary": "Implement rest/sleep work selection and serializable sleep job drivers over M3 needs and environment context.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,7 +31,7 @@
   ],
   "branch": "task/WM-0050-add-m3-rest-and-sleep-job-slice",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T10:14:59.184Z",
+  "updatedAt": "2026-06-25T10:17:26.686Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
@@ -74,6 +74,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings after repair; denied sleep interruption snapshots remain unchanged, reservation-specific reasons round-trip through trace and driver snapshots, and tickRecovery preflights need ownership before progress mutation. Focused and full gates pass."
+    },
+    {
+      "at": "2026-06-25T10:17:15.237Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Owner integration rechecked WM-0050 after repair and reviewer verification, merged current main with WM-0054, acknowledged review approval, and confirmed typecheck, focused rest+mode tests, task status, and diff check pass."
+    },
+    {
+      "at": "2026-06-25T10:17:26.685Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Add the first M3 life behavior job slice while preserving explicit JobCore-style state ownership.",
@@ -124,5 +136,10 @@
     "verdict": "verified",
     "summary": "No blocking findings after repair; denied sleep interruption snapshots remain unchanged, reservation-specific reasons round-trip through trace and driver snapshots, and tickRecovery preflights need ownership before progress mutation. Focused and full gates pass.",
     "at": "2026-06-25T10:14:59.183Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Owner integration rechecked WM-0050 after repair and reviewer verification, merged current main with WM-0054, acknowledged review approval, and confirmed typecheck, focused rest+mode tests, task status, and diff check pass.",
+    "at": "2026-06-25T10:17:15.236Z"
   }
 }
