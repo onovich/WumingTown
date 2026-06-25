@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQTZ4VX9-3EB7CF",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0063",
+  "kind": "review-request",
+  "subject": "WM-0063 ready for review",
+  "body": "Repaired WM-0063 review blockers: owner mutations now preflight Chronicle recording before local publish, cross-case evidence/contradictions reject with evidence_case_mismatch, invalid resolve/confirm ticks reject without recorder, added atomic/cross-case/tick tests; required checks and pnpm quality pass.",
+  "artifacts": [
+    "coordination/reports/WM-0063.md",
+    "task/WM-0063-add-m4-chronicle-evidence-owner-stores"
+  ],
+  "createdAt": "2026-06-25T20:48:04.509Z",
+  "acknowledgedAt": "2026-06-25T20:48:51.207Z"
+}

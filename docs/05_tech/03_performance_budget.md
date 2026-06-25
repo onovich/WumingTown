@@ -332,3 +332,17 @@ visit totals. Actor/anomaly-style reads use sorted global, group, room, or
 group-room active gap candidate buckets with candidate and selected Top-K caps;
 load/debug rebuild may scan registered lamp capacity and reports that
 separately.
+
+## WM-0063 M4 Chronicle evidence metrics
+
+`M4EvidenceFactStore.createMetrics()` records evidence owner version, source
+count, evidence row count, hypothesis count, contradiction count, confirmed-rule
+count, last support candidate visits, and total support candidate visits.
+Support evaluation walks only the hypothesis indexed evidence lane and respects
+caller candidate and selected caps; tests assert a 40-row hypothesis visits 32
+candidates with a 32-row cap instead of scanning every row.
+
+`M4KnowledgeDisseminationStore.createMetrics()` records knowledge owner
+version, row count, dirty backlog peak/final counts, drain count, and drained
+key count. Dissemination changes enqueue exact resident/rule or resident/policy
+dirty keys so projection consumers do not need a full resident or rule scan.

@@ -2,7 +2,7 @@
   "id": "WM-0064",
   "title": "Add M4 obligations and town-rule slice",
   "summary": "Add focused obligation and executable town-rule owner state for lamp oil duty, lodging witness duty, name confirmation and night-knock compliance.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,13 +30,19 @@
   ],
   "branch": "task/WM-0064-add-m4-obligations-and-town-rule-slice",
   "createdAt": "2026-06-25T19:08:30.000Z",
-  "updatedAt": "2026-06-25T19:08:30.000Z",
+  "updatedAt": "2026-06-25T20:53:16.013Z",
   "history": [
     {
       "at": "2026-06-25T19:08:30.000Z",
       "actor": "systems-architect",
       "action": "create",
       "details": "Created by WM-0061 M4 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-25T20:53:16.013Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "objective": "Implement the minimal obligation and town-rule owner surfaces needed for the M4 borrowed-shadow lamp scenario.",

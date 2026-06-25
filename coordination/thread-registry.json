@@ -17,9 +17,9 @@
       "registeredAt": "2026-06-25T19:02:44.299Z"
     },
     "simulation-engineer": {
-      "threadId": "019f0043-b422-7051-a0b8-0c88b4a9a022",
-      "label": "Forge the 6th WM-0062 M4 lamps",
-      "registeredAt": "2026-06-25T19:31:15.019Z"
+      "threadId": "019f006a-08f6-7053-bada-e1cca5ebbd08",
+      "label": "Tally the 6th WM-0063 M4 Chronicle",
+      "registeredAt": "2026-06-25T20:13:08.794Z"
     },
     "client-engineer": {
       "threadId": "019ef650-10ca-7e13-b072-9be37575c2be",
@@ -47,5 +47,5 @@
       "registeredAt": "2026-06-25T19:50:15.609Z"
     }
   },
-  "updatedAt": "2026-06-25T19:50:15.610Z"
+  "updatedAt": "2026-06-25T20:13:08.795Z"
 }

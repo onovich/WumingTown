@@ -2,7 +2,7 @@
   "id": "WM-0063",
   "title": "Add M4 Chronicle evidence owner stores",
   "summary": "Add structured Chronicle case files, evidence facts, hypotheses, contradictions, confirmed-rule gates, dissemination and evidence reason traces.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0063-add-m4-chronicle-evidence-owner-stores",
   "createdAt": "2026-06-25T19:08:30.000Z",
-  "updatedAt": "2026-06-25T20:10:27.090Z",
+  "updatedAt": "2026-06-25T20:53:16.009Z",
   "history": [
     {
       "at": "2026-06-25T19:08:30.000Z",
@@ -43,6 +43,48 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-25T20:12:35.445Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Codex WM-0063 M4 Chronicle"
+    },
+    {
+      "at": "2026-06-25T20:30:58.370Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented authoritative M4 Chronicle evidence owner stores, deterministic support gates, dissemination dirty keys, resident action checks, focused tests, docs and report; required checks and pnpm quality pass."
+    },
+    {
+      "at": "2026-06-25T20:37:05.243Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: Blocking: owner mutators publish state before Chronicle version recording succeeds, leaving ok:false with active case/evidence/knowledge rows; evidence and contradiction validation allows cross-case source/hypothesis/evidence contamination; resolveContradiction and confirmRuleFromHypothesis accept invalid ticks when no recorder is supplied. Checks pass mechanically."
+    },
+    {
+      "at": "2026-06-25T20:48:04.507Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Repaired WM-0063 review blockers: owner mutations now preflight Chronicle recording before local publish, cross-case evidence/contradictions reject with evidence_case_mismatch, invalid resolve/confirm ticks reject without recorder, added atomic/cross-case/tick tests; required checks and pnpm quality pass."
+    },
+    {
+      "at": "2026-06-25T20:52:32.195Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Re-reviewed current worktree including untracked WM-0063 source/tests; prior blockers are fixed: failed recorder/local preflight paths do not publish owner rows, dirty keys, support metrics or traces; cross-case evidence/contradictions reject with evidence_case_mismatch; invalid resolve/confirm ticks reject without recorder. Required checks and pnpm quality pass."
+    },
+    {
+      "at": "2026-06-25T20:53:09.725Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified by reviewer after repair; required checks and pnpm quality passed on task branch before integration."
+    },
+    {
+      "at": "2026-06-25T20:53:16.008Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Implement the authoritative Chronicle evidence fact surface needed for the first M4 rule-discovery path.",
@@ -83,5 +125,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Chronicle evidence ownership and deterministic knowledge propagation are architecture-sensitive simulation work."
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Codex WM-0063 M4 Chronicle",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0063.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Re-reviewed current worktree including untracked WM-0063 source/tests; prior blockers are fixed: failed recorder/local preflight paths do not publish owner rows, dirty keys, support metrics or traces; cross-case evidence/contradictions reject with evidence_case_mismatch; invalid resolve/confirm ticks reject without recorder. Required checks and pnpm quality pass.",
+    "at": "2026-06-25T20:52:32.195Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified by reviewer after repair; required checks and pnpm quality passed on task branch before integration.",
+    "at": "2026-06-25T20:53:09.724Z"
   }
 }

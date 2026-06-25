@@ -43,6 +43,29 @@ CaseFile 案卷
 
 确认规则可编译为居民安全策略，例如“不回应第三次敲门”。未经确认的假设默认不自动执行，除非玩家主动制定临时镇规，并承担误判责任。
 
+## WM-0063 implementation note
+
+`ChronicleCaseFileStore` owns case rows and append-only version history for
+case, source, evidence, hypothesis, contradiction, confirmation and
+dissemination changes. `M4EvidenceFactStore` owns structured source,
+observation, testimony, trace, archive/source, hypothesis, contradiction and
+confirmed-rule rows. Support tiers are computed from integer evidence lanes and
+bounded candidate reads; they are not probability truth, UI prose, or
+presentation-only state.
+
+Confirmed rules require the hypothesis configured support threshold, the
+configured count of independent evidence classes, and zero unresolved fatal
+contradictions. `M4KnowledgeDisseminationStore` owns resident knowledge rows and
+exact dirty keys. Resident automatic action is allowed only when the resident
+knows a confirmed rule or an explicit temporary policy owner row; hypothesis
+exposure alone is not actionable.
+
+Owner mutations that also append Chronicle version history validate tick,
+owner-version capacity and Chronicle recording before publishing local active
+rows, counts, dirty keys, status, confirmed rules or support metrics. Evidence
+and contradiction rows reject cross-case source/hypothesis/evidence mixtures
+with the structured `evidence_case_mismatch` reason.
+
 ## 公平性规则
 
 每个高危规则必须拥有可观察前兆；第一次致命遭遇前应有低风险线索或可退避路径；事故复盘列出可用证据、当前假设和错误推断链。

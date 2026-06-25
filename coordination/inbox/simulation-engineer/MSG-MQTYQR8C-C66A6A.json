@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQTYQR8C-C66A6A",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0063",
+  "kind": "changes-requested",
+  "subject": "WM-0063 review: changes_requested",
+  "body": "Blocking: owner mutators publish state before Chronicle version recording succeeds, leaving ok:false with active case/evidence/knowledge rows; evidence and contradiction validation allows cross-case source/hypothesis/evidence contamination; resolveContradiction and confirmRuleFromHypothesis accept invalid ticks when no recorder is supplied. Checks pass mechanically.",
+  "artifacts": [
+    "coordination/reports/WM-0063.md"
+  ],
+  "createdAt": "2026-06-25T20:37:05.244Z",
+  "acknowledgedAt": "2026-06-25T20:37:56.461Z"
+}

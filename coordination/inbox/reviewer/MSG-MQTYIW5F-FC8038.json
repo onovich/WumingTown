@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQTYIW5F-FC8038",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0063",
+  "kind": "review-request",
+  "subject": "WM-0063 ready for review",
+  "body": "Implemented authoritative M4 Chronicle evidence owner stores, deterministic support gates, dissemination dirty keys, resident action checks, focused tests, docs and report; required checks and pnpm quality pass.",
+  "artifacts": [
+    "coordination/reports/WM-0063.md",
+    "task/WM-0063-add-m4-chronicle-evidence-owner-stores"
+  ],
+  "createdAt": "2026-06-25T20:30:58.371Z",
+  "acknowledgedAt": "2026-06-25T20:31:55.347Z"
+}

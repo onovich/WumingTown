@@ -65,6 +65,55 @@ export {
   createM4LampGapTraceStore,
 } from "./m4-lamp-gap-index";
 export {
+  M4_CHRONICLE_CASE_FILE_SNAPSHOT_VERSION,
+  M4ChronicleCaseFileStore,
+  createM4ChronicleCaseFileStore,
+} from "./m4-chronicle-case-file";
+export {
+  M4_CHRONICLE_CASE_STATUS_CLOSED,
+  M4_CHRONICLE_CASE_STATUS_OPEN,
+  M4_CHRONICLE_CHANGE_CASE_OPENED,
+  M4_CHRONICLE_CHANGE_CONTRADICTION_ADDED,
+  M4_CHRONICLE_CHANGE_CONTRADICTION_RESOLVED,
+  M4_CHRONICLE_CHANGE_DISSEMINATED,
+  M4_CHRONICLE_CHANGE_EVIDENCE_ADDED,
+  M4_CHRONICLE_CHANGE_HYPOTHESIS_ADDED,
+  M4_CHRONICLE_CHANGE_RULE_CONFIRMED,
+  M4_CHRONICLE_CHANGE_SOURCE_ADDED,
+  M4_CHRONICLE_NONE,
+  M4_CONTRADICTION_SEVERITY_FATAL,
+  M4_CONTRADICTION_SEVERITY_MAJOR,
+  M4_CONTRADICTION_SEVERITY_MINOR,
+  M4_EVIDENCE_CLASS_OBSERVATION,
+  M4_EVIDENCE_CLASS_SOURCE,
+  M4_EVIDENCE_CLASS_TESTIMONY,
+  M4_EVIDENCE_CLASS_TRACE,
+  M4_EVIDENCE_DEFAULT_CANDIDATE_CAP,
+  M4_EVIDENCE_DEFAULT_SELECTED_CAP,
+  M4_EVIDENCE_SOURCE_ARCHIVE,
+  M4_EVIDENCE_SOURCE_OBJECT,
+  M4_EVIDENCE_SOURCE_PERSON,
+  M4_EVIDENCE_SOURCE_SCENE,
+  M4_EVIDENCE_TIER_CONFIRMED,
+  M4_EVIDENCE_TIER_CREDIBLE,
+  M4_EVIDENCE_TIER_HIGHLY_CREDIBLE,
+  M4_EVIDENCE_TIER_NONE,
+  M4_EVIDENCE_TIER_RUMOR,
+  M4_EVIDENCE_TIER_THIN,
+  M4_KNOWLEDGE_KIND_CONFIRMED_RULE,
+  M4_KNOWLEDGE_KIND_HYPOTHESIS,
+  M4_KNOWLEDGE_KIND_TEMPORARY_POLICY,
+} from "./m4-chronicle-types";
+export {
+  M4EvidenceReasonTraceStore,
+  createM4EvidenceReasonTraceStore,
+} from "./m4-chronicle-reason-trace";
+export { M4EvidenceFactStore, createM4EvidenceFactStore } from "./m4-evidence-facts";
+export {
+  M4KnowledgeDisseminationStore,
+  createM4KnowledgeDisseminationStore,
+} from "./m4-evidence-dissemination";
+export {
   M3_NEED_STORE_SNAPSHOT_VERSION,
   NEED_ACTOR_NONE,
   NEED_LANE_COMFORT,
@@ -561,6 +610,50 @@ export type {
   M4LampGapTraceReason,
   M4LampGapTraceView,
 } from "./m4-lamp-gap-index";
+export type {
+  M4ChronicleCaseFileMetrics,
+  M4ChronicleCaseFileStoreOptions,
+  M4ChronicleCaseInput,
+  M4ChronicleCaseView,
+  M4ChronicleMutationResult,
+  M4ChronicleVersionView,
+} from "./m4-chronicle-case-file";
+export type {
+  M4ChronicleChangeKind,
+  M4ChronicleReason,
+  M4ChronicleVersionRecorder,
+  M4ContradictionSeverity,
+  M4EvidenceClass,
+  M4EvidenceSourceKind,
+  M4EvidenceSupportTier,
+  M4KnowledgeSubjectKind,
+} from "./m4-chronicle-types";
+export type {
+  M4EvidenceTraceInput,
+  M4EvidenceTraceMetrics,
+  M4EvidenceTraceReason,
+  M4EvidenceTraceView,
+} from "./m4-chronicle-reason-trace";
+export type {
+  M4EvidenceConfirmRuleResult,
+  M4EvidenceContradictionInput,
+  M4EvidenceFactStoreOptions,
+  M4EvidenceHypothesisInput,
+  M4EvidenceMetrics,
+  M4EvidenceMutationResult,
+  M4EvidenceRowInput,
+  M4EvidenceSourceInput,
+  M4EvidenceSupportResult,
+} from "./m4-evidence-types";
+export type {
+  M4KnowledgeActionResult,
+  M4KnowledgeDirtyDrainResult,
+  M4KnowledgeDirtyKeyOutput,
+  M4KnowledgeDisseminationMetrics,
+  M4KnowledgeDisseminationStoreOptions,
+  M4KnowledgeGrantInput,
+  M4KnowledgeMutationResult,
+} from "./m4-evidence-dissemination";
 export type {
   NeedActorInput,
   NeedActorView,
