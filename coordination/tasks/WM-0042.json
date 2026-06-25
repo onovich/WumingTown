@@ -2,7 +2,7 @@
   "id": "WM-0042",
   "title": "Add M2 benchmarks and long run invariants",
   "summary": "Add the M2 benchmark and invariant gate for 20 actors hauling/building plus 100 path requests under versioned invalidation.",
-  "state": "ready",
+  "state": "in_progress",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,7 +31,7 @@
   ],
   "branch": "task/WM-0042-add-m2-benchmarks-and-long-run-invariants",
   "createdAt": "2026-06-24T21:14:35.180Z",
-  "updatedAt": "2026-06-25T04:37:11.835Z",
+  "updatedAt": "2026-06-25T04:40:35.914Z",
   "history": [
     {
       "at": "2026-06-24T21:14:35.180Z",
@@ -44,6 +44,12 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-25T04:40:35.913Z",
+      "actor": "qa-performance",
+      "action": "claim",
+      "details": "thread=Beacon direct WM-0042"
     }
   ],
   "objective": "Create the artifact-backed M2 performance and invariant gate before closeout.",
@@ -81,5 +87,8 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Benchmark baselines and long-run invariant gates require qa-performance ownership and independent review."
-  }
+  },
+  "claimedBy": "qa-performance",
+  "threadLabel": "Beacon direct WM-0042",
+  "blocker": null
 }
