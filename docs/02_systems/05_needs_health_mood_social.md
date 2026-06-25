@@ -114,3 +114,18 @@ selection, including `need.hunger_urgency_indexed`,
 `need.rest_urgency_indexed`, `need.urgency_no_candidate`, and
 `trace.candidate_cap_reached`. These rows are diagnostic evidence only; they do
 not own needs or job behavior.
+
+## WM-0051 implementation note
+
+`M3EatingJobDriverStore` connects hunger-driven eating back to `NeedStore`
+without moving need authority into food logistics. Eating jobs apply an integer
+`NEED_LANE_HUNGER` delta only after a picked-up portion is completed through
+`JobCoreStore`, and callers can pass `NeedUrgencyIndex` as the dirty sink so
+hunger urgency refresh remains exact-keyed. Failed no-food, permission,
+schedule, ability, path, reservation, and stale-owner paths do not mutate
+hunger or food quantity.
+
+Food quantity remains owned by `ItemStackStore`: the eating driver moves one
+integer portion from storage to carried lanes on pickup, then to consumed lanes
+on successful eating. Focused conservation tests include storage, carried, and
+consumed lanes so duplicate consumption or negative resources fail visibly.

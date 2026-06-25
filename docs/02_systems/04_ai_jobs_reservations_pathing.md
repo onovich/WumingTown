@@ -260,3 +260,23 @@ Denied interruptions return `policy.interruption_denied`; delivery interruption
 after pickup is also denied by `BuildSiteStore` so carried material cannot be
 deleted by a terminal JobCore cleanup path. Allowed interruptions go through
 `JobCoreStore.requestInterruption` and release owner/job reservations.
+
+## WM-0051 implementation note
+
+`packages/sim-core/src/m3-food.ts` adds the focused M3 food availability
+surface. `M3FoodAvailabilityStore` is derived from `ItemStackStore` quantity
+owner state plus explicit food eligibility facts. Normal updates mark exact
+stack ids dirty and refresh only those stack rows; actor selection reads a
+def/region bucket with caller-provided candidate and selected caps, then
+`resolveM3FoodPathCandidate` runs exact pathing only for retained Top-K
+candidates. Selection evidence records candidate totals, visited rows, selected
+rows, cap hits, exact path count, and node expansions.
+
+`packages/sim-core/src/m3-eating-jobs.ts` adds `M3EatingJobDriverStore`, an
+explicit serializable state machine over `JobCoreStore`. Eating jobs acquire
+`item_quantity` and `interaction_spot` reservations atomically before pickup,
+move one integer portion into carried lanes, and consume it exactly once into a
+consumed lane before releasing reservations. Cancellation and failure after
+pickup return carried food to the source stack before terminal cleanup.
+Structured reasons distinguish no food, permission, schedule, ability,
+reservation, path, stale owner, and consume-once failures.

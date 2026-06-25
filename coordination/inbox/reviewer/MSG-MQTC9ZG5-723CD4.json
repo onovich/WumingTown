@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQTC9ZG5-723CD4",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0051",
+  "kind": "review-request",
+  "subject": "WM-0051 ready for review",
+  "body": "Repaired WM-0051 changes_requested: hungerRestore now validates against non-negative int32 need-delta contract at create time, consume preflights need delta and applies NeedStore mutation before JobCore completion/reservation cleanup, expected need failures return structured reasons, and regression tests prove no split state/conservation drift; required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0051.md",
+    "task/WM-0051-add-m3-food-and-eating-logistics-slice"
+  ],
+  "createdAt": "2026-06-25T10:08:11.189Z",
+  "acknowledgedAt": "2026-06-25T10:15:09.993Z"
+}
