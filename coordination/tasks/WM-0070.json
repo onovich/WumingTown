@@ -1,0 +1,90 @@
+{
+  "id": "WM-0070",
+  "title": "Add M4 benchmarks and invariants",
+  "summary": "Add M4 long-run benchmark and invariant gates for lamp network, Chronicle evidence, obligations, crisis chains, director recovery windows, save/replay, Worker parity and M0-M3 regression protection.",
+  "state": "proposed",
+  "ownerRole": "qa-performance",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0069"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0009.md",
+    "docs/02_systems/18_m4_core_vertical_slice_scenario.md",
+    "docs/07_roadmap/09_m4_core_vertical_slice_plan.md",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "M4 invariant gate runs the core vertical slice long enough to detect lamp dirty backlog growth evidence drift obligation leaks invalid crisis transitions director recovery-window violations save/replay divergence Worker parity mismatch and M0-M3 regression",
+    "Benchmarks report lamp dirty counts active gaps evidence support candidates confirmed rules dissemination backlog obligation due and violation counts town-rule compliance candidates crisis transition counts director candidates recovery windows ReasonTrace capacity save/load rebuild time Worker projection bytes and final hashes",
+    "Benchmark artifacts include Node pnpm OS CPU commit seed scenario id tick horizon checkpoint hashes final summary and reviewed SHA-256",
+    "Baseline updates are reviewed artifacts and preserve 10 percent warning and 20 percent blocking thresholds",
+    "No product behavior fix threshold weakening silent retry repeatEach retries public protocol save/schema dependency UI authority or M5 work is included"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m4-invariants",
+    "pnpm bench",
+    "pnpm sim:run -- --seed 4 --scenario m4-core-vertical-slice --ticks 100000",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0070-add-m4-benchmarks-and-invariants",
+  "createdAt": "2026-06-25T19:08:30.000Z",
+  "updatedAt": "2026-06-25T19:08:30.000Z",
+  "history": [
+    {
+      "at": "2026-06-25T19:08:30.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0061 M4 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Create artifact-backed M4 performance and invariant evidence before closeout while protecting all prior milestone gates.",
+  "allowedPaths": [
+    "packages/sim-core/src/**m4**invariant**",
+    "packages/sim-core/src/**m4**",
+    "packages/benchmarks/src/**m4**",
+    "packages/benchmarks/src/index.ts",
+    "packages/benchmarks/src/benchmarks.ts",
+    "packages/benchmarks/src/baseline.ts",
+    "packages/benchmarks/src/cli-lib.ts",
+    "packages/benchmarks/baseline.json",
+    "tools/test-runner.mjs",
+    "tools/headless-runner/src/index.ts",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "coordination/artifacts/WM-0070/**",
+    "coordination/tasks/WM-0070.json",
+    "coordination/reports/WM-0070.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "product behavior fixes to satisfy tests",
+    "threshold weakening",
+    "silent retries repeatEach or retries changes",
+    "public save compatibility changes",
+    "public Worker protocol redesign",
+    "schema changes",
+    "new dependencies",
+    "M5 task creation or implementation",
+    "broad content or UI implementation"
+  ],
+  "benchmarkImpact": "Adds reviewed M4 long-run benchmark artifacts and baseline changes only with explicit 10/20 percent threshold preservation and M0-M3 regression evidence.",
+  "reviewRouting": "Qa-performance completes to reviewer; project-director integrates only after artifact evidence and required checks are reproducible.",
+  "rollbackModel": "Revert M4 benchmark tests artifacts and baseline changes; leave M4 open and do not advance closeout.",
+  "ownerGate": [
+    "Name exact artifact paths and hashes in the report",
+    "Preserve warning/blocking regression thresholds",
+    "Do not fix product behavior inside the benchmark task",
+    "Block on unreproducible artifacts threshold weakening protocol save schema dependency UI authority or M5 scope"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Benchmark baselines and long-run invariant gates require qa-performance ownership and independent review."
+  }
+}

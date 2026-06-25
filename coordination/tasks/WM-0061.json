@@ -1,0 +1,146 @@
+{
+  "id": "WM-0061",
+  "title": "Create M4 planning package",
+  "summary": "Create the reviewed M4 planning package from the WM-0060 future M4 entry prompt, including scenario contract, ADR, task DAG, risk/performance/migration plan, and executable M4 task packets without implementing runtime M4 behavior.",
+  "state": "done",
+  "ownerRole": "systems-architect",
+  "reviewerRole": "reviewer",
+  "dependsOn": [],
+  "docs": [
+    "AGENTS.md",
+    "CODEX_START_HERE.md",
+    "coordination/reports/WM-0060-future-m4-entry-prompt.md",
+    "docs/00_project/05_decision_register.md",
+    "docs/02_systems/03_map_space_rooms_lanterns.md",
+    "docs/02_systems/07_chronicle_evidence_knowledge.md",
+    "docs/02_systems/08_anomalies_rules_investigation.md",
+    "docs/02_systems/09_obligations_pacts_factions.md",
+    "docs/02_systems/11_story_director_incidents_quests.md",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/06_engineering/03_definition_of_done.md",
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "docs/08_codex/00_multi_agent_operating_model.md"
+  ],
+  "acceptance": [
+    "M4 scenario contract defines a concrete playable rule-discovery path and explicit non-goals",
+    "ADR-0009 or equivalent records M4 ownership, evidence facts, crisis state, director boundaries, save/replay scope and Worker projections",
+    "M4 task DAG JSON packets are created with dependencies, owners, reviewers, allowed paths, forbidden paths, checks, benchmark impact, rollback model and owner gates",
+    "Planning report records startup audit, M3 baseline evidence, M4 objective, risks, performance/invariant plan and migration policy",
+    "No runtime M4 implementation begins in WM-0061 and no M5 task is created or implemented"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0061-create-m4-planning-package",
+  "createdAt": "2026-06-25T19:01:48.783Z",
+  "updatedAt": "2026-06-25T19:28:26.616Z",
+  "history": [
+    {
+      "at": "2026-06-25T19:01:48.783Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    },
+    {
+      "at": "2026-06-25T19:01:55.029Z",
+      "actor": "systems-architect",
+      "action": "claim",
+      "details": "thread=Codex WM-0061 M4 planning"
+    },
+    {
+      "at": "2026-06-25T19:18:54.117Z",
+      "actor": "systems-architect",
+      "action": "complete",
+      "details": "Created M4 planning package: scenario contract, ADR-0009, roadmap plan, proposed WM-0062 through WM-0071 task DAG, reports and narrow state updates; no runtime M4 implementation and no M5 task; required checks pass."
+    },
+    {
+      "at": "2026-06-25T19:26:26.764Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Reviewed scenario contract, ADR-0009, roadmap updates, project-state marker, WM-0061 reports and WM-0062 through WM-0071 proposed packets. Required checks passed; no runtime M4 implementation or M5 task detected."
+    },
+    {
+      "at": "2026-06-25T19:28:21.656Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Reviewed WM-0061 planning package accepted; integration gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality. Downstream M4 packets remain proposed; no runtime M4 or M5 work started."
+    },
+    {
+      "at": "2026-06-25T19:28:26.616Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
+    }
+  ],
+  "objective": "Create the reviewed M4 planning package, including scenario contract, ADR, roadmap plan, proposed task DAG and reports, without implementing runtime M4 behavior or starting M5.",
+  "allowedPaths": [
+    "coordination/tasks/WM-0061.json",
+    "coordination/tasks/WM-0062.json",
+    "coordination/tasks/WM-0063.json",
+    "coordination/tasks/WM-0064.json",
+    "coordination/tasks/WM-0065.json",
+    "coordination/tasks/WM-0066.json",
+    "coordination/tasks/WM-0067.json",
+    "coordination/tasks/WM-0068.json",
+    "coordination/tasks/WM-0069.json",
+    "coordination/tasks/WM-0070.json",
+    "coordination/tasks/WM-0071.json",
+    "coordination/reports/WM-0061.md",
+    "coordination/reports/WM-0061-plan.md",
+    "coordination/decisions/ADR-0009.md",
+    "docs/02_systems/18_m4_core_vertical_slice_scenario.md",
+    "docs/05_tech/07_architecture_decision_records.md",
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "docs/07_roadmap/09_m4_core_vertical_slice_plan.md",
+    "coordination/project-state.json"
+  ],
+  "forbiddenPaths": [
+    "packages/**",
+    "apps/**",
+    "tools/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "runtime implementation",
+    "test implementation",
+    "benchmark baseline updates",
+    "Worker protocol changes",
+    "save format changes",
+    "schema changes",
+    "new dependencies",
+    "M5 task creation or implementation"
+  ],
+  "benchmarkImpact": "None directly. WM-0061 defines required M4 benchmark and invariant tasks while preserving the existing 10 percent warning and 20 percent blocking thresholds.",
+  "reviewRouting": "Systems-architect completes to reviewer. Project-director integrates only after independent verification that downstream M4 tasks remain proposed and no runtime M4 or M5 work started.",
+  "rollbackModel": "Revert the M4 planning documents, ADR-0009, proposed WM-0062 through WM-0071 packets, WM-0061 reports and narrow roadmap/project-state markers; restore M3 closed / M4 planning not started.",
+  "ownerGate": [
+    "Do not edit product runtime tests benchmarks package manifests or generated baselines in WM-0061",
+    "Keep all downstream M4 tasks proposed until WM-0061 is reviewed integrated and done",
+    "Define explicit block conditions for owner-store gaps global scans public protocol save schema dependencies UI authority and M5 scope creep",
+    "Preserve M0-M3 regression protection and independent reviewer separation"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "M4 milestone planning, ADR ownership, task DAG design, save/replay scope and benchmark policy cannot be assigned to Spark."
+  },
+  "claimedBy": "systems-architect",
+  "threadLabel": "Codex WM-0061 M4 planning",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0061.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Reviewed scenario contract, ADR-0009, roadmap updates, project-state marker, WM-0061 reports and WM-0062 through WM-0071 proposed packets. Required checks passed; no runtime M4 implementation or M5 task detected.",
+    "at": "2026-06-25T19:26:26.763Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Reviewed WM-0061 planning package accepted; integration gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality. Downstream M4 packets remain proposed; no runtime M4 or M5 work started.",
+    "at": "2026-06-25T19:28:21.656Z"
+  }
+}

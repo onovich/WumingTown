@@ -1,0 +1,81 @@
+{
+  "id": "WM-0065",
+  "title": "Add M4 borrowed-shadow crisis chain",
+  "summary": "Add the borrowed-shadow anomaly rule graph and explicit crisis state machine for the focused lamp and Chronicle rule-discovery scenario.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0064"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0009.md",
+    "docs/02_systems/18_m4_core_vertical_slice_scenario.md",
+    "docs/02_systems/08_anomalies_rules_investigation.md",
+    "docs/02_systems/12_combat_security_night_watch.md",
+    "docs/05_tech/03_performance_budget.md"
+  ],
+  "acceptance": [
+    "Borrowed-shadow activation depends on lamp gap state and Chronicle identity evidence basis from approved owner stores",
+    "Crisis progress uses an explicit serializable state machine with activation trace escalation resolution and terminal reason fields",
+    "The chain creates low-risk evidence before irreversible harm and supports at least one non-combat containment or negotiation resolution",
+    "Crisis candidate selection is bounded and versioned and cannot scan all lamps evidence obligations residents or map cells in normal ticks",
+    "Focused tests cover activation prevention escalation resolution failure terminal cleanup structured reasons save-shaped state and no coroutine Promise closure or UI-local progress"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m4-crisis",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0065-add-m4-borrowed-shadow-crisis-chain",
+  "createdAt": "2026-06-25T19:08:30.000Z",
+  "updatedAt": "2026-06-25T19:08:30.000Z",
+  "history": [
+    {
+      "at": "2026-06-25T19:08:30.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0061 M4 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Implement one explicit anomaly/crisis chain that proves the M4 lamp plus Chronicle rule without broad anomaly catalog or M5 content.",
+  "allowedPaths": [
+    "packages/sim-core/src/**m4**anomaly**",
+    "packages/sim-core/src/**m4**crisis**",
+    "packages/sim-core/src/**borrowed**shadow**",
+    "packages/sim-core/src/**reason**",
+    "packages/sim-core/src/index.ts",
+    "tools/test-runner.mjs",
+    "docs/02_systems/08_anomalies_rules_investigation.md",
+    "docs/05_tech/03_performance_budget.md",
+    "coordination/tasks/WM-0065.json",
+    "coordination/reports/WM-0065.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-worker/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "broad combat or security system",
+    "story director implementation beyond passive pressure counters",
+    "M5 anomaly roster faction campaign or content framework",
+    "public Worker protocol changes",
+    "public save format or schema changes",
+    "new dependencies",
+    "hidden shared state coroutine Promise closure or UI-local crisis progress"
+  ],
+  "benchmarkImpact": "Adds crisis transition active/recovered crisis terminal-reason and low-risk evidence counters; baseline updates wait for WM-0070.",
+  "reviewRouting": "Simulation-engineer completes to reviewer; systems-architect must be consulted before changing crisis ownership, save-shaped state, or anomaly rule semantics.",
+  "rollbackModel": "Revert borrowed-shadow anomaly/crisis stores, tests, metrics and docs; preserve lamp Chronicle obligation and M0-M3 behavior.",
+  "ownerGate": [
+    "Keep crisis progress explicit and serializable",
+    "Require lamp and evidence basis for activation and escalation",
+    "Provide non-combat resolution and structured accident explanation",
+    "Block on director overreach public protocol save schema dependency UI authority broad combat M5 or hidden-state scope"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Anomaly/crisis state-machine work is high-risk deterministic simulation design."
+  }
+}

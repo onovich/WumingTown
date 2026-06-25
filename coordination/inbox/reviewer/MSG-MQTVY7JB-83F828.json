@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQTVY7JB-83F828",
+  "from": "systems-architect",
+  "to": "reviewer",
+  "taskId": "WM-0061",
+  "kind": "review-request",
+  "subject": "WM-0061 ready for review",
+  "body": "Created M4 planning package: scenario contract, ADR-0009, roadmap plan, proposed WM-0062 through WM-0071 task DAG, reports and narrow state updates; no runtime M4 implementation and no M5 task; required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0061.md",
+    "task/WM-0061-create-m4-planning-package"
+  ],
+  "createdAt": "2026-06-25T19:18:54.119Z",
+  "acknowledgedAt": "2026-06-25T19:20:41.789Z"
+}

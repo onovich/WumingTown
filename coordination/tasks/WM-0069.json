@@ -1,0 +1,82 @@
+{
+  "id": "WM-0069",
+  "title": "Add M4 Worker projections and parity",
+  "summary": "Prove Node Worker and browser Worker parity for M4 authoritative hashes and read-only lamp, evidence, obligation, crisis, director and dawn-review projections.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0068"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0009.md",
+    "docs/02_systems/18_m4_core_vertical_slice_scenario.md",
+    "docs/02_systems/14_explainability_debug_observability.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "Node Worker and browser Worker consume the same M4 command stream and produce matching authoritative world hashes and read-model hashes at checkpoint ticks",
+    "Worker projections include read-only lamp evidence obligation town-rule crisis director recovery and dawn-review basis metadata without UI mutation authority",
+    "Projection diagnostics record seed scenario id first mismatch tick snapshot bytes read-model bytes projection bytes and message latency counts",
+    "Existing M1 M2 and M3 worker-smoke coverage remains intact",
+    "No public Worker protocol redesign platform save UI schema migration dependency or M5 content is introduced without a separate reviewed gate"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m4-worker-parity",
+    "pnpm test:e2e --filter worker-smoke",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0069-add-m4-worker-projections-and-parity",
+  "createdAt": "2026-06-25T19:08:30.000Z",
+  "updatedAt": "2026-06-25T19:08:30.000Z",
+  "history": [
+    {
+      "at": "2026-06-25T19:08:30.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0061 M4 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Gate M4 through Worker/headless parity while keeping every client-facing M4 surface read-only.",
+  "allowedPaths": [
+    "packages/sim-core/src/**m4**",
+    "packages/sim-core/src/index.ts",
+    "packages/sim-worker/**",
+    "apps/web/src/**worker-smoke**",
+    "apps/web/src/web-shell.e2e.test.ts",
+    "tools/test-runner.mjs",
+    "docs/02_systems/14_explainability_debug_observability.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "coordination/artifacts/WM-0069/**",
+    "coordination/tasks/WM-0069.json",
+    "coordination/reports/WM-0069.md"
+  ],
+  "forbiddenPaths": [
+    "apps/desktop-electron/**",
+    "Electron preload expansion",
+    "package.json",
+    "pnpm-lock.yaml",
+    "UI world mutation",
+    "public Worker protocol redesign without separate architecture approval",
+    "public save compatibility platform save UI schema migration or codec dependency",
+    "new dependencies",
+    "M5 task creation or implementation",
+    "projection-cache authority or client-side repair path"
+  ],
+  "benchmarkImpact": "Records M4 Worker latency snapshot bytes read-model bytes projection bytes and parity overhead; baseline updates wait for WM-0070.",
+  "reviewRouting": "Simulation-engineer completes to reviewer; client-engineer may inspect read-model usage but cannot own simulation authority.",
+  "rollbackModel": "Revert M4 Worker parity additions and artifacts while keeping existing M1/M2/M3 Worker smoke coverage intact.",
+  "ownerGate": [
+    "Compare authoritative hashes rather than UI visual output",
+    "Keep projections read-only and basis-versioned",
+    "Reuse existing protocol surfaces where feasible",
+    "Block on public protocol save schema dependency UI authority M5 or client repair scope"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Worker parity and authority boundaries are not suitable for Spark."
+  }
+}

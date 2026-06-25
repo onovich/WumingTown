@@ -1,0 +1,81 @@
+{
+  "id": "WM-0063",
+  "title": "Add M4 Chronicle evidence owner stores",
+  "summary": "Add structured Chronicle case files, evidence facts, hypotheses, contradictions, confirmed-rule gates, dissemination and evidence reason traces.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0062"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0009.md",
+    "docs/02_systems/18_m4_core_vertical_slice_scenario.md",
+    "docs/02_systems/07_chronicle_evidence_knowledge.md",
+    "docs/02_systems/14_explainability_debug_observability.md",
+    "docs/05_tech/03_performance_budget.md"
+  ],
+  "acceptance": [
+    "Chronicle case file and evidence stores own observations testimony traces sources hypotheses contradictions confirmed rules dissemination scope and version history",
+    "Evidence support tiers are deterministic structured facts and not hidden probability truth UI prose or presentation-only state",
+    "Confirmed rules require configured support independent evidence classes and no fatal unresolved contradiction",
+    "Residents can act automatically only on known confirmed rules or explicit temporary policies carried by owner state",
+    "Focused tests cover evidence validation support-tier determinism contradiction handling dissemination dirty keys structured reasons and bounded candidate reads"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m4-chronicle",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0063-add-m4-chronicle-evidence-owner-stores",
+  "createdAt": "2026-06-25T19:08:30.000Z",
+  "updatedAt": "2026-06-25T19:08:30.000Z",
+  "history": [
+    {
+      "at": "2026-06-25T19:08:30.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0061 M4 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Implement the authoritative Chronicle evidence fact surface needed for the first M4 rule-discovery path.",
+  "allowedPaths": [
+    "packages/sim-core/src/**m4**chronicle**",
+    "packages/sim-core/src/**m4**evidence**",
+    "packages/sim-core/src/**reason**",
+    "packages/sim-core/src/index.ts",
+    "tools/test-runner.mjs",
+    "docs/02_systems/07_chronicle_evidence_knowledge.md",
+    "docs/05_tech/03_performance_budget.md",
+    "coordination/tasks/WM-0063.json",
+    "coordination/reports/WM-0063.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-worker/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "UI-owned case board authority",
+    "lamp network semantics beyond consuming WM-0062 public surfaces",
+    "obligation town-rule anomaly crisis-chain or director implementation",
+    "public Worker protocol changes",
+    "public save format or schema changes",
+    "new dependencies",
+    "M5 task creation or implementation",
+    "probability-truth or prose-only evidence workaround"
+  ],
+  "benchmarkImpact": "Adds evidence row count support candidate visit dissemination dirty backlog and confirmed-rule counters; baseline updates wait for WM-0070.",
+  "reviewRouting": "Simulation-engineer completes to reviewer; systems-architect must be consulted before changing evidence ownership, save scope, or public projection contracts.",
+  "rollbackModel": "Revert Chronicle evidence stores, tests, metrics and docs; preserve WM-0062 lamp behavior and all M0-M3 behavior.",
+  "ownerGate": [
+    "Keep evidence facts structured and versioned",
+    "Do not let UI prose or case-board state own evidence",
+    "Use bounded candidate reads and deterministic support tiers",
+    "Block on public protocol save schema dependency UI authority or M5 scope"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Chronicle evidence ownership and deterministic knowledge propagation are architecture-sensitive simulation work."
+  }
+}

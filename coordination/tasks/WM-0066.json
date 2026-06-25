@@ -1,0 +1,80 @@
+{
+  "id": "WM-0066",
+  "title": "Add M4 director recovery windows",
+  "summary": "Add bounded director pressure sampling, incident/recovery candidate selection, cooldowns, recovery windows and structured rejection reasons.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0065"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0009.md",
+    "docs/02_systems/18_m4_core_vertical_slice_scenario.md",
+    "docs/02_systems/11_story_director_incidents_quests.md",
+    "docs/02_systems/14_explainability_debug_observability.md",
+    "docs/05_tech/03_performance_budget.md"
+  ],
+  "acceptance": [
+    "Director pressure reads aggregate metrics for lamps evidence obligations active crises injuries mental risk and unresolved cases without owning those facts",
+    "Incident and recovery opportunity selection uses bounded candidates stable ordering named random streams cooldowns and structured rejection reasons",
+    "Recovery windows suppress unrelated pressure and expose repair opportunities without erasing evidence forgiving debts healing residents or rewriting crisis state",
+    "Director commands route through normal world owner-store command paths and cannot directly mutate lamp evidence obligation town-rule health relationship or crisis facts",
+    "Focused tests cover pressure sampling candidate caps cooldowns recovery boundaries no direct fact mutation deterministic stream use and Worker/headless replay stability"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m4-director",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0066-add-m4-director-recovery-windows",
+  "createdAt": "2026-06-25T19:08:30.000Z",
+  "updatedAt": "2026-06-25T19:08:30.000Z",
+  "history": [
+    {
+      "at": "2026-06-25T19:08:30.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0061 M4 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Implement a constrained M4 director pressure and recovery surface without turning the director into hidden simulation authority.",
+  "allowedPaths": [
+    "packages/sim-core/src/**m4**director**",
+    "packages/sim-core/src/**m4**pressure**",
+    "packages/sim-core/src/**m4**recovery**",
+    "packages/sim-core/src/**reason**",
+    "packages/sim-core/src/index.ts",
+    "tools/test-runner.mjs",
+    "docs/02_systems/11_story_director_incidents_quests.md",
+    "docs/05_tech/03_performance_budget.md",
+    "coordination/tasks/WM-0066.json",
+    "coordination/reports/WM-0066.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-worker/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "direct mutation of lamp evidence obligation town-rule health relationship crisis or resource facts",
+    "broad event pool faction campaign season system or M5 content",
+    "public Worker protocol changes",
+    "public save format or schema changes",
+    "new dependencies",
+    "real time ambient randomness hidden shared state or unbounded incident scan"
+  ],
+  "benchmarkImpact": "Adds director pressure sample incident candidate rejection cooldown recovery-window and opportunity counters; baseline updates wait for WM-0070.",
+  "reviewRouting": "Simulation-engineer completes to reviewer; systems-architect must be consulted before changing director authority, random streams, or recovery-window semantics.",
+  "rollbackModel": "Revert M4 director pressure/recovery stores, tests, metrics and docs; preserve prior M4 owner surfaces and M0-M3 behavior.",
+  "ownerGate": [
+    "Director reads aggregate metrics and schedules legal commands only",
+    "Do not let director directly mutate facts or erase consequences",
+    "Use named streams and bounded candidates",
+    "Block on public protocol save schema dependency UI authority M5 or hidden-state scope"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Director authority and recovery-window design is architecture-sensitive deterministic simulation work."
+  }
+}

@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "project": "Wuming Town / 无明镇",
-  "phase": "m3-closed",
-  "activeMilestone": "M3 Ordinary Life Simulation closed; M4 planning not started",
+  "phase": "m4-planning",
+  "activeMilestone": "M4 planning package in review; runtime implementation unstarted",
   "releaseTarget": "undated",
-  "updatedAt": "2026-06-25T18:10:31.516Z",
+  "updatedAt": "2026-06-25T19:08:30.000Z",
   "lockedDecisions": [
     "TypeScript-first authoritative simulation in a dedicated Worker",
     "PixiJS world rendering + React DOM UI + Electron Windows shell",
@@ -13,5 +13,5 @@
     "Lantern / Chronicle / Obligation are the three product pillars"
   ],
   "humanApprovalNeeded": [],
-  "notes": "Task JSON, reports and inbox files are the durable execution control plane. WM-0060 closes M3 after WM-0046 through WM-0059 were verified, integrated, done and pushed. M4 remains unstarted: no M4 task is created, promoted, claimed or implemented by M3 closeout."
+  "notes": "Task JSON, reports and inbox files are the durable execution control plane. WM-0060 closes M3 after WM-0046 through WM-0059 were verified, integrated, done and pushed. WM-0061 creates the reviewed M4 planning package and proposed WM-0062 through WM-0071 packets only; M4 runtime implementation remains unstarted until review, integration and taskctl promotion. No M5 task is created."
 }

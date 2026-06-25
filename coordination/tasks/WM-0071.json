@@ -1,0 +1,84 @@
+{
+  "id": "WM-0071",
+  "title": "Close the M4 core vertical slice gate",
+  "summary": "Close M4 after scenario, architecture, implementation, save/replay, Worker parity, benchmarks and invariants are verified and integrated, then write a non-executable future M5 entry prompt.",
+  "state": "proposed",
+  "ownerRole": "project-director",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0070"
+  ],
+  "docs": [
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "docs/07_roadmap/09_m4_core_vertical_slice_plan.md",
+    "docs/02_systems/18_m4_core_vertical_slice_scenario.md",
+    "coordination/decisions/ADR-0009.md",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "All M4 task packets WM-0062 through WM-0070 are verified integrated and done before closeout completion",
+    "Closeout report records final M4 scenario hashes artifact paths benchmark comparison Worker parity save/replay evidence M0-M3 regression status residual risks and known warnings",
+    "Future M5 entry prompt is written to coordination/reports/WM-0071-future-m5-entry-prompt.md as a non-executable handoff artifact for a later reviewed M5 planning task",
+    "The borrowed-shadow lamp rule-discovery gate passes with structured Chronicle evidence obligations crisis-chain and dawn-review explanations",
+    "Roadmap milestone and project-state status are updated narrowly to reflect M4 closeout evidence",
+    "No M5 task is created promoted claimed or implemented by this closeout task and the future prompt explicitly says it must not be executed as part of WM-0071"
+  ],
+  "requiredChecks": [
+    "pnpm ci:local",
+    "pnpm bench",
+    "pnpm sim:run -- --seed 4 --scenario m4-core-vertical-slice --ticks 100000",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0071-close-the-m4-core-vertical-slice-gate",
+  "createdAt": "2026-06-25T19:08:30.000Z",
+  "updatedAt": "2026-06-25T19:08:30.000Z",
+  "history": [
+    {
+      "at": "2026-06-25T19:08:30.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0061 M4 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Close M4 with reviewed evidence and write a future M5 entry prompt while keeping M5 blocked until a later reviewed planning task.",
+  "allowedPaths": [
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "docs/07_roadmap/09_m4_core_vertical_slice_plan.md",
+    "coordination/project-state.json",
+    "coordination/reports/WM-0071.md",
+    "coordination/reports/WM-0071-future-m5-entry-prompt.md",
+    "coordination/tasks/WM-0071.json"
+  ],
+  "forbiddenPaths": [
+    "packages/**",
+    "apps/**",
+    "tools/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "coordination/tasks/WM-0072*.json",
+    "M5 task DAG creation promotion claim or implementation",
+    "M5 runtime product planning beyond the non-executable future entry prompt artifact",
+    "hidden product fixes during closeout"
+  ],
+  "benchmarkImpact": "Final M4 benchmark artifact comparison and gate verdict; no threshold changes.",
+  "reviewRouting": "Project-director completes to reviewer; reviewer verifies closeout evidence, future M5 prompt content and M5-unstarted status before any integration. Integration and done remain separate taskctl steps after reviewer verification.",
+  "rollbackModel": "Leave M4 open, revert the closeout report and future M5 prompt artifact, do not promote M5, and route blockers to the responsible owner task.",
+  "ownerGate": [
+    "Do not fix product code in closeout",
+    "Confirm every upstream M4 task is verified integrated and done",
+    "Record hashes artifacts warnings residual risks and exact checks",
+    "Write the future M5 entry prompt as a non-executable handoff artifact only",
+    "Do not create promote claim or implement M5 work"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Milestone closeout and final coordination gates cannot be assigned to Spark."
+  }
+}

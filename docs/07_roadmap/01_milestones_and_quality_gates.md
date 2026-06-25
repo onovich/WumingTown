@@ -119,3 +119,20 @@ evidence gameplay, obligations, anomaly/crisis chains, story director systems,
 product dawn replay, broad economy, content catalog expansion, public save
 compatibility beyond focused harnesses, platform save UI, and UI authority.
 WM-0060 creates no M4 task and implements no M4 runtime behavior.
+
+## M4 Planning Status
+
+WM-0061 starts M4 planning only. The planning package adds the M4 scenario
+contract, ADR-0009, roadmap plan, and proposed WM-0062 through WM-0071 packets.
+Implementation remains blocked behind review/integration of WM-0061 and normal
+taskctl promotion.
+
+The M4 gate must preserve M0-M3 evidence, including the M3 final world hash
+`0x7eb81a69`, final read-model hash `0x82bf87d6`, and reviewed benchmark
+artifact SHA-256
+`63FAEA795D04934838C306DC99D9AA1152B56D52C38D123C3442DB496F82CEC3`.
+The 10 percent warning and 20 percent blocking benchmark thresholds remain
+unchanged.
+
+M4 closeout must include a future M5 entry prompt, but no M5 task may be
+created or implemented by M4 planning.

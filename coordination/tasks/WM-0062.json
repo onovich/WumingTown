@@ -1,0 +1,86 @@
+{
+  "id": "WM-0062",
+  "title": "Add M4 lamp network owner stores",
+  "summary": "Add authoritative M4 lamp network state for linked lamps, maintenance, human-claim fields, bounded shadow-gap propagation, metrics and structured reasons.",
+  "state": "ready",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0061"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0009.md",
+    "docs/02_systems/18_m4_core_vertical_slice_scenario.md",
+    "docs/02_systems/03_map_space_rooms_lanterns.md",
+    "docs/02_systems/14_explainability_debug_observability.md",
+    "docs/05_tech/03_performance_budget.md"
+  ],
+  "acceptance": [
+    "Lamp network state owns linked lamp groups maintenance fuel wick damage humanClaim and shadowGap integer rule fields in sim-core",
+    "Visual light and UI overlays are read-only derived projections and cannot mutate lamp rule fields",
+    "Lamp mutations dirty exact lamp group cell room chunk and projection keys with bounded deterministic drain metrics",
+    "Actor and anomaly risk reads use indexed lamp-gap candidates and Top-K caps rather than scanning all lamps map cells or entities",
+    "Focused tests cover deterministic dirty propagation stale projection rejection structured reasons and no full-map normal-tick diffusion"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m4-lamps",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0062-add-m4-lamp-network-owner-stores",
+  "createdAt": "2026-06-25T19:08:30.000Z",
+  "updatedAt": "2026-06-25T19:28:26.624Z",
+  "history": [
+    {
+      "at": "2026-06-25T19:08:30.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0061 M4 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-25T19:28:26.624Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
+    }
+  ],
+  "objective": "Implement the first M4 authoritative lamp rule-field surface without Chronicle, obligation, anomaly, director, UI authority or public protocol scope.",
+  "allowedPaths": [
+    "packages/sim-core/src/**m4**lamp**",
+    "packages/sim-core/src/**lamp**",
+    "packages/sim-core/src/map-grid.ts",
+    "packages/sim-core/src/index.ts",
+    "tools/test-runner.mjs",
+    "docs/02_systems/03_map_space_rooms_lanterns.md",
+    "docs/05_tech/03_performance_budget.md",
+    "coordination/tasks/WM-0062.json",
+    "coordination/reports/WM-0062.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-worker/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "Chronicle evidence gameplay",
+    "obligation town-rule anomaly crisis-chain or director implementation",
+    "public Worker protocol changes",
+    "public save format or schema changes",
+    "new dependencies",
+    "M5 task creation or implementation",
+    "visual-only lamp authority global scan or unversioned cache workaround"
+  ],
+  "benchmarkImpact": "Adds focused lamp dirty backlog active gap count group update and projection-size counters; baseline updates wait for WM-0070.",
+  "reviewRouting": "Simulation-engineer completes to reviewer; systems-architect must be consulted before changing map ownership, public exports, save scope or lamp field semantics.",
+  "rollbackModel": "Revert M4 lamp store, tests, metrics and docs; leave M0-M3 map and M3 ordinary-life behavior unchanged.",
+  "ownerGate": [
+    "Keep lamp rule fields authoritative in sim-core only",
+    "Do not let visual light or UI write humanClaim or shadowGap",
+    "Use exact dirty keys and bounded drain budgets",
+    "Block on any need for public protocol save schema dependency UI authority or M5 scope"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Deterministic simulation owner-store and map/lamp authority work is not suitable for Spark."
+  }
+}

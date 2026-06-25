@@ -1,0 +1,82 @@
+{
+  "id": "WM-0064",
+  "title": "Add M4 obligations and town-rule slice",
+  "summary": "Add focused obligation and executable town-rule owner state for lamp oil duty, lodging witness duty, name confirmation and night-knock compliance.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0063"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0009.md",
+    "docs/02_systems/18_m4_core_vertical_slice_scenario.md",
+    "docs/02_systems/09_obligations_pacts_factions.md",
+    "docs/02_systems/10_ordinances_governance_identity.md",
+    "docs/05_tech/03_performance_budget.md"
+  ],
+  "acceptance": [
+    "Obligation state owns creditor debtor type condition due window visibility inheritance basis fulfillment action violation consequence source event and current state",
+    "TownRule state owns subject scope time region trigger action exception enforcement method cost legitimacy source penalty and state",
+    "Lampkeeper oil duty lodging witness duty name confirmation and night-knock compliance are represented as explicit facts with structured reasons",
+    "Compliance reads knowledge needs relationship fear enforcement risk emergency and obligation facts through bounded candidates rather than global scans",
+    "Focused tests cover fulfillment violation due-index cleanup compliance exceptions enforcement costs structured reasons and no hidden mechanical text"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m4-obligations",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0064-add-m4-obligations-and-town-rule-slice",
+  "createdAt": "2026-06-25T19:08:30.000Z",
+  "updatedAt": "2026-06-25T19:08:30.000Z",
+  "history": [
+    {
+      "at": "2026-06-25T19:08:30.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0061 M4 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Implement the minimal obligation and town-rule owner surfaces needed for the M4 borrowed-shadow lamp scenario.",
+  "allowedPaths": [
+    "packages/sim-core/src/**m4**obligation**",
+    "packages/sim-core/src/**m4**town-rule**",
+    "packages/sim-core/src/**m4**ordinance**",
+    "packages/sim-core/src/**reason**",
+    "packages/sim-core/src/index.ts",
+    "tools/test-runner.mjs",
+    "docs/02_systems/09_obligations_pacts_factions.md",
+    "docs/02_systems/10_ordinances_governance_identity.md",
+    "docs/05_tech/03_performance_budget.md",
+    "coordination/tasks/WM-0064.json",
+    "coordination/reports/WM-0064.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-worker/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "broad governance faction campaign or M5 content framework",
+    "anomaly crisis-chain or director implementation",
+    "public Worker protocol changes",
+    "public save format or schema changes",
+    "new dependencies",
+    "M5 task creation or implementation",
+    "hidden narrative flag or text-only rule workaround"
+  ],
+  "benchmarkImpact": "Adds due-obligation compliance candidate violation fulfillment and rule-cost counters; baseline updates wait for WM-0070.",
+  "reviewRouting": "Simulation-engineer completes to reviewer; systems-architect must be consulted before changing obligation ownership, town-rule semantics or save scope.",
+  "rollbackModel": "Revert obligation/town-rule stores, tests, metrics and docs; preserve prior lamp and Chronicle owner surfaces.",
+  "ownerGate": [
+    "Keep obligations and town rules as owner facts",
+    "Do not hide mechanical conditions in text",
+    "Use bounded due and compliance indexes",
+    "Block on public protocol save schema dependency UI authority broad governance M5 or director scope"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Obligation and executable town-rule ownership affects deterministic simulation and cannot be assigned to Spark."
+  }
+}

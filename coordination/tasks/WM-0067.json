@@ -1,0 +1,81 @@
+{
+  "id": "WM-0067",
+  "title": "Integrate M4 core vertical slice scenario",
+  "summary": "Compose the focused M4 dusk-to-dawn borrowed-shadow lamp scenario with deterministic headless evidence, hashes and structured explanations.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0066"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0009.md",
+    "docs/02_systems/18_m4_core_vertical_slice_scenario.md",
+    "docs/07_roadmap/09_m4_core_vertical_slice_plan.md",
+    "docs/02_systems/14_explainability_debug_observability.md",
+    "docs/05_tech/05_testing_observability_ci.md"
+  ],
+  "acceptance": [
+    "Headless scenario m4-core-vertical-slice runs the borrowed-shadow lamp rule-discovery path with recorded seed scenario id content hash command hash final world hash and read-model hash",
+    "Scenario evidence shows the rule can be inferred before irreversible harm through lamp traces Chronicle evidence obligation state and town-rule decisions",
+    "Prevention failure and non-combat containment paths emit structured ReasonTrace and dawn-review source rows",
+    "M0-M3 baseline invariants remain protected including no M4 fix that weakens M3 ordinary-life behavior",
+    "No save/replay Worker parity benchmark baseline update public protocol schema dependency UI authority or M5 content is included"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m4-scenario",
+    "pnpm sim:run -- --seed 4 --scenario m4-core-vertical-slice --ticks 36000",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0067-integrate-m4-core-vertical-slice-scenario",
+  "createdAt": "2026-06-25T19:08:30.000Z",
+  "updatedAt": "2026-06-25T19:08:30.000Z",
+  "history": [
+    {
+      "at": "2026-06-25T19:08:30.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0061 M4 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Compose the first playable M4 rule-discovery path after the focused owner surfaces are reviewed.",
+  "allowedPaths": [
+    "packages/sim-core/src/**m4**",
+    "packages/sim-core/src/index.ts",
+    "tools/headless-runner/src/index.ts",
+    "tools/test-runner.mjs",
+    "docs/02_systems/18_m4_core_vertical_slice_scenario.md",
+    "docs/07_roadmap/09_m4_core_vertical_slice_plan.md",
+    "coordination/artifacts/WM-0067/**",
+    "coordination/tasks/WM-0067.json",
+    "coordination/reports/WM-0067.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-worker/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "public Worker protocol changes",
+    "public save format or schema changes",
+    "benchmark baseline updates",
+    "new dependencies",
+    "M5 task creation or implementation",
+    "broad anomaly roster faction campaign season event pool content catalog or product UI implementation",
+    "global scan unversioned cache or director-authority workaround"
+  ],
+  "benchmarkImpact": "Produces scenario metrics and artifacts for downstream save/replay Worker and benchmark tasks without updating baselines.",
+  "reviewRouting": "Simulation-engineer completes to reviewer; systems-architect must be consulted if integration reveals owner gaps or public contract needs.",
+  "rollbackModel": "Revert M4 scenario composition, artifacts, tests and docs; keep focused owner stores available only if independently reviewed and useful.",
+  "ownerGate": [
+    "Do not repair upstream owner-store design inside scenario glue",
+    "Record hashes and structured evidence for both prevention and failure paths",
+    "Preserve M0-M3 invariant behavior",
+    "Block on save protocol schema dependency UI authority M5 or benchmark-threshold changes"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Integrated deterministic scenario composition crosses multiple M4 owner surfaces and is not suitable for Spark."
+  }
+}

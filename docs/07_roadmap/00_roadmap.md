@@ -100,3 +100,17 @@ M4 remains unstarted by this closeout. WM-0060 writes only the non-executable
 future handoff prompt at
 `coordination/reports/WM-0060-future-m4-entry-prompt.md`; a later reviewed M4
 planning task must create any M4 DAG before implementation can begin.
+
+## M4 Planning Addendum
+
+WM-0061 creates the reviewed-planning candidate package for M4. The package
+defines scenario contract
+`m4.core_vertical_slice.borrowed_shadow_lamps.v1`, ADR-0009, and proposed task
+packets WM-0062 through WM-0071. M4 runtime implementation remains unstarted
+until WM-0061 is independently reviewed and integrated, and the project-director
+promotes downstream ready tasks through taskctl.
+
+M4 planning preserves the M3 closeout baseline and keeps the benchmark policy:
+P95 regression over 10 percent requires explanation, and over 20 percent blocks
+merge by default. WM-0061 does not create, promote, claim, implement, or review
+any M5 task.

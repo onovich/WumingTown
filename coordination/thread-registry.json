@@ -12,9 +12,9 @@
       "registeredAt": "2026-06-23T13:11:13.888Z"
     },
     "systems-architect": {
-      "threadId": "019efba0-2f98-7032-b9f2-1a41e5f810af",
-      "label": "WM-0034-architecture-gate",
-      "registeredAt": "2026-06-24T21:54:12.299Z"
+      "threadId": "019f0029-737f-7041-add3-c071cef5cfc4",
+      "label": "Compass the 5th WM-0061 M4 planning",
+      "registeredAt": "2026-06-25T19:02:44.299Z"
     },
     "simulation-engineer": {
       "threadId": "019efcc7-5cde-7f81-a5b8-99d7eb09dbf8",
@@ -40,7 +40,12 @@
       "threadId": "019efb8e-abb3-7821-9aa1-f9b720f3a844",
       "label": "WM-0033-M2-scenario",
       "registeredAt": "2026-06-24T21:35:05.679Z"
+    },
+    "reviewer": {
+      "threadId": "019f0039-cfed-7491-8d61-59a391f1bc15",
+      "label": "Gate the 6th WM-0061 review",
+      "registeredAt": "2026-06-25T19:20:31.502Z"
     }
   },
-  "updatedAt": "2026-06-25T18:29:24.139Z"
+  "updatedAt": "2026-06-25T19:20:31.502Z"
 }

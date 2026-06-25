@@ -1,0 +1,84 @@
+{
+  "id": "WM-0068",
+  "title": "Add M4 save replay resume harness",
+  "summary": "Add focused save, load and resume diagnostics for the M4 core vertical slice without public save compatibility or platform save UI.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0067"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0009.md",
+    "docs/02_systems/18_m4_core_vertical_slice_scenario.md",
+    "docs/02_systems/13_save_replay_migration.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "Focused M4 checkpoint envelope validates scenario id seeds content hash command hash tick versions owner handles integer lanes sorted records crisis state director recovery windows and projection hashes before load mutates a live world",
+    "Load rebuilds lamp gap evidence dissemination obligation town-rule crisis director WorkOffer path read-model dawn-review and metric surfaces before the first resumed tick",
+    "Uninterrupted and resumed replay hashes match through the M4 scenario horizon with first-divergent-tick diagnostics on failure",
+    "Save artifacts record save bytes load validation time rebuild time rebuilt surface names command tail and checkpoint hashes",
+    "No public save compatibility platform save UI schema migration codec dependency Worker protocol change or M5 work is introduced"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m4-save-replay",
+    "pnpm sim:replay-test -- --scenario m4-core-vertical-slice",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0068-add-m4-save-replay-resume-harness",
+  "createdAt": "2026-06-25T19:08:30.000Z",
+  "updatedAt": "2026-06-25T19:08:30.000Z",
+  "history": [
+    {
+      "at": "2026-06-25T19:08:30.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0061 M4 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Prove M4 focused save/load/resume parity for the core scenario while keeping public save compatibility out of scope.",
+  "allowedPaths": [
+    "packages/sim-core/src/**m4**save**",
+    "packages/sim-core/src/**m4**replay**",
+    "packages/sim-core/src/**m4**",
+    "packages/sim-core/src/index.ts",
+    "tools/test-runner.mjs",
+    "tools/headless-runner/src/index.ts",
+    "docs/02_systems/13_save_replay_migration.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "coordination/artifacts/WM-0068/**",
+    "coordination/tasks/WM-0068.json",
+    "coordination/reports/WM-0068.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-worker/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "public save compatibility promise",
+    "platform save UI",
+    "public Worker protocol changes",
+    "schema migration or codec dependency",
+    "benchmark baseline updates",
+    "new dependencies",
+    "M5 task creation or implementation",
+    "persisted derived-cache projection or dawn-review authority"
+  ],
+  "benchmarkImpact": "Records M4 save byte size validation time rebuild time checkpoint hashes and derived rebuild counts; baseline updates wait for WM-0070.",
+  "reviewRouting": "Simulation-engineer completes to reviewer; systems-architect must be consulted before any save section, migration, codec, schema or public compatibility change.",
+  "rollbackModel": "Revert M4 save/replay harness, artifacts, tests and docs; leave integrated scenario intact only if it remains deterministic without save scope.",
+  "ownerGate": [
+    "Validate in scratch state before mutating live world",
+    "Rebuild derived surfaces before resumed ticks",
+    "Keep focused harness separate from public save compatibility",
+    "Block on platform save UI protocol schema codec dependency M5 or persisted projection authority"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Save/replay and migration boundaries are explicitly excluded from Spark."
+  }
+}
