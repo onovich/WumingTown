@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQTABGXW-00BC05",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0049",
+  "kind": "review-approved",
+  "subject": "WM-0049 review: verified",
+  "body": "Re-reviewed repair: day/night catch-up now records elapsed schedule transitions consistently, scheduled weather uses boundary transition ticks and matches jumped vs stepped replay, weather changes dirty schedule.rest, and requested gates plus pnpm quality pass.",
+  "artifacts": [
+    "coordination/reports/WM-0049.md"
+  ],
+  "createdAt": "2026-06-25T09:13:21.284Z",
+  "acknowledgedAt": "2026-06-25T09:17:17.564Z"
+}

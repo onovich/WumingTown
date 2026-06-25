@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQT9WDIC-B89B5D",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0049",
+  "kind": "changes-requested",
+  "subject": "WM-0049 review: changes_requested",
+  "body": "High: environment advance is batching-sensitive: DayNightStore misses elapsed window transitions/dirty keys on jumps, and WeatherStore stamps elapsed scheduled transitions with the target tick instead of each scheduled boundary. Medium: weather changes do not dirty rest/schedule-rest consumers as required by ADR-0008.",
+  "artifacts": [
+    "coordination/reports/WM-0049.md"
+  ],
+  "createdAt": "2026-06-25T09:01:36.996Z",
+  "acknowledgedAt": "2026-06-25T09:05:02.564Z"
+}

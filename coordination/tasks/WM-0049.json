@@ -2,7 +2,7 @@
   "id": "WM-0049",
   "title": "Add M3 day night and weather basics",
   "summary": "Add deterministic day/night and basic weather owner state for ordinary-life context.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0049-add-m3-day-night-and-weather-basics",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T08:37:14.027Z",
+  "updatedAt": "2026-06-25T09:17:28.291Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
@@ -43,6 +43,48 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-25T08:43:20.830Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": ""
+    },
+    {
+      "at": "2026-06-25T08:53:04.637Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented deterministic M3 day/night and weather owner state with named-stream and command weather paths, versioned read-only projections, dirty keys, replay evidence, docs, and report; required checks and pnpm quality pass."
+    },
+    {
+      "at": "2026-06-25T09:01:36.995Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: environment advance is batching-sensitive: DayNightStore misses elapsed window transitions/dirty keys on jumps, and WeatherStore stamps elapsed scheduled transitions with the target tick instead of each scheduled boundary. Medium: weather changes do not dirty rest/schedule-rest consumers as required by ADR-0008."
+    },
+    {
+      "at": "2026-06-25T09:10:05.360Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Repaired reviewer findings: day/night and scheduled weather now catch up elapsed boundaries consistently for jumped vs stepped advancement, scheduled weather records boundary transition ticks, weather changes dirty schedule.rest, and requested checks plus pnpm quality pass."
+    },
+    {
+      "at": "2026-06-25T09:13:21.283Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: Re-reviewed repair: day/night catch-up now records elapsed schedule transitions consistently, scheduled weather uses boundary transition ticks and matches jumped vs stepped replay, weather changes dirty schedule.rest, and requested gates plus pnpm quality pass."
+    },
+    {
+      "at": "2026-06-25T09:17:22.158Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Owner integration rechecked WM-0049 after reviewer verification; acknowledged review approval and confirmed typecheck, focused m3-environment vitest, task validation, diff check, and pnpm quality pass with documented test-wrapper deviation."
+    },
+    {
+      "at": "2026-06-25T09:17:28.290Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Create deterministic ordinary-life time and weather context without adding product-level M4 weather or visual systems.",
@@ -82,5 +124,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Deterministic time and random-stream simulation design is outside Spark scope."
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": null,
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0049.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "Re-reviewed repair: day/night catch-up now records elapsed schedule transitions consistently, scheduled weather uses boundary transition ticks and matches jumped vs stepped replay, weather changes dirty schedule.rest, and requested gates plus pnpm quality pass.",
+    "at": "2026-06-25T09:13:21.283Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Owner integration rechecked WM-0049 after reviewer verification; acknowledged review approval and confirmed typecheck, focused m3-environment vitest, task validation, diff check, and pnpm quality pass with documented test-wrapper deviation.",
+    "at": "2026-06-25T09:17:22.158Z"
   }
 }
