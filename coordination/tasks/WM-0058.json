@@ -2,7 +2,7 @@
   "id": "WM-0058",
   "title": "Add M3 Worker headless parity",
   "summary": "Prove browser Worker and Node headless run the M3 ordinary-life scenario with matching authoritative hashes and read-only projections.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,7 +31,7 @@
   ],
   "branch": "task/WM-0058-add-m3-worker-headless-parity",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T16:47:58.118Z",
+  "updatedAt": "2026-06-25T17:12:02.646Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
@@ -44,6 +44,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-25T16:52:08.356Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Codex WM-0058"
+    },
+    {
+      "at": "2026-06-25T17:04:51.539Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented M3 Worker/headless parity over existing protocol surfaces; added m3-worker-parity filter, browser Worker smoke coverage, docs and report; required checks pass."
+    },
+    {
+      "at": "2026-06-25T17:10:47.674Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; required checks pass; M3 Worker/browser parity compares six contract checkpoint world/read-model hashes over existing protocol projections."
+    },
+    {
+      "at": "2026-06-25T17:11:57.183Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Independent reviewer verified WM-0058; required checks pass in task worktree; ready to merge to main."
+    },
+    {
+      "at": "2026-06-25T17:12:02.645Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Gate M3 through Worker/headless authoritative parity while keeping all client surfaces read-only.",
@@ -84,5 +114,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Worker parity and authority boundaries are not suitable for Spark."
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Codex WM-0058",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0058.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; required checks pass; M3 Worker/browser parity compares six contract checkpoint world/read-model hashes over existing protocol projections.",
+    "at": "2026-06-25T17:10:47.674Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Independent reviewer verified WM-0058; required checks pass in task worktree; ready to merge to main.",
+    "at": "2026-06-25T17:11:57.183Z"
   }
 }

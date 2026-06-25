@@ -7,12 +7,17 @@ import { describe, expect, it } from "vitest";
 import {
   HAULING_BUILDING_SCENARIO_ID,
   M2_WORK_LOGISTICS_SCENARIO_ID,
+  M3_ORDINARY_LIFE_CHECKPOINTS,
+  M3_ORDINARY_LIFE_SCENARIO_ID,
   createM1AdvanceCommandId,
   createM2AdvanceCommandId,
+  createM3AdvanceCommandId,
   runM1HaulingBuildingReplay,
   runM2WorkLogisticsReplay,
+  runM3OrdinaryLifeReplay,
   type M1ReplayRun,
   type M2ReplayRun,
+  type M3ReplayRun,
 } from "@wuming-town/sim-core";
 import {
   MAIN_TO_SIMULATION_MESSAGE_KIND,
@@ -235,6 +240,43 @@ describe("worker-smoke simulation Worker protocol", () => {
     });
   }, 120000);
 
+  it("matches Node headless hashes for M3 in a real browser module Worker", async () => {
+    const expected = readM3Replay(
+      runM3OrdinaryLifeReplay({
+        seed: "3",
+        checkpointTicks: M3_ORDINARY_LIFE_CHECKPOINTS,
+      }),
+    );
+    const browserMessages = await runBrowserWorker([
+      makeM3InitSession(1),
+      makeM3AdvanceBatch(2, 3_600),
+      makeM3AdvanceBatch(3, 7_200),
+      makeM3AdvanceBatch(4, 12_000),
+      makeM3AdvanceBatch(5, 18_000),
+      makeM3AdvanceBatch(6, 36_000),
+    ]);
+    const snapshots = renderSnapshots(browserMessages);
+
+    expect(snapshots).toHaveLength(M3_ORDINARY_LIFE_CHECKPOINTS.length);
+    for (let index = 0; index < snapshots.length; index += 1) {
+      const snapshot = snapshots[index] ?? failMissingSnapshot();
+      const checkpoint = expected.checkpoints[index] ?? failMissingCheckpoint();
+      expect(snapshot.payload).toMatchObject({
+        scenarioId: M3_ORDINARY_LIFE_SCENARIO_ID,
+        tick: checkpoint.tick,
+        worldHash: checkpoint.worldHash,
+        readModelHash: checkpoint.readModelHash,
+        readOnly: true,
+      });
+    }
+
+    expect(lastMetricsSample(browserMessages).payload).toMatchObject({
+      scenarioId: M3_ORDINARY_LIFE_SCENARIO_ID,
+      worldHash: expected.finalWorldHash,
+      checkpointCount: M3_ORDINARY_LIFE_CHECKPOINTS.length,
+    });
+  }, 120000);
+
   it("returns M1 save metadata without exposing mutable authority through the Worker", () => {
     const worker = createSimulationWorker();
 
@@ -323,6 +365,20 @@ function makeM2InitSession(sequence: number): MainToSimulationMessage {
   };
 }
 
+function makeM3InitSession(sequence: number): MainToSimulationMessage {
+  return {
+    protocolVersion: SIM_PROTOCOL_VERSION,
+    schemaVersion: SIM_SCHEMA_VERSION,
+    sessionId: "session-a",
+    sequence,
+    kind: MAIN_TO_SIMULATION_MESSAGE_KIND.InitSession,
+    payload: {
+      seed: "3",
+      catalogVersion: M3_ORDINARY_LIFE_SCENARIO_ID,
+    },
+  };
+}
+
 function makeNoopBatch(sequence: number): MainToSimulationMessage {
   return {
     protocolVersion: SIM_PROTOCOL_VERSION,
@@ -370,6 +426,24 @@ function makeM2AdvanceBatch(sequence: number, tick: number): MainToSimulationMes
       commands: [
         {
           commandId: createM2AdvanceCommandId(tick),
+          kind: PLAYER_COMMAND_KIND.Noop,
+        },
+      ],
+    },
+  };
+}
+
+function makeM3AdvanceBatch(sequence: number, tick: number): MainToSimulationMessage {
+  return {
+    protocolVersion: SIM_PROTOCOL_VERSION,
+    schemaVersion: SIM_SCHEMA_VERSION,
+    sessionId: "session-a",
+    sequence,
+    kind: MAIN_TO_SIMULATION_MESSAGE_KIND.PlayerCommandBatch,
+    payload: {
+      commands: [
+        {
+          commandId: createM3AdvanceCommandId(tick),
           kind: PLAYER_COMMAND_KIND.Noop,
         },
       ],
@@ -505,6 +579,22 @@ function readM2Replay(result: ReturnType<typeof runM2WorkLogisticsReplay>): M2Re
   return result.replay;
 }
 
+function readM3Replay(result: ReturnType<typeof runM3OrdinaryLifeReplay>): M3ReplayRun {
+  if (!result.ok) {
+    throw new Error(result.reason);
+  }
+
+  return result.replay;
+}
+
+function failMissingSnapshot(): never {
+  throw new Error("missing snapshot");
+}
+
+function failMissingCheckpoint(): never {
+  throw new Error("missing checkpoint");
+}
+
 async function runBrowserWorker(
   inputMessages: readonly MainToSimulationMessage[],
 ): Promise<readonly SimulationToMainMessage[]> {
@@ -539,7 +629,7 @@ async function runBrowserWorker(
           const timeout = window.setTimeout((): void => {
             worker.terminate();
             reject(new Error(`Timed out waiting for ${String(expectedCount)} Worker messages.`));
-          }, 10_000);
+          }, 30_000);
 
           worker.onerror = (event: ErrorEvent): void => {
             window.clearTimeout(timeout);

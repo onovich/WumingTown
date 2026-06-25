@@ -169,3 +169,20 @@ remains presentation only.
 The relationship trace store is diagnostic only. It is not relationship
 authority, a job cursor, save authority, retry queue, Chronicle evidence, town
 rule memory, dialogue content, or an unbounded social log.
+
+## WM-0058 implementation note
+
+M3 Worker/headless parity reuses the existing Worker protocol surfaces instead
+of adding a public message family. For
+`m3.ordinary_life.injured_caregiver.v1`, `RenderSnapshot`, `UiDelta`, and
+`MetricsSample` are produced from `createM3ReadOnlyProjection` and carry
+scenario id, authoritative world hash, read-model hash, checkpoint count, and
+`readOnly: true` where the protocol already supports it.
+
+Focused diagnostics for WM-0058 are test/report artifacts, not Worker protocol
+payloads or saved owner state. They record the authoritative seed, requested
+seed, scenario id, first mismatched checkpoint tick, final snapshot byte size,
+final read-model byte size, and projection-message latency counts for the six
+M3 contract checkpoints. Browser Worker smoke compares the same checkpoint
+hashes against Node headless replay and keeps UI, React, Pixi, Electron, and
+read-model consumers read-only.

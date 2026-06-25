@@ -2,6 +2,7 @@ import { defineWorkspaceSmoke, type WorkspaceSmoke } from "@wuming-town/foundati
 import {
   HAULING_BUILDING_SCENARIO_ID,
   M2_WORK_LOGISTICS_SCENARIO_ID,
+  M3_ORDINARY_LIFE_SCENARIO_ID,
   SIM_CORE_SMOKE,
   createM1AdvanceCommandId,
   createM1HaulingBuildingSaveEnvelope,
@@ -9,12 +10,18 @@ import {
   createM2AdvanceCommandId,
   createM2ReadOnlyProjection,
   createM2WorkLogisticsSaveEnvelope,
+  createM3AdvanceCommandId,
+  createM3OrdinaryLifeSaveEnvelope,
+  createM3ReadOnlyProjection,
   parseM1AdvanceCommandId,
   parseM2AdvanceCommandId,
+  parseM3AdvanceCommandId,
+  runM3OrdinaryLifeScenario,
   runM2WorkLogisticsScenario,
   runHaulingBuildingScenario,
   type M1ReadOnlyProjection,
   type M2ReadOnlyProjection,
+  type M3ReadOnlyProjection,
 } from "@wuming-town/sim-core";
 import {
   MAIN_TO_SIMULATION_MESSAGE_KIND,
@@ -75,6 +82,7 @@ interface SimulationWorkerState {
   paused: boolean;
   m1Scenario: M1WorkerScenarioState | undefined;
   m2Scenario: M2WorkerScenarioState | undefined;
+  m3Scenario: M3WorkerScenarioState | undefined;
 }
 
 interface M1WorkerScenarioState {
@@ -83,6 +91,11 @@ interface M1WorkerScenarioState {
 }
 
 interface M2WorkerScenarioState {
+  readonly seed: string;
+  checkpointCount: number;
+}
+
+interface M3WorkerScenarioState {
   readonly seed: string;
   checkpointCount: number;
 }
@@ -100,6 +113,7 @@ export function createSimulationWorker(): SimulationWorker {
     paused: false,
     m1Scenario: undefined,
     m2Scenario: undefined,
+    m3Scenario: undefined,
   };
 
   return {
@@ -210,6 +224,10 @@ function handleAcceptedMessage(
         message.payload.catalogVersion === M2_WORK_LOGISTICS_SCENARIO_ID
           ? { seed: message.payload.seed, checkpointCount: 1 }
           : undefined;
+      state.m3Scenario =
+        message.payload.catalogVersion === M3_ORDINARY_LIFE_SCENARIO_ID
+          ? { seed: message.payload.seed, checkpointCount: 1 }
+          : undefined;
       return [
         makeReady(state),
         makeRenderSnapshot(state, message.sequence),
@@ -223,6 +241,7 @@ function handleAcceptedMessage(
       state.tick = message.payload.checkpointSequence;
       state.m1Scenario = undefined;
       state.m2Scenario = undefined;
+      state.m3Scenario = undefined;
       return [
         makeReady(state),
         makeRenderSnapshot(state, message.sequence),
@@ -231,14 +250,14 @@ function handleAcceptedMessage(
       ];
 
     case MAIN_TO_SIMULATION_MESSAGE_KIND.PlayerCommandBatch:
-      if (state.m1Scenario === undefined) {
-        if (state.m2Scenario === undefined) {
-          state.tick += message.payload.commands.length;
-        } else {
-          applyM2Commands(state, message.payload.commands);
-        }
-      } else {
+      if (state.m1Scenario !== undefined) {
         applyM1Commands(state, message.payload.commands);
+      } else if (state.m2Scenario !== undefined) {
+        applyM2Commands(state, message.payload.commands);
+      } else if (state.m3Scenario !== undefined) {
+        applyM3Commands(state, message.payload.commands);
+      } else {
+        state.tick += message.payload.commands.length;
       }
       return [
         makeAcceptedCommandResult(state, message.sequence),
@@ -496,6 +515,21 @@ function applyM2Commands(
   }
 }
 
+function applyM3Commands(
+  state: SimulationWorkerState,
+  commands: readonly { readonly commandId: string }[],
+): void {
+  for (const command of commands) {
+    const tick = parseM3AdvanceCommandId(command.commandId);
+    if (tick !== undefined && tick >= state.tick) {
+      state.tick = tick;
+      if (state.m3Scenario !== undefined) {
+        state.m3Scenario.checkpointCount += 1;
+      }
+    }
+  }
+}
+
 interface WorkerProjectionView {
   readonly scenarioId: string;
   readonly worldHash: string;
@@ -521,18 +555,30 @@ function readWorkerProjection(state: SimulationWorkerState): WorkerProjectionVie
   }
 
   const m2Projection = readM2Projection(state);
-  if (m2Projection === undefined) {
-    return undefined;
+  if (m2Projection !== undefined) {
+    return {
+      scenarioId: m2Projection.scenarioId,
+      worldHash: m2Projection.worldHash,
+      readModelHash: m2Projection.readModelHash,
+      entityCount: m2Projection.renderSnapshot.actorCount,
+      summaries: m2Projection.orderReadModel.summaries,
+      detailHash: m2Projection.orderReadModel.detailHash,
+      checkpointCount: state.m2Scenario?.checkpointCount ?? 0,
+    };
   }
 
+  const m3Projection = readM3Projection(state);
+  if (m3Projection === undefined) {
+    return undefined;
+  }
   return {
-    scenarioId: m2Projection.scenarioId,
-    worldHash: m2Projection.worldHash,
-    readModelHash: m2Projection.readModelHash,
-    entityCount: m2Projection.renderSnapshot.actorCount,
-    summaries: m2Projection.orderReadModel.summaries,
-    detailHash: m2Projection.orderReadModel.detailHash,
-    checkpointCount: state.m2Scenario?.checkpointCount ?? 0,
+    scenarioId: m3Projection.scenarioId,
+    worldHash: m3Projection.worldHash,
+    readModelHash: m3Projection.readModelHash,
+    entityCount: m3Projection.renderSnapshot.actorCount,
+    summaries: m3Projection.scenarioReadModel.summaries,
+    detailHash: m3Projection.scenarioReadModel.detailHash,
+    checkpointCount: state.m3Scenario?.checkpointCount ?? 0,
   };
 }
 
@@ -556,11 +602,22 @@ function readM2Projection(state: SimulationWorkerState): M2ReadOnlyProjection | 
   return createM2ReadOnlyProjection(summary, scenario.checkpointCount - 1);
 }
 
+function readM3Projection(state: SimulationWorkerState): M3ReadOnlyProjection | undefined {
+  const scenario = state.m3Scenario;
+  if (scenario === undefined) {
+    return undefined;
+  }
+
+  const summary = runM3OrdinaryLifeScenario({ seed: scenario.seed, ticks: state.tick });
+  return createM3ReadOnlyProjection(summary, scenario.checkpointCount - 1);
+}
+
 function createFocusedSave(
   state: SimulationWorkerState,
 ):
   | ReturnType<typeof createM1HaulingBuildingSaveEnvelope>
   | ReturnType<typeof createM2WorkLogisticsSaveEnvelope>
+  | ReturnType<typeof createM3OrdinaryLifeSaveEnvelope>
   | undefined {
   if (state.m1Scenario !== undefined) {
     return createM1HaulingBuildingSaveEnvelope(state.m1Scenario.seed, state.tick);
@@ -568,6 +625,10 @@ function createFocusedSave(
 
   if (state.m2Scenario !== undefined) {
     return createM2WorkLogisticsSaveEnvelope(state.m2Scenario.seed, state.tick);
+  }
+
+  if (state.m3Scenario !== undefined) {
+    return createM3OrdinaryLifeSaveEnvelope(state.m3Scenario.seed, state.tick);
   }
 
   return undefined;
@@ -592,6 +653,18 @@ export function createM2WorkerAdvanceCommandIds(
 
   for (const tick of checkpointTicks) {
     commandIds.push(createM2AdvanceCommandId(tick));
+  }
+
+  return commandIds;
+}
+
+export function createM3WorkerAdvanceCommandIds(
+  checkpointTicks: readonly number[],
+): readonly string[] {
+  const commandIds: string[] = [];
+
+  for (const tick of checkpointTicks) {
+    commandIds.push(createM3AdvanceCommandId(tick));
   }
 
   return commandIds;

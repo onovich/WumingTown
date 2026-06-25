@@ -2,7 +2,7 @@
   "id": "WM-0059",
   "title": "Add M3 benchmarks and long run invariants",
   "summary": "Add M3 benchmark and long-run invariant gates for ordinary-life simulation.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -33,13 +33,19 @@
   ],
   "branch": "task/WM-0059-add-m3-benchmarks-and-long-run-invariants",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T07:30:00.000Z",
+  "updatedAt": "2026-06-25T17:12:02.657Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
       "actor": "systems-architect",
       "action": "create",
       "details": "Created by WM-0045 M3 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-25T17:12:02.657Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "objective": "Create artifact-backed M3 performance and invariant evidence before closeout.",
