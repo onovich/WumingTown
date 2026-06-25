@@ -2,7 +2,7 @@
   "id": "WM-0051",
   "title": "Add M3 food and eating logistics slice",
   "summary": "Implement hunger-driven eating jobs using existing logistics, item, storage, reservation and pathing foundations.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,7 +31,7 @@
   ],
   "branch": "task/WM-0051-add-m3-food-and-eating-logistics-slice",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T09:22:31.556Z",
+  "updatedAt": "2026-06-25T10:23:39.594Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
@@ -44,6 +44,48 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-25T09:29:18.421Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Codex WM-0051"
+    },
+    {
+      "at": "2026-06-25T09:50:11.739Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented focused M3 food/eating logistics: bounded food availability index, Top-K path evidence, explicit eating job driver, atomic reservations, consume-once conservation, structured failure reasons, docs/report; typecheck, focused tests, sim-core test, taskctl validate, git diff --check, and pnpm quality pass."
+    },
+    {
+      "at": "2026-06-25T09:59:28.210Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: consume accepts hungerRestore values NeedStore rejects, then completes JobCore/releases reservations before throwing, leaving EatingJobDriver picked_up while JobCore is completed. Add validation/atomic ordering coverage before verification."
+    },
+    {
+      "at": "2026-06-25T10:08:11.187Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Repaired WM-0051 changes_requested: hungerRestore now validates against non-negative int32 need-delta contract at create time, consume preflights need delta and applies NeedStore mutation before JobCore completion/reservation cleanup, expected need failures return structured reasons, and regression tests prove no split state/conservation drift; required checks pass."
+    },
+    {
+      "at": "2026-06-25T10:15:10.041Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings after repair; hungerRestore is bounded to NeedStore int32 contract, consume need failures no longer complete/release reservations, regression evidence and quality gates pass."
+    },
+    {
+      "at": "2026-06-25T10:23:32.402Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Owner integration rechecked WM-0051 after repair and reviewer verification, merged current main with WM-0050/WM-0054, resolved public export and docs conflicts preserving both slices, acknowledged review approval, and confirmed typecheck, focused food+rest+mood tests, task status, and diff check pass."
+    },
+    {
+      "at": "2026-06-25T10:23:39.594Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Connect M3 hunger to existing logistics without broad economy or content production.",
@@ -86,5 +128,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Deterministic logistics, reservations and quantity ownership are outside Spark scope."
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Codex WM-0051",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0051.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings after repair; hungerRestore is bounded to NeedStore int32 contract, consume need failures no longer complete/release reservations, regression evidence and quality gates pass.",
+    "at": "2026-06-25T10:15:10.040Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Owner integration rechecked WM-0051 after repair and reviewer verification, merged current main with WM-0050/WM-0054, resolved public export and docs conflicts preserving both slices, acknowledged review approval, and confirmed typecheck, focused food+rest+mood tests, task status, and diff check pass.",
+    "at": "2026-06-25T10:23:32.402Z"
   }
 }

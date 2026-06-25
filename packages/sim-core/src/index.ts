@@ -226,6 +226,21 @@ export {
   selectPathResolvedRestFixture,
 } from "./m3-rest-sleep";
 export {
+  M3_FOOD_DEFAULT_CANDIDATE_CAP,
+  M3_FOOD_DEFAULT_EXACT_PATH_CAP,
+  M3_FOOD_DEFAULT_SELECTED_CAP,
+  M3_FOOD_STACK_NONE,
+  M3FoodAvailabilityStore,
+  createM3FoodAvailabilityStore,
+  resolveM3FoodPathCandidate,
+} from "./m3-food";
+export {
+  M3_EATING_JOB_KIND,
+  M3EatingJobDriverStore,
+  calculateM3FoodConservationTotal,
+  createM3EatingJobDriverStore,
+} from "./m3-eating-jobs";
+export {
   DEFAULT_M3_SCHEDULE_WINDOWS,
   M3_ENVIRONMENT_OWNER_VERSION,
   M3_WEATHER_INTERVAL_TICKS,
@@ -342,6 +357,25 @@ export type {
   RestTraceInput,
   RestTraceView,
 } from "./m3-rest-sleep";
+export type {
+  M3FoodCandidateQuery,
+  M3FoodCandidateQueryResult,
+  M3FoodMetrics,
+  M3FoodMutationResult,
+  M3FoodPathSelectionOptions,
+  M3FoodPathSelectionResult,
+  M3FoodPortionInput,
+  M3FoodPortionView,
+  M3FoodReason,
+} from "./m3-food";
+export type {
+  M3EatingJobCreateInput,
+  M3EatingJobView,
+  M3EatingMetrics,
+  M3EatingMutationResult,
+  M3EatingReason,
+  M3EatingStep,
+} from "./m3-eating-jobs";
 export type { RunnerSpeed, Tick } from "./time";
 export type {
   ReplayCheckpoint,

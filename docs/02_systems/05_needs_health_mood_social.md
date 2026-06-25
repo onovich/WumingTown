@@ -149,3 +149,18 @@ not own needs or job behavior.
 M3 rest recovery now uses the `NeedStore` rest lane as the only need authority. Rest/sleep selection reads the actor's fixed rest, hunger, and safety lanes directly, while fixture selection comes from `RestCandidateIndex`; actor thinking does not scan all rest spots. Recovery applies bounded integer deltas through `NeedStore.applyLaneDelta` with `need.external_delta` and may dirty `NeedUrgencyIndex` through an explicit `NeedDirtySink`.
 
 Focused rest/sleep diagnostics use structured reasons such as `rest.selected_indexed_path`, `rest.rejected_no_indexed_candidate`, `rest.rejected_schedule_window`, `rest.rejected_weather_exposure`, `rest.rejected_ability`, `rest.rejected_emergency_need`, `rest.rejected_actor_not_tired`, `path.no_route_to_rest_fixture`, `job.interrupted_safe_point`, and `job.interruption_denied`. Metrics record candidate visits, exact path requests, reservation attempts, cleanup releases, completion, cancellation, and interruption counts for later WM-0059 benchmark baselines.
+
+## WM-0051 implementation note
+
+`M3EatingJobDriverStore` connects hunger-driven eating back to `NeedStore`
+without moving need authority into food logistics. Eating jobs apply an integer
+`NEED_LANE_HUNGER` delta only after a picked-up portion is completed through
+`JobCoreStore`, and callers can pass `NeedUrgencyIndex` as the dirty sink so
+hunger urgency refresh remains exact-keyed. Failed no-food, permission,
+schedule, ability, path, reservation, and stale-owner paths do not mutate
+hunger or food quantity.
+
+Food quantity remains owned by `ItemStackStore`: the eating driver moves one
+integer portion from storage to carried lanes on pickup, then to consumed lanes
+on successful eating. Focused conservation tests include storage, carried, and
+consumed lanes so duplicate consumption or negative resources fail visibly.
