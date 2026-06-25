@@ -1,6 +1,7 @@
 # M2 Work/Logistics Vertical Slice Plan
 
-Status: proposed by WM-0032. This plan is a control-plane artifact only. It does not start M2 implementation, does not claim any implementation task, and does not start M3.
+Status: closed by WM-0043. This plan remains a control-plane artifact for the
+completed M2 work/logistics vertical slice; it did not start M3.
 
 ## Objective
 
@@ -30,7 +31,7 @@ The stricter M2 closeout target for this plan is:
 
 Included:
 
-- Region/A* integration into real work selection.
+- Region/A\* integration into real work selection.
 - Multi-pawn WorkOffer scoring with bounded candidate caps.
 - Reservation behavior under contention.
 - Item storage and hauling beyond the M1 fixture.
@@ -150,12 +151,12 @@ The task JSONs are the durable control-plane packets. The summaries below mirror
 - Rollback: revert ADR/docs; downstream tasks stay proposed.
 - Spark eligibility: no. This is architecture, state ownership, save/replay, and performance boundary work.
 
-### WM-0035 - Integrate Region/A* Into Work Selection
+### WM-0035 - Integrate Region/A\* Into Work Selection
 
 - Owner: `simulation-engineer`
 - Reviewer: `reviewer`
 - Dependencies: `WM-0034`
-- Objective: make real work selection consume region reachability, local A*, stale-result rejection, and bounded exact pathing.
+- Objective: make real work selection consume region reachability, local A\*, stale-result rejection, and bounded exact pathing.
 - Allowed paths: focused `sim-core` pathing/work-offer/map surfaces, focused tests, benchmark filters, docs and report.
 - Forbidden paths: UI mutation, Worker protocol changes, save format changes, broad job/economy features, unversioned path caches.
 - Acceptance: only indexed caller-supplied candidates are path-resolved; stale version bases reject before job mutation; structured path/work reasons are emitted.
@@ -311,3 +312,30 @@ Minimum M2 gate by closeout:
 ## Spark Classification
 
 WM-0032 did not use Spark. The first-wave M2 tasks are not Spark-eligible because they define or touch architecture, deterministic simulation, job/reservation ownership, save/replay, Worker parity, benchmark baselines, or milestone closeout. Future tiny documentation or fixture repair tasks may be split for `rapid-implementer` only if they satisfy the full Spark classifier and have their own task packet.
+
+## Closeout Evidence
+
+WM-0043 closes this M2 plan after WM-0033 through WM-0042 reached `done` with
+independent reviewer verification. The final executable evidence is:
+
+- Scenario: `m2.work_logistics.lantern_yard.v1`, seed `2`, tick horizon
+  `100000`, final world hash `0x9e689c8d`.
+- Long-run work/logistics: 20 actors used, four completed build orders, 16
+  completed hauling jobs, four completed build jobs, 24 wood and 12 stone
+  delivered, zero terminal reservations/offers/running jobs and material
+  conservation true.
+- Path invalidation: exactly 100 processed path requests, 80 accepted results,
+  20 stale rejects, 25957 node expansions, peak queue backlog 100, final queue
+  backlog 0 and checksum `1481150542`.
+- Save/replay: save tick `6000`, save size `5522` bytes, rebuilt indexes
+  `work-offers`, `path-caches`, `reservations`, `read-models`, no divergent
+  tick, 20000-tick world hash `0x9182c40d` and read-model hash `0x7342625f`.
+- Worker parity: WM-0041 verified Node Worker and browser Worker parity for the
+  M2 command stream while UI/read-model projections remain read-only.
+- Benchmark artifact:
+  `coordination/artifacts/WM-0042/benchmarks/benchmark-results.json`, SHA-256
+  `7AAD7C5CA023F018A2B00F0F205C784EDCF2CACCA139C11C84A519A93891C8AC`, generated
+  from implementation commit `5a7bb3539243f4bf8fd0525b8d51d4cef76f569d`.
+
+M3 remains unstarted. No M3 task was created, promoted, claimed or implemented
+as part of this closeout.
