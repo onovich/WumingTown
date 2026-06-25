@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQTC9LTU-CDF68D",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0050",
+  "kind": "review-request",
+  "subject": "WM-0050 ready for review",
+  "body": "Repaired WM-0050 review findings: denied sleep interruptions no longer mutate driver state, reservation-specific reasons now round-trip through trace and snapshot serialization, and tickRecovery preflights need ownership before progress mutation; added regressions and reran typecheck, focused Vitest, sim-core test, taskctl validate/status, diff check, and pnpm quality.",
+  "artifacts": [
+    "coordination/reports/WM-0050.md",
+    "task/WM-0050-add-m3-rest-and-sleep-job-slice"
+  ],
+  "createdAt": "2026-06-25T10:07:53.538Z",
+  "acknowledgedAt": "2026-06-25T10:14:54.172Z"
+}

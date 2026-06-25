@@ -195,6 +195,21 @@ export {
   createM3HealthConditionStore,
 } from "./m3-health";
 export {
+  M3_MEDICAL_CARE_SNAPSHOT_VERSION,
+  M3_MEDICAL_DEFAULT_CANDIDATE_CAP,
+  M3_MEDICAL_DEFAULT_EXACT_PATH_CAP,
+  M3_MEDICAL_DEFAULT_SELECTED_CAP,
+  M3_MEDICAL_NO_REQUEST,
+  M3MedicalCareStore,
+  createM3MedicalCareStore,
+} from "./m3-medical-care";
+export {
+  M3_TREATMENT_JOB_KIND,
+  M3_TREATMENT_SNAPSHOT_VERSION,
+  M3TreatmentJobStore,
+  createM3TreatmentJobStore,
+} from "./m3-treatment-jobs";
+export {
   LOCATION_CONTAINER,
   LOCATION_MAP,
   LOCATION_NONE,
@@ -227,6 +242,41 @@ export {
   createM3EnvironmentStore,
   runM3EnvironmentReplay,
 } from "./m3-environment";
+export {
+  M3_REST_DEFAULT_CANDIDATE_CAP,
+  M3_REST_DEFAULT_EXACT_PATH_CAP,
+  M3_REST_DEFAULT_SELECTED_CAP,
+  M3_REST_EMERGENCY_THRESHOLD,
+  M3_REST_FIXTURE_NONE,
+  M3_REST_SLEEP_JOB_KIND,
+  M3_REST_SLEEP_STORE_VERSION,
+  M3_REST_SLEEP_TRACE_CAPACITY,
+  M3_REST_URGENCY_THRESHOLD,
+  RestCandidateIndex,
+  RestJobDriverStore,
+  RestSleepStore,
+  RestSleepTraceStore,
+  createRestCandidateIndex,
+  createRestJobDriverStore,
+  createRestSleepStore,
+  createRestSleepTraceStore,
+  selectPathResolvedRestFixture,
+} from "./m3-rest-sleep";
+export {
+  M3_FOOD_DEFAULT_CANDIDATE_CAP,
+  M3_FOOD_DEFAULT_EXACT_PATH_CAP,
+  M3_FOOD_DEFAULT_SELECTED_CAP,
+  M3_FOOD_STACK_NONE,
+  M3FoodAvailabilityStore,
+  createM3FoodAvailabilityStore,
+  resolveM3FoodPathCandidate,
+} from "./m3-food";
+export {
+  M3_EATING_JOB_KIND,
+  M3EatingJobDriverStore,
+  calculateM3FoodConservationTotal,
+  createM3EatingJobDriverStore,
+} from "./m3-eating-jobs";
 export {
   DEFAULT_M3_SCHEDULE_WINDOWS,
   M3_ENVIRONMENT_OWNER_VERSION,
@@ -323,6 +373,46 @@ export type {
   M3WeatherProjection,
   M3WeatherSeverityLanes,
 } from "./m3-environment-data";
+export type {
+  RestCandidateIndexOptions,
+  RestCandidateQuery,
+  RestCandidateQueryResult,
+  RestFixtureInput,
+  RestFixtureKind,
+  RestFixtureView,
+  RestFixtureWeatherExposure,
+  RestJobCreateInput,
+  RestJobDriverSnapshot,
+  RestJobStep,
+  RestJobView,
+  RestKind,
+  RestSelectionInput,
+  RestSelectionResult,
+  RestSleepMetrics,
+  RestSleepMutationResult,
+  RestSleepReason,
+  RestTraceInput,
+  RestTraceView,
+} from "./m3-rest-sleep";
+export type {
+  M3FoodCandidateQuery,
+  M3FoodCandidateQueryResult,
+  M3FoodMetrics,
+  M3FoodMutationResult,
+  M3FoodPathSelectionOptions,
+  M3FoodPathSelectionResult,
+  M3FoodPortionInput,
+  M3FoodPortionView,
+  M3FoodReason,
+} from "./m3-food";
+export type {
+  M3EatingJobCreateInput,
+  M3EatingJobView,
+  M3EatingMetrics,
+  M3EatingMutationResult,
+  M3EatingReason,
+  M3EatingStep,
+} from "./m3-eating-jobs";
 export type { RunnerSpeed, Tick } from "./time";
 export type {
   ReplayCheckpoint,
@@ -575,6 +665,31 @@ export type {
   M3HealthConditionView,
   M3HealthMetrics,
 } from "./m3-health";
+export type {
+  M3MedicalCaregiverStateInput,
+  M3MedicalCaregiverStateView,
+  M3MedicalMetrics,
+  M3MedicalMutationResult,
+  M3MedicalPatientRequestInput,
+  M3MedicalPatientRequestView,
+  M3MedicalReason,
+  M3MedicalSelectionOptions,
+  M3MedicalSelectionResult,
+  M3MedicalSelectionScratch,
+} from "./m3-medical-care";
+export type {
+  M3TreatmentCreateInput,
+  M3TreatmentJobSnapshot,
+  M3TreatmentJobView,
+  M3TreatmentMetrics,
+  M3TreatmentMutationResult,
+  M3TreatmentRestoreResult,
+  M3TreatmentReason,
+  M3TreatmentSnapshotReason,
+  M3TreatmentStep,
+  M3TreatmentStoreSnapshot,
+  M3TreatmentStoreSnapshotInput,
+} from "./m3-treatment-jobs";
 export type {
   LocationCleanupReason,
   LocationDestroyResult,

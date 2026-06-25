@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQTCIYMY-82FA06",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0051",
+  "kind": "review-approved",
+  "subject": "WM-0051 review: verified",
+  "body": "No blocking findings after repair; hungerRestore is bounded to NeedStore int32 contract, consume need failures no longer complete/release reservations, regression evidence and quality gates pass.",
+  "artifacts": [
+    "coordination/reports/WM-0051.md"
+  ],
+  "createdAt": "2026-06-25T10:15:10.042Z",
+  "acknowledgedAt": "2026-06-25T10:23:24.346Z"
+}

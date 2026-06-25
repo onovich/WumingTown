@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQTBZ6UH-961DDF",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0050",
+  "kind": "changes-requested",
+  "subject": "WM-0050 review: changes_requested",
+  "body": "High: denied sleep interruption mutates RestJobDriverStore terminalReason without a terminal transition; High: RestSleepReason accepts ReservationReason and arbitrary strings but encode/decode drops them to rest.none, breaking structured terminal reasons and snapshot round-trips; Medium: tickRecovery mutates JobCore/recovery progress before NeedStore denial, so invalid actor recovery leaves partial progress with reservations still active.",
+  "artifacts": [
+    "coordination/reports/WM-0050.md"
+  ],
+  "createdAt": "2026-06-25T09:59:47.562Z",
+  "acknowledgedAt": "2026-06-25T10:03:18.004Z"
+}

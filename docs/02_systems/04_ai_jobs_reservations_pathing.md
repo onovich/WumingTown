@@ -260,3 +260,46 @@ Denied interruptions return `policy.interruption_denied`; delivery interruption
 after pickup is also denied by `BuildSiteStore` so carried material cannot be
 deleted by a terminal JobCore cleanup path. Allowed interruptions go through
 `JobCoreStore.requestInterruption` and release owner/job reservations.
+
+## WM-0050 implementation note
+
+`packages/sim-core/src/m3-rest-sleep.ts` adds the focused M3 rest/sleep owner and job-driver slice. `RestSleepStore` owns rest fixture identity, region, schedule window, weather exposure, interaction spot, fixed-point recovery rate, and owner versions. `RestCandidateIndex` is derived, dirty-keyed by fixture id, and selection reads only exact region/rest-kind/schedule/weather/permission buckets with the M3 caps: 24 visited candidates, 12 retained candidates, and 4 exact path requests.
+
+`selectPathResolvedRestFixture` composes M3 needs, environment context, indexed rest candidates, and existing Top-K pathing. It rejects non-tired actors, emergency hunger/safety, ability denial, schedule mismatch, weather mismatch, no indexed rest spot, and no path with structured reasons. The helper does not create jobs, mutate reservations, scan global rest fixtures from actor thinking, or persist path state.
+
+`RestJobDriverStore` layers explicit serializable states over `JobCoreStore`: `created -> pathing_to_fixture -> resting/sleeping -> complete/failed/cancelled`. It reserves fixture entity plus interaction spot through `ReservationLedger`, stores claim ids and basis versions as numeric lanes, advances recovery with integer Q16 progress, and releases reservations through every terminal completion, failure, cancellation, or allowed interruption path. Sleep defaults to `emergency_only` interruption policy; denied interruptions return `job.interruption_denied` without cleanup side effects.
+
+## WM-0051 implementation note
+
+`packages/sim-core/src/m3-food.ts` adds the focused M3 food availability
+surface. `M3FoodAvailabilityStore` is derived from `ItemStackStore` quantity
+owner state plus explicit food eligibility facts. Normal updates mark exact
+stack ids dirty and refresh only those stack rows; actor selection reads a
+def/region bucket with caller-provided candidate and selected caps, then
+`resolveM3FoodPathCandidate` runs exact pathing only for retained Top-K
+candidates. Selection evidence records candidate totals, visited rows, selected
+rows, cap hits, exact path count, and node expansions.
+
+`packages/sim-core/src/m3-eating-jobs.ts` adds `M3EatingJobDriverStore`, an
+explicit serializable state machine over `JobCoreStore`. Eating jobs acquire
+`item_quantity` and `interaction_spot` reservations atomically before pickup,
+move one integer portion into carried lanes, and consume it exactly once into a
+consumed lane before releasing reservations. Cancellation and failure after
+pickup return carried food to the source stack before terminal cleanup.
+Structured reasons distinguish no food, permission, schedule, ability,
+reservation, path, stale owner, and consume-once failures.
+
+## WM-0053 implementation note
+
+M3 medical treatment keeps work discovery derived and bounded. Patient medical
+requests are registered from exact owner-state changes; caregiver state is
+refreshed from permission and ability-cache inputs; selection reads only the
+matching region/urgency/permission bucket with explicit candidate and selected
+caps. A stale condition basis is rejected before job creation or reservation.
+
+`M3TreatmentJobStore` stores explicit serializable treatment steps:
+`created -> reserved -> pathing_to_patient -> treating -> completed/canceled/
+failed`. Reservation acquisition is atomic across medical stock, patient
+interaction spot, and treatment cell. Cancellation, interruption, and path
+failure go through `JobCoreStore` terminal cleanup so active claims are released
+without relying on lease expiry.

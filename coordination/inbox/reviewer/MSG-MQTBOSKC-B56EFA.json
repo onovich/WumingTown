@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQTBOSKC-B56EFA",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0050",
+  "kind": "review-request",
+  "subject": "WM-0050 ready for review",
+  "body": "Implemented M3 rest/sleep owner/index/job-driver slice with bounded indexed selection, Top-K path evidence, Q16 recovery, serializable driver snapshots, reservation cleanup, focused tests, docs, and report; required checks pass except pnpm test --filter m3-rest-sleep is unsupported and was replaced by direct focused Vitest plus supported broader gates.",
+  "artifacts": [
+    "coordination/reports/WM-0050.md",
+    "task/WM-0050-add-m3-rest-and-sleep-job-slice"
+  ],
+  "createdAt": "2026-06-25T09:51:42.493Z",
+  "acknowledgedAt": null
+}
