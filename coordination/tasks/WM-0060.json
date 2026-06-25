@@ -2,7 +2,7 @@
   "id": "WM-0060",
   "title": "Close the M3 ordinary life simulation gate",
   "summary": "Close M3 only after ordinary-life scenario, architecture, implementation, save/replay, Worker parity, benchmarks and invariants are verified and integrated, then write a non-executable future M4 entry prompt.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -36,13 +36,19 @@
   ],
   "branch": "task/WM-0060-close-the-m3-ordinary-life-simulation-gate",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T07:30:00.000Z",
+  "updatedAt": "2026-06-25T18:08:04.270Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
       "actor": "systems-architect",
       "action": "create",
       "details": "Created by WM-0045 M3 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-25T18:08:04.270Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "objective": "Close M3 with reviewed evidence and write a future M4 entry prompt while keeping M4 blocked until a later reviewed planning task.",

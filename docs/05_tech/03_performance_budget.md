@@ -288,3 +288,30 @@ through `NeedUrgencyIndex.markMutationDirty(result)` or a scheduled
 `NeedDirtySink`. Load/replay rebuild may scan registered actors before resumed
 ticks. WM-0059 remains responsible for adding suite-level baselines and artifact
 reporting for long-run M3 ordinary-life performance.
+
+## WM-0059 benchmark note
+
+`pnpm bench` now includes `m3-ordinary-life-long-run` in the default benchmark
+suite. The benchmark runs `m3.ordinary_life.injured_caregiver.v1` with
+requested seed `3` and authoritative seed `46` to `100000` ticks, samples
+terminal evidence at `12000`, `36000`, `60000`, `80000` and `100000`, and
+verifies replay plus save/resume hash parity.
+
+The M3 baseline records need update count `2`, condition update count `1`,
+ability cache invalidation count `1`, thought event count `3`, social event
+count `4`, total candidate visits `11`, cap hits `0`, exact path requests `1`,
+path node count `2`, rebuilt surface count `15`, Worker projection bytes
+`1747`, final world hash `0x7eb81a69`, final read-model hash `0x82bf87d6`, and
+zero terminal reservations, running jobs, stale medical requests, stale medical
+offer basis rejects, negative needs/resources, stale ability cache rejects,
+condition drift, mood/relationship drift, M4 facts and conservation drift. The
+baseline invariants include exact stable condition, mood and relationship
+values so legal-range drift still fails comparison.
+
+The WM-0059 benchmark artifact is written under
+`coordination/artifacts/WM-0059/benchmarks/benchmark-results.json`. It includes
+Node, pnpm, OS, platform, architecture, CPU, Git commit, scenario id, seed,
+tick horizon, checkpoint hashes including tick `100000`, final summary, Worker
+snapshot/read-model/projection bytes, save/load rebuild timing and final
+hashes. The baseline update preserves the existing 10 percent warning and
+20 percent blocking regression thresholds for every entry.

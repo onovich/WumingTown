@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQTSM45H-84F989",
+  "from": "reviewer",
+  "to": "qa-performance",
+  "taskId": "WM-0059",
+  "kind": "changes-requested",
+  "subject": "WM-0059 review: changes_requested",
+  "body": "High: stale medical offer/request gate is incomplete: packages/benchmarks/src/m3-ordinary-life-long-run-benchmark.ts:268-270 maps noStaleOffers only to activeMedicalRequests and packages/sim-core/src/m3-invariants.test.ts:96-99 only asserts final activeMedicalRequests, while M3MedicalMetrics.staleBasisRejectCount exists at packages/sim-core/src/m3-medical-care.ts:118-130 and is never propagated from packages/sim-core/src/m3-ordinary-life-scenario.ts:1672-1693. High: condition and mood/relationship drift checks only enforce valid ranges, not stable expected values, at packages/sim-core/src/m3-invariants.test.ts:175-190 and packages/benchmarks/src/m3-ordinary-life-long-run-benchmark.ts:438-456; benchmark invariants omit final condition/mood/relationship values at packages/benchmarks/src/m3-ordinary-life-long-run-benchmark.ts:300-343.",
+  "artifacts": [
+    "coordination/reports/WM-0059.md"
+  ],
+  "createdAt": "2026-06-25T17:45:31.014Z",
+  "acknowledgedAt": "2026-06-25T17:56:47.767Z"
+}

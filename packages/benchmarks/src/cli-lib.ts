@@ -41,6 +41,7 @@ export interface BenchmarkCliReport {
 
 export interface BenchmarkCliResult {
   readonly name: BenchmarkName;
+  readonly report: SampledBenchmarkResult["report"];
   readonly sampleElapsedMs: readonly number[];
   readonly stats: SampledBenchmarkResult["stats"];
   readonly invariants: SampledBenchmarkResult["invariants"];
@@ -80,6 +81,7 @@ export function runBenchmarksCli(argv: readonly string[]): number {
 
   const results = sampledResults.map((result) => ({
     name: result.name,
+    report: result.report,
     sampleElapsedMs: result.sampleElapsedMs,
     stats: result.stats,
     invariants: result.invariants,
@@ -123,7 +125,7 @@ function parseBenchmarkArgs(
   let warmupCount = DEFAULT_BENCHMARK_WARMUP_COUNT;
   let baselinePath = path.join(process.cwd(), "packages", "benchmarks", "baseline.json");
   let artifactPath = path.join(
-    resolveArtifactRoot("WM-0042"),
+    resolveArtifactRoot("WM-0059"),
     "benchmarks",
     "benchmark-results.json",
   );
@@ -137,7 +139,7 @@ function parseBenchmarkArgs(
 
       if (!isBenchmarkName(value)) {
         return failedArgs(
-          "Unsupported benchmark filter. Use empty-tick, entity-store, logistics-10k, m1-hauling-building-long-run, m2-pathing-invalidation, m2-work-logistics-long-run, map-dirty, pathing-100, reservations, region-room, spatial-index, or work-offers.",
+          "Unsupported benchmark filter. Use empty-tick, entity-store, logistics-10k, m1-hauling-building-long-run, m2-pathing-invalidation, m2-work-logistics-long-run, m3-ordinary-life-long-run, map-dirty, pathing-100, reservations, region-room, spatial-index, or work-offers.",
         );
       }
 
@@ -151,7 +153,7 @@ function parseBenchmarkArgs(
 
       if (!isBenchmarkName(value)) {
         return failedArgs(
-          "Unsupported benchmark filter. Use empty-tick, entity-store, logistics-10k, m1-hauling-building-long-run, m2-pathing-invalidation, m2-work-logistics-long-run, map-dirty, pathing-100, reservations, region-room, spatial-index, or work-offers.",
+          "Unsupported benchmark filter. Use empty-tick, entity-store, logistics-10k, m1-hauling-building-long-run, m2-pathing-invalidation, m2-work-logistics-long-run, m3-ordinary-life-long-run, map-dirty, pathing-100, reservations, region-room, spatial-index, or work-offers.",
         );
       }
 
@@ -305,6 +307,12 @@ function parseBenchmarkArgs(
       "benchmarks",
       "benchmark-results.json",
     );
+  } else if (!artifactPathWasConfigured && filter === "m3-ordinary-life-long-run") {
+    artifactPath = path.join(
+      resolveArtifactRoot("WM-0059"),
+      "benchmarks",
+      "benchmark-results.json",
+    );
   }
 
   return {
@@ -355,6 +363,9 @@ function loadBenchmarkBaseline(filePath: string): BenchmarkBaselineFile {
       ),
       "m2-work-logistics-long-run": parseM2WorkLogisticsLongRunBaselineEntry(
         rawBenchmarks["m2-work-logistics-long-run"],
+      ),
+      "m3-ordinary-life-long-run": parseM3OrdinaryLifeLongRunBaselineEntry(
+        rawBenchmarks["m3-ordinary-life-long-run"],
       ),
       "map-dirty": parseMapDirtyBaselineEntry(rawBenchmarks["map-dirty"]),
       "pathing-100": parsePathing100BaselineEntry(rawBenchmarks["pathing-100"]),
@@ -535,6 +546,39 @@ function parseM2WorkLogisticsLongRunBaselineEntry(
     ),
     invariants: parseM2WorkLogisticsLongRunBaselineInvariants(
       requireRecord(value["invariants"], "m2-work-logistics-long-run"),
+    ),
+  };
+}
+
+function parseM3OrdinaryLifeLongRunBaselineEntry(
+  value: unknown,
+): BenchmarkBaselineEntry<"m3-ordinary-life-long-run"> {
+  if (!isRecord(value)) {
+    throw new Error("benchmark baseline entry m3-ordinary-life-long-run must be an object");
+  }
+
+  if (value["name"] !== "m3-ordinary-life-long-run") {
+    throw new Error(
+      "benchmark baseline entry m3-ordinary-life-long-run must declare the same name",
+    );
+  }
+
+  return {
+    name: "m3-ordinary-life-long-run",
+    medianElapsedMs: requireNumber(
+      value["medianElapsedMs"],
+      "m3-ordinary-life-long-run.medianElapsedMs",
+    ),
+    warnRegressionPercent: requireNumber(
+      value["warnRegressionPercent"],
+      "m3-ordinary-life-long-run.warnRegressionPercent",
+    ),
+    failRegressionPercent: requireNumber(
+      value["failRegressionPercent"],
+      "m3-ordinary-life-long-run.failRegressionPercent",
+    ),
+    invariants: parseM3OrdinaryLifeLongRunBaselineInvariants(
+      requireRecord(value["invariants"], "m3-ordinary-life-long-run"),
     ),
   };
 }
@@ -1009,6 +1053,229 @@ function parseM2WorkLogisticsLongRunBaselineInvariants(
   };
 }
 
+function parseM3OrdinaryLifeLongRunBaselineInvariants(
+  value: Record<string, unknown>,
+): BenchmarkBaselineEntry<"m3-ordinary-life-long-run">["invariants"] {
+  return {
+    scenarioId: requireString(value["scenarioId"], "m3-ordinary-life-long-run.scenarioId"),
+    scenarioSeed: requireString(value["scenarioSeed"], "m3-ordinary-life-long-run.scenarioSeed"),
+    requestedSeed: requireString(value["requestedSeed"], "m3-ordinary-life-long-run.requestedSeed"),
+    finalTick: requireNumber(value["finalTick"], "m3-ordinary-life-long-run.finalTick"),
+    saveTick: requireNumber(value["saveTick"], "m3-ordinary-life-long-run.saveTick"),
+    loadTick: requireNumber(value["loadTick"], "m3-ordinary-life-long-run.loadTick"),
+    tickRate: requireNumber(value["tickRate"], "m3-ordinary-life-long-run.tickRate"),
+    checkpointCount: requireNumber(
+      value["checkpointCount"],
+      "m3-ordinary-life-long-run.checkpointCount",
+    ),
+    commandStreamHash: requireString(
+      value["commandStreamHash"],
+      "m3-ordinary-life-long-run.commandStreamHash",
+    ),
+    contentHash: requireString(value["contentHash"], "m3-ordinary-life-long-run.contentHash"),
+    finalWorldHash: requireString(
+      value["finalWorldHash"],
+      "m3-ordinary-life-long-run.finalWorldHash",
+    ),
+    finalReadModelHash: requireString(
+      value["finalReadModelHash"],
+      "m3-ordinary-life-long-run.finalReadModelHash",
+    ),
+    needUpdateCount: requireNumber(
+      value["needUpdateCount"],
+      "m3-ordinary-life-long-run.needUpdateCount",
+    ),
+    conditionUpdateCount: requireNumber(
+      value["conditionUpdateCount"],
+      "m3-ordinary-life-long-run.conditionUpdateCount",
+    ),
+    abilityCacheInvalidationCount: requireNumber(
+      value["abilityCacheInvalidationCount"],
+      "m3-ordinary-life-long-run.abilityCacheInvalidationCount",
+    ),
+    thoughtEventCount: requireNumber(
+      value["thoughtEventCount"],
+      "m3-ordinary-life-long-run.thoughtEventCount",
+    ),
+    socialEventCount: requireNumber(
+      value["socialEventCount"],
+      "m3-ordinary-life-long-run.socialEventCount",
+    ),
+    actorThinkPasses: requireNumber(
+      value["actorThinkPasses"],
+      "m3-ordinary-life-long-run.actorThinkPasses",
+    ),
+    totalCandidateVisitedCount: requireNumber(
+      value["totalCandidateVisitedCount"],
+      "m3-ordinary-life-long-run.totalCandidateVisitedCount",
+    ),
+    boundedCandidateCapHits: requireNumber(
+      value["boundedCandidateCapHits"],
+      "m3-ordinary-life-long-run.boundedCandidateCapHits",
+    ),
+    exactPathRequests: requireNumber(
+      value["exactPathRequests"],
+      "m3-ordinary-life-long-run.exactPathRequests",
+    ),
+    pathNodeCount: requireNumber(value["pathNodeCount"], "m3-ordinary-life-long-run.pathNodeCount"),
+    reservationCleanupActiveCount: requireNumber(
+      value["reservationCleanupActiveCount"],
+      "m3-ordinary-life-long-run.reservationCleanupActiveCount",
+    ),
+    saveLoadRebuiltSurfaceCount: requireNumber(
+      value["saveLoadRebuiltSurfaceCount"],
+      "m3-ordinary-life-long-run.saveLoadRebuiltSurfaceCount",
+    ),
+    workerRenderSnapshotBytes: requireNumber(
+      value["workerRenderSnapshotBytes"],
+      "m3-ordinary-life-long-run.workerRenderSnapshotBytes",
+    ),
+    workerScenarioReadModelBytes: requireNumber(
+      value["workerScenarioReadModelBytes"],
+      "m3-ordinary-life-long-run.workerScenarioReadModelBytes",
+    ),
+    workerProjectionBytes: requireNumber(
+      value["workerProjectionBytes"],
+      "m3-ordinary-life-long-run.workerProjectionBytes",
+    ),
+    terminalSampleCount: requireNumber(
+      value["terminalSampleCount"],
+      "m3-ordinary-life-long-run.terminalSampleCount",
+    ),
+    terminalFirstSampleTick: requireNumber(
+      value["terminalFirstSampleTick"],
+      "m3-ordinary-life-long-run.terminalFirstSampleTick",
+    ),
+    terminalLastSampleTick: requireNumber(
+      value["terminalLastSampleTick"],
+      "m3-ordinary-life-long-run.terminalLastSampleTick",
+    ),
+    maxQueueBacklog: requireNumber(
+      value["maxQueueBacklog"],
+      "m3-ordinary-life-long-run.maxQueueBacklog",
+    ),
+    maxActiveReservationCount: requireNumber(
+      value["maxActiveReservationCount"],
+      "m3-ordinary-life-long-run.maxActiveReservationCount",
+    ),
+    maxRunningJobCount: requireNumber(
+      value["maxRunningJobCount"],
+      "m3-ordinary-life-long-run.maxRunningJobCount",
+    ),
+    finalWeather: requireString(value["finalWeather"], "m3-ordinary-life-long-run.finalWeather"),
+    finalScheduleWindow: requireString(
+      value["finalScheduleWindow"],
+      "m3-ordinary-life-long-run.finalScheduleWindow",
+    ),
+    yaoMovementAfterInjury: requireNumber(
+      value["yaoMovementAfterInjury"],
+      "m3-ordinary-life-long-run.yaoMovementAfterInjury",
+    ),
+    yaoMovementAfterTreatment: requireNumber(
+      value["yaoMovementAfterTreatment"],
+      "m3-ordinary-life-long-run.yaoMovementAfterTreatment",
+    ),
+    yaoSprainSeverity: requireNumber(
+      value["yaoSprainSeverity"],
+      "m3-ordinary-life-long-run.yaoSprainSeverity",
+    ),
+    yaoMoodValence: requireNumber(
+      value["yaoMoodValence"],
+      "m3-ordinary-life-long-run.yaoMoodValence",
+    ),
+    yaoMoodTension: requireNumber(
+      value["yaoMoodTension"],
+      "m3-ordinary-life-long-run.yaoMoodTension",
+    ),
+    linMoodValence: requireNumber(
+      value["linMoodValence"],
+      "m3-ordinary-life-long-run.linMoodValence",
+    ),
+    minMoodValence: requireNumber(
+      value["minMoodValence"],
+      "m3-ordinary-life-long-run.minMoodValence",
+    ),
+    yaoMinGratitude: requireNumber(
+      value["yaoMinGratitude"],
+      "m3-ordinary-life-long-run.yaoMinGratitude",
+    ),
+    yaoLinCare: requireNumber(value["yaoLinCare"], "m3-ordinary-life-long-run.yaoLinCare"),
+    treatmentCompletedCount: requireNumber(
+      value["treatmentCompletedCount"],
+      "m3-ordinary-life-long-run.treatmentCompletedCount",
+    ),
+    activeMedicalRequests: requireNumber(
+      value["activeMedicalRequests"],
+      "m3-ordinary-life-long-run.activeMedicalRequests",
+    ),
+    staleMedicalOfferRejectCount: requireNumber(
+      value["staleMedicalOfferRejectCount"],
+      "m3-ordinary-life-long-run.staleMedicalOfferRejectCount",
+    ),
+    grainBowlQuantity: requireNumber(
+      value["grainBowlQuantity"],
+      "m3-ordinary-life-long-run.grainBowlQuantity",
+    ),
+    bandageQuantity: requireNumber(
+      value["bandageQuantity"],
+      "m3-ordinary-life-long-run.bandageQuantity",
+    ),
+    replayMatches: requireBoolean(
+      value["replayMatches"],
+      "m3-ordinary-life-long-run.replayMatches",
+    ),
+    saveRoundTripMatches: requireBoolean(
+      value["saveRoundTripMatches"],
+      "m3-ordinary-life-long-run.saveRoundTripMatches",
+    ),
+    noReservationLeaks: requireBoolean(
+      value["noReservationLeaks"],
+      "m3-ordinary-life-long-run.noReservationLeaks",
+    ),
+    noStaleOffers: requireBoolean(
+      value["noStaleOffers"],
+      "m3-ordinary-life-long-run.noStaleOffers",
+    ),
+    noRunningJobLeaks: requireBoolean(
+      value["noRunningJobLeaks"],
+      "m3-ordinary-life-long-run.noRunningJobLeaks",
+    ),
+    noNegativeNeedsResources: requireBoolean(
+      value["noNegativeNeedsResources"],
+      "m3-ordinary-life-long-run.noNegativeNeedsResources",
+    ),
+    noAbilityCacheDivergence: requireBoolean(
+      value["noAbilityCacheDivergence"],
+      "m3-ordinary-life-long-run.noAbilityCacheDivergence",
+    ),
+    noConditionDrift: requireBoolean(
+      value["noConditionDrift"],
+      "m3-ordinary-life-long-run.noConditionDrift",
+    ),
+    noMoodRelationshipDrift: requireBoolean(
+      value["noMoodRelationshipDrift"],
+      "m3-ordinary-life-long-run.noMoodRelationshipDrift",
+    ),
+    noQueueGrowth: requireBoolean(
+      value["noQueueGrowth"],
+      "m3-ordinary-life-long-run.noQueueGrowth",
+    ),
+    noHashDivergence: requireBoolean(
+      value["noHashDivergence"],
+      "m3-ordinary-life-long-run.noHashDivergence",
+    ),
+    noM4Facts: requireBoolean(value["noM4Facts"], "m3-ordinary-life-long-run.noM4Facts"),
+    itemConserved: requireBoolean(
+      value["itemConserved"],
+      "m3-ordinary-life-long-run.itemConserved",
+    ),
+    medicalStockConserved: requireBoolean(
+      value["medicalStockConserved"],
+      "m3-ordinary-life-long-run.medicalStockConserved",
+    ),
+  };
+}
+
 function parseMapDirtyBaselineInvariants(
   value: Record<string, unknown>,
 ): BenchmarkBaselineEntry<"map-dirty">["invariants"] {
@@ -1244,6 +1511,13 @@ function sampleNamedBenchmark(
     });
   }
 
+  if (name === "m3-ordinary-life-long-run") {
+    return sampleBenchmark("m3-ordinary-life-long-run", {
+      sampleCount,
+      warmupCount,
+    });
+  }
+
   if (name === "map-dirty") {
     return sampleBenchmark("map-dirty", {
       sampleCount,
@@ -1311,6 +1585,10 @@ function compareAgainstNamedBaseline(
 
   if (result.name === "m2-work-logistics-long-run") {
     return compareBenchmarkToBaseline(result, baseline.benchmarks["m2-work-logistics-long-run"]);
+  }
+
+  if (result.name === "m3-ordinary-life-long-run") {
+    return compareBenchmarkToBaseline(result, baseline.benchmarks["m3-ordinary-life-long-run"]);
   }
 
   if (result.name === "map-dirty") {
@@ -1433,6 +1711,7 @@ function isBenchmarkName(value: string | undefined): value is BenchmarkName {
     value === "m1-hauling-building-long-run" ||
     value === "m2-pathing-invalidation" ||
     value === "m2-work-logistics-long-run" ||
+    value === "m3-ordinary-life-long-run" ||
     value === "map-dirty" ||
     value === "pathing-100" ||
     value === "reservations" ||
