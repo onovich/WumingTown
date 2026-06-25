@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQU3AE5A-842D07",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0066",
+  "kind": "changes-requested",
+  "subject": "WM-0066 review: changes_requested",
+  "body": "Recovery selection ignores the active recovery window type and can publish unrelated descriptors; duplicate recovery-window opens overwrite rows/inflate metrics; readRecoveryWindow reports expired windows as active. Required checks pass, but acceptance for recovery-window suppression/save-shaped state is not met.",
+  "artifacts": [
+    "coordination/reports/WM-0066.md"
+  ],
+  "createdAt": "2026-06-25T22:44:19.870Z",
+  "acknowledgedAt": "2026-06-25T22:45:28.840Z"
+}

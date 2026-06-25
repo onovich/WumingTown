@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQU3GIF6-90EE58",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0066",
+  "kind": "review-request",
+  "subject": "WM-0066 ready for review",
+  "body": "Repaired WM-0066 recovery-window findings: selection now filters by active recovery type, duplicate window opens are rejected without row/metric mutation, expired windows use tick-aware active checks and incident selection resumes after expiry; required checks and quality pass.",
+  "artifacts": [
+    "coordination/reports/WM-0066.md",
+    "task/WM-0066-add-m4-director-recovery-windows"
+  ],
+  "createdAt": "2026-06-25T22:49:05.346Z",
+  "acknowledgedAt": "2026-06-25T22:50:35.432Z"
+}

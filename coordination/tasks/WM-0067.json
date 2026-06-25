@@ -2,7 +2,7 @@
   "id": "WM-0067",
   "title": "Integrate M4 core vertical slice scenario",
   "summary": "Compose the focused M4 dusk-to-dawn borrowed-shadow lamp scenario with deterministic headless evidence, hashes and structured explanations.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,13 +31,19 @@
   ],
   "branch": "task/WM-0067-integrate-m4-core-vertical-slice-scenario",
   "createdAt": "2026-06-25T19:08:30.000Z",
-  "updatedAt": "2026-06-25T19:08:30.000Z",
+  "updatedAt": "2026-06-25T23:02:38.797Z",
   "history": [
     {
       "at": "2026-06-25T19:08:30.000Z",
       "actor": "systems-architect",
       "action": "create",
       "details": "Created by WM-0061 M4 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-25T23:02:38.797Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "objective": "Compose the first playable M4 rule-discovery path after the focused owner surfaces are reviewed.",

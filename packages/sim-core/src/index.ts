@@ -166,6 +166,10 @@ export {
   createM4BorrowedShadowCrisisStore,
 } from "./m4-borrowed-shadow-crisis";
 export {
+  M4DirectorPressureStore,
+  createM4DirectorPressureStore,
+} from "./m4-director-pressure-store";
+export {
   M4_BORROWED_SHADOW_EVIDENCE_COLD_LAMP_TRACE,
   M4_BORROWED_SHADOW_EVIDENCE_DUPLICATE_NAME,
   M4_BORROWED_SHADOW_EVIDENCE_LAMP_EDGE_FOOTPRINT,
@@ -194,6 +198,28 @@ export {
   M4_BORROWED_SHADOW_TRACE_LOW_RISK_EVIDENCE,
   M4_BORROWED_SHADOW_TRACE_RESOLUTION,
 } from "./m4-borrowed-shadow-types";
+export {
+  M4_DIRECTOR_CANDIDATE_INCIDENT,
+  M4_DIRECTOR_CANDIDATE_RECOVERY,
+  M4_DIRECTOR_COMMAND_EVIDENCE_REVIEW_OPPORTUNITY,
+  M4_DIRECTOR_COMMAND_LAMP_REPAIR_OPPORTUNITY,
+  M4_DIRECTOR_COMMAND_OBLIGATION_SETTLEMENT_OPPORTUNITY,
+  M4_DIRECTOR_COMMAND_REST_CARE_OPPORTUNITY,
+  M4_DIRECTOR_COMMAND_SCHEDULE_INCIDENT,
+  M4_DIRECTOR_NONE,
+  M4_DIRECTOR_RECOVERY_EVIDENCE_REVIEW,
+  M4_DIRECTOR_RECOVERY_LAMP_REPAIR,
+  M4_DIRECTOR_RECOVERY_NONE,
+  M4_DIRECTOR_RECOVERY_OBLIGATION_SETTLEMENT,
+  M4_DIRECTOR_RECOVERY_REST_CARE,
+  M4_DIRECTOR_THEME_CASE,
+  M4_DIRECTOR_THEME_CRISIS,
+  M4_DIRECTOR_THEME_EVIDENCE,
+  M4_DIRECTOR_THEME_INJURY,
+  M4_DIRECTOR_THEME_LAMP,
+  M4_DIRECTOR_THEME_MENTAL,
+  M4_DIRECTOR_THEME_OBLIGATION,
+} from "./m4-director-types";
 export {
   M3_NEED_STORE_SNAPSHOT_VERSION,
   NEED_ACTOR_NONE,
@@ -771,6 +797,21 @@ export type {
   M4BorrowedShadowTraceInput,
   M4BorrowedShadowTraceView,
 } from "./m4-borrowed-shadow-types";
+export type {
+  M4DirectorCandidateInput,
+  M4DirectorCandidateView,
+  M4DirectorMetrics,
+  M4DirectorMutationResult,
+  M4DirectorPressureSampleInput,
+  M4DirectorPressureSampleView,
+  M4DirectorPressureStoreOptions,
+  M4DirectorReason,
+  M4DirectorRecoveryWindowInput,
+  M4DirectorRecoveryWindowView,
+  M4DirectorSelectionQuery,
+  M4DirectorSelectionResult,
+  M4DirectorTraceView,
+} from "./m4-director-types";
 export type {
   NeedActorInput,
   NeedActorView,

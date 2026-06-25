@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQU3M9I2-6951ED",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0066",
+  "kind": "changes-requested",
+  "subject": "WM-0066 review: changes_requested",
+  "body": "High: recovery type filtering is applied after the global recovery-lane candidateCap, so wrong-type candidates can consume the cap and hide a later matching recovery opportunity; the no-selection reason is director_recovery_window_active despite candidateCapHit/rejectedRecoveryTypeCount. Prior duplicate-window and tick-aware active repairs are confirmed; required checks and quality pass.",
+  "artifacts": [
+    "coordination/reports/WM-0066.md"
+  ],
+  "createdAt": "2026-06-25T22:53:33.722Z",
+  "acknowledgedAt": "2026-06-25T22:54:36.637Z"
+}

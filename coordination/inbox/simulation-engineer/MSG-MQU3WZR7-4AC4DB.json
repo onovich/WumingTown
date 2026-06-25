@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQU3WZR7-4AC4DB",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0066",
+  "kind": "review-approved",
+  "subject": "WM-0066 review: verified",
+  "body": "No blocking findings. Confirmed per-recovery-type lanes prevent wrong-type candidates from consuming recovery candidateCap; duplicate window opens reject without row/metric mutation; expired windows are tick-inactive and incident selection resumes. Required checks and quality pass.",
+  "artifacts": [
+    "coordination/reports/WM-0066.md"
+  ],
+  "createdAt": "2026-06-25T23:01:54.307Z",
+  "acknowledgedAt": "2026-06-25T23:02:17.427Z"
+}

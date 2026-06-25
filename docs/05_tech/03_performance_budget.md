@@ -387,3 +387,20 @@ Crisis progress mutations are O(1) typed-array state transitions. Low-risk
 evidence, escalation, non-combat resolution and failure write bounded trace-ring
 rows with numeric reason codes; trace overflow overwrites the oldest trace row
 without changing crisis owner authority.
+
+## WM-0066 M4 director pressure/recovery metrics
+
+`M4DirectorPressureStore.createMetrics()` records director owner version,
+pressure sample count, active incident and recovery candidate counts, recovery
+window count, active recovery window id, selection count, last/total candidate
+visits, cooldown write count, trace ring usage and next trace sequence.
+
+Normal director selection never scans source lamp, evidence, obligation,
+health, relationship, crisis, resident or map owner stores. Source systems feed
+aggregate numeric samples with owner-version basis fields. Selection walks only
+the active incident candidate lane or, inside a recovery window, the recovery
+lane for that exact recovery type with caller candidate and selected caps.
+Wrong-type recovery candidates are in different lanes and cannot consume the
+active window's cap. Cooldowns are direct-indexed by cooldown key, and selected
+Top-K rows are resolved through a named deterministic random stream. Recovery
+opportunities are descriptors only; they do not mutate source owner facts.

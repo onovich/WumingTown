@@ -2,7 +2,7 @@
   "id": "WM-0066",
   "title": "Add M4 director recovery windows",
   "summary": "Add bounded director pressure sampling, incident/recovery candidate selection, cooldowns, recovery windows and structured rejection reasons.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0066-add-m4-director-recovery-windows",
   "createdAt": "2026-06-25T19:08:30.000Z",
-  "updatedAt": "2026-06-25T22:19:38.997Z",
+  "updatedAt": "2026-06-25T23:02:38.791Z",
   "history": [
     {
       "at": "2026-06-25T19:08:30.000Z",
@@ -43,6 +43,60 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-25T22:22:27.880Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Tally WM-0066 M4 director recovery"
+    },
+    {
+      "at": "2026-06-25T22:35:31.582Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented M4 director pressure/recovery owner surface with aggregate pressure samples, bounded incident and recovery candidates, named-stream selection, cooldowns, recovery windows, descriptor-only commands, focused tests, docs, report; required checks and quality pass."
+    },
+    {
+      "at": "2026-06-25T22:44:19.869Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: Recovery selection ignores the active recovery window type and can publish unrelated descriptors; duplicate recovery-window opens overwrite rows/inflate metrics; readRecoveryWindow reports expired windows as active. Required checks pass, but acceptance for recovery-window suppression/save-shaped state is not met."
+    },
+    {
+      "at": "2026-06-25T22:49:05.345Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Repaired WM-0066 recovery-window findings: selection now filters by active recovery type, duplicate window opens are rejected without row/metric mutation, expired windows use tick-aware active checks and incident selection resumes after expiry; required checks and quality pass."
+    },
+    {
+      "at": "2026-06-25T22:53:33.721Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: recovery type filtering is applied after the global recovery-lane candidateCap, so wrong-type candidates can consume the cap and hide a later matching recovery opportunity; the no-selection reason is director_recovery_window_active despite candidateCapHit/rejectedRecoveryTypeCount. Prior duplicate-window and tick-aware active repairs are confirmed; required checks and quality pass."
+    },
+    {
+      "at": "2026-06-25T22:58:31.036Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Repaired second WM-0066 finding: recovery candidates are partitioned into per-recovery-type lanes so wrong-type rows cannot consume candidateCap; lamp repair windows select from lamp repair lane only; duplicate/expired window regressions still pass; required checks and quality pass."
+    },
+    {
+      "at": "2026-06-25T23:01:54.306Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Confirmed per-recovery-type lanes prevent wrong-type candidates from consuming recovery candidateCap; duplicate window opens reject without row/metric mutation; expired windows are tick-inactive and incident selection resumes. Required checks and quality pass."
+    },
+    {
+      "at": "2026-06-25T23:02:25.089Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified director pressure and recovery-window surface accepted after recovery type lane repairs."
+    },
+    {
+      "at": "2026-06-25T23:02:38.791Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Implement a constrained M4 director pressure and recovery surface without turning the director into hidden simulation authority.",
@@ -82,5 +136,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Director authority and recovery-window design is architecture-sensitive deterministic simulation work."
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Tally WM-0066 M4 director recovery",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0066.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Confirmed per-recovery-type lanes prevent wrong-type candidates from consuming recovery candidateCap; duplicate window opens reject without row/metric mutation; expired windows are tick-inactive and incident selection resumes. Required checks and quality pass.",
+    "at": "2026-06-25T23:01:54.306Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified director pressure and recovery-window surface accepted after recovery type lane repairs.",
+    "at": "2026-06-25T23:02:25.089Z"
   }
 }

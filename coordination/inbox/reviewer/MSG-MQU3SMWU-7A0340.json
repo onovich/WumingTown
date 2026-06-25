@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQU3SMWU-7A0340",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0066",
+  "kind": "review-request",
+  "subject": "WM-0066 ready for review",
+  "body": "Repaired second WM-0066 finding: recovery candidates are partitioned into per-recovery-type lanes so wrong-type rows cannot consume candidateCap; lamp repair windows select from lamp repair lane only; duplicate/expired window regressions still pass; required checks and quality pass.",
+  "artifacts": [
+    "coordination/reports/WM-0066.md",
+    "task/WM-0066-add-m4-director-recovery-windows"
+  ],
+  "createdAt": "2026-06-25T22:58:31.038Z",
+  "acknowledgedAt": "2026-06-25T22:59:55.473Z"
+}
