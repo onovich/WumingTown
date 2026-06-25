@@ -2,7 +2,7 @@
   "id": "WM-0040",
   "title": "Add M2 save replay resume harness",
   "summary": "Extend focused save/replay diagnostics to the M2 work/logistics vertical slice without broad save compatibility or platform save UI.",
-  "state": "in_progress",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0040-add-m2-save-replay-resume-harness",
   "createdAt": "2026-06-24T21:14:35.180Z",
-  "updatedAt": "2026-06-25T03:50:48.788Z",
+  "updatedAt": "2026-06-25T04:18:12.465Z",
   "history": [
     {
       "at": "2026-06-24T21:14:35.180Z",
@@ -49,6 +49,42 @@
       "actor": "simulation-engineer",
       "action": "claim",
       "details": "thread=Beacon direct WM-0040"
+    },
+    {
+      "at": "2026-06-25T04:04:56.728Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Added focused M2 save/replay resume harness, m2-save-replay filter and m2-work-logistics replay diagnostics; required checks and pnpm quality pass."
+    },
+    {
+      "at": "2026-06-25T04:10:33.890Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: tools/sim-replay-diagnostics-lib.mjs imports sim-core internal M2 modules directly instead of the public package entry point, violating AGENTS package-boundary rule and ADR-0007 public import gate; required checks rerun and passed otherwise."
+    },
+    {
+      "at": "2026-06-25T04:13:59.938Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Addressed review finding by exporting focused M2 save/replay helpers through sim-core public entry point and removing tool imports of internal M2 modules; required checks and pnpm quality pass."
+    },
+    {
+      "at": "2026-06-25T04:16:49.867Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: Previous package-boundary finding resolved: M2 diagnostics now import through packages/sim-core/src/index.ts; required WM-0040 checks and pnpm quality pass; no blocking findings."
+    },
+    {
+      "at": "2026-06-25T04:18:06.361Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Branch integration gate passed after reviewer verification: handoff validate, taskctl validate, git diff --check, pnpm quality."
+    },
+    {
+      "at": "2026-06-25T04:18:12.465Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Make M2 save/load/replay deterministic and diagnosable before Worker parity and benchmark closeout.",
@@ -59,6 +95,7 @@
     "packages/sim-core/src/m2-save-replay.test.ts",
     "packages/sim-core/src/replay-diagnostics.ts",
     "packages/sim-core/src/m2-work-logistics-scenario.ts",
+    "packages/sim-core/src/index.ts",
     "tools/sim-replay-test.mjs",
     "tools/sim-replay-diagnostics-lib.mjs",
     "docs/02_systems/13_save_replay_migration.md",
@@ -90,5 +127,17 @@
   },
   "claimedBy": "simulation-engineer",
   "threadLabel": "Beacon direct WM-0040",
-  "blocker": null
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0040.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "Previous package-boundary finding resolved: M2 diagnostics now import through packages/sim-core/src/index.ts; required WM-0040 checks and pnpm quality pass; no blocking findings.",
+    "at": "2026-06-25T04:16:49.866Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Branch integration gate passed after reviewer verification: handoff validate, taskctl validate, git diff --check, pnpm quality.",
+    "at": "2026-06-25T04:18:06.360Z"
+  }
 }

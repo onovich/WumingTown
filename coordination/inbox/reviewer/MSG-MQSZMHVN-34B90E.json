@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQSZMHVN-34B90E",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0040",
+  "kind": "review-request",
+  "subject": "WM-0040 ready for review",
+  "body": "Addressed review finding by exporting focused M2 save/replay helpers through sim-core public entry point and removing tool imports of internal M2 modules; required checks and pnpm quality pass.",
+  "artifacts": [
+    "coordination/reports/WM-0040.md",
+    "task/WM-0040-add-m2-save-replay-resume-harness"
+  ],
+  "createdAt": "2026-06-25T04:13:59.939Z",
+  "acknowledgedAt": "2026-06-25T04:14:20.619Z"
+}

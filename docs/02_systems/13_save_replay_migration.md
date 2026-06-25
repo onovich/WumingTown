@@ -115,3 +115,24 @@ The minimal sections mirror the ADR-0005 names needed by this scenario:
 `CommandLogTail`. Load returns rebuilt derived indexes for work offers,
 reservations and read models before resume. Read-only render/UI projections are
 copied hash payloads and are not owner stores or mutation APIs.
+
+## WM-0040 implementation note
+
+`packages/sim-core/src/m2-save-replay.ts` implements the focused M2
+work/logistics save/replay harness for `m2.work_logistics.lantern_yard.v1`.
+It is not a public save container, does not change cross-version migration, and
+does not add platform save UI.
+
+The focused M2 envelope keeps the same minimal section names used by the M1
+harness: `MapChunks`, `EntityStores`, `JobsReservations`, `RandomStreams` and
+`CommandLogTail`. Load validates magic, format version, scenario id, section
+versions, owner handles, integer lanes, sorted item/order/job records,
+checkpoint tick and read-only projection hashes before returning a loaded
+result. Derived WorkOffer rows, path caches, reservations and read models are
+rebuilt from owner-state summaries and are not stored as authoritative cache
+payloads.
+
+The M2 replay gate saves at tick 6000 and resumes to tick 20000. The focused
+diagnostics compare uninterrupted and resumed checkpoint hashes for the same
+seed and checkpoint sequence, and failure output names the seed, scenario id,
+first divergent tick and artifact paths.

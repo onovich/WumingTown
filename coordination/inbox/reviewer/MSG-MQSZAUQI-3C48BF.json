@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQSZAUQI-3C48BF",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0040",
+  "kind": "review-request",
+  "subject": "WM-0040 ready for review",
+  "body": "Added focused M2 save/replay resume harness, m2-save-replay filter and m2-work-logistics replay diagnostics; required checks and pnpm quality pass.",
+  "artifacts": [
+    "coordination/reports/WM-0040.md",
+    "task/WM-0040-add-m2-save-replay-resume-harness"
+  ],
+  "createdAt": "2026-06-25T04:04:56.730Z",
+  "acknowledgedAt": "2026-06-25T04:05:49.249Z"
+}

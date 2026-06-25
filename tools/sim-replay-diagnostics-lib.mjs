@@ -4,23 +4,51 @@ import * as path from "node:path";
 import {
   advanceHeadlessTicks,
   compareM1ReplayRuns,
+  compareM2ReplayRuns,
   compareReplayCheckpoints,
   createM1HaulingBuildingSaveEnvelope,
   createHeadlessReplayCheckpoint,
   createHeadlessRunner,
+  createM2WorkLogisticsSaveEnvelope,
+  M2_WORK_LOGISTICS_SCENARIO_ID,
   queueHeadlessCommand,
   resumeM1HaulingBuildingFromSave,
+  resumeM2WorkLogisticsFromSave,
   runM1HaulingBuildingReplay,
+  runM2WorkLogisticsReplay,
   summarizeHeadlessRun,
 } from "../packages/sim-core/src/index.ts";
 
 const M1_SCENARIO_ID = "m1.hauling_building.road_lantern_frame.v1";
+const M2_SCENARIO_FILTER = "m2-work-logistics";
 
 const DEFAULT_SEED = "WM-0010-long-run";
+const DEFAULT_M2_SEED = "2";
 const DEFAULT_SEGMENT_TICKS = 5_000;
 const DEFAULT_SEGMENT_COUNT = 24;
 
 export function runReplayDiagnostics(options = {}) {
+  if (options.scenario === M2_SCENARIO_FILTER) {
+    return runM2ReplayDiagnostics(options);
+  }
+
+  if (options.scenario !== undefined && options.scenario !== "all") {
+    const artifactPaths = createArtifactPaths(options.artifactRoot);
+    mkdirSync(path.dirname(artifactPaths.summary), { recursive: true });
+    return createReplayFailure(
+      "unsupported_scenario",
+      `Unsupported replay diagnostics scenario: ${options.scenario}`,
+      {
+        seed: options.seed ?? DEFAULT_SEED,
+        firstDivergentTick: null,
+        artifactPaths,
+      },
+      {
+        scenarioId: options.scenario,
+      },
+    );
+  }
+
   const seed = options.seed ?? DEFAULT_SEED;
   const segmentTicks = options.segmentTicks ?? DEFAULT_SEGMENT_TICKS;
   const segmentCount = options.segmentCount ?? DEFAULT_SEGMENT_COUNT;
@@ -166,11 +194,13 @@ export function printReplayDiagnosticsResult(result) {
     console.log(
       JSON.stringify(
         {
+          scenarioId: result.scenarioId ?? null,
           seed: result.seed,
-          cleanCheckpointCount: result.cleanCheckpointCount,
-          perturbedFirstDivergentTick: result.perturbedFirstDivergence.tick,
+          cleanCheckpointCount: result.cleanCheckpointCount ?? null,
+          perturbedFirstDivergentTick: result.perturbedFirstDivergence?.tick ?? null,
           artifactPaths: result.artifactPaths,
           m1Scenario: result.m1Scenario ?? null,
+          m2Scenario: result.m2Scenario ?? null,
         },
         null,
         2,
@@ -291,6 +321,7 @@ function serializeError(error) {
 function createArtifactPaths(customArtifactRoot) {
   const artifactDir = path.join(resolveArtifactRoot(customArtifactRoot), "determinism");
   const m1Dir = path.join(resolveArtifactRoot(customArtifactRoot), "m1-save-replay");
+  const m2Dir = path.join(resolveArtifactRoot(customArtifactRoot), "m2-save-replay");
 
   return {
     expected: path.join(artifactDir, "expected-checkpoints.json"),
@@ -303,6 +334,13 @@ function createArtifactPaths(customArtifactRoot) {
       resumed: path.join(m1Dir, "resumed.json"),
       save: path.join(m1Dir, "save.json"),
       summary: path.join(m1Dir, "summary.json"),
+    },
+    m2: {
+      expected: path.join(m2Dir, "expected.json"),
+      actual: path.join(m2Dir, "actual.json"),
+      resumed: path.join(m2Dir, "resumed.json"),
+      save: path.join(m2Dir, "save.json"),
+      summary: path.join(m2Dir, "summary.json"),
     },
   };
 }
@@ -334,6 +372,13 @@ function toRelativeArtifactPaths(artifactPaths) {
       save: toRelativePath(artifactPaths.m1.save),
       summary: toRelativePath(artifactPaths.m1.summary),
     },
+    m2: {
+      expected: toRelativePath(artifactPaths.m2.expected),
+      actual: toRelativePath(artifactPaths.m2.actual),
+      resumed: toRelativePath(artifactPaths.m2.resumed),
+      save: toRelativePath(artifactPaths.m2.save),
+      summary: toRelativePath(artifactPaths.m2.summary),
+    },
   };
 }
 
@@ -343,6 +388,105 @@ function writeJson(targetPath, value) {
 
 function toRelativePath(targetPath) {
   return path.relative(process.cwd(), targetPath).replaceAll("\\", "/");
+}
+
+function runM2ReplayDiagnostics(options) {
+  const seed = options.seed ?? DEFAULT_M2_SEED;
+  const artifactPaths = createArtifactPaths(
+    options.artifactRoot ?? path.join("coordination", "artifacts", "WM-0040"),
+  );
+  const failureContext = {
+    seed,
+    firstDivergentTick: null,
+    artifactPaths,
+  };
+
+  mkdirSync(path.dirname(artifactPaths.m2.summary), { recursive: true });
+  mkdirSync(path.dirname(artifactPaths.summary), { recursive: true });
+
+  try {
+    const checkpointTicks = [0, 6_000, 20_000];
+    const resumeCheckpointTicks = [6_000, 20_000];
+    const expected = readM2Replay(runM2WorkLogisticsReplay({ seed, checkpointTicks }));
+    const actual = readM2Replay(runM2WorkLogisticsReplay({ seed, checkpointTicks }));
+    const expectedResume = readM2Replay(
+      runM2WorkLogisticsReplay({ seed, checkpointTicks: resumeCheckpointTicks }),
+    );
+    const save = readM2Save(createM2WorkLogisticsSaveEnvelope(seed, 6_000));
+    const resumed = readM2Replay(
+      resumeM2WorkLogisticsFromSave({
+        save,
+        finalTick: 20_000,
+        checkpointTicks: resumeCheckpointTicks,
+      }),
+    );
+
+    writeJson(artifactPaths.m2.expected, expected);
+    writeJson(artifactPaths.m2.actual, actual);
+    writeJson(artifactPaths.m2.save, save);
+    writeJson(artifactPaths.m2.resumed, resumed);
+
+    const relativeArtifacts = {
+      expected: toRelativePath(artifactPaths.m2.expected),
+      actual: toRelativePath(artifactPaths.m2.actual),
+      resumed: toRelativePath(artifactPaths.m2.resumed),
+      save: toRelativePath(artifactPaths.m2.save),
+      summary: toRelativePath(artifactPaths.m2.summary),
+    };
+    const comparison = compareM2ReplayRuns(expected, actual, relativeArtifacts);
+    const resumedComparison = compareM2ReplayRuns(expectedResume, resumed, relativeArtifacts);
+
+    if (!comparison.ok || !resumedComparison.ok) {
+      const divergence = comparison.ok ? resumedComparison : comparison;
+      return createReplayFailure(
+        "m2_work_logistics_divergence",
+        "M2 work/logistics save/replay diagnostics diverged.",
+        failureContext,
+        {
+          scenarioId: M2_WORK_LOGISTICS_SCENARIO_ID,
+          firstDivergentTick: divergence.firstDivergentTick,
+          divergence,
+        },
+      );
+    }
+
+    const m2Scenario = {
+      ok: true,
+      scenarioId: M2_WORK_LOGISTICS_SCENARIO_ID,
+      seed,
+      finalWorldHash: expected.finalWorldHash,
+      finalReadModelHash: expected.finalReadModelHash,
+      checkpointCount: expected.checkpoints.length,
+      saveTick: save.createdTick,
+      saveBytes: JSON.stringify(save).length,
+      firstDivergentTick: null,
+      rebuiltIndexes: ["work-offers", "path-caches", "reservations", "read-models"],
+      artifactPaths: relativeArtifacts,
+    };
+
+    const summary = {
+      ok: true,
+      scenarioId: M2_WORK_LOGISTICS_SCENARIO_ID,
+      seed,
+      firstDivergentTick: null,
+      m2Scenario,
+      artifactPaths: toRelativeArtifactPaths(artifactPaths),
+    };
+
+    writeJson(artifactPaths.m2.summary, m2Scenario);
+    writeJson(artifactPaths.summary, summary);
+    return summary;
+  } catch (error) {
+    return createReplayFailure(
+      "unexpected_error",
+      "M2 replay diagnostics crashed before completing structured checks.",
+      failureContext,
+      {
+        scenarioId: M2_WORK_LOGISTICS_SCENARIO_ID,
+        error,
+      },
+    );
+  }
 }
 
 function runM1ReplayDiagnostics(seed, artifactPaths) {
@@ -420,6 +564,22 @@ function readM1Replay(result) {
 }
 
 function readM1Save(result) {
+  if (!result.ok) {
+    throw new Error(result.reason);
+  }
+
+  return result.save;
+}
+
+function readM2Replay(result) {
+  if (!result.ok) {
+    throw new Error(result.reason);
+  }
+
+  return result.replay;
+}
+
+function readM2Save(result) {
   if (!result.ok) {
     throw new Error(result.reason);
   }

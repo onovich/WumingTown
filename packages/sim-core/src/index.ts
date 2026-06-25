@@ -87,6 +87,31 @@ export {
   runM1HaulingBuildingReplay,
 } from "./m1-save-replay";
 export {
+  M2_COMMAND_PREFIX,
+  M2_READ_MODEL_HASH_VERSION,
+  M2_SAVE_FORMAT_VERSION,
+  M2_SAVE_MAGIC,
+  M2_SECTION_DIRECTORY_VERSION,
+  M2_SECTION_VERSION,
+  compareM2ReplayRuns,
+  createM2AdvanceCommandId,
+  createM2ReadOnlyProjection,
+  createM2WorkLogisticsSaveEnvelope,
+  loadM2WorkLogisticsSaveEnvelope,
+  parseM2AdvanceCommandId,
+  resumeM2WorkLogisticsFromSave,
+  runM2WorkLogisticsReplay,
+} from "./m2-save-replay";
+export {
+  M2_BLUEPRINT_ROAD_LANTERN_FRAME,
+  M2_BUILDING_ROAD_LANTERN_FRAME,
+  M2_ITEM_BINDING_PAPER,
+  M2_ITEM_STONE,
+  M2_ITEM_WOOD,
+  M2_WORK_LOGISTICS_SCENARIO_ID,
+  runM2WorkLogisticsScenario,
+} from "./m2-work-logistics-scenario";
+export {
   LOCATION_CONTAINER,
   LOCATION_MAP,
   LOCATION_NONE,
@@ -332,6 +357,41 @@ export type {
   M1SaveReplayReason,
   M1UiDetailProjection,
 } from "./m1-save-replay";
+export type {
+  M2BuildOrderRecord,
+  M2CommandLogTailSection,
+  M2EntityStoresSection,
+  M2ItemStackRecord,
+  M2JobReservationRecord,
+  M2JobsReservationsSection,
+  M2MapChunksSection,
+  M2OrderReadModelProjection,
+  M2OwnerHandle,
+  M2RandomStreamsSection,
+  M2ReadOnlyProjection,
+  M2RebuiltIndexesProjection,
+  M2RenderSnapshotProjection,
+  M2ReplayArtifactPaths,
+  M2ReplayCheckpoint,
+  M2ReplayComparison,
+  M2ReplayOptions,
+  M2ReplayResult,
+  M2ReplayRun,
+  M2ResumeOptions,
+  M2SaveEnvelopeResult,
+  M2SaveLoadResult,
+  M2SaveReplayReason,
+  M2WorkLogisticsSaveEnvelope,
+  M2WorkLogisticsSaveSections,
+} from "./m2-save-replay";
+export type {
+  M2WorkLogisticsCounters,
+  M2WorkLogisticsEndState,
+  M2WorkLogisticsFailureReasons,
+  M2WorkLogisticsInvariants,
+  M2WorkLogisticsScenarioOptions,
+  M2WorkLogisticsScenarioSummary,
+} from "./m2-work-logistics-scenario";
 export type {
   LocationCleanupReason,
   LocationDestroyResult,

@@ -66,3 +66,16 @@ records `nodeVersion`, `pnpmVersion`, `osRelease`, `platform`, `arch`,
 actual runtime. The documented pnpm forwarding form
 `pnpm sim:run -- --seed 1 --scenario hauling-building --ticks 100000` is a
 supported local reproduction command.
+
+## WM-0040 implementation note
+
+`pnpm test --filter m2-save-replay` covers the focused M2 work/logistics
+save/load/resume harness. It validates save shape, versions, scenario id, owner
+handles, integer lanes, sorted records, rebuilt derived indexes and structured
+divergence diagnostics for `m2.work_logistics.lantern_yard.v1`.
+
+`pnpm sim:replay-test -- --scenario m2-work-logistics` runs the M2 replay gate
+with seed `2`, save tick `6000` and final tick `20000`. It writes expected,
+actual, save, resumed and summary artifacts under
+`coordination/artifacts/WM-0040/m2-save-replay/`, and prints the scenario id,
+seed, first divergent tick and artifact paths on failure.

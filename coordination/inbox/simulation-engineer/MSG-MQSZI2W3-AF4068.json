@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQSZI2W3-AF4068",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0040",
+  "kind": "changes-requested",
+  "subject": "WM-0040 review: changes_requested",
+  "body": "High: tools/sim-replay-diagnostics-lib.mjs imports sim-core internal M2 modules directly instead of the public package entry point, violating AGENTS package-boundary rule and ADR-0007 public import gate; required checks rerun and passed otherwise.",
+  "artifacts": [
+    "coordination/reports/WM-0040.md"
+  ],
+  "createdAt": "2026-06-25T04:10:33.891Z",
+  "acknowledgedAt": "2026-06-25T04:11:47.372Z"
+}

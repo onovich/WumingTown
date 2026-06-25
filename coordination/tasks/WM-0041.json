@@ -2,7 +2,7 @@
   "id": "WM-0041",
   "title": "Add M2 Worker headless parity",
   "summary": "Prove browser Worker and Node headless run the M2 work/logistics scenario with matching authoritative hashes and read-only projections.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,13 +30,19 @@
   ],
   "branch": "task/WM-0041-add-m2-worker-headless-parity",
   "createdAt": "2026-06-24T21:14:35.180Z",
-  "updatedAt": "2026-06-24T21:14:35.180Z",
+  "updatedAt": "2026-06-25T04:18:12.469Z",
   "history": [
     {
       "at": "2026-06-24T21:14:35.180Z",
       "actor": "systems-architect",
       "action": "create",
       "details": "Created by WM-0032 M2 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-25T04:18:12.469Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "objective": "Gate M2 through Worker/headless authoritative parity while keeping UI read-only.",
