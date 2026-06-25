@@ -94,3 +94,17 @@ Focused parity tests also build a deterministic diagnostic record containing
 seed, scenario id, first mismatched checkpoint tick, final snapshot size and
 Worker message latency count. These diagnostics are test/report evidence, not
 authoritative owner state and not a persisted cache.
+
+## M3 architecture gate note
+
+`coordination/decisions/ADR-0008.md` keeps ReasonTrace as the shared source for
+M3 player explanation, debug panels, tests, and benchmark diagnostics. Each
+retained M3 trace row must include scenario id, seed, tick, system id, actor id
+when applicable, candidate counts, cap values, selected target or terminal
+target, structured reason class, and source owner-store version basis.
+
+`ReasonTraceStore` remains a bounded diagnostic store with focused M3 capacity
+`64`. It is not a job cursor, save authority, reservation owner, hidden retry
+queue, or UI-only string log. Need, rest, eating, treatment, medical, mood,
+relationship, weather, save/replay, and Worker parity failures must emit
+structured reasons that tests can assert without reading prose.

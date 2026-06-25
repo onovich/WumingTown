@@ -2,7 +2,7 @@
   "id": "WM-0047",
   "title": "Record M3 ordinary life architecture gate",
   "summary": "Record the M3 architecture decision for ordinary-life state ownership, derived indexes, jobs, save/replay, Worker parity and performance before implementation.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -23,6 +23,7 @@
     "Owner stores are named for needs rest food health conditions abilities medical care mood thoughts memories relationships day/night and weather",
     "Derived indexes dirty queues candidate caps Top-K limits versioned invalidation and structured ReasonTrace ownership are specified",
     "Serializable job-driver boundaries are specified for rest eating and treatment jobs",
+    "ADR index is updated to point ADR-0008 at the M3 ordinary-life architecture gate",
     "Block conditions are explicit for owner-store gaps global scans unversioned caches public Worker protocol save/schema changes new dependencies package-boundary exceptions UI authority and M4 scope",
     "No runtime implementation package manifests lockfiles schema protocol save format or dependency changes are included"
   ],
@@ -35,7 +36,7 @@
   ],
   "branch": "task/WM-0047-record-m3-ordinary-life-architecture-gate",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T08:14:13.974Z",
+  "updatedAt": "2026-06-25T08:37:14.021Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
@@ -48,6 +49,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-25T08:20:31.027Z",
+      "actor": "systems-architect",
+      "action": "claim",
+      "details": ""
+    },
+    {
+      "at": "2026-06-25T08:29:32.316Z",
+      "actor": "systems-architect",
+      "action": "complete",
+      "details": "Recorded ADR-0008 M3 ordinary-life architecture gate, updated narrow docs and report, and all required checks pass."
+    },
+    {
+      "at": "2026-06-25T08:35:26.137Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; ADR-0008 satisfies WM-0047 acceptance, preserves focused architecture scope, blocks runtime/protocol/save/schema/dependency/M4 drift, and required checks pass."
+    },
+    {
+      "at": "2026-06-25T08:37:05.920Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "WM-0047 ADR-0008 M3 ordinary-life architecture gate verified and integrated; downstream implementation remains bound by owner-store, derived-index, save/replay and Worker parity gates."
+    },
+    {
+      "at": "2026-06-25T08:37:14.021Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Create the reviewed M3 ADR gate so implementation cannot begin with ambiguous state ownership or hidden authority changes.",
@@ -57,6 +88,7 @@
     "docs/02_systems/13_save_replay_migration.md",
     "docs/02_systems/14_explainability_debug_observability.md",
     "docs/05_tech/03_performance_budget.md",
+    "docs/05_tech/07_architecture_decision_records.md",
     "docs/07_roadmap/08_m3_ordinary_life_simulation_plan.md",
     "coordination/tasks/WM-0047.json",
     "coordination/reports/WM-0047.md"
@@ -88,5 +120,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Architecture, state ownership, save/replay, Worker parity and performance boundary decisions are outside Spark scope."
+  },
+  "claimedBy": "systems-architect",
+  "threadLabel": null,
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0047.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; ADR-0008 satisfies WM-0047 acceptance, preserves focused architecture scope, blocks runtime/protocol/save/schema/dependency/M4 drift, and required checks pass.",
+    "at": "2026-06-25T08:35:26.137Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "WM-0047 ADR-0008 M3 ordinary-life architecture gate verified and integrated; downstream implementation remains bound by owner-store, derived-index, save/replay and Worker parity gates.",
+    "at": "2026-06-25T08:37:05.919Z"
   }
 }

@@ -2,7 +2,7 @@
   "id": "WM-0049",
   "title": "Add M3 day night and weather basics",
   "summary": "Add deterministic day/night and basic weather owner state for ordinary-life context.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,13 +30,19 @@
   ],
   "branch": "task/WM-0049-add-m3-day-night-and-weather-basics",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T07:30:00.000Z",
+  "updatedAt": "2026-06-25T08:37:14.027Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
       "actor": "systems-architect",
       "action": "create",
       "details": "Created by WM-0045 M3 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-25T08:37:14.027Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "objective": "Create deterministic ordinary-life time and weather context without adding product-level M4 weather or visual systems.",

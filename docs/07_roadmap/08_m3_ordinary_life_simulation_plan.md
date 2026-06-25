@@ -99,6 +99,13 @@ implementation tasks run. The proposed ADR path is
 `coordination/decisions/ADR-0008.md`, but WM-0045 does not create that decision
 record because this task is only the planning package.
 
+WM-0047 records that gate as
+`coordination/decisions/ADR-0008.md`. Downstream M3 implementation tasks must
+cite the reviewed ADR and block rather than code through owner-store gaps,
+global scans, unversioned caches, public protocol/save/schema drift, new
+dependencies, package-boundary exceptions, UI authority, real-time/random
+authority, Promise or coroutine jobs, or M4 scope.
+
 The M3 architecture gate must document:
 
 - owner stores for needs, rest/sleep, food/eating, health conditions, ability

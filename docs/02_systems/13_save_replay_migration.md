@@ -136,3 +136,24 @@ The M2 replay gate saves at tick 6000 and resumes to tick 20000. The focused
 diagnostics compare uninterrupted and resumed checkpoint hashes for the same
 seed and checkpoint sequence, and failure output names the seed, scenario id,
 first divergent tick and artifact paths.
+
+## M3 architecture gate note
+
+`coordination/decisions/ADR-0008.md` scopes M3 save/replay to the focused
+`m3.ordinary_life.injured_caregiver.v1` harness. It does not approve a public
+save container, platform save UI, public schema migration, codec dependency, or
+cross-version compatibility promise.
+
+Focused M3 checkpoints may contain scenario id, seed, content and command
+hashes, current tick, approved M3 owner-store snapshots, named random stream
+state, `JobCoreStore`, rest/eating/treatment driver state,
+`ReservationLedger`, command log tail, compact ReasonTrace and metric
+diagnostics, and read-only projection hashes for comparison.
+
+Load must validate versions, integer ranges, ids, generations, job states,
+reservation claims, random stream positions, and command continuity in scratch
+state before mutating a live world. Need, rest, food, medical, ability, mood,
+relationship, schedule, weather, WorkOffer, path, read-model, and trace
+materialization indexes rebuild before the first resumed tick. Derived caches,
+WorkOffer rows, path caches, read models, UI projections, and ability-cache
+rows are not authoritative save payloads.

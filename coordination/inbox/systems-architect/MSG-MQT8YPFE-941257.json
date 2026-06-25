@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQT8YPFE-941257",
+  "from": "reviewer",
+  "to": "systems-architect",
+  "taskId": "WM-0047",
+  "kind": "review-approved",
+  "subject": "WM-0047 review: verified",
+  "body": "No blocking findings; ADR-0008 satisfies WM-0047 acceptance, preserves focused architecture scope, blocks runtime/protocol/save/schema/dependency/M4 drift, and required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0047.md"
+  ],
+  "createdAt": "2026-06-25T08:35:26.139Z",
+  "acknowledgedAt": "2026-06-25T08:36:53.015Z"
+}

@@ -2,7 +2,7 @@
   "id": "WM-0048",
   "title": "Add M3 needs owner stores and urgency indexes",
   "summary": "Add deterministic need state and derived urgency indexes for hunger, rest, comfort, social and safety.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,13 +30,19 @@
   ],
   "branch": "task/WM-0048-add-m3-needs-owner-stores-and-urgency-indexes",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T07:30:00.000Z",
+  "updatedAt": "2026-06-25T08:37:14.026Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
       "actor": "systems-architect",
       "action": "create",
       "details": "Created by WM-0045 M3 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-25T08:37:14.026Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "objective": "Implement the first M3 life-state owner store surface without job behavior or UI authority.",

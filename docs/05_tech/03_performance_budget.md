@@ -66,6 +66,33 @@ allocation in actor thinking, work selection, reservation, pathing, cleanup and
 read-model production. Load-time rebuild scans are allowed only before resumed
 ticks and must be measured.
 
+## M3 ordinary-life gate metrics
+
+`coordination/decisions/ADR-0008.md` extends the performance gate for the M3
+ordinary-life scenario without changing baseline thresholds.
+
+M3 implementation and benchmark tasks must report:
+
+- scheduled need update counts, stagger distribution, candidate totals, Top-K
+  cap hits, and per-system cost;
+- rest fixture, food portion, medical offer, and social event candidate counts,
+  visited rows, selected rows, exact path caps, and cap-hit ReasonTrace rows;
+- condition update counts, ability cache invalidations, stale cache rejects,
+  and ability query cost;
+- treatment/eating/rest job counts by state and terminal reason, reservation
+  attempts, cleanup releases, and final active claims;
+- thought generation and retained counts, relationship event and edge counts,
+  day/night and weather update cost, dirty queue peak/final backlog, and
+  ReasonTrace capacity use;
+- snapshot byte size, load validation time, derived rebuild time, command log
+  size, resume hash comparison, Worker parity latency counts, read-model sizes,
+  and checkpoint hashes.
+
+Normal M3 ticks must preserve the no-global-scan, no-unbounded-sort, and
+allocation-sensitive hot-path policy. Raising ADR-0008 candidate caps or trace
+retention requires explicit task evidence and must not weaken the 10 percent
+warning or 20 percent blocking regression thresholds.
+
 ## WM-0035 benchmark note
 
 `packages/benchmarks/src/m2-path-work-selection-benchmark.ts` measures the M2
