@@ -74,3 +74,48 @@ M4 lamp/social gameplay, platform save UI, public save compatibility beyond
 focused harnesses, content catalog expansion and balance production. Existing
 nonblocking warnings remain tracked: Node `DEP0190` warnings from local scripts
 and Vite chunk-size warnings during web and desktop builds.
+
+## M3 Closeout Status
+
+WM-0060 closes M3 as an ordinary-life simulation milestone. The reviewed M3
+task chain establishes the executable scenario contract, ADR-0008 owner-store
+architecture, needs and urgency indexes, day/night and weather basics, rest and
+sleep jobs, food/eating logistics, health conditions, ability cache
+invalidation, medical treatment jobs, mood/thought/memory lanes, relationship
+events, integrated ordinary-life scenario composition, focused save/replay,
+Worker/headless parity, and benchmark-backed long-run invariants.
+
+Closeout evidence:
+
+- Headless ordinary life:
+  `pnpm sim:run -- --seed 3 --scenario m3-ordinary-life --ticks 100000` passed
+  with scenario id `m3.ordinary_life.injured_caregiver.v1`, requested seed `3`,
+  authoritative scenario seed `46`, command hash `0x226832d2`, content hash
+  `0xdfe7107e`, final world hash `0x7eb81a69`, replay hash match `true`, zero
+  terminal reservations/jobs, zero negative need lanes, zero stale medical
+  offer rejects, zero stale ability cache rejects, zero active M4 facts and
+  zero conservation drift.
+- Save/replay: WM-0057 verified save tick `12000`, load tick `12001`, resumed
+  final world hash `0x9b04b712`, final read-model hash `0x0f12213c`, loaded
+  state hash `0x0dbf661c`, save bytes `4941`, rebuilt derived surfaces and
+  `firstDivergentTick: null` in
+  `coordination/artifacts/WM-0057/m3-save-replay/summary.json`.
+- Worker parity: WM-0058 verified Node Worker and real browser module Worker
+  coverage for M3 checkpoints `0`, `3600`, `7200`, `12000`, `18000` and
+  `36000`, with read-only projection payloads and no Worker protocol redesign.
+- Benchmarks: WM-0059 verified `m3-ordinary-life-long-run` with long-run final
+  world hash `0x7eb81a69`, final read-model hash `0x82bf87d6`, Worker
+  projection bytes `1747`, exact stable condition/mood/relationship invariants,
+  no stale offers, no queue growth and no hash divergence. The reviewed
+  artifact is
+  `coordination/artifacts/WM-0059/benchmarks/benchmark-results.json` with
+  SHA-256 `63FAEA795D04934838C306DC99D9AA1152B56D52C38D123C3442DB496F82CEC3`.
+- Benchmark threshold policy remains 10 percent warning and 20 percent blocking
+  regression. The final integration `pnpm bench` pass had a non-blocking
+  `map-dirty` warning and no M3 invariant mismatch.
+
+Residuals that are deliberately not M3 scope: M4 lamp network, Chronicle
+evidence gameplay, obligations, anomaly/crisis chains, story director systems,
+product dawn replay, broad economy, content catalog expansion, public save
+compatibility beyond focused harnesses, platform save UI, and UI authority.
+WM-0060 creates no M4 task and implements no M4 runtime behavior.

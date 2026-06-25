@@ -6,11 +6,6 @@
       "label": "Beacon",
       "registeredAt": "2026-06-24T20:48:20.125Z"
     },
-    "reviewer": {
-      "threadId": "019efca7-1530-7972-8696-ca3117011ecf",
-      "label": "WM-0038-fast-review",
-      "registeredAt": "2026-06-25T02:41:21.128Z"
-    },
     "rapid-implementer": {
       "threadId": "019ef49a-ffd5-72f1-863b-f6448c984775",
       "label": "WM-0013 Spark smoke",
@@ -47,5 +42,5 @@
       "registeredAt": "2026-06-24T21:35:05.679Z"
     }
   },
-  "updatedAt": "2026-06-25T03:16:36.800Z"
+  "updatedAt": "2026-06-25T18:29:24.139Z"
 }

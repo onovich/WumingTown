@@ -79,3 +79,24 @@ M2 is a simulation capability milestone, not a broad economy, town-life, UI
 construction, platform save, anomaly, combat or content-production milestone.
 M3 remains unstarted: no M3 task was created, promoted, claimed or implemented
 by this closeout.
+
+## M3 Closeout Addendum
+
+WM-0060 closes the M3 ordinary-life simulation gate after reviewed integration
+of WM-0046 through WM-0059. The closeout evidence records the focused
+ordinary-life scenario `m3.ordinary_life.injured_caregiver.v1` with requested
+seed `3`, authoritative scenario seed `46`, command stream hash `0x226832d2`,
+content hash `0xdfe7107e`, long-run final world hash `0x7eb81a69`, and final
+read-model hash `0x82bf87d6`.
+
+M3 is a simulation capability milestone for needs, day/night/weather basics,
+rest, food, injury, medical care, ability cache invalidation, mood, thoughts,
+relationships, focused save/replay, Worker/headless parity, and benchmarked
+long-run invariants. It is not M4 lamp network, Chronicle evidence gameplay,
+obligations, anomaly/crisis/director work, product dawn replay, broad economy,
+platform save UI, or public save compatibility.
+
+M4 remains unstarted by this closeout. WM-0060 writes only the non-executable
+future handoff prompt at
+`coordination/reports/WM-0060-future-m4-entry-prompt.md`; a later reviewed M4
+planning task must create any M4 DAG before implementation can begin.

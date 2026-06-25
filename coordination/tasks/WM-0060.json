@@ -2,7 +2,7 @@
   "id": "WM-0060",
   "title": "Close the M3 ordinary life simulation gate",
   "summary": "Close M3 only after ordinary-life scenario, architecture, implementation, save/replay, Worker parity, benchmarks and invariants are verified and integrated, then write a non-executable future M4 entry prompt.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -36,7 +36,7 @@
   ],
   "branch": "task/WM-0060-close-the-m3-ordinary-life-simulation-gate",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T18:08:04.270Z",
+  "updatedAt": "2026-06-25T18:28:37.135Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
@@ -49,6 +49,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-25T18:08:41.108Z",
+      "actor": "project-director",
+      "action": "claim",
+      "details": "thread=Codex WM-0060"
+    },
+    {
+      "at": "2026-06-25T18:19:06.105Z",
+      "actor": "project-director",
+      "action": "complete",
+      "details": "Closed M3 evidence in roadmap/project-state/report files, wrote non-executable future M4 prompt, ran ci:local bench sim:run validate-handoff taskctl validate/status diff-check and quality; no M4 task created or implemented."
+    },
+    {
+      "at": "2026-06-25T18:26:55.719Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; acceptance evidence confirmed"
+    },
+    {
+      "at": "2026-06-25T18:28:32.465Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Reviewed WM-0060 closeout accepted; integration gates passed: validate-handoff, taskctl validate/status, git diff --check, pnpm quality."
+    },
+    {
+      "at": "2026-06-25T18:28:37.135Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Close M3 with reviewed evidence and write a future M4 entry prompt while keeping M4 blocked until a later reviewed planning task.",
@@ -85,5 +115,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Milestone closeout and final coordination gates cannot be assigned to Spark."
+  },
+  "claimedBy": "project-director",
+  "threadLabel": "Codex WM-0060",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0060.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; acceptance evidence confirmed",
+    "at": "2026-06-25T18:26:55.719Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Reviewed WM-0060 closeout accepted; integration gates passed: validate-handoff, taskctl validate/status, git diff --check, pnpm quality.",
+    "at": "2026-06-25T18:28:32.465Z"
   }
 }
