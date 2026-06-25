@@ -2,7 +2,7 @@
   "id": "WM-0050",
   "title": "Add M3 rest and sleep job slice",
   "summary": "Implement rest/sleep work selection and serializable sleep job drivers over M3 needs and environment context.",
-  "state": "ready",
+  "state": "verified",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,7 +31,7 @@
   ],
   "branch": "task/WM-0050-add-m3-rest-and-sleep-job-slice",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T09:22:31.556Z",
+  "updatedAt": "2026-06-25T10:14:59.184Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
@@ -44,6 +44,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-25T09:29:18.421Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Codex WM-0050"
+    },
+    {
+      "at": "2026-06-25T09:51:42.491Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented M3 rest/sleep owner/index/job-driver slice with bounded indexed selection, Top-K path evidence, Q16 recovery, serializable driver snapshots, reservation cleanup, focused tests, docs, and report; required checks pass except pnpm test --filter m3-rest-sleep is unsupported and was replaced by direct focused Vitest plus supported broader gates."
+    },
+    {
+      "at": "2026-06-25T09:59:47.560Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: denied sleep interruption mutates RestJobDriverStore terminalReason without a terminal transition; High: RestSleepReason accepts ReservationReason and arbitrary strings but encode/decode drops them to rest.none, breaking structured terminal reasons and snapshot round-trips; Medium: tickRecovery mutates JobCore/recovery progress before NeedStore denial, so invalid actor recovery leaves partial progress with reservations still active."
+    },
+    {
+      "at": "2026-06-25T10:07:53.536Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Repaired WM-0050 review findings: denied sleep interruptions no longer mutate driver state, reservation-specific reasons now round-trip through trace and snapshot serialization, and tickRecovery preflights need ownership before progress mutation; added regressions and reran typecheck, focused Vitest, sim-core test, taskctl validate/status, diff check, and pnpm quality."
+    },
+    {
+      "at": "2026-06-25T10:14:59.184Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings after repair; denied sleep interruption snapshots remain unchanged, reservation-specific reasons round-trip through trace and driver snapshots, and tickRecovery preflights need ownership before progress mutation. Focused and full gates pass."
     }
   ],
   "objective": "Add the first M3 life behavior job slice while preserving explicit JobCore-style state ownership.",
@@ -84,5 +114,15 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Serializable job-driver and deterministic simulation behavior are outside Spark scope."
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Codex WM-0050",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0050.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings after repair; denied sleep interruption snapshots remain unchanged, reservation-specific reasons round-trip through trace and driver snapshots, and tickRecovery preflights need ownership before progress mutation. Focused and full gates pass.",
+    "at": "2026-06-25T10:14:59.183Z"
   }
 }

@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQTCIQ9D-A6C1DF",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0050",
+  "kind": "review-approved",
+  "subject": "WM-0050 review: verified",
+  "body": "No blocking findings after repair; denied sleep interruption snapshots remain unchanged, reservation-specific reasons round-trip through trace and driver snapshots, and tickRecovery preflights need ownership before progress mutation. Focused and full gates pass.",
+  "artifacts": [
+    "coordination/reports/WM-0050.md"
+  ],
+  "createdAt": "2026-06-25T10:14:59.185Z",
+  "acknowledgedAt": null
+}

@@ -114,3 +114,9 @@ selection, including `need.hunger_urgency_indexed`,
 `need.rest_urgency_indexed`, `need.urgency_no_candidate`, and
 `trace.candidate_cap_reached`. These rows are diagnostic evidence only; they do
 not own needs or job behavior.
+
+## WM-0050 implementation note
+
+M3 rest recovery now uses the `NeedStore` rest lane as the only need authority. Rest/sleep selection reads the actor's fixed rest, hunger, and safety lanes directly, while fixture selection comes from `RestCandidateIndex`; actor thinking does not scan all rest spots. Recovery applies bounded integer deltas through `NeedStore.applyLaneDelta` with `need.external_delta` and may dirty `NeedUrgencyIndex` through an explicit `NeedDirtySink`.
+
+Focused rest/sleep diagnostics use structured reasons such as `rest.selected_indexed_path`, `rest.rejected_no_indexed_candidate`, `rest.rejected_schedule_window`, `rest.rejected_weather_exposure`, `rest.rejected_ability`, `rest.rejected_emergency_need`, `rest.rejected_actor_not_tired`, `path.no_route_to_rest_fixture`, `job.interrupted_safe_point`, and `job.interruption_denied`. Metrics record candidate visits, exact path requests, reservation attempts, cleanup releases, completion, cancellation, and interruption counts for later WM-0059 benchmark baselines.

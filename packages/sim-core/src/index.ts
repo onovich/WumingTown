@@ -188,6 +188,26 @@ export {
   runM3EnvironmentReplay,
 } from "./m3-environment";
 export {
+  M3_REST_DEFAULT_CANDIDATE_CAP,
+  M3_REST_DEFAULT_EXACT_PATH_CAP,
+  M3_REST_DEFAULT_SELECTED_CAP,
+  M3_REST_EMERGENCY_THRESHOLD,
+  M3_REST_FIXTURE_NONE,
+  M3_REST_SLEEP_JOB_KIND,
+  M3_REST_SLEEP_STORE_VERSION,
+  M3_REST_SLEEP_TRACE_CAPACITY,
+  M3_REST_URGENCY_THRESHOLD,
+  RestCandidateIndex,
+  RestJobDriverStore,
+  RestSleepStore,
+  RestSleepTraceStore,
+  createRestCandidateIndex,
+  createRestJobDriverStore,
+  createRestSleepStore,
+  createRestSleepTraceStore,
+  selectPathResolvedRestFixture,
+} from "./m3-rest-sleep";
+export {
   DEFAULT_M3_SCHEDULE_WINDOWS,
   M3_ENVIRONMENT_OWNER_VERSION,
   M3_WEATHER_INTERVAL_TICKS,
@@ -283,6 +303,27 @@ export type {
   M3WeatherProjection,
   M3WeatherSeverityLanes,
 } from "./m3-environment-data";
+export type {
+  RestCandidateIndexOptions,
+  RestCandidateQuery,
+  RestCandidateQueryResult,
+  RestFixtureInput,
+  RestFixtureKind,
+  RestFixtureView,
+  RestFixtureWeatherExposure,
+  RestJobCreateInput,
+  RestJobDriverSnapshot,
+  RestJobStep,
+  RestJobView,
+  RestKind,
+  RestSelectionInput,
+  RestSelectionResult,
+  RestSleepMetrics,
+  RestSleepMutationResult,
+  RestSleepReason,
+  RestTraceInput,
+  RestTraceView,
+} from "./m3-rest-sleep";
 export type { RunnerSpeed, Tick } from "./time";
 export type {
   ReplayCheckpoint,
