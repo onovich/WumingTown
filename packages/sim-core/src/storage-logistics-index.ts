@@ -12,7 +12,8 @@ export type StorageLogisticsReason =
   | "storage_def_invalid"
   | "storage_capacity_invalid"
   | "storage_interaction_cell_invalid"
-  | "storage_offer_invalid";
+  | "storage_offer_invalid"
+  | "storage_candidate_buffer_too_small";
 
 export type StorageLogisticsMutationResult =
   | { readonly ok: true; readonly version: number }
@@ -50,11 +51,27 @@ export interface StorageLogisticsMetrics {
   readonly refreshedSlotCount: number;
   readonly activeSupplySlots: number;
   readonly activeDemandSlots: number;
+  readonly indexedSupplySlots: number;
+  readonly indexedDemandSlots: number;
 }
+
+export type StorageCandidateSelectionResult =
+  | {
+      readonly ok: true;
+      readonly defId: number;
+      readonly visitedCount: number;
+      readonly selectedCount: number;
+      readonly candidateCapHit: boolean;
+      readonly version: number;
+    }
+  | { readonly ok: false; readonly reason: StorageLogisticsReason };
+
+type CandidateKind = "supply" | "demand";
 
 export class StorageLogisticsIndex {
   readonly capacity: number;
   readonly stackCapacity: number;
+  readonly defCapacity: number;
 
   private readonly active: Uint8Array;
   private readonly storageIndexes: Uint32Array;
@@ -77,19 +94,31 @@ export class StorageLogisticsIndex {
   private readonly availableCapacities: Uint32Array;
   private readonly demandQuantities: Uint32Array;
   private readonly offerActive: Uint8Array;
+  private readonly supplyHeadByDef: Int32Array;
+  private readonly demandHeadByDef: Int32Array;
+  private readonly supplyNextBySlot: Int32Array;
+  private readonly supplyPreviousBySlot: Int32Array;
+  private readonly demandNextBySlot: Int32Array;
+  private readonly demandPreviousBySlot: Int32Array;
+  private readonly supplyLinked: Uint8Array;
+  private readonly demandLinked: Uint8Array;
   private readonly dirtyQueued: Uint8Array;
   private readonly dirtyQueue: Uint32Array;
   private dirtyHead = 0;
   private dirtyCount = 0;
   private activeCount = 0;
   private refreshedCount = 0;
+  private indexedSupplyCount = 0;
+  private indexedDemandCount = 0;
   private indexVersion = 0;
 
-  constructor(capacity: number, stackCapacity: number) {
+  constructor(capacity: number, stackCapacity: number, defCapacity = stackCapacity) {
     assertValidCapacity(capacity, "storage logistics capacity");
     assertValidCapacity(stackCapacity, "storage logistics stack capacity");
+    assertValidCapacity(defCapacity, "storage logistics def capacity");
     this.capacity = capacity;
     this.stackCapacity = stackCapacity;
+    this.defCapacity = defCapacity;
     this.active = new Uint8Array(capacity);
     this.storageIndexes = new Uint32Array(capacity);
     this.storageGenerations = new Uint32Array(capacity);
@@ -112,6 +141,20 @@ export class StorageLogisticsIndex {
     this.availableCapacities = new Uint32Array(capacity);
     this.demandQuantities = new Uint32Array(capacity);
     this.offerActive = new Uint8Array(capacity);
+    this.supplyHeadByDef = new Int32Array(defCapacity);
+    this.demandHeadByDef = new Int32Array(defCapacity);
+    this.supplyNextBySlot = new Int32Array(capacity);
+    this.supplyPreviousBySlot = new Int32Array(capacity);
+    this.demandNextBySlot = new Int32Array(capacity);
+    this.demandPreviousBySlot = new Int32Array(capacity);
+    this.supplyLinked = new Uint8Array(capacity);
+    this.demandLinked = new Uint8Array(capacity);
+    this.supplyHeadByDef.fill(-1);
+    this.demandHeadByDef.fill(-1);
+    this.supplyNextBySlot.fill(-1);
+    this.supplyPreviousBySlot.fill(-1);
+    this.demandNextBySlot.fill(-1);
+    this.demandPreviousBySlot.fill(-1);
     this.dirtyQueued = new Uint8Array(capacity);
     this.dirtyQueue = new Uint32Array(capacity);
   }
@@ -234,6 +277,22 @@ export class StorageLogisticsIndex {
     };
   }
 
+  selectSupplySlots(
+    defId: number,
+    maxSlots: number,
+    outputSlotIds: Uint32Array,
+  ): StorageCandidateSelectionResult {
+    return this.selectCandidateSlots("supply", defId, maxSlots, outputSlotIds);
+  }
+
+  selectDemandSlots(
+    defId: number,
+    maxSlots: number,
+    outputSlotIds: Uint32Array,
+  ): StorageCandidateSelectionResult {
+    return this.selectCandidateSlots("demand", defId, maxSlots, outputSlotIds);
+  }
+
   createMetrics(): StorageLogisticsMetrics {
     let activeSupplySlots = 0;
     let activeDemandSlots = 0;
@@ -256,6 +315,8 @@ export class StorageLogisticsIndex {
       refreshedSlotCount: this.refreshedCount,
       activeSupplySlots,
       activeDemandSlots,
+      indexedSupplySlots: this.indexedSupplyCount,
+      indexedDemandSlots: this.indexedDemandCount,
     };
   }
 
@@ -293,6 +354,7 @@ export class StorageLogisticsIndex {
     this.availableCapacities[slotId] = unreservedCapacity;
     this.demandQuantities[slotId] = demand;
     this.syncSupplyOffer(slotId, stack.availableQuantity, offers);
+    this.syncCandidateBuckets(slotId);
   }
 
   private syncSupplyOffer(slotId: number, available: number, offers: WorkOfferIndex): void {
@@ -340,6 +402,168 @@ export class StorageLogisticsIndex {
     this.availableSupplies[slotId] = 0;
     this.availableCapacities[slotId] = 0;
     this.demandQuantities[slotId] = 0;
+    this.unlinkCandidateSlot("supply", slotId);
+    this.unlinkCandidateSlot("demand", slotId);
+  }
+
+  private selectCandidateSlots(
+    kind: CandidateKind,
+    defId: number,
+    maxSlots: number,
+    outputSlotIds: Uint32Array,
+  ): StorageCandidateSelectionResult {
+    if (!isIndexInRange(defId, this.defCapacity)) {
+      return { ok: false, reason: "storage_def_invalid" };
+    }
+
+    if (!isSafeUint32(maxSlots) || maxSlots > outputSlotIds.length) {
+      return { ok: false, reason: "storage_candidate_buffer_too_small" };
+    }
+
+    const nextBySlot = this.readCandidateNext(kind);
+    let slotId = this.readCandidateHead(kind, defId);
+    let visitedCount = 0;
+    let selectedCount = 0;
+
+    while (slotId >= 0 && visitedCount < maxSlots) {
+      outputSlotIds[selectedCount] = slotId;
+      selectedCount += 1;
+      visitedCount += 1;
+      slotId = nextBySlot[slotId] ?? -1;
+    }
+
+    return {
+      ok: true,
+      defId,
+      visitedCount,
+      selectedCount,
+      candidateCapHit: slotId >= 0,
+      version: this.indexVersion,
+    };
+  }
+
+  private syncCandidateBuckets(slotId: number): void {
+    this.syncCandidateBucket("supply", slotId, (this.availableSupplies[slotId] ?? 0) > 0);
+    this.syncCandidateBucket("demand", slotId, (this.demandQuantities[slotId] ?? 0) > 0);
+  }
+
+  private syncCandidateBucket(kind: CandidateKind, slotId: number, shouldBeLinked: boolean): void {
+    const linked = this.isCandidateLinked(kind, slotId);
+
+    if (shouldBeLinked) {
+      if (!linked) {
+        this.linkCandidateSlot(kind, slotId);
+      }
+      return;
+    }
+
+    if (linked) {
+      this.unlinkCandidateSlot(kind, slotId);
+    }
+  }
+
+  private linkCandidateSlot(kind: CandidateKind, slotId: number): void {
+    const defId = this.defIds[slotId] ?? 0;
+    if (!isIndexInRange(defId, this.defCapacity)) {
+      return;
+    }
+
+    if (this.isCandidateLinked(kind, slotId)) {
+      return;
+    }
+
+    const nextBySlot = this.readCandidateNext(kind);
+    const previousBySlot = this.readCandidatePrevious(kind);
+    const linked = this.readCandidateLinked(kind);
+    let current = this.readCandidateHead(kind, defId);
+    let previous = -1;
+
+    while (current >= 0 && current < slotId) {
+      previous = current;
+      current = nextBySlot[current] ?? -1;
+    }
+
+    previousBySlot[slotId] = previous;
+    nextBySlot[slotId] = current;
+
+    if (previous >= 0) {
+      nextBySlot[previous] = slotId;
+    } else {
+      this.writeCandidateHead(kind, defId, slotId);
+    }
+
+    if (current >= 0) {
+      previousBySlot[current] = slotId;
+    }
+
+    linked[slotId] = 1;
+    this.incrementIndexedCount(kind, 1);
+  }
+
+  private unlinkCandidateSlot(kind: CandidateKind, slotId: number): void {
+    if (!this.isCandidateLinked(kind, slotId)) {
+      return;
+    }
+
+    const nextBySlot = this.readCandidateNext(kind);
+    const previousBySlot = this.readCandidatePrevious(kind);
+    const linked = this.readCandidateLinked(kind);
+    const defId = this.defIds[slotId] ?? 0;
+    const previous = previousBySlot[slotId] ?? -1;
+    const next = nextBySlot[slotId] ?? -1;
+
+    if (previous >= 0) {
+      nextBySlot[previous] = next;
+    } else if (isIndexInRange(defId, this.defCapacity)) {
+      this.writeCandidateHead(kind, defId, next);
+    }
+
+    if (next >= 0) {
+      previousBySlot[next] = previous;
+    }
+
+    linked[slotId] = 0;
+    nextBySlot[slotId] = -1;
+    previousBySlot[slotId] = -1;
+    this.incrementIndexedCount(kind, -1);
+  }
+
+  private readCandidateHead(kind: CandidateKind, defId: number): number {
+    return kind === "supply"
+      ? (this.supplyHeadByDef[defId] ?? -1)
+      : (this.demandHeadByDef[defId] ?? -1);
+  }
+
+  private writeCandidateHead(kind: CandidateKind, defId: number, slotId: number): void {
+    if (kind === "supply") {
+      this.supplyHeadByDef[defId] = slotId;
+    } else {
+      this.demandHeadByDef[defId] = slotId;
+    }
+  }
+
+  private readCandidateNext(kind: CandidateKind): Int32Array {
+    return kind === "supply" ? this.supplyNextBySlot : this.demandNextBySlot;
+  }
+
+  private readCandidatePrevious(kind: CandidateKind): Int32Array {
+    return kind === "supply" ? this.supplyPreviousBySlot : this.demandPreviousBySlot;
+  }
+
+  private readCandidateLinked(kind: CandidateKind): Uint8Array {
+    return kind === "supply" ? this.supplyLinked : this.demandLinked;
+  }
+
+  private isCandidateLinked(kind: CandidateKind, slotId: number): boolean {
+    return (this.readCandidateLinked(kind)[slotId] ?? 0) === 1;
+  }
+
+  private incrementIndexedCount(kind: CandidateKind, delta: 1 | -1): void {
+    if (kind === "supply") {
+      this.indexedSupplyCount += delta;
+    } else {
+      this.indexedDemandCount += delta;
+    }
   }
 
   private validateInput(
@@ -390,8 +614,9 @@ export class StorageLogisticsIndex {
 export function createStorageLogisticsIndex(
   capacity: number,
   stackCapacity: number,
+  defCapacity?: number,
 ): StorageLogisticsIndex {
-  return new StorageLogisticsIndex(capacity, stackCapacity);
+  return new StorageLogisticsIndex(capacity, stackCapacity, defCapacity);
 }
 
 function isIndexInRange(value: number, upperBound: number): boolean {

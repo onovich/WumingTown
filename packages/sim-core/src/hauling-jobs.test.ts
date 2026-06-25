@@ -10,6 +10,7 @@ import {
   createStorageLogisticsIndex,
   createWorkOfferIndex,
   type EntityId,
+  type StorageSlotInput,
 } from "./index";
 
 describe("minimal item storage hauling jobs", () => {
@@ -167,6 +168,38 @@ describe("minimal item storage hauling jobs", () => {
     expect(fixture.ledger.createMetrics().activeCount).toBe(4);
   });
 
+  it("releases acquired reservations when reserve step transition fails", () => {
+    const fixture = createFixture();
+    refreshAll(fixture);
+
+    expect(createHaul(fixture, 0, 0, 4)).toMatchObject({ ok: true });
+    expect(
+      fixture.hauling.reserveBeforePickup(
+        0,
+        4_294_967_296,
+        fixture.registry,
+        fixture.items,
+        fixture.storage,
+        fixture.ledger,
+        fixture.jobCore,
+      ),
+    ).toStrictEqual({ ok: false, reason: "hauling_job_core_failed" });
+
+    expect(fixture.ledger.createMetrics()).toMatchObject({
+      activeCount: 0,
+      acquiredCount: 4,
+      releasedCount: 4,
+    });
+    expect(fixture.items.readStack(0)).toMatchObject({ quantity: 6 });
+    expect(fixture.items.readStack(1)).toMatchObject({ quantity: 0 });
+    expect(fixture.hauling.readJob(0)).toMatchObject({
+      step: "created",
+      carriedDefId: JOB_NONE,
+      carriedAmount: 0,
+    });
+    expect(totalWood(fixture)).toBe(6);
+  });
+
   it("returns carried items and releases reservations when cancelled after pickup", () => {
     const fixture = createFixture();
     refreshAll(fixture);
@@ -299,9 +332,221 @@ describe("minimal item storage hauling jobs", () => {
     expect(fixture.ledger.createMetrics().activeCount).toBe(4);
     expect(totalWood(fixture)).toBe(6);
   });
+
+  it("m2-storage-hauling updates multiple supply and demand buckets from dirty owner changes", () => {
+    const fixture = createM2Fixture();
+    refreshAll(fixture);
+
+    const selected = new Uint32Array(4);
+    expect(fixture.storage.selectSupplySlots(WOOD_DEF, 4, selected)).toMatchObject({
+      ok: true,
+      defId: WOOD_DEF,
+      visitedCount: 2,
+      selectedCount: 2,
+      candidateCapHit: false,
+    });
+    expect(Array.from(selected.slice(0, 2))).toStrictEqual([0, 1]);
+    expect(fixture.storage.selectDemandSlots(WOOD_DEF, 4, selected)).toMatchObject({
+      ok: true,
+      visitedCount: 2,
+      selectedCount: 2,
+      candidateCapHit: false,
+    });
+    expect(Array.from(selected.slice(0, 2))).toStrictEqual([3, 4]);
+    expect(fixture.storage.selectSupplySlots(STONE_DEF, 4, selected)).toMatchObject({
+      ok: true,
+      visitedCount: 1,
+      selectedCount: 1,
+    });
+    expect(selected[0]).toBe(2);
+    expect(fixture.storage.selectDemandSlots(STONE_DEF, 4, selected)).toMatchObject({
+      ok: true,
+      visitedCount: 1,
+      selectedCount: 1,
+    });
+    expect(selected[0]).toBe(5);
+    expect(fixture.storage.createMetrics()).toMatchObject({
+      dirtyBacklog: 0,
+      indexedSupplySlots: 3,
+      indexedDemandSlots: 3,
+    });
+
+    expect(createHaulBetweenSlots(fixture, 0, 0, 0, 3, 4)).toMatchObject({ ok: true });
+    expect(
+      fixture.hauling.reserveBeforePickup(
+        0,
+        1,
+        fixture.registry,
+        fixture.items,
+        fixture.storage,
+        fixture.ledger,
+        fixture.jobCore,
+      ),
+    ).toMatchObject({ ok: true });
+    refreshAll(fixture);
+    expect(fixture.storage.readSlot(0)).toMatchObject({ availableSupply: 4 });
+    expect(fixture.storage.readSlot(3)).toMatchObject({ demandQuantity: 2 });
+
+    expect(
+      fixture.hauling.pickup(0, 2, fixture.items, fixture.storage, fixture.jobCore),
+    ).toMatchObject({ ok: true });
+    refreshAll(fixture);
+    expect(fixture.storage.readSlot(0)).toMatchObject({ availableSupply: 0 });
+
+    expect(
+      fixture.hauling.deliver(
+        0,
+        3,
+        fixture.items,
+        fixture.storage,
+        fixture.ledger,
+        fixture.jobCore,
+      ),
+    ).toMatchObject({ ok: true });
+    refreshAll(fixture);
+
+    expect(fixture.storage.readSlot(0)).toMatchObject({ quantity: 4, availableSupply: 4 });
+    expect(fixture.storage.readSlot(3)).toMatchObject({ quantity: 4, demandQuantity: 2 });
+    expect(fixture.storage.createMetrics()).toMatchObject({
+      dirtyBacklog: 0,
+      indexedSupplySlots: 4,
+      indexedDemandSlots: 3,
+    });
+    expect(totalDef(fixture, WOOD_DEF, 6)).toBe(12);
+    expect(fixture.ledger.createMetrics().activeCount).toBe(0);
+  });
+
+  it("m2-storage-hauling conserves carried quantities on fail and interruption", () => {
+    const fixture = createM2Fixture();
+    refreshAll(fixture);
+
+    expect(createHaulBetweenSlots(fixture, 0, 0, 0, 3, 4)).toMatchObject({ ok: true });
+    expect(
+      fixture.hauling.reserveBeforePickup(
+        0,
+        1,
+        fixture.registry,
+        fixture.items,
+        fixture.storage,
+        fixture.ledger,
+        fixture.jobCore,
+      ),
+    ).toMatchObject({ ok: true });
+    expect(
+      fixture.hauling.pickup(0, 2, fixture.items, fixture.storage, fixture.jobCore),
+    ).toMatchObject({ ok: true });
+    expect(
+      fixture.hauling.fail(
+        0,
+        3,
+        "path",
+        fixture.items,
+        fixture.storage,
+        fixture.ledger,
+        fixture.jobCore,
+      ),
+    ).toMatchObject({ ok: true });
+
+    expect(fixture.hauling.readJob(0)).toMatchObject({
+      step: "failed",
+      carriedDefId: JOB_NONE,
+      carriedAmount: 0,
+    });
+    expect(fixture.jobCore.readJob(0)).toMatchObject({
+      status: "failed",
+      failureReason: "path",
+      carriedDefId: JOB_NONE,
+      carriedAmount: 0,
+    });
+    expect(fixture.items.readStack(0)).toMatchObject({ quantity: 8 });
+    expect(totalDef(fixture, WOOD_DEF, 6)).toBe(12);
+    expect(fixture.ledger.createMetrics().activeCount).toBe(0);
+
+    expect(createHaulBetweenSlots(fixture, 1, 1, 0, 3, 4)).toMatchObject({ ok: true });
+    expect(
+      fixture.hauling.reserveBeforePickup(
+        1,
+        4,
+        fixture.registry,
+        fixture.items,
+        fixture.storage,
+        fixture.ledger,
+        fixture.jobCore,
+      ),
+    ).toMatchObject({ ok: true });
+    expect(
+      fixture.hauling.pickup(1, 5, fixture.items, fixture.storage, fixture.jobCore),
+    ).toMatchObject({ ok: true });
+    expect(
+      fixture.hauling.interrupt(
+        1,
+        "immediate",
+        6,
+        fixture.items,
+        fixture.storage,
+        fixture.ledger,
+        fixture.jobCore,
+      ),
+    ).toMatchObject({ ok: true });
+
+    expect(fixture.hauling.readJob(1)).toMatchObject({
+      step: "canceled",
+      carriedDefId: JOB_NONE,
+      carriedAmount: 0,
+    });
+    expect(fixture.jobCore.readJob(1)).toMatchObject({
+      status: "canceled",
+      carriedDefId: JOB_NONE,
+      carriedAmount: 0,
+    });
+    expect(fixture.items.readStack(0)).toMatchObject({ quantity: 8 });
+    expect(totalDef(fixture, WOOD_DEF, 6)).toBe(12);
+    expect(fixture.ledger.createMetrics().activeCount).toBe(0);
+  });
+
+  it("m2-storage-hauling rolls back returned carried items if cancellation is rejected", () => {
+    const fixture = createFixture();
+    refreshAll(fixture);
+
+    expect(createHaul(fixture, 0, 0, 4)).toMatchObject({ ok: true });
+    expect(
+      fixture.hauling.reserveBeforePickup(
+        0,
+        1,
+        fixture.registry,
+        fixture.items,
+        fixture.storage,
+        fixture.ledger,
+        fixture.jobCore,
+      ),
+    ).toMatchObject({ ok: true });
+    expect(
+      fixture.hauling.pickup(0, 2, fixture.items, fixture.storage, fixture.jobCore),
+    ).toMatchObject({ ok: true });
+
+    expect(
+      fixture.hauling.cancel(
+        0,
+        -1,
+        fixture.items,
+        fixture.storage,
+        fixture.ledger,
+        fixture.jobCore,
+      ),
+    ).toStrictEqual({ ok: false, reason: "hauling_job_core_failed" });
+    expect(fixture.items.readStack(0)).toMatchObject({ quantity: 2 });
+    expect(fixture.hauling.readJob(0)).toMatchObject({
+      step: "picked_up",
+      carriedDefId: WOOD_DEF,
+      carriedAmount: 4,
+    });
+    expect(totalWood(fixture)).toBe(6);
+    expect(fixture.ledger.createMetrics().activeCount).toBe(4);
+  });
 });
 
 const WOOD_DEF = 1;
+const STONE_DEF = 2;
 
 interface Fixture {
   readonly registry: ReturnType<typeof createEntityRegistry>;
@@ -368,6 +613,104 @@ function createFixture(): Fixture {
   };
 }
 
+function createM2Fixture(): Fixture {
+  const registry = createEntityRegistry({ capacity: 32 });
+  const pawns = [allocate(registry), allocate(registry)];
+  const stackEntities = allocateMany(registry, 6);
+  const storageEntities = allocateMany(registry, 6);
+  const items = createItemStackStore(8);
+  const storage = createStorageLogisticsIndex(8, 8, 4);
+  const offers = createWorkOfferIndex({
+    capacity: 8,
+    workTypeCapacity: 2,
+    regionCapacity: 4,
+    defCapacity: 4,
+    urgencyBucketCount: 2,
+    permissionCapacity: 2,
+  });
+
+  createStack(items, registry, 0, stackEntities[0] ?? failMissingEntity(), WOOD_DEF, 8, 8);
+  createStack(items, registry, 1, stackEntities[1] ?? failMissingEntity(), WOOD_DEF, 4, 4);
+  createStack(items, registry, 2, stackEntities[2] ?? failMissingEntity(), STONE_DEF, 5, 5);
+  createStack(items, registry, 3, stackEntities[3] ?? failMissingEntity(), WOOD_DEF, 0, 10);
+  createStack(items, registry, 4, stackEntities[4] ?? failMissingEntity(), WOOD_DEF, 0, 4);
+  createStack(items, registry, 5, stackEntities[5] ?? failMissingEntity(), STONE_DEF, 0, 5);
+
+  configureSlotWithDef(
+    storage,
+    registry,
+    0,
+    storageEntities[0] ?? failMissingEntity(),
+    0,
+    WOOD_DEF,
+    8,
+    0,
+  );
+  configureSlotWithDef(
+    storage,
+    registry,
+    1,
+    storageEntities[1] ?? failMissingEntity(),
+    1,
+    WOOD_DEF,
+    4,
+    0,
+  );
+  configureSlotWithDef(
+    storage,
+    registry,
+    2,
+    storageEntities[2] ?? failMissingEntity(),
+    2,
+    STONE_DEF,
+    5,
+    0,
+  );
+  configureSlotWithDef(
+    storage,
+    registry,
+    3,
+    storageEntities[3] ?? failMissingEntity(),
+    3,
+    WOOD_DEF,
+    10,
+    6,
+  );
+  configureSlotWithDef(
+    storage,
+    registry,
+    4,
+    storageEntities[4] ?? failMissingEntity(),
+    4,
+    WOOD_DEF,
+    4,
+    4,
+  );
+  configureSlotWithDef(
+    storage,
+    registry,
+    5,
+    storageEntities[5] ?? failMissingEntity(),
+    5,
+    STONE_DEF,
+    5,
+    5,
+  );
+
+  return {
+    registry,
+    items,
+    storage,
+    offers,
+    ledger: createReservationLedger({ capacity: 96, entityCapacity: 32, cellCount: 96 }),
+    jobCore: createJobCoreStore({ capacity: 8 }),
+    hauling: createHaulingJobStore(8),
+    pawns,
+    stackEntities,
+    storageEntities,
+  };
+}
+
 function configureSlot(
   storage: ReturnType<typeof createStorageLogisticsIndex>,
   registry: ReturnType<typeof createEntityRegistry>,
@@ -379,23 +722,59 @@ function configureSlot(
 ): void {
   expect(
     storage.configureSlot(
-      {
+      createSlotInput(
         slotId,
-        storage: storageEntity,
+        storageEntity,
         stackId,
-        defId: WOOD_DEF,
-        capacity: quantity + desiredQuantity,
+        WOOD_DEF,
+        quantity + desiredQuantity,
         desiredQuantity,
-        interactionCellIndex: slotId + 10,
-        offerId: slotId,
-        workType: 0,
-        regionId: 0,
-        urgencyBucket: 0,
-        permissionId: 0,
-      },
+      ),
       registry,
     ),
   ).toMatchObject({ ok: true });
+}
+
+function configureSlotWithDef(
+  storage: ReturnType<typeof createStorageLogisticsIndex>,
+  registry: ReturnType<typeof createEntityRegistry>,
+  slotId: number,
+  storageEntity: EntityId,
+  stackId: number,
+  defId: number,
+  capacity: number,
+  desiredQuantity: number,
+): void {
+  expect(
+    storage.configureSlot(
+      createSlotInput(slotId, storageEntity, stackId, defId, capacity, desiredQuantity),
+      registry,
+    ),
+  ).toMatchObject({ ok: true });
+}
+
+function createSlotInput(
+  slotId: number,
+  storageEntity: EntityId,
+  stackId: number,
+  defId: number,
+  capacity: number,
+  desiredQuantity: number,
+): StorageSlotInput {
+  return {
+    slotId,
+    storage: storageEntity,
+    stackId,
+    defId,
+    capacity,
+    desiredQuantity,
+    interactionCellIndex: slotId + 10,
+    offerId: slotId,
+    workType: 0,
+    regionId: 0,
+    urgencyBucket: 0,
+    permissionId: 0,
+  };
 }
 
 function createHaul(
@@ -418,6 +797,44 @@ function createHaul(
   );
 }
 
+function createHaulBetweenSlots(
+  fixture: Fixture,
+  jobId: number,
+  pawnIndex: number,
+  sourceSlotId: number,
+  destinationSlotId: number,
+  amount: number,
+): ReturnType<Fixture["hauling"]["createJob"]> {
+  return fixture.hauling.createJob(
+    {
+      jobId,
+      owner: fixture.pawns[pawnIndex] ?? failMissingPawn(),
+      sourceSlotId,
+      destinationSlotId,
+      amount,
+      createdTick: 0,
+    },
+    fixture.registry,
+    fixture.jobCore,
+  );
+}
+
+function createStack(
+  items: ReturnType<typeof createItemStackStore>,
+  registry: ReturnType<typeof createEntityRegistry>,
+  stackId: number,
+  entity: EntityId,
+  defId: number,
+  quantity: number,
+  capacity: number,
+): void {
+  expect(items.createStack({ stackId, entity, defId, quantity, capacity }, registry)).toMatchObject(
+    {
+      ok: true,
+    },
+  );
+}
+
 function refreshAll(fixture: Fixture): void {
   fixture.storage.refreshDirty(fixture.items, fixture.ledger, fixture.offers, 8);
 }
@@ -429,12 +846,45 @@ function totalWood(fixture: Fixture): number {
   return source + destination + (job?.carriedAmount ?? 0);
 }
 
+function totalDef(fixture: Fixture, defId: number, stackCount: number): number {
+  let total = 0;
+
+  for (let stackId = 0; stackId < stackCount; stackId += 1) {
+    const stack = fixture.items.readStack(stackId);
+    if (stack?.defId === defId) {
+      total += stack.quantity;
+    }
+  }
+
+  for (let jobId = 0; jobId < fixture.hauling.capacity; jobId += 1) {
+    const job = fixture.hauling.readJob(jobId);
+    if (job?.carriedDefId === defId) {
+      total += job.carriedAmount;
+    }
+  }
+
+  return total;
+}
+
 function allocate(registry: ReturnType<typeof createEntityRegistry>): EntityId {
   const result = registry.allocate();
   if (!result.ok) {
     throw new Error(result.reason);
   }
   return result.entity;
+}
+
+function allocateMany(
+  registry: ReturnType<typeof createEntityRegistry>,
+  count: number,
+): readonly EntityId[] {
+  const entities: EntityId[] = [];
+
+  for (let index = 0; index < count; index += 1) {
+    entities.push(allocate(registry));
+  }
+
+  return entities;
 }
 
 function failMissingPawn(): never {

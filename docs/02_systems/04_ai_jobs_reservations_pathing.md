@@ -171,6 +171,31 @@ lifecycle hook to release claims by target or owner entity. Lease expiry remains
 metadata for diagnostics and recovery; normal job progression must still call
 explicit release or terminal cleanup paths.
 
+## WM-0038 implementation note
+
+`StorageLogisticsIndex` now keeps derived per-def supply and demand candidate
+lanes while preserving owner authority in `ItemStackStore` and
+`ReservationLedger`. Stack, storage and reservation changes mark exact slots
+dirty; `refreshDirty` recomputes quantity, reserved quantity, reserved capacity,
+available supply and remaining demand, then links or unlinks the slot from the
+bounded candidate lanes. Pawn-side hauling selection can ask for supply or
+demand slots by def with a caller-provided cap and output buffer instead of
+scanning all storage slots.
+
+`HaulingJobStore` still reserves source `item_quantity`, destination
+`capacity`, source `interaction_spot` and destination `interaction_spot`
+atomically before pickup. Pickup moves integer quantity from `ItemStackStore`
+into the explicit carried lanes owned by `JobCoreStore` and the hauling job.
+Delivery, cancellation, failure and interruption release reservations through
+`JobCoreStore` terminal cleanup and clear carried state exactly once.
+
+Cancellation, failure and interruption after pickup first return carried
+material to the source owner stack. If the `JobCoreStore` terminal transition is
+rejected, the return is rolled back so the job remains picked up with its
+carried amount intact. Terminal hauling jobs reject repeated cleanup attempts
+with `hauling_step_invalid`, preventing duplicate returns after completion,
+cancellation or failure.
+
 ## WM-0025 implementation note
 
 `packages/sim-core/src/job-core.ts` adds `JobCoreStore`, the first explicit

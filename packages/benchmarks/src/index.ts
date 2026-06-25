@@ -22,6 +22,10 @@ export {
   runM2ReservationContentionBenchmark,
 } from "./m2-reservation-contention-benchmark";
 export {
+  m2LogisticsHaulingInvariantsFromReport,
+  runM2LogisticsHaulingBenchmark,
+} from "./m2-logistics-hauling-benchmark";
+export {
   runM2WorkOffer20PawnsBenchmark,
   writeM2WorkOffer20PawnsBenchmarkArtifact,
 } from "./m2-work-offer-20-pawns-benchmark";
@@ -56,6 +60,10 @@ export type {
   M1HaulingBuildingLongRunBenchmarkReport,
   SampledM1HaulingBuildingLongRunBenchmark,
 } from "./m1-hauling-building-long-run-benchmark";
+export type {
+  M2LogisticsHaulingBenchmarkInvariants,
+  M2LogisticsHaulingBenchmarkReport,
+} from "./m2-logistics-hauling-benchmark";
 export type {
   M2PathWorkSelectionBenchmarkInvariants,
   M2PathWorkSelectionBenchmarkReport,

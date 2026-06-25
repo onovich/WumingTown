@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQSWA1H0-9992A8",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0038",
+  "kind": "changes-requested",
+  "subject": "WM-0038 review: changes_requested",
+  "body": "High: HaulingJobStore.reserveBeforePickup leaks reservations if JobCoreStore.enterStep rejects after ReservationLedger.acquire; reserve path must roll back owner/job claims before returning failure.",
+  "artifacts": [
+    "coordination/reports/WM-0038.md"
+  ],
+  "createdAt": "2026-06-25T02:40:19.956Z",
+  "acknowledgedAt": "2026-06-25T02:47:14.610Z"
+}

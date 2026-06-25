@@ -126,6 +126,29 @@ allowed edit paths. WM-0037 therefore runs the exported benchmark helper
 directly while preserving the existing `reservations` baseline gate. No
 `coordination/artifacts/WM-0037/**` artifact is kept by this task.
 
+## WM-0038 benchmark note
+
+`packages/benchmarks/src/m2-logistics-hauling-benchmark.ts` measures focused
+M2 storage and hauling behavior without changing the existing benchmark
+baseline file. The benchmark creates 12 source slots, 8 destination/demand
+slots and 20 pawn-owned hauling jobs over wood and stone. It selects source and
+demand slots through the derived per-def storage candidate lanes with
+`candidateCap = 6`, then exercises delivery, cancellation, failure and
+interruption terminal paths.
+
+The benchmark records selected supply and demand candidates, candidate-cap
+hits, delivered/canceled/failed/interrupted job counts, final active
+reservations, dirty backlog peak/final backlog, indexed supply/demand counts,
+wood and stone conservation, selection checksum and quantity checksum. The
+current focused evidence is 5 jobs in each terminal class, zero final active
+claims, final dirty backlog 0, wood `48 -> 48`, stone `48 -> 48`, selection
+checksum `4104632364` and quantity checksum `3068116868`.
+
+The existing benchmark CLI registry does not yet include a
+`m2-logistics-hauling` filter, and that registry is outside WM-0038's allowed
+edit paths. WM-0038 therefore runs the exported benchmark helper directly while
+preserving the existing `logistics-10k` baseline gate.
+
 ## WM-0019 benchmark note
 
 `pnpm bench --filter map-dirty` measures the M1 authoritative map dirty path on

@@ -2,7 +2,7 @@
   "id": "WM-0038",
   "title": "Expand storage and hauling beyond the M1 fixture",
   "summary": "Extend storage supply/demand and hauling jobs beyond the single M1 fixture while preserving integer quantity ownership and bounded indexed work selection.",
-  "state": "in_progress",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -33,7 +33,7 @@
   ],
   "branch": "task/WM-0038-expand-storage-and-hauling-beyond-m1-fixture",
   "createdAt": "2026-06-24T21:14:35.180Z",
-  "updatedAt": "2026-06-25T00:07:42.108Z",
+  "updatedAt": "2026-06-25T02:50:22.383Z",
   "history": [
     {
       "at": "2026-06-24T21:14:35.180Z",
@@ -51,6 +51,42 @@
       "at": "2026-06-25T00:07:42.108Z",
       "actor": "simulation-engineer",
       "action": "claim",
+      "details": ""
+    },
+    {
+      "at": "2026-06-25T00:21:56.093Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Expanded storage candidate indexing and hauling cleanup for M2; focused hauling tests pass; logistics-10k passes; M2 filters unsupported with documented direct-helper substitutions."
+    },
+    {
+      "at": "2026-06-25T02:40:19.955Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: HaulingJobStore.reserveBeforePickup leaks reservations if JobCoreStore.enterStep rejects after ReservationLedger.acquire; reserve path must roll back owner/job claims before returning failure."
+    },
+    {
+      "at": "2026-06-25T02:47:51.589Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Fixed reserve-step rollback leak by releasing acquired claims when JobCore enterStep rejects; added regression test and reran focused checks."
+    },
+    {
+      "at": "2026-06-25T02:49:52.265Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; reserveBeforePickup now releases acquired claimIds on JobCore enterStep failure and focused regression/checks pass."
+    },
+    {
+      "at": "2026-06-25T02:50:15.238Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Independent reviewer verified WM-0038 after reserve-step rollback repair; focused checks and logistics benchmarks passed with documented unsupported filter substitutions."
+    },
+    {
+      "at": "2026-06-25T02:50:22.382Z",
+      "actor": "project-director",
+      "action": "done",
       "details": ""
     }
   ],
@@ -94,5 +130,17 @@
   },
   "claimedBy": "simulation-engineer",
   "threadLabel": null,
-  "blocker": null
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0038.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; reserveBeforePickup now releases acquired claimIds on JobCore enterStep failure and focused regression/checks pass.",
+    "at": "2026-06-25T02:49:52.264Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Independent reviewer verified WM-0038 after reserve-step rollback repair; focused checks and logistics benchmarks passed with documented unsupported filter substitutions.",
+    "at": "2026-06-25T02:50:15.238Z"
+  }
 }

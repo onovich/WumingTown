@@ -2,7 +2,7 @@
   "id": "WM-0039",
   "title": "Add build order and production order scaffold",
   "summary": "Add only the build-order and production-order scaffolding needed by the M2 vertical slice, with serializable progress and structured failure reasons.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,13 +31,19 @@
   ],
   "branch": "task/WM-0039-add-build-and-production-order-scaffold",
   "createdAt": "2026-06-24T21:14:35.180Z",
-  "updatedAt": "2026-06-24T21:14:35.180Z",
+  "updatedAt": "2026-06-25T02:50:22.386Z",
   "history": [
     {
       "at": "2026-06-24T21:14:35.180Z",
       "actor": "systems-architect",
       "action": "create",
       "details": "Created by WM-0032 M2 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-25T02:50:22.386Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "objective": "Provide the minimal serializable build/order scaffold required for the M2 scenario.",

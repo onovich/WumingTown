@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQSRC267-F27D17",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0038",
+  "kind": "review-request",
+  "subject": "WM-0038 ready for review",
+  "body": "Expanded storage candidate indexing and hauling cleanup for M2; focused hauling tests pass; logistics-10k passes; M2 filters unsupported with documented direct-helper substitutions.",
+  "artifacts": [
+    "coordination/reports/WM-0038.md",
+    "task/WM-0038-expand-storage-and-hauling-beyond-m1-fixture"
+  ],
+  "createdAt": "2026-06-25T00:21:56.095Z",
+  "acknowledgedAt": "2026-06-25T00:23:36.003Z"
+}

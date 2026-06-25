@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQSWMB2I-4A478A",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0038",
+  "kind": "review-approved",
+  "subject": "WM-0038 review: verified",
+  "body": "No blocking findings; reserveBeforePickup now releases acquired claimIds on JobCore enterStep failure and focused regression/checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0038.md"
+  ],
+  "createdAt": "2026-06-25T02:49:52.266Z",
+  "acknowledgedAt": "2026-06-25T02:50:07.843Z"
+}

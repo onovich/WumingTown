@@ -76,6 +76,28 @@ integer quantity from `ItemStackStore` into explicit JobCore carried lanes, and
 delivery or cancellation returns the carried quantity through owner-store
 transactions before releasing reservations.
 
+## WM-0038 implementation note
+
+WM-0038 generalizes the M1 storage and hauling fixture without adding broad
+economy, crafting or production catalogs. Multiple source stacks, depot stacks
+and demand slots remain ordinary owner-state lanes: `ItemStackStore` owns stack
+def, quantity and capacity; `ReservationLedger` owns active source quantity and
+destination capacity claims; `StorageLogisticsIndex` owns only derived
+availability and candidate membership.
+
+Storage dirty work is exact-slot based. Owner mutations call
+`markStackDirty` or `markSlotDirty`, then `refreshDirty` drains the bounded
+queue and updates per-def supply and demand candidate lanes. A delivered depot
+stack may become supply while it still has remaining demand; that is derived
+from its owner quantity and desired quantity, not a second quantity owner.
+
+Hauling terminal paths conserve material across source stack, destination
+stack and carried lanes. Delivery adds carried material to the destination once
+and then completes the job. Cancellation, failure and interruption after pickup
+return carried material to the source once before terminal cleanup, with a
+rollback if JobCore rejects the terminal transition. Repeated terminal cleanup
+is rejected instead of silently returning items again.
+
 ## WM-0027 implementation note
 
 `packages/sim-core/src/build-site.ts` adds the minimal M1 build-site material

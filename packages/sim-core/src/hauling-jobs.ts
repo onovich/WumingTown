@@ -1,5 +1,10 @@
 import { assertValidCapacity, type EntityId, type EntityRegistry } from "./entity-id";
-import { JOB_NONE, type JobCoreStore } from "./job-core";
+import {
+  JOB_NONE,
+  type JobCoreStore,
+  type JobFailureReason,
+  type JobInterruptionKind,
+} from "./job-core";
 import type { ItemStackStore } from "./item-stack-store";
 import type { ReservationLedger, ReservationReason } from "./reservation-ledger";
 import type { StorageLogisticsIndex } from "./storage-logistics-index";
@@ -12,6 +17,7 @@ const HAUL_STEP_RESERVED = 2;
 const HAUL_STEP_PICKED_UP = 3;
 const HAUL_STEP_DELIVERED = 4;
 const HAUL_STEP_CANCELED = 5;
+const HAUL_STEP_FAILED = 6;
 
 export type HaulingStep =
   | "unassigned"
@@ -19,7 +25,8 @@ export type HaulingStep =
   | "reserved"
   | "picked_up"
   | "delivered"
-  | "canceled";
+  | "canceled"
+  | "failed";
 
 export type HaulingReason =
   | "hauling_job_id_out_of_range"
@@ -34,6 +41,7 @@ export type HaulingReason =
   | "hauling_step_invalid"
   | "hauling_item_mutation_failed"
   | "hauling_job_core_failed"
+  | "hauling_interruption_denied"
   | ReservationReason;
 
 export type HaulingMutationResult =
@@ -62,6 +70,7 @@ export interface HaulingMetrics {
   readonly pickedUpCount: number;
   readonly deliveredCount: number;
   readonly canceledCount: number;
+  readonly failedCount: number;
 }
 
 export class HaulingJobStore {
@@ -197,6 +206,12 @@ export class HaulingJobStore {
 
     const entered = jobCore.enterStep(jobId, "path_to_source", tick);
     if (!entered.ok) {
+      const released = ledger.releaseClaims(acquired.claimIds);
+      if (!released.ok) {
+        return { ok: false, reason: released.reason };
+      }
+      storage.markSlotDirty(context.source.slotId);
+      storage.markSlotDirty(context.destination.slotId);
       return { ok: false, reason: "hauling_job_core_failed" };
     }
 
@@ -308,6 +323,7 @@ export class HaulingJobStore {
     this.carriedDefIds[jobId] = JOB_NONE;
     this.carriedAmounts[jobId] = 0;
     this.stepCodes[jobId] = HAUL_STEP_DELIVERED;
+    storage.markSlotDirty(this.sourceSlotIds[jobId] ?? 0);
     storage.markSlotDirty(destination.slotId);
     return this.finish(jobId);
   }
@@ -324,33 +340,123 @@ export class HaulingJobStore {
     if (!validation.ok) {
       return validation;
     }
+    if (this.isTerminalStep(jobId)) {
+      return { ok: false, reason: "hauling_step_invalid" };
+    }
 
-    if ((this.stepCodes[jobId] ?? HAUL_STEP_UNASSIGNED) === HAUL_STEP_PICKED_UP) {
-      const source = storage.readSlot(this.sourceSlotIds[jobId] ?? 0);
-      if (source === undefined) {
-        return { ok: false, reason: "hauling_slot_invalid" };
-      }
-
-      const returned = items.addQuantity(
-        source.stackId,
-        this.carriedAmounts[jobId] ?? 0,
-        this.carriedDefIds[jobId] ?? 0,
-      );
-      if (!returned.ok) {
-        return { ok: false, reason: "hauling_item_mutation_failed" };
-      }
-
-      storage.markSlotDirty(source.slotId);
+    const returned = this.returnCarriedToSource(jobId, items, storage);
+    if (!returned.ok) {
+      return returned;
     }
 
     const canceled = jobCore.cancelJob(jobId, tick, ledger);
     if (!canceled.ok) {
+      this.rollbackReturnedToCarried(
+        jobId,
+        returned.returnedAmount,
+        returned.returnedDefId,
+        items,
+        storage,
+      );
       return { ok: false, reason: "hauling_job_core_failed" };
     }
 
-    this.carriedDefIds[jobId] = JOB_NONE;
-    this.carriedAmounts[jobId] = 0;
+    this.clearCarried(jobId);
     this.stepCodes[jobId] = HAUL_STEP_CANCELED;
+    storage.markSlotDirty(this.sourceSlotIds[jobId] ?? 0);
+    storage.markSlotDirty(this.destinationSlotIds[jobId] ?? 0);
+    return this.finish(jobId);
+  }
+
+  fail(
+    jobId: number,
+    tick: number,
+    reason: JobFailureReason,
+    items: ItemStackStore,
+    storage: StorageLogisticsIndex,
+    ledger: ReservationLedger,
+    jobCore: JobCoreStore,
+  ): HaulingMutationResult {
+    const validation = this.validateActive(jobId);
+    if (!validation.ok) {
+      return validation;
+    }
+    if (this.isTerminalStep(jobId)) {
+      return { ok: false, reason: "hauling_step_invalid" };
+    }
+
+    const returned = this.returnCarriedToSource(jobId, items, storage);
+    if (!returned.ok) {
+      return returned;
+    }
+
+    const failed = jobCore.failJob(jobId, tick, reason, ledger);
+    if (!failed.ok) {
+      this.rollbackReturnedToCarried(
+        jobId,
+        returned.returnedAmount,
+        returned.returnedDefId,
+        items,
+        storage,
+      );
+      return { ok: false, reason: "hauling_job_core_failed" };
+    }
+
+    this.clearCarried(jobId);
+    this.stepCodes[jobId] = HAUL_STEP_FAILED;
+    storage.markSlotDirty(this.sourceSlotIds[jobId] ?? 0);
+    storage.markSlotDirty(this.destinationSlotIds[jobId] ?? 0);
+    return this.finish(jobId);
+  }
+
+  interrupt(
+    jobId: number,
+    kind: JobInterruptionKind,
+    tick: number,
+    items: ItemStackStore,
+    storage: StorageLogisticsIndex,
+    ledger: ReservationLedger,
+    jobCore: JobCoreStore,
+  ): HaulingMutationResult {
+    const validation = this.validateActive(jobId);
+    if (!validation.ok) {
+      return validation;
+    }
+    if (this.isTerminalStep(jobId)) {
+      return { ok: false, reason: "hauling_step_invalid" };
+    }
+
+    const returned = this.returnCarriedToSource(jobId, items, storage);
+    if (!returned.ok) {
+      return returned;
+    }
+
+    const interrupted = jobCore.requestInterruption(jobId, kind, tick, ledger);
+    if (!interrupted.ok) {
+      this.rollbackReturnedToCarried(
+        jobId,
+        returned.returnedAmount,
+        returned.returnedDefId,
+        items,
+        storage,
+      );
+      return { ok: false, reason: "hauling_job_core_failed" };
+    }
+
+    if (!interrupted.interrupted) {
+      this.rollbackReturnedToCarried(
+        jobId,
+        returned.returnedAmount,
+        returned.returnedDefId,
+        items,
+        storage,
+      );
+      return { ok: false, reason: "hauling_interruption_denied" };
+    }
+
+    this.clearCarried(jobId);
+    this.stepCodes[jobId] = HAUL_STEP_CANCELED;
+    storage.markSlotDirty(this.sourceSlotIds[jobId] ?? 0);
     storage.markSlotDirty(this.destinationSlotIds[jobId] ?? 0);
     return this.finish(jobId);
   }
@@ -378,6 +484,7 @@ export class HaulingJobStore {
     let pickedUpCount = 0;
     let deliveredCount = 0;
     let canceledCount = 0;
+    let failedCount = 0;
 
     for (let jobId = 0; jobId < this.capacity; jobId += 1) {
       if ((this.active[jobId] ?? 0) === 1) {
@@ -386,6 +493,7 @@ export class HaulingJobStore {
         pickedUpCount += step === HAUL_STEP_PICKED_UP ? 1 : 0;
         deliveredCount += step === HAUL_STEP_DELIVERED ? 1 : 0;
         canceledCount += step === HAUL_STEP_CANCELED ? 1 : 0;
+        failedCount += step === HAUL_STEP_FAILED ? 1 : 0;
       }
     }
 
@@ -396,7 +504,63 @@ export class HaulingJobStore {
       pickedUpCount,
       deliveredCount,
       canceledCount,
+      failedCount,
     };
+  }
+
+  private returnCarriedToSource(
+    jobId: number,
+    items: ItemStackStore,
+    storage: StorageLogisticsIndex,
+  ):
+    | { readonly ok: true; readonly returnedAmount: number; readonly returnedDefId: number }
+    | { readonly ok: false; readonly reason: HaulingReason } {
+    if ((this.stepCodes[jobId] ?? HAUL_STEP_UNASSIGNED) !== HAUL_STEP_PICKED_UP) {
+      return { ok: true, returnedAmount: 0, returnedDefId: JOB_NONE };
+    }
+
+    const source = storage.readSlot(this.sourceSlotIds[jobId] ?? 0);
+    if (source === undefined) {
+      return { ok: false, reason: "hauling_slot_invalid" };
+    }
+
+    const returnedAmount = this.carriedAmounts[jobId] ?? 0;
+    const returnedDefId = this.carriedDefIds[jobId] ?? JOB_NONE;
+    const returned = items.addQuantity(source.stackId, returnedAmount, returnedDefId);
+    if (!returned.ok) {
+      return { ok: false, reason: "hauling_item_mutation_failed" };
+    }
+
+    storage.markSlotDirty(source.slotId);
+    return { ok: true, returnedAmount, returnedDefId };
+  }
+
+  private rollbackReturnedToCarried(
+    jobId: number,
+    returnedAmount: number,
+    returnedDefId: number,
+    items: ItemStackStore,
+    storage: StorageLogisticsIndex,
+  ): void {
+    if (returnedAmount === 0) {
+      return;
+    }
+
+    const source = storage.readSlot(this.sourceSlotIds[jobId] ?? 0);
+    if (source === undefined) {
+      throw new Error("failed to rollback returned haul quantity: source slot missing");
+    }
+
+    const removed = items.removeQuantity(source.stackId, returnedAmount, returnedDefId);
+    if (!removed.ok) {
+      throw new Error(`failed to rollback returned haul quantity: ${removed.reason}`);
+    }
+    storage.markSlotDirty(source.slotId);
+  }
+
+  private clearCarried(jobId: number): void {
+    this.carriedDefIds[jobId] = JOB_NONE;
+    this.carriedAmounts[jobId] = 0;
   }
 
   private readReservationContext(
@@ -489,6 +653,11 @@ export class HaulingJobStore {
     return isIndexInRange(jobId, this.capacity) && (this.active[jobId] ?? 0) === 1;
   }
 
+  private isTerminalStep(jobId: number): boolean {
+    const step = this.stepCodes[jobId] ?? HAUL_STEP_UNASSIGNED;
+    return step === HAUL_STEP_DELIVERED || step === HAUL_STEP_CANCELED || step === HAUL_STEP_FAILED;
+  }
+
   private readOwner(jobId: number): EntityId {
     return {
       index: this.ownerIndexes[jobId] ?? 0,
@@ -521,6 +690,9 @@ function decodeStep(code: number): HaulingStep {
   }
   if (code === HAUL_STEP_CANCELED) {
     return "canceled";
+  }
+  if (code === HAUL_STEP_FAILED) {
+    return "failed";
   }
   return "unassigned";
 }
