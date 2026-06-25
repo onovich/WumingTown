@@ -54,7 +54,12 @@ describe("M3 Worker/headless parity", () => {
     const uiDeltas: UiDeltaMessage[] = [];
     const metricsSamples: MetricsSampleMessage[] = [];
 
-    collectProjectionMessages(worker.receive(makeM3InitSession(1)), snapshots, uiDeltas, metricsSamples);
+    collectProjectionMessages(
+      worker.receive(makeM3InitSession(1)),
+      snapshots,
+      uiDeltas,
+      metricsSamples,
+    );
 
     for (let index = 1; index < M3_ORDINARY_LIFE_CHECKPOINTS.length; index += 1) {
       const tick = M3_ORDINARY_LIFE_CHECKPOINTS[index] ?? failMissingCheckpointTick();
