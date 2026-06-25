@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQT17S65-A016F6",
+  "from": "qa-performance",
+  "to": "reviewer",
+  "taskId": "WM-0042",
+  "kind": "review-request",
+  "subject": "WM-0042 ready for review",
+  "body": "Added M2 long-run invariant test, M2 work/logistics and path invalidation benchmarks, baseline/artifact evidence, docs and required gate plumbing; required checks and quality pass.",
+  "artifacts": [
+    "coordination/reports/WM-0042.md",
+    "task/WM-0042-add-m2-benchmarks-and-long-run-invariants"
+  ],
+  "createdAt": "2026-06-25T04:58:32.669Z",
+  "acknowledgedAt": "2026-06-25T05:00:57.209Z"
+}

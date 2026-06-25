@@ -33,6 +33,20 @@ import {
   type SampledM1HaulingBuildingLongRunBenchmark,
 } from "./m1-hauling-building-long-run-benchmark";
 import {
+  m2PathingInvalidationInvariantsFromReport,
+  runM2PathingInvalidationBenchmark,
+  type M2PathingInvalidationBenchmarkInvariants,
+  type M2PathingInvalidationBenchmarkReport,
+  type SampledM2PathingInvalidationBenchmark,
+} from "./m2-pathing-invalidation-benchmark";
+import {
+  m2WorkLogisticsLongRunInvariantsFromReport,
+  runM2WorkLogisticsLongRunBenchmark,
+  type M2WorkLogisticsLongRunBenchmarkInvariants,
+  type M2WorkLogisticsLongRunBenchmarkReport,
+  type SampledM2WorkLogisticsLongRunBenchmark,
+} from "./m2-work-logistics-long-run-benchmark";
+import {
   runSpatialIndexBenchmark,
   spatialIndexInvariantsFromReport,
   type SampledSpatialIndexBenchmark,
@@ -71,6 +85,8 @@ import {
 export { runEntityStoreBenchmark } from "./entity-store-benchmark";
 export { runLogistics10kBenchmark } from "./logistics-10k-benchmark";
 export { runM1HaulingBuildingLongRunBenchmark } from "./m1-hauling-building-long-run-benchmark";
+export { runM2PathingInvalidationBenchmark } from "./m2-pathing-invalidation-benchmark";
+export { runM2WorkLogisticsLongRunBenchmark } from "./m2-work-logistics-long-run-benchmark";
 export { runPathing100Benchmark } from "./pathing-100-benchmark";
 export { runRegionRoomBenchmark } from "./region-room-benchmark";
 export { runReservationsBenchmark } from "./reservations-benchmark";
@@ -95,6 +111,8 @@ export type BenchmarkName =
   | "entity-store"
   | "logistics-10k"
   | "m1-hauling-building-long-run"
+  | "m2-pathing-invalidation"
+  | "m2-work-logistics-long-run"
   | "map-dirty"
   | "pathing-100"
   | "reservations"
@@ -186,6 +204,8 @@ export type BenchmarkReport =
   | EntityStoreBenchmarkReport
   | Logistics10kBenchmarkReport
   | M1HaulingBuildingLongRunBenchmarkReport
+  | M2PathingInvalidationBenchmarkReport
+  | M2WorkLogisticsLongRunBenchmarkReport
   | MapDirtyBenchmarkReport
   | Pathing100BenchmarkReport
   | ReservationsBenchmarkReport
@@ -197,6 +217,8 @@ export type BenchmarkInvariants =
   | EntityStoreBenchmarkInvariants
   | Logistics10kBenchmarkInvariants
   | M1HaulingBuildingLongRunBenchmarkInvariants
+  | M2PathingInvalidationBenchmarkInvariants
+  | M2WorkLogisticsLongRunBenchmarkInvariants
   | MapDirtyBenchmarkInvariants
   | Pathing100BenchmarkInvariants
   | ReservationsBenchmarkInvariants
@@ -208,6 +230,8 @@ export type SampledBenchmarkResult =
   | SampledEntityStoreBenchmark
   | SampledLogistics10kBenchmark
   | SampledM1HaulingBuildingLongRunBenchmark
+  | SampledM2PathingInvalidationBenchmark
+  | SampledM2WorkLogisticsLongRunBenchmark
   | SampledMapDirtyBenchmark
   | SampledPathing100Benchmark
   | SampledReservationsBenchmark
@@ -220,6 +244,8 @@ export interface BenchmarkReportMap {
   readonly "entity-store": EntityStoreBenchmarkReport;
   readonly "logistics-10k": Logistics10kBenchmarkReport;
   readonly "m1-hauling-building-long-run": M1HaulingBuildingLongRunBenchmarkReport;
+  readonly "m2-pathing-invalidation": M2PathingInvalidationBenchmarkReport;
+  readonly "m2-work-logistics-long-run": M2WorkLogisticsLongRunBenchmarkReport;
   readonly "map-dirty": MapDirtyBenchmarkReport;
   readonly "pathing-100": Pathing100BenchmarkReport;
   readonly reservations: ReservationsBenchmarkReport;
@@ -233,6 +259,8 @@ export interface BenchmarkInvariantMap {
   readonly "entity-store": EntityStoreBenchmarkInvariants;
   readonly "logistics-10k": Logistics10kBenchmarkInvariants;
   readonly "m1-hauling-building-long-run": M1HaulingBuildingLongRunBenchmarkInvariants;
+  readonly "m2-pathing-invalidation": M2PathingInvalidationBenchmarkInvariants;
+  readonly "m2-work-logistics-long-run": M2WorkLogisticsLongRunBenchmarkInvariants;
   readonly "map-dirty": MapDirtyBenchmarkInvariants;
   readonly "pathing-100": Pathing100BenchmarkInvariants;
   readonly reservations: ReservationsBenchmarkInvariants;
@@ -275,6 +303,12 @@ export function benchmarkInvariantsFromReport(
 export function benchmarkInvariantsFromReport(
   report: M1HaulingBuildingLongRunBenchmarkReport,
 ): M1HaulingBuildingLongRunBenchmarkInvariants;
+export function benchmarkInvariantsFromReport(
+  report: M2PathingInvalidationBenchmarkReport,
+): M2PathingInvalidationBenchmarkInvariants;
+export function benchmarkInvariantsFromReport(
+  report: M2WorkLogisticsLongRunBenchmarkReport,
+): M2WorkLogisticsLongRunBenchmarkInvariants;
 export function benchmarkInvariantsFromReport(
   report: MapDirtyBenchmarkReport,
 ): MapDirtyBenchmarkInvariants;
@@ -325,6 +359,14 @@ export function benchmarkInvariantsFromReport(report: BenchmarkReport): Benchmar
     return m1HaulingBuildingLongRunInvariantsFromReport(report);
   }
 
+  if (report.name === "m2-pathing-invalidation") {
+    return m2PathingInvalidationInvariantsFromReport(report);
+  }
+
+  if (report.name === "m2-work-logistics-long-run") {
+    return m2WorkLogisticsLongRunInvariantsFromReport(report);
+  }
+
   if (report.name === "map-dirty") {
     return mapDirtyInvariantsFromReport(report);
   }
@@ -354,6 +396,12 @@ export function runBenchmarkByName(name: "logistics-10k"): Logistics10kBenchmark
 export function runBenchmarkByName(
   name: "m1-hauling-building-long-run",
 ): M1HaulingBuildingLongRunBenchmarkReport;
+export function runBenchmarkByName(
+  name: "m2-pathing-invalidation",
+): M2PathingInvalidationBenchmarkReport;
+export function runBenchmarkByName(
+  name: "m2-work-logistics-long-run",
+): M2WorkLogisticsLongRunBenchmarkReport;
 export function runBenchmarkByName(name: "map-dirty"): MapDirtyBenchmarkReport;
 export function runBenchmarkByName(name: "pathing-100"): Pathing100BenchmarkReport;
 export function runBenchmarkByName(name: "reservations"): ReservationsBenchmarkReport;
@@ -378,6 +426,14 @@ export function runBenchmarkByName(name: BenchmarkName): BenchmarkReport {
 
   if (name === "m1-hauling-building-long-run") {
     return runM1HaulingBuildingLongRunBenchmark();
+  }
+
+  if (name === "m2-pathing-invalidation") {
+    return runM2PathingInvalidationBenchmark();
+  }
+
+  if (name === "m2-work-logistics-long-run") {
+    return runM2WorkLogisticsLongRunBenchmark();
   }
 
   if (name === "map-dirty") {
@@ -420,6 +476,14 @@ export function sampleBenchmark(
   options?: BenchmarkSamplingOptions,
 ): SampledM1HaulingBuildingLongRunBenchmark;
 export function sampleBenchmark(
+  name: "m2-pathing-invalidation",
+  options?: BenchmarkSamplingOptions,
+): SampledM2PathingInvalidationBenchmark;
+export function sampleBenchmark(
+  name: "m2-work-logistics-long-run",
+  options?: BenchmarkSamplingOptions,
+): SampledM2WorkLogisticsLongRunBenchmark;
+export function sampleBenchmark(
   name: "map-dirty",
   options?: BenchmarkSamplingOptions,
 ): SampledMapDirtyBenchmark;
@@ -460,6 +524,10 @@ export function sampleBenchmark(
       runBenchmarkByName("logistics-10k");
     } else if (name === "m1-hauling-building-long-run") {
       runBenchmarkByName("m1-hauling-building-long-run");
+    } else if (name === "m2-pathing-invalidation") {
+      runBenchmarkByName("m2-pathing-invalidation");
+    } else if (name === "m2-work-logistics-long-run") {
+      runBenchmarkByName("m2-work-logistics-long-run");
     } else if (name === "map-dirty") {
       runBenchmarkByName("map-dirty");
     } else if (name === "pathing-100") {
@@ -489,6 +557,14 @@ export function sampleBenchmark(
 
   if (name === "m1-hauling-building-long-run") {
     return sampleM1HaulingBuildingLongRunBenchmark(sampleCount);
+  }
+
+  if (name === "m2-pathing-invalidation") {
+    return sampleM2PathingInvalidationBenchmark(sampleCount);
+  }
+
+  if (name === "m2-work-logistics-long-run") {
+    return sampleM2WorkLogisticsLongRunBenchmark(sampleCount);
   }
 
   if (name === "map-dirty") {
@@ -522,6 +598,8 @@ export function runDefaultBenchmarkSuite(
     sampleBenchmark("entity-store", options),
     sampleBenchmark("logistics-10k", options),
     sampleBenchmark("m1-hauling-building-long-run", options),
+    sampleBenchmark("m2-pathing-invalidation", options),
+    sampleBenchmark("m2-work-logistics-long-run", options),
     sampleBenchmark("map-dirty", options),
     sampleBenchmark("pathing-100", options),
     sampleBenchmark("reservations", options),
@@ -592,6 +670,42 @@ function sampleM1HaulingBuildingLongRunBenchmark(
     name: "m1-hauling-building-long-run",
     report: reports[reports.length - 1] ?? failMissingReport(),
     invariants: validateInvariantConsistency("m1-hauling-building-long-run", reports),
+    sampleElapsedMs: reports.map((report) => report.elapsedMs),
+    stats: createBenchmarkStats(reports.map((report) => report.elapsedMs)),
+  };
+}
+
+function sampleM2PathingInvalidationBenchmark(
+  sampleCount: number,
+): SampledM2PathingInvalidationBenchmark {
+  const reports: M2PathingInvalidationBenchmarkReport[] = [];
+
+  for (let index = 0; index < sampleCount; index += 1) {
+    reports.push(runM2PathingInvalidationBenchmark());
+  }
+
+  return {
+    name: "m2-pathing-invalidation",
+    report: reports[reports.length - 1] ?? failMissingReport(),
+    invariants: validateInvariantConsistency("m2-pathing-invalidation", reports),
+    sampleElapsedMs: reports.map((report) => report.elapsedMs),
+    stats: createBenchmarkStats(reports.map((report) => report.elapsedMs)),
+  };
+}
+
+function sampleM2WorkLogisticsLongRunBenchmark(
+  sampleCount: number,
+): SampledM2WorkLogisticsLongRunBenchmark {
+  const reports: M2WorkLogisticsLongRunBenchmarkReport[] = [];
+
+  for (let index = 0; index < sampleCount; index += 1) {
+    reports.push(runM2WorkLogisticsLongRunBenchmark());
+  }
+
+  return {
+    name: "m2-work-logistics-long-run",
+    report: reports[reports.length - 1] ?? failMissingReport(),
+    invariants: validateInvariantConsistency("m2-work-logistics-long-run", reports),
     sampleElapsedMs: reports.map((report) => report.elapsedMs),
     stats: createBenchmarkStats(reports.map((report) => report.elapsedMs)),
   };
@@ -720,6 +834,14 @@ function validateInvariantConsistency(
   reports: readonly M1HaulingBuildingLongRunBenchmarkReport[],
 ): M1HaulingBuildingLongRunBenchmarkInvariants;
 function validateInvariantConsistency(
+  name: "m2-pathing-invalidation",
+  reports: readonly M2PathingInvalidationBenchmarkReport[],
+): M2PathingInvalidationBenchmarkInvariants;
+function validateInvariantConsistency(
+  name: "m2-work-logistics-long-run",
+  reports: readonly M2WorkLogisticsLongRunBenchmarkReport[],
+): M2WorkLogisticsLongRunBenchmarkInvariants;
+function validateInvariantConsistency(
   name: "map-dirty",
   reports: readonly MapDirtyBenchmarkReport[],
 ): MapDirtyBenchmarkInvariants;
@@ -818,6 +940,14 @@ function readInvariantUnion(report: BenchmarkReport): BenchmarkInvariants {
   }
 
   if (report.name === "m1-hauling-building-long-run") {
+    return benchmarkInvariantsFromReport(report);
+  }
+
+  if (report.name === "m2-pathing-invalidation") {
+    return benchmarkInvariantsFromReport(report);
+  }
+
+  if (report.name === "m2-work-logistics-long-run") {
     return benchmarkInvariantsFromReport(report);
   }
 

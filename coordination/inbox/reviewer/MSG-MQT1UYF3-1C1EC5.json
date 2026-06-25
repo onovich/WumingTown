@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQT1UYF3-1C1EC5",
+  "from": "qa-performance",
+  "to": "reviewer",
+  "taskId": "WM-0042",
+  "kind": "review-request",
+  "subject": "WM-0042 ready for review",
+  "body": "Addressed review findings: M2 long-run gate now uses all 20 actors, path invalidation benchmark records 20 stale rejects within 100 requests, and artifact was regenerated from committed implementation 5a7bb353; required checks and quality pass.",
+  "artifacts": [
+    "coordination/reports/WM-0042.md",
+    "task/WM-0042-add-m2-benchmarks-and-long-run-invariants"
+  ],
+  "createdAt": "2026-06-25T05:16:33.855Z",
+  "acknowledgedAt": "2026-06-25T05:18:09.262Z"
+}

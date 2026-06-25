@@ -1,0 +1,560 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-06-25T05:14:46.404Z",
+  "baselinePath": "packages/benchmarks/baseline.json",
+  "artifactPath": "coordination/artifacts/WM-0042/benchmarks/benchmark-results.json",
+  "sampleCount": 5,
+  "warmupCount": 1,
+  "environment": {
+    "nodeVersion": "v24.13.1",
+    "pnpmVersion": "11.8.0",
+    "osRelease": "10.0.26200",
+    "platform": "win32",
+    "arch": "x64",
+    "cpuModel": "AMD Ryzen 7 9700X 8-Core Processor             ",
+    "cpuCount": 16,
+    "gitCommit": "5a7bb3539243f4bf8fd0525b8d51d4cef76f569d"
+  },
+  "results": [
+    {
+      "name": "empty-tick",
+      "sampleElapsedMs": [
+        5.423500000000018,
+        5.401099999999985,
+        5.3992000000000075,
+        5.383499999999998,
+        5.441800000000001
+      ],
+      "stats": {
+        "sampleCount": 5,
+        "minElapsedMs": 5.383499999999998,
+        "medianElapsedMs": 5.401099999999985,
+        "maxElapsedMs": 5.441800000000001,
+        "meanElapsedMs": 5.409820000000002
+      },
+      "invariants": {
+        "requestedTicks": 1000000,
+        "advancedTicks": 1000000,
+        "finalTick": 1000000,
+        "commandHash": "0x340ca71c",
+        "worldHash": "0x74d843e0",
+        "randomStreamCount": 1
+      },
+      "comparison": {
+        "name": "empty-tick",
+        "status": "ok",
+        "actualMedianElapsedMs": 5.401099999999985,
+        "baselineMedianElapsedMs": 8.176,
+        "regressionPercent": -33.93957925636026,
+        "warnRegressionPercent": 10,
+        "failRegressionPercent": 20,
+        "invariantMismatches": []
+      }
+    },
+    {
+      "name": "entity-store",
+      "sampleElapsedMs": [
+        239.4651,
+        236.7677,
+        237.7183,
+        236.1726000000001,
+        235.43900000000008
+      ],
+      "stats": {
+        "sampleCount": 5,
+        "minElapsedMs": 235.43900000000008,
+        "medianElapsedMs": 236.7677,
+        "maxElapsedMs": 239.4651,
+        "meanElapsedMs": 237.11254000000002
+      },
+      "invariants": {
+        "capacity": 8192,
+        "queuedCommands": 8192,
+        "commitResultCount": 8192,
+        "appliedCommands": 8192,
+        "failedCommands": 0,
+        "attachedComponents": 8192,
+        "iterationChecksum": 134209536
+      },
+      "comparison": {
+        "name": "entity-store",
+        "status": "ok",
+        "actualMedianElapsedMs": 236.7677,
+        "baselineMedianElapsedMs": 244.507,
+        "regressionPercent": -3.165267252062319,
+        "warnRegressionPercent": 10,
+        "failRegressionPercent": 20,
+        "invariantMismatches": []
+      }
+    },
+    {
+      "name": "logistics-10k",
+      "sampleElapsedMs": [
+        14.324799999999868,
+        10.371199999999817,
+        9.198699999999917,
+        9.955200000000104,
+        10.838799999999992
+      ],
+      "stats": {
+        "sampleCount": 5,
+        "minElapsedMs": 9.198699999999917,
+        "medianElapsedMs": 10.371199999999817,
+        "maxElapsedMs": 14.324799999999868,
+        "meanElapsedMs": 10.93773999999994
+      },
+      "invariants": {
+        "sourceSlotCount": 10000,
+        "destinationSlotCount": 100,
+        "pawnCount": 100,
+        "candidateCap": 8,
+        "selectedCap": 1,
+        "totalBucketCandidates": 5000,
+        "visitedCandidates": 800,
+        "selectedOffers": 100,
+        "candidateCapHits": 100,
+        "haulingJobs": 100,
+        "deliveredJobs": 100,
+        "finalActiveClaims": 0,
+        "initialQuantity": 40000,
+        "finalQuantity": 40000,
+        "activeSupplySlots": 10100,
+        "activeDemandSlots": 100,
+        "dirtyBacklog": 0,
+        "selectionChecksum": 1148929120,
+        "quantityChecksum": 1647230824
+      },
+      "comparison": {
+        "name": "logistics-10k",
+        "status": "ok",
+        "actualMedianElapsedMs": 10.371199999999817,
+        "baselineMedianElapsedMs": 30,
+        "regressionPercent": -65.42933333333394,
+        "warnRegressionPercent": 10,
+        "failRegressionPercent": 20,
+        "invariantMismatches": []
+      }
+    },
+    {
+      "name": "m1-hauling-building-long-run",
+      "sampleElapsedMs": [
+        1.0657999999998538,
+        0.7896999999998116,
+        0.7768000000000939,
+        1.332400000000007,
+        0.707300000000032
+      ],
+      "stats": {
+        "sampleCount": 5,
+        "minElapsedMs": 0.707300000000032,
+        "medianElapsedMs": 0.7896999999998116,
+        "maxElapsedMs": 1.332400000000007,
+        "meanElapsedMs": 0.9343999999999596
+      },
+      "invariants": {
+        "scenarioId": "m1.hauling_building.road_lantern_frame.v1",
+        "scenarioSeed": "1",
+        "finalTick": 100000,
+        "saveTick": 2400,
+        "completedBuildingCount": 1,
+        "idleSampleCount": 11,
+        "idleFirstSampleTick": 2401,
+        "idleLastSampleTick": 100000,
+        "idleStateHashStable": true,
+        "idleMaxDemandOfferCount": 0,
+        "idleMaxBuildOfferCount": 0,
+        "idleMaxActiveOfferCount": 0,
+        "idleMaxActiveReservationCount": 0,
+        "idleMaxRunningJobCount": 0,
+        "finalWorldHash": "0xf7815189",
+        "finalReadModelHash": "0x53fe1af9",
+        "replayMatches": true,
+        "saveRoundTripMatches": true,
+        "noReservationLeaks": true,
+        "noStaleEntityReferences": true,
+        "noNegativeResources": true,
+        "noQueueGrowth": true,
+        "noHashDivergence": true,
+        "materialConserved": true
+      },
+      "comparison": {
+        "name": "m1-hauling-building-long-run",
+        "status": "ok",
+        "actualMedianElapsedMs": 0.7896999999998116,
+        "baselineMedianElapsedMs": 10,
+        "regressionPercent": -92.10300000000188,
+        "warnRegressionPercent": 10,
+        "failRegressionPercent": 20,
+        "invariantMismatches": []
+      }
+    },
+    {
+      "name": "m2-pathing-invalidation",
+      "sampleElapsedMs": [
+        4.125200000000177,
+        4.358500000000049,
+        3.9743000000000848,
+        3.8900999999998476,
+        4.060799999999972
+      ],
+      "stats": {
+        "sampleCount": 5,
+        "minElapsedMs": 3.8900999999998476,
+        "medianElapsedMs": 4.060799999999972,
+        "maxElapsedMs": 4.358500000000049,
+        "meanElapsedMs": 4.081780000000026
+      },
+      "invariants": {
+        "scenarioId": "m2.work_logistics.lantern_yard.v1",
+        "scenarioSeed": "2",
+        "width": 40,
+        "height": 24,
+        "requestCount": 100,
+        "staleProbeCount": 20,
+        "processedRequests": 100,
+        "acceptedResults": 80,
+        "staleRejectedResults": 20,
+        "reachedPaths": 68,
+        "nodeExpansions": 25957,
+        "queueBacklogPeak": 100,
+        "finalQueueBacklog": 0,
+        "pathChecksum": 1481150542
+      },
+      "comparison": {
+        "name": "m2-pathing-invalidation",
+        "status": "ok",
+        "actualMedianElapsedMs": 4.060799999999972,
+        "baselineMedianElapsedMs": 10,
+        "regressionPercent": -59.39200000000028,
+        "warnRegressionPercent": 10,
+        "failRegressionPercent": 20,
+        "invariantMismatches": []
+      }
+    },
+    {
+      "name": "m2-work-logistics-long-run",
+      "sampleElapsedMs": [
+        3.216799999999921,
+        2.292699999999968,
+        2.6453999999998814,
+        2.2491999999999734,
+        1.9985000000001492
+      ],
+      "stats": {
+        "sampleCount": 5,
+        "minElapsedMs": 1.9985000000001492,
+        "medianElapsedMs": 2.292699999999968,
+        "maxElapsedMs": 3.216799999999921,
+        "meanElapsedMs": 2.4805199999999785
+      },
+      "invariants": {
+        "scenarioId": "m2.work_logistics.lantern_yard.v1",
+        "scenarioSeed": "2",
+        "finalTick": 100000,
+        "saveTick": 6000,
+        "actorCount": 20,
+        "completedBuildOrders": 4,
+        "deliveredWood": 24,
+        "deliveredStone": 12,
+        "buildProgressTotal": 240,
+        "materialDeliveryJobsCreated": 16,
+        "materialDeliveryJobsCompleted": 16,
+        "buildJobsCreated": 4,
+        "buildJobsCompleted": 4,
+        "demandOfferPeak": 8,
+        "buildOfferPeak": 4,
+        "actorsUsed": 20,
+        "terminalSampleCount": 5,
+        "terminalFirstSampleTick": 20000,
+        "terminalLastSampleTick": 100000,
+        "terminalStateStable": true,
+        "terminalMaxActiveReservationCount": 0,
+        "terminalMaxActiveOfferCount": 0,
+        "terminalMaxRunningJobCount": 0,
+        "finalWorldHash": "0x9e689c8d",
+        "finalReadModelHash": "0x2d2933dc",
+        "replayMatches": true,
+        "saveRoundTripMatches": true,
+        "noReservationLeaks": true,
+        "noStaleOffers": true,
+        "noNegativeResources": true,
+        "noQueueGrowth": true,
+        "noHashDivergence": true,
+        "materialConserved": true
+      },
+      "comparison": {
+        "name": "m2-work-logistics-long-run",
+        "status": "ok",
+        "actualMedianElapsedMs": 2.292699999999968,
+        "baselineMedianElapsedMs": 10,
+        "regressionPercent": -77.07300000000032,
+        "warnRegressionPercent": 10,
+        "failRegressionPercent": 20,
+        "invariantMismatches": []
+      }
+    },
+    {
+      "name": "map-dirty",
+      "sampleElapsedMs": [
+        0.8749000000000251,
+        0.7622000000001208,
+        0.772899999999936,
+        0.7546999999999571,
+        0.7490000000000236
+      ],
+      "stats": {
+        "sampleCount": 5,
+        "minElapsedMs": 0.7490000000000236,
+        "medianElapsedMs": 0.7622000000001208,
+        "maxElapsedMs": 0.8749000000000251,
+        "meanElapsedMs": 0.7827400000000125
+      },
+      "invariants": {
+        "width": 256,
+        "height": 256,
+        "chunkSize": 32,
+        "changedCells": 1024,
+        "dirtyQueuePeak": 64,
+        "rebuildBudgetPerTick": 8,
+        "drainTicks": 8,
+        "processedChunks": 64,
+        "remainingDirtyChunks": 0,
+        "finalGlobalVersion": 1024,
+        "processedChecksum": 3385099136,
+        "mapHash": "0xba7253ca"
+      },
+      "comparison": {
+        "name": "map-dirty",
+        "status": "ok",
+        "actualMedianElapsedMs": 0.7622000000001208,
+        "baselineMedianElapsedMs": 1,
+        "regressionPercent": -23.779999999987922,
+        "warnRegressionPercent": 10,
+        "failRegressionPercent": 20,
+        "invariantMismatches": []
+      }
+    },
+    {
+      "name": "pathing-100",
+      "sampleElapsedMs": [
+        4.224500000000035,
+        3.561999999999898,
+        4.4090000000001055,
+        3.2683999999999287,
+        3.40949999999998
+      ],
+      "stats": {
+        "sampleCount": 5,
+        "minElapsedMs": 3.2683999999999287,
+        "medianElapsedMs": 3.561999999999898,
+        "maxElapsedMs": 4.4090000000001055,
+        "meanElapsedMs": 3.7746799999999894
+      },
+      "invariants": {
+        "width": 32,
+        "height": 32,
+        "requestCount": 100,
+        "staleProbeCount": 1,
+        "processedRequests": 101,
+        "acceptedResults": 100,
+        "staleRejectedResults": 1,
+        "reachedPaths": 82,
+        "nodeExpansions": 21865,
+        "queueBacklogPeak": 100,
+        "finalQueueBacklog": 0,
+        "pathChecksum": 267449330
+      },
+      "comparison": {
+        "name": "pathing-100",
+        "status": "ok",
+        "actualMedianElapsedMs": 3.561999999999898,
+        "baselineMedianElapsedMs": 10,
+        "regressionPercent": -64.38000000000102,
+        "warnRegressionPercent": 10,
+        "failRegressionPercent": 20,
+        "invariantMismatches": []
+      }
+    },
+    {
+      "name": "reservations",
+      "sampleElapsedMs": [
+        2.6936000000000604,
+        1.1184000000000651,
+        1.3186000000000604,
+        1.3799000000001342,
+        0.8359000000000378
+      ],
+      "stats": {
+        "sampleCount": 5,
+        "minElapsedMs": 0.8359000000000378,
+        "medianElapsedMs": 1.3186000000000604,
+        "maxElapsedMs": 2.6936000000000604,
+        "meanElapsedMs": 1.4692800000000716
+      },
+      "invariants": {
+        "ownerCount": 64,
+        "itemTargetCount": 128,
+        "capacityTargetCount": 128,
+        "transactionAttempts": 4608,
+        "acceptedTransactions": 4096,
+        "rejectedTransactions": 512,
+        "releasedByCleanup": 512,
+        "finalActiveClaims": 7680,
+        "conflictCount": 512,
+        "itemQuantityReservationCount": 3840,
+        "capacityReservationCount": 3840,
+        "transactionChecksum": 2856632320,
+        "cleanupChecksum": 1674513408
+      },
+      "comparison": {
+        "name": "reservations",
+        "status": "ok",
+        "actualMedianElapsedMs": 1.3186000000000604,
+        "baselineMedianElapsedMs": 10,
+        "regressionPercent": -86.8139999999994,
+        "warnRegressionPercent": 10,
+        "failRegressionPercent": 20,
+        "invariantMismatches": []
+      }
+    },
+    {
+      "name": "region-room",
+      "sampleElapsedMs": [
+        4.853900000000067,
+        4.418599999999969,
+        4.377300000000105,
+        4.31230000000005,
+        4.523999999999887
+      ],
+      "stats": {
+        "sampleCount": 5,
+        "minElapsedMs": 4.31230000000005,
+        "medianElapsedMs": 4.418599999999969,
+        "maxElapsedMs": 4.853900000000067,
+        "meanElapsedMs": 4.4972200000000155
+      },
+      "invariants": {
+        "width": 128,
+        "height": 128,
+        "chunkSize": 16,
+        "changedEdges": 128,
+        "dirtyQueuePeak": 632,
+        "rebuildBudgetPerTick": 256,
+        "drainTicks": 130,
+        "processedCells": 32768,
+        "processedRegions": 2,
+        "mapUpdates": 32768,
+        "remainingDirtyCells": 0,
+        "activeCellBacklog": 0,
+        "noSustainedGrowth": true,
+        "navigationVersion": 129,
+        "regionVersion": 129,
+        "roomVersion": 129,
+        "regionGraphVersion": 129,
+        "processedChecksum": 2639483583,
+        "regionRoomHash": "0x8c6c6b2d"
+      },
+      "comparison": {
+        "name": "region-room",
+        "status": "ok",
+        "actualMedianElapsedMs": 4.418599999999969,
+        "baselineMedianElapsedMs": 10,
+        "regressionPercent": -55.814000000000306,
+        "warnRegressionPercent": 10,
+        "failRegressionPercent": 20,
+        "invariantMismatches": []
+      }
+    },
+    {
+      "name": "spatial-index",
+      "sampleElapsedMs": [
+        1414.6955999999996,
+        1421.3192000000008,
+        1433.8357999999998,
+        1422.4385999999995,
+        1424.9595000000008
+      ],
+      "stats": {
+        "sampleCount": 5,
+        "minElapsedMs": 1414.6955999999996,
+        "medianElapsedMs": 1422.4385999999995,
+        "maxElapsedMs": 1433.8357999999998,
+        "meanElapsedMs": 1423.4497400000002
+      },
+      "invariants": {
+        "entityCount": 50000,
+        "capacity": 50000,
+        "width": 256,
+        "height": 256,
+        "chunkSize": 32,
+        "queryCount": 145,
+        "movedEntities": 1024,
+        "cleanupCount": 512,
+        "finalMapMemberships": 49488,
+        "finalIndexedEntities": 49488,
+        "finalBacklogCount": 0,
+        "occupancySetCount": 51024,
+        "occupancyClearedCount": 1536,
+        "indexAddedCount": 51024,
+        "indexRemovedCount": 1536,
+        "queryChecksum": 1919598032,
+        "movementChecksum": 2674197504,
+        "cleanupChecksum": 308407296
+      },
+      "comparison": {
+        "name": "spatial-index",
+        "status": "ok",
+        "actualMedianElapsedMs": 1422.4385999999995,
+        "baselineMedianElapsedMs": 1436.717,
+        "regressionPercent": -0.9938213301576163,
+        "warnRegressionPercent": 10,
+        "failRegressionPercent": 20,
+        "invariantMismatches": []
+      }
+    },
+    {
+      "name": "work-offers",
+      "sampleElapsedMs": [
+        1.2079000000012456,
+        1.1540999999997439,
+        1.0587999999988824,
+        1.1502999999993335,
+        1.6376000000000204
+      ],
+      "stats": {
+        "sampleCount": 5,
+        "minElapsedMs": 1.0587999999988824,
+        "medianElapsedMs": 1.1540999999997439,
+        "maxElapsedMs": 1.6376000000000204,
+        "meanElapsedMs": 1.241739999999845
+      },
+      "invariants": {
+        "pawnCount": 100,
+        "offerCount": 10000,
+        "offersPerPawnBucket": 100,
+        "candidateCap": 8,
+        "selectedCap": 3,
+        "allEntityScanEquivalent": 1000000,
+        "totalBucketCandidates": 10000,
+        "visitedCandidates": 800,
+        "scoredCandidates": 800,
+        "selectedOffers": 300,
+        "candidateCapHits": 100,
+        "traceCapacity": 16,
+        "storedTraceCount": 16,
+        "indexActiveOffers": 10000,
+        "selectionChecksum": 22148512
+      },
+      "comparison": {
+        "name": "work-offers",
+        "status": "ok",
+        "actualMedianElapsedMs": 1.1540999999997439,
+        "baselineMedianElapsedMs": 10,
+        "regressionPercent": -88.45900000000256,
+        "warnRegressionPercent": 10,
+        "failRegressionPercent": 20,
+        "invariantMismatches": []
+      }
+    }
+  ]
+}

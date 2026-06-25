@@ -1,12 +1,15 @@
 import { defineWorkspaceSmoke, type WorkspaceSmoke } from "@wuming-town/foundation";
 import {
   HAULING_BUILDING_SCENARIO_ID,
+  M2_WORK_LOGISTICS_SCENARIO_ID,
   SIM_CORE_SMOKE,
   isSafeTick,
   runHaulingBuildingScenario,
   runHeadlessTicks,
+  runM2WorkLogisticsScenario,
   type HaulingBuildingScenarioSummary,
   type HeadlessRunSummary,
+  type M2WorkLogisticsScenarioSummary,
 } from "@wuming-town/sim-core";
 import { TESTKIT_SMOKE } from "@wuming-town/testkit";
 
@@ -28,13 +31,16 @@ export interface HeadlessCliIo {
 export interface HeadlessCliOptions {
   readonly seed: string;
   readonly ticks: number;
-  readonly scenario?: "hauling-building";
+  readonly scenario?: "hauling-building" | "m2-work-logistics";
 }
 
 export type HeadlessCliResult =
   | {
       readonly ok: true;
-      readonly summary: HeadlessRunSummary | HaulingBuildingScenarioSummary;
+      readonly summary:
+        | HeadlessRunSummary
+        | HaulingBuildingScenarioSummary
+        | M2WorkLogisticsScenarioSummary;
     }
   | {
       readonly ok: false;
@@ -49,10 +55,7 @@ export function runHeadlessCli(argv: readonly string[], io: HeadlessCliIo): numb
     return 1;
   }
 
-  const summary =
-    parsed.options.scenario === "hauling-building"
-      ? runHaulingBuildingScenario({ seed: parsed.options.seed, ticks: parsed.options.ticks })
-      : runHeadlessTicks(parsed.options.seed, parsed.options.ticks);
+  const summary = runSelectedHeadlessScenario(parsed.options);
   io.writeLine(JSON.stringify(summary, undefined, 2));
   return 0;
 }
@@ -60,7 +63,7 @@ export function runHeadlessCli(argv: readonly string[], io: HeadlessCliIo): numb
 export function parseHeadlessCliOptions(argv: readonly string[]): HeadlessCliResultOptions {
   let seed: string | undefined;
   let ticks: number | undefined;
-  let scenario: "hauling-building" | undefined;
+  let scenario: "hauling-building" | "m2-work-logistics" | undefined;
   let index = 0;
 
   while (index < argv.length) {
@@ -99,9 +102,9 @@ export function parseHeadlessCliOptions(argv: readonly string[]): HeadlessCliRes
 
     if (arg === "--scenario") {
       const value = argv[index + 1];
-      if (value !== "hauling-building") {
+      if (value !== "hauling-building" && value !== "m2-work-logistics") {
         return failedOptions(
-          `--scenario currently supports only hauling-building (${HAULING_BUILDING_SCENARIO_ID})`,
+          `--scenario supports hauling-building (${HAULING_BUILDING_SCENARIO_ID}) or m2-work-logistics (${M2_WORK_LOGISTICS_SCENARIO_ID})`,
         );
       }
 
@@ -150,6 +153,20 @@ type HeadlessCliResultOptions =
       readonly ok: false;
       readonly error: string;
     };
+
+function runSelectedHeadlessScenario(
+  options: HeadlessCliOptions,
+): HeadlessRunSummary | HaulingBuildingScenarioSummary | M2WorkLogisticsScenarioSummary {
+  if (options.scenario === "hauling-building") {
+    return runHaulingBuildingScenario({ seed: options.seed, ticks: options.ticks });
+  }
+
+  if (options.scenario === "m2-work-logistics") {
+    return runM2WorkLogisticsScenario({ seed: options.seed, ticks: options.ticks });
+  }
+
+  return runHeadlessTicks(options.seed, options.ticks);
+}
 
 function failedOptions(error: string): HeadlessCliResultOptions {
   return {

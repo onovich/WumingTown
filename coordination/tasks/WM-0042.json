@@ -2,7 +2,7 @@
   "id": "WM-0042",
   "title": "Add M2 benchmarks and long run invariants",
   "summary": "Add the M2 benchmark and invariant gate for 20 actors hauling/building plus 100 path requests under versioned invalidation.",
-  "state": "ready",
+  "state": "verified",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,7 +31,7 @@
   ],
   "branch": "task/WM-0042-add-m2-benchmarks-and-long-run-invariants",
   "createdAt": "2026-06-24T21:14:35.180Z",
-  "updatedAt": "2026-06-25T04:37:11.835Z",
+  "updatedAt": "2026-06-25T05:21:17.117Z",
   "history": [
     {
       "at": "2026-06-24T21:14:35.180Z",
@@ -44,20 +44,56 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-25T04:40:35.913Z",
+      "actor": "qa-performance",
+      "action": "claim",
+      "details": "thread=Beacon direct WM-0042"
+    },
+    {
+      "at": "2026-06-25T04:58:32.667Z",
+      "actor": "qa-performance",
+      "action": "complete",
+      "details": "Added M2 long-run invariant test, M2 work/logistics and path invalidation benchmarks, baseline/artifact evidence, docs and required gate plumbing; required checks and quality pass."
+    },
+    {
+      "at": "2026-06-25T05:07:27.665Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: M2 gate accepts only 12 used actors despite 20-actor contract; path benchmark records 1 stale reject instead of contract invalidation coverage; committed artifact gitCommit is pre-implementation claim commit."
+    },
+    {
+      "at": "2026-06-25T05:16:33.853Z",
+      "actor": "qa-performance",
+      "action": "complete",
+      "details": "Addressed review findings: M2 long-run gate now uses all 20 actors, path invalidation benchmark records 20 stale rejects within 100 requests, and artifact was regenerated from committed implementation 5a7bb353; required checks and quality pass."
+    },
+    {
+      "at": "2026-06-25T05:21:17.117Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; repair confirmed 20 actors, 20 stale rejects within 100 paths, committed-code artifact metadata, preserved thresholds, and required gates pass."
     }
   ],
   "objective": "Create the artifact-backed M2 performance and invariant gate before closeout.",
   "allowedPaths": [
     "packages/sim-core/src/m2-invariants.test.ts",
     "packages/sim-core/src/m2-work-logistics-scenario.ts",
+    "packages/sim-core/src/m2-save-replay.test.ts",
     "packages/benchmarks/src/m2-work-logistics-long-run-benchmark.ts",
     "packages/benchmarks/src/m2-pathing-invalidation-benchmark.ts",
     "packages/benchmarks/src/index.ts",
     "packages/benchmarks/src/benchmarks.ts",
+    "packages/benchmarks/src/baseline.ts",
+    "packages/benchmarks/src/cli-lib.ts",
     "packages/benchmarks/baseline.json",
+    "tools/test-runner.mjs",
+    "tools/headless-runner/src/index.ts",
     "docs/05_tech/03_performance_budget.md",
     "docs/05_tech/05_testing_observability_ci.md",
     "coordination/artifacts/WM-0042/**",
+    "coordination/reports/WM-0042-plan.md",
     "coordination/tasks/WM-0042.json",
     "coordination/reports/WM-0042.md"
   ],
@@ -81,5 +117,15 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Benchmark baselines and long-run invariant gates require qa-performance ownership and independent review."
+  },
+  "claimedBy": "qa-performance",
+  "threadLabel": "Beacon direct WM-0042",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0042.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; repair confirmed 20 actors, 20 stale rejects within 100 paths, committed-code artifact metadata, preserved thresholds, and required gates pass.",
+    "at": "2026-06-25T05:21:17.117Z"
   }
 }

@@ -123,7 +123,7 @@ function parseBenchmarkArgs(
   let warmupCount = DEFAULT_BENCHMARK_WARMUP_COUNT;
   let baselinePath = path.join(process.cwd(), "packages", "benchmarks", "baseline.json");
   let artifactPath = path.join(
-    resolveArtifactRoot("WM-0029"),
+    resolveArtifactRoot("WM-0042"),
     "benchmarks",
     "benchmark-results.json",
   );
@@ -137,7 +137,7 @@ function parseBenchmarkArgs(
 
       if (!isBenchmarkName(value)) {
         return failedArgs(
-          "Unsupported benchmark filter. Use empty-tick, entity-store, logistics-10k, m1-hauling-building-long-run, map-dirty, pathing-100, reservations, region-room, spatial-index, or work-offers.",
+          "Unsupported benchmark filter. Use empty-tick, entity-store, logistics-10k, m1-hauling-building-long-run, m2-pathing-invalidation, m2-work-logistics-long-run, map-dirty, pathing-100, reservations, region-room, spatial-index, or work-offers.",
         );
       }
 
@@ -151,7 +151,7 @@ function parseBenchmarkArgs(
 
       if (!isBenchmarkName(value)) {
         return failedArgs(
-          "Unsupported benchmark filter. Use empty-tick, entity-store, logistics-10k, m1-hauling-building-long-run, map-dirty, pathing-100, reservations, region-room, spatial-index, or work-offers.",
+          "Unsupported benchmark filter. Use empty-tick, entity-store, logistics-10k, m1-hauling-building-long-run, m2-pathing-invalidation, m2-work-logistics-long-run, map-dirty, pathing-100, reservations, region-room, spatial-index, or work-offers.",
         );
       }
 
@@ -296,6 +296,15 @@ function parseBenchmarkArgs(
       "benchmarks",
       "benchmark-results.json",
     );
+  } else if (
+    !artifactPathWasConfigured &&
+    (filter === "m2-pathing-invalidation" || filter === "m2-work-logistics-long-run")
+  ) {
+    artifactPath = path.join(
+      resolveArtifactRoot("WM-0042"),
+      "benchmarks",
+      "benchmark-results.json",
+    );
   }
 
   return {
@@ -340,6 +349,12 @@ function loadBenchmarkBaseline(filePath: string): BenchmarkBaselineFile {
       "logistics-10k": parseLogistics10kBaselineEntry(rawBenchmarks["logistics-10k"]),
       "m1-hauling-building-long-run": parseM1HaulingBuildingLongRunBaselineEntry(
         rawBenchmarks["m1-hauling-building-long-run"],
+      ),
+      "m2-pathing-invalidation": parseM2PathingInvalidationBaselineEntry(
+        rawBenchmarks["m2-pathing-invalidation"],
+      ),
+      "m2-work-logistics-long-run": parseM2WorkLogisticsLongRunBaselineEntry(
+        rawBenchmarks["m2-work-logistics-long-run"],
       ),
       "map-dirty": parseMapDirtyBaselineEntry(rawBenchmarks["map-dirty"]),
       "pathing-100": parsePathing100BaselineEntry(rawBenchmarks["pathing-100"]),
@@ -456,6 +471,70 @@ function parseM1HaulingBuildingLongRunBaselineEntry(
     ),
     invariants: parseM1HaulingBuildingLongRunBaselineInvariants(
       requireRecord(value["invariants"], "m1-hauling-building-long-run"),
+    ),
+  };
+}
+
+function parseM2PathingInvalidationBaselineEntry(
+  value: unknown,
+): BenchmarkBaselineEntry<"m2-pathing-invalidation"> {
+  if (!isRecord(value)) {
+    throw new Error("benchmark baseline entry m2-pathing-invalidation must be an object");
+  }
+
+  if (value["name"] !== "m2-pathing-invalidation") {
+    throw new Error("benchmark baseline entry m2-pathing-invalidation must declare the same name");
+  }
+
+  return {
+    name: "m2-pathing-invalidation",
+    medianElapsedMs: requireNumber(
+      value["medianElapsedMs"],
+      "m2-pathing-invalidation.medianElapsedMs",
+    ),
+    warnRegressionPercent: requireNumber(
+      value["warnRegressionPercent"],
+      "m2-pathing-invalidation.warnRegressionPercent",
+    ),
+    failRegressionPercent: requireNumber(
+      value["failRegressionPercent"],
+      "m2-pathing-invalidation.failRegressionPercent",
+    ),
+    invariants: parseM2PathingInvalidationBaselineInvariants(
+      requireRecord(value["invariants"], "m2-pathing-invalidation"),
+    ),
+  };
+}
+
+function parseM2WorkLogisticsLongRunBaselineEntry(
+  value: unknown,
+): BenchmarkBaselineEntry<"m2-work-logistics-long-run"> {
+  if (!isRecord(value)) {
+    throw new Error("benchmark baseline entry m2-work-logistics-long-run must be an object");
+  }
+
+  if (value["name"] !== "m2-work-logistics-long-run") {
+    throw new Error(
+      "benchmark baseline entry m2-work-logistics-long-run must declare the same name",
+    );
+  }
+
+  return {
+    name: "m2-work-logistics-long-run",
+    medianElapsedMs: requireNumber(
+      value["medianElapsedMs"],
+      "m2-work-logistics-long-run.medianElapsedMs",
+    ),
+    warnRegressionPercent: requireNumber(
+      value["warnRegressionPercent"],
+      "m2-work-logistics-long-run.warnRegressionPercent",
+    ),
+    failRegressionPercent: requireNumber(
+      value["failRegressionPercent"],
+      "m2-work-logistics-long-run.failRegressionPercent",
+    ),
+    invariants: parseM2WorkLogisticsLongRunBaselineInvariants(
+      requireRecord(value["invariants"], "m2-work-logistics-long-run"),
     ),
   };
 }
@@ -767,6 +846,169 @@ function parseM1HaulingBuildingLongRunBaselineInvariants(
   };
 }
 
+function parseM2PathingInvalidationBaselineInvariants(
+  value: Record<string, unknown>,
+): BenchmarkBaselineEntry<"m2-pathing-invalidation">["invariants"] {
+  return {
+    scenarioId: requireString(value["scenarioId"], "m2-pathing-invalidation.scenarioId"),
+    scenarioSeed: requireString(value["scenarioSeed"], "m2-pathing-invalidation.scenarioSeed"),
+    width: requireNumber(value["width"], "m2-pathing-invalidation.width"),
+    height: requireNumber(value["height"], "m2-pathing-invalidation.height"),
+    requestCount: requireNumber(value["requestCount"], "m2-pathing-invalidation.requestCount"),
+    staleProbeCount: requireNumber(
+      value["staleProbeCount"],
+      "m2-pathing-invalidation.staleProbeCount",
+    ),
+    processedRequests: requireNumber(
+      value["processedRequests"],
+      "m2-pathing-invalidation.processedRequests",
+    ),
+    acceptedResults: requireNumber(
+      value["acceptedResults"],
+      "m2-pathing-invalidation.acceptedResults",
+    ),
+    staleRejectedResults: requireNumber(
+      value["staleRejectedResults"],
+      "m2-pathing-invalidation.staleRejectedResults",
+    ),
+    reachedPaths: requireNumber(value["reachedPaths"], "m2-pathing-invalidation.reachedPaths"),
+    nodeExpansions: requireNumber(
+      value["nodeExpansions"],
+      "m2-pathing-invalidation.nodeExpansions",
+    ),
+    queueBacklogPeak: requireNumber(
+      value["queueBacklogPeak"],
+      "m2-pathing-invalidation.queueBacklogPeak",
+    ),
+    finalQueueBacklog: requireNumber(
+      value["finalQueueBacklog"],
+      "m2-pathing-invalidation.finalQueueBacklog",
+    ),
+    pathChecksum: requireNumber(value["pathChecksum"], "m2-pathing-invalidation.pathChecksum"),
+  };
+}
+
+function parseM2WorkLogisticsLongRunBaselineInvariants(
+  value: Record<string, unknown>,
+): BenchmarkBaselineEntry<"m2-work-logistics-long-run">["invariants"] {
+  return {
+    scenarioId: requireString(value["scenarioId"], "m2-work-logistics-long-run.scenarioId"),
+    scenarioSeed: requireString(value["scenarioSeed"], "m2-work-logistics-long-run.scenarioSeed"),
+    finalTick: requireNumber(value["finalTick"], "m2-work-logistics-long-run.finalTick"),
+    saveTick: requireNumber(value["saveTick"], "m2-work-logistics-long-run.saveTick"),
+    actorCount: requireNumber(value["actorCount"], "m2-work-logistics-long-run.actorCount"),
+    completedBuildOrders: requireNumber(
+      value["completedBuildOrders"],
+      "m2-work-logistics-long-run.completedBuildOrders",
+    ),
+    deliveredWood: requireNumber(
+      value["deliveredWood"],
+      "m2-work-logistics-long-run.deliveredWood",
+    ),
+    deliveredStone: requireNumber(
+      value["deliveredStone"],
+      "m2-work-logistics-long-run.deliveredStone",
+    ),
+    buildProgressTotal: requireNumber(
+      value["buildProgressTotal"],
+      "m2-work-logistics-long-run.buildProgressTotal",
+    ),
+    materialDeliveryJobsCreated: requireNumber(
+      value["materialDeliveryJobsCreated"],
+      "m2-work-logistics-long-run.materialDeliveryJobsCreated",
+    ),
+    materialDeliveryJobsCompleted: requireNumber(
+      value["materialDeliveryJobsCompleted"],
+      "m2-work-logistics-long-run.materialDeliveryJobsCompleted",
+    ),
+    buildJobsCreated: requireNumber(
+      value["buildJobsCreated"],
+      "m2-work-logistics-long-run.buildJobsCreated",
+    ),
+    buildJobsCompleted: requireNumber(
+      value["buildJobsCompleted"],
+      "m2-work-logistics-long-run.buildJobsCompleted",
+    ),
+    demandOfferPeak: requireNumber(
+      value["demandOfferPeak"],
+      "m2-work-logistics-long-run.demandOfferPeak",
+    ),
+    buildOfferPeak: requireNumber(
+      value["buildOfferPeak"],
+      "m2-work-logistics-long-run.buildOfferPeak",
+    ),
+    actorsUsed: requireNumber(value["actorsUsed"], "m2-work-logistics-long-run.actorsUsed"),
+    terminalSampleCount: requireNumber(
+      value["terminalSampleCount"],
+      "m2-work-logistics-long-run.terminalSampleCount",
+    ),
+    terminalFirstSampleTick: requireNumber(
+      value["terminalFirstSampleTick"],
+      "m2-work-logistics-long-run.terminalFirstSampleTick",
+    ),
+    terminalLastSampleTick: requireNumber(
+      value["terminalLastSampleTick"],
+      "m2-work-logistics-long-run.terminalLastSampleTick",
+    ),
+    terminalStateStable: requireBoolean(
+      value["terminalStateStable"],
+      "m2-work-logistics-long-run.terminalStateStable",
+    ),
+    terminalMaxActiveReservationCount: requireNumber(
+      value["terminalMaxActiveReservationCount"],
+      "m2-work-logistics-long-run.terminalMaxActiveReservationCount",
+    ),
+    terminalMaxActiveOfferCount: requireNumber(
+      value["terminalMaxActiveOfferCount"],
+      "m2-work-logistics-long-run.terminalMaxActiveOfferCount",
+    ),
+    terminalMaxRunningJobCount: requireNumber(
+      value["terminalMaxRunningJobCount"],
+      "m2-work-logistics-long-run.terminalMaxRunningJobCount",
+    ),
+    finalWorldHash: requireString(
+      value["finalWorldHash"],
+      "m2-work-logistics-long-run.finalWorldHash",
+    ),
+    finalReadModelHash: requireString(
+      value["finalReadModelHash"],
+      "m2-work-logistics-long-run.finalReadModelHash",
+    ),
+    replayMatches: requireBoolean(
+      value["replayMatches"],
+      "m2-work-logistics-long-run.replayMatches",
+    ),
+    saveRoundTripMatches: requireBoolean(
+      value["saveRoundTripMatches"],
+      "m2-work-logistics-long-run.saveRoundTripMatches",
+    ),
+    noReservationLeaks: requireBoolean(
+      value["noReservationLeaks"],
+      "m2-work-logistics-long-run.noReservationLeaks",
+    ),
+    noStaleOffers: requireBoolean(
+      value["noStaleOffers"],
+      "m2-work-logistics-long-run.noStaleOffers",
+    ),
+    noNegativeResources: requireBoolean(
+      value["noNegativeResources"],
+      "m2-work-logistics-long-run.noNegativeResources",
+    ),
+    noQueueGrowth: requireBoolean(
+      value["noQueueGrowth"],
+      "m2-work-logistics-long-run.noQueueGrowth",
+    ),
+    noHashDivergence: requireBoolean(
+      value["noHashDivergence"],
+      "m2-work-logistics-long-run.noHashDivergence",
+    ),
+    materialConserved: requireBoolean(
+      value["materialConserved"],
+      "m2-work-logistics-long-run.materialConserved",
+    ),
+  };
+}
+
 function parseMapDirtyBaselineInvariants(
   value: Record<string, unknown>,
 ): BenchmarkBaselineEntry<"map-dirty">["invariants"] {
@@ -988,6 +1230,20 @@ function sampleNamedBenchmark(
     });
   }
 
+  if (name === "m2-pathing-invalidation") {
+    return sampleBenchmark("m2-pathing-invalidation", {
+      sampleCount,
+      warmupCount,
+    });
+  }
+
+  if (name === "m2-work-logistics-long-run") {
+    return sampleBenchmark("m2-work-logistics-long-run", {
+      sampleCount,
+      warmupCount,
+    });
+  }
+
   if (name === "map-dirty") {
     return sampleBenchmark("map-dirty", {
       sampleCount,
@@ -1047,6 +1303,14 @@ function compareAgainstNamedBaseline(
 
   if (result.name === "m1-hauling-building-long-run") {
     return compareBenchmarkToBaseline(result, baseline.benchmarks["m1-hauling-building-long-run"]);
+  }
+
+  if (result.name === "m2-pathing-invalidation") {
+    return compareBenchmarkToBaseline(result, baseline.benchmarks["m2-pathing-invalidation"]);
+  }
+
+  if (result.name === "m2-work-logistics-long-run") {
+    return compareBenchmarkToBaseline(result, baseline.benchmarks["m2-work-logistics-long-run"]);
   }
 
   if (result.name === "map-dirty") {
@@ -1167,6 +1431,8 @@ function isBenchmarkName(value: string | undefined): value is BenchmarkName {
     value === "entity-store" ||
     value === "logistics-10k" ||
     value === "m1-hauling-building-long-run" ||
+    value === "m2-pathing-invalidation" ||
+    value === "m2-work-logistics-long-run" ||
     value === "map-dirty" ||
     value === "pathing-100" ||
     value === "reservations" ||
