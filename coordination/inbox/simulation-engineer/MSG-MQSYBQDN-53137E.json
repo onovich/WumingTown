@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQSYBQDN-53137E",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0039",
+  "kind": "changes-requested",
+  "subject": "WM-0039 review: changes_requested",
+  "body": "High: branch modifies coordination/thread-registry.json outside WM-0039 allowedPaths; remove or justify before verification. Review stopped at scope gate per checkpoint request.",
+  "artifacts": [
+    "coordination/reports/WM-0039.md"
+  ],
+  "createdAt": "2026-06-25T03:37:38.123Z",
+  "acknowledgedAt": "2026-06-25T03:38:03.455Z"
+}

@@ -239,3 +239,24 @@ site entity and one interaction spot before ticking integer build progress.
 Structured reasons distinguish `material.insufficient_required_amount`,
 `material.def_not_required`, `reservation.destination_capacity_conflict`,
 `path.no_route_to_destination`, `site.blocked` and `target.invalid_state`.
+
+## WM-0039 implementation note
+
+`BuildSiteStore` now exposes the focused M2 build/order scaffold as explicit
+serializable lanes. `readBuildOrder` materializes a read-only order view from
+site owner state: required materials, delivered buffers, reserved material
+capacity, remaining demand, build progress, required build ticks, and current
+material/build WorkOffer membership. The order view is derived from owner lanes;
+it does not own quantities or duplicate WorkOffer authority.
+
+Build-site delivery and construction still acquire all required claims before
+work starts. If a reservation transaction succeeds but `JobCoreStore` rejects
+the subsequent driver transition, the exact acquired claim ids are released
+before returning `job_core.failed`. This mirrors the WM-0038 hauling rollback
+rule and prevents partial reservation leaks.
+
+The scaffold adds an explicit interruption-policy surface for build/order jobs.
+Denied interruptions return `policy.interruption_denied`; delivery interruption
+after pickup is also denied by `BuildSiteStore` so carried material cannot be
+deleted by a terminal JobCore cleanup path. Allowed interruptions go through
+`JobCoreStore.requestInterruption` and release owner/job reservations.

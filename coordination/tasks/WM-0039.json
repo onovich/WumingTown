@@ -2,7 +2,7 @@
   "id": "WM-0039",
   "title": "Add build order and production order scaffold",
   "summary": "Add only the build-order and production-order scaffolding needed by the M2 vertical slice, with serializable progress and structured failure reasons.",
-  "state": "in_progress",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,7 +31,7 @@
   ],
   "branch": "task/WM-0039-add-build-and-production-order-scaffold",
   "createdAt": "2026-06-24T21:14:35.180Z",
-  "updatedAt": "2026-06-25T03:16:36.752Z",
+  "updatedAt": "2026-06-25T03:46:03.886Z",
   "history": [
     {
       "at": "2026-06-24T21:14:35.180Z",
@@ -49,6 +49,42 @@
       "at": "2026-06-25T03:16:36.751Z",
       "actor": "simulation-engineer",
       "action": "claim",
+      "details": ""
+    },
+    {
+      "at": "2026-06-25T03:34:09.665Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Added minimal M2 build/order scaffold with serializable order view, reservation rollback, policy reason, focused tests and direct M2 scenario helper; documented unsupported runner/filter substitutions."
+    },
+    {
+      "at": "2026-06-25T03:37:38.122Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: branch modifies coordination/thread-registry.json outside WM-0039 allowedPaths; remove or justify before verification. Review stopped at scope gate per checkpoint request."
+    },
+    {
+      "at": "2026-06-25T03:38:54.593Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Removed out-of-scope thread registry change after review; WM-0039 scaffold checks still pass with focused building tests and direct M2 scenario helper."
+    },
+    {
+      "at": "2026-06-25T03:42:30.020Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings in checkpoint re-review: coordination/thread-registry.json is no longer modified in git status, and the remaining implementation/doc/report paths are within WM-0039 scope or workflow review state. Unsupported task filters/runners are reported as unsupported with direct substitutes in the report."
+    },
+    {
+      "at": "2026-06-25T03:45:58.598Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Branch integration gate passed: taskctl validate, handoff validate, git diff --check, pnpm quality; ready for main fast-forward."
+    },
+    {
+      "at": "2026-06-25T03:46:03.886Z",
+      "actor": "project-director",
+      "action": "done",
       "details": ""
     }
   ],
@@ -90,5 +126,17 @@
   },
   "claimedBy": "simulation-engineer",
   "threadLabel": null,
-  "blocker": null
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0039.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings in checkpoint re-review: coordination/thread-registry.json is no longer modified in git status, and the remaining implementation/doc/report paths are within WM-0039 scope or workflow review state. Unsupported task filters/runners are reported as unsupported with direct substitutes in the report.",
+    "at": "2026-06-25T03:42:30.019Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Branch integration gate passed: taskctl validate, handoff validate, git diff --check, pnpm quality; ready for main fast-forward.",
+    "at": "2026-06-25T03:45:58.597Z"
+  }
 }

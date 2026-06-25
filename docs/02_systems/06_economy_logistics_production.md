@@ -111,3 +111,25 @@ source/destination interaction spots before pickup. Pickup removes quantity from
 `ItemStackStore` and records carried state in `JobCoreStore`; delivery converts
 that carried quantity into the build-site buffer exactly once and releases
 claims through terminal JobCore completion.
+
+## WM-0039 implementation note
+
+WM-0039 keeps production scope to the M2 vertical-slice scaffold. A build order
+is represented by the existing build-site owner lanes plus a derived
+`BuildSiteOrderView`; it is not a broad production chain, recipe catalog or
+balance table. The view names socket requirements, delivered amounts,
+reservation-backed remaining demand, build progress, and whether derived
+material/build WorkOffers are active.
+
+The focused M2 scaffold scenario
+`m2.work_logistics.lantern_yard.v1` exercises four road-lantern frame orders,
+20 actor handles, source material stacks, build-site material buffers, explicit
+JobCore progress and deterministic completion. The scaffold currently consumes
+wood and stone sockets and preserves the binding-paper stack as decoy material;
+full source-to-depot and three-material build coverage remains with later M2
+scenario/benchmark tasks.
+
+All material ownership remains integer and single-owner: source stacks live in
+`ItemStackStore`, carried material lives in `JobCoreStore`, build-site buffers
+live in `BuildSiteStore`, reservations live in `ReservationLedger`, and
+WorkOffer rows remain derived from owner state.

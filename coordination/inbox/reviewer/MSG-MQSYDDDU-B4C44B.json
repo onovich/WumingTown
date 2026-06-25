@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQSYDDDU-B4C44B",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0039",
+  "kind": "review-request",
+  "subject": "WM-0039 ready for review",
+  "body": "Removed out-of-scope thread registry change after review; WM-0039 scaffold checks still pass with focused building tests and direct M2 scenario helper.",
+  "artifacts": [
+    "coordination/reports/WM-0039.md",
+    "task/WM-0039-add-build-and-production-order-scaffold"
+  ],
+  "createdAt": "2026-06-25T03:38:54.594Z",
+  "acknowledgedAt": "2026-06-25T03:39:34.757Z"
+}

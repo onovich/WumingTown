@@ -1,6 +1,6 @@
 import { assertValidCapacity, type EntityId, type EntityRegistry } from "./entity-id";
 import type { ItemStackStore, ItemStackView } from "./item-stack-store";
-import type { JobCoreStore } from "./job-core";
+import type { JobCoreStore, JobInterruptionKind, JobStatus } from "./job-core";
 import type { LocationStore } from "./location-store";
 import type { MapGrid } from "./map-grid";
 import type { ReservationLedger, ReservationReason } from "./reservation-ledger";
@@ -61,6 +61,7 @@ export type BuildSiteReason =
   | "path.no_route_to_source"
   | "path.no_route_to_destination"
   | "site.blocked"
+  | "policy.interruption_denied"
   | "item_stack.failed"
   | "job_core.failed"
   | "work_offer.failed"
@@ -155,6 +156,12 @@ export interface BuildSiteBuildReservationInput {
   readonly interactionSpotId: number;
 }
 
+export interface BuildSiteInterruptionInput {
+  readonly jobId: number;
+  readonly kind: JobInterruptionKind;
+  readonly tick: Tick;
+}
+
 export interface BuildSiteView {
   readonly siteId: number;
   readonly site: EntityId;
@@ -192,6 +199,29 @@ export interface BuildSiteJobView {
   readonly sourceStackId: number;
   readonly defId: number;
   readonly amount: number;
+}
+
+export interface BuildSiteOrderView {
+  readonly siteId: number;
+  readonly orderId: number;
+  readonly active: boolean;
+  readonly completed: boolean;
+  readonly blueprintDefId: number;
+  readonly requiredDefA: number;
+  readonly requiredDefB: number;
+  readonly requiredAmountA: number;
+  readonly requiredAmountB: number;
+  readonly deliveredAmountA: number;
+  readonly deliveredAmountB: number;
+  readonly reservedCapacityA: number;
+  readonly reservedCapacityB: number;
+  readonly remainingDemandA: number;
+  readonly remainingDemandB: number;
+  readonly buildProgressTicks: number;
+  readonly buildRequiredTicks: number;
+  readonly materialDemandOfferAActive: boolean;
+  readonly materialDemandOfferBActive: boolean;
+  readonly buildOfferActive: boolean;
 }
 
 export interface BuildSiteMetrics {
@@ -426,7 +456,10 @@ export class BuildSiteStore {
 
     const entered = jobCore.enterStep(input.jobId, "path_to_source", input.tick);
     if (!entered.ok) {
-      ledger.releaseClaims(acquired.claimIds);
+      const released = ledger.releaseClaims(acquired.claimIds);
+      if (!released.ok) {
+        return { ok: false, reason: mapReservationReason(released.reason) };
+      }
       return { ok: false, reason: "job_core.failed" };
     }
 
@@ -562,7 +595,10 @@ export class BuildSiteStore {
 
     const entered = jobCore.enterStep(input.jobId, "interact", input.tick);
     if (!entered.ok) {
-      ledger.releaseClaims(acquired.claimIds);
+      const released = ledger.releaseClaims(acquired.claimIds);
+      if (!released.ok) {
+        return { ok: false, reason: mapReservationReason(released.reason) };
+      }
       return { ok: false, reason: "job_core.failed" };
     }
 
@@ -645,6 +681,29 @@ export class BuildSiteStore {
     };
   }
 
+  requestInterruption(
+    input: BuildSiteInterruptionInput,
+    ledger: ReservationLedger,
+    jobCore: JobCoreStore,
+  ): BuildSiteJobResult {
+    const ready = this.validateInterruption(input.jobId, input.tick, jobCore);
+    if (!ready.ok) {
+      return ready;
+    }
+
+    const interrupted = jobCore.requestInterruption(input.jobId, input.kind, input.tick, ledger);
+    if (!interrupted.ok) {
+      return { ok: false, reason: "job_core.failed" };
+    }
+
+    if (!interrupted.interrupted) {
+      return { ok: false, reason: "policy.interruption_denied" };
+    }
+
+    this.jobStep[input.jobId] = JOB_CANCELED;
+    return this.finishJob(input.jobId, ready.siteId);
+  }
+
   syncOffers(
     siteId: number,
     offers: WorkOfferIndex,
@@ -705,6 +764,36 @@ export class BuildSiteStore {
       buildingEntityIndex: this.buildingEntityIndex[siteId] ?? 0,
       buildingEntityGeneration: this.buildingEntityGeneration[siteId] ?? 0,
       lanternState: this.lanternState[siteId] ?? 0,
+    };
+  }
+
+  readBuildOrder(siteId: number, ledger?: ReservationLedger): BuildSiteOrderView | undefined {
+    const site = this.readSite(siteId, ledger);
+    if (site === undefined) {
+      return undefined;
+    }
+
+    return {
+      siteId,
+      orderId: siteId,
+      active: site.active,
+      completed: site.completed,
+      blueprintDefId: site.blueprintDefId,
+      requiredDefA: site.requiredDefA,
+      requiredDefB: site.requiredDefB,
+      requiredAmountA: site.requiredAmountA,
+      requiredAmountB: site.requiredAmountB,
+      deliveredAmountA: site.deliveredAmountA,
+      deliveredAmountB: site.deliveredAmountB,
+      reservedCapacityA: site.reservedCapacityA,
+      reservedCapacityB: site.reservedCapacityB,
+      remainingDemandA: site.remainingDemandA,
+      remainingDemandB: site.remainingDemandB,
+      buildProgressTicks: site.buildProgressTicks,
+      buildRequiredTicks: site.buildRequiredTicks,
+      materialDemandOfferAActive: (this.offerStateA[siteId] ?? 0) === 1,
+      materialDemandOfferBActive: (this.offerStateB[siteId] ?? 0) === 1,
+      buildOfferActive: (this.offerStateBuild[siteId] ?? 0) === 1,
     };
   }
 
@@ -993,6 +1082,45 @@ export class BuildSiteStore {
 
     if (!isSafeTick(tick)) {
       return { ok: false, reason: "site.tick_invalid" };
+    }
+
+    return { ok: true, jobId, siteId: this.jobSiteId[jobId] ?? 0, version: this.storeVersion };
+  }
+
+  private validateInterruption(
+    jobId: number,
+    tick: Tick,
+    jobCore: JobCoreStore,
+  ): BuildSiteJobResult {
+    if (!this.isJobIdInRange(jobId)) {
+      return { ok: false, reason: "site.job_id_out_of_range" };
+    }
+
+    if ((this.jobActive[jobId] ?? 0) !== 1) {
+      return { ok: false, reason: "site.job_not_active" };
+    }
+
+    if (!isSafeTick(tick)) {
+      return { ok: false, reason: "site.tick_invalid" };
+    }
+
+    const mode = this.jobMode[jobId] ?? JOB_MODE_NONE;
+    if (mode === JOB_MODE_NONE) {
+      return { ok: false, reason: "site.job_mode_invalid" };
+    }
+
+    const step = this.jobStep[jobId] ?? JOB_INACTIVE;
+    if (isTerminalBuildSiteJobStep(step)) {
+      return { ok: false, reason: "site.job_step_invalid" };
+    }
+
+    if (mode === JOB_MODE_DELIVERY && step === JOB_PICKED_UP) {
+      return { ok: false, reason: "policy.interruption_denied" };
+    }
+
+    const job = jobCore.readJob(jobId);
+    if (job === undefined || isTerminalJobStatus(job.status)) {
+      return { ok: false, reason: "job_core.failed" };
     }
 
     return { ok: true, jobId, siteId: this.jobSiteId[jobId] ?? 0, version: this.storeVersion };
@@ -1342,6 +1470,14 @@ function decodeJobStep(step: number): BuildSiteJobStep {
   }
 
   return "inactive";
+}
+
+function isTerminalBuildSiteJobStep(step: number): boolean {
+  return step === JOB_DELIVERED || step === JOB_BUILT || step === JOB_CANCELED;
+}
+
+function isTerminalJobStatus(status: JobStatus): boolean {
+  return status === "completed" || status === "failed" || status === "canceled";
 }
 
 function isUint32(value: number): boolean {

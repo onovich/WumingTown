@@ -2,7 +2,7 @@
   "id": "WM-0040",
   "title": "Add M2 save replay resume harness",
   "summary": "Extend focused save/replay diagnostics to the M2 work/logistics vertical slice without broad save compatibility or platform save UI.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,13 +30,19 @@
   ],
   "branch": "task/WM-0040-add-m2-save-replay-resume-harness",
   "createdAt": "2026-06-24T21:14:35.180Z",
-  "updatedAt": "2026-06-24T21:14:35.180Z",
+  "updatedAt": "2026-06-25T03:46:03.890Z",
   "history": [
     {
       "at": "2026-06-24T21:14:35.180Z",
       "actor": "systems-architect",
       "action": "create",
       "details": "Created by WM-0032 M2 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-25T03:46:03.890Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "objective": "Make M2 save/load/replay deterministic and diagnosable before Worker parity and benchmark closeout.",

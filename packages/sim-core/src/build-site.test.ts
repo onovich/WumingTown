@@ -21,6 +21,10 @@ import {
   runHaulingBuildingScenario,
   type EntityId,
 } from "./index";
+import {
+  M2_WORK_LOGISTICS_SCENARIO_ID,
+  runM2WorkLogisticsScenario,
+} from "./m2-work-logistics-scenario";
 
 describe("minimal build-site material delivery and construction", () => {
   it("registers material demand offers and gates build offers until buffers are full", () => {
@@ -32,6 +36,18 @@ describe("minimal build-site material delivery and construction", () => {
     expect(fixture.buildSites.createMetrics()).toMatchObject({
       demandOfferCount: 2,
       buildOfferCount: 0,
+    });
+    expect(fixture.buildSites.readBuildOrder(0, fixture.ledger)).toMatchObject({
+      orderId: 0,
+      active: true,
+      completed: false,
+      remainingDemandA: 6,
+      remainingDemandB: 2,
+      materialDemandOfferAActive: true,
+      materialDemandOfferBActive: true,
+      buildOfferActive: false,
+      buildProgressTicks: 0,
+      buildRequiredTicks: 120,
     });
     expect(fixture.offers.createMetrics().activeOfferCount).toBe(2);
     expect(
@@ -98,6 +114,16 @@ describe("minimal build-site material delivery and construction", () => {
     expect(fixture.ledger.createMetrics().activeCount).toBe(0);
     expect(fixture.jobCore.createMetrics().runningCount).toBe(0);
     expect(fixture.offers.createMetrics().activeOfferCount).toBe(0);
+    expect(fixture.buildSites.readBuildOrder(0, fixture.ledger)).toMatchObject({
+      active: false,
+      completed: true,
+      remainingDemandA: 0,
+      remainingDemandB: 0,
+      materialDemandOfferAActive: false,
+      materialDemandOfferBActive: false,
+      buildOfferActive: false,
+      buildProgressTicks: 120,
+    });
   });
 
   it("distinguishes missing material, decoy, reservation, path, blocked and invalid states", () => {
@@ -187,6 +213,149 @@ describe("minimal build-site material delivery and construction", () => {
         blocked.jobCore,
       ),
     ).toStrictEqual({ ok: false, reason: "site.blocked" });
+  });
+
+  it("m2-build-production-orders releases reservations when reserve transitions fail", () => {
+    const deliveryFixture = createFixture();
+    const rejectedTick = 4_294_967_296;
+
+    expect(
+      deliveryFixture.buildSites.createDeliveryJob(
+        {
+          jobId: 0,
+          owner: deliveryFixture.pawns[0] ?? failMissingEntity(),
+          siteId: 0,
+          sourceStackId: WOOD_STACK_ID,
+          defId: M1_ITEM_WOOD,
+          amount: 4,
+          createdTick: 1,
+        },
+        deliveryFixture.registry,
+        deliveryFixture.jobCore,
+      ),
+    ).toMatchObject({ ok: true });
+    expect(
+      deliveryFixture.buildSites.reserveDelivery(
+        {
+          jobId: 0,
+          tick: rejectedTick,
+          leaseExpiryTick: rejectedTick + 100,
+          sourceInteractionSpotId: 20,
+          destinationInteractionSpotId: 123,
+        },
+        deliveryFixture.registry,
+        deliveryFixture.items,
+        deliveryFixture.ledger,
+        deliveryFixture.jobCore,
+      ),
+    ).toStrictEqual({ ok: false, reason: "job_core.failed" });
+    expect(deliveryFixture.ledger.createMetrics()).toMatchObject({
+      activeCount: 0,
+      acquiredCount: 4,
+      releasedCount: 4,
+    });
+    expect(deliveryFixture.buildSites.readJob(0)).toMatchObject({ step: "created" });
+    expect(deliveryFixture.buildSites.readBuildOrder(0, deliveryFixture.ledger)).toMatchObject({
+      reservedCapacityA: 0,
+    });
+
+    const buildFixture = createFixture();
+    deliverAllMaterials(buildFixture);
+    expect(
+      buildFixture.buildSites.createBuildJob(
+        {
+          jobId: 4,
+          owner: buildFixture.pawns[1] ?? failMissingEntity(),
+          siteId: 0,
+          createdTick: 100,
+        },
+        buildFixture.registry,
+        buildFixture.jobCore,
+      ),
+    ).toMatchObject({ ok: true });
+    expect(
+      buildFixture.buildSites.reserveBuildJob(
+        {
+          jobId: 4,
+          tick: rejectedTick,
+          leaseExpiryTick: rejectedTick + 100,
+          interactionSpotId: 123,
+        },
+        buildFixture.registry,
+        buildFixture.ledger,
+        buildFixture.jobCore,
+      ),
+    ).toStrictEqual({ ok: false, reason: "job_core.failed" });
+    expect(buildFixture.ledger.createMetrics()).toMatchObject({
+      activeCount: 0,
+      acquiredCount: 14,
+      releasedCount: 14,
+    });
+    expect(buildFixture.buildSites.readJob(4)).toMatchObject({ step: "created" });
+  });
+
+  it("m2-build-production-orders reports explicit policy interruption failures", () => {
+    const fixture = createFixture();
+
+    deliverAllMaterials(fixture);
+    expect(
+      fixture.buildSites.createBuildJob(
+        {
+          jobId: 4,
+          owner: fixture.pawns[0] ?? failMissingEntity(),
+          siteId: 0,
+          createdTick: 100,
+        },
+        fixture.registry,
+        fixture.jobCore,
+      ),
+    ).toMatchObject({ ok: true });
+    expect(
+      fixture.buildSites.requestInterruption(
+        {
+          jobId: 4,
+          kind: "immediate",
+          tick: 101,
+        },
+        fixture.ledger,
+        fixture.jobCore,
+      ),
+    ).toStrictEqual({ ok: false, reason: "policy.interruption_denied" });
+    expect(fixture.buildSites.readJob(4)).toMatchObject({ step: "created" });
+    expect(fixture.ledger.createMetrics().activeCount).toBe(0);
+  });
+
+  it("m2-build-production-orders runs the focused M2 scaffold scenario", () => {
+    const summary = runM2WorkLogisticsScenario({ seed: "2", ticks: 20_000 });
+
+    expect(summary.scenarioId).toBe(M2_WORK_LOGISTICS_SCENARIO_ID);
+    expect(summary.finalTick).toBe(20_000);
+    expect(summary.actorCount).toBe(20);
+    expect(summary.endState).toMatchObject({
+      completedBuildOrders: 4,
+      activeReservations: 0,
+      activeOffers: 0,
+      runningJobs: 0,
+      sourceWoodQuantity: 0,
+      sourceStoneQuantity: 0,
+      decoyPaperQuantity: 1,
+    });
+    expect(summary.invariants).toMatchObject({
+      allOrdersCompleted: true,
+      materialConserved: true,
+      reservationsReleased: true,
+      offersCleared: true,
+      noRunningJobs: true,
+      tick20000EndState: true,
+    });
+    expect(summary.failureReasons).toMatchObject({
+      missingMaterials: "material.insufficient_required_amount",
+      invalidTarget: "target.invalid_state",
+      blockedSite: "site.blocked",
+      reservationConflict: "reservation.destination_capacity_conflict",
+      pathFailure: "path.no_route_to_destination",
+      policyFailure: "policy.interruption_denied",
+    });
   });
 
   it("runs the M1 hauling-building scenario to the required stable end state", () => {

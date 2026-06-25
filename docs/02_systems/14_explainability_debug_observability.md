@@ -66,3 +66,18 @@ strings.
 The job snapshot hash helper exposes deterministic fields for replay and debug
 comparison. Later scenario traces can reference these job reason classes
 without duplicating separate explanation logic.
+
+## WM-0039 implementation note
+
+M2 build/order scaffolding uses the same structured reason vocabulary in code,
+tests and reports. Focused coverage now distinguishes missing materials
+(`material.insufficient_required_amount`), invalid or terminal targets
+(`target.invalid_state`), blocked placement (`site.blocked`), material capacity
+or reservation conflicts (`reservation.destination_capacity_conflict`), path
+failure (`path.no_route_to_destination`) and policy denial
+(`policy.interruption_denied`).
+
+`BuildSiteOrderView` is a compact debug/read-model surface for order panels and
+tests. It is derived from build-site owner state and exposes demand, reserved
+capacity, progress and active-offer flags without becoming an authority for job
+state, material quantities or WorkOffer membership.
