@@ -2,7 +2,7 @@
   "id": "WM-0054",
   "title": "Add M3 mood thoughts and memories",
   "summary": "Add fact-driven mood, bounded thoughts and memory lanes for ordinary-life consequences.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,7 +32,7 @@
   ],
   "branch": "task/WM-0054-add-m3-mood-thoughts-and-memories",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T09:26:07.445Z",
+  "updatedAt": "2026-06-25T10:08:38.848Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
@@ -45,6 +45,48 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-25T09:29:18.421Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Codex WM-0054"
+    },
+    {
+      "at": "2026-06-25T09:47:40.810Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented fact-driven M3 MoodThoughtMemoryStore with bounded deterministic thoughts/memories, scheduled integer mood convergence, structured reason traces, focused tests, docs, and report; required gates plus pnpm quality pass."
+    },
+    {
+      "at": "2026-06-25T09:55:55.084Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: global thought eviction can remove another actor's retained thought without recalculating that actor's mood target, so scheduled convergence can follow stale non-existent facts; add cross-actor eviction handling and coverage."
+    },
+    {
+      "at": "2026-06-25T10:01:37.203Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Repaired cross-actor thought eviction target recalculation and memory owner-version accounting; added low-capacity eviction/expiration regressions; typecheck, focused Vitest, sim-core filter, task validation/status, diff check, and pnpm quality pass."
+    },
+    {
+      "at": "2026-06-25T10:07:33.490Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings after repair; cross-actor thought eviction now unlinks the evicted row, recalculates the evicted actor target, advances owner version, and regression coverage plus focused/full gates pass."
+    },
+    {
+      "at": "2026-06-25T10:08:33.646Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Owner integration rechecked WM-0054 after repair and reviewer verification; acknowledged review approval and confirmed typecheck, focused m3-mood-thoughts Vitest, task status, and diff check pass."
+    },
+    {
+      "at": "2026-06-25T10:08:38.848Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Implement fact-driven mood and thought state without random mental-event pools or UI-owned explanations.",
@@ -86,5 +128,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Mood/thought state ownership and deterministic explainability are outside Spark scope."
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Codex WM-0054",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0054.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings after repair; cross-actor thought eviction now unlinks the evicted row, recalculates the evicted actor target, advances owner version, and regression coverage plus focused/full gates pass.",
+    "at": "2026-06-25T10:07:33.489Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Owner integration rechecked WM-0054 after repair and reviewer verification; acknowledged review approval and confirmed typecheck, focused m3-mood-thoughts Vitest, task status, and diff check pass.",
+    "at": "2026-06-25T10:08:33.646Z"
   }
 }

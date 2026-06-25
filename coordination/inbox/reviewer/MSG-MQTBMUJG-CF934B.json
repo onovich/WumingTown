@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQTBMUJG-CF934B",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0051",
+  "kind": "review-request",
+  "subject": "WM-0051 ready for review",
+  "body": "Implemented focused M3 food/eating logistics: bounded food availability index, Top-K path evidence, explicit eating job driver, atomic reservations, consume-once conservation, structured failure reasons, docs/report; typecheck, focused tests, sim-core test, taskctl validate, git diff --check, and pnpm quality pass.",
+  "artifacts": [
+    "coordination/reports/WM-0051.md",
+    "task/WM-0051-add-m3-food-and-eating-logistics-slice"
+  ],
+  "createdAt": "2026-06-25T09:50:11.741Z",
+  "acknowledgedAt": "2026-06-25T10:15:09.948Z"
+}

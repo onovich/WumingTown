@@ -2,7 +2,7 @@
   "id": "WM-0053",
   "title": "Add M3 medical care job slice",
   "summary": "Add patient/caregiver medical work offers and explicit treatment jobs for the focused M3 scenario.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0053-add-m3-medical-care-job-slice",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T14:13:33.632Z",
+  "updatedAt": "2026-06-25T14:20:42.041Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
@@ -73,6 +73,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings; prior four repair findings verified; focused Vitest, sim-core tests, taskctl validate/status, diff check, typecheck, and pnpm quality passed."
+    },
+    {
+      "at": "2026-06-25T14:20:31.805Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Owner integration rechecked WM-0053 after repair and reviewer verification, merged current main with WM-0050/WM-0051/WM-0054, resolved docs conflicts preserving all M3 slices, acknowledged review approval, and confirmed typecheck, focused medical+health+rest+food+mood tests, task status, and diff check pass."
+    },
+    {
+      "at": "2026-06-25T14:20:42.041Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Connect health/ability state to medical care behavior while preserving job and reservation boundaries.",
@@ -124,5 +136,10 @@
     "verdict": "verified",
     "summary": "No blocking findings; prior four repair findings verified; focused Vitest, sim-core tests, taskctl validate/status, diff check, typecheck, and pnpm quality passed.",
     "at": "2026-06-25T14:13:33.631Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Owner integration rechecked WM-0053 after repair and reviewer verification, merged current main with WM-0050/WM-0051/WM-0054, resolved docs conflicts preserving all M3 slices, acknowledged review approval, and confirmed typecheck, focused medical+health+rest+food+mood tests, task status, and diff check pass.",
+    "at": "2026-06-25T14:20:31.804Z"
   }
 }
