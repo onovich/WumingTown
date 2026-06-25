@@ -2,7 +2,7 @@
   "id": "WM-0052",
   "title": "Add M3 health conditions and ability cache",
   "summary": "Add injury/illness condition owner stores and derived ability cache invalidation for ordinary-life simulation.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0052-add-m3-health-conditions-and-ability-cache",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T09:21:18.640Z",
+  "updatedAt": "2026-06-25T09:26:07.432Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
@@ -73,6 +73,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings after repair; dirty-queue overflow is preflighted for add/update/age/remove, terminal states validate, invalid thresholds return ability.value_out_of_range, cache hits return ability.cache_hit; typecheck, focused m3-health Vitest, taskctl validate/status, diff check, and quality pass."
+    },
+    {
+      "at": "2026-06-25T09:26:01.971Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Owner integration rechecked WM-0052 after reviewer verification and after merging current main with WM-0048/WM-0049; acknowledged review approval and confirmed typecheck, focused health+needs+environment vitest, task status, and diff check pass."
+    },
+    {
+      "at": "2026-06-25T09:26:07.432Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Create the M3 health and ability state surface required before medical care and mood effects.",
@@ -123,5 +135,10 @@
     "verdict": "verified",
     "summary": "No blocking findings after repair; dirty-queue overflow is preflighted for add/update/age/remove, terminal states validate, invalid thresholds return ability.value_out_of_range, cache hits return ability.cache_hit; typecheck, focused m3-health Vitest, taskctl validate/status, diff check, and quality pass.",
     "at": "2026-06-25T09:21:18.640Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Owner integration rechecked WM-0052 after reviewer verification and after merging current main with WM-0048/WM-0049; acknowledged review approval and confirmed typecheck, focused health+needs+environment vitest, task status, and diff check pass.",
+    "at": "2026-06-25T09:26:01.970Z"
   }
 }

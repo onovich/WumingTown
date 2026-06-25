@@ -2,7 +2,7 @@
   "id": "WM-0054",
   "title": "Add M3 mood thoughts and memories",
   "summary": "Add fact-driven mood, bounded thoughts and memory lanes for ordinary-life consequences.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,13 +32,19 @@
   ],
   "branch": "task/WM-0054-add-m3-mood-thoughts-and-memories",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T07:30:00.000Z",
+  "updatedAt": "2026-06-25T09:26:07.445Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
       "actor": "systems-architect",
       "action": "create",
       "details": "Created by WM-0045 M3 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-25T09:26:07.445Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "objective": "Implement fact-driven mood and thought state without random mental-event pools or UI-owned explanations.",
