@@ -1,13 +1,20 @@
 import { defineWorkspaceSmoke, type WorkspaceSmoke } from "@wuming-town/foundation";
 import {
   HAULING_BUILDING_SCENARIO_ID,
+  M2_WORK_LOGISTICS_SCENARIO_ID,
   SIM_CORE_SMOKE,
   createM1AdvanceCommandId,
   createM1HaulingBuildingSaveEnvelope,
   createM1ReadOnlyProjection,
+  createM2AdvanceCommandId,
+  createM2ReadOnlyProjection,
+  createM2WorkLogisticsSaveEnvelope,
   parseM1AdvanceCommandId,
+  parseM2AdvanceCommandId,
+  runM2WorkLogisticsScenario,
   runHaulingBuildingScenario,
   type M1ReadOnlyProjection,
+  type M2ReadOnlyProjection,
 } from "@wuming-town/sim-core";
 import {
   MAIN_TO_SIMULATION_MESSAGE_KIND,
@@ -67,9 +74,15 @@ interface SimulationWorkerState {
   speed: 0 | 1 | 2 | 3;
   paused: boolean;
   m1Scenario: M1WorkerScenarioState | undefined;
+  m2Scenario: M2WorkerScenarioState | undefined;
 }
 
 interface M1WorkerScenarioState {
+  readonly seed: string;
+  checkpointCount: number;
+}
+
+interface M2WorkerScenarioState {
   readonly seed: string;
   checkpointCount: number;
 }
@@ -86,6 +99,7 @@ export function createSimulationWorker(): SimulationWorker {
     speed: 1,
     paused: false,
     m1Scenario: undefined,
+    m2Scenario: undefined,
   };
 
   return {
@@ -192,6 +206,10 @@ function handleAcceptedMessage(
         message.payload.catalogVersion === HAULING_BUILDING_SCENARIO_ID
           ? { seed: message.payload.seed, checkpointCount: 1 }
           : undefined;
+      state.m2Scenario =
+        message.payload.catalogVersion === M2_WORK_LOGISTICS_SCENARIO_ID
+          ? { seed: message.payload.seed, checkpointCount: 1 }
+          : undefined;
       return [
         makeReady(state),
         makeRenderSnapshot(state, message.sequence),
@@ -204,6 +222,7 @@ function handleAcceptedMessage(
       state.sessionId = message.sessionId;
       state.tick = message.payload.checkpointSequence;
       state.m1Scenario = undefined;
+      state.m2Scenario = undefined;
       return [
         makeReady(state),
         makeRenderSnapshot(state, message.sequence),
@@ -213,7 +232,11 @@ function handleAcceptedMessage(
 
     case MAIN_TO_SIMULATION_MESSAGE_KIND.PlayerCommandBatch:
       if (state.m1Scenario === undefined) {
-        state.tick += message.payload.commands.length;
+        if (state.m2Scenario === undefined) {
+          state.tick += message.payload.commands.length;
+        } else {
+          applyM2Commands(state, message.payload.commands);
+        }
       } else {
         applyM1Commands(state, message.payload.commands);
       }
@@ -281,7 +304,7 @@ function makeRenderSnapshot(
   state: SimulationWorkerState,
   sourceSequence: number,
 ): SimulationToMainMessage {
-  const projection = readM1Projection(state);
+  const projection = readWorkerProjection(state);
 
   if (projection !== undefined) {
     return {
@@ -290,7 +313,7 @@ function makeRenderSnapshot(
       payload: {
         snapshotSequence: sourceSequence,
         tick: state.tick,
-        entityCount: projection.renderSnapshot.entityCount,
+        entityCount: projection.entityCount,
         scenarioId: projection.scenarioId,
         worldHash: projection.worldHash,
         readModelHash: projection.readModelHash,
@@ -311,7 +334,7 @@ function makeRenderSnapshot(
 }
 
 function makeUiDelta(state: SimulationWorkerState): SimulationToMainMessage {
-  const projection = readM1Projection(state);
+  const projection = readWorkerProjection(state);
 
   if (projection !== undefined) {
     return {
@@ -319,10 +342,10 @@ function makeUiDelta(state: SimulationWorkerState): SimulationToMainMessage {
       kind: SIMULATION_TO_MAIN_MESSAGE_KIND.UiDelta,
       payload: {
         tick: state.tick,
-        summaries: projection.uiDetail.summaries,
+        summaries: projection.summaries,
         scenarioId: projection.scenarioId,
         readModelHash: projection.readModelHash,
-        detailHash: projection.uiDetail.detailHash,
+        detailHash: projection.detailHash,
         readOnly: true,
       },
     };
@@ -388,10 +411,7 @@ function makeSaveReady(
   state: SimulationWorkerState,
   sourceSequence: number,
 ): SimulationToMainMessage {
-  const saved =
-    state.m1Scenario === undefined
-      ? undefined
-      : createM1HaulingBuildingSaveEnvelope(state.m1Scenario.seed, state.tick);
+  const saved = createFocusedSave(state);
 
   if (saved?.ok === true) {
     return {
@@ -418,7 +438,7 @@ function makeSaveReady(
 }
 
 function makeMetricsSample(state: SimulationWorkerState): SimulationToMainMessage {
-  const projection = readM1Projection(state);
+  const projection = readWorkerProjection(state);
 
   if (projection !== undefined) {
     return {
@@ -430,7 +450,7 @@ function makeMetricsSample(state: SimulationWorkerState): SimulationToMainMessag
         queuedReliableMessages: state.queuedReliableMessages,
         scenarioId: projection.scenarioId,
         worldHash: projection.worldHash,
-        checkpointCount: state.m1Scenario?.checkpointCount ?? 0,
+        checkpointCount: projection.checkpointCount,
       },
     };
   }
@@ -461,6 +481,61 @@ function applyM1Commands(
   }
 }
 
+function applyM2Commands(
+  state: SimulationWorkerState,
+  commands: readonly { readonly commandId: string }[],
+): void {
+  for (const command of commands) {
+    const tick = parseM2AdvanceCommandId(command.commandId);
+    if (tick !== undefined && tick >= state.tick) {
+      state.tick = tick;
+      if (state.m2Scenario !== undefined) {
+        state.m2Scenario.checkpointCount += 1;
+      }
+    }
+  }
+}
+
+interface WorkerProjectionView {
+  readonly scenarioId: string;
+  readonly worldHash: string;
+  readonly readModelHash: string;
+  readonly entityCount: number;
+  readonly summaries: readonly string[];
+  readonly detailHash: string;
+  readonly checkpointCount: number;
+}
+
+function readWorkerProjection(state: SimulationWorkerState): WorkerProjectionView | undefined {
+  const m1Projection = readM1Projection(state);
+  if (m1Projection !== undefined) {
+    return {
+      scenarioId: m1Projection.scenarioId,
+      worldHash: m1Projection.worldHash,
+      readModelHash: m1Projection.readModelHash,
+      entityCount: m1Projection.renderSnapshot.entityCount,
+      summaries: m1Projection.uiDetail.summaries,
+      detailHash: m1Projection.uiDetail.detailHash,
+      checkpointCount: state.m1Scenario?.checkpointCount ?? 0,
+    };
+  }
+
+  const m2Projection = readM2Projection(state);
+  if (m2Projection === undefined) {
+    return undefined;
+  }
+
+  return {
+    scenarioId: m2Projection.scenarioId,
+    worldHash: m2Projection.worldHash,
+    readModelHash: m2Projection.readModelHash,
+    entityCount: m2Projection.renderSnapshot.actorCount,
+    summaries: m2Projection.orderReadModel.summaries,
+    detailHash: m2Projection.orderReadModel.detailHash,
+    checkpointCount: state.m2Scenario?.checkpointCount ?? 0,
+  };
+}
+
 function readM1Projection(state: SimulationWorkerState): M1ReadOnlyProjection | undefined {
   const scenario = state.m1Scenario;
   if (scenario === undefined) {
@@ -471,6 +546,33 @@ function readM1Projection(state: SimulationWorkerState): M1ReadOnlyProjection | 
   return createM1ReadOnlyProjection(summary, scenario.checkpointCount - 1);
 }
 
+function readM2Projection(state: SimulationWorkerState): M2ReadOnlyProjection | undefined {
+  const scenario = state.m2Scenario;
+  if (scenario === undefined) {
+    return undefined;
+  }
+
+  const summary = runM2WorkLogisticsScenario({ seed: scenario.seed, ticks: state.tick });
+  return createM2ReadOnlyProjection(summary, scenario.checkpointCount - 1);
+}
+
+function createFocusedSave(
+  state: SimulationWorkerState,
+):
+  | ReturnType<typeof createM1HaulingBuildingSaveEnvelope>
+  | ReturnType<typeof createM2WorkLogisticsSaveEnvelope>
+  | undefined {
+  if (state.m1Scenario !== undefined) {
+    return createM1HaulingBuildingSaveEnvelope(state.m1Scenario.seed, state.tick);
+  }
+
+  if (state.m2Scenario !== undefined) {
+    return createM2WorkLogisticsSaveEnvelope(state.m2Scenario.seed, state.tick);
+  }
+
+  return undefined;
+}
+
 export function createM1WorkerAdvanceCommandIds(
   checkpointTicks: readonly number[],
 ): readonly string[] {
@@ -478,6 +580,18 @@ export function createM1WorkerAdvanceCommandIds(
 
   for (const tick of checkpointTicks) {
     commandIds.push(createM1AdvanceCommandId(tick));
+  }
+
+  return commandIds;
+}
+
+export function createM2WorkerAdvanceCommandIds(
+  checkpointTicks: readonly number[],
+): readonly string[] {
+  const commandIds: string[] = [];
+
+  for (const tick of checkpointTicks) {
+    commandIds.push(createM2AdvanceCommandId(tick));
   }
 
   return commandIds;

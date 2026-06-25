@@ -81,3 +81,16 @@ failure (`path.no_route_to_destination`) and policy denial
 tests. It is derived from build-site owner state and exposes demand, reserved
 capacity, progress and active-offer flags without becoming an authority for job
 state, material quantities or WorkOffer membership.
+
+## WM-0041 implementation note
+
+M2 Worker/headless parity diagnostics compare browser Worker and Node
+authoritative hashes for `m2.work_logistics.lantern_yard.v1` without adding UI
+world mutation. Worker `RenderSnapshot`, `UiDelta` and `MetricsSample` payloads
+carry the same scenario id, world hash and read-model hash derived from
+sim-core projections, with `readOnly: true` on render/UI surfaces.
+
+Focused parity tests also build a deterministic diagnostic record containing
+seed, scenario id, first mismatched checkpoint tick, final snapshot size and
+Worker message latency count. These diagnostics are test/report evidence, not
+authoritative owner state and not a persisted cache.

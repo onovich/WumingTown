@@ -79,3 +79,17 @@ with seed `2`, save tick `6000` and final tick `20000`. It writes expected,
 actual, save, resumed and summary artifacts under
 `coordination/artifacts/WM-0040/m2-save-replay/`, and prints the scenario id,
 seed, first divergent tick and artifact paths on failure.
+
+## WM-0041 implementation note
+
+`pnpm test --filter m2-worker-parity` covers the Node Worker harness for the M2
+work/logistics scenario. It compares Worker render snapshots, UI deltas and
+metrics against `runM2WorkLogisticsReplay` checkpoints for seed `2` at ticks
+`0`, `6000` and `20000`, and records deterministic diagnostics including seed,
+scenario id, first mismatched checkpoint tick, final snapshot size and Worker
+message latency count.
+
+`pnpm test:e2e --filter worker-smoke` now keeps the existing M1 browser Worker
+coverage and also runs the M2 command stream through a real browser module
+Worker. The Worker still emits read-only projections over the existing protocol
+message kinds; no UI, web shell or Electron layer becomes authoritative.

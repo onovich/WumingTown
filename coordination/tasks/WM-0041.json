@@ -2,7 +2,7 @@
   "id": "WM-0041",
   "title": "Add M2 Worker headless parity",
   "summary": "Prove browser Worker and Node headless run the M2 work/logistics scenario with matching authoritative hashes and read-only projections.",
-  "state": "in_progress",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0041-add-m2-worker-headless-parity",
   "createdAt": "2026-06-24T21:14:35.180Z",
-  "updatedAt": "2026-06-25T04:21:01.350Z",
+  "updatedAt": "2026-06-25T04:37:11.831Z",
   "history": [
     {
       "at": "2026-06-24T21:14:35.180Z",
@@ -49,6 +49,30 @@
       "actor": "simulation-engineer",
       "action": "claim",
       "details": "thread=Beacon direct WM-0041"
+    },
+    {
+      "at": "2026-06-25T04:28:58.296Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Added M2 Worker/headless parity through read-only Worker projections, focused m2-worker-parity tests, browser worker-smoke coverage and diagnostics; required checks and pnpm quality pass."
+    },
+    {
+      "at": "2026-06-25T04:35:23.612Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings: M2 Worker/browser parity matches Node headless hashes, render/UI projections stay read-only over existing protocol fields, M1 worker-smoke coverage remains intact, and required checks plus pnpm quality pass."
+    },
+    {
+      "at": "2026-06-25T04:37:01.167Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Branch integration gate passed after reviewer verification: handoff validate, taskctl validate, git diff --check, pnpm quality, worker-smoke e2e."
+    },
+    {
+      "at": "2026-06-25T04:37:11.831Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Gate M2 through Worker/headless authoritative parity while keeping UI read-only.",
@@ -58,6 +82,7 @@
     "packages/sim-worker/**",
     "apps/web/src/**worker-smoke**",
     "apps/web/src/web-shell.e2e.test.ts",
+    "tools/test-runner.mjs",
     "docs/05_tech/05_testing_observability_ci.md",
     "docs/02_systems/14_explainability_debug_observability.md",
     "coordination/tasks/WM-0041.json",
@@ -86,5 +111,17 @@
   },
   "claimedBy": "simulation-engineer",
   "threadLabel": "Beacon direct WM-0041",
-  "blocker": null
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0041.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings: M2 Worker/browser parity matches Node headless hashes, render/UI projections stay read-only over existing protocol fields, M1 worker-smoke coverage remains intact, and required checks plus pnpm quality pass.",
+    "at": "2026-06-25T04:35:23.611Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Branch integration gate passed after reviewer verification: handoff validate, taskctl validate, git diff --check, pnpm quality, worker-smoke e2e.",
+    "at": "2026-06-25T04:37:01.167Z"
+  }
 }

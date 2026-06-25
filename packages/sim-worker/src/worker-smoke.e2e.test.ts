@@ -6,9 +6,13 @@ import { describe, expect, it } from "vitest";
 
 import {
   HAULING_BUILDING_SCENARIO_ID,
+  M2_WORK_LOGISTICS_SCENARIO_ID,
   createM1AdvanceCommandId,
+  createM2AdvanceCommandId,
   runM1HaulingBuildingReplay,
+  runM2WorkLogisticsReplay,
   type M1ReplayRun,
+  type M2ReplayRun,
 } from "@wuming-town/sim-core";
 import {
   MAIN_TO_SIMULATION_MESSAGE_KIND,
@@ -191,6 +195,46 @@ describe("worker-smoke simulation Worker protocol", () => {
     });
   }, 120000);
 
+  it("matches Node headless hashes for M2 in a real browser module Worker", async () => {
+    const expected = readM2Replay(
+      runM2WorkLogisticsReplay({ seed: "2", checkpointTicks: [0, 6_000, 20_000] }),
+    );
+    const browserMessages = await runBrowserWorker([
+      makeM2InitSession(1),
+      makeM2AdvanceBatch(2, 6_000),
+      makeM2AdvanceBatch(3, 20_000),
+    ]);
+    const snapshots = renderSnapshots(browserMessages);
+
+    expect(snapshots).toHaveLength(3);
+    expect(snapshots[0]?.payload).toMatchObject({
+      scenarioId: M2_WORK_LOGISTICS_SCENARIO_ID,
+      tick: 0,
+      worldHash: expected.checkpoints[0]?.worldHash,
+      readModelHash: expected.checkpoints[0]?.readModelHash,
+      readOnly: true,
+    });
+    expect(snapshots[1]?.payload).toMatchObject({
+      scenarioId: M2_WORK_LOGISTICS_SCENARIO_ID,
+      tick: 6_000,
+      worldHash: expected.checkpoints[1]?.worldHash,
+      readModelHash: expected.checkpoints[1]?.readModelHash,
+      readOnly: true,
+    });
+    expect(snapshots[2]?.payload).toMatchObject({
+      scenarioId: M2_WORK_LOGISTICS_SCENARIO_ID,
+      tick: 20_000,
+      worldHash: expected.finalWorldHash,
+      readModelHash: expected.finalReadModelHash,
+      readOnly: true,
+    });
+    expect(lastMetricsSample(browserMessages).payload).toMatchObject({
+      scenarioId: M2_WORK_LOGISTICS_SCENARIO_ID,
+      worldHash: expected.finalWorldHash,
+      checkpointCount: 3,
+    });
+  }, 120000);
+
   it("returns M1 save metadata without exposing mutable authority through the Worker", () => {
     const worker = createSimulationWorker();
 
@@ -265,6 +309,20 @@ function makeM1InitSession(sequence: number): MainToSimulationMessage {
   };
 }
 
+function makeM2InitSession(sequence: number): MainToSimulationMessage {
+  return {
+    protocolVersion: SIM_PROTOCOL_VERSION,
+    schemaVersion: SIM_SCHEMA_VERSION,
+    sessionId: "session-a",
+    sequence,
+    kind: MAIN_TO_SIMULATION_MESSAGE_KIND.InitSession,
+    payload: {
+      seed: "2",
+      catalogVersion: M2_WORK_LOGISTICS_SCENARIO_ID,
+    },
+  };
+}
+
 function makeNoopBatch(sequence: number): MainToSimulationMessage {
   return {
     protocolVersion: SIM_PROTOCOL_VERSION,
@@ -294,6 +352,24 @@ function makeM1AdvanceBatch(sequence: number, tick: number): MainToSimulationMes
       commands: [
         {
           commandId: createM1AdvanceCommandId(tick),
+          kind: PLAYER_COMMAND_KIND.Noop,
+        },
+      ],
+    },
+  };
+}
+
+function makeM2AdvanceBatch(sequence: number, tick: number): MainToSimulationMessage {
+  return {
+    protocolVersion: SIM_PROTOCOL_VERSION,
+    schemaVersion: SIM_SCHEMA_VERSION,
+    sessionId: "session-a",
+    sequence,
+    kind: MAIN_TO_SIMULATION_MESSAGE_KIND.PlayerCommandBatch,
+    payload: {
+      commands: [
+        {
+          commandId: createM2AdvanceCommandId(tick),
           kind: PLAYER_COMMAND_KIND.Noop,
         },
       ],
@@ -414,6 +490,14 @@ function renderSnapshots(
 }
 
 function readReplay(result: ReturnType<typeof runM1HaulingBuildingReplay>): M1ReplayRun {
+  if (!result.ok) {
+    throw new Error(result.reason);
+  }
+
+  return result.replay;
+}
+
+function readM2Replay(result: ReturnType<typeof runM2WorkLogisticsReplay>): M2ReplayRun {
   if (!result.ok) {
     throw new Error(result.reason);
   }
