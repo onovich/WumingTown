@@ -158,6 +158,23 @@ export {
   createNamedRandomStreams,
   restoreNamedRandomStreams,
 } from "./deterministic-rng";
+export {
+  DayNightStore,
+  M3EnvironmentDirtyQueue,
+  M3EnvironmentStore,
+  WeatherStore,
+  createM3EnvironmentStore,
+  runM3EnvironmentReplay,
+} from "./m3-environment";
+export {
+  DEFAULT_M3_SCHEDULE_WINDOWS,
+  M3_ENVIRONMENT_OWNER_VERSION,
+  M3_WEATHER_INTERVAL_TICKS,
+  M3_WEATHER_STREAM_ID,
+  chooseScheduledWeather,
+  createDefaultM3ScheduleWindows,
+  getWeatherSeverity,
+} from "./m3-environment-data";
 export { compareReplayCheckpoints } from "./replay-diagnostics";
 export {
   CANONICAL_WORLD_HASH_VERSION,
@@ -230,6 +247,21 @@ export type {
   RandomStreamSnapshot,
   RandomStreamsSnapshot,
 } from "./deterministic-rng";
+export type {
+  M3DayNightProjection,
+  M3EnvironmentCheckpoint,
+  M3EnvironmentCommand,
+  M3EnvironmentDirtyKey,
+  M3EnvironmentMetrics,
+  M3EnvironmentProjection,
+  M3EnvironmentReason,
+  M3EnvironmentReplayResult,
+  M3ScheduleWindowDefinition,
+  M3ScheduleWindowId,
+  M3WeatherKind,
+  M3WeatherProjection,
+  M3WeatherSeverityLanes,
+} from "./m3-environment-data";
 export type { RunnerSpeed, Tick } from "./time";
 export type {
   ReplayCheckpoint,

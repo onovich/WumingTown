@@ -45,6 +45,12 @@ for this surface.
   risk/status lanes with bounded retention and source owner-store references.
 - `RelationshipGraphStore` owns social edges and event facts; text templates,
   UI panels, and social candidate indexes are derived.
+- `DayNightStore` and `WeatherStore` now provide versioned M3 environment
+  context for schedule windows, need-rate modifiers, mood context codes,
+  outdoor-work eligibility, and structured explanation reasons such as
+  `work.rejected_outdoor_night_window` and
+  `work.rejected_weather_exposure`. They do not mutate needs, mood,
+  relationships, work offers, UI, Worker protocol, or save state in WM-0049.
 - Implementation must block instead of adding owner-store gaps, global scans,
   unversioned caches, UI authority, real-time/random authority, Promise or
   coroutine job state, public save/Worker/schema drift, dependencies, package
