@@ -109,3 +109,23 @@ the build anchor through `LocationStore.placeOnMap`, which commits occupancy
 into `MapGrid`. The completed fixture records `unlit_pending_fuel` lantern
 state for later systems, but WM-0027 does not run light diffusion, human-claim
 spread, night-risk updates or social consequences.
+
+## WM-0062 implementation note
+
+M4 lamp rule authority starts in `packages/sim-core/src/m4-lamp-network.ts`.
+`M4LampNetworkStore` owns linked lamp groups and integer maintenance, fuel,
+wick, damage, `humanClaim`, and `shadowGap` lanes. Lamp registration can derive
+room and chunk keys from `MapGrid.readCellByIndex`, but normal lamp mutation
+does not scan map cells.
+
+Lamp mutations enqueue exact lamp, group, cell, room, chunk, and projection
+keys in a bounded deterministic dirty queue. Visual light is exposed only by a
+read-only projection with owner-version basis validation; projection consumers
+cannot mutate lamp rule fields and stale projection bases are rejected.
+
+`M4LampGapIndex` is the first indexed risk-read surface for active lamp gaps.
+It keeps sorted global, group, room, and group-room candidate buckets, so normal
+actor/anomaly-style reads apply candidate and selected Top-K caps inside the
+requested scope instead of filtering a global capped list. If its derived dirty
+queue overflows, the index refuses reads until a load/debug rebuild refreshes
+from owner state; it must not publish a stale source version as current.

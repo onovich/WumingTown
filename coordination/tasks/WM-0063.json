@@ -2,7 +2,7 @@
   "id": "WM-0063",
   "title": "Add M4 Chronicle evidence owner stores",
   "summary": "Add structured Chronicle case files, evidence facts, hypotheses, contradictions, confirmed-rule gates, dissemination and evidence reason traces.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,13 +30,19 @@
   ],
   "branch": "task/WM-0063-add-m4-chronicle-evidence-owner-stores",
   "createdAt": "2026-06-25T19:08:30.000Z",
-  "updatedAt": "2026-06-25T19:08:30.000Z",
+  "updatedAt": "2026-06-25T20:10:27.090Z",
   "history": [
     {
       "at": "2026-06-25T19:08:30.000Z",
       "actor": "systems-architect",
       "action": "create",
       "details": "Created by WM-0061 M4 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-25T20:10:27.090Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "objective": "Implement the authoritative Chronicle evidence fact surface needed for the first M4 rule-discovery path.",

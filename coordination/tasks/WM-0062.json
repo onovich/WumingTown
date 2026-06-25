@@ -2,7 +2,7 @@
   "id": "WM-0062",
   "title": "Add M4 lamp network owner stores",
   "summary": "Add authoritative M4 lamp network state for linked lamps, maintenance, human-claim fields, bounded shadow-gap propagation, metrics and structured reasons.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0062-add-m4-lamp-network-owner-stores",
   "createdAt": "2026-06-25T19:08:30.000Z",
-  "updatedAt": "2026-06-25T19:28:26.624Z",
+  "updatedAt": "2026-06-25T20:10:27.083Z",
   "history": [
     {
       "at": "2026-06-25T19:08:30.000Z",
@@ -43,6 +43,48 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-25T19:30:45.598Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Codex WM-0062 M4 lamps"
+    },
+    {
+      "at": "2026-06-25T19:45:25.769Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented M4 sim-core lamp owner store, exact dirty queue, read-only visual projection validation, bounded lamp-gap index, focused m4-lamps tests, metrics and docs; required checks and pnpm quality pass."
+    },
+    {
+      "at": "2026-06-25T19:56:08.474Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: M4LampGapIndex can miss a dirty lamp when its derived dirty queue is full, then refreshDirty advances sourceVersion to the store version and queryActiveGaps returns stale candidates as current. High: room/group scoped gap queries use one global score list and apply candidateCap before reaching scoped lamps, so valid scoped candidates can be omitted. Medium: selectedCapHit under-reports when the selected cap fills but the list ends before candidateCap."
+    },
+    {
+      "at": "2026-06-25T20:03:46.779Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Addressed reviewer findings: gap-index dirty overflow now requires rebuild instead of publishing stale source versions, scoped room/group/group-room buckets apply candidate caps inside the requested scope, selected-cap truncation is traced, focused regression tests added; required checks and pnpm quality pass."
+    },
+    {
+      "at": "2026-06-25T20:08:58.741Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings remain; prior gap-index overflow, scoped bucket, and selected-cap trace issues are fixed, focused regressions pass, and required gates plus pnpm quality pass."
+    },
+    {
+      "at": "2026-06-25T20:10:21.594Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Reviewed WM-0062 accepted after independent re-review; integration gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality. Lamp owner store/index scope remains sim-core only; Worker/save/UI/Chronicle/obligation/anomaly/director/M5 remain downstream or blocked."
+    },
+    {
+      "at": "2026-06-25T20:10:27.082Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Implement the first M4 authoritative lamp rule-field surface without Chronicle, obligation, anomaly, director, UI authority or public protocol scope.",
@@ -82,5 +124,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Deterministic simulation owner-store and map/lamp authority work is not suitable for Spark."
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Codex WM-0062 M4 lamps",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0062.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings remain; prior gap-index overflow, scoped bucket, and selected-cap trace issues are fixed, focused regressions pass, and required gates plus pnpm quality pass.",
+    "at": "2026-06-25T20:08:58.741Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Reviewed WM-0062 accepted after independent re-review; integration gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality. Lamp owner store/index scope remains sim-core only; Worker/save/UI/Chronicle/obligation/anomaly/director/M5 remain downstream or blocked.",
+    "at": "2026-06-25T20:10:21.593Z"
   }
 }

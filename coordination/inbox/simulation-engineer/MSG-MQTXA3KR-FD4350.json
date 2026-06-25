@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQTXA3KR-FD4350",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0062",
+  "kind": "changes-requested",
+  "subject": "WM-0062 review: changes_requested",
+  "body": "High: M4LampGapIndex can miss a dirty lamp when its derived dirty queue is full, then refreshDirty advances sourceVersion to the store version and queryActiveGaps returns stale candidates as current. High: room/group scoped gap queries use one global score list and apply candidateCap before reaching scoped lamps, so valid scoped candidates can be omitted. Medium: selectedCapHit under-reports when the selected cap fills but the list ends before candidateCap.",
+  "artifacts": [
+    "coordination/reports/WM-0062.md"
+  ],
+  "createdAt": "2026-06-25T19:56:08.475Z",
+  "acknowledgedAt": "2026-06-25T20:02:11.937Z"
+}

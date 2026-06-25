@@ -17,9 +17,9 @@
       "registeredAt": "2026-06-25T19:02:44.299Z"
     },
     "simulation-engineer": {
-      "threadId": "019efcc7-5cde-7f81-a5b8-99d7eb09dbf8",
-      "label": "WM-0039-build-production",
-      "registeredAt": "2026-06-25T03:16:36.799Z"
+      "threadId": "019f0043-b422-7051-a0b8-0c88b4a9a022",
+      "label": "Forge the 6th WM-0062 M4 lamps",
+      "registeredAt": "2026-06-25T19:31:15.019Z"
     },
     "client-engineer": {
       "threadId": "019ef650-10ca-7e13-b072-9be37575c2be",
@@ -42,10 +42,10 @@
       "registeredAt": "2026-06-24T21:35:05.679Z"
     },
     "reviewer": {
-      "threadId": "019f0039-cfed-7491-8d61-59a391f1bc15",
-      "label": "Gate the 6th WM-0061 review",
-      "registeredAt": "2026-06-25T19:20:31.502Z"
+      "threadId": "019f0055-07d4-7793-bbbe-a58e6ff66892",
+      "label": "Mirror the 6th WM-0062 review",
+      "registeredAt": "2026-06-25T19:50:15.609Z"
     }
   },
-  "updatedAt": "2026-06-25T19:20:31.502Z"
+  "updatedAt": "2026-06-25T19:50:15.610Z"
 }

@@ -315,3 +315,20 @@ tick horizon, checkpoint hashes including tick `100000`, final summary, Worker
 snapshot/read-model/projection bytes, save/load rebuild timing and final
 hashes. The baseline update preserves the existing 10 percent warning and
 20 percent blocking regression thresholds for every entry.
+
+## WM-0062 M4 lamp owner-store metrics
+
+`M4LampNetworkStore.createMetrics()` records lamp owner version, active lamp and
+group counts, dirty backlog peak/final counts, drain count, drained key count,
+last drain size, normal-tick visited lamp/cell counts, and full-map diffusion
+count. Normal lamp dirty work drains caller-bounded exact lamp keys; tests
+assert one changed lamp visits one lamp/cell key and leaves full-map diffusion
+at zero.
+
+`M4LampGapIndex.createMetrics()` records source/index versions, active gap
+count, dirty backlog peak/final counts, rebuild-required state, missed dirty
+count, refreshed dirty lamp count, load/debug full rebuild scans, and query
+visit totals. Actor/anomaly-style reads use sorted global, group, room, or
+group-room active gap candidate buckets with candidate and selected Top-K caps;
+load/debug rebuild may scan registered lamp capacity and reports that
+separately.

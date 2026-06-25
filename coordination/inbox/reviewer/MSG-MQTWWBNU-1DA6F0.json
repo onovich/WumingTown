@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQTWWBNU-1DA6F0",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0062",
+  "kind": "review-request",
+  "subject": "WM-0062 ready for review",
+  "body": "Implemented M4 sim-core lamp owner store, exact dirty queue, read-only visual projection validation, bounded lamp-gap index, focused m4-lamps tests, metrics and docs; required checks and pnpm quality pass.",
+  "artifacts": [
+    "coordination/reports/WM-0062.md",
+    "task/WM-0062-add-m4-lamp-network-owner-stores"
+  ],
+  "createdAt": "2026-06-25T19:45:25.770Z",
+  "acknowledgedAt": "2026-06-25T19:50:15.615Z"
+}

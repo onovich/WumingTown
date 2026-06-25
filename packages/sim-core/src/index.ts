@@ -39,6 +39,32 @@ export {
   createWorkOfferIndex,
 } from "./work-offers";
 export {
+  M4_LAMP_DEFAULT_DIRTY_DRAIN_BUDGET,
+  M4_LAMP_MAINTENANCE_DAMAGED,
+  M4_LAMP_MAINTENANCE_NEEDS_FUEL,
+  M4_LAMP_MAINTENANCE_NEEDS_WICK,
+  M4_LAMP_MAINTENANCE_OK,
+  M4_LAMP_NETWORK_SNAPSHOT_VERSION,
+  M4_LAMP_NONE,
+  M4_LAMP_TAG_BOUNDARY,
+  M4_LAMP_TAG_FORBIDDEN,
+  M4_LAMP_TAG_GUEST,
+  M4_LAMP_TAG_HOME,
+  M4_LAMP_TAG_MASK,
+  M4_LAMP_TAG_NIGHT_WATCH,
+  M4_LAMP_TAG_ROAD,
+  M4LampNetworkStore,
+  createM4LampNetworkStore,
+} from "./m4-lamp-network";
+export {
+  M4_LAMP_GAP_DEFAULT_CANDIDATE_CAP,
+  M4_LAMP_GAP_DEFAULT_SELECTED_CAP,
+  M4LampGapIndex,
+  M4LampGapTraceStore,
+  createM4LampGapIndex,
+  createM4LampGapTraceStore,
+} from "./m4-lamp-gap-index";
+export {
   M3_NEED_STORE_SNAPSHOT_VERSION,
   NEED_ACTOR_NONE,
   NEED_LANE_COMFORT,
@@ -505,6 +531,36 @@ export type {
   WorkOfferSelectionResult,
   WorkOfferTraceReason,
 } from "./work-offers";
+export type {
+  M4LampChangeReason,
+  M4LampDirtyDrainResult,
+  M4LampDirtyKeyOutput,
+  M4LampDirtyKeyView,
+  M4LampMaintenanceState,
+  M4LampMapRegisterInput,
+  M4LampMutationResult,
+  M4LampNetworkMetrics,
+  M4LampNetworkSnapshot,
+  M4LampNetworkStoreOptions,
+  M4LampReason,
+  M4LampRegisterInput,
+  M4LampRuleFieldUpdate,
+  M4LampView,
+  M4LampVisualProjection,
+  M4LampVisualProjectionRow,
+} from "./m4-lamp-network";
+export type {
+  M4LampGapIndexMetrics,
+  M4LampGapIndexOptions,
+  M4LampGapQuery,
+  M4LampGapQueryResult,
+  M4LampGapReason,
+  M4LampGapRefreshResult,
+  M4LampGapTraceInput,
+  M4LampGapTraceMetrics,
+  M4LampGapTraceReason,
+  M4LampGapTraceView,
+} from "./m4-lamp-gap-index";
 export type {
   NeedActorInput,
   NeedActorView,
