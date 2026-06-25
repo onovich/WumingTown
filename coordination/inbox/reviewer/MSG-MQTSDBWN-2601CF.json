@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQTSDBWN-2601CF",
+  "from": "qa-performance",
+  "to": "reviewer",
+  "taskId": "WM-0059",
+  "kind": "review-request",
+  "subject": "WM-0059 ready for review",
+  "body": "Implemented M3 long-run invariant gate, m3-ordinary-life-long-run benchmark/default suite registration, baseline/parser/artifact routing, docs and WM-0059 report; required checks passed including typecheck, m3-invariants, bench, sim:run, taskctl validate and git diff --check.",
+  "artifacts": [
+    "coordination/reports/WM-0059.md",
+    "task/WM-0059-add-m3-benchmarks-and-long-run-invariants"
+  ],
+  "createdAt": "2026-06-25T17:38:41.159Z",
+  "acknowledgedAt": "2026-06-25T17:56:47.861Z"
+}

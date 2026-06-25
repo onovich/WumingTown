@@ -2,7 +2,7 @@
   "id": "WM-0059",
   "title": "Add M3 benchmarks and long run invariants",
   "summary": "Add M3 benchmark and long-run invariant gates for ordinary-life simulation.",
-  "state": "ready",
+  "state": "verified",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -33,7 +33,7 @@
   ],
   "branch": "task/WM-0059-add-m3-benchmarks-and-long-run-invariants",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T17:12:02.657Z",
+  "updatedAt": "2026-06-25T17:56:04.180Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
@@ -46,6 +46,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-25T17:17:42.281Z",
+      "actor": "qa-performance",
+      "action": "claim",
+      "details": "thread=Codex WM-0059"
+    },
+    {
+      "at": "2026-06-25T17:38:41.158Z",
+      "actor": "qa-performance",
+      "action": "complete",
+      "details": "Implemented M3 long-run invariant gate, m3-ordinary-life-long-run benchmark/default suite registration, baseline/parser/artifact routing, docs and WM-0059 report; required checks passed including typecheck, m3-invariants, bench, sim:run, taskctl validate and git diff --check."
+    },
+    {
+      "at": "2026-06-25T17:45:31.012Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: stale medical offer/request gate is incomplete: packages/benchmarks/src/m3-ordinary-life-long-run-benchmark.ts:268-270 maps noStaleOffers only to activeMedicalRequests and packages/sim-core/src/m3-invariants.test.ts:96-99 only asserts final activeMedicalRequests, while M3MedicalMetrics.staleBasisRejectCount exists at packages/sim-core/src/m3-medical-care.ts:118-130 and is never propagated from packages/sim-core/src/m3-ordinary-life-scenario.ts:1672-1693. High: condition and mood/relationship drift checks only enforce valid ranges, not stable expected values, at packages/sim-core/src/m3-invariants.test.ts:175-190 and packages/benchmarks/src/m3-ordinary-life-long-run-benchmark.ts:438-456; benchmark invariants omit final condition/mood/relationship values at packages/benchmarks/src/m3-ordinary-life-long-run-benchmark.ts:300-343."
+    },
+    {
+      "at": "2026-06-25T17:53:21.989Z",
+      "actor": "qa-performance",
+      "action": "complete",
+      "details": "Addressed reviewer changes: M3 summary/benchmarks now propagate stale medical offer basis rejects, invariant gate and baseline compare exact condition/mood/relationship stable values, final artifact refreshed; required checks passed again: typecheck, m3-invariants, bench, sim:run, taskctl validate and git diff --check."
+    },
+    {
+      "at": "2026-06-25T17:56:04.180Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Verified stale medical basis reject coverage, exact condition/mood/relationship drift assertions, M3 benchmark baseline/parser/artifact fields, artifact SHA E10FA7C8F2376D3AD913E35843ECBBAB1D0AC944F121CD0019425632862EACC7, preserved 10/20 thresholds, no dependency/protocol/schema/app scope; typecheck, m3-invariants, sim:run 100000, taskctl validate and git diff --check passed."
     }
   ],
   "objective": "Create artifact-backed M3 performance and invariant evidence before closeout.",
@@ -91,5 +121,15 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Benchmark baselines and long-run invariant gates require qa-performance ownership and independent review."
+  },
+  "claimedBy": "qa-performance",
+  "threadLabel": "Codex WM-0059",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0059.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Verified stale medical basis reject coverage, exact condition/mood/relationship drift assertions, M3 benchmark baseline/parser/artifact fields, artifact SHA E10FA7C8F2376D3AD913E35843ECBBAB1D0AC944F121CD0019425632862EACC7, preserved 10/20 thresholds, no dependency/protocol/schema/app scope; typecheck, m3-invariants, sim:run 100000, taskctl validate and git diff --check passed.",
+    "at": "2026-06-25T17:56:04.179Z"
   }
 }

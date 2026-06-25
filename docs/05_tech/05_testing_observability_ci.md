@@ -144,3 +144,30 @@ Worker smoke coverage and now also runs
 `m3.ordinary_life.injured_caregiver.v1` through a real browser module Worker.
 The Worker still uses the existing protocol message kinds; no UI, Electron,
 platform save, or read-model consumer becomes authoritative.
+
+## WM-0059 implementation note
+
+`pnpm test --filter m3-invariants` is the focused M3 long-run invariant gate for
+the ordinary-life scenario. It runs requested seed `3` through terminal samples
+up to `100000` ticks, compares uninterrupted replay against the long-run world
+hash, verifies save/resume parity from tick `12000` to `36000`, and asserts no
+reservation leak, stale medical request, stale medical offer basis reject,
+running job leak, negative needs/resources, stale ability cache reject, exact
+condition drift, exact mood/relationship drift, queue growth, M4 fact,
+conservation drift, or hash divergence.
+
+`pnpm bench` writes the WM-0059 artifact to
+`coordination/artifacts/WM-0059/benchmarks/benchmark-results.json`. The artifact
+includes the environment block (`nodeVersion`, `pnpmVersion`, `osRelease`,
+`platform`, `arch`, `cpuModel`, `cpuCount`, `gitCommit`), the full
+`m3-ordinary-life-long-run` report, checkpoint hashes through tick `100000`,
+final summary, save/load rebuild timing, Worker snapshot/read-model/projection
+byte counts, final world hash `0x7eb81a69`, final read-model hash
+`0x82bf87d6`, stale medical offer reject count, exact stable condition,
+mood and relationship values, and the 10 percent warning / 20 percent blocking
+baseline comparison.
+
+The documented M3 headless reproduction command is
+`pnpm sim:run -- --seed 3 --scenario m3-ordinary-life --ticks 100000`. The
+command prints the authoritative M3 scenario summary from the Node headless
+runner; UI, Worker projection consumers and Electron remain read-only.

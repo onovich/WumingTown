@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQTSW7K6-E7F451",
+  "from": "qa-performance",
+  "to": "reviewer",
+  "taskId": "WM-0059",
+  "kind": "review-request",
+  "subject": "WM-0059 ready for review",
+  "body": "Addressed reviewer changes: M3 summary/benchmarks now propagate stale medical offer basis rejects, invariant gate and baseline compare exact condition/mood/relationship stable values, final artifact refreshed; required checks passed again: typecheck, m3-invariants, bench, sim:run, taskctl validate and git diff --check.",
+  "artifacts": [
+    "coordination/reports/WM-0059.md",
+    "task/WM-0059-add-m3-benchmarks-and-long-run-invariants"
+  ],
+  "createdAt": "2026-06-25T17:53:21.991Z",
+  "acknowledgedAt": "2026-06-25T17:56:47.907Z"
+}

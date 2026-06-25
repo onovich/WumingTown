@@ -43,6 +43,7 @@ describe("m3-ordinary-life-scenario", () => {
     expect(summary.endState.yaoSprainSeverity).toBe(260);
     expect(summary.endState.treatmentCompletedCount).toBe(1);
     expect(summary.endState.activeMedicalRequests).toBe(0);
+    expect(summary.endState.staleMedicalOfferRejectCount).toBe(0);
     expect(summary.endState.grainBowlQuantity).toBe(7);
     expect(summary.endState.bandageQuantity).toBe(2);
     expect(summary.endState.yaoMinGratitude).toBeGreaterThan(0);

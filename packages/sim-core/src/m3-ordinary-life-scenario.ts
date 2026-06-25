@@ -209,6 +209,7 @@ export interface M3OrdinaryLifeEndState {
   readonly grainBowlQuantity: number;
   readonly bandageQuantity: number;
   readonly activeMedicalRequests: number;
+  readonly staleMedicalOfferRejectCount: number;
   readonly treatmentCompletedCount: number;
 }
 
@@ -1648,6 +1649,7 @@ function createEndState(fixture: ScenarioFixture, tick: Tick): M3OrdinaryLifeEnd
     fixture.relationships.getEdgeId(ACTOR_YAO, ACTOR_LIN),
   );
   const projection = fixture.environment.createProjection(tick);
+  const medicalMetrics = fixture.medical.createMetrics();
   return {
     yaoMovementAfterInjury: fixture.yaoMovementAfterInjury,
     yaoMovementAfterTreatment,
@@ -1664,7 +1666,8 @@ function createEndState(fixture: ScenarioFixture, tick: Tick): M3OrdinaryLifeEnd
     finalScheduleWindow: projection.dayNight.scheduleWindow,
     grainBowlQuantity: readQuantity(fixture.items, STACK_GRAIN_BOWL),
     bandageQuantity: readQuantity(fixture.items, STACK_BANDAGE),
-    activeMedicalRequests: fixture.medical.createMetrics().activePatientRequestCount,
+    activeMedicalRequests: medicalMetrics.activePatientRequestCount,
+    staleMedicalOfferRejectCount: medicalMetrics.staleBasisRejectCount,
     treatmentCompletedCount: fixture.treatments.createMetrics().completedCount,
   };
 }

@@ -47,6 +47,13 @@ import {
   type SampledM2WorkLogisticsLongRunBenchmark,
 } from "./m2-work-logistics-long-run-benchmark";
 import {
+  m3OrdinaryLifeLongRunInvariantsFromReport,
+  runM3OrdinaryLifeLongRunBenchmark,
+  type M3OrdinaryLifeLongRunBenchmarkInvariants,
+  type M3OrdinaryLifeLongRunBenchmarkReport,
+  type SampledM3OrdinaryLifeLongRunBenchmark,
+} from "./m3-ordinary-life-long-run-benchmark";
+import {
   runSpatialIndexBenchmark,
   spatialIndexInvariantsFromReport,
   type SampledSpatialIndexBenchmark,
@@ -87,6 +94,7 @@ export { runLogistics10kBenchmark } from "./logistics-10k-benchmark";
 export { runM1HaulingBuildingLongRunBenchmark } from "./m1-hauling-building-long-run-benchmark";
 export { runM2PathingInvalidationBenchmark } from "./m2-pathing-invalidation-benchmark";
 export { runM2WorkLogisticsLongRunBenchmark } from "./m2-work-logistics-long-run-benchmark";
+export { runM3OrdinaryLifeLongRunBenchmark } from "./m3-ordinary-life-long-run-benchmark";
 export { runPathing100Benchmark } from "./pathing-100-benchmark";
 export { runRegionRoomBenchmark } from "./region-room-benchmark";
 export { runReservationsBenchmark } from "./reservations-benchmark";
@@ -113,6 +121,7 @@ export type BenchmarkName =
   | "m1-hauling-building-long-run"
   | "m2-pathing-invalidation"
   | "m2-work-logistics-long-run"
+  | "m3-ordinary-life-long-run"
   | "map-dirty"
   | "pathing-100"
   | "reservations"
@@ -206,6 +215,7 @@ export type BenchmarkReport =
   | M1HaulingBuildingLongRunBenchmarkReport
   | M2PathingInvalidationBenchmarkReport
   | M2WorkLogisticsLongRunBenchmarkReport
+  | M3OrdinaryLifeLongRunBenchmarkReport
   | MapDirtyBenchmarkReport
   | Pathing100BenchmarkReport
   | ReservationsBenchmarkReport
@@ -219,6 +229,7 @@ export type BenchmarkInvariants =
   | M1HaulingBuildingLongRunBenchmarkInvariants
   | M2PathingInvalidationBenchmarkInvariants
   | M2WorkLogisticsLongRunBenchmarkInvariants
+  | M3OrdinaryLifeLongRunBenchmarkInvariants
   | MapDirtyBenchmarkInvariants
   | Pathing100BenchmarkInvariants
   | ReservationsBenchmarkInvariants
@@ -232,6 +243,7 @@ export type SampledBenchmarkResult =
   | SampledM1HaulingBuildingLongRunBenchmark
   | SampledM2PathingInvalidationBenchmark
   | SampledM2WorkLogisticsLongRunBenchmark
+  | SampledM3OrdinaryLifeLongRunBenchmark
   | SampledMapDirtyBenchmark
   | SampledPathing100Benchmark
   | SampledReservationsBenchmark
@@ -246,6 +258,7 @@ export interface BenchmarkReportMap {
   readonly "m1-hauling-building-long-run": M1HaulingBuildingLongRunBenchmarkReport;
   readonly "m2-pathing-invalidation": M2PathingInvalidationBenchmarkReport;
   readonly "m2-work-logistics-long-run": M2WorkLogisticsLongRunBenchmarkReport;
+  readonly "m3-ordinary-life-long-run": M3OrdinaryLifeLongRunBenchmarkReport;
   readonly "map-dirty": MapDirtyBenchmarkReport;
   readonly "pathing-100": Pathing100BenchmarkReport;
   readonly reservations: ReservationsBenchmarkReport;
@@ -261,6 +274,7 @@ export interface BenchmarkInvariantMap {
   readonly "m1-hauling-building-long-run": M1HaulingBuildingLongRunBenchmarkInvariants;
   readonly "m2-pathing-invalidation": M2PathingInvalidationBenchmarkInvariants;
   readonly "m2-work-logistics-long-run": M2WorkLogisticsLongRunBenchmarkInvariants;
+  readonly "m3-ordinary-life-long-run": M3OrdinaryLifeLongRunBenchmarkInvariants;
   readonly "map-dirty": MapDirtyBenchmarkInvariants;
   readonly "pathing-100": Pathing100BenchmarkInvariants;
   readonly reservations: ReservationsBenchmarkInvariants;
@@ -309,6 +323,9 @@ export function benchmarkInvariantsFromReport(
 export function benchmarkInvariantsFromReport(
   report: M2WorkLogisticsLongRunBenchmarkReport,
 ): M2WorkLogisticsLongRunBenchmarkInvariants;
+export function benchmarkInvariantsFromReport(
+  report: M3OrdinaryLifeLongRunBenchmarkReport,
+): M3OrdinaryLifeLongRunBenchmarkInvariants;
 export function benchmarkInvariantsFromReport(
   report: MapDirtyBenchmarkReport,
 ): MapDirtyBenchmarkInvariants;
@@ -367,6 +384,10 @@ export function benchmarkInvariantsFromReport(report: BenchmarkReport): Benchmar
     return m2WorkLogisticsLongRunInvariantsFromReport(report);
   }
 
+  if (report.name === "m3-ordinary-life-long-run") {
+    return m3OrdinaryLifeLongRunInvariantsFromReport(report);
+  }
+
   if (report.name === "map-dirty") {
     return mapDirtyInvariantsFromReport(report);
   }
@@ -402,6 +423,9 @@ export function runBenchmarkByName(
 export function runBenchmarkByName(
   name: "m2-work-logistics-long-run",
 ): M2WorkLogisticsLongRunBenchmarkReport;
+export function runBenchmarkByName(
+  name: "m3-ordinary-life-long-run",
+): M3OrdinaryLifeLongRunBenchmarkReport;
 export function runBenchmarkByName(name: "map-dirty"): MapDirtyBenchmarkReport;
 export function runBenchmarkByName(name: "pathing-100"): Pathing100BenchmarkReport;
 export function runBenchmarkByName(name: "reservations"): ReservationsBenchmarkReport;
@@ -434,6 +458,10 @@ export function runBenchmarkByName(name: BenchmarkName): BenchmarkReport {
 
   if (name === "m2-work-logistics-long-run") {
     return runM2WorkLogisticsLongRunBenchmark();
+  }
+
+  if (name === "m3-ordinary-life-long-run") {
+    return runM3OrdinaryLifeLongRunBenchmark();
   }
 
   if (name === "map-dirty") {
@@ -484,6 +512,10 @@ export function sampleBenchmark(
   options?: BenchmarkSamplingOptions,
 ): SampledM2WorkLogisticsLongRunBenchmark;
 export function sampleBenchmark(
+  name: "m3-ordinary-life-long-run",
+  options?: BenchmarkSamplingOptions,
+): SampledM3OrdinaryLifeLongRunBenchmark;
+export function sampleBenchmark(
   name: "map-dirty",
   options?: BenchmarkSamplingOptions,
 ): SampledMapDirtyBenchmark;
@@ -528,6 +560,8 @@ export function sampleBenchmark(
       runBenchmarkByName("m2-pathing-invalidation");
     } else if (name === "m2-work-logistics-long-run") {
       runBenchmarkByName("m2-work-logistics-long-run");
+    } else if (name === "m3-ordinary-life-long-run") {
+      runBenchmarkByName("m3-ordinary-life-long-run");
     } else if (name === "map-dirty") {
       runBenchmarkByName("map-dirty");
     } else if (name === "pathing-100") {
@@ -567,6 +601,10 @@ export function sampleBenchmark(
     return sampleM2WorkLogisticsLongRunBenchmark(sampleCount);
   }
 
+  if (name === "m3-ordinary-life-long-run") {
+    return sampleM3OrdinaryLifeLongRunBenchmark(sampleCount);
+  }
+
   if (name === "map-dirty") {
     return sampleMapDirtyBenchmark(sampleCount);
   }
@@ -600,6 +638,7 @@ export function runDefaultBenchmarkSuite(
     sampleBenchmark("m1-hauling-building-long-run", options),
     sampleBenchmark("m2-pathing-invalidation", options),
     sampleBenchmark("m2-work-logistics-long-run", options),
+    sampleBenchmark("m3-ordinary-life-long-run", options),
     sampleBenchmark("map-dirty", options),
     sampleBenchmark("pathing-100", options),
     sampleBenchmark("reservations", options),
@@ -706,6 +745,24 @@ function sampleM2WorkLogisticsLongRunBenchmark(
     name: "m2-work-logistics-long-run",
     report: reports[reports.length - 1] ?? failMissingReport(),
     invariants: validateInvariantConsistency("m2-work-logistics-long-run", reports),
+    sampleElapsedMs: reports.map((report) => report.elapsedMs),
+    stats: createBenchmarkStats(reports.map((report) => report.elapsedMs)),
+  };
+}
+
+function sampleM3OrdinaryLifeLongRunBenchmark(
+  sampleCount: number,
+): SampledM3OrdinaryLifeLongRunBenchmark {
+  const reports: M3OrdinaryLifeLongRunBenchmarkReport[] = [];
+
+  for (let index = 0; index < sampleCount; index += 1) {
+    reports.push(runM3OrdinaryLifeLongRunBenchmark());
+  }
+
+  return {
+    name: "m3-ordinary-life-long-run",
+    report: reports[reports.length - 1] ?? failMissingReport(),
+    invariants: validateInvariantConsistency("m3-ordinary-life-long-run", reports),
     sampleElapsedMs: reports.map((report) => report.elapsedMs),
     stats: createBenchmarkStats(reports.map((report) => report.elapsedMs)),
   };
@@ -842,6 +899,10 @@ function validateInvariantConsistency(
   reports: readonly M2WorkLogisticsLongRunBenchmarkReport[],
 ): M2WorkLogisticsLongRunBenchmarkInvariants;
 function validateInvariantConsistency(
+  name: "m3-ordinary-life-long-run",
+  reports: readonly M3OrdinaryLifeLongRunBenchmarkReport[],
+): M3OrdinaryLifeLongRunBenchmarkInvariants;
+function validateInvariantConsistency(
   name: "map-dirty",
   reports: readonly MapDirtyBenchmarkReport[],
 ): MapDirtyBenchmarkInvariants;
@@ -948,6 +1009,10 @@ function readInvariantUnion(report: BenchmarkReport): BenchmarkInvariants {
   }
 
   if (report.name === "m2-work-logistics-long-run") {
+    return benchmarkInvariantsFromReport(report);
+  }
+
+  if (report.name === "m3-ordinary-life-long-run") {
     return benchmarkInvariantsFromReport(report);
   }
 

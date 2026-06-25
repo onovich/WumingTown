@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQTSZOPH-5887F8",
+  "from": "reviewer",
+  "to": "qa-performance",
+  "taskId": "WM-0059",
+  "kind": "review-approved",
+  "subject": "WM-0059 review: verified",
+  "body": "No blocking findings. Verified stale medical basis reject coverage, exact condition/mood/relationship drift assertions, M3 benchmark baseline/parser/artifact fields, artifact SHA E10FA7C8F2376D3AD913E35843ECBBAB1D0AC944F121CD0019425632862EACC7, preserved 10/20 thresholds, no dependency/protocol/schema/app scope; typecheck, m3-invariants, sim:run 100000, taskctl validate and git diff --check passed.",
+  "artifacts": [
+    "coordination/reports/WM-0059.md"
+  ],
+  "createdAt": "2026-06-25T17:56:04.181Z",
+  "acknowledgedAt": "2026-06-25T17:56:47.816Z"
+}
