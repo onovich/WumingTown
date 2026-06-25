@@ -128,3 +128,19 @@ with requested seed `3` and authoritative scenario seed `46`. It writes
 expected, actual, save, resumed, and summary artifacts under
 `coordination/artifacts/WM-0057/m3-save-replay/`, including checkpoint hashes,
 save byte size, rebuilt surface hashes, and `firstDivergentTick` on failure.
+
+## WM-0058 implementation note
+
+`pnpm test --filter m3-worker-parity` covers the focused M3 Worker/headless
+parity gate. It runs the same M3 ordinary-life checkpoint command stream
+through the Node Worker harness and compares all six contract checkpoints
+against `runM3OrdinaryLifeReplay`, including authoritative world hashes,
+read-model hashes, read-only snapshot/UI surfaces, M3 save metadata, snapshot
+byte size, read-model byte size, first mismatch tick, and projection-message
+latency counts.
+
+`pnpm test:e2e --filter worker-smoke` keeps the existing M1 and M2 browser
+Worker smoke coverage and now also runs
+`m3.ordinary_life.injured_caregiver.v1` through a real browser module Worker.
+The Worker still uses the existing protocol message kinds; no UI, Electron,
+platform save, or read-model consumer becomes authoritative.
