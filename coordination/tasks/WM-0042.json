@@ -2,7 +2,7 @@
   "id": "WM-0042",
   "title": "Add M2 benchmarks and long run invariants",
   "summary": "Add the M2 benchmark and invariant gate for 20 actors hauling/building plus 100 path requests under versioned invalidation.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,7 +31,7 @@
   ],
   "branch": "task/WM-0042-add-m2-benchmarks-and-long-run-invariants",
   "createdAt": "2026-06-24T21:14:35.180Z",
-  "updatedAt": "2026-06-25T05:21:17.117Z",
+  "updatedAt": "2026-06-25T05:24:40.974Z",
   "history": [
     {
       "at": "2026-06-24T21:14:35.180Z",
@@ -74,6 +74,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings; repair confirmed 20 actors, 20 stale rejects within 100 paths, committed-code artifact metadata, preserved thresholds, and required gates pass."
+    },
+    {
+      "at": "2026-06-25T05:24:33.126Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Merged WM-0042 at main after verified review; integration gates passed: pnpm quality, pnpm bench to temp artifact, M2 100000-tick sim run, taskctl validate, status and git diff --check."
+    },
+    {
+      "at": "2026-06-25T05:24:40.974Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Create the artifact-backed M2 performance and invariant gate before closeout.",
@@ -127,5 +139,10 @@
     "verdict": "verified",
     "summary": "No blocking findings; repair confirmed 20 actors, 20 stale rejects within 100 paths, committed-code artifact metadata, preserved thresholds, and required gates pass.",
     "at": "2026-06-25T05:21:17.117Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Merged WM-0042 at main after verified review; integration gates passed: pnpm quality, pnpm bench to temp artifact, M2 100000-tick sim run, taskctl validate, status and git diff --check.",
+    "at": "2026-06-25T05:24:33.125Z"
   }
 }
