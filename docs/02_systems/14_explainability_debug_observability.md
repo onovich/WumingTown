@@ -130,3 +130,18 @@ query counts, cache hits, rebuilds, stale-basis rejects, ability failures,
 dirty backlog/peak, and condition rows visited during cache rebuilds. Tests use
 these counters to prove cache hits do not rescan condition rows and rebuilds are
 limited to the actor's condition lane.
+
+## WM-0054 implementation note
+
+`M3MoodReasonTraceStore` is the focused structured explanation surface for
+WM-0054 mood, thought, and memory behavior. It is a fixed-capacity ring buffer
+with numeric lanes for sequence, tick, actor id, candidate total, visited count,
+scored count, cap, selected target, source kind, source id, source owner
+version, structured reason class, and mood store version.
+
+Mood UI or debug panels must read these shared reason rows or the
+`MoodThoughtMemoryStore` row views instead of inventing UI-only text authority.
+Tests assert reason classes and source ids, including need, environment, and
+health fact reasons, without relying on prose. The trace store is diagnostic
+only; it is not a job cursor, save authority, retry queue, or unbounded event
+log.
