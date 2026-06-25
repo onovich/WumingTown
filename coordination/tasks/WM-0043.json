@@ -2,7 +2,7 @@
   "id": "WM-0043",
   "title": "Close the M2 work logistics gate",
   "summary": "Close M2 only after the work/logistics vertical-slice evidence is verified, integrated and documented without starting M3.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -33,7 +33,7 @@
   ],
   "branch": "task/WM-0043-close-the-m2-work-logistics-gate",
   "createdAt": "2026-06-24T21:14:35.180Z",
-  "updatedAt": "2026-06-25T05:43:11.689Z",
+  "updatedAt": "2026-06-25T05:45:22.605Z",
   "history": [
     {
       "at": "2026-06-24T21:14:35.180Z",
@@ -64,6 +64,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings; M2 closeout evidence confirmed, upstream WM-0033 through WM-0042 are verified/integrated/done, required review gates pass, and M3 remains unstarted."
+    },
+    {
+      "at": "2026-06-25T05:45:22.561Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "WM-0043 verified and merged into main; M2 work/logistics closeout evidence integrated; M3 remains unstarted."
+    },
+    {
+      "at": "2026-06-25T05:45:22.605Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Close M2 with evidence while keeping M3 blocked.",
@@ -106,5 +118,10 @@
     "verdict": "verified",
     "summary": "No blocking findings; M2 closeout evidence confirmed, upstream WM-0033 through WM-0042 are verified/integrated/done, required review gates pass, and M3 remains unstarted.",
     "at": "2026-06-25T05:43:11.689Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "WM-0043 verified and merged into main; M2 work/logistics closeout evidence integrated; M3 remains unstarted.",
+    "at": "2026-06-25T05:45:22.561Z"
   }
 }
