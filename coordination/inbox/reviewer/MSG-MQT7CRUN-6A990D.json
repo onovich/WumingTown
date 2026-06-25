@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQT7CRUN-6A990D",
+  "from": "systems-architect",
+  "to": "reviewer",
+  "taskId": "WM-0045",
+  "kind": "review-request",
+  "subject": "WM-0045 ready for review",
+  "body": "Repaired WM-0045 review finding: WM-0060 now requires a non-executable future M4 entry prompt handoff artifact while forbidding M4 task creation, promotion, claim or implementation; updated plan and reports; required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0045.md",
+    "task/WM-0045-produce-m3-life-simulation-plan"
+  ],
+  "createdAt": "2026-06-25T07:50:23.231Z",
+  "acknowledgedAt": "2026-06-25T07:52:10.532Z"
+}

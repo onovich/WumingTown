@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQT77DB6-5E448B",
+  "from": "reviewer",
+  "to": "systems-architect",
+  "taskId": "WM-0045",
+  "kind": "changes-requested",
+  "subject": "WM-0045 review: changes_requested",
+  "body": "High: M3 DAG stops at WM-0060 closeout and blocks M4, but does not define an explicit future M4-entry prompt/handoff gate; add a reviewed non-implementation M4 entry-prompt gate or equivalent closeout acceptance before verification.",
+  "artifacts": [
+    "coordination/reports/WM-0045.md"
+  ],
+  "createdAt": "2026-06-25T07:46:11.106Z",
+  "acknowledgedAt": "2026-06-25T07:52:00.366Z"
+}

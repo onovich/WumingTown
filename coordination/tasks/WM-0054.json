@@ -1,0 +1,84 @@
+{
+  "id": "WM-0054",
+  "title": "Add M3 mood thoughts and memories",
+  "summary": "Add fact-driven mood, bounded thoughts and memory lanes for ordinary-life consequences.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0048",
+    "WM-0049",
+    "WM-0052"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0008.md",
+    "docs/02_systems/17_m3_ordinary_life_scenario.md",
+    "docs/02_systems/05_needs_health_mood_social.md",
+    "docs/02_systems/14_explainability_debug_observability.md",
+    "docs/05_tech/03_performance_budget.md"
+  ],
+  "acceptance": [
+    "Mood target/current state derives from structured facts including needs environment and health conditions",
+    "Thought and memory lanes are bounded deterministic serializable data with explicit source strength duration stack and target fields",
+    "Mood updates use scheduled stable ordering and integer/fixed-point semantics",
+    "Explanations read shared structured reason data rather than UI-only text templates",
+    "Focused tests cover deterministic thought generation mood convergence bounded capacity expiration and replay-stable hashes"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m3-mood-thoughts",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0054-add-m3-mood-thoughts-and-memories",
+  "createdAt": "2026-06-25T07:30:00.000Z",
+  "updatedAt": "2026-06-25T07:30:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-25T07:30:00.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0045 M3 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Implement fact-driven mood and thought state without random mental-event pools or UI-owned explanations.",
+  "allowedPaths": [
+    "packages/sim-core/src/**mood**",
+    "packages/sim-core/src/**thought**",
+    "packages/sim-core/src/**memory**",
+    "packages/sim-core/src/**reason**",
+    "packages/sim-core/src/index.ts",
+    "docs/02_systems/05_needs_health_mood_social.md",
+    "docs/02_systems/14_explainability_debug_observability.md",
+    "coordination/tasks/WM-0054.json",
+    "coordination/reports/WM-0054.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-worker/**",
+    "tools/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "relationship graph implementation beyond event hooks",
+    "M4 anomaly possession crisis or Chronicle evidence systems",
+    "UI-only explanation logic",
+    "Worker protocol changes",
+    "save format changes",
+    "schema changes",
+    "new dependencies",
+    "unbounded thought or memory growth"
+  ],
+  "benchmarkImpact": "Records thought generation counts retained capacity mood update cost and reason trace counts; baseline updates wait for WM-0059.",
+  "reviewRouting": "Simulation-engineer completes to reviewer; gameplay-designer may inspect content semantics but cannot replace structured state with text-only events.",
+  "rollbackModel": "Revert mood/thought/memory code tests docs and report while preserving needs environment and health stores.",
+  "ownerGate": [
+    "Avoid real-world mental illness labels as negative traits",
+    "Keep mood fact-driven and deterministic",
+    "Bound memory/thought storage and trace materialization",
+    "Block on save protocol schema dependency UI authority or M4 scope"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Mood/thought state ownership and deterministic explainability are outside Spark scope."
+  }
+}

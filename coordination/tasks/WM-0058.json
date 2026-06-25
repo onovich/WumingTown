@@ -1,0 +1,82 @@
+{
+  "id": "WM-0058",
+  "title": "Add M3 Worker headless parity",
+  "summary": "Prove browser Worker and Node headless run the M3 ordinary-life scenario with matching authoritative hashes and read-only projections.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0057"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0008.md",
+    "docs/02_systems/17_m3_ordinary_life_scenario.md",
+    "docs/02_systems/13_save_replay_migration.md",
+    "docs/02_systems/14_explainability_debug_observability.md",
+    "docs/05_tech/05_testing_observability_ci.md"
+  ],
+  "acceptance": [
+    "Browser Worker and Node headless consume the same M3 command stream and produce matching authoritative hashes",
+    "Read models snapshots deltas and metrics remain read-only projections and cannot mutate world state",
+    "Worker parity diagnostics include seed scenario checkpoint hash mismatch tick snapshot size read-model size and latency metrics",
+    "Existing M1 and M2 worker-smoke coverage remains intact",
+    "No UI React Pixi or Electron layer becomes authoritative and no Worker protocol redesign is introduced without a separate gate"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m3-worker-parity",
+    "pnpm test:e2e --filter worker-smoke",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0058-add-m3-worker-headless-parity",
+  "createdAt": "2026-06-25T07:30:00.000Z",
+  "updatedAt": "2026-06-25T07:30:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-25T07:30:00.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0045 M3 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Gate M3 through Worker/headless authoritative parity while keeping all client surfaces read-only.",
+  "allowedPaths": [
+    "packages/sim-core/src/**m3**",
+    "packages/sim-core/src/index.ts",
+    "packages/sim-worker/**",
+    "apps/web/src/**worker-smoke**",
+    "apps/web/src/web-shell.e2e.test.ts",
+    "tools/test-runner.mjs",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "docs/02_systems/14_explainability_debug_observability.md",
+    "coordination/tasks/WM-0058.json",
+    "coordination/reports/WM-0058.md"
+  ],
+  "forbiddenPaths": [
+    "apps/desktop-electron/**",
+    "Electron preload expansion",
+    "package.json",
+    "pnpm-lock.yaml",
+    "platform save UI",
+    "UI world mutation",
+    "Worker protocol redesign without separate architecture approval",
+    "save format changes",
+    "schema changes",
+    "new dependencies",
+    "M4 lamp Chronicle anomaly crisis-chain or director implementation"
+  ],
+  "benchmarkImpact": "Records Worker latency snapshot bytes read-model bytes and parity overhead for M3; baseline updates wait for WM-0059.",
+  "reviewRouting": "Simulation-engineer completes to reviewer; client-engineer may inspect read-model usage but cannot own simulation authority.",
+  "rollbackModel": "Revert M3 parity additions and keep M1/M2 Worker smoke coverage intact.",
+  "ownerGate": [
+    "Prove authoritative hash parity rather than UI visual parity",
+    "Keep snapshots deltas read models and metrics read-only",
+    "Do not redesign Worker protocol in this task",
+    "Block on UI authority platform save schema dependency or M4 scope"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Worker parity and authority boundaries are not suitable for Spark."
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "id": "WM-0057",
+  "title": "Add M3 save replay resume harness",
+  "summary": "Add focused save/load/resume diagnostics for the M3 ordinary-life scenario without public save compatibility or platform save UI.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0056"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0008.md",
+    "docs/02_systems/17_m3_ordinary_life_scenario.md",
+    "docs/02_systems/13_save_replay_migration.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "M3 interrupt save load resume matches uninterrupted replay for the same seed command stream and checkpoint ticks",
+    "Load validates versions owner handles integer lanes sorted records scenario id and section versions before mutating target stores",
+    "Derived indexes WorkOffers reservations path caches ability caches mood/social read models and weather projections rebuild from owner state before resumed ticks",
+    "Diagnostics name seed scenario first divergent tick checkpoint hashes and artifact paths on failure",
+    "No platform save UI public save compatibility promise schema migration codec dependency or broad save container change is introduced"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m3-save-replay",
+    "pnpm sim:replay-test -- --scenario m3-ordinary-life",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0057-add-m3-save-replay-resume-harness",
+  "createdAt": "2026-06-25T07:30:00.000Z",
+  "updatedAt": "2026-06-25T07:30:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-25T07:30:00.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0045 M3 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Gate M3 ordinary-life state through deterministic focused save/replay before Worker parity and benchmarks.",
+  "allowedPaths": [
+    "packages/sim-core/src/**m3**save**",
+    "packages/sim-core/src/**replay**",
+    "packages/sim-core/src/**scenario**",
+    "packages/sim-core/src/index.ts",
+    "tools/sim-replay-test.mjs",
+    "tools/sim-replay-diagnostics-lib.mjs",
+    "docs/02_systems/13_save_replay_migration.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "coordination/tasks/WM-0057.json",
+    "coordination/reports/WM-0057.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-worker/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "platform save UI",
+    "public save compatibility promise beyond the focused M3 harness",
+    "schema migration or codec dependency changes",
+    "unversioned derived cache persistence",
+    "M4 lamp Chronicle anomaly crisis-chain or director implementation"
+  ],
+  "benchmarkImpact": "Records save size rebuild time rebuilt index counts checkpoint hashes and divergence diagnostics; baseline updates wait for WM-0059.",
+  "reviewRouting": "Simulation-engineer completes to reviewer; systems-architect must block any save-format or migration scope expansion.",
+  "rollbackModel": "Revert focused M3 save/replay harness while preserving M1 and M2 save/replay behavior.",
+  "ownerGate": [
+    "Validate before mutating target stores",
+    "Rebuild all derived indexes from owner state",
+    "Keep focused harness separate from public save compatibility",
+    "Block on platform save UI schema codec dependency or M4 scope"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Save/replay and migration-boundary work is explicitly outside Spark scope."
+  }
+}

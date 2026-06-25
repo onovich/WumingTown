@@ -1,0 +1,84 @@
+{
+  "id": "WM-0051",
+  "title": "Add M3 food and eating logistics slice",
+  "summary": "Implement hunger-driven eating jobs using existing logistics, item, storage, reservation and pathing foundations.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0048",
+    "WM-0049"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0008.md",
+    "docs/02_systems/17_m3_ordinary_life_scenario.md",
+    "docs/02_systems/05_needs_health_mood_social.md",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "docs/02_systems/14_explainability_debug_observability.md"
+  ],
+  "acceptance": [
+    "Hungry actors select edible resources through bounded indexed candidates and exact pathing only for Top-K entries",
+    "Eating jobs reserve source item quantity interaction spots and actor/job state atomically before consumption",
+    "Food quantity conservation holds across storage carried and consumed lanes with no negative resources or duplicate consumption",
+    "Failures emit structured reasons for no food permission path reservation ability schedule and stale owner state",
+    "Focused tests cover deterministic selection consumption cancellation and conservation"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m3-food-eating",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0051-add-m3-food-and-eating-logistics-slice",
+  "createdAt": "2026-06-25T07:30:00.000Z",
+  "updatedAt": "2026-06-25T07:30:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-25T07:30:00.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0045 M3 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Connect M3 hunger to existing logistics without broad economy or content production.",
+  "allowedPaths": [
+    "packages/sim-core/src/**needs**",
+    "packages/sim-core/src/**food**",
+    "packages/sim-core/src/**eating**",
+    "packages/sim-core/src/**storage**",
+    "packages/sim-core/src/**hauling**",
+    "packages/sim-core/src/**job**",
+    "packages/sim-core/src/index.ts",
+    "docs/02_systems/05_needs_health_mood_social.md",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "coordination/tasks/WM-0051.json",
+    "coordination/reports/WM-0051.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-worker/**",
+    "tools/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "broad economy production chains or content catalog expansion",
+    "medical mood relationship implementation",
+    "Worker protocol changes",
+    "save format changes",
+    "schema changes",
+    "new dependencies",
+    "global item or map scans"
+  ],
+  "benchmarkImpact": "Records edible candidate counts pathing counts reservation transactions conservation and hunger deltas; baseline updates wait for WM-0059.",
+  "reviewRouting": "Simulation-engineer completes to reviewer; qa-performance can verify conservation and candidate cap evidence.",
+  "rollbackModel": "Revert food/eating code tests docs and report; existing M2 logistics behavior remains intact.",
+  "ownerGate": [
+    "Do not add broad economy or catalog production",
+    "Keep item quantities owned by item/storage stores",
+    "Use explicit serializable job state and reservation cleanup",
+    "Block on save protocol schema dependency UI authority or M4 scope"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Deterministic logistics, reservations and quantity ownership are outside Spark scope."
+  }
+}

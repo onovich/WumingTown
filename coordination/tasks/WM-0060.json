@@ -1,0 +1,83 @@
+{
+  "id": "WM-0060",
+  "title": "Close the M3 ordinary life simulation gate",
+  "summary": "Close M3 only after ordinary-life scenario, architecture, implementation, save/replay, Worker parity, benchmarks and invariants are verified and integrated, then write a non-executable future M4 entry prompt.",
+  "state": "proposed",
+  "ownerRole": "project-director",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0059"
+  ],
+  "docs": [
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "docs/07_roadmap/08_m3_ordinary_life_simulation_plan.md",
+    "docs/02_systems/17_m3_ordinary_life_scenario.md",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "All M3 task packets WM-0046 through WM-0059 are verified integrated and done before closeout completion",
+    "Closeout report records final scenario hashes artifact paths benchmark comparison Worker parity save/replay evidence residual risks and known warnings",
+    "Future M4 entry prompt is written to coordination/reports/WM-0060-future-m4-entry-prompt.md as a non-executable handoff artifact for a later reviewed M4 planning task",
+    "The injury-to-work-medical-logistics-mood-relationship gate passes with structured explanations",
+    "Roadmap milestone and project-state status are updated narrowly to reflect M3 closeout evidence",
+    "No M4 task is created promoted claimed or implemented by this closeout task and the future prompt explicitly says it must not be executed as part of WM-0060"
+  ],
+  "requiredChecks": [
+    "pnpm ci:local",
+    "pnpm bench",
+    "pnpm sim:run -- --seed 3 --scenario m3-ordinary-life --ticks 100000",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0060-close-the-m3-ordinary-life-simulation-gate",
+  "createdAt": "2026-06-25T07:30:00.000Z",
+  "updatedAt": "2026-06-25T07:30:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-25T07:30:00.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0045 M3 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Close M3 with reviewed evidence and write a future M4 entry prompt while keeping M4 blocked until a later reviewed planning task.",
+  "allowedPaths": [
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "docs/07_roadmap/08_m3_ordinary_life_simulation_plan.md",
+    "coordination/reports/WM-0060.md",
+    "coordination/reports/WM-0060-future-m4-entry-prompt.md",
+    "coordination/tasks/WM-0060.json",
+    "coordination/project-state.json"
+  ],
+  "forbiddenPaths": [
+    "packages/**",
+    "apps/**",
+    "tools/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "coordination/tasks/WM-0061*.json",
+    "M4 task DAG creation promotion claim or implementation",
+    "M4 runtime product planning beyond the non-executable future entry prompt artifact",
+    "hidden product fixes during closeout"
+  ],
+  "benchmarkImpact": "Final M3 benchmark artifact comparison and gate verdict; no threshold changes.",
+  "reviewRouting": "Project-director completes to reviewer; reviewer verifies closeout evidence, future M4 prompt content and M4-unstarted status before any integration. Integration and done remain separate taskctl steps after reviewer verification.",
+  "rollbackModel": "Leave M3 open, revert the closeout report and future M4 prompt artifact, do not promote M4, and route blockers to the responsible owner task.",
+  "ownerGate": [
+    "Do not fix product code in closeout",
+    "Confirm every upstream M3 task is verified integrated and done",
+    "Record hashes artifacts warnings residual risks and exact checks",
+    "Write the future M4 entry prompt as a non-executable handoff artifact only",
+    "Do not create promote claim or implement M4 work"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Milestone closeout and final coordination gates cannot be assigned to Spark."
+  }
+}

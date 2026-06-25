@@ -1,0 +1,80 @@
+{
+  "id": "WM-0049",
+  "title": "Add M3 day night and weather basics",
+  "summary": "Add deterministic day/night and basic weather owner state for ordinary-life context.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0047"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0008.md",
+    "docs/02_systems/17_m3_ordinary_life_scenario.md",
+    "docs/02_systems/01_time_scheduler_rng.md",
+    "docs/02_systems/05_needs_health_mood_social.md",
+    "docs/05_tech/03_performance_budget.md"
+  ],
+  "acceptance": [
+    "Day and hour derive only from simulation Tick and documented constants",
+    "Weather basics use named seeded random streams and stable scheduling without real time or visual-only randomness",
+    "Environment context can affect schedules needs mood context and work explanations through owner state and derived read models",
+    "Weather and day/night projections are read-only and do not create UI authority",
+    "Focused tests cover deterministic replay for same seed command stream and structured reason exposure"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m3-environment",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0049-add-m3-day-night-and-weather-basics",
+  "createdAt": "2026-06-25T07:30:00.000Z",
+  "updatedAt": "2026-06-25T07:30:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-25T07:30:00.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0045 M3 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Create deterministic ordinary-life time and weather context without adding product-level M4 weather or visual systems.",
+  "allowedPaths": [
+    "packages/sim-core/src/**time**",
+    "packages/sim-core/src/**weather**",
+    "packages/sim-core/src/**environment**",
+    "packages/sim-core/src/index.ts",
+    "docs/02_systems/01_time_scheduler_rng.md",
+    "docs/02_systems/05_needs_health_mood_social.md",
+    "coordination/tasks/WM-0049.json",
+    "coordination/reports/WM-0049.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-worker/**",
+    "tools/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "real-time clocks in sim-core",
+    "ambient Math.random",
+    "Worker protocol changes",
+    "save format changes",
+    "schema changes",
+    "new dependencies",
+    "M4 anomaly weather crisis or director systems"
+  ],
+  "benchmarkImpact": "Records scheduled environment update cost projection size and random stream counts; baseline updates wait for WM-0059.",
+  "reviewRouting": "Simulation-engineer completes to reviewer; systems-architect reviews any time constant random stream or save boundary drift.",
+  "rollbackModel": "Revert environment owner-state code tests docs and report while preserving M2 deterministic time behavior.",
+  "ownerGate": [
+    "Do not change TICKS_PER_SECOND or TICKS_PER_DAY without a separate ADR",
+    "Use named seeded streams and stable ordering",
+    "Keep visual weather presentation out of this task",
+    "Block on public protocol save schema dependency or M4 scope"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Deterministic time and random-stream simulation design is outside Spark scope."
+  }
+}

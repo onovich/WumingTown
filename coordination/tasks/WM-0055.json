@@ -1,0 +1,82 @@
+{
+  "id": "WM-0055",
+  "title": "Add M3 relationship graph and social events",
+  "summary": "Add relationship edges and ordinary social event facts for M3 ordinary-life consequences.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0054"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0008.md",
+    "docs/02_systems/17_m3_ordinary_life_scenario.md",
+    "docs/02_systems/05_needs_health_mood_social.md",
+    "docs/02_systems/14_explainability_debug_observability.md",
+    "docs/05_tech/03_performance_budget.md"
+  ],
+  "acceptance": [
+    "Relationship graph stores focused ordinary-life edges such as kinship care trust gratitude and resentment with stable ids and integer values",
+    "Social event facts are structured data generated from ordinary-life events and can feed thoughts/mood without becoming text-only content",
+    "Relationship queries use bounded indexed candidate lanes and stable ordering",
+    "Scenario-facing explanations distinguish relationship fact source trust and recent events",
+    "Focused tests cover deterministic edge updates event generation candidate caps serialization shape and replay-stable hashes"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m3-relationships",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0055-add-m3-relationship-graph-and-social-events",
+  "createdAt": "2026-06-25T07:30:00.000Z",
+  "updatedAt": "2026-06-25T07:30:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-25T07:30:00.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0045 M3 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Create the relationship/social state needed for M3 scenario consequences without Chronicle or M4 social gameplay.",
+  "allowedPaths": [
+    "packages/sim-core/src/**relationship**",
+    "packages/sim-core/src/**social**",
+    "packages/sim-core/src/**mood**",
+    "packages/sim-core/src/**thought**",
+    "packages/sim-core/src/index.ts",
+    "docs/02_systems/05_needs_health_mood_social.md",
+    "docs/02_systems/14_explainability_debug_observability.md",
+    "coordination/tasks/WM-0055.json",
+    "coordination/reports/WM-0055.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-worker/**",
+    "tools/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "Chronicle evidence town rules anomaly crisis or director systems",
+    "broad dialogue content or localization production",
+    "UI-owned relationship interpretation",
+    "Worker protocol changes",
+    "save format changes",
+    "schema changes",
+    "new dependencies",
+    "global social graph scans in hot paths"
+  ],
+  "benchmarkImpact": "Records relationship edge counts social event counts candidate caps and thought/mood event fanout; baseline updates wait for WM-0059.",
+  "reviewRouting": "Simulation-engineer completes to reviewer; gameplay-designer may inspect semantics and M4 boundary.",
+  "rollbackModel": "Revert relationship/social code tests docs and report while preserving mood/thought owner stores.",
+  "ownerGate": [
+    "Keep relationship facts structured and bounded",
+    "Do not implement Chronicle evidence or town-rule social gameplay",
+    "Use indexed queries for social candidates",
+    "Block on save protocol schema dependency UI authority or M4 scope"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Relationship state ownership and social event simulation are outside Spark scope."
+  }
+}

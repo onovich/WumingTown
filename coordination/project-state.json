@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "project": "Wuming Town / 无明镇",
-  "phase": "m2-closeout",
-  "activeMilestone": "M2 Work/Logistics closeout",
+  "phase": "m3-planning",
+  "activeMilestone": "M3 Ordinary Life Simulation planning",
   "releaseTarget": "undated",
-  "updatedAt": "2026-06-25T05:30:54.657Z",
+  "updatedAt": "2026-06-25T07:30:00.000Z",
   "lockedDecisions": [
     "TypeScript-first authoritative simulation in a dedicated Worker",
     "PixiJS world rendering + React DOM UI + Electron Windows shell",
@@ -13,5 +13,5 @@
     "Lantern / Chronicle / Obligation are the three product pillars"
   ],
   "humanApprovalNeeded": [],
-  "notes": "Task JSON, reports and inbox files are the durable execution control plane. WM-0043 closes the M2 work/logistics gate with reviewed evidence; M3 remains unstarted."
+  "notes": "Task JSON, reports and inbox files are the durable execution control plane. WM-0045 opens reviewed M3 planning only; M3 runtime implementation remains unstarted until downstream scenario and architecture gates are verified."
 }

@@ -1,0 +1,86 @@
+{
+  "id": "WM-0047",
+  "title": "Record M3 ordinary life architecture gate",
+  "summary": "Record the M3 architecture decision for ordinary-life state ownership, derived indexes, jobs, save/replay, Worker parity and performance before implementation.",
+  "state": "proposed",
+  "ownerRole": "systems-architect",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0046"
+  ],
+  "docs": [
+    "docs/07_roadmap/08_m3_ordinary_life_simulation_plan.md",
+    "docs/02_systems/17_m3_ordinary_life_scenario.md",
+    "docs/02_systems/05_needs_health_mood_social.md",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "docs/02_systems/13_save_replay_migration.md",
+    "docs/02_systems/14_explainability_debug_observability.md",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/05_tech/05_testing_observability_ci.md"
+  ],
+  "acceptance": [
+    "ADR documents alternatives chosen boundaries migration rollback test and performance implications for M3 ordinary-life simulation",
+    "Owner stores are named for needs rest food health conditions abilities medical care mood thoughts memories relationships day/night and weather",
+    "Derived indexes dirty queues candidate caps Top-K limits versioned invalidation and structured ReasonTrace ownership are specified",
+    "Serializable job-driver boundaries are specified for rest eating and treatment jobs",
+    "Block conditions are explicit for owner-store gaps global scans unversioned caches public Worker protocol save/schema changes new dependencies package-boundary exceptions UI authority and M4 scope",
+    "No runtime implementation package manifests lockfiles schema protocol save format or dependency changes are included"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0047-record-m3-ordinary-life-architecture-gate",
+  "createdAt": "2026-06-25T07:30:00.000Z",
+  "updatedAt": "2026-06-25T07:30:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-25T07:30:00.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0045 M3 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Create the reviewed M3 ADR gate so implementation cannot begin with ambiguous state ownership or hidden authority changes.",
+  "allowedPaths": [
+    "coordination/decisions/ADR-0008.md",
+    "docs/02_systems/05_needs_health_mood_social.md",
+    "docs/02_systems/13_save_replay_migration.md",
+    "docs/02_systems/14_explainability_debug_observability.md",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/07_roadmap/08_m3_ordinary_life_simulation_plan.md",
+    "coordination/tasks/WM-0047.json",
+    "coordination/reports/WM-0047.md"
+  ],
+  "forbiddenPaths": [
+    "packages/**",
+    "apps/**",
+    "tools/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "runtime implementation",
+    "test implementation",
+    "benchmark baseline updates",
+    "public Worker protocol changes",
+    "public save compatibility changes",
+    "schema changes",
+    "new runtime dependencies",
+    "M4 lamp Chronicle anomaly crisis-chain or director implementation"
+  ],
+  "benchmarkImpact": "Names M3 metric surfaces and regression gates without adding artifacts or updating baselines.",
+  "reviewRouting": "Systems-architect completes to reviewer. If rejected, all downstream M3 implementation tasks remain proposed or blocked.",
+  "rollbackModel": "Revert ADR and doc/report edits; downstream implementation remains proposed and M3 stays unstarted.",
+  "ownerGate": [
+    "Document alternatives rather than assuming the design",
+    "Reject hidden shared state and UI-owned authority",
+    "Name owner store for every mutable fact before downstream coding",
+    "Block if any implementation would need public protocol save schema dependency or package-boundary change outside this ADR"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Architecture, state ownership, save/replay, Worker parity and performance boundary decisions are outside Spark scope."
+  }
+}

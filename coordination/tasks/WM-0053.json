@@ -1,0 +1,82 @@
+{
+  "id": "WM-0053",
+  "title": "Add M3 medical care job slice",
+  "summary": "Add patient/caregiver medical work offers and explicit treatment jobs for the focused M3 scenario.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0052"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0008.md",
+    "docs/02_systems/17_m3_ordinary_life_scenario.md",
+    "docs/02_systems/05_needs_health_mood_social.md",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "docs/02_systems/14_explainability_debug_observability.md"
+  ],
+  "acceptance": [
+    "Medical care work offers are derived from patient condition owner state and caregiver ability/permission state",
+    "Treatment jobs are explicit serializable state machines with reservation cleanup pathing and structured interruptions",
+    "Condition changes from treatment are deterministic integer/fixed-point deltas and invalidate ability caches correctly",
+    "Failures distinguish no patient invalid condition caregiver ability path reservation permission and stale owner-state reasons",
+    "Focused tests cover treatment selection job progression cancellation condition deltas ability cache updates and no reservation leaks"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m3-medical-care",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0053-add-m3-medical-care-job-slice",
+  "createdAt": "2026-06-25T07:30:00.000Z",
+  "updatedAt": "2026-06-25T07:30:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-25T07:30:00.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0045 M3 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Connect health/ability state to medical care behavior while preserving job and reservation boundaries.",
+  "allowedPaths": [
+    "packages/sim-core/src/**health**",
+    "packages/sim-core/src/**medical**",
+    "packages/sim-core/src/**care**",
+    "packages/sim-core/src/**job**",
+    "packages/sim-core/src/**work-offer**",
+    "packages/sim-core/src/index.ts",
+    "docs/02_systems/05_needs_health_mood_social.md",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "coordination/tasks/WM-0053.json",
+    "coordination/reports/WM-0053.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-worker/**",
+    "tools/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "broad hospital economy content catalog or medicine production",
+    "mood relationship implementation beyond structured event hooks approved by ADR-0008",
+    "Worker protocol changes",
+    "save format changes",
+    "schema changes",
+    "new dependencies",
+    "global patient scans"
+  ],
+  "benchmarkImpact": "Records patient offer counts caregiver candidate caps treatment outcomes condition deltas and reservation cleanup; baseline updates wait for WM-0059.",
+  "reviewRouting": "Simulation-engineer completes to reviewer; systems-architect must review any medical owner-store or job-driver drift.",
+  "rollbackModel": "Revert medical care code tests docs and report while preserving health/ability owner stores.",
+  "ownerGate": [
+    "Keep medical work offers derived from patient owner state",
+    "Keep treatment jobs explicit and serializable",
+    "Use bounded caregiver/patient candidate indexes",
+    "Block on save protocol schema dependency UI authority or M4 scope"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Medical care jobs touch deterministic simulation state ownership and are outside Spark scope."
+  }
+}

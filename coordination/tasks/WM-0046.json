@@ -1,0 +1,84 @@
+{
+  "id": "WM-0046",
+  "title": "Define M3 ordinary life scenario contract",
+  "summary": "Define the executable M3 ordinary-life scenario contract before architecture or implementation starts.",
+  "state": "ready",
+  "ownerRole": "gameplay-designer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0045"
+  ],
+  "docs": [
+    "docs/07_roadmap/08_m3_ordinary_life_simulation_plan.md",
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/02_systems/05_needs_health_mood_social.md",
+    "docs/02_systems/01_time_scheduler_rng.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "Scenario contract defines a focused M3 ordinary-life fixture with id seed tick horizons command stream actors needs rest food injury illness medical care abilities mood relationships day/night and weather basics",
+    "Scenario proves one injury can affect work medical care logistics mood and at least one relationship with structured expected reasons",
+    "Fixture bounds are small enough for deterministic implementation and explicitly exclude M4 lamp Chronicle anomaly crisis director broad content production and platform save UI",
+    "Required invariants benchmark dimensions save/replay checkpoints Worker parity expectations and non-goals are documented",
+    "No runtime package app tool test benchmark schema protocol save format dependency or implementation file is edited"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0046-define-m3-ordinary-life-scenario-contract",
+  "createdAt": "2026-06-25T07:30:00.000Z",
+  "updatedAt": "2026-06-25T07:54:33.867Z",
+  "history": [
+    {
+      "at": "2026-06-25T07:30:00.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0045 M3 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-25T07:54:33.867Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
+    }
+  ],
+  "objective": "Create the reviewed scenario contract that all M3 architecture and implementation tasks must satisfy.",
+  "allowedPaths": [
+    "docs/02_systems/17_m3_ordinary_life_scenario.md",
+    "docs/07_roadmap/08_m3_ordinary_life_simulation_plan.md",
+    "coordination/tasks/WM-0046.json",
+    "coordination/reports/WM-0046.md"
+  ],
+  "forbiddenPaths": [
+    "packages/**",
+    "apps/**",
+    "tools/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "coordination/decisions/**",
+    "runtime implementation",
+    "test implementation",
+    "benchmark baseline updates",
+    "Worker protocol changes",
+    "save format changes",
+    "schema changes",
+    "M4 lamp Chronicle anomaly crisis-chain or director implementation"
+  ],
+  "benchmarkImpact": "Defines M3 invariant and benchmark dimensions only; does not add tests artifacts baselines or runtime benchmarks.",
+  "reviewRouting": "Gameplay-designer completes to reviewer. Systems-architect uses the verified scenario as input to WM-0047.",
+  "rollbackModel": "Revert the scenario contract, task packet edits and report; all downstream M3 tasks remain proposed and M3 implementation remains unstarted.",
+  "ownerGate": [
+    "Do not start architecture or implementation work in this task",
+    "Name exact M3 ordinary-life scope and explicit M4 exclusions",
+    "Define deterministic seed tick horizon command stream and expected structured reasons",
+    "Block if scenario requires public save protocol schema dependency platform UI or M4 scope"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Scenario contract design for a milestone gate is gameplay/system specification work and is not suitable for Spark."
+  }
+}

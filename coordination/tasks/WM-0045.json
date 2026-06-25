@@ -1,0 +1,169 @@
+{
+  "id": "WM-0045",
+  "title": "Produce the M3 ordinary life simulation plan",
+  "summary": "Create the reviewed M3 plan and proposed task DAG for the ordinary life simulation milestone before any M3 implementation starts.",
+  "state": "done",
+  "ownerRole": "systems-architect",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0044"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "CODEX_START_HERE.md",
+    "coordination/reports/WM-0044-future-m3-entry-prompt.md",
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "docs/02_systems/05_needs_health_mood_social.md",
+    "docs/02_systems/01_time_scheduler_rng.md",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "docs/02_systems/13_save_replay_migration.md",
+    "docs/02_systems/14_explainability_debug_observability.md",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "docs/06_engineering/03_definition_of_done.md",
+    "docs/08_codex/00_multi_agent_operating_model.md",
+    "docs/08_codex/08_spark_execution_lane.md"
+  ],
+  "acceptance": [
+    "Plan contains an acyclic M3 task DAG starting with scenario and architecture gates before implementation",
+    "Every M3 task packet lists objective allowed paths forbidden paths dependencies owner reviewer acceptance required checks benchmark impact review routing rollback model owner gate and Spark eligibility",
+    "Plan preserves Worker/headless authority sim-core purity fixed tick seeded RNG bounded indexed thinking serializable jobs structured reasons save/replay Worker parity and independent review",
+    "Scope stays inside M3 ordinary life simulation and excludes M4 lamp Chronicle anomaly crisis chains public save compatibility broad content production and platform save UI",
+    "No runtime implementation branch is started by WM-0045",
+    "Owner gates and independent reviewer verification pass"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0045-produce-m3-life-simulation-plan",
+  "createdAt": "2026-06-25T07:21:31.499Z",
+  "updatedAt": "2026-06-25T07:54:33.863Z",
+  "history": [
+    {
+      "at": "2026-06-25T07:21:31.500Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    },
+    {
+      "at": "2026-06-25T07:23:00.000Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "WM-0044 is done; reviewed M3 entry prompt requires a dedicated M3 planning task before any implementation."
+    },
+    {
+      "at": "2026-06-25T07:26:51.420Z",
+      "actor": "systems-architect",
+      "action": "claim",
+      "details": "thread=systems-architect Codex WM-0045"
+    },
+    {
+      "at": "2026-06-25T07:37:47.421Z",
+      "actor": "systems-architect",
+      "action": "complete",
+      "details": "Produced reviewed M3 ordinary-life simulation planning package: roadmap plan, WM-0046 through WM-0060 proposed task DAG and packets, WM-0045 reports, and narrow project-state planning marker; no runtime implementation started; required checks pass."
+    },
+    {
+      "at": "2026-06-25T07:46:11.105Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: M3 DAG stops at WM-0060 closeout and blocks M4, but does not define an explicit future M4-entry prompt/handoff gate; add a reviewed non-implementation M4 entry-prompt gate or equivalent closeout acceptance before verification."
+    },
+    {
+      "at": "2026-06-25T07:50:23.230Z",
+      "actor": "systems-architect",
+      "action": "complete",
+      "details": "Repaired WM-0045 review finding: WM-0060 now requires a non-executable future M4 entry prompt handoff artifact while forbidding M4 task creation, promotion, claim or implementation; updated plan and reports; required checks pass."
+    },
+    {
+      "at": "2026-06-25T07:53:27.781Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; WM-0060 now requires a non-executable future M4 entry prompt handoff artifact while forbidding M4 task creation, promotion, claim or implementation; downstream tasks remain proposed; scope and required checks pass."
+    },
+    {
+      "at": "2026-06-25T07:54:27.985Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "WM-0045 M3 planning package verified after reviewer-requested M4 entry-prompt gate repair; no runtime implementation started; integration checks pass."
+    },
+    {
+      "at": "2026-06-25T07:54:33.862Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
+    }
+  ],
+  "objective": "Produce the reviewed M3 ordinary-life simulation plan, including an acyclic proposed task DAG and task packets, before any M3 runtime implementation starts.",
+  "allowedPaths": [
+    "coordination/tasks/WM-0045.json",
+    "coordination/tasks/WM-0046.json",
+    "coordination/tasks/WM-0047.json",
+    "coordination/tasks/WM-0048.json",
+    "coordination/tasks/WM-0049.json",
+    "coordination/tasks/WM-0050.json",
+    "coordination/tasks/WM-0051.json",
+    "coordination/tasks/WM-0052.json",
+    "coordination/tasks/WM-0053.json",
+    "coordination/tasks/WM-0054.json",
+    "coordination/tasks/WM-0055.json",
+    "coordination/tasks/WM-0056.json",
+    "coordination/tasks/WM-0057.json",
+    "coordination/tasks/WM-0058.json",
+    "coordination/tasks/WM-0059.json",
+    "coordination/tasks/WM-0060.json",
+    "coordination/reports/WM-0045.md",
+    "coordination/reports/WM-0045-plan.md",
+    "docs/07_roadmap/08_m3_ordinary_life_simulation_plan.md",
+    "coordination/project-state.json"
+  ],
+  "forbiddenPaths": [
+    "packages/**",
+    "apps/**",
+    "tools/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "coordination/decisions/**",
+    "runtime implementation",
+    "test implementation",
+    "benchmark baseline updates",
+    "Worker protocol changes",
+    "save format changes",
+    "schema changes",
+    "new dependencies",
+    "M4 lamp, Chronicle, anomaly, crisis-chain or director implementation"
+  ],
+  "benchmarkImpact": "None directly. WM-0045 may define required M3 benchmark and invariant tasks, but it must not update runtime benchmarks or baselines.",
+  "reviewRouting": "Systems-architect completes to reviewer. Project-director integrates only after independent verification that all downstream M3 implementation tasks remain proposed and blocked behind scenario and architecture gates.",
+  "rollbackModel": "Revert the M3 planning document, proposed M3 task packets, WM-0045 report and narrow project-state planning marker; leave M2 closeout intact and M3 implementation unstarted.",
+  "ownerGate": [
+    "Do not edit product runtime, tests, benchmarks or package manifests in WM-0045",
+    "Keep all downstream M3 tasks proposed until their dependencies are done",
+    "Define explicit block conditions for owner-store gaps, global scans, public protocol/save/schema changes, new dependencies and M4 scope creep",
+    "Preserve independent reviewer separation and do not mark any downstream task done"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "M3 milestone planning, task DAG design, ownership boundaries and review routing are architecture/control-plane work and cannot be assigned to Spark."
+  },
+  "claimedBy": "systems-architect",
+  "threadLabel": "systems-architect Codex WM-0045",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0045.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; WM-0060 now requires a non-executable future M4 entry prompt handoff artifact while forbidding M4 task creation, promotion, claim or implementation; downstream tasks remain proposed; scope and required checks pass.",
+    "at": "2026-06-25T07:53:27.780Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "WM-0045 M3 planning package verified after reviewer-requested M4 entry-prompt gate repair; no runtime implementation started; integration checks pass.",
+    "at": "2026-06-25T07:54:27.984Z"
+  }
+}

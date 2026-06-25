@@ -1,0 +1,81 @@
+{
+  "id": "WM-0052",
+  "title": "Add M3 health conditions and ability cache",
+  "summary": "Add injury/illness condition owner stores and derived ability cache invalidation for ordinary-life simulation.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0047"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0008.md",
+    "docs/02_systems/17_m3_ordinary_life_scenario.md",
+    "docs/02_systems/05_needs_health_mood_social.md",
+    "docs/02_systems/14_explainability_debug_observability.md",
+    "docs/05_tech/03_performance_budget.md"
+  ],
+  "acceptance": [
+    "Condition owner stores represent focused injury and illness instances with body part severity age source and deterministic update lanes",
+    "Derived ability cache covers consciousness movement manipulation sight communication and stamina for the M3 scenario",
+    "Condition changes invalidate affected ability cache entries without every query scanning all conditions",
+    "Ability failures and condition changes emit structured reasons shared by jobs tests and read models",
+    "Focused tests cover condition add update remove cache invalidation deterministic hash and no stale ability state"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m3-health-abilities",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0052-add-m3-health-conditions-and-ability-cache",
+  "createdAt": "2026-06-25T07:30:00.000Z",
+  "updatedAt": "2026-06-25T07:30:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-25T07:30:00.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0045 M3 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Create the M3 health and ability state surface required before medical care and mood effects.",
+  "allowedPaths": [
+    "packages/sim-core/src/**health**",
+    "packages/sim-core/src/**condition**",
+    "packages/sim-core/src/**ability**",
+    "packages/sim-core/src/**reason**",
+    "packages/sim-core/src/index.ts",
+    "docs/02_systems/05_needs_health_mood_social.md",
+    "docs/02_systems/14_explainability_debug_observability.md",
+    "coordination/tasks/WM-0052.json",
+    "coordination/reports/WM-0052.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-worker/**",
+    "tools/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "combat anomaly curse possession or M4 strange-state implementation",
+    "medical treatment job implementation",
+    "Worker protocol changes",
+    "save format changes",
+    "schema changes",
+    "new dependencies",
+    "per-query full condition scans in hot paths"
+  ],
+  "benchmarkImpact": "Records condition update counts ability cache invalidations query counts and cache rebuild costs; baseline updates wait for WM-0059.",
+  "reviewRouting": "Simulation-engineer completes to reviewer; systems-architect reviews any condition ownership or save-shape drift.",
+  "rollbackModel": "Revert health/ability code tests docs and report while preserving earlier M3 owner stores.",
+  "ownerGate": [
+    "Keep supernatural/M4 condition types out of this task",
+    "Use explicit owner stores and derived ability cache",
+    "Do not query by scanning all conditions on hot paths",
+    "Block on save protocol schema dependency UI authority or M4 scope"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Health owner stores and cache invalidation are deterministic simulation architecture work outside Spark scope."
+  }
+}

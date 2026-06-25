@@ -1,0 +1,78 @@
+{
+  "id": "WM-0048",
+  "title": "Add M3 needs owner stores and urgency indexes",
+  "summary": "Add deterministic need state and derived urgency indexes for hunger, rest, comfort, social and safety.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0047"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0008.md",
+    "docs/02_systems/17_m3_ordinary_life_scenario.md",
+    "docs/02_systems/05_needs_health_mood_social.md",
+    "docs/02_systems/01_time_scheduler_rng.md",
+    "docs/05_tech/03_performance_budget.md"
+  ],
+  "acceptance": [
+    "Need state uses 0-1000 integer lanes for hunger rest comfort social and safety with deterministic scheduled phase-staggered updates",
+    "Urgency projections and WorkOffer inputs are derived from owner state and versioned dirty updates rather than authoritative caches",
+    "Pawn thinking queries bounded indexed candidate lanes and never scans all actors all needs all entities or the full map",
+    "Need changes produce structured reason data for later rest food mood and scenario explanations",
+    "Focused tests cover deterministic update cadence clamps index rebuild and no global scan behavior"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m3-needs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0048-add-m3-needs-owner-stores-and-urgency-indexes",
+  "createdAt": "2026-06-25T07:30:00.000Z",
+  "updatedAt": "2026-06-25T07:30:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-25T07:30:00.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0045 M3 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Implement the first M3 life-state owner store surface without job behavior or UI authority.",
+  "allowedPaths": [
+    "packages/sim-core/src/**needs**",
+    "packages/sim-core/src/**reason**",
+    "packages/sim-core/src/index.ts",
+    "docs/02_systems/05_needs_health_mood_social.md",
+    "docs/05_tech/03_performance_budget.md",
+    "coordination/tasks/WM-0048.json",
+    "coordination/reports/WM-0048.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-worker/**",
+    "tools/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "save format changes",
+    "Worker protocol changes",
+    "schema changes",
+    "new dependencies",
+    "rest sleep eating medical mood relationship or weather implementation beyond integration hooks approved by ADR-0008",
+    "global scan or unversioned cache workaround"
+  ],
+  "benchmarkImpact": "Records need update counts dirty backlog urgency index sizes candidate caps and scheduled system cost; baseline updates wait for WM-0059.",
+  "reviewRouting": "Simulation-engineer completes to reviewer; systems-architect must be consulted before owner-store or index-boundary changes.",
+  "rollbackModel": "Revert needs store/index code tests docs and report while preserving M2 work/logistics behavior.",
+  "ownerGate": [
+    "Do not add behavior that belongs to rest food medical mood or relationships",
+    "Use integer lanes and scheduled phase staggering",
+    "Keep derived indexes rebuildable from owner stores",
+    "Block on any need for public save schema protocol dependency or UI authority changes"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Deterministic simulation owner-store and indexed thinking work is not suitable for Spark."
+  }
+}

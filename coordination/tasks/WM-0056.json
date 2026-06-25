@@ -1,0 +1,88 @@
+{
+  "id": "WM-0056",
+  "title": "Integrate M3 ordinary life scenario",
+  "summary": "Compose the focused M3 scenario so injury affects work, medical care, logistics, mood and relationships under day/night/weather.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0050",
+    "WM-0051",
+    "WM-0053",
+    "WM-0055"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0008.md",
+    "docs/02_systems/17_m3_ordinary_life_scenario.md",
+    "docs/07_roadmap/08_m3_ordinary_life_simulation_plan.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "Focused scenario runs deterministically with the scenario id seed command stream and tick horizons defined by WM-0046",
+    "A single injury visibly affects work eligibility medical care logistics mood and at least one relationship through owner-state and structured reasons",
+    "Day/night and basic weather participate as deterministic context without M4 product systems",
+    "Scenario emits machine-checkable summary hashes reason traces queue metrics and terminal invariant counters",
+    "No implementation fix in this task bypasses upstream owner-store responsibilities or introduces global scans"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m3-ordinary-life-scenario",
+    "pnpm sim:run -- --seed 3 --scenario m3-ordinary-life --ticks 20000",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0056-integrate-m3-ordinary-life-scenario",
+  "createdAt": "2026-06-25T07:30:00.000Z",
+  "updatedAt": "2026-06-25T07:30:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-25T07:30:00.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0045 M3 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Create the first executable M3 ordinary-life vertical scenario after focused owner-store slices are reviewed.",
+  "allowedPaths": [
+    "packages/sim-core/src/**m3**",
+    "packages/sim-core/src/**scenario**",
+    "packages/sim-core/src/**needs**",
+    "packages/sim-core/src/**health**",
+    "packages/sim-core/src/**medical**",
+    "packages/sim-core/src/**mood**",
+    "packages/sim-core/src/**relationship**",
+    "packages/sim-core/src/index.ts",
+    "tools/headless-runner/src/index.ts",
+    "docs/02_systems/17_m3_ordinary_life_scenario.md",
+    "docs/07_roadmap/08_m3_ordinary_life_simulation_plan.md",
+    "coordination/tasks/WM-0056.json",
+    "coordination/reports/WM-0056.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-worker/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "product behavior fixes to bypass upstream task defects",
+    "Worker protocol changes",
+    "save format changes",
+    "schema changes",
+    "new dependencies",
+    "benchmark baseline updates",
+    "M4 lamp Chronicle anomaly crisis-chain or director implementation"
+  ],
+  "benchmarkImpact": "Establishes focused scenario metrics and hashes for later save/replay Worker parity and long-run benchmark tasks; no baseline update.",
+  "reviewRouting": "Simulation-engineer completes to reviewer; qa-performance uses the verified scenario as input to WM-0059.",
+  "rollbackModel": "Revert scenario integration code tests docs and report; leave upstream focused slices intact if independently verified.",
+  "ownerGate": [
+    "Do not repair upstream architecture gaps inside scenario glue",
+    "Keep scenario small focused and machine-checkable",
+    "Emit structured reason and invariant counters",
+    "Block on Worker protocol save schema dependency UI authority or M4 scope"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Scenario integration across deterministic simulation systems is not suitable for Spark."
+  }
+}

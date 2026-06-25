@@ -1,0 +1,82 @@
+{
+  "id": "WM-0050",
+  "title": "Add M3 rest and sleep job slice",
+  "summary": "Implement rest/sleep work selection and serializable sleep job drivers over M3 needs and environment context.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0048",
+    "WM-0049"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0008.md",
+    "docs/02_systems/17_m3_ordinary_life_scenario.md",
+    "docs/02_systems/05_needs_health_mood_social.md",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "docs/02_systems/14_explainability_debug_observability.md"
+  ],
+  "acceptance": [
+    "Tired actors select rest through bounded indexed candidates and Top-K path resolution",
+    "Sleep/rest jobs are explicit serializable state machines with reservation cleanup and interruption policies",
+    "Rest recovery uses integer/fixed-point progress and stable scheduling",
+    "Failures and interruptions emit structured reasons for no rest spot path reservation ability schedule and emergency needs",
+    "Focused tests cover saveable job state deterministic recovery cancellation interruption and no reservation leaks"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m3-rest-sleep",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0050-add-m3-rest-and-sleep-job-slice",
+  "createdAt": "2026-06-25T07:30:00.000Z",
+  "updatedAt": "2026-06-25T07:30:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-25T07:30:00.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0045 M3 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "objective": "Add the first M3 life behavior job slice while preserving explicit JobCore-style state ownership.",
+  "allowedPaths": [
+    "packages/sim-core/src/**needs**",
+    "packages/sim-core/src/**rest**",
+    "packages/sim-core/src/**sleep**",
+    "packages/sim-core/src/**job**",
+    "packages/sim-core/src/index.ts",
+    "docs/02_systems/05_needs_health_mood_social.md",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "coordination/tasks/WM-0050.json",
+    "coordination/reports/WM-0050.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-worker/**",
+    "tools/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "food eating medical mood relationship implementation",
+    "Promise Generator coroutine closure or UI-held job position",
+    "Worker protocol changes",
+    "save format changes",
+    "schema changes",
+    "new dependencies",
+    "global rest spot scans"
+  ],
+  "benchmarkImpact": "Records rest candidate visits exact-path counts job duration interruption counts and reservation cleanup; baseline updates wait for WM-0059.",
+  "reviewRouting": "Simulation-engineer completes to reviewer; systems-architect must review any job-driver or save-shape drift.",
+  "rollbackModel": "Revert rest/sleep code tests docs and report; needs and environment owner stores remain if already integrated.",
+  "ownerGate": [
+    "Keep jobs explicit and serializable",
+    "Use indexed candidate lookup and bounded Top-K pathing",
+    "Release reservations on every terminal path",
+    "Block on save protocol schema dependency UI authority or M4 scope"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Serializable job-driver and deterministic simulation behavior are outside Spark scope."
+  }
+}
