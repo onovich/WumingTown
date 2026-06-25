@@ -42,6 +42,25 @@ incident:<incidentId>
 
 使用可移植整数 PRNG；禁止共享一个全局流导致新增视觉随机改变玩法结果。随机调用必须在稳定排序后发生。
 
+## M3 day/night and weather basics
+
+WM-0049 adds pure `sim-core` owner state for the M3 ordinary-life environment.
+`DayNightStore` derives day, hour, tick-of-day, and schedule window from
+`Tick`, `TICKS_PER_DAY`, and the fixed dawn offset only. It does not read real
+time and does not change `TICKS_PER_SECOND` or `TICKS_PER_DAY`.
+
+`WeatherStore` owns current weather, previous weather, transition tick,
+command-forced weather, severity lanes, source stream id, source stream
+version, and weather version. Scheduled weather draws use only the named stream
+`weather:m3-ordinary-life`; scenario commands such as `weather.force` can set
+authoritative weather without consuming visual or UI randomness. Day/night and
+weather changes enqueue exact environment dirty keys for schedule, rest, need,
+mood, weather exposure, and read-model rebuilds.
+
+The exported M3 environment projection is read-only and versioned. It may feed
+schedule, need-rate, mood-context, outdoor-work, and explanation inputs in later
+tasks, but those downstream systems remain separate owner stores.
+
 ## 快进
 
 主线程累积目标模拟速度，Worker 批量执行 Tick，并定期让出消息循环。设置每批最大 Tick 和主线程心跳，避免浏览器“无响应”。极速模式允许降低快照频率，不允许跳过权威系统。

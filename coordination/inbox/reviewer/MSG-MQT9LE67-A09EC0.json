@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQT9LE67-A09EC0",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0049",
+  "kind": "review-request",
+  "subject": "WM-0049 ready for review",
+  "body": "Implemented deterministic M3 day/night and weather owner state with named-stream and command weather paths, versioned read-only projections, dirty keys, replay evidence, docs, and report; required checks and pnpm quality pass.",
+  "artifacts": [
+    "coordination/reports/WM-0049.md",
+    "task/WM-0049-add-m3-day-night-and-weather-basics"
+  ],
+  "createdAt": "2026-06-25T08:53:04.639Z",
+  "acknowledgedAt": "2026-06-25T08:57:26.127Z"
+}
