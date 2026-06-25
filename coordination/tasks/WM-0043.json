@@ -2,7 +2,7 @@
   "id": "WM-0043",
   "title": "Close the M2 work logistics gate",
   "summary": "Close M2 only after the work/logistics vertical-slice evidence is verified, integrated and documented without starting M3.",
-  "state": "in_progress",
+  "state": "review_requested",
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -33,7 +33,7 @@
   ],
   "branch": "task/WM-0043-close-the-m2-work-logistics-gate",
   "createdAt": "2026-06-24T21:14:35.180Z",
-  "updatedAt": "2026-06-25T05:26:12.605Z",
+  "updatedAt": "2026-06-25T05:38:59.907Z",
   "history": [
     {
       "at": "2026-06-24T21:14:35.180Z",
@@ -52,6 +52,12 @@
       "actor": "project-director",
       "action": "claim",
       "details": "thread=Beacon direct WM-0043"
+    },
+    {
+      "at": "2026-06-25T05:38:59.907Z",
+      "actor": "project-director",
+      "action": "complete",
+      "details": "M2 work/logistics closeout evidence recorded; roadmap, milestone gate, M2 plan and project-state updated; required checks passed; M3 remains unstarted."
     }
   ],
   "objective": "Close M2 with evidence while keeping M3 blocked.",
@@ -87,5 +93,6 @@
   },
   "claimedBy": "project-director",
   "threadLabel": "Beacon direct WM-0043",
-  "blocker": null
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0043.md"
 }

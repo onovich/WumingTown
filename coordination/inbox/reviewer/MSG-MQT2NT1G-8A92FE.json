@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQT2NT1G-8A92FE",
+  "from": "project-director",
+  "to": "reviewer",
+  "taskId": "WM-0043",
+  "kind": "review-request",
+  "subject": "WM-0043 ready for review",
+  "body": "M2 work/logistics closeout evidence recorded; roadmap, milestone gate, M2 plan and project-state updated; required checks passed; M3 remains unstarted.",
+  "artifacts": [
+    "coordination/reports/WM-0043.md",
+    "task/WM-0043-close-the-m2-work-logistics-gate"
+  ],
+  "createdAt": "2026-06-25T05:38:59.908Z",
+  "acknowledgedAt": null
+}
