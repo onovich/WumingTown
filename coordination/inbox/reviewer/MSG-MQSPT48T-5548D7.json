@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQSPT48T-5548D7",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0037",
+  "kind": "review-request",
+  "subject": "WM-0037 ready for review",
+  "body": "Hardened reservation shortage reasons, snapshot rebuild validation, cleanup tests, and focused M2 contention benchmark evidence; required checks pass with documented filter substitutions.",
+  "artifacts": [
+    "coordination/reports/WM-0037.md",
+    "task/WM-0037-harden-reservation-contention-and-cleanup"
+  ],
+  "createdAt": "2026-06-24T23:39:12.702Z",
+  "acknowledgedAt": "2026-06-24T23:40:27.591Z"
+}

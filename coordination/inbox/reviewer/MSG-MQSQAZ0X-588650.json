@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQSQAZ0X-588650",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0037",
+  "kind": "review-request",
+  "subject": "WM-0037 ready for review",
+  "body": "Addressed reviewer lint blocker; full quality gate passes for reservation contention hardening.",
+  "artifacts": [
+    "coordination/reports/WM-0037.md",
+    "task/WM-0037-harden-reservation-contention-and-cleanup"
+  ],
+  "createdAt": "2026-06-24T23:53:05.745Z",
+  "acknowledgedAt": "2026-06-24T23:53:45.757Z"
+}

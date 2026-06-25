@@ -39,6 +39,8 @@ export type ReservationReason =
   | "reservation_amount_invalid"
   | "reservation_available_amount_invalid"
   | "reservation_capacity_invalid"
+  | "reservation_insufficient_amount"
+  | "reservation_insufficient_capacity"
   | "reservation_cell_out_of_range"
   | "reservation_slot_out_of_range"
   | "reservation_entity_conflict"
@@ -555,6 +557,14 @@ export class ReservationLedger implements LocationLifecycleHooks {
       return { ok: false, reason: "reservation_capacity_invalid" };
     }
 
+    if (
+      snapshot.records.length !== snapshot.activeCount ||
+      snapshot.activeCount > this.capacity ||
+      !isSafeUint32(snapshot.ledgerVersion)
+    ) {
+      return { ok: false, reason: "reservation_capacity_invalid" };
+    }
+
     const scratch = createReservationLedger({
       capacity: this.capacity,
       entityCapacity: this.entityCapacity,
@@ -711,6 +721,10 @@ export class ReservationLedger implements LocationLifecycleHooks {
 
       const existingAmount = this.itemQuantityAmounts.get(request.item.index) ?? 0;
 
+      if (request.amount > request.availableAmount) {
+        return { ok: false, reason: "reservation_insufficient_amount" };
+      }
+
       if (existingAmount + request.amount > request.availableAmount) {
         return { ok: false, reason: "reservation_item_quantity_conflict" };
       }
@@ -791,6 +805,10 @@ export class ReservationLedger implements LocationLifecycleHooks {
 
     const existingAmount = this.capacityAmounts.get(key) ?? 0;
 
+    if (request.amount > request.capacity) {
+      return { ok: false, reason: "reservation_insufficient_capacity" };
+    }
+
     if (existingAmount + request.amount > request.capacity) {
       return { ok: false, reason: "reservation_capacity_conflict" };
     }
@@ -840,8 +858,8 @@ export class ReservationLedger implements LocationLifecycleHooks {
         ok: false,
         reason:
           claim.channel === "item_quantity"
-            ? "reservation_item_quantity_conflict"
-            : "reservation_capacity_conflict",
+            ? "reservation_insufficient_amount"
+            : "reservation_insufficient_capacity",
       };
     }
 

@@ -7,9 +7,9 @@
       "registeredAt": "2026-06-24T20:48:20.125Z"
     },
     "reviewer": {
-      "threadId": "019efbe2-f314-7f82-9581-184ba6938a0f",
-      "label": "WM-0036-review",
-      "registeredAt": "2026-06-24T23:07:21.111Z"
+      "threadId": "019efc01-6349-7360-898e-88cefd9ed0eb",
+      "label": "WM-0037-review",
+      "registeredAt": "2026-06-24T23:40:27.513Z"
     },
     "rapid-implementer": {
       "threadId": "019ef49a-ffd5-72f1-863b-f6448c984775",
@@ -47,5 +47,5 @@
       "registeredAt": "2026-06-24T21:35:05.679Z"
     }
   },
-  "updatedAt": "2026-06-24T23:27:16.029Z"
+  "updatedAt": "2026-06-24T23:40:27.513Z"
 }

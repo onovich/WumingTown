@@ -1289,6 +1289,14 @@ function mapReservationReason(reason: ReservationReason): BuildSiteReason {
     return "reservation.source_quantity_conflict";
   }
 
+  if (reason === "reservation_insufficient_amount") {
+    return "material.insufficient_required_amount";
+  }
+
+  if (reason === "reservation_insufficient_capacity") {
+    return "material.capacity_exceeded";
+  }
+
   return "reservation.failed";
 }
 

@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQSQDUX2-A9A6AF",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0037",
+  "kind": "review-approved",
+  "subject": "WM-0037 review: verified",
+  "body": "No blocking findings after lint repair; pnpm quality, taskctl validate, git diff --check, and direct M2 reservation contention helper all pass with zero final/unexpected active claims and expected checksums.",
+  "artifacts": [
+    "coordination/reports/WM-0037.md"
+  ],
+  "createdAt": "2026-06-24T23:55:20.390Z",
+  "acknowledgedAt": "2026-06-24T23:55:58.638Z"
+}

@@ -89,6 +89,19 @@ lanes through a scratch store before mutating the target store. Derived
 WorkOffer indexes, path requests and UI read models still rebuild from owner
 state rather than entering the authoritative snapshot.
 
+## WM-0037 reservation rebuild note
+
+WM-0037 does not change the public save container, snapshot version or migration
+contract. `ReservationLedger.restoreFromSnapshot` now rejects record-count,
+active-count and ledger-version shape mismatches before clearing the current
+ledger, then applies validated records through a scratch ledger.
+
+Focused tests cover two load paths: restoring an empty authoritative
+reservation snapshot clears active indexes without stale amount projections, and
+restoring a non-empty snapshot rebuilds item/capacity amount indexes from owner
+records. Lease expiry is still restored only as diagnostic metadata and is not
+used to drive normal job cleanup.
+
 ## WM-0028 implementation note
 
 `packages/sim-core/src/m1-save-replay.ts` implements the focused M1

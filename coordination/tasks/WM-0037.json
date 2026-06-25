@@ -2,7 +2,7 @@
   "id": "WM-0037",
   "title": "Harden reservation contention and cleanup",
   "summary": "Prove ReservationLedger behavior remains atomic, structured and leak-free under M2 multi-actor contention and terminal cleanup paths.",
-  "state": "in_progress",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,7 +32,7 @@
   ],
   "branch": "task/WM-0037-harden-reservation-contention-and-cleanup",
   "createdAt": "2026-06-24T21:14:35.180Z",
-  "updatedAt": "2026-06-24T23:27:15.960Z",
+  "updatedAt": "2026-06-24T23:56:13.483Z",
   "history": [
     {
       "at": "2026-06-24T21:14:35.180Z",
@@ -50,6 +50,42 @@
       "at": "2026-06-24T23:27:15.959Z",
       "actor": "simulation-engineer",
       "action": "claim",
+      "details": ""
+    },
+    {
+      "at": "2026-06-24T23:39:12.700Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Hardened reservation shortage reasons, snapshot rebuild validation, cleanup tests, and focused M2 contention benchmark evidence; required checks pass with documented filter substitutions."
+    },
+    {
+      "at": "2026-06-24T23:50:14.893Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: Blocking: pnpm quality fails during eslint; packages/benchmarks/src/m2-reservation-contention-benchmark.ts lines 127 and 128 trigger no-useless-assignment. Required focused tests/bench helper otherwise reproduced, but task cannot be verified until quality passes."
+    },
+    {
+      "at": "2026-06-24T23:53:05.744Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Addressed reviewer lint blocker; full quality gate passes for reservation contention hardening."
+    },
+    {
+      "at": "2026-06-24T23:55:20.389Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings after lint repair; pnpm quality, taskctl validate, git diff --check, and direct M2 reservation contention helper all pass with zero final/unexpected active claims and expected checksums."
+    },
+    {
+      "at": "2026-06-24T23:56:07.358Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integrated verified reservation contention hardening with structured shortage reasons, fail-closed restore validation, cleanup tests, and zero-claim benchmark evidence."
+    },
+    {
+      "at": "2026-06-24T23:56:13.483Z",
+      "actor": "project-director",
+      "action": "done",
       "details": ""
     }
   ],
@@ -93,5 +129,17 @@
   },
   "claimedBy": "simulation-engineer",
   "threadLabel": null,
-  "blocker": null
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0037.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings after lint repair; pnpm quality, taskctl validate, git diff --check, and direct M2 reservation contention helper all pass with zero final/unexpected active claims and expected checksums.",
+    "at": "2026-06-24T23:55:20.389Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integrated verified reservation contention hardening with structured shortage reasons, fail-closed restore validation, cleanup tests, and zero-claim benchmark evidence.",
+    "at": "2026-06-24T23:56:07.358Z"
+  }
 }

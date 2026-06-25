@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQSQ7B72-653967",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0037",
+  "kind": "changes-requested",
+  "subject": "WM-0037 review: changes_requested",
+  "body": "Blocking: pnpm quality fails during eslint; packages/benchmarks/src/m2-reservation-contention-benchmark.ts lines 127 and 128 trigger no-useless-assignment. Required focused tests/bench helper otherwise reproduced, but task cannot be verified until quality passes.",
+  "artifacts": [
+    "coordination/reports/WM-0037.md"
+  ],
+  "createdAt": "2026-06-24T23:50:14.894Z",
+  "acknowledgedAt": "2026-06-24T23:53:45.641Z"
+}

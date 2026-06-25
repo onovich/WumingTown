@@ -104,6 +104,28 @@ benchmark helper under
 `coordination/artifacts/WM-0036/benchmarks/m2-work-offer-20-pawns-results.json`
 while preserving the existing `work-offers` baseline gate.
 
+## WM-0037 benchmark note
+
+`packages/benchmarks/src/m2-reservation-contention-benchmark.ts` measures
+deterministic M2 reservation contention without changing the existing benchmark
+baseline file. The benchmark runs 64 contention groups over 20 owners and 64
+target sets, with each accepted base transaction claiming entity, cell,
+item-quantity, interaction-spot and capacity channels atomically.
+
+The benchmark records transaction attempts, accepted and rejected counts,
+per-channel conflict classes, stale target rejects, invalid owner rejects,
+insufficient amount/capacity rejects, invalid parameter rejects, terminal
+cleanup releases, destroy cleanup releases, load-rebuild clearing, final active
+claims and stable transaction/cleanup checksums. The current expected focused
+evidence is zero final and unexpected active claims with transaction checksum
+`2383137698` and cleanup checksum `90211268`.
+
+The existing benchmark CLI registry does not yet include a
+`m2-reservation-contention` filter, and that registry is outside WM-0037's
+allowed edit paths. WM-0037 therefore runs the exported benchmark helper
+directly while preserving the existing `reservations` baseline gate. No
+`coordination/artifacts/WM-0037/**` artifact is kept by this task.
+
 ## WM-0019 benchmark note
 
 `pnpm bench --filter map-dirty` measures the M1 authoritative map dirty path on

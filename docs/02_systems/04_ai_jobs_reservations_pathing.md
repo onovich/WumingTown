@@ -151,6 +151,26 @@ rejections. Those counters are diagnostic evidence only; WorkOffer rows remain
 derived from owner stores and cannot create jobs, reserve claims, move items or
 complete targets.
 
+## WM-0037 implementation note
+
+`ReservationLedger` remains the sole owner of active entity, cell,
+item-quantity, interaction-spot and capacity claims. M2 contention tests now
+cover all five channels in one transaction and assert failed acquisition leaves
+all active counts and amount indexes unchanged.
+
+Structured reservation reasons distinguish true contention from owner/target
+staleness, invalid parameters and shortage:
+`reservation_item_quantity_conflict` and `reservation_capacity_conflict` mean an
+existing active claim blocks the request, while `reservation_insufficient_amount`
+and `reservation_insufficient_capacity` mean the owner-store supplied limit
+cannot satisfy the requested amount even without another claim.
+
+Job completion, failure and cancellation continue to release owner/job claims
+through `JobCoreStore` cleanup. Destroy/despawn cleanup uses the location
+lifecycle hook to release claims by target or owner entity. Lease expiry remains
+metadata for diagnostics and recovery; normal job progression must still call
+explicit release or terminal cleanup paths.
+
 ## WM-0025 implementation note
 
 `packages/sim-core/src/job-core.ts` adds `JobCoreStore`, the first explicit

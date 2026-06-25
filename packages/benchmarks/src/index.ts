@@ -18,6 +18,10 @@ export {
   writeM2PathWorkSelectionBenchmarkArtifact,
 } from "./m2-path-work-selection-benchmark";
 export {
+  m2ReservationContentionInvariantsFromReport,
+  runM2ReservationContentionBenchmark,
+} from "./m2-reservation-contention-benchmark";
+export {
   runM2WorkOffer20PawnsBenchmark,
   writeM2WorkOffer20PawnsBenchmarkArtifact,
 } from "./m2-work-offer-20-pawns-benchmark";
@@ -57,6 +61,10 @@ export type {
   M2PathWorkSelectionBenchmarkReport,
   SampledM2PathWorkSelectionBenchmark,
 } from "./m2-path-work-selection-benchmark";
+export type {
+  M2ReservationContentionBenchmarkInvariants,
+  M2ReservationContentionBenchmarkReport,
+} from "./m2-reservation-contention-benchmark";
 export type {
   M2WorkOffer20PawnsBenchmarkInvariants,
   M2WorkOffer20PawnsBenchmarkReport,
