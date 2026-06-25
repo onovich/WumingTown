@@ -51,3 +51,22 @@ Consequence：短期与长期后果
 - 有一种常见误判但不能靠纯谎言；
 - 有事故后解释；
 - 通过 Headless 场景和可玩性测试。
+
+## WM-0065 M4 borrowed-shadow crisis slice
+
+The borrowed-shadow slice is represented as a narrow anomaly/crisis owner
+surface, not a broad anomaly catalog. Activation candidates are explicit
+numeric facts that carry the lamp gap basis id/version, Chronicle identity case
+and hypothesis basis, evidence owner version, and obligation/town-rule context
+versions. Activation is prevented when the lamp gap score is below the borrowed
+shadow threshold or when Chronicle identity evidence already confirms the
+target identity.
+
+Crisis progress is an explicit serializable state machine:
+`activated -> trace -> escalated -> resolved|failed`. A crisis must record
+low-risk evidence as crisis trace/evidence request rows before escalation can
+proceed. These rows do not mutate Chronicle authority directly; Chronicle can
+consume them through an explicit later handoff. Resolution commands are numeric
+and include non-combat containment and negotiation outcomes. Terminal rows keep
+terminal reason, resolution method, tick, owner version, and trace reason fields
+for replay and review.

@@ -162,6 +162,39 @@ export {
   M4_TOWN_RULE_TRIGGER_THIRD_NIGHT_KNOCK,
 } from "./m4-town-rule-types";
 export {
+  M4BorrowedShadowCrisisStore,
+  createM4BorrowedShadowCrisisStore,
+} from "./m4-borrowed-shadow-crisis";
+export {
+  M4_BORROWED_SHADOW_EVIDENCE_COLD_LAMP_TRACE,
+  M4_BORROWED_SHADOW_EVIDENCE_DUPLICATE_NAME,
+  M4_BORROWED_SHADOW_EVIDENCE_LAMP_EDGE_FOOTPRINT,
+  M4_BORROWED_SHADOW_EVIDENCE_NONE,
+  M4_BORROWED_SHADOW_EVIDENCE_WITNESS_MISMATCH,
+  M4_BORROWED_SHADOW_MIN_CONTAINMENT,
+  M4_BORROWED_SHADOW_MIN_GAP_SCORE,
+  M4_BORROWED_SHADOW_MIN_NEGOTIATION,
+  M4_BORROWED_SHADOW_NONE,
+  M4_BORROWED_SHADOW_RESOLUTION_CONTAINMENT,
+  M4_BORROWED_SHADOW_RESOLUTION_NEGOTIATION,
+  M4_BORROWED_SHADOW_STATE_ACTIVATED,
+  M4_BORROWED_SHADOW_STATE_EMPTY,
+  M4_BORROWED_SHADOW_STATE_ESCALATED,
+  M4_BORROWED_SHADOW_STATE_FAILED,
+  M4_BORROWED_SHADOW_STATE_RESOLVED,
+  M4_BORROWED_SHADOW_STATE_TRACE,
+  M4_BORROWED_SHADOW_TERMINAL_ABORTED,
+  M4_BORROWED_SHADOW_TERMINAL_CONTAINED,
+  M4_BORROWED_SHADOW_TERMINAL_HARM,
+  M4_BORROWED_SHADOW_TERMINAL_NEGOTIATED,
+  M4_BORROWED_SHADOW_TERMINAL_NONE,
+  M4_BORROWED_SHADOW_TRACE_ACTIVATION,
+  M4_BORROWED_SHADOW_TRACE_ESCALATION,
+  M4_BORROWED_SHADOW_TRACE_FAILURE,
+  M4_BORROWED_SHADOW_TRACE_LOW_RISK_EVIDENCE,
+  M4_BORROWED_SHADOW_TRACE_RESOLUTION,
+} from "./m4-borrowed-shadow-types";
+export {
   M3_NEED_STORE_SNAPSHOT_VERSION,
   NEED_ACTOR_NONE,
   NEED_LANE_COMFORT,
@@ -722,6 +755,22 @@ export type {
   M4TownRuleStoreOptions,
   M4TownRuleView,
 } from "./m4-town-rule-types";
+export type {
+  M4BorrowedShadowActivateInput,
+  M4BorrowedShadowActivationBasis,
+  M4BorrowedShadowCandidateQuery,
+  M4BorrowedShadowCandidateQueryResult,
+  M4BorrowedShadowCandidateView,
+  M4BorrowedShadowCrisisView,
+  M4BorrowedShadowFailureInput,
+  M4BorrowedShadowMetrics,
+  M4BorrowedShadowMutationResult,
+  M4BorrowedShadowReason,
+  M4BorrowedShadowResolutionInput,
+  M4BorrowedShadowStoreOptions,
+  M4BorrowedShadowTraceInput,
+  M4BorrowedShadowTraceView,
+} from "./m4-borrowed-shadow-types";
 export type {
   NeedActorInput,
   NeedActorView,

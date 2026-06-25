@@ -18,8 +18,8 @@
     },
     "simulation-engineer": {
       "threadId": "019f006a-08f6-7053-bada-e1cca5ebbd08",
-      "label": "Tally the 6th WM-0064 M4 obligations",
-      "registeredAt": "2026-06-25T20:55:25.133Z"
+      "label": "Tally the 6th WM-0065 M4 crisis",
+      "registeredAt": "2026-06-25T21:45:03.174Z"
     },
     "client-engineer": {
       "threadId": "019ef650-10ca-7e13-b072-9be37575c2be",
@@ -47,5 +47,5 @@
       "registeredAt": "2026-06-25T19:50:15.609Z"
     }
   },
-  "updatedAt": "2026-06-25T20:55:25.133Z"
+  "updatedAt": "2026-06-25T21:45:03.174Z"
 }

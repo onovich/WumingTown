@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQU1QZYB-EF4910",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0065",
+  "kind": "review-request",
+  "subject": "WM-0065 ready for review",
+  "body": "Implemented borrowed-shadow crisis owner store with bounded activation candidates, explicit state machine progress, low-risk evidence traces, non-combat containment/negotiation resolution, focused tests, docs and performance notes.",
+  "artifacts": [
+    "coordination/reports/WM-0065.md",
+    "task/WM-0065-add-m4-borrowed-shadow-crisis-chain"
+  ],
+  "createdAt": "2026-06-25T22:01:15.395Z",
+  "acknowledgedAt": "2026-06-25T22:03:53.869Z"
+}

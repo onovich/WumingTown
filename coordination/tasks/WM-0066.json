@@ -2,7 +2,7 @@
   "id": "WM-0066",
   "title": "Add M4 director recovery windows",
   "summary": "Add bounded director pressure sampling, incident/recovery candidate selection, cooldowns, recovery windows and structured rejection reasons.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,13 +30,19 @@
   ],
   "branch": "task/WM-0066-add-m4-director-recovery-windows",
   "createdAt": "2026-06-25T19:08:30.000Z",
-  "updatedAt": "2026-06-25T19:08:30.000Z",
+  "updatedAt": "2026-06-25T22:19:38.997Z",
   "history": [
     {
       "at": "2026-06-25T19:08:30.000Z",
       "actor": "systems-architect",
       "action": "create",
       "details": "Created by WM-0061 M4 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-25T22:19:38.997Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "objective": "Implement a constrained M4 director pressure and recovery surface without turning the director into hidden simulation authority.",

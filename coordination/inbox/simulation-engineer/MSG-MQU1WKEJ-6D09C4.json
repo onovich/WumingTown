@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQU1WKEJ-6D09C4",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0065",
+  "kind": "changes-requested",
+  "subject": "WM-0065 review: changes_requested",
+  "body": "High: resolveCrisis can terminally resolve directly from ACTIVATED with no low-risk evidence or escalation, violating the ordered borrowed-shadow chain; High: failCrisis accepts TERMINAL_HARM from ACTIVATED before any low-risk evidence, allowing irreversible harm before evidence; High: activation basis validation accepts negative/non-uint32 version fields, negative identityIndependentClassCount, and oversized identitySupportTier, causing typed-array wrap/truncation in owner state. Required checks pass but focused regressions are missing.",
+  "artifacts": [
+    "coordination/reports/WM-0065.md"
+  ],
+  "createdAt": "2026-06-25T22:05:35.179Z",
+  "acknowledgedAt": "2026-06-25T22:06:38.476Z"
+}

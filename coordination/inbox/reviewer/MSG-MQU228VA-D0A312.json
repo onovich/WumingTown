@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQU228VA-D0A312",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0065",
+  "kind": "review-request",
+  "subject": "WM-0065 ready for review",
+  "body": "Repaired borrowed-shadow crisis ordering and validation: resolution now requires ESCALATED state, irreversible HARM requires prior low-risk evidence, activation basis rejects typed-array wrapping inputs, added focused regressions; required checks and quality pass.",
+  "artifacts": [
+    "coordination/reports/WM-0065.md",
+    "task/WM-0065-add-m4-borrowed-shadow-crisis-chain"
+  ],
+  "createdAt": "2026-06-25T22:10:00.166Z",
+  "acknowledgedAt": "2026-06-25T22:11:40.659Z"
+}

@@ -372,3 +372,18 @@ context lanes; no hidden
 text/probability lane participates in rule selection. Stored exception masks,
 not context flags alone, decide whether emergency or confirmed identity bypasses
 a rule.
+
+## WM-0065 M4 borrowed-shadow crisis metrics
+
+`M4BorrowedShadowCrisisStore.createMetrics()` records borrowed-shadow owner
+version, active activation candidate count, active/resolved/failed crisis
+counts, low-risk evidence count, trace ring usage, next trace sequence, and the
+last/total activation candidate visits. Normal crisis activation reads do not
+walk lamp, evidence, obligation, resident or map stores. They consume explicit
+activation basis rows produced by approved owner surfaces and walk only the
+sorted candidate lane with caller `candidateCap` and `selectedCap` limits.
+
+Crisis progress mutations are O(1) typed-array state transitions. Low-risk
+evidence, escalation, non-combat resolution and failure write bounded trace-ring
+rows with numeric reason codes; trace overflow overwrites the oldest trace row
+without changing crisis owner authority.

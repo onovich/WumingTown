@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQU26CIO-690406",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0065",
+  "kind": "changes-requested",
+  "subject": "WM-0065 review: changes_requested",
+  "body": "High: TERMINAL_HARM still bypasses the ordered crisis chain after low-risk evidence; failCrisis only checks lowRiskEvidenceCount and can move TRACE directly to FAILED/HARM with escalationTick unset and escalationLevel 0. WM-0065 docs/spec define activated -> trace -> escalated -> resolved|failed, so irreversible harm should require ESCALATED state. Prior resolution-before-escalation and typed-array validation repairs are otherwise verified; required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0065.md"
+  ],
+  "createdAt": "2026-06-25T22:13:11.520Z",
+  "acknowledgedAt": "2026-06-25T22:14:01.041Z"
+}
