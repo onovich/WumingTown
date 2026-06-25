@@ -45,6 +45,12 @@ for this surface.
   risk/status lanes with bounded retention and source owner-store references.
 - `RelationshipGraphStore` owns social edges and event facts; text templates,
   UI panels, and social candidate indexes are derived.
+- `DayNightStore` and `WeatherStore` now provide versioned M3 environment
+  context for schedule windows, need-rate modifiers, mood context codes,
+  outdoor-work eligibility, and structured explanation reasons such as
+  `work.rejected_outdoor_night_window` and
+  `work.rejected_weather_exposure`. They do not mutate needs, mood,
+  relationships, work offers, UI, Worker protocol, or save state in WM-0049.
 - Implementation must block instead of adding owner-store gaps, global scans,
   unversioned caches, UI authority, real-time/random authority, Promise or
   coroutine job state, public save/Worker/schema drift, dependencies, package
@@ -79,3 +85,32 @@ condition rows visited during rebuild.
 ## 内容边界
 
 避免把精神崩溃做成滑稽随机事件；避免以现实精神疾病标签当作负面 Trait；超自然影响必须与世界规则区分，不能暗示现实病症由鬼怪造成。
+
+## WM-0048 implementation note
+
+`packages/sim-core/src/m3-needs.ts` adds the first M3 needs owner surface.
+`NeedStore` owns the five fixed integer lanes (`hunger`, `rest`, `comfort`,
+`social`, and `safety`) on the 0..1000 scale. Each actor/lane stores its update
+phase, source tick, owner version, previous/next values, delta, source ids, and
+machine-readable last-change reason.
+
+Scheduled need changes are phase-bucketed by actor/lane key, so a tick processes
+only the matching phase bucket and an explicit budget. Each phase keeps a
+deterministic cursor: if a phase exceeds the budget, the next call resumes at
+the next linked lane and wraps only after a full phase pass. Actor self-read of
+the fixed five lanes remains O(1).
+
+`NeedUrgencyIndex` is derived from `NeedStore`. It can rebuild from owner state
+for load/replay setup, but normal updates use exact dirty actor/lane keys. Direct
+owner mutations return `NeedMutationResult`; callers must pass changed results
+through `NeedUrgencyIndex.markMutationDirty(result)` or provide the index as a
+`NeedDirtySink` to scheduled update processing. Urgency queries reject stale
+dirty backlog, then visit only indexed lane buckets up to caller-provided
+candidate and selected caps. Ordering is deterministic: urgency score
+descending, then stable actor/lane key.
+
+`NeedUrgencyTraceStore` records bounded structured evidence for urgency
+selection, including `need.hunger_urgency_indexed`,
+`need.rest_urgency_indexed`, `need.urgency_no_candidate`, and
+`trace.candidate_cap_reached`. These rows are diagnostic evidence only; they do
+not own needs or job behavior.

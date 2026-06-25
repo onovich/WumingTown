@@ -270,3 +270,21 @@ artifact includes Node, pnpm, OS, platform, architecture, CPU, Git commit,
 scenario id, seed, tick horizon and final hashes. The baseline update preserves
 the existing 10 percent warning and 20 percent blocking thresholds for every
 entry.
+
+## WM-0048 M3 needs index note
+
+`NeedStore` and `NeedUrgencyIndex` add focused M3 measurement surfaces without
+changing benchmark thresholds. Store metrics report owner version, actor count,
+scheduled need update count, scheduled change count, and the most recent phase
+visit count. Urgency index metrics report source/index versions, indexed lane
+count, dirty backlog peak/final backlog, refreshed dirty rows, and rebuild
+count.
+
+Normal urgency selection is bounded by caller candidate and selected caps and
+reads only the requested lane's urgency buckets. Scheduled need updates keep
+per-phase cursors, so budgeted processing resumes within the phase instead of
+restarting at the head. Changed owner mutations must dirty exact urgency rows
+through `NeedUrgencyIndex.markMutationDirty(result)` or a scheduled
+`NeedDirtySink`. Load/replay rebuild may scan registered actors before resumed
+ticks. WM-0059 remains responsible for adding suite-level baselines and artifact
+reporting for long-run M3 ordinary-life performance.
