@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-06-25T04:56:50.049Z",
+  "generatedAt": "2026-06-25T05:14:46.404Z",
   "baselinePath": "packages/benchmarks/baseline.json",
   "artifactPath": "coordination/artifacts/WM-0042/benchmarks/benchmark-results.json",
   "sampleCount": 5,
@@ -13,24 +13,24 @@
     "arch": "x64",
     "cpuModel": "AMD Ryzen 7 9700X 8-Core Processor             ",
     "cpuCount": 16,
-    "gitCommit": "8ecff935564a96dfa1877f9fc888f47d3fc633aa"
+    "gitCommit": "5a7bb3539243f4bf8fd0525b8d51d4cef76f569d"
   },
   "results": [
     {
       "name": "empty-tick",
       "sampleElapsedMs": [
-        5.379199999999997,
-        5.358099999999979,
-        5.3962999999999965,
-        5.3308999999999855,
-        5.389100000000013
+        5.423500000000018,
+        5.401099999999985,
+        5.3992000000000075,
+        5.383499999999998,
+        5.441800000000001
       ],
       "stats": {
         "sampleCount": 5,
-        "minElapsedMs": 5.3308999999999855,
-        "medianElapsedMs": 5.379199999999997,
-        "maxElapsedMs": 5.3962999999999965,
-        "meanElapsedMs": 5.370719999999994
+        "minElapsedMs": 5.383499999999998,
+        "medianElapsedMs": 5.401099999999985,
+        "maxElapsedMs": 5.441800000000001,
+        "meanElapsedMs": 5.409820000000002
       },
       "invariants": {
         "requestedTicks": 1000000,
@@ -43,9 +43,9 @@
       "comparison": {
         "name": "empty-tick",
         "status": "ok",
-        "actualMedianElapsedMs": 5.379199999999997,
+        "actualMedianElapsedMs": 5.401099999999985,
         "baselineMedianElapsedMs": 8.176,
-        "regressionPercent": -34.20743639921726,
+        "regressionPercent": -33.93957925636026,
         "warnRegressionPercent": 10,
         "failRegressionPercent": 20,
         "invariantMismatches": []
@@ -54,18 +54,18 @@
     {
       "name": "entity-store",
       "sampleElapsedMs": [
-        236.77960000000002,
-        236.1649,
-        237.68780000000004,
-        235.8257000000001,
-        267.1578999999999
+        239.4651,
+        236.7677,
+        237.7183,
+        236.1726000000001,
+        235.43900000000008
       ],
       "stats": {
         "sampleCount": 5,
-        "minElapsedMs": 235.8257000000001,
-        "medianElapsedMs": 236.77960000000002,
-        "maxElapsedMs": 267.1578999999999,
-        "meanElapsedMs": 242.72318000000004
+        "minElapsedMs": 235.43900000000008,
+        "medianElapsedMs": 236.7677,
+        "maxElapsedMs": 239.4651,
+        "meanElapsedMs": 237.11254000000002
       },
       "invariants": {
         "capacity": 8192,
@@ -79,9 +79,9 @@
       "comparison": {
         "name": "entity-store",
         "status": "ok",
-        "actualMedianElapsedMs": 236.77960000000002,
+        "actualMedianElapsedMs": 236.7677,
         "baselineMedianElapsedMs": 244.507,
-        "regressionPercent": -3.1604003157373772,
+        "regressionPercent": -3.165267252062319,
         "warnRegressionPercent": 10,
         "failRegressionPercent": 20,
         "invariantMismatches": []
@@ -90,18 +90,18 @@
     {
       "name": "logistics-10k",
       "sampleElapsedMs": [
-        14.160200000000032,
-        11.401899999999841,
-        9.930699999999888,
-        11.981599999999844,
-        12.298599999999851
+        14.324799999999868,
+        10.371199999999817,
+        9.198699999999917,
+        9.955200000000104,
+        10.838799999999992
       ],
       "stats": {
         "sampleCount": 5,
-        "minElapsedMs": 9.930699999999888,
-        "medianElapsedMs": 11.981599999999844,
-        "maxElapsedMs": 14.160200000000032,
-        "meanElapsedMs": 11.95459999999989
+        "minElapsedMs": 9.198699999999917,
+        "medianElapsedMs": 10.371199999999817,
+        "maxElapsedMs": 14.324799999999868,
+        "meanElapsedMs": 10.93773999999994
       },
       "invariants": {
         "sourceSlotCount": 10000,
@@ -127,9 +127,9 @@
       "comparison": {
         "name": "logistics-10k",
         "status": "ok",
-        "actualMedianElapsedMs": 11.981599999999844,
+        "actualMedianElapsedMs": 10.371199999999817,
         "baselineMedianElapsedMs": 30,
-        "regressionPercent": -60.061333333333856,
+        "regressionPercent": -65.42933333333394,
         "warnRegressionPercent": 10,
         "failRegressionPercent": 20,
         "invariantMismatches": []
@@ -138,18 +138,18 @@
     {
       "name": "m1-hauling-building-long-run",
       "sampleElapsedMs": [
-        1.1159000000000106,
-        0.8140999999998257,
-        0.8040999999998348,
-        0.8219000000001415,
-        0.7640000000001237
+        1.0657999999998538,
+        0.7896999999998116,
+        0.7768000000000939,
+        1.332400000000007,
+        0.707300000000032
       ],
       "stats": {
         "sampleCount": 5,
-        "minElapsedMs": 0.7640000000001237,
-        "medianElapsedMs": 0.8140999999998257,
-        "maxElapsedMs": 1.1159000000000106,
-        "meanElapsedMs": 0.8639999999999872
+        "minElapsedMs": 0.707300000000032,
+        "medianElapsedMs": 0.7896999999998116,
+        "maxElapsedMs": 1.332400000000007,
+        "meanElapsedMs": 0.9343999999999596
       },
       "invariants": {
         "scenarioId": "m1.hauling_building.road_lantern_frame.v1",
@@ -180,9 +180,9 @@
       "comparison": {
         "name": "m1-hauling-building-long-run",
         "status": "ok",
-        "actualMedianElapsedMs": 0.8140999999998257,
+        "actualMedianElapsedMs": 0.7896999999998116,
         "baselineMedianElapsedMs": 10,
-        "regressionPercent": -91.85900000000174,
+        "regressionPercent": -92.10300000000188,
         "warnRegressionPercent": 10,
         "failRegressionPercent": 20,
         "invariantMismatches": []
@@ -191,18 +191,18 @@
     {
       "name": "m2-pathing-invalidation",
       "sampleElapsedMs": [
-        4.4728000000000065,
-        4.26909999999998,
-        4.175600000000031,
-        4.067399999999907,
-        4.373100000000022
+        4.125200000000177,
+        4.358500000000049,
+        3.9743000000000848,
+        3.8900999999998476,
+        4.060799999999972
       ],
       "stats": {
         "sampleCount": 5,
-        "minElapsedMs": 4.067399999999907,
-        "medianElapsedMs": 4.26909999999998,
-        "maxElapsedMs": 4.4728000000000065,
-        "meanElapsedMs": 4.27159999999999
+        "minElapsedMs": 3.8900999999998476,
+        "medianElapsedMs": 4.060799999999972,
+        "maxElapsedMs": 4.358500000000049,
+        "meanElapsedMs": 4.081780000000026
       },
       "invariants": {
         "scenarioId": "m2.work_logistics.lantern_yard.v1",
@@ -210,22 +210,22 @@
         "width": 40,
         "height": 24,
         "requestCount": 100,
-        "staleProbeCount": 1,
-        "processedRequests": 101,
-        "acceptedResults": 100,
-        "staleRejectedResults": 1,
-        "reachedPaths": 85,
-        "nodeExpansions": 26718,
+        "staleProbeCount": 20,
+        "processedRequests": 100,
+        "acceptedResults": 80,
+        "staleRejectedResults": 20,
+        "reachedPaths": 68,
+        "nodeExpansions": 25957,
         "queueBacklogPeak": 100,
         "finalQueueBacklog": 0,
-        "pathChecksum": 3453753114
+        "pathChecksum": 1481150542
       },
       "comparison": {
         "name": "m2-pathing-invalidation",
         "status": "ok",
-        "actualMedianElapsedMs": 4.26909999999998,
+        "actualMedianElapsedMs": 4.060799999999972,
         "baselineMedianElapsedMs": 10,
-        "regressionPercent": -57.3090000000002,
+        "regressionPercent": -59.39200000000028,
         "warnRegressionPercent": 10,
         "failRegressionPercent": 20,
         "invariantMismatches": []
@@ -234,18 +234,18 @@
     {
       "name": "m2-work-logistics-long-run",
       "sampleElapsedMs": [
-        2.8016999999999825,
-        2.9825000000000728,
-        2.5243000000000393,
-        1.7788000000000466,
-        2.1656000000000404
+        3.216799999999921,
+        2.292699999999968,
+        2.6453999999998814,
+        2.2491999999999734,
+        1.9985000000001492
       ],
       "stats": {
         "sampleCount": 5,
-        "minElapsedMs": 1.7788000000000466,
-        "medianElapsedMs": 2.5243000000000393,
-        "maxElapsedMs": 2.9825000000000728,
-        "meanElapsedMs": 2.4505800000000364
+        "minElapsedMs": 1.9985000000001492,
+        "medianElapsedMs": 2.292699999999968,
+        "maxElapsedMs": 3.216799999999921,
+        "meanElapsedMs": 2.4805199999999785
       },
       "invariants": {
         "scenarioId": "m2.work_logistics.lantern_yard.v1",
@@ -257,13 +257,13 @@
         "deliveredWood": 24,
         "deliveredStone": 12,
         "buildProgressTotal": 240,
-        "materialDeliveryJobsCreated": 8,
-        "materialDeliveryJobsCompleted": 8,
+        "materialDeliveryJobsCreated": 16,
+        "materialDeliveryJobsCompleted": 16,
         "buildJobsCreated": 4,
         "buildJobsCompleted": 4,
         "demandOfferPeak": 8,
         "buildOfferPeak": 4,
-        "actorsUsed": 12,
+        "actorsUsed": 20,
         "terminalSampleCount": 5,
         "terminalFirstSampleTick": 20000,
         "terminalLastSampleTick": 100000,
@@ -271,8 +271,8 @@
         "terminalMaxActiveReservationCount": 0,
         "terminalMaxActiveOfferCount": 0,
         "terminalMaxRunningJobCount": 0,
-        "finalWorldHash": "0xc0e8df05",
-        "finalReadModelHash": "0xb9a8a2d6",
+        "finalWorldHash": "0x9e689c8d",
+        "finalReadModelHash": "0x2d2933dc",
         "replayMatches": true,
         "saveRoundTripMatches": true,
         "noReservationLeaks": true,
@@ -285,9 +285,9 @@
       "comparison": {
         "name": "m2-work-logistics-long-run",
         "status": "ok",
-        "actualMedianElapsedMs": 2.5243000000000393,
+        "actualMedianElapsedMs": 2.292699999999968,
         "baselineMedianElapsedMs": 10,
-        "regressionPercent": -74.7569999999996,
+        "regressionPercent": -77.07300000000032,
         "warnRegressionPercent": 10,
         "failRegressionPercent": 20,
         "invariantMismatches": []
@@ -296,18 +296,18 @@
     {
       "name": "map-dirty",
       "sampleElapsedMs": [
-        0.8640000000000327,
-        0.7561000000000604,
-        0.7695999999998548,
-        0.8396000000000186,
-        0.8065000000001419
+        0.8749000000000251,
+        0.7622000000001208,
+        0.772899999999936,
+        0.7546999999999571,
+        0.7490000000000236
       ],
       "stats": {
         "sampleCount": 5,
-        "minElapsedMs": 0.7561000000000604,
-        "medianElapsedMs": 0.8065000000001419,
-        "maxElapsedMs": 0.8640000000000327,
-        "meanElapsedMs": 0.8071600000000216
+        "minElapsedMs": 0.7490000000000236,
+        "medianElapsedMs": 0.7622000000001208,
+        "maxElapsedMs": 0.8749000000000251,
+        "meanElapsedMs": 0.7827400000000125
       },
       "invariants": {
         "width": 256,
@@ -326,9 +326,9 @@
       "comparison": {
         "name": "map-dirty",
         "status": "ok",
-        "actualMedianElapsedMs": 0.8065000000001419,
+        "actualMedianElapsedMs": 0.7622000000001208,
         "baselineMedianElapsedMs": 1,
-        "regressionPercent": -19.349999999985812,
+        "regressionPercent": -23.779999999987922,
         "warnRegressionPercent": 10,
         "failRegressionPercent": 20,
         "invariantMismatches": []
@@ -337,18 +337,18 @@
     {
       "name": "pathing-100",
       "sampleElapsedMs": [
-        3.4768000000001393,
-        3.7385999999999058,
-        3.76949999999988,
-        3.338899999999967,
-        3.436200000000099
+        4.224500000000035,
+        3.561999999999898,
+        4.4090000000001055,
+        3.2683999999999287,
+        3.40949999999998
       ],
       "stats": {
         "sampleCount": 5,
-        "minElapsedMs": 3.338899999999967,
-        "medianElapsedMs": 3.4768000000001393,
-        "maxElapsedMs": 3.76949999999988,
-        "meanElapsedMs": 3.5519999999999983
+        "minElapsedMs": 3.2683999999999287,
+        "medianElapsedMs": 3.561999999999898,
+        "maxElapsedMs": 4.4090000000001055,
+        "meanElapsedMs": 3.7746799999999894
       },
       "invariants": {
         "width": 32,
@@ -367,9 +367,9 @@
       "comparison": {
         "name": "pathing-100",
         "status": "ok",
-        "actualMedianElapsedMs": 3.4768000000001393,
+        "actualMedianElapsedMs": 3.561999999999898,
         "baselineMedianElapsedMs": 10,
-        "regressionPercent": -65.2319999999986,
+        "regressionPercent": -64.38000000000102,
         "warnRegressionPercent": 10,
         "failRegressionPercent": 20,
         "invariantMismatches": []
@@ -378,18 +378,18 @@
     {
       "name": "reservations",
       "sampleElapsedMs": [
-        2.6403999999999996,
-        1.9175000000000182,
-        1.9202000000000226,
-        2.3424999999999727,
-        1.0920999999998457
+        2.6936000000000604,
+        1.1184000000000651,
+        1.3186000000000604,
+        1.3799000000001342,
+        0.8359000000000378
       ],
       "stats": {
         "sampleCount": 5,
-        "minElapsedMs": 1.0920999999998457,
-        "medianElapsedMs": 1.9202000000000226,
-        "maxElapsedMs": 2.6403999999999996,
-        "meanElapsedMs": 1.9825399999999718
+        "minElapsedMs": 0.8359000000000378,
+        "medianElapsedMs": 1.3186000000000604,
+        "maxElapsedMs": 2.6936000000000604,
+        "meanElapsedMs": 1.4692800000000716
       },
       "invariants": {
         "ownerCount": 64,
@@ -409,9 +409,9 @@
       "comparison": {
         "name": "reservations",
         "status": "ok",
-        "actualMedianElapsedMs": 1.9202000000000226,
+        "actualMedianElapsedMs": 1.3186000000000604,
         "baselineMedianElapsedMs": 10,
-        "regressionPercent": -80.79799999999977,
+        "regressionPercent": -86.8139999999994,
         "warnRegressionPercent": 10,
         "failRegressionPercent": 20,
         "invariantMismatches": []
@@ -420,18 +420,18 @@
     {
       "name": "region-room",
       "sampleElapsedMs": [
-        5.060600000000022,
-        4.901599999999917,
-        4.679700000000139,
-        4.776100000000042,
-        4.776200000000017
+        4.853900000000067,
+        4.418599999999969,
+        4.377300000000105,
+        4.31230000000005,
+        4.523999999999887
       ],
       "stats": {
         "sampleCount": 5,
-        "minElapsedMs": 4.679700000000139,
-        "medianElapsedMs": 4.776200000000017,
-        "maxElapsedMs": 5.060600000000022,
-        "meanElapsedMs": 4.838840000000028
+        "minElapsedMs": 4.31230000000005,
+        "medianElapsedMs": 4.418599999999969,
+        "maxElapsedMs": 4.853900000000067,
+        "meanElapsedMs": 4.4972200000000155
       },
       "invariants": {
         "width": 128,
@@ -457,9 +457,9 @@
       "comparison": {
         "name": "region-room",
         "status": "ok",
-        "actualMedianElapsedMs": 4.776200000000017,
+        "actualMedianElapsedMs": 4.418599999999969,
         "baselineMedianElapsedMs": 10,
-        "regressionPercent": -52.23799999999983,
+        "regressionPercent": -55.814000000000306,
         "warnRegressionPercent": 10,
         "failRegressionPercent": 20,
         "invariantMismatches": []
@@ -468,18 +468,18 @@
     {
       "name": "spatial-index",
       "sampleElapsedMs": [
-        1418.4783999999995,
-        1427.1215000000002,
-        1422.1498000000001,
-        1428.1331999999993,
-        1428.2294999999995
+        1414.6955999999996,
+        1421.3192000000008,
+        1433.8357999999998,
+        1422.4385999999995,
+        1424.9595000000008
       ],
       "stats": {
         "sampleCount": 5,
-        "minElapsedMs": 1418.4783999999995,
-        "medianElapsedMs": 1427.1215000000002,
-        "maxElapsedMs": 1428.2294999999995,
-        "meanElapsedMs": 1424.8224799999998
+        "minElapsedMs": 1414.6955999999996,
+        "medianElapsedMs": 1422.4385999999995,
+        "maxElapsedMs": 1433.8357999999998,
+        "meanElapsedMs": 1423.4497400000002
       },
       "invariants": {
         "entityCount": 50000,
@@ -504,9 +504,9 @@
       "comparison": {
         "name": "spatial-index",
         "status": "ok",
-        "actualMedianElapsedMs": 1427.1215000000002,
+        "actualMedianElapsedMs": 1422.4385999999995,
         "baselineMedianElapsedMs": 1436.717,
-        "regressionPercent": -0.6678768330854232,
+        "regressionPercent": -0.9938213301576163,
         "warnRegressionPercent": 10,
         "failRegressionPercent": 20,
         "invariantMismatches": []
@@ -515,18 +515,18 @@
     {
       "name": "work-offers",
       "sampleElapsedMs": [
-        1.0755000000008295,
-        1.0640000000003056,
-        0.949800000000323,
-        1.0158999999985099,
-        1.2960000000002765
+        1.2079000000012456,
+        1.1540999999997439,
+        1.0587999999988824,
+        1.1502999999993335,
+        1.6376000000000204
       ],
       "stats": {
         "sampleCount": 5,
-        "minElapsedMs": 0.949800000000323,
-        "medianElapsedMs": 1.0640000000003056,
-        "maxElapsedMs": 1.2960000000002765,
-        "meanElapsedMs": 1.080240000000049
+        "minElapsedMs": 1.0587999999988824,
+        "medianElapsedMs": 1.1540999999997439,
+        "maxElapsedMs": 1.6376000000000204,
+        "meanElapsedMs": 1.241739999999845
       },
       "invariants": {
         "pawnCount": 100,
@@ -548,9 +548,9 @@
       "comparison": {
         "name": "work-offers",
         "status": "ok",
-        "actualMedianElapsedMs": 1.0640000000003056,
+        "actualMedianElapsedMs": 1.1540999999997439,
         "baselineMedianElapsedMs": 10,
-        "regressionPercent": -89.35999999999694,
+        "regressionPercent": -88.45900000000256,
         "warnRegressionPercent": 10,
         "failRegressionPercent": 20,
         "invariantMismatches": []

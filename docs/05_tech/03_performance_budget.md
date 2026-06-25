@@ -225,20 +225,20 @@ suite:
   `m2.work_logistics.lantern_yard.v1` with seed `2` to `100000` ticks, samples
   terminal states from tick `20000` through `100000`, and verifies save/resume
   replay parity. The invariant baseline records 20 actors, 4 completed build
-  orders, 24 delivered wood, 12 delivered stone, final world hash
-  `0xc0e8df05`, final read-model hash `0xb9a8a2d6`, zero terminal
+  orders, 20 participating actors, 24 delivered wood, 12 delivered stone,
+  final world hash `0x9e689c8d`, final read-model hash `0x2d2933dc`, zero terminal
   reservations/offers/running jobs, material conservation and no hash
   divergence.
 - `m2-pathing-invalidation` runs 100 deterministic path requests on the
-  M2-sized 40x24 invalidation fixture, then commits one stale result against a
-  changed version basis. The invariant baseline records 101 processed results,
-  100 accepted results, 1 stale reject, 85 reached paths, 26718 node
+  M2-sized 40x24 invalidation fixture, then commits 20 delayed results against a
+  changed version basis. The invariant baseline records 100 processed requests,
+  80 accepted results, 20 stale rejects, 68 reached paths, 25957 node
   expansions, peak queue backlog 100, final backlog 0 and checksum
-  `3453753114`.
+  `1481150542`.
 
 The WM-0042 benchmark artifact is written under
 `coordination/artifacts/WM-0042/benchmarks/benchmark-results.json` with SHA-256
-`1B879392B0ED44AE1C3A4368DF533A133E140716B40AD9B0DBE2D3A4CD02487C`. The
+`7AAD7C5CA023F018A2B00F0F205C784EDCF2CACCA139C11C84A519A93891C8AC`. The
 artifact includes Node, pnpm, OS, platform, architecture, CPU, Git commit,
 scenario id, seed, tick horizon and final hashes. The baseline update preserves
 the existing 10 percent warning and 20 percent blocking thresholds for every

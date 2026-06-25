@@ -106,8 +106,8 @@ loss, queue growth or save/resume hash divergence.
 `coordination/artifacts/WM-0042/benchmarks/benchmark-results.json`. The artifact
 records `nodeVersion`, `pnpmVersion`, `osRelease`, `platform`, `arch`,
 `cpuModel`, `cpuCount` and `gitCommit`, and includes the M2 scenario id, seed,
-tick horizon, final world hash `0xc0e8df05`, final read-model hash
-`0xb9a8a2d6`, 100-path stale reject count, node expansions, queue backlog and
+tick horizon, final world hash `0x9e689c8d`, final read-model hash
+`0x2d2933dc`, 100-path stale reject count, node expansions, queue backlog and
 path checksum evidence.
 
 The documented M2 headless reproduction command is
