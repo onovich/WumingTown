@@ -2,7 +2,7 @@
   "id": "WM-0048",
   "title": "Add M3 needs owner stores and urgency indexes",
   "summary": "Add deterministic need state and derived urgency indexes for hunger, rest, comfort, social and safety.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0048-add-m3-needs-owner-stores-and-urgency-indexes",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T08:37:14.026Z",
+  "updatedAt": "2026-06-25T09:22:31.544Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
@@ -43,6 +43,48 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-25T08:42:38.495Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Codex WM-0048"
+    },
+    {
+      "at": "2026-06-25T08:56:00.545Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented deterministic M3 NeedStore, NeedUrgencyIndex, structured reason traces, focused tests, and docs; required gates and pnpm quality pass"
+    },
+    {
+      "at": "2026-06-25T09:03:16.708Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: NeedStore.processScheduledUpdates restarts each phase at the head after budget exhaustion, so later lanes in a phase can starve and scheduled need updates are not fair/bounded-progress. Medium: manual NeedUrgencyIndex.markDirty integration needs an explicit contract or safer helper so owner mutations cannot silently leave stale urgency rows."
+    },
+    {
+      "at": "2026-06-25T09:12:37.519Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Repaired scheduled need phase cursor starvation and added explicit NeedUrgencyIndex mutation dirty helper contract; required gates and pnpm quality pass"
+    },
+    {
+      "at": "2026-06-25T09:19:53.831Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings after repair; scheduled phase cursors make budgeted need updates progress without starvation, explicit mutation dirty helpers and scheduled NeedDirtySink keep urgency rows stale-rejected until refreshed, and required gates pass."
+    },
+    {
+      "at": "2026-06-25T09:22:26.716Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Owner integration rechecked WM-0048 after reviewer verification and after merging current main with WM-0049; acknowledged review approval and confirmed typecheck, focused needs+environment vitest, task status, and diff check pass."
+    },
+    {
+      "at": "2026-06-25T09:22:31.543Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Implement the first M3 life-state owner store surface without job behavior or UI authority.",
@@ -80,5 +122,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Deterministic simulation owner-store and indexed thinking work is not suitable for Spark."
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Codex WM-0048",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0048.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings after repair; scheduled phase cursors make budgeted need updates progress without starvation, explicit mutation dirty helpers and scheduled NeedDirtySink keep urgency rows stale-rejected until refreshed, and required gates pass.",
+    "at": "2026-06-25T09:19:53.830Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Owner integration rechecked WM-0048 after reviewer verification and after merging current main with WM-0049; acknowledged review approval and confirmed typecheck, focused needs+environment vitest, task status, and diff check pass.",
+    "at": "2026-06-25T09:22:26.716Z"
   }
 }

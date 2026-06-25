@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQT9P5WJ-EB95E3",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0048",
+  "kind": "review-request",
+  "subject": "WM-0048 ready for review",
+  "body": "Implemented deterministic M3 NeedStore, NeedUrgencyIndex, structured reason traces, focused tests, and docs; required gates and pnpm quality pass",
+  "artifacts": [
+    "coordination/reports/WM-0048.md",
+    "task/WM-0048-add-m3-needs-owner-stores-and-urgency-indexes"
+  ],
+  "createdAt": "2026-06-25T08:56:00.547Z",
+  "acknowledgedAt": "2026-06-25T09:00:11.533Z"
+}

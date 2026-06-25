@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQT9YIG5-9BACBB",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0048",
+  "kind": "changes-requested",
+  "subject": "WM-0048 review: changes_requested",
+  "body": "High: NeedStore.processScheduledUpdates restarts each phase at the head after budget exhaustion, so later lanes in a phase can starve and scheduled need updates are not fair/bounded-progress. Medium: manual NeedUrgencyIndex.markDirty integration needs an explicit contract or safer helper so owner mutations cannot silently leave stale urgency rows.",
+  "artifacts": [
+    "coordination/reports/WM-0048.md"
+  ],
+  "createdAt": "2026-06-25T09:03:16.709Z",
+  "acknowledgedAt": "2026-06-25T09:06:54.130Z"
+}
