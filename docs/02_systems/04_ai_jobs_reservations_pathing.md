@@ -288,3 +288,18 @@ consumed lane before releasing reservations. Cancellation and failure after
 pickup return carried food to the source stack before terminal cleanup.
 Structured reasons distinguish no food, permission, schedule, ability,
 reservation, path, stale owner, and consume-once failures.
+
+## WM-0053 implementation note
+
+M3 medical treatment keeps work discovery derived and bounded. Patient medical
+requests are registered from exact owner-state changes; caregiver state is
+refreshed from permission and ability-cache inputs; selection reads only the
+matching region/urgency/permission bucket with explicit candidate and selected
+caps. A stale condition basis is rejected before job creation or reservation.
+
+`M3TreatmentJobStore` stores explicit serializable treatment steps:
+`created -> reserved -> pathing_to_patient -> treating -> completed/canceled/
+failed`. Reservation acquisition is atomic across medical stock, patient
+interaction spot, and treatment cell. Cancellation, interruption, and path
+failure go through `JobCoreStore` terminal cleanup so active claims are released
+without relying on lease expiry.

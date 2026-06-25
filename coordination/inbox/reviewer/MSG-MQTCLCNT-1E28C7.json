@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQTCLCNT-1E28C7",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0053",
+  "kind": "review-request",
+  "subject": "WM-0053 ready for review",
+  "body": "Repaired WM-0053 changes_requested findings: complete-time basis failures now fail terminally with reservation cleanup; medical selection traversal stops at candidateCap; treatment terminal reasons persist through view/snapshot/restore; completed jobs record updated condition row version; regression tests and required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0053.md",
+    "task/WM-0053-add-m3-medical-care-job-slice"
+  ],
+  "createdAt": "2026-06-25T10:17:01.529Z",
+  "acknowledgedAt": "2026-06-25T14:13:27.093Z"
+}
