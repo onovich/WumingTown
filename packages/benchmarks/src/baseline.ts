@@ -18,6 +18,8 @@ export interface BenchmarkBaselineFile {
     readonly "entity-store": BenchmarkBaselineEntry<"entity-store">;
     readonly "logistics-10k": BenchmarkBaselineEntry<"logistics-10k">;
     readonly "m1-hauling-building-long-run": BenchmarkBaselineEntry<"m1-hauling-building-long-run">;
+    readonly "m2-pathing-invalidation": BenchmarkBaselineEntry<"m2-pathing-invalidation">;
+    readonly "m2-work-logistics-long-run": BenchmarkBaselineEntry<"m2-work-logistics-long-run">;
     readonly "map-dirty": BenchmarkBaselineEntry<"map-dirty">;
     readonly "pathing-100": BenchmarkBaselineEntry<"pathing-100">;
     readonly reservations: BenchmarkBaselineEntry<"reservations">;
@@ -56,6 +58,14 @@ export function compareBenchmarkToBaseline(
   actual: Extract<SampledBenchmarkResult, { readonly name: "m1-hauling-building-long-run" }>,
   baseline: BenchmarkBaselineEntry<"m1-hauling-building-long-run">,
 ): BenchmarkComparison<"m1-hauling-building-long-run">;
+export function compareBenchmarkToBaseline(
+  actual: Extract<SampledBenchmarkResult, { readonly name: "m2-pathing-invalidation" }>,
+  baseline: BenchmarkBaselineEntry<"m2-pathing-invalidation">,
+): BenchmarkComparison<"m2-pathing-invalidation">;
+export function compareBenchmarkToBaseline(
+  actual: Extract<SampledBenchmarkResult, { readonly name: "m2-work-logistics-long-run" }>,
+  baseline: BenchmarkBaselineEntry<"m2-work-logistics-long-run">,
+): BenchmarkComparison<"m2-work-logistics-long-run">;
 export function compareBenchmarkToBaseline(
   actual: Extract<SampledBenchmarkResult, { readonly name: "map-dirty" }>,
   baseline: BenchmarkBaselineEntry<"map-dirty">,

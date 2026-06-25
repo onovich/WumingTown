@@ -215,3 +215,31 @@ artifact-backed baseline update preserves the existing 10 percent warning and
 20 percent blocking thresholds. `map-dirty` also receives an explicit canonical
 hash refresh to `0xba7253ca`; its timing budget and regression thresholds are
 unchanged.
+
+## WM-0042 benchmark note
+
+`pnpm bench` now includes two M2 closeout benchmarks alongside the existing
+suite:
+
+- `m2-work-logistics-long-run` runs
+  `m2.work_logistics.lantern_yard.v1` with seed `2` to `100000` ticks, samples
+  terminal states from tick `20000` through `100000`, and verifies save/resume
+  replay parity. The invariant baseline records 20 actors, 4 completed build
+  orders, 24 delivered wood, 12 delivered stone, final world hash
+  `0xc0e8df05`, final read-model hash `0xb9a8a2d6`, zero terminal
+  reservations/offers/running jobs, material conservation and no hash
+  divergence.
+- `m2-pathing-invalidation` runs 100 deterministic path requests on the
+  M2-sized 40x24 invalidation fixture, then commits one stale result against a
+  changed version basis. The invariant baseline records 101 processed results,
+  100 accepted results, 1 stale reject, 85 reached paths, 26718 node
+  expansions, peak queue backlog 100, final backlog 0 and checksum
+  `3453753114`.
+
+The WM-0042 benchmark artifact is written under
+`coordination/artifacts/WM-0042/benchmarks/benchmark-results.json` with SHA-256
+`1B879392B0ED44AE1C3A4368DF533A133E140716B40AD9B0DBE2D3A4CD02487C`. The
+artifact includes Node, pnpm, OS, platform, architecture, CPU, Git commit,
+scenario id, seed, tick horizon and final hashes. The baseline update preserves
+the existing 10 percent warning and 20 percent blocking thresholds for every
+entry.

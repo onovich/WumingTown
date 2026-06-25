@@ -93,3 +93,24 @@ message latency count.
 coverage and also runs the M2 command stream through a real browser module
 Worker. The Worker still emits read-only projections over the existing protocol
 message kinds; no UI, web shell or Electron layer becomes authoritative.
+
+## WM-0042 implementation note
+
+`pnpm test --filter m2-invariants` is the focused M2 long-run invariant gate for
+the work/logistics scenario. It runs seed `2` to `100000` ticks, samples the
+terminal window at `20000`, `40000`, `60000`, `80000` and `100000`, and fails on
+reservation leaks, uncleared offers, running jobs, negative resources, material
+loss, queue growth or save/resume hash divergence.
+
+`pnpm bench` writes the WM-0042 artifact to
+`coordination/artifacts/WM-0042/benchmarks/benchmark-results.json`. The artifact
+records `nodeVersion`, `pnpmVersion`, `osRelease`, `platform`, `arch`,
+`cpuModel`, `cpuCount` and `gitCommit`, and includes the M2 scenario id, seed,
+tick horizon, final world hash `0xc0e8df05`, final read-model hash
+`0xb9a8a2d6`, 100-path stale reject count, node expansions, queue backlog and
+path checksum evidence.
+
+The documented M2 headless reproduction command is
+`pnpm sim:run -- --seed 2 --scenario m2-work-logistics --ticks 100000`. The
+command prints the authoritative M2 scenario summary from the Node headless
+runner; UI and Electron remain read-only consumers.
