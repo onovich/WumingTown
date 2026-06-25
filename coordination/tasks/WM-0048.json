@@ -2,7 +2,7 @@
   "id": "WM-0048",
   "title": "Add M3 needs owner stores and urgency indexes",
   "summary": "Add deterministic need state and derived urgency indexes for hunger, rest, comfort, social and safety.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0048-add-m3-needs-owner-stores-and-urgency-indexes",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T09:19:53.831Z",
+  "updatedAt": "2026-06-25T09:22:31.544Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
@@ -73,6 +73,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings after repair; scheduled phase cursors make budgeted need updates progress without starvation, explicit mutation dirty helpers and scheduled NeedDirtySink keep urgency rows stale-rejected until refreshed, and required gates pass."
+    },
+    {
+      "at": "2026-06-25T09:22:26.716Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Owner integration rechecked WM-0048 after reviewer verification and after merging current main with WM-0049; acknowledged review approval and confirmed typecheck, focused needs+environment vitest, task status, and diff check pass."
+    },
+    {
+      "at": "2026-06-25T09:22:31.543Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Implement the first M3 life-state owner store surface without job behavior or UI authority.",
@@ -120,5 +132,10 @@
     "verdict": "verified",
     "summary": "No blocking findings after repair; scheduled phase cursors make budgeted need updates progress without starvation, explicit mutation dirty helpers and scheduled NeedDirtySink keep urgency rows stale-rejected until refreshed, and required gates pass.",
     "at": "2026-06-25T09:19:53.830Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Owner integration rechecked WM-0048 after reviewer verification and after merging current main with WM-0049; acknowledged review approval and confirmed typecheck, focused needs+environment vitest, task status, and diff check pass.",
+    "at": "2026-06-25T09:22:26.716Z"
   }
 }
