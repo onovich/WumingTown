@@ -82,6 +82,35 @@ Metrics record condition updates, ability invalidations, ability query counts,
 cache hits, cache rebuilds, stale-basis rejects, dirty queue backlog/peak, and
 condition rows visited during rebuild.
 
+## WM-0054 implementation note
+
+`packages/sim-core/src/m3-mood-thoughts.ts` adds the focused M3
+`MoodThoughtMemoryStore`. The store owns actor mood target/current lanes for
+valence, energy, and tension on the `0..1000` integer scale. Mood targets are
+derived from retained structured thoughts; current mood moves toward the target
+only through scheduled stable actor phases with an integer max step.
+
+Thought and memory rows are bounded typed-array lanes. Each row stores actor id,
+source kind, source id, source owner version, created tick, expiry tick,
+strength, signed effect delta, stack key, target actor, and target mood lane.
+Repeated stack keys refresh the existing row; capacity pressure deterministically
+evicts the weakest, earliest-expiring row. Expiration is processed during
+scheduled mood updates and cannot grow storage with elapsed ticks.
+
+Fact helpers consume already-owned sources without global scans:
+`applyNeedFacts` reads the fixed five `NeedStore` lanes for one actor,
+`applyEnvironmentFact` consumes an `M3EnvironmentProjection`, and
+`applyHealthConditionFact` consumes an explicit `M3HealthConditionView`.
+They emit machine-readable reasons such as `mood.need_fact_applied`,
+`mood.environment_fact_applied`, `mood.health_fact_applied`,
+`mood.thought_added`, `mood.thought_refreshed`, and `mood.memory_added`.
+No real-world mental-health labels are used as negative traits.
+
+Metrics report thought and memory generation, retained counts, deterministic
+evictions, expirations, scheduled mood update visits, dirty backlog peak/final
+backlog, and store version. `createHash()` covers actor mood lanes plus retained
+thought and memory rows for focused replay evidence.
+
 ## 内容边界
 
 避免把精神崩溃做成滑稽随机事件；避免以现实精神疾病标签当作负面 Trait；超自然影响必须与世界规则区分，不能暗示现实病症由鬼怪造成。

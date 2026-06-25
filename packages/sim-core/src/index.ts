@@ -61,6 +61,24 @@ export {
   createNeedUrgencyTraceStore,
 } from "./m3-needs";
 export {
+  M3_MOOD_ACTOR_NONE,
+  M3_MOOD_BASELINE,
+  M3_MOOD_DEFAULT_MEMORY_CAPACITY,
+  M3_MOOD_DEFAULT_THOUGHT_CAPACITY,
+  M3_MOOD_DEFAULT_TRACE_CAPACITY,
+  M3_MOOD_LANE_COUNT,
+  M3_MOOD_LANE_ENERGY,
+  M3_MOOD_LANE_TENSION,
+  M3_MOOD_LANE_VALENCE,
+  M3_MOOD_THOUGHT_MEMORY_SNAPSHOT_VERSION,
+  M3_MOOD_VALUE_MAX,
+  M3_MOOD_VALUE_MIN,
+  M3MoodReasonTraceStore,
+  MoodThoughtMemoryStore,
+  createM3MoodReasonTraceStore,
+  createMoodThoughtMemoryStore,
+} from "./m3-mood-thoughts";
+export {
   JOB_CORE_SNAPSHOT_VERSION,
   JOB_NONE,
   JobCoreStore,
@@ -408,6 +426,21 @@ export type {
   NeedUrgencyTraceReason,
   NeedUrgencyTraceView,
 } from "./m3-needs";
+export type {
+  M3MoodActorView,
+  M3MoodLane,
+  M3MoodMetrics,
+  M3MoodMutationResult,
+  M3MoodReason,
+  M3MoodRowView,
+  M3MoodSourceKind,
+  M3MoodStoreOptions,
+  M3MoodThoughtInput,
+  M3MoodTraceInput,
+  M3MoodTraceMetrics,
+  M3MoodTraceView,
+  M3MoodUpdateResult,
+} from "./m3-mood-thoughts";
 export type {
   JobCoreMetrics,
   JobCoreMutationResult,
