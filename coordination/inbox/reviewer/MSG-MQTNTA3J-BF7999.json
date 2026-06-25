@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQTNTA3J-BF7999",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0056",
+  "kind": "review-request",
+  "subject": "WM-0056 ready for review",
+  "body": "Repaired checkpoint hash prefix stability, made scenario.start primary seed 46 authoritative while preserving requestedSeed metadata, derived terminal lane/M4 counters from owner stores, updated regression coverage/report/docs, and reran typecheck, focused Vitest, 20000/12000 sim runs, taskctl validate, git diff --check, and pnpm quality.",
+  "artifacts": [
+    "coordination/reports/WM-0056.md",
+    "task/WM-0056-integrate-m3-ordinary-life-scenario"
+  ],
+  "createdAt": "2026-06-25T15:31:07.231Z",
+  "acknowledgedAt": "2026-06-25T15:39:29.815Z"
+}

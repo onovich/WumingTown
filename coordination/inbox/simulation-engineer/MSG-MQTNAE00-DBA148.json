@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQTNAE00-DBA148",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0056",
+  "kind": "changes-requested",
+  "subject": "WM-0056 review: changes_requested",
+  "body": "High: checkpoint hashes depend on requested final horizon, so same prefix checkpoints differ across runs; Medium: primary seed 46 is reported but scenario.start is a no-op and streams use CLI seed; Medium: terminal invariant counters are hard-coded zeros for lane/M4 checks.",
+  "artifacts": [
+    "coordination/reports/WM-0056.md"
+  ],
+  "createdAt": "2026-06-25T15:16:25.824Z",
+  "acknowledgedAt": "2026-06-25T15:18:57.196Z"
+}

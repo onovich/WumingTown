@@ -274,6 +274,31 @@ The primary scenario and long-run horizon must assert these invariants:
   story director, dawn replay productization, or direct product UI state is
   created, mutated, saved, or required.
 
+## WM-0056 Executable Scenario Evidence
+
+WM-0056 implements the Node/headless executable vertical slice for scenario
+alias `m3-ordinary-life`, backed by scenario id
+`m3.ordinary_life.injured_caregiver.v1`. The focused run composes the reviewed
+M3 owner stores for needs, environment, rest/sleep, food/eating, health and
+ability cache, medical care, mood/thoughts, relationship events, reservations,
+and job core state.
+
+For the primary CLI smoke (`pnpm sim:run -- --seed 3 --scenario
+m3-ordinary-life --ticks 20000`), the run records requested seed `3` but uses
+the contract primary seed `46` as the authoritative scenario seed initialized
+by `scenario.start`. It emits command hash `0x226832d2`, content hash
+`0xdfe7107e`, world hash `0x7b37ff29`, checkpoint hashes, bounded reason
+traces, queue metrics, terminal invariant counters, and replay evidence. The
+`12000` and `20000` tick runs share prefix checkpoint hashes at ticks `0`,
+`3600`, `7200`, and `12000`. The run ends with zero active reservations, zero
+running jobs, one completed treatment, one integer food portion consumed, one
+bandage consumed, Yao movement reduced from injury then improved by treatment,
+rain/night work rejection context, relationship changes for care and gratitude,
+and owner-derived terminal checks covering 30 need lanes, 36 mood lanes, 15
+relationship lanes, and 5 explicit M4 absence checks. This is implementation
+evidence for WM-0056 only; focused save/load resume, Worker parity, benchmark
+baselines, and M4 systems remain in downstream tasks.
+
 ## Save, Replay, And Worker Parity
 
 Focused M3 save/replay may extend the existing focused harness model only after

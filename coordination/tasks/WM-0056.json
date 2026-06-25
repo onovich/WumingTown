@@ -2,7 +2,7 @@
   "id": "WM-0056",
   "title": "Integrate M3 ordinary life scenario",
   "summary": "Compose the focused M3 scenario so injury affects work, medical care, logistics, mood and relationships under day/night/weather.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -34,7 +34,7 @@
   ],
   "branch": "task/WM-0056-integrate-m3-ordinary-life-scenario",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T14:33:49.895Z",
+  "updatedAt": "2026-06-25T15:40:49.546Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
@@ -47,6 +47,54 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-25T14:36:40.360Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Codex WM-0056"
+    },
+    {
+      "at": "2026-06-25T15:05:11.279Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented m3-ordinary-life headless scenario with deterministic hashes, reason traces, queue/performance metrics, terminal invariant counters, focused tests, CLI support, docs, and report. Checks passed: typecheck, focused Vitest, sim:run seed 3 ticks 20000, taskctl validate, git diff --check, pnpm quality."
+    },
+    {
+      "at": "2026-06-25T15:16:25.823Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: checkpoint hashes depend on requested final horizon, so same prefix checkpoints differ across runs; Medium: primary seed 46 is reported but scenario.start is a no-op and streams use CLI seed; Medium: terminal invariant counters are hard-coded zeros for lane/M4 checks."
+    },
+    {
+      "at": "2026-06-25T15:20:37.290Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Codex WM-0056 repair"
+    },
+    {
+      "at": "2026-06-25T15:31:07.230Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Repaired checkpoint hash prefix stability, made scenario.start primary seed 46 authoritative while preserving requestedSeed metadata, derived terminal lane/M4 counters from owner stores, updated regression coverage/report/docs, and reran typecheck, focused Vitest, 20000/12000 sim runs, taskctl validate, git diff --check, and pnpm quality."
+    },
+    {
+      "at": "2026-06-25T15:37:44.354Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; repair evidence confirmed for prefix-stable checkpoint hashes, authoritative primary seed 46, owner-derived terminal counters, and original WM-0056 acceptance checks."
+    },
+    {
+      "at": "2026-06-25T15:40:43.401Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Owner integration rechecked WM-0056 after reviewer verification and repair, fast-forwarded onto origin/main c539e9a, confirmed zero unread inbox messages, typecheck, focused Vitest, 20000 and 12000 scenario runs with prefix-stable checkpoint hashes, taskctl validate, and diff check."
+    },
+    {
+      "at": "2026-06-25T15:40:49.545Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Create the first executable M3 ordinary-life vertical scenario after focused owner-store slices are reviewed.",
@@ -90,5 +138,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Scenario integration across deterministic simulation systems is not suitable for Spark."
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Codex WM-0056 repair",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0056.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; repair evidence confirmed for prefix-stable checkpoint hashes, authoritative primary seed 46, owner-derived terminal counters, and original WM-0056 acceptance checks.",
+    "at": "2026-06-25T15:37:44.354Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Owner integration rechecked WM-0056 after reviewer verification and repair, fast-forwarded onto origin/main c539e9a, confirmed zero unread inbox messages, typecheck, focused Vitest, 20000 and 12000 scenario runs with prefix-stable checkpoint hashes, taskctl validate, and diff check.",
+    "at": "2026-06-25T15:40:43.400Z"
   }
 }

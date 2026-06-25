@@ -174,6 +174,17 @@ export {
   runM2WorkLogisticsScenario,
 } from "./m2-work-logistics-scenario";
 export {
+  M3_ORDINARY_LIFE_ALIAS,
+  M3_ORDINARY_LIFE_CHECKPOINTS,
+  M3_ORDINARY_LIFE_FULL_HORIZON_TICKS,
+  M3_ORDINARY_LIFE_LONG_HORIZON_TICKS,
+  M3_ORDINARY_LIFE_PRIMARY_SEED,
+  M3_ORDINARY_LIFE_SCENARIO_ID,
+  M3_ORDINARY_LIFE_SHORT_HORIZON_TICKS,
+  M3_ORDINARY_LIFE_TRACE_CAPACITY,
+  runM3OrdinaryLifeScenario,
+} from "./m3-ordinary-life-scenario";
+export {
   M3_ABILITY_COMMUNICATION,
   M3_ABILITY_CONSCIOUSNESS,
   M3_ABILITY_LANE_COUNT,
@@ -652,6 +663,18 @@ export type {
   M2WorkLogisticsScenarioOptions,
   M2WorkLogisticsScenarioSummary,
 } from "./m2-work-logistics-scenario";
+export type {
+  M3OrdinaryLifeCheckpointHash,
+  M3OrdinaryLifeEndState,
+  M3OrdinaryLifePerformanceMetrics,
+  M3OrdinaryLifeQueueMetrics,
+  M3OrdinaryLifeReason,
+  M3OrdinaryLifeReasonTrace,
+  M3OrdinaryLifeReplayEvidence,
+  M3OrdinaryLifeScenarioOptions,
+  M3OrdinaryLifeScenarioSummary,
+  M3OrdinaryLifeTerminalInvariantCounters,
+} from "./m3-ordinary-life-scenario";
 export type {
   M3AbilityMetrics,
   M3AbilityQueryResult,
