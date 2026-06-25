@@ -1,0 +1,33 @@
+{
+  "scenarioId": "m3.ordinary_life.injured_caregiver.v1",
+  "seed": "46",
+  "requestedSeed": "3",
+  "source": "loaded-save",
+  "loadedStateHash": "0x0dbf661c",
+  "checkpoints": [
+    {
+      "tick": 12000,
+      "worldHash": "0x02c1d128",
+      "readModelHash": "0x15456e7a",
+      "checkpointHash": "0x8249d7b6",
+      "rebuiltIndexHash": "0xabbf0cd1"
+    },
+    {
+      "tick": 18000,
+      "worldHash": "0x5a521286",
+      "readModelHash": "0x388fee3e",
+      "checkpointHash": "0x0ea47ad8",
+      "rebuiltIndexHash": "0x230976e1"
+    },
+    {
+      "tick": 36000,
+      "worldHash": "0x9b04b712",
+      "readModelHash": "0x0f12213c",
+      "checkpointHash": "0x5f9923b0",
+      "rebuiltIndexHash": "0xab1444f2"
+    }
+  ],
+  "finalTick": 36000,
+  "finalWorldHash": "0x9b04b712",
+  "finalReadModelHash": "0x0f12213c"
+}

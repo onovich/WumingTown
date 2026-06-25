@@ -5,31 +5,45 @@ import {
   advanceHeadlessTicks,
   compareM1ReplayRuns,
   compareM2ReplayRuns,
+  compareM3ReplayRuns,
   compareReplayCheckpoints,
   createM1HaulingBuildingSaveEnvelope,
   createHeadlessReplayCheckpoint,
   createHeadlessRunner,
   createM2WorkLogisticsSaveEnvelope,
+  createM3OrdinaryLifeSaveEnvelope,
+  M3_FINAL_TICK,
+  M3_LOAD_TICK,
+  M3_ORDINARY_LIFE_SCENARIO_ID,
+  M3_SAVE_TICK,
   M2_WORK_LOGISTICS_SCENARIO_ID,
   queueHeadlessCommand,
   resumeM1HaulingBuildingFromSave,
   resumeM2WorkLogisticsFromSave,
+  resumeM3OrdinaryLifeFromSave,
   runM1HaulingBuildingReplay,
   runM2WorkLogisticsReplay,
+  runM3OrdinaryLifeReplay,
   summarizeHeadlessRun,
 } from "../packages/sim-core/src/index.ts";
 
 const M1_SCENARIO_ID = "m1.hauling_building.road_lantern_frame.v1";
 const M2_SCENARIO_FILTER = "m2-work-logistics";
+const M3_SCENARIO_FILTER = "m3-ordinary-life";
 
 const DEFAULT_SEED = "WM-0010-long-run";
 const DEFAULT_M2_SEED = "2";
+const DEFAULT_M3_SEED = "3";
 const DEFAULT_SEGMENT_TICKS = 5_000;
 const DEFAULT_SEGMENT_COUNT = 24;
 
 export function runReplayDiagnostics(options = {}) {
   if (options.scenario === M2_SCENARIO_FILTER) {
     return runM2ReplayDiagnostics(options);
+  }
+
+  if (options.scenario === M3_SCENARIO_FILTER) {
+    return runM3ReplayDiagnostics(options);
   }
 
   if (options.scenario !== undefined && options.scenario !== "all") {
@@ -201,6 +215,7 @@ export function printReplayDiagnosticsResult(result) {
           artifactPaths: result.artifactPaths,
           m1Scenario: result.m1Scenario ?? null,
           m2Scenario: result.m2Scenario ?? null,
+          m3Scenario: result.m3Scenario ?? null,
         },
         null,
         2,
@@ -322,6 +337,7 @@ function createArtifactPaths(customArtifactRoot) {
   const artifactDir = path.join(resolveArtifactRoot(customArtifactRoot), "determinism");
   const m1Dir = path.join(resolveArtifactRoot(customArtifactRoot), "m1-save-replay");
   const m2Dir = path.join(resolveArtifactRoot(customArtifactRoot), "m2-save-replay");
+  const m3Dir = path.join(resolveArtifactRoot(customArtifactRoot), "m3-save-replay");
 
   return {
     expected: path.join(artifactDir, "expected-checkpoints.json"),
@@ -341,6 +357,13 @@ function createArtifactPaths(customArtifactRoot) {
       resumed: path.join(m2Dir, "resumed.json"),
       save: path.join(m2Dir, "save.json"),
       summary: path.join(m2Dir, "summary.json"),
+    },
+    m3: {
+      expected: path.join(m3Dir, "expected.json"),
+      actual: path.join(m3Dir, "actual.json"),
+      resumed: path.join(m3Dir, "resumed.json"),
+      save: path.join(m3Dir, "save.json"),
+      summary: path.join(m3Dir, "summary.json"),
     },
   };
 }
@@ -378,6 +401,13 @@ function toRelativeArtifactPaths(artifactPaths) {
       resumed: toRelativePath(artifactPaths.m2.resumed),
       save: toRelativePath(artifactPaths.m2.save),
       summary: toRelativePath(artifactPaths.m2.summary),
+    },
+    m3: {
+      expected: toRelativePath(artifactPaths.m3.expected),
+      actual: toRelativePath(artifactPaths.m3.actual),
+      resumed: toRelativePath(artifactPaths.m3.resumed),
+      save: toRelativePath(artifactPaths.m3.save),
+      summary: toRelativePath(artifactPaths.m3.summary),
     },
   };
 }
@@ -489,6 +519,120 @@ function runM2ReplayDiagnostics(options) {
   }
 }
 
+function runM3ReplayDiagnostics(options) {
+  const seed = options.seed ?? DEFAULT_M3_SEED;
+  const artifactPaths = createArtifactPaths(
+    options.artifactRoot ?? path.join("coordination", "artifacts", "WM-0057"),
+  );
+  const failureContext = {
+    seed,
+    firstDivergentTick: null,
+    artifactPaths,
+  };
+
+  mkdirSync(path.dirname(artifactPaths.m3.summary), { recursive: true });
+  mkdirSync(path.dirname(artifactPaths.summary), { recursive: true });
+
+  try {
+    const checkpointTicks = [0, 3_600, 7_200, M3_SAVE_TICK, 18_000, M3_FINAL_TICK];
+    const resumeCheckpointTicks = [M3_SAVE_TICK, 18_000, M3_FINAL_TICK];
+    const expected = readM3Replay(runM3OrdinaryLifeReplay({ seed, checkpointTicks }));
+    const actual = readM3Replay(runM3OrdinaryLifeReplay({ seed, checkpointTicks }));
+    const expectedResume = filterReplayRunToTicks(expected, resumeCheckpointTicks);
+    const save = readM3Save(createM3OrdinaryLifeSaveEnvelope(seed, M3_SAVE_TICK));
+    const resumed = readM3Replay(
+      resumeM3OrdinaryLifeFromSave({
+        save,
+        loadTick: M3_LOAD_TICK,
+        finalTick: M3_FINAL_TICK,
+        checkpointTicks: resumeCheckpointTicks,
+      }),
+    );
+
+    writeJson(artifactPaths.m3.expected, expected);
+    writeJson(artifactPaths.m3.actual, actual);
+    writeJson(artifactPaths.m3.save, save);
+    writeJson(artifactPaths.m3.resumed, resumed);
+
+    const relativeArtifacts = {
+      expected: toRelativePath(artifactPaths.m3.expected),
+      actual: toRelativePath(artifactPaths.m3.actual),
+      resumed: toRelativePath(artifactPaths.m3.resumed),
+      save: toRelativePath(artifactPaths.m3.save),
+      summary: toRelativePath(artifactPaths.m3.summary),
+    };
+    const comparison = compareM3ReplayRuns(expected, actual, relativeArtifacts);
+    const resumedComparison = compareM3ReplayRuns(expectedResume, resumed, relativeArtifacts);
+
+    if (!comparison.ok || !resumedComparison.ok) {
+      const divergence = comparison.ok ? resumedComparison : comparison;
+      return createReplayFailure(
+        "m3_ordinary_life_divergence",
+        "M3 ordinary-life save/replay diagnostics diverged.",
+        failureContext,
+        {
+          scenarioId: M3_ORDINARY_LIFE_SCENARIO_ID,
+          firstDivergentTick: divergence.firstDivergentTick,
+          divergence,
+        },
+      );
+    }
+
+    const m3Scenario = {
+      ok: true,
+      scenarioId: M3_ORDINARY_LIFE_SCENARIO_ID,
+      seed: save.seed,
+      requestedSeed: seed,
+      finalWorldHash: expected.finalWorldHash,
+      finalReadModelHash: expected.finalReadModelHash,
+      resumedFinalWorldHash: resumed.finalWorldHash,
+      resumedFinalReadModelHash: resumed.finalReadModelHash,
+      resumedSource: resumed.source,
+      loadedStateHash: resumed.loadedStateHash,
+      checkpointCount: expected.checkpoints.length,
+      checkpointHashes: expected.checkpoints.map((checkpoint) => ({
+        tick: checkpoint.tick,
+        worldHash: checkpoint.worldHash,
+        readModelHash: checkpoint.readModelHash,
+        checkpointHash: checkpoint.checkpointHash,
+      })),
+      saveTick: save.createdTick,
+      loadTick: M3_LOAD_TICK,
+      finalTick: M3_FINAL_TICK,
+      saveBytes: JSON.stringify(save).length,
+      rebuildTimeTicks: save.readOnlyProjection.rebuiltIndexes.rebuildTimeTicks,
+      rebuiltIndexes: save.readOnlyProjection.rebuiltIndexes.names,
+      rebuiltSurfaces: save.readOnlyProjection.rebuiltIndexes.surfaces,
+      firstDivergentTick: null,
+      artifactPaths: relativeArtifacts,
+    };
+
+    const summary = {
+      ok: true,
+      scenarioId: M3_ORDINARY_LIFE_SCENARIO_ID,
+      seed: save.seed,
+      requestedSeed: seed,
+      firstDivergentTick: null,
+      m3Scenario,
+      artifactPaths: toRelativeArtifactPaths(artifactPaths),
+    };
+
+    writeJson(artifactPaths.m3.summary, m3Scenario);
+    writeJson(artifactPaths.summary, summary);
+    return summary;
+  } catch (error) {
+    return createReplayFailure(
+      "unexpected_error",
+      "M3 replay diagnostics crashed before completing structured checks.",
+      failureContext,
+      {
+        scenarioId: M3_ORDINARY_LIFE_SCENARIO_ID,
+        error,
+      },
+    );
+  }
+}
+
 function runM1ReplayDiagnostics(seed, artifactPaths) {
   mkdirSync(path.dirname(artifactPaths.summary), { recursive: true });
 
@@ -585,4 +729,42 @@ function readM2Save(result) {
   }
 
   return result.save;
+}
+
+function readM3Replay(result) {
+  if (!result.ok) {
+    throw new Error(result.reason);
+  }
+
+  return result.replay;
+}
+
+function readM3Save(result) {
+  if (!result.ok) {
+    throw new Error(result.reason);
+  }
+
+  return result.save;
+}
+
+function filterReplayRunToTicks(replay, checkpointTicks) {
+  const checkpoints = [];
+  for (const checkpoint of replay.checkpoints) {
+    if (checkpointTicks.includes(checkpoint.tick)) {
+      checkpoints.push(checkpoint);
+    }
+  }
+
+  const finalCheckpoint = checkpoints[checkpoints.length - 1];
+  if (finalCheckpoint === undefined) {
+    throw new Error("filtered replay has no checkpoints");
+  }
+
+  return {
+    ...replay,
+    checkpoints,
+    finalTick: finalCheckpoint.tick,
+    finalWorldHash: finalCheckpoint.worldHash,
+    finalReadModelHash: finalCheckpoint.readModelHash,
+  };
 }

@@ -2,7 +2,7 @@
   "id": "WM-0057",
   "title": "Add M3 save replay resume harness",
   "summary": "Add focused save/load/resume diagnostics for the M3 ordinary-life scenario without public save compatibility or platform save UI.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,7 +31,7 @@
   ],
   "branch": "task/WM-0057-add-m3-save-replay-resume-harness",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T15:40:49.557Z",
+  "updatedAt": "2026-06-25T16:47:58.106Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
@@ -44,6 +44,60 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-25T15:44:26.295Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Codex WM-0057"
+    },
+    {
+      "at": "2026-06-25T16:04:29.863Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented focused M3 save/load/resume replay harness; required checks pass; report at coordination/reports/WM-0057.md"
+    },
+    {
+      "at": "2026-06-25T16:12:08.969Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: packages/sim-core/src/m3-save-replay.ts:441 reruns from seed after load instead of resuming from loaded owner state; High: tools/sim-replay-diagnostics-lib.mjs:537 compares resumed run to shortened expectedResume and reports expected hash, hiding resumed read-model mismatch 0x3c8a9532 vs uninterrupted 0x0f12213c."
+    },
+    {
+      "at": "2026-06-25T16:22:04.104Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Repaired loaded-save resume path and full-checkpoint read-model comparison; required checks and pnpm quality pass; report updated at coordination/reports/WM-0057.md"
+    },
+    {
+      "at": "2026-06-25T16:28:42.288Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: packages/sim-core/src/m3-save-replay.ts:784-801 still advances resumed post-save checkpoints by rerunning runM3OrdinaryLifeScenario from requestedSeed/tick, not from hydrated loaded owner sections/rebuilt state; diagnostics/tests pass but do not prove true loaded-state resume."
+    },
+    {
+      "at": "2026-06-25T16:38:45.449Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Removed fresh scenario replay from loaded M3 resume advance path; hydrated resume now gates post-save checkpoints on loaded focused save state and rejects coherent metric tampering; diagnostics artifacts regenerated and required checks pass."
+    },
+    {
+      "at": "2026-06-25T16:46:00.006Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; post-save M3 resume no longer generates 18000/36000 checkpoints via fresh scenario replay, focused loaded-state gate/tamper regression and diagnostics evidence confirmed."
+    },
+    {
+      "at": "2026-06-25T16:47:58.062Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Owner integration rechecked WM-0057 after reviewer verification, confirmed zero unread inbox messages, restored transient thread registry, and reran typecheck, m3-save-replay filter tests, m3 replay diagnostics, taskctl validate, and diff check."
+    },
+    {
+      "at": "2026-06-25T16:47:58.106Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Gate M3 ordinary-life state through deterministic focused save/replay before Worker parity and benchmarks.",
@@ -82,5 +136,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Save/replay and migration-boundary work is explicitly outside Spark scope."
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Codex WM-0057",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0057.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; post-save M3 resume no longer generates 18000/36000 checkpoints via fresh scenario replay, focused loaded-state gate/tamper regression and diagnostics evidence confirmed.",
+    "at": "2026-06-25T16:46:00.006Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Owner integration rechecked WM-0057 after reviewer verification, confirmed zero unread inbox messages, restored transient thread registry, and reran typecheck, m3-save-replay filter tests, m3 replay diagnostics, taskctl validate, and diff check.",
+    "at": "2026-06-25T16:47:58.062Z"
   }
 }

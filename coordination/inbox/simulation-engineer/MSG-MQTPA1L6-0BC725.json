@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQTPA1L6-0BC725",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0057",
+  "kind": "changes-requested",
+  "subject": "WM-0057 review: changes_requested",
+  "body": "High: packages/sim-core/src/m3-save-replay.ts:441 reruns from seed after load instead of resuming from loaded owner state; High: tools/sim-replay-diagnostics-lib.mjs:537 compares resumed run to shortened expectedResume and reports expected hash, hiding resumed read-model mismatch 0x3c8a9532 vs uninterrupted 0x0f12213c.",
+  "artifacts": [
+    "coordination/reports/WM-0057.md"
+  ],
+  "createdAt": "2026-06-25T16:12:08.970Z",
+  "acknowledgedAt": "2026-06-25T16:13:31.634Z"
+}

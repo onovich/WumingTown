@@ -1,0 +1,358 @@
+{
+  "magic": "wuming-town.m3.save",
+  "formatVersion": 1,
+  "scenarioId": "m3.ordinary_life.injured_caregiver.v1",
+  "seed": "46",
+  "requestedSeed": "3",
+  "createdTick": 12000,
+  "sectionDirectoryVersion": 1,
+  "sections": {
+    "mapChunks": {
+      "mapChunksVersion": 1,
+      "width": 32,
+      "height": 24,
+      "regionCount": 4
+    },
+    "ownerStores": {
+      "ownerStoresVersion": 1,
+      "actorHandles": [
+        {
+          "index": 0,
+          "generation": 1
+        },
+        {
+          "index": 1,
+          "generation": 1
+        },
+        {
+          "index": 2,
+          "generation": 1
+        },
+        {
+          "index": 3,
+          "generation": 1
+        },
+        {
+          "index": 4,
+          "generation": 1
+        },
+        {
+          "index": 5,
+          "generation": 1
+        }
+      ],
+      "needRecords": [
+        {
+          "actorId": 0,
+          "hunger": 330,
+          "rest": 420
+        },
+        {
+          "actorId": 1,
+          "hunger": 360,
+          "rest": 500
+        },
+        {
+          "actorId": 2,
+          "hunger": 390,
+          "rest": 530
+        },
+        {
+          "actorId": 3,
+          "hunger": 340,
+          "rest": 460
+        },
+        {
+          "actorId": 4,
+          "hunger": 410,
+          "rest": 560
+        },
+        {
+          "actorId": 5,
+          "hunger": 430,
+          "rest": 600
+        }
+      ],
+      "conditionRecords": [
+        {
+          "conditionId": 0,
+          "actorId": 0,
+          "severity": 260,
+          "active": true
+        }
+      ],
+      "itemStackRecords": [
+        {
+          "stackId": 0,
+          "quantity": 7
+        },
+        {
+          "stackId": 3,
+          "quantity": 2
+        }
+      ],
+      "moodRecords": [
+        {
+          "actorId": 0,
+          "valence": 500,
+          "tension": 500
+        },
+        {
+          "actorId": 1,
+          "valence": 500,
+          "tension": 500
+        },
+        {
+          "actorId": 2,
+          "valence": 500,
+          "tension": 500
+        }
+      ],
+      "relationshipRecords": [
+        {
+          "edgeId": 0,
+          "sourceActorId": 0,
+          "targetActorId": 2,
+          "laneValue": 120
+        },
+        {
+          "edgeId": 1,
+          "sourceActorId": 0,
+          "targetActorId": 1,
+          "laneValue": 45
+        }
+      ]
+    },
+    "jobsReservations": {
+      "jobsReservationsVersion": 1,
+      "activeReservationCount": 0,
+      "runningJobCount": 0,
+      "treatmentJobRecords": [
+        {
+          "jobId": 0,
+          "caregiverActorId": 2,
+          "patientActorId": 0,
+          "conditionId": 0,
+          "status": "completed",
+          "stockConsumed": 1
+        }
+      ]
+    },
+    "randomStreams": {
+      "randomStreamsVersion": 1,
+      "seed": "46",
+      "records": [
+        {
+          "streamId": 0,
+          "name": "world-generation",
+          "drawCount": 1
+        },
+        {
+          "streamId": 1,
+          "name": "weather:m3-ordinary-life",
+          "drawCount": 1
+        },
+        {
+          "streamId": 2,
+          "name": "social:m3-ordinary-life",
+          "drawCount": 1
+        },
+        {
+          "streamId": 3,
+          "name": "incident:m3-ordinary-life-sprain",
+          "drawCount": 1
+        }
+      ]
+    },
+    "commandLogTail": {
+      "commandLogTailVersion": 1,
+      "checkpointTick": 12000,
+      "checkpointWorldHash": "0x02c1d128",
+      "commandStreamHash": "0x226832d2",
+      "contentHash": "0xdfe7107e",
+      "nextCommandSequence": 9
+    },
+    "reasonMetrics": {
+      "reasonMetricsVersion": 1,
+      "checkpointHashes": [
+        {
+          "tick": 0,
+          "hash": "0xb19ad1c2"
+        },
+        {
+          "tick": 3600,
+          "hash": "0xec4b052f"
+        },
+        {
+          "tick": 7200,
+          "hash": "0x78877afa"
+        },
+        {
+          "tick": 12000,
+          "hash": "0x8249d7b6"
+        }
+      ],
+      "reasonTraceCount": 23,
+      "reasonTraceOverflowCount": 0,
+      "queueMetrics": {
+        "needDirtyBacklog": 0,
+        "needDirtyBacklogPeak": 2,
+        "environmentDirtyBacklog": 6,
+        "environmentDirtyBacklogPeak": 6,
+        "foodDirtyBacklog": 0,
+        "foodDirtyBacklogPeak": 3,
+        "healthDirtyBacklog": 0,
+        "healthDirtyPeak": 2,
+        "abilityDirtyBacklog": 0,
+        "abilityDirtyPeak": 14,
+        "moodDirtyBacklog": 0,
+        "moodDirtyBacklogPeak": 3
+      },
+      "performance": {
+        "elapsedTicks": 12000,
+        "commandCount": 11,
+        "checkpointCount": 4,
+        "actorThinkPasses": 3,
+        "workCandidateVisitedCount": 2,
+        "needCandidateVisitedCount": 1,
+        "medicalCandidateVisitedCount": 1,
+        "foodCandidateVisitedCount": 1,
+        "socialCandidateVisitedCount": 4,
+        "exactPathRequests": 1,
+        "boundedCandidateCapHits": 0
+      },
+      "invariantCounters": {
+        "activeReservationCount": 0,
+        "runningJobCount": 0,
+        "negativeNeedLaneCount": 0,
+        "needLaneCheckCount": 30,
+        "outOfRangeMoodLaneCount": 0,
+        "moodLaneCheckCount": 36,
+        "outOfRangeRelationshipLaneCount": 0,
+        "relationshipLaneCheckCount": 15,
+        "activeM4FactCount": 0,
+        "m4AbsenceCheckCount": 5,
+        "reasonTraceOverflowCount": 0,
+        "staleAbilityCacheRejectCount": 0,
+        "itemConservationDelta": 0,
+        "medicalStockConservationDelta": 0
+      }
+    }
+  },
+  "readOnlyProjection": {
+    "projectionVersion": 1,
+    "scenarioId": "m3.ordinary_life.injured_caregiver.v1",
+    "tick": 12000,
+    "worldHash": "0x02c1d128",
+    "readModelHash": "0x15456e7a",
+    "renderSnapshot": {
+      "renderSnapshotSchemaVersion": 1,
+      "snapshotSequence": 3,
+      "tick": 12000,
+      "actorCount": 6,
+      "worldHash": "0x02c1d128",
+      "readModelHash": "0x3a2e3feb"
+    },
+    "scenarioReadModel": {
+      "scenarioReadModelSchemaVersion": 1,
+      "scenarioId": "m3.ordinary_life.injured_caregiver.v1",
+      "basisTick": 12000,
+      "commandStreamHash": "0x226832d2",
+      "contentHash": "0xdfe7107e",
+      "reasonTraceCount": 23,
+      "detailHash": "0x0099fe5f",
+      "summaries": [
+        "weather=rain_light",
+        "schedule=daytime",
+        "sprain=260",
+        "treatment=1"
+      ]
+    },
+    "rebuiltIndexes": {
+      "rebuiltIndexesSchemaVersion": 1,
+      "names": [
+        "needs",
+        "work-offers",
+        "reservations",
+        "path-caches",
+        "ability-cache",
+        "mood-read-models",
+        "social-read-models",
+        "food-indexes",
+        "rest-indexes",
+        "medical-indexes",
+        "weather-projections",
+        "schedule-projections",
+        "reason-materialization",
+        "metric-materialization",
+        "read-models"
+      ],
+      "surfaces": [
+        {
+          "name": "needs",
+          "hash": "0x310a60eb"
+        },
+        {
+          "name": "work-offers",
+          "hash": "0x6367a6cf"
+        },
+        {
+          "name": "reservations",
+          "hash": "0x86546906"
+        },
+        {
+          "name": "path-caches",
+          "hash": "0x4132e04d"
+        },
+        {
+          "name": "ability-cache",
+          "hash": "0x744ebcb3"
+        },
+        {
+          "name": "mood-read-models",
+          "hash": "0x9a3bb45a"
+        },
+        {
+          "name": "social-read-models",
+          "hash": "0x4167caf8"
+        },
+        {
+          "name": "food-indexes",
+          "hash": "0xb55ac074"
+        },
+        {
+          "name": "rest-indexes",
+          "hash": "0x1de4cbca"
+        },
+        {
+          "name": "medical-indexes",
+          "hash": "0xff0a08b6"
+        },
+        {
+          "name": "weather-projections",
+          "hash": "0xd8ef1967"
+        },
+        {
+          "name": "schedule-projections",
+          "hash": "0xed74d8b7"
+        },
+        {
+          "name": "reason-materialization",
+          "hash": "0x2e2b8b25"
+        },
+        {
+          "name": "metric-materialization",
+          "hash": "0xaf4ccb6d"
+        },
+        {
+          "name": "read-models",
+          "hash": "0x83da0351"
+        }
+      ],
+      "basisTick": 12000,
+      "basisWorldHash": "0x02c1d128",
+      "rebuildTimeTicks": 1,
+      "indexHash": "0xabbf0cd1"
+    }
+  }
+}

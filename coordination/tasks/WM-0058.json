@@ -2,7 +2,7 @@
   "id": "WM-0058",
   "title": "Add M3 Worker headless parity",
   "summary": "Prove browser Worker and Node headless run the M3 ordinary-life scenario with matching authoritative hashes and read-only projections.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,13 +31,19 @@
   ],
   "branch": "task/WM-0058-add-m3-worker-headless-parity",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T07:30:00.000Z",
+  "updatedAt": "2026-06-25T16:47:58.118Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
       "actor": "systems-architect",
       "action": "create",
       "details": "Created by WM-0045 M3 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-25T16:47:58.118Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "objective": "Gate M3 through Worker/headless authoritative parity while keeping all client surfaces read-only.",
