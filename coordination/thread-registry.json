@@ -22,9 +22,9 @@
       "registeredAt": "2026-06-24T21:54:12.299Z"
     },
     "simulation-engineer": {
-      "threadId": "019efbf5-1d7c-7f80-90b6-1a1377a656a4",
-      "label": "WM-0037-reservation-contention",
-      "registeredAt": "2026-06-24T23:27:16.029Z"
+      "threadId": "019efc1a-5c15-7a10-b61c-eb62f12cb49c",
+      "label": "WM-0038-storage-hauling",
+      "registeredAt": "2026-06-25T00:07:42.307Z"
     },
     "client-engineer": {
       "threadId": "019ef650-10ca-7e13-b072-9be37575c2be",
@@ -47,5 +47,5 @@
       "registeredAt": "2026-06-24T21:35:05.679Z"
     }
   },
-  "updatedAt": "2026-06-24T23:40:27.513Z"
+  "updatedAt": "2026-06-25T00:07:42.307Z"
 }

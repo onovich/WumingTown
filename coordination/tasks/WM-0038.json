@@ -2,7 +2,7 @@
   "id": "WM-0038",
   "title": "Expand storage and hauling beyond the M1 fixture",
   "summary": "Extend storage supply/demand and hauling jobs beyond the single M1 fixture while preserving integer quantity ownership and bounded indexed work selection.",
-  "state": "ready",
+  "state": "in_progress",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -33,7 +33,7 @@
   ],
   "branch": "task/WM-0038-expand-storage-and-hauling-beyond-m1-fixture",
   "createdAt": "2026-06-24T21:14:35.180Z",
-  "updatedAt": "2026-06-24T23:56:13.487Z",
+  "updatedAt": "2026-06-25T00:07:42.108Z",
   "history": [
     {
       "at": "2026-06-24T21:14:35.180Z",
@@ -46,6 +46,12 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-25T00:07:42.108Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": ""
     }
   ],
   "objective": "Generalize M1 hauling enough for the M2 vertical slice without broad economy work.",
@@ -85,5 +91,8 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Storage and hauling touch state ownership, reservations, quantities and deterministic logistics."
-  }
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": null,
+  "blocker": null
 }
