@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQU0GL2G-AA6EDC",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0064",
+  "kind": "review-request",
+  "subject": "WM-0064 ready for review",
+  "body": "Repaired WM-0064 review findings: compliance context now carries trigger/action and confirmed-identity lanes, town rules are indexed by subject/region/trigger/action, stored exception masks are honored, due candidate caps apply after due-window filtering, and focused regressions pass; typecheck, m4-obligations tests, validate, diff-check, and quality all pass.",
+  "artifacts": [
+    "coordination/reports/WM-0064.md",
+    "task/WM-0064-add-m4-obligations-and-town-rule-slice"
+  ],
+  "createdAt": "2026-06-25T21:25:09.928Z",
+  "acknowledgedAt": "2026-06-25T21:26:04.328Z"
+}

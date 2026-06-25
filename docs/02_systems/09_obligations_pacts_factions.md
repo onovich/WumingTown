@@ -23,3 +23,28 @@
 ## 故事用途
 
 一次求援可换来短期医疗与长期政治让步；一次违约可让某派系拒绝贸易、公开秘密或支持镇内反对者。导演读取即将到期义务生成事件，但不得凭空改变条款。
+## WM-0064 obligation owner-store note
+
+`M4ObligationStore` is the first authoritative M4 obligation fact surface in
+`sim-core`. It owns typed-array rows for creditor, debtor, obligation type,
+condition, due window, visibility, inheritance basis, fulfillment action,
+violation consequence, source event and current state. The M4 slice currently
+defines explicit numeric facts for lampkeeper oil duty, lodging witness duty
+and name confirmation; it does not add pacts, factions, town-wide governance,
+Worker protocol, save schema or UI behavior.
+
+Owner mutations preflight local input and owner-version capacity before
+publishing rows, counts or due indexes. Fulfillment and violation are terminal
+state transitions with structured reasons (`obligation_fulfilled` and
+`obligation_violated`) and remove the row from the active due lane. Failed
+registration, duplicate registration or invalid terminal ticks leave
+`ownerVersion`, active counts and due-index counts unchanged.
+
+Actor-facing reads use `queryDueObligations` and
+`getActiveDueCountForActor`. Both walk only a debtor due lane with caller caps
+and deterministic due-end/id ordering. `queryDueObligations` carries both a
+`candidateCap` and a `scanCap`: candidate cap limits returned due-window
+matches, while scan cap limits total debtor-lane rows inspected. If scan cap is
+exhausted, the result reports `obligation_due_scan_cap_reached` instead of
+claiming no candidate. These reads are intended to feed downstream numeric
+compliance context rather than hidden prose or probability state.

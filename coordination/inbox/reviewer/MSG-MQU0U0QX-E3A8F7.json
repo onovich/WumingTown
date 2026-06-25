@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQU0U0QX-E3A8F7",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0064",
+  "kind": "review-request",
+  "subject": "WM-0064 ready for review",
+  "body": "Repaired remaining WM-0064 bounded-read findings: obligation due queries and town-rule compliance now expose explicit scan caps, report scan-cap hits and actual visited counts, and focused regressions cover tail-match/no-match due scans plus out-of-time town-rule rows before in-time matches; typecheck, m4-obligations tests, validate, diff-check, and quality all pass.",
+  "artifacts": [
+    "coordination/reports/WM-0064.md",
+    "task/WM-0064-add-m4-obligations-and-town-rule-slice"
+  ],
+  "createdAt": "2026-06-25T21:35:36.777Z",
+  "acknowledgedAt": "2026-06-25T21:36:24.665Z"
+}

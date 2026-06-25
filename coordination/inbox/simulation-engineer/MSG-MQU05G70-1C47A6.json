@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQU05G70-1C47A6",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0064",
+  "kind": "changes-requested",
+  "subject": "WM-0064 review: changes_requested",
+  "body": "High: town-rule compliance ignores stored trigger/action and evaluates every same subject/region/time rule, making those mechanical fields inert; High: stored exception lane is not honored, emergency rejects even rules with exception=0; Medium: obligation due query consumes candidateCap before due-window filtering, so matching later rows can be missed and reported as no_candidate. Required checks and pnpm quality pass mechanically.",
+  "artifacts": [
+    "coordination/reports/WM-0064.md"
+  ],
+  "createdAt": "2026-06-25T21:16:30.396Z",
+  "acknowledgedAt": "2026-06-25T21:17:11.084Z"
+}

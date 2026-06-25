@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQU0M1EC-9CD4BC",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0064",
+  "kind": "changes-requested",
+  "subject": "WM-0064 review: changes_requested",
+  "body": "High: obligation due queries still traverse unbounded non-matching debtor due rows while reporting only matching rows as visited, so metrics/caps understate actor-facing work; Medium: town-rule compliance cap is consumed before time-window filtering, so out-of-time rows in the same subject/region/trigger/action bucket can hide a later in-time rule. Prior trigger/action and exception-mask findings are fixed. Required checks and pnpm quality pass mechanically.",
+  "artifacts": [
+    "coordination/reports/WM-0064.md"
+  ],
+  "createdAt": "2026-06-25T21:29:24.372Z",
+  "acknowledgedAt": "2026-06-25T21:30:29.367Z"
+}

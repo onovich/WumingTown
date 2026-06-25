@@ -2,7 +2,7 @@
   "id": "WM-0064",
   "title": "Add M4 obligations and town-rule slice",
   "summary": "Add focused obligation and executable town-rule owner state for lamp oil duty, lodging witness duty, name confirmation and night-knock compliance.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0064-add-m4-obligations-and-town-rule-slice",
   "createdAt": "2026-06-25T19:08:30.000Z",
-  "updatedAt": "2026-06-25T20:53:16.013Z",
+  "updatedAt": "2026-06-25T21:42:35.951Z",
   "history": [
     {
       "at": "2026-06-25T19:08:30.000Z",
@@ -43,6 +43,60 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-25T20:55:25.117Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Tally WM-0064 M4 obligations"
+    },
+    {
+      "at": "2026-06-25T21:11:38.095Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented M4 obligation and town-rule owner stores with explicit numeric facts, structured reasons, bounded due/compliance candidate reads, focused m4-obligations tests, docs, and report; typecheck, focused tests, validate, diff-check, and quality all pass."
+    },
+    {
+      "at": "2026-06-25T21:16:30.395Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: town-rule compliance ignores stored trigger/action and evaluates every same subject/region/time rule, making those mechanical fields inert; High: stored exception lane is not honored, emergency rejects even rules with exception=0; Medium: obligation due query consumes candidateCap before due-window filtering, so matching later rows can be missed and reported as no_candidate. Required checks and pnpm quality pass mechanically."
+    },
+    {
+      "at": "2026-06-25T21:25:09.927Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Repaired WM-0064 review findings: compliance context now carries trigger/action and confirmed-identity lanes, town rules are indexed by subject/region/trigger/action, stored exception masks are honored, due candidate caps apply after due-window filtering, and focused regressions pass; typecheck, m4-obligations tests, validate, diff-check, and quality all pass."
+    },
+    {
+      "at": "2026-06-25T21:29:24.371Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: obligation due queries still traverse unbounded non-matching debtor due rows while reporting only matching rows as visited, so metrics/caps understate actor-facing work; Medium: town-rule compliance cap is consumed before time-window filtering, so out-of-time rows in the same subject/region/trigger/action bucket can hide a later in-time rule. Prior trigger/action and exception-mask findings are fixed. Required checks and pnpm quality pass mechanically."
+    },
+    {
+      "at": "2026-06-25T21:35:36.776Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Repaired remaining WM-0064 bounded-read findings: obligation due queries and town-rule compliance now expose explicit scan caps, report scan-cap hits and actual visited counts, and focused regressions cover tail-match/no-match due scans plus out-of-time town-rule rows before in-time matches; typecheck, m4-obligations tests, validate, diff-check, and quality all pass."
+    },
+    {
+      "at": "2026-06-25T21:41:33.827Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Re-reviewed current worktree including untracked WM-0064 source/tests; obligation due scanCap and town-rule compliance scanCap repairs verified, trigger/action and exception-mask fixes remain intact, and required checks plus pnpm quality pass."
+    },
+    {
+      "at": "2026-06-25T21:42:27.937Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified by reviewer after trigger/action, exception-mask, due scanCap and compliance scanCap repairs; required checks and pnpm quality passed."
+    },
+    {
+      "at": "2026-06-25T21:42:35.951Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Implement the minimal obligation and town-rule owner surfaces needed for the M4 borrowed-shadow lamp scenario.",
@@ -84,5 +138,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Obligation and executable town-rule ownership affects deterministic simulation and cannot be assigned to Spark."
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Tally WM-0064 M4 obligations",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0064.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Re-reviewed current worktree including untracked WM-0064 source/tests; obligation due scanCap and town-rule compliance scanCap repairs verified, trigger/action and exception-mask fixes remain intact, and required checks plus pnpm quality pass.",
+    "at": "2026-06-25T21:41:33.826Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified by reviewer after trigger/action, exception-mask, due scanCap and compliance scanCap repairs; required checks and pnpm quality passed.",
+    "at": "2026-06-25T21:42:27.937Z"
   }
 }

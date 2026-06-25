@@ -346,3 +346,29 @@ candidates with a 32-row cap instead of scanning every row.
 version, row count, dirty backlog peak/final counts, drain count, and drained
 key count. Dissemination changes enqueue exact resident/rule or resident/policy
 dirty keys so projection consumers do not need a full resident or rule scan.
+
+## WM-0064 M4 obligation and town-rule metrics
+
+`M4ObligationStore.createMetrics()` records obligation owner version, active
+obligation count, due-indexed count, fulfilled count, violated count, last due
+candidate visits and total due candidate visits. Normal actor-facing obligation
+reads walk only the debtor due lane through `queryDueObligations` with a caller
+candidate cap, scan cap and typed output buffer. The candidate cap counts
+matching due-window candidates; the scan cap bounds total inspected debtor-lane
+rows. If scan cap is exhausted, the read returns
+`obligation_due_scan_cap_reached` and metrics report the actual inspected row
+count. Fulfillment and violation unlink due rows instead of requiring cleanup
+scans.
+
+`M4TownRuleStore.createMetrics()` records town-rule owner version, active rule
+count, compliance-indexed count, last compliance candidate visits, total
+compliance candidate visits and cumulative enforcement cost. Compliance reads
+walk only the subject-scope/region/trigger/action rule bucket with caller
+candidate and scan caps. Out-of-time rows are scan-counted but do not consume
+candidate cap; if scan cap is exhausted, the read returns
+`town_rule_scan_cap_reached`. Relationship, need, fear, enforcement risk,
+emergency, confirmed identity and obligation pressure are explicit numeric
+context lanes; no hidden
+text/probability lane participates in rule selection. Stored exception masks,
+not context flags alone, decide whether emergency or confirmed identity bypasses
+a rule.
