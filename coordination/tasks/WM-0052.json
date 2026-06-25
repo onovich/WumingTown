@@ -2,7 +2,7 @@
   "id": "WM-0052",
   "title": "Add M3 health conditions and ability cache",
   "summary": "Add injury/illness condition owner stores and derived ability cache invalidation for ordinary-life simulation.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0052-add-m3-health-conditions-and-ability-cache",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T08:37:14.027Z",
+  "updatedAt": "2026-06-25T09:26:07.432Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
@@ -43,6 +43,48 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-25T08:43:40.737Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": ""
+    },
+    {
+      "at": "2026-06-25T08:54:48.787Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented deterministic M3 health condition owner store and ability cache invalidation; typecheck, focused sim-core test, task validation, diff check and quality pass."
+    },
+    {
+      "at": "2026-06-25T09:02:12.250Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: health condition mutations are not atomic on dirty queue overflow; failed add/update/age/remove can leave owner state, versions, actor links, counts, and partial invalidations. Medium: invalid ability thresholds return below-threshold instead of value_out_of_range, cache hits report cache_stale_basis, and terminalState accepts out-of-range values via Uint8Array wrap."
+    },
+    {
+      "at": "2026-06-25T09:12:53.416Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Repaired reviewer findings: atomic health dirty-queue overflow rejection, terminal state validation, invalid ability threshold reason, cache-hit reason; typecheck, focused m3-health Vitest, task validation/status, diff check, and quality pass."
+    },
+    {
+      "at": "2026-06-25T09:21:18.640Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings after repair; dirty-queue overflow is preflighted for add/update/age/remove, terminal states validate, invalid thresholds return ability.value_out_of_range, cache hits return ability.cache_hit; typecheck, focused m3-health Vitest, taskctl validate/status, diff check, and quality pass."
+    },
+    {
+      "at": "2026-06-25T09:26:01.971Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Owner integration rechecked WM-0052 after reviewer verification and after merging current main with WM-0048/WM-0049; acknowledged review approval and confirmed typecheck, focused health+needs+environment vitest, task status, and diff check pass."
+    },
+    {
+      "at": "2026-06-25T09:26:07.432Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Create the M3 health and ability state surface required before medical care and mood effects.",
@@ -83,5 +125,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Health owner stores and cache invalidation are deterministic simulation architecture work outside Spark scope."
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": null,
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0052.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings after repair; dirty-queue overflow is preflighted for add/update/age/remove, terminal states validate, invalid thresholds return ability.value_out_of_range, cache hits return ability.cache_hit; typecheck, focused m3-health Vitest, taskctl validate/status, diff check, and quality pass.",
+    "at": "2026-06-25T09:21:18.640Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Owner integration rechecked WM-0052 after reviewer verification and after merging current main with WM-0048/WM-0049; acknowledged review approval and confirmed typecheck, focused health+needs+environment vitest, task status, and diff check pass.",
+    "at": "2026-06-25T09:26:01.970Z"
   }
 }

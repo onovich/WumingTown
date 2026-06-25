@@ -108,3 +108,25 @@ target, structured reason class, and source owner-store version basis.
 queue, or UI-only string log. Need, rest, eating, treatment, medical, mood,
 relationship, weather, save/replay, and Worker parity failures must emit
 structured reasons that tests can assert without reading prose.
+
+## WM-0052 implementation note
+
+The focused health and ability slice exposes shared structured reason classes
+directly from `packages/sim-core/src/m3-health.ts`. Condition mutations report
+`condition.injury_applied`, `condition.illness_applied`, `condition.updated`,
+`condition.aged`, `condition.removed`, `condition.dirty_queue_overflow`, and
+`condition.terminal_state_out_of_range`; ability cache behavior reports
+`ability.cache_invalidated`, `ability.cache_rebuilt`, `ability.cache_hit`,
+`ability.value_out_of_range`, and `ability.rejected_below_threshold`.
+
+Condition dirty queue overflow is rejected before owner mutation, so failed
+add, update, age, or remove operations do not leave partial rows, actor links,
+versions, active counts, terminal-state changes, or partial invalidations.
+
+`M3HealthConditionStore.createMetrics()` and
+`M3AbilityCacheStore.createMetrics()` are the WM-0052 performance evidence
+surface. They record condition updates, exact ability invalidations, ability
+query counts, cache hits, rebuilds, stale-basis rejects, ability failures,
+dirty backlog/peak, and condition rows visited during cache rebuilds. Tests use
+these counters to prove cache hits do not rescan condition rows and rebuilds are
+limited to the actor's condition lane.

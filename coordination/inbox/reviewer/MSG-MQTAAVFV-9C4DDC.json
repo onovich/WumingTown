@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQTAAVFV-9C4DDC",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0052",
+  "kind": "review-request",
+  "subject": "WM-0052 ready for review",
+  "body": "Repaired reviewer findings: atomic health dirty-queue overflow rejection, terminal state validation, invalid ability threshold reason, cache-hit reason; typecheck, focused m3-health Vitest, task validation/status, diff check, and quality pass.",
+  "artifacts": [
+    "coordination/reports/WM-0052.md",
+    "task/WM-0052-add-m3-health-conditions-and-ability-cache"
+  ],
+  "createdAt": "2026-06-25T09:12:53.419Z",
+  "acknowledgedAt": "2026-06-25T09:21:11.370Z"
+}
