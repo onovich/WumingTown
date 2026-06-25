@@ -1,0 +1,89 @@
+{
+  "id": "WM-0044",
+  "title": "Record non-M3 readiness handoff supplement",
+  "summary": "Record the post-M2 readiness verdict and a future M3 entry prompt without creating, promoting, claiming or implementing M3 work.",
+  "state": "in_progress",
+  "ownerRole": "project-director",
+  "reviewerRole": "reviewer",
+  "dependsOn": ["WM-0043"],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0030-m2-entry-prompt.md",
+    "coordination/reports/WM-0043.md",
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "docs/07_roadmap/07_m2_work_logistics_vertical_slice_plan.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "Task is explicitly reviewed as a non-M3 follow-up supplement to the already done WM-0043 closeout",
+    "Report records an M3 readiness verdict without creating, promoting, claiming or implementing M3 work",
+    "Future M3 entry prompt exists for a later root thread and states it must not be executed as part of WM-0044",
+    "Prompt requires a future reviewed M3 planning task before any M3 implementation",
+    "No M3 task DAG, WM-0045-plus task, package, app, tool, product runtime, lockfile or implementation change is created",
+    "Control-plane validation, handoff validation, whitespace check and quality gate pass"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0044-non-m3-closeout-supplement",
+  "createdAt": "2026-06-25T05:53:02.009Z",
+  "updatedAt": "2026-06-25T05:54:25.949Z",
+  "history": [
+    {
+      "at": "2026-06-25T05:53:02.010Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    },
+    {
+      "at": "2026-06-25T05:54:12.000Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "WM-0043 is done; this task is an explicit non-M3 follow-up supplement for the original root-goal readiness verdict and future entry prompt requirements."
+    },
+    {
+      "at": "2026-06-25T05:54:25.949Z",
+      "actor": "project-director",
+      "action": "claim",
+      "details": "thread=Beacon direct WM-0044"
+    }
+  ],
+  "objective": "Close the original root-goal audit gap by recording M3 readiness and a future M3 entry prompt while keeping M3 unstarted.",
+  "allowedPaths": [
+    "coordination/tasks/WM-0044.json",
+    "coordination/reports/WM-0044.md",
+    "coordination/reports/WM-0044-future-m3-entry-prompt.md"
+  ],
+  "forbiddenPaths": [
+    "packages/**",
+    "apps/**",
+    "tools/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "coordination/tasks/WM-0045*.json",
+    "M3 task DAG creation",
+    "M3 task promotion or claim",
+    "M3 implementation",
+    "hidden product fixes during closeout supplement"
+  ],
+  "benchmarkImpact": "None. This is a control-plane supplement after WM-0043 benchmark evidence was reviewed and closed.",
+  "reviewRouting": "Project-director completes to reviewer; reviewer verifies this is non-M3 evidence only before integration.",
+  "rollbackModel": "Revert WM-0044 report and prompt, leaving WM-0043 M2 closeout intact and M3 unstarted.",
+  "ownerGate": [
+    "Do not create or promote M3 tasks",
+    "Do not change product/runtime code",
+    "Keep the future prompt explicitly non-executable in this task"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Milestone/root-goal closeout audit evidence and final review cannot be assigned to Spark."
+  },
+  "claimedBy": "project-director",
+  "threadLabel": "Beacon direct WM-0044",
+  "blocker": null
+}
