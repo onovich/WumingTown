@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQTTTB0B-ABBC9C",
+  "from": "project-director",
+  "to": "reviewer",
+  "taskId": "WM-0060",
+  "kind": "review-request",
+  "subject": "WM-0060 ready for review",
+  "body": "Closed M3 evidence in roadmap/project-state/report files, wrote non-executable future M4 prompt, ran ci:local bench sim:run validate-handoff taskctl validate/status diff-check and quality; no M4 task created or implemented.",
+  "artifacts": [
+    "coordination/reports/WM-0060.md",
+    "task/WM-0060-close-the-m3-ordinary-life-simulation-gate"
+  ],
+  "createdAt": "2026-06-25T18:19:06.108Z",
+  "acknowledgedAt": "2026-06-25T18:20:34.206Z"
+}

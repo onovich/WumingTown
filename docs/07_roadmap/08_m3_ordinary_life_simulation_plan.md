@@ -1,8 +1,8 @@
 # M3 Ordinary Life Simulation Plan
 
-Status: proposed by WM-0045. Downstream tasks remain `proposed` until their
-dependencies are reviewed, integrated, and marked done. No M3 runtime
-implementation starts in WM-0045.
+Status: closed by WM-0060. WM-0046 through WM-0059 are reviewed, integrated,
+and marked done. WM-0060 records closeout evidence only and does not create,
+promote, claim, or implement M4 work.
 
 ## Objective
 
@@ -82,7 +82,7 @@ Excluded:
 
 ## Current M2 Facts
 
-M2 closed with reviewed evidence for indexed work selection, Region/A*
+M2 closed with reviewed evidence for indexed work selection, Region/A\*
 integration, reservation contention cleanup, storage hauling, build/order
 scaffolding, focused save/replay, Worker/headless parity, and long-run
 benchmark invariants. The final M2 scenario
@@ -437,6 +437,38 @@ Minimum M3 gate by closeout:
 - Benchmarks preserve 10 percent warning and 20 percent blocking thresholds.
 - M3 closeout writes a future M4 entry prompt handoff artifact while verifying
   that M4 task creation, promotion, claim, and implementation remain unstarted.
+
+## WM-0060 Closeout Evidence
+
+WM-0060 closes this plan with the following reviewed evidence:
+
+- Task chain: WM-0046 through WM-0059 are all `done`, independently reviewed
+  with `verified`, integrated by project-director, and pushed to `origin/main`.
+- Scenario: `pnpm sim:run -- --seed 3 --scenario m3-ordinary-life --ticks
+100000` passes with scenario id `m3.ordinary_life.injured_caregiver.v1`,
+  requested seed `3`, authoritative seed `46`, command stream hash
+  `0x226832d2`, content hash `0xdfe7107e`, final world hash `0x7eb81a69`,
+  replay hash match `true`, zero terminal reservation/job leaks, zero stale
+  medical offer rejects, zero stale ability cache rejects, zero active M4
+  facts and zero conservation drift.
+- Save/replay: WM-0057 focused save/resume verifies save tick `12000`, load
+  tick `12001`, resumed final world hash `0x9b04b712`, final read-model hash
+  `0x0f12213c`, loaded state hash `0x0dbf661c`, rebuilt surfaces and no first
+  divergent tick.
+- Worker parity: WM-0058 verifies Node Worker and real browser Worker M3
+  parity for checkpoints `0`, `3600`, `7200`, `12000`, `18000` and `36000`,
+  with read-only projection payloads.
+- Benchmarks and invariants: WM-0059 verifies
+  `m3-ordinary-life-long-run` through `100000` ticks with final world hash
+  `0x7eb81a69`, final read-model hash `0x82bf87d6`, Worker projection bytes
+  `1747`, exact stable condition/mood/relationship invariants, no stale
+  offers, no queue growth, no hash divergence and no threshold weakening. The
+  reviewed benchmark artifact SHA-256 is
+  `63FAEA795D04934838C306DC99D9AA1152B56D52C38D123C3442DB496F82CEC3`.
+
+The future M4 entry prompt lives at
+`coordination/reports/WM-0060-future-m4-entry-prompt.md` and is explicitly
+non-executable. It may be used only by a later reviewed M4 planning task.
 
 ## Spark Classification
 

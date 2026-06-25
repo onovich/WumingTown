@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQTU3DD4-B8CFE9",
+  "from": "reviewer",
+  "to": "project-director",
+  "taskId": "WM-0060",
+  "kind": "review-approved",
+  "subject": "WM-0060 review: verified",
+  "body": "No blocking findings; acceptance evidence confirmed",
+  "artifacts": [
+    "coordination/reports/WM-0060.md"
+  ],
+  "createdAt": "2026-06-25T18:26:55.720Z",
+  "acknowledgedAt": "2026-06-25T18:27:44.653Z"
+}
