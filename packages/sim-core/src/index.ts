@@ -112,6 +112,27 @@ export {
   runM2WorkLogisticsScenario,
 } from "./m2-work-logistics-scenario";
 export {
+  M3_ABILITY_COMMUNICATION,
+  M3_ABILITY_CONSCIOUSNESS,
+  M3_ABILITY_LANE_COUNT,
+  M3_ABILITY_MANIPULATION,
+  M3_ABILITY_MOVEMENT,
+  M3_ABILITY_SIGHT,
+  M3_ABILITY_STAMINA,
+  M3_HEALTH_CONDITION_ACTIVE,
+  M3_HEALTH_CONDITION_KIND_ILLNESS,
+  M3_HEALTH_CONDITION_KIND_INJURY,
+  M3_HEALTH_CONDITION_RECOVERING,
+  M3_HEALTH_CONDITION_REMOVED,
+  M3_HEALTH_CONDITION_RESOLVED,
+  M3_HEALTH_SNAPSHOT_VERSION,
+  M3AbilityCacheStore,
+  M3HealthConditionStore,
+  createM3AbilityCacheStore,
+  createM3HealthAbilityMask,
+  createM3HealthConditionStore,
+} from "./m3-health";
+export {
   LOCATION_CONTAINER,
   LOCATION_MAP,
   LOCATION_NONE,
@@ -392,6 +413,19 @@ export type {
   M2WorkLogisticsScenarioOptions,
   M2WorkLogisticsScenarioSummary,
 } from "./m2-work-logistics-scenario";
+export type {
+  M3AbilityMetrics,
+  M3AbilityQueryResult,
+  M3AbilityReason,
+  M3AbilityCacheStoreOptions,
+  M3HealthConditionInput,
+  M3HealthConditionMutationResult,
+  M3HealthConditionReason,
+  M3HealthConditionStoreOptions,
+  M3HealthConditionUpdateInput,
+  M3HealthConditionView,
+  M3HealthMetrics,
+} from "./m3-health";
 export type {
   LocationCleanupReason,
   LocationDestroyResult,

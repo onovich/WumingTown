@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQT9NMJ9-7BCB3A",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0052",
+  "kind": "review-request",
+  "subject": "WM-0052 ready for review",
+  "body": "Implemented deterministic M3 health condition owner store and ability cache invalidation; typecheck, focused sim-core test, task validation, diff check and quality pass.",
+  "artifacts": [
+    "coordination/reports/WM-0052.md",
+    "task/WM-0052-add-m3-health-conditions-and-ability-cache"
+  ],
+  "createdAt": "2026-06-25T08:54:48.789Z",
+  "acknowledgedAt": "2026-06-25T08:59:01.664Z"
+}

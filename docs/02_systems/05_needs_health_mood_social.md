@@ -50,6 +50,32 @@ for this surface.
   coroutine job state, public save/Worker/schema drift, dependencies, package
   boundary exceptions, or M4 scope.
 
+## WM-0052 implementation note
+
+`packages/sim-core/src/m3-health.ts` adds the focused M3 health owner surface.
+`M3HealthConditionStore` owns deterministic injury and illness rows with
+condition def, kind, body part, severity `0..1000`, age ticks, source id,
+component flags, clue and counterevidence refs, terminal state, per-condition
+versions, and per-actor condition versions.
+
+`M3AbilityCacheStore` owns only derived ability cache rows for consciousness,
+movement, manipulation, sight, communication, and stamina. Base ability lanes
+and condition rows remain the source facts. Condition writes enqueue exact
+actor/ability dirty keys from the condition's affected ability mask; cache
+queries either hit a valid row or rebuild from that actor's linked condition
+lane and matching version basis. They do not scan all conditions per query.
+
+The focused sprain path uses structured reason classes such as
+`condition.injury_applied`, `condition.updated`, `condition.removed`,
+`condition.dirty_queue_overflow`, `condition.terminal_state_out_of_range`,
+`ability.cache_invalidated`, `ability.cache_rebuilt`, `ability.cache_hit`,
+`ability.value_out_of_range`, and `ability.rejected_below_threshold`. Dirty
+queue overflow is preflighted so rejected condition mutations leave no partial
+owner row, version, actor link, terminal state, count, or invalidation writes.
+Metrics record condition updates, ability invalidations, ability query counts,
+cache hits, cache rebuilds, stale-basis rejects, dirty queue backlog/peak, and
+condition rows visited during rebuild.
+
 ## 内容边界
 
 避免把精神崩溃做成滑稽随机事件；避免以现实精神疾病标签当作负面 Trait；超自然影响必须与世界规则区分，不能暗示现实病症由鬼怪造成。

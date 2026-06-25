@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQT9X4PO-B00A61",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0052",
+  "kind": "changes-requested",
+  "subject": "WM-0052 review: changes_requested",
+  "body": "High: health condition mutations are not atomic on dirty queue overflow; failed add/update/age/remove can leave owner state, versions, actor links, counts, and partial invalidations. Medium: invalid ability thresholds return below-threshold instead of value_out_of_range, cache hits report cache_stale_basis, and terminalState accepts out-of-range values via Uint8Array wrap.",
+  "artifacts": [
+    "coordination/reports/WM-0052.md"
+  ],
+  "createdAt": "2026-06-25T09:02:12.252Z",
+  "acknowledgedAt": "2026-06-25T09:05:43.124Z"
+}
