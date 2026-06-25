@@ -2,7 +2,7 @@
   "id": "WM-0056",
   "title": "Integrate M3 ordinary life scenario",
   "summary": "Compose the focused M3 scenario so injury affects work, medical care, logistics, mood and relationships under day/night/weather.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -34,13 +34,19 @@
   ],
   "branch": "task/WM-0056-integrate-m3-ordinary-life-scenario",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T07:30:00.000Z",
+  "updatedAt": "2026-06-25T14:33:49.895Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
       "actor": "systems-architect",
       "action": "create",
       "details": "Created by WM-0045 M3 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-25T14:33:49.895Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "objective": "Create the first executable M3 ordinary-life vertical scenario after focused owner-store slices are reviewed.",

@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQTL1RYQ-C0AE93",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0055",
+  "kind": "changes-requested",
+  "subject": "WM-0055 review: changes_requested",
+  "body": "High: createExplanation walks an unbounded actor/lane event bucket while filtering target, outside the ADR social candidate cap; Medium: explanation sourceEventId/sourceTick are edge-wide and can point to a different lane than the trust fact being explained; Low: invalid event kind is not runtime-rejected despite the structured reason.",
+  "artifacts": [
+    "coordination/reports/WM-0055.md"
+  ],
+  "createdAt": "2026-06-25T14:13:44.786Z",
+  "acknowledgedAt": "2026-06-25T14:18:09.072Z"
+}

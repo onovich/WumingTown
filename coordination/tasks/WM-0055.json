@@ -2,7 +2,7 @@
   "id": "WM-0055",
   "title": "Add M3 relationship graph and social events",
   "summary": "Add relationship edges and ordinary social event facts for M3 ordinary-life consequences.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0055-add-m3-relationship-graph-and-social-events",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T10:08:38.854Z",
+  "updatedAt": "2026-06-25T14:33:49.890Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
@@ -43,6 +43,48 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-25T10:11:32.714Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Codex WM-0055"
+    },
+    {
+      "at": "2026-06-25T10:32:39.701Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented focused M3 RelationshipGraphStore with stable integer edges, structured social event facts, bounded indexed edge/event candidate lanes, explanation traces, deterministic snapshots/hashes, docs and tests; typecheck, focused Vitest, supported sim-core wrapper, taskctl validate, git diff --check, and pnpm quality pass."
+    },
+    {
+      "at": "2026-06-25T14:13:44.785Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: createExplanation walks an unbounded actor/lane event bucket while filtering target, outside the ADR social candidate cap; Medium: explanation sourceEventId/sourceTick are edge-wide and can point to a different lane than the trust fact being explained; Low: invalid event kind is not runtime-rejected despite the structured reason."
+    },
+    {
+      "at": "2026-06-25T14:24:40.412Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Repaired WM-0055 review findings: bounded createExplanation traversal with cap/visited metrics and cap-hit trace evidence, lane-specific relationship source metadata so trust explanations cite trust sources, and runtime rejection for malformed social event kinds. Added regressions; typecheck, focused Vitest, supported sim-core wrapper, taskctl validate/status, git diff --check, and pnpm quality pass."
+    },
+    {
+      "at": "2026-06-25T14:30:25.339Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; repaired bounded explanation traversal, trust-lane source reporting, and malformed event-kind rejection verified; requested checks pass."
+    },
+    {
+      "at": "2026-06-25T14:33:39.551Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Owner integration rechecked WM-0055 after repair and reviewer verification, merged current main through WM-0053, acknowledged review approval, and confirmed typecheck, focused relationship+medical+rest+food+mood tests, task status, and diff check pass."
+    },
+    {
+      "at": "2026-06-25T14:33:49.889Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Create the relationship/social state needed for M3 scenario consequences without Chronicle or M4 social gameplay.",
@@ -84,5 +126,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Relationship state ownership and social event simulation are outside Spark scope."
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Codex WM-0055",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0055.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; repaired bounded explanation traversal, trust-lane source reporting, and malformed event-kind rejection verified; requested checks pass.",
+    "at": "2026-06-25T14:30:25.338Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Owner integration rechecked WM-0055 after repair and reviewer verification, merged current main through WM-0053, acknowledged review approval, and confirmed typecheck, focused relationship+medical+rest+food+mood tests, task status, and diff check pass.",
+    "at": "2026-06-25T14:33:39.550Z"
   }
 }

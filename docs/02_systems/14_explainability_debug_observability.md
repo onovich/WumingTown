@@ -145,3 +145,27 @@ Tests assert reason classes and source ids, including need, environment, and
 health fact reasons, without relying on prose. The trace store is diagnostic
 only; it is not a job cursor, save authority, retry queue, or unbounded event
 log.
+
+## WM-0055 implementation note
+
+`M3RelationshipReasonTraceStore` is the focused structured explanation surface
+for relationship graph and social event behavior. It is a fixed-capacity ring
+buffer with numeric lanes for sequence, tick, actor id, target actor id,
+relationship lane, candidate totals, visited/scored counts, candidate cap,
+selected event id, source event id, source graph version, reason class, and
+graph version.
+
+Relationship selection traces distinguish bounded recent-event candidate reads
+from relationship fact explanation. `trace.candidate_cap_reached` records cap
+hits when a per-actor/per-lane social event bucket contains more rows than the
+caller visits. `relationship.explanation_fact_source_trust_recent_events`
+records scenario-facing explanation evidence that includes the source fact,
+current trust lane value, bounded recent-event counts, candidate total, visited
+count, candidate cap, and cap-hit status. Trust explanations use trust-lane
+source tick and event id even when another relationship lane changed more
+recently. Tests assert these reason classes and source ids directly; UI text
+remains presentation only.
+
+The relationship trace store is diagnostic only. It is not relationship
+authority, a job cursor, save authority, retry queue, Chronicle evidence, town
+rule memory, dialogue content, or an unbounded social log.
