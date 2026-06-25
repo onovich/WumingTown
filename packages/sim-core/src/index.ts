@@ -155,6 +155,21 @@ export {
   createM3HealthConditionStore,
 } from "./m3-health";
 export {
+  M3_MEDICAL_CARE_SNAPSHOT_VERSION,
+  M3_MEDICAL_DEFAULT_CANDIDATE_CAP,
+  M3_MEDICAL_DEFAULT_EXACT_PATH_CAP,
+  M3_MEDICAL_DEFAULT_SELECTED_CAP,
+  M3_MEDICAL_NO_REQUEST,
+  M3MedicalCareStore,
+  createM3MedicalCareStore,
+} from "./m3-medical-care";
+export {
+  M3_TREATMENT_JOB_KIND,
+  M3_TREATMENT_SNAPSHOT_VERSION,
+  M3TreatmentJobStore,
+  createM3TreatmentJobStore,
+} from "./m3-treatment-jobs";
+export {
   LOCATION_CONTAINER,
   LOCATION_MAP,
   LOCATION_NONE,
@@ -502,6 +517,31 @@ export type {
   M3HealthConditionView,
   M3HealthMetrics,
 } from "./m3-health";
+export type {
+  M3MedicalCaregiverStateInput,
+  M3MedicalCaregiverStateView,
+  M3MedicalMetrics,
+  M3MedicalMutationResult,
+  M3MedicalPatientRequestInput,
+  M3MedicalPatientRequestView,
+  M3MedicalReason,
+  M3MedicalSelectionOptions,
+  M3MedicalSelectionResult,
+  M3MedicalSelectionScratch,
+} from "./m3-medical-care";
+export type {
+  M3TreatmentCreateInput,
+  M3TreatmentJobSnapshot,
+  M3TreatmentJobView,
+  M3TreatmentMetrics,
+  M3TreatmentMutationResult,
+  M3TreatmentRestoreResult,
+  M3TreatmentReason,
+  M3TreatmentSnapshotReason,
+  M3TreatmentStep,
+  M3TreatmentStoreSnapshot,
+  M3TreatmentStoreSnapshotInput,
+} from "./m3-treatment-jobs";
 export type {
   LocationCleanupReason,
   LocationDestroyResult,

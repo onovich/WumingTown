@@ -2,7 +2,7 @@
   "id": "WM-0053",
   "title": "Add M3 medical care job slice",
   "summary": "Add patient/caregiver medical work offers and explicit treatment jobs for the focused M3 scenario.",
-  "state": "ready",
+  "state": "verified",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0053-add-m3-medical-care-job-slice",
   "createdAt": "2026-06-25T07:30:00.000Z",
-  "updatedAt": "2026-06-25T09:26:07.444Z",
+  "updatedAt": "2026-06-25T14:13:33.632Z",
   "history": [
     {
       "at": "2026-06-25T07:30:00.000Z",
@@ -43,6 +43,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-25T09:29:18.444Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Codex WM-0053"
+    },
+    {
+      "at": "2026-06-25T09:56:21.528Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented M3 medical care offers and explicit treatment jobs with reservation/path cleanup, structured reasons, integer condition deltas, ability invalidation evidence, docs/report updates; required checks pass and pnpm quality passes."
+    },
+    {
+      "at": "2026-06-25T10:02:14.807Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: complete-time basis failures can leave reserved treatment jobs active with leaked claims; High: medical selection traverses full buckets past candidateCap; Medium: treatment terminal reasons collapse path/stale failures to invalid_condition and lose serialized failure detail."
+    },
+    {
+      "at": "2026-06-25T10:17:01.527Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Repaired WM-0053 changes_requested findings: complete-time basis failures now fail terminally with reservation cleanup; medical selection traversal stops at candidateCap; treatment terminal reasons persist through view/snapshot/restore; completed jobs record updated condition row version; regression tests and required checks pass."
+    },
+    {
+      "at": "2026-06-25T14:13:33.632Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; prior four repair findings verified; focused Vitest, sim-core tests, taskctl validate/status, diff check, typecheck, and pnpm quality passed."
     }
   ],
   "objective": "Connect health/ability state to medical care behavior while preserving job and reservation boundaries.",
@@ -84,5 +114,15 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Medical care jobs touch deterministic simulation state ownership and are outside Spark scope."
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Codex WM-0053",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0053.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; prior four repair findings verified; focused Vitest, sim-core tests, taskctl validate/status, diff check, typecheck, and pnpm quality passed.",
+    "at": "2026-06-25T14:13:33.631Z"
   }
 }

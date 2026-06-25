@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQTBURVD-C6629D",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0053",
+  "kind": "review-request",
+  "subject": "WM-0053 ready for review",
+  "body": "Implemented M3 medical care offers and explicit treatment jobs with reservation/path cleanup, structured reasons, integer condition deltas, ability invalidation evidence, docs/report updates; required checks pass and pnpm quality passes.",
+  "artifacts": [
+    "coordination/reports/WM-0053.md",
+    "task/WM-0053-add-m3-medical-care-job-slice"
+  ],
+  "createdAt": "2026-06-25T09:56:21.530Z",
+  "acknowledgedAt": "2026-06-25T14:13:54.307Z"
+}

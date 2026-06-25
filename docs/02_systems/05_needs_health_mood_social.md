@@ -82,6 +82,22 @@ Metrics record condition updates, ability invalidations, ability query counts,
 cache hits, cache rebuilds, stale-basis rejects, dirty queue backlog/peak, and
 condition rows visited during rebuild.
 
+## WM-0053 implementation note
+
+`packages/sim-core/src/m3-medical-care.ts` adds the focused M3 medical care
+offer surface. Patient requests are derived from exact `HealthConditionStore`
+condition rows and retain condition, actor-condition, and health-store version
+basis. Caregiver eligibility is derived from explicit permission state plus
+`AbilityCacheStore` query results; failed eligibility returns structured
+permission or ability reasons instead of silently removing work.
+
+`packages/sim-core/src/m3-treatment-jobs.ts` adds the treatment job driver.
+Treatment applies an integer condition severity delta exactly once, updates the
+health owner store, and relies on the resulting health invalidations to refresh
+ability caches before later work or medical selection. Medical stock remains
+owned by `ItemStackStore`, and treatment consumes one integer stock amount only
+after condition, ability, stock, path, and reservation basis checks pass.
+
 ## 内容边界
 
 避免把精神崩溃做成滑稽随机事件；避免以现实精神疾病标签当作负面 Trait；超自然影响必须与世界规则区分，不能暗示现实病症由鬼怪造成。
