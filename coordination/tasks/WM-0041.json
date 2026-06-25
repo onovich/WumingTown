@@ -2,7 +2,7 @@
   "id": "WM-0041",
   "title": "Add M2 Worker headless parity",
   "summary": "Prove browser Worker and Node headless run the M2 work/logistics scenario with matching authoritative hashes and read-only projections.",
-  "state": "ready",
+  "state": "in_progress",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0041-add-m2-worker-headless-parity",
   "createdAt": "2026-06-24T21:14:35.180Z",
-  "updatedAt": "2026-06-25T04:18:12.469Z",
+  "updatedAt": "2026-06-25T04:21:01.350Z",
   "history": [
     {
       "at": "2026-06-24T21:14:35.180Z",
@@ -43,6 +43,12 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-25T04:21:01.349Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Beacon direct WM-0041"
     }
   ],
   "objective": "Gate M2 through Worker/headless authoritative parity while keeping UI read-only.",
@@ -77,5 +83,8 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Worker parity and authority boundaries are not suitable for Spark."
-  }
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Beacon direct WM-0041",
+  "blocker": null
 }
