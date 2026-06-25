@@ -24,7 +24,10 @@ describe("M2 work/logistics save replay harness", () => {
 
     expect(save.sections.entityStores.actorHandles).toHaveLength(20);
     expectRecordIds(save.sections.entityStores.buildOrders, [0, 1, 2, 3]);
-    expectRecordIds(save.sections.jobsReservations.records, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+    expectRecordIds(
+      save.sections.jobsReservations.records,
+      [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+    );
     expect(loaded).toMatchObject({
       ok: true,
       rebuiltIndexes: ["work-offers", "path-caches", "reservations", "read-models"],

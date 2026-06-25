@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQT1J8Z6-4F7B31",
+  "from": "reviewer",
+  "to": "qa-performance",
+  "taskId": "WM-0042",
+  "kind": "changes-requested",
+  "subject": "WM-0042 review: changes_requested",
+  "body": "High: M2 gate accepts only 12 used actors despite 20-actor contract; path benchmark records 1 stale reject instead of contract invalidation coverage; committed artifact gitCommit is pre-implementation claim commit.",
+  "artifacts": [
+    "coordination/reports/WM-0042.md"
+  ],
+  "createdAt": "2026-06-25T05:07:27.666Z",
+  "acknowledgedAt": "2026-06-25T05:09:12.910Z"
+}

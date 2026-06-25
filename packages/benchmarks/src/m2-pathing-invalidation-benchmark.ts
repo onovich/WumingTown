@@ -70,7 +70,7 @@ export function runM2PathingInvalidationBenchmark(): M2PathingInvalidationBenchm
   const width = 40;
   const height = 24;
   const requestCount = 100;
-  const staleProbeCount = 1;
+  const staleProbeCount = 20;
   const grid = createMapGrid({ width, height, chunkSize: 8 });
   carveDeterministicBarriers(grid);
   const rebuild = createRegionRoomRebuilder(grid);
@@ -109,6 +109,7 @@ export function runM2PathingInvalidationBenchmark(): M2PathingInvalidationBenchm
     }
   }
 
+  const staleResults: PathSearchResult[] = [];
   let reachedPaths = 0;
   let pathChecksum = 0;
 
@@ -119,36 +120,21 @@ export function runM2PathingInvalidationBenchmark(): M2PathingInvalidationBenchm
       throw new Error(processed.ok ? "missing M2 pathing benchmark result" : processed.reason);
     }
 
-    const committed = batcher.commitResult(processed.result, basis);
+    if (processed.result.requestSequence < requestCount - staleProbeCount) {
+      const committed = batcher.commitResult(processed.result, basis);
 
-    if (!committed.ok) {
-      throw new Error(committed.reason);
-    }
+      if (!committed.ok) {
+        throw new Error(committed.reason);
+      }
 
-    if (processed.result.ok) {
-      reachedPaths += 1;
+      if (processed.result.ok) {
+        reachedPaths += 1;
+      }
+    } else {
+      staleResults.push(processed.result);
     }
 
     pathChecksum = mixPathResult(pathChecksum, processed.result);
-  }
-
-  const staleEnqueued = batcher.enqueue({
-    requestSequence: requestCount,
-    issuedTick: requestCount,
-    startCellIndex: 0,
-    goalCellIndex: grid.cellCount - 1,
-    basis,
-    maxNodeExpansions: 2_048,
-  });
-
-  if (!staleEnqueued.ok) {
-    throw new Error(staleEnqueued.reason);
-  }
-
-  const staleProcessed = batcher.processNext(grid);
-
-  if (!staleProcessed.ok || !staleProcessed.processed) {
-    throw new Error(staleProcessed.ok ? "missing M2 stale path result" : staleProcessed.reason);
   }
 
   const changed = grid.updateCell(1, 0, { terrain: MAP_TERRAIN_BLOCKED });
@@ -170,13 +156,19 @@ export function runM2PathingInvalidationBenchmark(): M2PathingInvalidationBenchm
     roomVersion: rebuild.roomVersion,
     regionGraphVersion: rebuild.regionGraphVersion,
   });
-  const staleCommitted = batcher.commitResult(staleProcessed.result, changedBasis);
 
-  if (staleCommitted.ok) {
-    throw new Error("M2 pathing stale probe unexpectedly committed");
+  if (staleResults.length !== staleProbeCount) {
+    throw new Error("M2 pathing benchmark stale result count mismatch");
   }
 
-  pathChecksum = mixPathResult(pathChecksum, staleProcessed.result);
+  for (const staleResult of staleResults) {
+    const staleCommitted = batcher.commitResult(staleResult, changedBasis);
+
+    if (staleCommitted.ok) {
+      throw new Error("M2 pathing stale probe unexpectedly committed");
+    }
+  }
+
   const metrics = batcher.createMetrics();
   const elapsedMs = performance.now() - startedAtMs;
   const heapUsedAfterBytes = process.memoryUsage().heapUsed;

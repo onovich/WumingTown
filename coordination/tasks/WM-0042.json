@@ -2,7 +2,7 @@
   "id": "WM-0042",
   "title": "Add M2 benchmarks and long run invariants",
   "summary": "Add the M2 benchmark and invariant gate for 20 actors hauling/building plus 100 path requests under versioned invalidation.",
-  "state": "review_requested",
+  "state": "changes_requested",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,7 +31,7 @@
   ],
   "branch": "task/WM-0042-add-m2-benchmarks-and-long-run-invariants",
   "createdAt": "2026-06-24T21:14:35.180Z",
-  "updatedAt": "2026-06-25T04:58:32.668Z",
+  "updatedAt": "2026-06-25T05:07:27.665Z",
   "history": [
     {
       "at": "2026-06-24T21:14:35.180Z",
@@ -56,12 +56,19 @@
       "actor": "qa-performance",
       "action": "complete",
       "details": "Added M2 long-run invariant test, M2 work/logistics and path invalidation benchmarks, baseline/artifact evidence, docs and required gate plumbing; required checks and quality pass."
+    },
+    {
+      "at": "2026-06-25T05:07:27.665Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: M2 gate accepts only 12 used actors despite 20-actor contract; path benchmark records 1 stale reject instead of contract invalidation coverage; committed artifact gitCommit is pre-implementation claim commit."
     }
   ],
   "objective": "Create the artifact-backed M2 performance and invariant gate before closeout.",
   "allowedPaths": [
     "packages/sim-core/src/m2-invariants.test.ts",
     "packages/sim-core/src/m2-work-logistics-scenario.ts",
+    "packages/sim-core/src/m2-save-replay.test.ts",
     "packages/benchmarks/src/m2-work-logistics-long-run-benchmark.ts",
     "packages/benchmarks/src/m2-pathing-invalidation-benchmark.ts",
     "packages/benchmarks/src/index.ts",
@@ -102,5 +109,11 @@
   "claimedBy": "qa-performance",
   "threadLabel": "Beacon direct WM-0042",
   "blocker": null,
-  "reportPath": "coordination/reports/WM-0042.md"
+  "reportPath": "coordination/reports/WM-0042.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "changes_requested",
+    "summary": "High: M2 gate accepts only 12 used actors despite 20-actor contract; path benchmark records 1 stale reject instead of contract invalidation coverage; committed artifact gitCommit is pre-implementation claim commit.",
+    "at": "2026-06-25T05:07:27.665Z"
+  }
 }

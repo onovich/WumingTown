@@ -67,13 +67,13 @@ describe("M2 work/logistics long-run invariants", () => {
       lanternStateTotal: 4,
     });
     expect(summary.counters).toMatchObject({
-      materialDeliveryJobsCreated: 8,
-      materialDeliveryJobsCompleted: 8,
+      materialDeliveryJobsCreated: 16,
+      materialDeliveryJobsCompleted: 16,
       buildJobsCreated: 4,
       buildJobsCompleted: 4,
       demandOfferPeak: 8,
       buildOfferPeak: 4,
-      actorsUsed: 12,
+      actorsUsed: 20,
     });
     expect(summary.invariants).toMatchObject({
       allOrdersCompleted: true,

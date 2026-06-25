@@ -36,6 +36,10 @@ const STONE_TOTAL = 12;
 const PAPER_TOTAL = 1;
 const WOOD_PER_SITE = 6;
 const STONE_PER_SITE = 3;
+const WOOD_DELIVERY_AMOUNT = 3;
+const STONE_DELIVERY_AMOUNT_A = 1;
+const STONE_DELIVERY_AMOUNT_B = 2;
+const DELIVERY_JOBS_PER_SITE = 4;
 const BUILD_TICKS_PER_SITE = 60;
 const WORK_TYPE_DELIVER = 1;
 const WORK_TYPE_BUILD = 2;
@@ -284,7 +288,18 @@ function runScenarioScript(fixture: ScenarioFixture): M2WorkLogisticsCounters {
       siteId,
       WOOD_STACK_ID,
       M2_ITEM_WOOD,
-      WOOD_PER_SITE,
+      WOOD_DELIVERY_AMOUNT,
+    );
+    nextJobId += 1;
+    nextPawnIndex = (nextPawnIndex + 1) % ACTOR_COUNT;
+    runDelivery(
+      fixture,
+      nextJobId,
+      nextPawnIndex,
+      siteId,
+      WOOD_STACK_ID,
+      M2_ITEM_WOOD,
+      WOOD_DELIVERY_AMOUNT,
     );
     nextJobId += 1;
     nextPawnIndex = (nextPawnIndex + 1) % ACTOR_COUNT;
@@ -295,7 +310,18 @@ function runScenarioScript(fixture: ScenarioFixture): M2WorkLogisticsCounters {
       siteId,
       STONE_STACK_ID,
       M2_ITEM_STONE,
-      STONE_PER_SITE,
+      STONE_DELIVERY_AMOUNT_A,
+    );
+    nextJobId += 1;
+    nextPawnIndex = (nextPawnIndex + 1) % ACTOR_COUNT;
+    runDelivery(
+      fixture,
+      nextJobId,
+      nextPawnIndex,
+      siteId,
+      STONE_STACK_ID,
+      M2_ITEM_STONE,
+      STONE_DELIVERY_AMOUNT_B,
     );
     nextJobId += 1;
     nextPawnIndex = (nextPawnIndex + 1) % ACTOR_COUNT;
@@ -310,13 +336,13 @@ function runScenarioScript(fixture: ScenarioFixture): M2WorkLogisticsCounters {
   }
 
   return {
-    materialDeliveryJobsCreated: SITE_COUNT * 2,
-    materialDeliveryJobsCompleted: SITE_COUNT * 2,
+    materialDeliveryJobsCreated: SITE_COUNT * DELIVERY_JOBS_PER_SITE,
+    materialDeliveryJobsCompleted: SITE_COUNT * DELIVERY_JOBS_PER_SITE,
     buildJobsCreated: SITE_COUNT,
     buildJobsCompleted: SITE_COUNT,
     demandOfferPeak,
     buildOfferPeak,
-    actorsUsed: nextPawnIndex,
+    actorsUsed: Math.min(ACTOR_COUNT, nextJobId),
   };
 }
 
