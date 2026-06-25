@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQTBU7GT-B016FC",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0054",
+  "kind": "changes-requested",
+  "subject": "WM-0054 review: changes_requested",
+  "body": "High: global thought eviction can remove another actor's retained thought without recalculating that actor's mood target, so scheduled convergence can follow stale non-existent facts; add cross-actor eviction handling and coverage.",
+  "artifacts": [
+    "coordination/reports/WM-0054.md"
+  ],
+  "createdAt": "2026-06-25T09:55:55.085Z",
+  "acknowledgedAt": "2026-06-25T09:57:52.809Z"
+}

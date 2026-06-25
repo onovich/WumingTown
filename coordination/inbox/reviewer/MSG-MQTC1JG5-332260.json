@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQTC1JG5-332260",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0054",
+  "kind": "review-request",
+  "subject": "WM-0054 ready for review",
+  "body": "Repaired cross-actor thought eviction target recalculation and memory owner-version accounting; added low-capacity eviction/expiration regressions; typecheck, focused Vitest, sim-core filter, task validation/status, diff check, and pnpm quality pass.",
+  "artifacts": [
+    "coordination/reports/WM-0054.md",
+    "task/WM-0054-add-m3-mood-thoughts-and-memories"
+  ],
+  "createdAt": "2026-06-25T10:01:37.205Z",
+  "acknowledgedAt": "2026-06-25T10:07:27.389Z"
+}
