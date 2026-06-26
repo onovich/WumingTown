@@ -2,7 +2,7 @@
   "id": "WM-0074",
   "title": "Add M5 anomaly roster and borrowed-shadow data lift",
   "summary": "Add the M5 anomaly roster owner surface and lift the reviewed M4 borrowed-shadow rule into the roster without changing M4 behavior or introducing bespoke content code paths.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -38,7 +38,7 @@
   ],
   "branch": "task/WM-0074-add-m5-anomaly-roster",
   "createdAt": "2026-06-26T09:24:00.000Z",
-  "updatedAt": "2026-06-26T10:46:11.750Z",
+  "updatedAt": "2026-06-26T11:14:24.050Z",
   "history": [
     {
       "at": "2026-06-26T09:24:00.000Z",
@@ -51,6 +51,48 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-26T10:50:18.790Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Tally WM-0074 M5 anomaly roster"
+    },
+    {
+      "at": "2026-06-26T11:02:33.089Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented M5 anomaly roster owner surface with borrowed-shadow data lift, versioned per-DefIndex activation lanes, stale content-basis rejection, focused m5-anomaly-roster tests, docs and report; required checks and pnpm quality pass; M4 vertical-slice hashes preserved."
+    },
+    {
+      "at": "2026-06-26T11:06:03.641Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: borrowed-shadow compiled row validation does not protect the reviewed M4 rule basis. createM5BorrowedShadowAnomalyDefinition emits the correct M4 minActivationScore, evidence mask and non-combat mask, but loadCompiledRoster accepts a core.anomaly.borrowed_shadow.v1 row with minActivationScore=0, evidenceClassMask=0, nonCombatResolutionMask=0, or schemaVersion=2 and publishes it as owner state. validateDefinition only checks generic positive/range fields plus ruleComponent/activationPolicy/stateOwnerKind for borrowed shadow. This violates WM-0074 acceptance that the borrowed-shadow lift preserve M4 behavior/owner boundaries and that roster rows are validated immutable rule inputs. Also reject duplicate defIds across all roster rows; current validateRoster only detects duplicate borrowed-shadow ids and accepts duplicate future def ids, undermining stable def id/DefIndex ownership. Add focused regressions for tampered borrowed-shadow thresholds/masks/schema and all-def duplicate ids."
+    },
+    {
+      "at": "2026-06-26T11:10:07.969Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Repaired WM-0074 review findings: borrowed-shadow roster rows now require exact reviewed M4 schema, threshold, masks, component, policy and owner-kind basis; duplicate defIds across all roster rows are rejected; added regressions for tampered borrowed-shadow rows and duplicate future defs. Required checks and pnpm quality pass; M4 vertical-slice hashes preserved."
+    },
+    {
+      "at": "2026-06-26T11:12:43.410Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Verified borrowed-shadow roster rows now require exact reviewed M4 schema version, threshold, evidence mask, non-combat mask, rule component, activation policy and state owner kind before owner publish; duplicate defIds across all roster rows are rejected. Bounded per-DefIndex activation lanes, stable Top-K ordering, stale content-basis rejection, M4 36000 hashes, allowed scope and required gates are confirmed."
+    },
+    {
+      "at": "2026-06-26T11:14:15.637Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Reviewed M5 anomaly roster accepted after exact borrowed-shadow basis and duplicate defId repairs; integration gates passed: validate-handoff, taskctl validate/status, m5-anomaly-roster tests, M4 36000 scenario, git diff --check and pnpm quality. No protocol/save/package/M6 changes."
+    },
+    {
+      "at": "2026-06-26T11:14:24.050Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M5",
@@ -97,5 +139,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Anomaly roster ownership and M4 behavior preservation touch deterministic simulation architecture."
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Tally WM-0074 M5 anomaly roster",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0074.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Verified borrowed-shadow roster rows now require exact reviewed M4 schema version, threshold, evidence mask, non-combat mask, rule component, activation policy and state owner kind before owner publish; duplicate defIds across all roster rows are rejected. Bounded per-DefIndex activation lanes, stable Top-K ordering, stale content-basis rejection, M4 36000 hashes, allowed scope and required gates are confirmed.",
+    "at": "2026-06-26T11:12:43.409Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Reviewed M5 anomaly roster accepted after exact borrowed-shadow basis and duplicate defId repairs; integration gates passed: validate-handoff, taskctl validate/status, m5-anomaly-roster tests, M4 36000 scenario, git diff --check and pnpm quality. No protocol/save/package/M6 changes.",
+    "at": "2026-06-26T11:14:15.636Z"
   }
 }

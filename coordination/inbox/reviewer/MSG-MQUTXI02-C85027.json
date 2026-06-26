@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQUTXI02-C85027",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0074",
+  "kind": "review-request",
+  "subject": "WM-0074 ready for review",
+  "body": "Repaired WM-0074 review findings: borrowed-shadow roster rows now require exact reviewed M4 schema, threshold, masks, component, policy and owner-kind basis; duplicate defIds across all roster rows are rejected; added regressions for tampered borrowed-shadow rows and duplicate future defs. Required checks and pnpm quality pass; M4 vertical-slice hashes preserved.",
+  "artifacts": [
+    "coordination/reports/WM-0074.md",
+    "task/WM-0074-add-m5-anomaly-roster"
+  ],
+  "createdAt": "2026-06-26T11:10:07.970Z",
+  "acknowledgedAt": "2026-06-26T11:11:22.842Z"
+}

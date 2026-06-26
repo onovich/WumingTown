@@ -2,7 +2,7 @@
   "id": "WM-0075",
   "title": "Add third-knock anomaly rule",
   "summary": "Add core.anomaly.third_knock.v1 with threshold, invitation/debt, evidence, town-rule and non-combat resolution state using the M5 anomaly roster.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -37,13 +37,19 @@
   ],
   "branch": "task/WM-0075-add-third-knock-anomaly",
   "createdAt": "2026-06-26T09:24:00.000Z",
-  "updatedAt": "2026-06-26T09:24:00.000Z",
+  "updatedAt": "2026-06-26T11:14:24.057Z",
   "history": [
     {
       "at": "2026-06-26T09:24:00.000Z",
       "actor": "systems-architect",
       "action": "create",
       "details": "Created by WM-0072 M5 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-26T11:14:24.057Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "M5",

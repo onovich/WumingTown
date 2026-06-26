@@ -70,3 +70,19 @@ consume them through an explicit later handoff. Resolution commands are numeric
 and include non-combat containment and negotiation outcomes. Terminal rows keep
 terminal reason, resolution method, tick, owner version, and trace reason fields
 for replay and review.
+
+## WM-0074 M5 anomaly roster lift
+
+M5 anomaly definitions enter simulation through a compiled roster owner surface.
+Roster rows are immutable rule inputs keyed by stable `defId` and `DefIndex`;
+they carry roster version, content manifest hash, validation basis, rule
+component, activation policy, evidence mask and resolution mask. They are not
+mutable anomaly state, UI state or director state.
+
+`core.anomaly.borrowed_shadow.v1` is the first lifted row. It points at the
+reviewed borrowed-shadow rule component and keeps mutable activation/crisis
+progress in the existing sim-core borrowed-shadow owner store. Activation lanes
+are versioned by roster/content basis and partitioned by `DefIndex`, so a normal
+activation read walks only bounded candidates for the requested anomaly def and
+uses stable Top-K order: score descending, priority descending, stable owner id,
+stable sequence, then candidate id.

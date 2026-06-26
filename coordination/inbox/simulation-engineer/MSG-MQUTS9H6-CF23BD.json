@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQUTS9H6-CF23BD",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0074",
+  "kind": "changes-requested",
+  "subject": "WM-0074 review: changes_requested",
+  "body": "High: borrowed-shadow compiled row validation does not protect the reviewed M4 rule basis. createM5BorrowedShadowAnomalyDefinition emits the correct M4 minActivationScore, evidence mask and non-combat mask, but loadCompiledRoster accepts a core.anomaly.borrowed_shadow.v1 row with minActivationScore=0, evidenceClassMask=0, nonCombatResolutionMask=0, or schemaVersion=2 and publishes it as owner state. validateDefinition only checks generic positive/range fields plus ruleComponent/activationPolicy/stateOwnerKind for borrowed shadow. This violates WM-0074 acceptance that the borrowed-shadow lift preserve M4 behavior/owner boundaries and that roster rows are validated immutable rule inputs. Also reject duplicate defIds across all roster rows; current validateRoster only detects duplicate borrowed-shadow ids and accepts duplicate future def ids, undermining stable def id/DefIndex ownership. Add focused regressions for tampered borrowed-shadow thresholds/masks/schema and all-def duplicate ids.",
+  "artifacts": [
+    "coordination/reports/WM-0074.md"
+  ],
+  "createdAt": "2026-06-26T11:06:03.642Z",
+  "acknowledgedAt": "2026-06-26T11:07:00.625Z"
+}

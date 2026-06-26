@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQUU0TXV-DAFDEF",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0074",
+  "kind": "review-approved",
+  "subject": "WM-0074 review: verified",
+  "body": "No blocking findings. Verified borrowed-shadow roster rows now require exact reviewed M4 schema version, threshold, evidence mask, non-combat mask, rule component, activation policy and state owner kind before owner publish; duplicate defIds across all roster rows are rejected. Bounded per-DefIndex activation lanes, stable Top-K ordering, stale content-basis rejection, M4 36000 hashes, allowed scope and required gates are confirmed.",
+  "artifacts": [
+    "coordination/reports/WM-0074.md"
+  ],
+  "createdAt": "2026-06-26T11:12:43.411Z",
+  "acknowledgedAt": "2026-06-26T11:13:24.335Z"
+}

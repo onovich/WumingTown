@@ -405,6 +405,22 @@ active window's cap. Cooldowns are direct-indexed by cooldown key, and selected
 Top-K rows are resolved through a named deterministic random stream. Recovery
 opportunities are descriptors only; they do not mutate source owner facts.
 
+## WM-0074 M5 anomaly roster metrics
+
+`M5AnomalyRosterStore.createMetrics()` records roster owner version, roster
+version, immutable definition count, active activation candidate count,
+last/total candidate visits and candidate-cap hit count. The roster is a data
+owner for compiled anomaly rule inputs only; mutable anomaly progress remains in
+the concrete anomaly/crisis owner store.
+
+Normal M5 anomaly activation reads do not scan all content definitions, lamps,
+evidence rows, residents or crisis rows. Candidate writes carry the content
+manifest hash and roster version observed when the candidate was built.
+Candidate lanes are partitioned by `DefIndex`; reads reject stale content basis
+before traversal and then walk only the requested definition lane with caller
+candidate and selected caps. Stable Top-K order is score descending, priority
+descending, stable owner id, stable sequence and candidate id.
+
 ## WM-0070 M4 benchmark note
 
 `pnpm bench` now includes `m4-core-vertical-slice-long-run` in the default

@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQUTNR0I-C0CB36",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0074",
+  "kind": "review-request",
+  "subject": "WM-0074 ready for review",
+  "body": "Implemented M5 anomaly roster owner surface with borrowed-shadow data lift, versioned per-DefIndex activation lanes, stale content-basis rejection, focused m5-anomaly-roster tests, docs and report; required checks and pnpm quality pass; M4 vertical-slice hashes preserved.",
+  "artifacts": [
+    "coordination/reports/WM-0074.md",
+    "task/WM-0074-add-m5-anomaly-roster"
+  ],
+  "createdAt": "2026-06-26T11:02:33.090Z",
+  "acknowledgedAt": "2026-06-26T11:03:42.804Z"
+}

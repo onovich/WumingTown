@@ -166,6 +166,11 @@ export {
   createM4BorrowedShadowCrisisStore,
 } from "./m4-borrowed-shadow-crisis";
 export {
+  M5AnomalyRosterStore,
+  createM5AnomalyRosterStore,
+  createM5BorrowedShadowAnomalyDefinition,
+} from "./m5-anomaly-roster";
+export {
   M4DirectorPressureStore,
   createM4DirectorPressureStore,
 } from "./m4-director-pressure-store";
@@ -198,6 +203,15 @@ export {
   M4_BORROWED_SHADOW_TRACE_LOW_RISK_EVIDENCE,
   M4_BORROWED_SHADOW_TRACE_RESOLUTION,
 } from "./m4-borrowed-shadow-types";
+export {
+  M5_ANOMALY_ACTIVATION_POLICY_BORROWED_SHADOW_LAMP_IDENTITY,
+  M5_ANOMALY_DEF_BORROWED_SHADOW,
+  M5_ANOMALY_KIND,
+  M5_ANOMALY_NONE,
+  M5_ANOMALY_ROSTER_SNAPSHOT_VERSION,
+  M5_ANOMALY_RULE_COMPONENT_BORROWED_SHADOW,
+  M5_ANOMALY_STATE_OWNER_BORROWED_SHADOW_CRISIS,
+} from "./m5-anomaly-roster-types";
 export {
   M4_DIRECTOR_CANDIDATE_INCIDENT,
   M4_DIRECTOR_CANDIDATE_RECOVERY,
@@ -826,6 +840,19 @@ export type {
   M4BorrowedShadowTraceInput,
   M4BorrowedShadowTraceView,
 } from "./m4-borrowed-shadow-types";
+export type {
+  M5AnomalyActivationCandidateInput,
+  M5AnomalyActivationCandidateQuery,
+  M5AnomalyActivationCandidateQueryResult,
+  M5AnomalyActivationCandidateView,
+  M5AnomalyDefinitionView,
+  M5AnomalyRosterMetrics,
+  M5AnomalyRosterMutationResult,
+  M5AnomalyRosterReason,
+  M5AnomalyRosterStoreOptions,
+  M5CompiledAnomalyDefinitionInput,
+  M5CompiledAnomalyRosterInput,
+} from "./m5-anomaly-roster-types";
 export type {
   M4DirectorCandidateInput,
   M4DirectorCandidateView,

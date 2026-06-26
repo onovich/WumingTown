@@ -49,7 +49,7 @@ function readFilter(args) {
 
   return {
     error:
-      "Unsupported test arguments. Use no arguments, --filter building, --filter content, --filter determinism, --filter entity-store, --filter hauling, --filter jobs, --filter m1-invariants, --filter m1-save-replay, --filter m2-invariants, --filter m2-save-replay, --filter m2-worker-parity, --filter m3-invariants, --filter m3-save-replay, --filter m3-worker-parity, --filter m4-chronicle, --filter m4-crisis, --filter m4-director, --filter m4-invariants, --filter m4-lamps, --filter m4-obligations, --filter m4-save-replay, --filter m4-scenario, --filter m4-worker-parity, --filter m5-content-validation, --filter map-grid, --filter pathing, --filter region-room, --filter reservations, --filter spatial-index, --filter sim-core, --filter sim-protocol, --filter work-offers, --filter worker-smoke, or --filter web-shell.",
+      "Unsupported test arguments. Use no arguments, --filter building, --filter content, --filter determinism, --filter entity-store, --filter hauling, --filter jobs, --filter m1-invariants, --filter m1-save-replay, --filter m2-invariants, --filter m2-save-replay, --filter m2-worker-parity, --filter m3-invariants, --filter m3-save-replay, --filter m3-worker-parity, --filter m4-chronicle, --filter m4-crisis, --filter m4-director, --filter m4-invariants, --filter m4-lamps, --filter m4-obligations, --filter m4-save-replay, --filter m4-scenario, --filter m4-worker-parity, --filter m5-anomaly-roster, --filter m5-content-validation, --filter map-grid, --filter pathing, --filter region-room, --filter reservations, --filter spatial-index, --filter sim-core, --filter sim-protocol, --filter work-offers, --filter worker-smoke, or --filter web-shell.",
   };
 }
 
@@ -329,6 +329,14 @@ function selectVitestTargets(selectedMode, selectedFilter) {
           "packages/content-schema/src/m5-content-validation.test.ts",
           "packages/content-compiler/src/m5-content-validation.test.ts",
         ],
+      };
+    }
+
+    if (selectedFilter === "m5-anomaly-roster") {
+      return {
+        ok: true,
+        extraArgs: ["--exclude=**/*.e2e.test.ts"],
+        targets: ["packages/sim-core/src/m5-anomaly-roster.test.ts"],
       };
     }
 
