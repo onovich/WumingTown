@@ -9,10 +9,15 @@ import {
 } from "@wuming-town/renderer-pixi";
 import { createShellHudElement, createShellStore, type ShellState } from "@wuming-town/ui-react";
 
+import { createShellReleaseGateInfo, readShellBrowserLabel } from "./product-gate-harness";
 import { WEB_SHELL_SMOKE_READ_MODEL } from "./smoke-read-model";
 
 export interface WebShellDebugPayload extends PixiWorldRendererDebugState {
+  readonly browserTargets: readonly string[];
+  readonly fixtureId: string;
   readonly platformHost: PlatformHostInfo;
+  readonly runtimeBrowser: string;
+  readonly runtimeCrossOriginIsolated: boolean;
 }
 
 export interface MountedWebShell {
@@ -22,6 +27,10 @@ export interface MountedWebShell {
 export async function mountWebClientShell(rootElement: HTMLElement): Promise<MountedWebShell> {
   prepareDocumentChrome();
   const platformPorts = resolvePlatformPorts();
+  const releaseGate = createShellReleaseGateInfo({
+    browserLabel: readShellBrowserLabel(navigator.userAgent),
+    crossOriginIsolated: window.crossOriginIsolated,
+  });
 
   const shellFrame = document.createElement("div");
   shellFrame.style.cssText =
@@ -38,6 +47,7 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
 
   const initialState: ShellState = {
     readModel: WEB_SHELL_SMOKE_READ_MODEL,
+    releaseGate,
     canvasWidth: Math.max(shellFrame.clientWidth, 1),
     canvasHeight: Math.max(shellFrame.clientHeight, 1),
     zoom: 1,
@@ -124,9 +134,17 @@ function readDevicePixelRatio(): number {
 }
 
 function syncDebug(debugState: PixiWorldRendererDebugState, platformHost: PlatformHostInfo): void {
+  const releaseGate = createShellReleaseGateInfo({
+    browserLabel: readShellBrowserLabel(navigator.userAgent),
+    crossOriginIsolated: window.crossOriginIsolated,
+  });
   const debugPayload: WebShellDebugPayload = {
     ...debugState,
+    browserTargets: releaseGate.browserTargets,
+    fixtureId: releaseGate.fixtureId,
     platformHost,
+    runtimeBrowser: releaseGate.runtimeBrowser,
+    runtimeCrossOriginIsolated: releaseGate.runtimeCrossOriginIsolated,
   };
   const debugNode = document.getElementById("wm-shell-debug");
   if (debugNode !== null) {

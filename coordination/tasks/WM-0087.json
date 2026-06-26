@@ -2,7 +2,7 @@
   "id": "WM-0087",
   "title": "Chrome and Edge performance memory and loading gate",
   "summary": "Measure Chrome/Edge Web product-gate performance, memory and loading against the reviewed M6 Web release criteria.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,13 +31,19 @@
   ],
   "branch": "task/WM-0087-web-performance-memory-loading",
   "createdAt": "2026-06-26T20:20:00.000Z",
-  "updatedAt": "2026-06-26T20:20:00.000Z",
+  "updatedAt": "2026-06-26T21:23:43.090Z",
   "history": [
     {
       "at": "2026-06-26T20:20:00.000Z",
       "actor": "project-director",
       "action": "create",
       "details": "Instantiated from reviewed WM-0084 M6 DAG; keep proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-26T21:23:43.090Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "M6",

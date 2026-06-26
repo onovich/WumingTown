@@ -6,12 +6,28 @@ import type {
 
 export interface ShellState {
   readonly readModel: WorldReadModel;
+  readonly releaseGate: ShellReleaseGateInfo;
   readonly canvasWidth: number;
   readonly canvasHeight: number;
   readonly zoom: number;
   readonly lastInputLabel: string;
   readonly selectedEntityId: string | undefined;
   readonly hoverTile: TileCoordinate | undefined;
+}
+
+export interface ShellReleaseGateLine {
+  readonly label: string;
+  readonly value: string;
+  readonly detail: string;
+}
+
+export interface ShellReleaseGateInfo {
+  readonly fixtureId: string;
+  readonly title: string;
+  readonly browserTargets: readonly string[];
+  readonly runtimeBrowser: string;
+  readonly runtimeCrossOriginIsolated: boolean;
+  readonly sections: readonly ShellReleaseGateLine[];
 }
 
 export interface ShellStore {

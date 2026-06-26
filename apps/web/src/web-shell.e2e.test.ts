@@ -1,6 +1,7 @@
 /// <reference lib="dom" />
 
 import { mkdir, stat } from "node:fs/promises";
+import * as os from "node:os";
 import * as path from "node:path";
 
 import { chromium } from "playwright";
@@ -8,9 +9,13 @@ import { describe, expect, it } from "vitest";
 import { createServer, type ViteDevServer } from "vite";
 
 interface WebShellDebugPayload {
+  readonly browserTargets: readonly string[];
   readonly canvasWidth: number;
   readonly canvasHeight: number;
+  readonly fixtureId: string;
   readonly zoom: number;
+  readonly runtimeBrowser: string;
+  readonly runtimeCrossOriginIsolated: boolean;
   readonly selectedEntityId: string | undefined;
   readonly entityScreenPositions: readonly {
     readonly entityId: string;
@@ -19,13 +24,7 @@ interface WebShellDebugPayload {
   }[];
 }
 
-const SCREENSHOT_PATH = path.join(
-  process.cwd(),
-  "coordination",
-  "artifacts",
-  "WM-0003",
-  "web-shell-smoke.png",
-);
+const SCREENSHOT_PATH = readScreenshotPath();
 
 describe("web shell smoke", () => {
   it("renders the Pixi map shell, updates selection via canvas input, and writes a deterministic screenshot", async () => {
@@ -65,10 +64,15 @@ describe("web shell smoke", () => {
         height: 760,
       });
       await waitForHudText(page, "Canvas 1180 x 760");
+      await waitForHudText(page, "Map 192 x 192");
+      await waitForHudText(page, "Chrome Stable, Edge Stable");
 
       const debugPayload = await readDebugPayload(page);
+      expect(debugPayload.fixtureId).toBe("wm-0086-web-product-gate");
+      expect(debugPayload.browserTargets).toContain("Chrome Stable");
+      expect(debugPayload.browserTargets).toContain("Edge Stable");
       const targetEntity = debugPayload.entityScreenPositions.find(
-        (entity) => entity.entityId === "scribe-lin",
+        (entity) => entity.entityId === "lantern-keeper-shen",
       );
       expect(targetEntity).toBeDefined();
       await page.locator("[data-testid='world-canvas']").evaluate(
@@ -98,7 +102,7 @@ describe("web shell smoke", () => {
           y: targetEntity?.y ?? 0,
         },
       );
-      await waitForSelectedEntity(page, "scribe-lin");
+      await waitForSelectedEntity(page, "lantern-keeper-shen");
 
       await page.keyboard.press("KeyD");
       await waitForHudText(page, "Keyboard KeyD");
@@ -173,8 +177,12 @@ function parseDebugPayload(text: string): WebShellDebugPayload {
   const parsed: unknown = JSON.parse(text);
   if (
     !isRecord(parsed) ||
+    !Array.isArray(parsed["browserTargets"]) ||
     typeof parsed["canvasWidth"] !== "number" ||
     typeof parsed["canvasHeight"] !== "number" ||
+    typeof parsed["fixtureId"] !== "string" ||
+    typeof parsed["runtimeBrowser"] !== "string" ||
+    typeof parsed["runtimeCrossOriginIsolated"] !== "boolean" ||
     typeof parsed["zoom"] !== "number" ||
     !Array.isArray(parsed["entityScreenPositions"])
   ) {
@@ -199,9 +207,19 @@ function parseDebugPayload(text: string): WebShellDebugPayload {
   });
 
   return {
+    browserTargets: parsed["browserTargets"].map((entry) => {
+      if (typeof entry !== "string") {
+        throw new Error("Unexpected browser target payload.");
+      }
+
+      return entry;
+    }),
     canvasWidth: parsed["canvasWidth"],
     canvasHeight: parsed["canvasHeight"],
+    fixtureId: parsed["fixtureId"],
     zoom: parsed["zoom"],
+    runtimeBrowser: parsed["runtimeBrowser"],
+    runtimeCrossOriginIsolated: parsed["runtimeCrossOriginIsolated"],
     selectedEntityId:
       typeof parsed["selectedEntityId"] === "string" ? parsed["selectedEntityId"] : undefined,
     entityScreenPositions: positions,
@@ -210,4 +228,10 @@ function parseDebugPayload(text: string): WebShellDebugPayload {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function readScreenshotPath(): string {
+  const artifactRoot =
+    process.env["WM_ARTIFACT_DIR"] ?? path.join(os.tmpdir(), "wuming-town", "WM-0086");
+  return path.join(artifactRoot, "web-shell", "web-shell-smoke.png");
 }

@@ -163,6 +163,62 @@ export function ShellHudRoot({ store }: ShellHudRootProps): ReactElement {
           `Input ${state.lastInputLabel}`,
         ),
       ),
+      createElement(
+        "section",
+        {
+          "aria-label": "Web product gate harness",
+          "data-browser-targets": state.releaseGate.browserTargets.join(","),
+          "data-cross-origin-isolated": state.releaseGate.runtimeCrossOriginIsolated
+            ? "true"
+            : "false",
+          "data-release-gate-fixture": state.releaseGate.fixtureId,
+          style: releaseGateCardStyle,
+        },
+        createElement(
+          "div",
+          {
+            style: sectionLabelStyle,
+          },
+          state.releaseGate.title,
+        ),
+        createElement(
+          "div",
+          {
+            style: chipHintStyle,
+          },
+          `${state.releaseGate.runtimeBrowser} | targets ${state.releaseGate.browserTargets.join(", ")}`,
+        ),
+        ...state.releaseGate.sections.map((section) =>
+          createElement(
+            "div",
+            {
+              key: section.label,
+              style: releaseGateRowStyle,
+            },
+            createElement(
+              "div",
+              {
+                style: chipLabelStyle,
+              },
+              section.label,
+            ),
+            createElement(
+              "div",
+              {
+                style: chipValueStyle,
+              },
+              section.value,
+            ),
+            createElement(
+              "div",
+              {
+                style: chipHintStyle,
+              },
+              section.detail,
+            ),
+          ),
+        ),
+      ),
     ),
     createElement(
       "aside",
@@ -558,6 +614,25 @@ const viewportInfoStyle: CSSProperties = {
   justifyContent: "center",
   minWidth: "220px",
   padding: "12px 14px",
+};
+
+const releaseGateCardStyle: CSSProperties = {
+  background: "rgba(18, 15, 11, 0.9)",
+  border: "1px solid rgba(232, 206, 151, 0.18)",
+  borderRadius: "8px",
+  boxShadow: "0 10px 24px rgba(0, 0, 0, 0.24)",
+  display: "flex",
+  flex: "0 0 340px",
+  flexDirection: "column",
+  gap: "8px",
+  maxWidth: "360px",
+  padding: "12px 14px",
+};
+
+const releaseGateRowStyle: CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "3px",
 };
 
 const inspectorStyle: CSSProperties = {

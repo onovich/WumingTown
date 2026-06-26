@@ -8,16 +8,16 @@ import { createShellStore, type ShellState } from "./shell-store";
 
 const READ_MODEL: WorldReadModel = {
   sessionId: "session-ui",
-  mapName: "Smoke Basin",
+  mapName: "Product Gate Basin",
   tileSize: 32,
   chunkSize: 8,
-  mapWidth: 16,
-  mapHeight: 12,
+  mapWidth: 192,
+  mapHeight: 192,
   town: {
-    settlementName: "无明镇",
-    phaseLabel: "黄昏总览",
-    cycleLabel: "第三夜",
-    speedLabel: "Paused",
+    settlementName: "Wuming Town",
+    phaseLabel: "Web product gate",
+    cycleLabel: "First season gate",
+    speedLabel: "Read-only fixture",
     alerts: [
       {
         severity: "warning",
@@ -38,23 +38,23 @@ const READ_MODEL: WorldReadModel = {
   entities: [
     {
       entityId: "entity-a",
-      displayName: "沈墨",
+      displayName: "Chronicler Lin",
       kind: "resident",
       tile: {
-        x: 5,
-        y: 3,
+        x: 96,
+        y: 80,
       },
       colorHex: 0xf4d35e,
-      summary: "Patrolling lantern route",
+      summary: "Reviewing archive evidence",
       inspector: {
-        roleLabel: "守灯人",
-        currentJob: "Lantern patrol",
-        currentStep: "Move to east gate",
+        roleLabel: "Chronicle office",
+        currentJob: "Ledger review",
+        currentStep: "Verify witness order",
         moodLabel: "Focused",
         healthLabel: "Stable",
-        lastDecision: "Refuel east alley first",
-        explainers: ["Fuel reserve there is lowest in the district."],
-        thoughts: ["Keep the market lane bright before curfew."],
+        lastDecision: "Keep the archive open until the route list is clear.",
+        explainers: ["The guest list still conflicts with one witness slip."],
+        thoughts: ["Hold the lane until the archive and watch agree."],
         needs: [
           {
             label: "Rest",
@@ -69,25 +69,42 @@ const READ_MODEL: WorldReadModel = {
 };
 
 describe("shell-hud", () => {
-  it("renders selected entity inspector content from the read model", () => {
+  it("renders selected entity inspector content and release-gate metadata", () => {
     const state: ShellState = {
       readModel: READ_MODEL,
+      releaseGate: {
+        fixtureId: "wm-0086-web-product-gate",
+        title: "Web Product Gate",
+        browserTargets: ["Chrome Stable", "Edge Stable"],
+        runtimeBrowser: "Chrome-family browser",
+        runtimeCrossOriginIsolated: false,
+        sections: [
+          {
+            label: "Fixture",
+            value: "M5 first-season Web product-gate fixture",
+            detail: "Map 192 x 192 | 40 visible actors | 20000 total-entity target",
+          },
+        ],
+      },
       canvasWidth: 1280,
       canvasHeight: 720,
       zoom: 1.25,
       lastInputLabel: "Ready",
       selectedEntityId: "entity-a",
       hoverTile: {
-        x: 5,
-        y: 3,
+        x: 96,
+        y: 80,
       },
     };
     const store = createShellStore(state);
     const markup = renderToStaticMarkup(createShellHudElement(store));
 
-    expect(markup).toContain("沈墨");
-    expect(markup).toContain("Lantern patrol");
-    expect(markup).toContain("Refuel east alley first");
+    expect(markup).toContain("Chronicler Lin");
+    expect(markup).toContain("Ledger review");
+    expect(markup).toContain("Keep the archive open until the route list is clear.");
     expect(markup).toContain("Canvas 1280 x 720");
+    expect(markup).toContain("Web Product Gate");
+    expect(markup).toContain("Chrome Stable, Edge Stable");
+    expect(markup).toContain("Map 192 x 192");
   });
 });

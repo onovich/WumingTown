@@ -1,0 +1,52 @@
+{
+  "fixtureId": "wm-0086-web-product-gate",
+  "fixtureLabel": "M5 first-season Web product-gate fixture",
+  "mapWidth": 192,
+  "mapHeight": 192,
+  "visibleActors": 40,
+  "targetActiveActors": 40,
+  "targetTotalEntities": 20000,
+  "buildReportFileName": "wm-release-gate-report.json",
+  "bundleBudgetMb": 150,
+  "assetPolicy": "WM-0086 ships a deterministic code-only fixture with no remote fetches. Future Web media or data packs must remain same-origin and stay inside the M6 compressed download budget.",
+  "authorityBoundary": "Simulation Worker or headless remains the only world authority. Web UI, Pixi and React consume read-only fixture and projection data only.",
+  "expectedHeaders": [
+    "Cross-Origin-Opener-Policy: same-origin",
+    "Cross-Origin-Embedder-Policy: require-corp"
+  ],
+  "sabFallback": "SharedArrayBuffer remains optional. Without cross-origin isolation, the Web gate must stay on Transferable snapshot/projection fallback without moving authority into the UI.",
+  "strategyPaths": [
+    "evidence_first",
+    "lamp_patrol",
+    "faction_negotiation",
+    "conservative_governance"
+  ],
+  "browserTargets": [
+    {
+      "browser": "Chrome Stable",
+      "note": "Primary Chromium Web product-gate target for WM-0087 performance and loading evidence."
+    },
+    {
+      "browser": "Edge Stable",
+      "note": "Same-spec Chromium target with explicit later measurement in WM-0087; WM-0086 records assumptions only."
+    }
+  ],
+  "primaryEvidence": {
+    "taskId": "WM-0083",
+    "label": "Reviewed M5 alpha content framework closeout",
+    "scenarioId": "m5.alpha_content_framework.first_season.v1",
+    "finalTick": 100000,
+    "contentHash": "0xe55d3015",
+    "commandStreamHash": "0x81d37435",
+    "finalReadModelHash": "0x9ba83cb7"
+  },
+  "regressionEvidence": {
+    "taskId": "WM-0067",
+    "label": "Reviewed M4 borrowed-shadow regression slice",
+    "scenarioId": "m4.core_vertical_slice.borrowed_shadow_lamps.v1",
+    "finalTick": 36000,
+    "contentHash": "0x698f2c41",
+    "commandStreamHash": "0x538d0e43",
+    "finalReadModelHash": "0xce261d9d"
+  }
+}

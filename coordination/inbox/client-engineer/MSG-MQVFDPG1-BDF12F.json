@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQVFDPG1-BDF12F",
+  "from": "reviewer",
+  "to": "client-engineer",
+  "taskId": "WM-0086",
+  "kind": "changes-requested",
+  "subject": "WM-0086 review: changes_requested",
+  "body": "High: pnpm test:e2e --filter web-shell rewrites tracked coordination/artifacts/WM-0003/web-shell-smoke.png from the hardcoded screenshot path in apps/web/src/web-shell.e2e.test.ts, outside WM-0086 allowed paths and requiring manual generated-output cleanup after a required gate. Build report artifact is ignored and other required checks passed.",
+  "artifacts": [
+    "coordination/reports/WM-0086.md"
+  ],
+  "createdAt": "2026-06-26T21:10:36.049Z",
+  "acknowledgedAt": "2026-06-26T21:12:26.434Z"
+}

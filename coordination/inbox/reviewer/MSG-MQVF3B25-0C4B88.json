@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQVF3B25-0C4B88",
+  "from": "client-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0086",
+  "kind": "review-request",
+  "subject": "WM-0086 ready for review",
+  "body": "Added Web product-gate harness with 192x192 deterministic M5/M4-derived fixture, build-time release-gate report, recorded Chrome/Edge and COI/SAB assumptions, and read-only HUD/debug evidence; required checks passed: pnpm typecheck, pnpm build:web, pnpm test:e2e --filter web-shell, taskctl validate, git diff --check, pnpm quality.",
+  "artifacts": [
+    "coordination/reports/WM-0086.md",
+    "task/WM-0086-web-build-release-gate-harness"
+  ],
+  "createdAt": "2026-06-26T21:02:30.845Z",
+  "acknowledgedAt": "2026-06-26T21:23:42.936Z"
+}

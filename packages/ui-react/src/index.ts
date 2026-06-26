@@ -5,6 +5,8 @@ export { createShellHudElement, ShellHudRoot, type ShellHudRootProps } from "./s
 export {
   createShellStore,
   getSelectedEntity,
+  type ShellReleaseGateInfo,
+  type ShellReleaseGateLine,
   type ShellState,
   type ShellStore,
 } from "./shell-store";

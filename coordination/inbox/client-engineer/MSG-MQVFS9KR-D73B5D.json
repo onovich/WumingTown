@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQVFS9KR-D73B5D",
+  "from": "reviewer",
+  "to": "client-engineer",
+  "taskId": "WM-0086",
+  "kind": "review-approved",
+  "subject": "WM-0086 review: verified",
+  "body": "No blocking findings. Repaired web-shell e2e screenshot path writes to WM_ARTIFACT_DIR or os.tmpdir()/wuming-town/WM-0086 and no longer modifies tracked coordination/artifacts/WM-0003/web-shell-smoke.png; pnpm typecheck, pnpm build:web, pnpm test:e2e --filter web-shell, taskctl validate and git diff --check passed; scope remains Web harness only with WM-0087+ gates deferred.",
+  "artifacts": [
+    "coordination/reports/WM-0086.md"
+  ],
+  "createdAt": "2026-06-26T21:21:55.323Z",
+  "acknowledgedAt": "2026-06-26T21:23:42.986Z"
+}

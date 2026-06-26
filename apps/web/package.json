@@ -16,7 +16,7 @@
     "react-dom": "19.2.7"
   },
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && node --experimental-strip-types ../../tools/web-release-gate-report.mjs",
     "dev": "vite"
   },
   "wumingBoundary": {

@@ -17,3 +17,22 @@
 ## 决策
 
 A 同规格；B 内容同等但快进降低；C 地图/人口上限降低；D 仅试玩；E 取消。任何结果保持存档容器可与 Windows 互通。
+
+## WM-0086 Harness Baseline
+
+- Repeatable harness command: `pnpm build:web`
+- Build artifact: `apps/desktop-electron/dist/renderer/wm-release-gate-report.json`
+- Fixture id: `wm-0086-web-product-gate`
+- Fixture evidence root: WM-0083 `m5.alpha_content_framework.first_season.v1`
+  with M4 regression reference `m4.core_vertical_slice.borrowed_shadow_lamps.v1`
+- Browser target assumptions recorded in WM-0086: Chrome Stable and Edge Stable
+  are the intended Chromium release-gate targets; actual perf and loading
+  measurements stay in WM-0087
+- Cross-origin-isolation assumption: SharedArrayBuffer is optional; enabling it
+  requires `COOP same-origin` and `COEP require-corp`, otherwise the Web shell
+  must remain on Transferable snapshot/projection fallback
+- Bundle-size assumption: compare the 150 MB compressed target against runtime
+  deliverable assets, not sourcemaps
+- Asset assumption: WM-0086 uses a deterministic code-only fixture with no
+  remote fetch requirement; later Web assets must remain same-origin or opt
+  into CORP/CORS before SAB is enabled

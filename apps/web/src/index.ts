@@ -9,6 +9,12 @@ export {
   type MountedWebShell,
   type WebShellDebugPayload,
 } from "./shell-bootstrap";
+export {
+  WEB_PRODUCT_GATE_HARNESS,
+  createShellReleaseGateInfo,
+  readShellBrowserLabel,
+} from "./product-gate-harness";
+export { WEB_PRODUCT_GATE_READ_MODEL } from "./product-gate-fixture";
 export { WEB_SHELL_SMOKE_READ_MODEL } from "./smoke-read-model";
 
 export const WEB_APP_SMOKE: WorkspaceSmoke = defineWorkspaceSmoke("@wuming-town/web", "app");

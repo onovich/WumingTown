@@ -2,7 +2,7 @@
   "id": "WM-0086",
   "title": "Add Web build and release-gate harness",
   "summary": "Create the repeatable Web product-gate build and harness for the current alpha content framework without changing simulation authority.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -35,7 +35,7 @@
   ],
   "branch": "task/WM-0086-web-build-release-gate-harness",
   "createdAt": "2026-06-26T20:20:00.000Z",
-  "updatedAt": "2026-06-26T20:32:09.113Z",
+  "updatedAt": "2026-06-26T21:23:43.083Z",
   "history": [
     {
       "at": "2026-06-26T20:20:00.000Z",
@@ -48,6 +48,48 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-26T20:34:45.560Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": "thread=Canvas WM-0086 web gate harness"
+    },
+    {
+      "at": "2026-06-26T21:02:30.844Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Added Web product-gate harness with 192x192 deterministic M5/M4-derived fixture, build-time release-gate report, recorded Chrome/Edge and COI/SAB assumptions, and read-only HUD/debug evidence; required checks passed: pnpm typecheck, pnpm build:web, pnpm test:e2e --filter web-shell, taskctl validate, git diff --check, pnpm quality."
+    },
+    {
+      "at": "2026-06-26T21:10:36.048Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: pnpm test:e2e --filter web-shell rewrites tracked coordination/artifacts/WM-0003/web-shell-smoke.png from the hardcoded screenshot path in apps/web/src/web-shell.e2e.test.ts, outside WM-0086 allowed paths and requiring manual generated-output cleanup after a required gate. Build report artifact is ignored and other required checks passed."
+    },
+    {
+      "at": "2026-06-26T21:16:34.216Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Repaired WM-0086 review finding by moving web-shell e2e screenshots to WM_ARTIFACT_DIR or os.tmpdir()/wuming-town/WM-0086, restoring the accidental WM-0003 tracked artifact change, and updating the report to record clean screenshot behavior; required checks passed again: pnpm typecheck, pnpm build:web, pnpm test:e2e --filter web-shell, taskctl validate, git diff --check, pnpm quality."
+    },
+    {
+      "at": "2026-06-26T21:21:55.322Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Repaired web-shell e2e screenshot path writes to WM_ARTIFACT_DIR or os.tmpdir()/wuming-town/WM-0086 and no longer modifies tracked coordination/artifacts/WM-0003/web-shell-smoke.png; pnpm typecheck, pnpm build:web, pnpm test:e2e --filter web-shell, taskctl validate and git diff --check passed; scope remains Web harness only with WM-0087+ gates deferred."
+    },
+    {
+      "at": "2026-06-26T21:23:43.035Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integrated verified Web build and release-gate harness after independent review confirmed the WM-0003 screenshot artifact is no longer modified and scope remains Web product-gate harness only."
+    },
+    {
+      "at": "2026-06-26T21:23:43.083Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M6",
@@ -102,5 +144,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Web product-gate harness spans app, renderer/platform surfaces and M6 product readiness."
+  },
+  "claimedBy": "client-engineer",
+  "threadLabel": "Canvas WM-0086 web gate harness",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0086.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Repaired web-shell e2e screenshot path writes to WM_ARTIFACT_DIR or os.tmpdir()/wuming-town/WM-0086 and no longer modifies tracked coordination/artifacts/WM-0003/web-shell-smoke.png; pnpm typecheck, pnpm build:web, pnpm test:e2e --filter web-shell, taskctl validate and git diff --check passed; scope remains Web harness only with WM-0087+ gates deferred.",
+    "at": "2026-06-26T21:21:55.321Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integrated verified Web build and release-gate harness after independent review confirmed the WM-0003 screenshot artifact is no longer modified and scope remains Web product-gate harness only.",
+    "at": "2026-06-26T21:23:43.034Z"
   }
 }
