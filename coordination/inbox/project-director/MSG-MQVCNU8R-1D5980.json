@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQVCNU8R-1D5980",
+  "from": "reviewer",
+  "to": "project-director",
+  "taskId": "WM-0084",
+  "kind": "review-approved",
+  "subject": "WM-0084 review: verified",
+  "body": "No blocking findings. Verified roadmap authority and deprecated old M6/M7/M8/M9 inference; M6 prompt and DAG define Web/Windows Product Gate, M7 Early Access/public playtest prep, M8 1.0; DAG covers Web, Windows Electron, performance, memory, loading, save/import/export, SAB fallback, input/accessibility, security, diagnostics, product verdict, closeout and M7 readiness; no WM-0085+ task JSON or implementation-path changes found; review gates passed.",
+  "artifacts": [
+    "coordination/reports/WM-0084.md"
+  ],
+  "createdAt": "2026-06-26T19:54:29.979Z",
+  "acknowledgedAt": "2026-06-26T19:56:25.804Z"
+}

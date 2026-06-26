@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQVCFXEC-599AE9",
+  "from": "project-director",
+  "to": "reviewer",
+  "taskId": "WM-0084",
+  "kind": "review-request",
+  "subject": "WM-0084 ready for review",
+  "body": "Recovered the missing M6 Web / Windows Product Gate entry prompt and reviewed DAG artifact from current roadmap, M5 closeout, Web release gate and platform matrix; no WM-0085+ task JSON or M6 implementation started; required gates pass.",
+  "artifacts": [
+    "coordination/reports/WM-0084.md",
+    "task/WM-0084-recover-m6-product-gate-entry-prompt"
+  ],
+  "createdAt": "2026-06-26T19:48:20.820Z",
+  "acknowledgedAt": "2026-06-26T19:56:25.761Z"
+}

@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "project": "Wuming Town / Wuming Town",
-  "phase": "m5-planning",
-  "activeMilestone": "M5 alpha content framework planning in progress; runtime M5 and M6 unstarted",
+  "phase": "m6-entry-recovery",
+  "activeMilestone": "M5 closed; recovering reviewed M6 Web / Windows Product Gate entry prompt and DAG; M6 implementation unstarted",
   "releaseTarget": "undated",
-  "updatedAt": "2026-06-26T09:23:43.801Z",
+  "updatedAt": "2026-06-26T19:39:08.000Z",
   "lockedDecisions": [
     "TypeScript-first authoritative simulation in a dedicated Worker",
     "PixiJS world rendering + React DOM UI + Electron Windows shell",
@@ -13,5 +13,5 @@
     "Lantern / Chronicle / Obligation are the three product pillars"
   ],
   "humanApprovalNeeded": [],
-  "notes": "Task JSON, reports and inbox files are the durable execution control plane. WM-0072 creates the M5 planning package from the reviewed WM-0071 future prompt: scenario contract, ADR-0010, roadmap plan and proposed WM-0073 through WM-0083 packets. Runtime M5 implementation remains unstarted until WM-0072 is reviewed and integrated; M6 remains stop-sign-only and no M6 task is created, promoted, claimed or implemented by WM-0072."
+  "notes": "Task JSON, reports and inbox files are the durable execution control plane. WM-0083 closed M5 with reviewed alpha content framework benchmark and invariant evidence; M6 remained stop-sign-only and no M6 task was created by M5. WM-0084 recovers the missing future M6 entry prompt and reviewed M6 Web / Windows Product Gate DAG without starting M6 implementation. Current roadmap authority: M6 = Web / Windows Product Gate, M7 = Early Access / public playtest preparation, M8 = 1.0; old M6/M7/M8/M9 inferences are deprecated."
 }

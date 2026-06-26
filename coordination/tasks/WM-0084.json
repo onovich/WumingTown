@@ -1,0 +1,162 @@
+{
+  "id": "WM-0084",
+  "title": "Recover M6 product gate entry prompt and reviewed M6 task DAG",
+  "summary": "Recover the missing M6 entry prompt and reviewed M6 product-gate task DAG from the current roadmap, M5 closeout, Web release gate, platform matrix and engineering rules without starting M6 implementation.",
+  "state": "done",
+  "ownerRole": "project-director",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0083"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "CODEX_START_HERE.md",
+    ".agents/skills/wuming-town-agent-workflow/SKILL.md",
+    "coordination/project-state.json",
+    "coordination/reports/WM-0083.md",
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "docs/07_roadmap/04_web_release_gate.md",
+    "docs/00_project/05_decision_register.md",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/05_tech/06_platform_matrix.md",
+    "docs/06_engineering/03_definition_of_done.md",
+    "docs/08_codex/03_task_state_machine.md",
+    "PLANS.md"
+  ],
+  "acceptance": [
+    "Current roadmap is recorded as authoritative and old M6/M7/M8/M9 inferences are explicitly deprecated",
+    "M6 is defined as Web / Windows Product Gate, M7 as Early Access / public playtest preparation and M8 as 1.0",
+    "coordination/reports/WM-0083-future-m6-entry-prompt.md exists and can be used as the future authoritative M6 entry prompt",
+    "Reviewed M6 product-gate DAG is drafted with task-sized work, dependencies, owners, reviewers, allowed paths, forbidden paths, validation commands, risks, owner gates, M0-M5 regression coverage and file ownership",
+    "M6 prompt and DAG cover Web gate, Windows Electron gate, performance, memory, loading, save/import/export, input, accessibility, packaging security, diagnostics/crash path, Web tier verdict and M7 readiness",
+    "No M6 implementation task is claimed, promoted, implemented or dispatched; no product runtime, simulation, content data or test behavior is changed"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0084-recover-m6-product-gate-entry-prompt",
+  "createdAt": "2026-06-26T19:39:08.000Z",
+  "updatedAt": "2026-06-26T19:56:17.624Z",
+  "history": [
+    {
+      "at": "2026-06-26T19:39:08.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created from owner authorization to recover the missing M6 product-gate entry prompt and reviewed DAG."
+    },
+    {
+      "at": "2026-06-26T19:39:08.000Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "WM-0083 is done and the owner authorized the M6 entry recovery task; M6 implementation remains unstarted."
+    },
+    {
+      "at": "2026-06-26T19:40:00.317Z",
+      "actor": "project-director",
+      "action": "claim",
+      "details": "thread=Beacon WM-0084 M6 entry recovery"
+    },
+    {
+      "at": "2026-06-26T19:48:20.819Z",
+      "actor": "project-director",
+      "action": "complete",
+      "details": "Recovered the missing M6 Web / Windows Product Gate entry prompt and reviewed DAG artifact from current roadmap, M5 closeout, Web release gate and platform matrix; no WM-0085+ task JSON or M6 implementation started; required gates pass."
+    },
+    {
+      "at": "2026-06-26T19:54:29.977Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Verified roadmap authority and deprecated old M6/M7/M8/M9 inference; M6 prompt and DAG define Web/Windows Product Gate, M7 Early Access/public playtest prep, M8 1.0; DAG covers Web, Windows Electron, performance, memory, loading, save/import/export, SAB fallback, input/accessibility, security, diagnostics, product verdict, closeout and M7 readiness; no WM-0085+ task JSON or implementation-path changes found; review gates passed."
+    },
+    {
+      "at": "2026-06-26T19:56:17.579Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Reviewer verified WM-0084; integration gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality with pnpm 11.8.0. M6 entry prompt and DAG artifact recovered; no WM-0085+ task JSON or implementation started."
+    },
+    {
+      "at": "2026-06-26T19:56:17.624Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
+    }
+  ],
+  "milestone": "M6-entry-recovery",
+  "objective": "Create a reviewed M6 product-gate entry prompt and M6 task DAG artifact from current repository facts without starting M6 implementation.",
+  "allowedPaths": [
+    "coordination/tasks/WM-0084.json",
+    "coordination/reports/WM-0084*.md",
+    "coordination/reports/WM-0083-future-m6-entry-prompt.md",
+    "coordination/project-state.json",
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "docs/08_codex/**"
+  ],
+  "forbiddenPaths": [
+    "packages/**",
+    "apps/**",
+    "src/**",
+    "tests/**",
+    "schemas/**",
+    "examples/**",
+    "content/**",
+    "tools/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "coordination/artifacts/**",
+    "product runtime implementation",
+    "simulation implementation",
+    "content data implementation",
+    "test behavior changes",
+    "benchmark artifact rewrites",
+    "M0-M5 task history rewrites",
+    "M6 implementation task claim promotion dispatch or execution",
+    "M7 or M8 work"
+  ],
+  "validationCommands": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: old milestone assumptions leak into M6; ownership is limited to current roadmap and current closeout evidence.",
+    "Risk: creating downstream task JSON causes taskctl auto-promotion after WM-0084 done; WM-0084 drafts the M6 DAG as a reviewed artifact instead of instantiating WM-0085+ JSON.",
+    "Risk: M6 planning becomes implementation; forbidden paths block product, simulation, content and test behavior changes."
+  ],
+  "benchmarkImpact": "No benchmark baseline or artifact changes. WM-0084 only defines future product-gate benchmark requirements and preserves existing 10 percent warning / 20 percent blocking thresholds.",
+  "reviewRouting": "Project-director completes to reviewer. Reviewer must verify that M6 is Web / Windows Product Gate, the current roadmap is authoritative, no old M6/M7/M8/M9 inference was used, and no M6 implementation was started.",
+  "rollbackModel": "Revert WM-0084 task/report artifacts, the recovered future M6 entry prompt and narrow project-state/roadmap markers if any; leave M5 closeout and M6 blocked.",
+  "ownerGate": [
+    "Block if current roadmap and Web release gate are insufficient to define M6 without guessing",
+    "Block if product implementation, runtime code, simulation code, content data, tests, benchmark artifacts or package manifests need edits",
+    "Block if creating M6 task JSON would make taskctl promote M6 implementation tasks to ready before owner starts the M6 goal",
+    "Block if the prompt cannot preserve M0-M5 regression gates, M5 final hashes and existing benchmark thresholds",
+    "Do not start M7 or M8"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Milestone entry recovery, roadmap authority and product-gate DAG design require project-director ownership and independent reviewer verification."
+  },
+  "claimedBy": "project-director",
+  "threadLabel": "Beacon WM-0084 M6 entry recovery",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0084.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Verified roadmap authority and deprecated old M6/M7/M8/M9 inference; M6 prompt and DAG define Web/Windows Product Gate, M7 Early Access/public playtest prep, M8 1.0; DAG covers Web, Windows Electron, performance, memory, loading, save/import/export, SAB fallback, input/accessibility, security, diagnostics, product verdict, closeout and M7 readiness; no WM-0085+ task JSON or implementation-path changes found; review gates passed.",
+    "at": "2026-06-26T19:54:29.977Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Reviewer verified WM-0084; integration gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality with pnpm 11.8.0. M6 entry prompt and DAG artifact recovered; no WM-0085+ task JSON or implementation started.",
+    "at": "2026-06-26T19:56:17.578Z"
+  }
+}
