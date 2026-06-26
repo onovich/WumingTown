@@ -2,7 +2,7 @@
   "id": "WM-0070",
   "title": "Add M4 benchmarks and invariants",
   "summary": "Add M4 long-run benchmark and invariant gates for lamp network, Chronicle evidence, obligations, crisis chains, director recovery windows, save/replay, Worker parity and M0-M3 regression protection.",
-  "state": "review_requested",
+  "state": "done",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -33,7 +33,7 @@
   ],
   "branch": "task/WM-0070-add-m4-benchmarks-and-invariants",
   "createdAt": "2026-06-25T19:08:30.000Z",
-  "updatedAt": "2026-06-26T08:22:49.781Z",
+  "updatedAt": "2026-06-26T08:30:16.345Z",
   "history": [
     {
       "at": "2026-06-25T19:08:30.000Z",
@@ -70,6 +70,24 @@
       "actor": "qa-performance",
       "action": "complete",
       "details": "Repaired WM-0070 benchmark artifact hash convention: renamed pre-field digest to canonicalPayloadSha256, added actual benchmark-results.json SHA-256 sidecar, regenerated artifact/docs/report, and reran required typecheck, m4 invariants, bench, sim, validate, diff check, plus quality."
+    },
+    {
+      "at": "2026-06-26T08:27:50.914Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Re-review confirms the prior artifact hash issue is fixed: benchmark-results.json SHA-256 FDC0DFE779264134C23F3DAF95C92C879C683DDCBB22A9E704F12359B3DC0E71 matches the .sha256 sidecar and report, while canonicalPayloadSha256 is clearly labeled as the pre-hashing payload digest. Baseline thresholds remain 10/20, scope stays within WM-0070 benchmark/invariant/docs/artifact paths, and required gates pass."
+    },
+    {
+      "at": "2026-06-26T08:30:09.084Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified by reviewer; quality, m4 invariants, temp-artifact bench, 100000-tick sim, validate and diff gates passed"
+    },
+    {
+      "at": "2026-06-26T08:30:16.345Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Create artifact-backed M4 performance and invariant evidence before closeout while protecting all prior milestone gates.",
@@ -123,8 +141,13 @@
   "reportPath": "coordination/reports/WM-0070.md",
   "review": {
     "reviewer": "reviewer",
-    "verdict": "changes_requested",
-    "summary": "High: WM-0070 benchmark artifact hash evidence is not reproducible. coordination/reports/WM-0070.md and the artifact reviewedSha256 record 2E537A601FE41868C02E89D57322318F88841F471DF20749638FC17FF0674DE3, but Get-FileHash on coordination/artifacts/WM-0070/benchmarks/benchmark-results.json returns BE28064528C2144DC1A2186783ADF83D4607DB723AC92DCAADFF0D0AB414239D. The benchmark writer computes reviewedSha256 before adding that field, so the published hash is not the actual artifact file hash. Fix the hash convention/evidence so the reviewed artifact path and hash are exact, reproducible, and unambiguous.",
-    "at": "2026-06-26T08:11:04.166Z"
+    "verdict": "verified",
+    "summary": "No blocking findings. Re-review confirms the prior artifact hash issue is fixed: benchmark-results.json SHA-256 FDC0DFE779264134C23F3DAF95C92C879C683DDCBB22A9E704F12359B3DC0E71 matches the .sha256 sidecar and report, while canonicalPayloadSha256 is clearly labeled as the pre-hashing payload digest. Baseline thresholds remain 10/20, scope stays within WM-0070 benchmark/invariant/docs/artifact paths, and required gates pass.",
+    "at": "2026-06-26T08:27:50.914Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified by reviewer; quality, m4 invariants, temp-artifact bench, 100000-tick sim, validate and diff gates passed",
+    "at": "2026-06-26T08:30:09.083Z"
   }
 }

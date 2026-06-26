@@ -2,7 +2,7 @@
   "id": "WM-0071",
   "title": "Close the M4 core vertical slice gate",
   "summary": "Close M4 after scenario, architecture, implementation, save/replay, Worker parity, benchmarks and invariants are verified and integrated, then write a non-executable future M5 entry prompt.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -37,13 +37,19 @@
   ],
   "branch": "task/WM-0071-close-the-m4-core-vertical-slice-gate",
   "createdAt": "2026-06-25T19:08:30.000Z",
-  "updatedAt": "2026-06-25T19:08:30.000Z",
+  "updatedAt": "2026-06-26T08:30:16.351Z",
   "history": [
     {
       "at": "2026-06-25T19:08:30.000Z",
       "actor": "systems-architect",
       "action": "create",
       "details": "Created by WM-0061 M4 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-26T08:30:16.351Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "objective": "Close M4 with reviewed evidence and write a future M5 entry prompt while keeping M5 blocked until a later reviewed planning task.",

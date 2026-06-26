@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQUO4SUB-A14CA0",
+  "from": "reviewer",
+  "to": "qa-performance",
+  "taskId": "WM-0070",
+  "kind": "review-approved",
+  "subject": "WM-0070 review: verified",
+  "body": "No blocking findings. Re-review confirms the prior artifact hash issue is fixed: benchmark-results.json SHA-256 FDC0DFE779264134C23F3DAF95C92C879C683DDCBB22A9E704F12359B3DC0E71 matches the .sha256 sidecar and report, while canonicalPayloadSha256 is clearly labeled as the pre-hashing payload digest. Baseline thresholds remain 10/20, scope stays within WM-0070 benchmark/invariant/docs/artifact paths, and required gates pass.",
+  "artifacts": [
+    "coordination/reports/WM-0070.md"
+  ],
+  "createdAt": "2026-06-26T08:27:50.916Z",
+  "acknowledgedAt": "2026-06-26T08:28:54.850Z"
+}
