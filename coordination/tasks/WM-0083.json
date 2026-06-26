@@ -2,7 +2,7 @@
   "id": "WM-0083",
   "title": "Add M5 benchmarks, invariants and M6 stop signs",
   "summary": "Add M5 long-run benchmarks and invariant gates, record M6 readiness stop-sign evidence, and preserve 10 percent warning / 20 percent blocking thresholds.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -44,13 +44,19 @@
   ],
   "branch": "task/WM-0083-add-m5-benchmarks-invariants-stop-signs",
   "createdAt": "2026-06-26T09:24:00.000Z",
-  "updatedAt": "2026-06-26T09:24:00.000Z",
+  "updatedAt": "2026-06-26T15:52:50.205Z",
   "history": [
     {
       "at": "2026-06-26T09:24:00.000Z",
       "actor": "systems-architect",
       "action": "create",
       "details": "Created by WM-0072 M5 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-26T15:52:50.205Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "M5",
