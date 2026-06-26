@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
 
+import {
+  M5_ALPHA_APPROVED_OWNER_SURFACES,
+  M5_ALPHA_CATALOG_ENTRY_COUNT,
+  M5_ALPHA_DEFINITION_COUNT,
+  M5_ALPHA_REJECTED_FIXTURE_KINDS,
+  createM5AlphaContentCatalogPack,
+  createRejectedM5AlphaContentCatalogPack,
+  listM5AlphaCatalogReviewNotes,
+  type M5AlphaRejectedFixtureKind,
+} from "./m5-alpha-content-catalog-fixtures";
 import { type M5ContentPack, validateM5ContentPack } from "./m5-content-validation";
 
 describe("M5 content validation", () => {
@@ -24,6 +34,70 @@ describe("M5 content validation", () => {
       "m5.governance_hook",
       "m5.season_event",
     ]);
+  });
+
+  it("accepts the WM-0079 alpha content catalog fixture with review notes", () => {
+    const pack = createM5AlphaContentCatalogPack();
+    const result = validateM5ContentPack(pack);
+
+    expect(result.ok).toBe(true);
+    expect(result.diagnostics).toStrictEqual([]);
+    expect(result.counters).toMatchObject({
+      definitionCount: M5_ALPHA_DEFINITION_COUNT,
+      anomalyCount: 3,
+      factionHookCount: 2,
+      governanceHookCount: 2,
+      seasonEventCount: 3,
+      catalogEntryCount: M5_ALPHA_CATALOG_ENTRY_COUNT,
+      diagnosticCount: 0,
+    });
+
+    const definitions = readDefinitionObjects(pack);
+    const catalogEntries = definitions.filter(
+      (definition) => definition["kind"] === "m5.catalog_entry",
+    );
+    expect(catalogEntries).toHaveLength(M5_ALPHA_CATALOG_ENTRY_COUNT);
+    const approvedOwnerSurfaces = new Set<string>(M5_ALPHA_APPROVED_OWNER_SURFACES);
+    expect(
+      catalogEntries.every((definition) =>
+        hasApprovedOwnerSurfaceOrExplicitBlock(definition, approvedOwnerSurfaces),
+      ),
+    ).toBe(true);
+    expect(
+      catalogEntries.every((definition) => isNonEmptyStringArray(definition["systemValue"])),
+    ).toBe(true);
+    expect(
+      catalogEntries.every((definition) => isNonEmptyStringArray(definition["reusableTags"])),
+    ).toBe(true);
+
+    const reviewNotes = listM5AlphaCatalogReviewNotes();
+    expect(reviewNotes).toHaveLength(M5_ALPHA_CATALOG_ENTRY_COUNT);
+    expect(reviewNotes.every((note) => note.systemValueAlternatives.length > 0)).toBe(true);
+    expect(reviewNotes.every((note) => note.factionGovernanceAnomalyHooks.length > 0)).toBe(true);
+    expect(reviewNotes.every((note) => note.cultureFairnessReview.length > 0)).toBe(true);
+    expect(reviewNotes.some((note) => note.blockedReason !== undefined)).toBe(true);
+  });
+
+  it("rejects WM-0079 fixtures for building, tag, anomaly, faction, season, localization and unsafe data", () => {
+    const expectedCodes: Readonly<Record<M5AlphaRejectedFixtureKind, readonly string[]>> = {
+      "building-owner-surface": ["m5_semantic_field_invalid"],
+      "tag-owner-surface": ["m5_semantic_field_invalid"],
+      "anomaly-evidence": ["m5_semantic_field_invalid"],
+      "faction-hook-lanes": ["m5_semantic_field_invalid"],
+      "season-event-cooldown": ["m5_semantic_field_invalid"],
+      "missing-localization": ["missing_localization_key"],
+      "unsafe-data": ["m5_unsafe_path", "m5_unsupported_capability"],
+    };
+
+    for (const fixtureKind of M5_ALPHA_REJECTED_FIXTURE_KINDS) {
+      const result = validateM5ContentPack(createRejectedM5AlphaContentCatalogPack(fixtureKind));
+
+      expect(result.ok).toBe(false);
+      const codes = result.diagnostics.map((diagnostic) => diagnostic.code);
+      for (const expectedCode of expectedCodes[fixtureKind]) {
+        expect(codes).toContain(expectedCode);
+      }
+    }
   });
 
   it("fails closed for unsafe paths, executable content, archives, remote dependencies and unsupported capabilities", () => {
@@ -378,4 +452,70 @@ function file(relativePath: string, value: unknown): M5ContentPack["files"][numb
     text,
     byteLength: Buffer.byteLength(text, "utf8"),
   };
+}
+
+function readDefinitionObjects(pack: M5ContentPack): readonly Readonly<Record<string, unknown>>[] {
+  const definitions: Readonly<Record<string, unknown>>[] = [];
+  for (const entry of pack.files) {
+    if (!entry.relativePath.startsWith("defs/")) {
+      continue;
+    }
+    const parsed: unknown = JSON.parse(entry.text);
+    if (isRecord(parsed)) {
+      definitions.push(parsed);
+    }
+  }
+  return definitions;
+}
+
+function isNonEmptyStringArray(value: unknown): boolean {
+  return (
+    Array.isArray(value) && value.length > 0 && value.every((entry) => typeof entry === "string")
+  );
+}
+
+function hasApprovedOwnerSurfaceOrExplicitBlock(
+  definition: Readonly<Record<string, unknown>>,
+  approvedOwnerSurfaces: ReadonlySet<string>,
+): boolean {
+  const ownerSurfaces = readStringArray(definition["ownerSurfaces"]);
+  if (ownerSurfaces === undefined) {
+    return false;
+  }
+
+  const reviewNeedsValue = definition["reviewNeeds"];
+  const blockedReason = isRecord(reviewNeedsValue) ? reviewNeedsValue["blockedReason"] : undefined;
+  for (const ownerSurface of ownerSurfaces) {
+    if (approvedOwnerSurfaces.has(ownerSurface)) {
+      continue;
+    }
+    if (
+      ownerSurface.startsWith("blocked.owner_surface.") &&
+      typeof blockedReason === "string" &&
+      blockedReason.length > 0
+    ) {
+      continue;
+    }
+    return false;
+  }
+  return true;
+}
+
+function readStringArray(value: unknown): readonly string[] | undefined {
+  if (!Array.isArray(value) || value.length === 0) {
+    return undefined;
+  }
+
+  const strings: string[] = [];
+  for (const entry of value) {
+    if (typeof entry !== "string") {
+      return undefined;
+    }
+    strings.push(entry);
+  }
+  return strings;
+}
+
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

@@ -2,7 +2,7 @@
   "id": "WM-0080",
   "title": "Integrate M5 alpha scenario",
   "summary": "Compose m5.alpha_content_framework.first_season.v1 in headless runtime using the anomaly roster, faction/governance hooks, first-season event pool and alpha content catalog.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -39,13 +39,19 @@
   ],
   "branch": "task/WM-0080-integrate-m5-alpha-scenario",
   "createdAt": "2026-06-26T09:24:00.000Z",
-  "updatedAt": "2026-06-26T09:24:00.000Z",
+  "updatedAt": "2026-06-26T13:48:14.333Z",
   "history": [
     {
       "at": "2026-06-26T09:24:00.000Z",
       "actor": "systems-architect",
       "action": "create",
       "details": "Created by WM-0072 M5 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-26T13:48:14.333Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "M5",

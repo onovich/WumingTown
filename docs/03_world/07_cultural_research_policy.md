@@ -24,3 +24,11 @@
 ## 记录模板
 
 每个文化敏感内容需附 `source_note`：来源、年代/地区、可靠度、游戏改编、风险、审查状态。
+
+## WM-0079 catalog cultural review
+
+The WM-0079 alpha catalog fixture uses fictional civic, logistics, evidence,
+labor and guest-policy content rather than direct copies of real-world sacred
+rituals or minority practices. Every catalog review note records a
+culture/fairness check. Blocked content remains blocked when it would require
+future consent, debt, market-contract or owner-surface review.

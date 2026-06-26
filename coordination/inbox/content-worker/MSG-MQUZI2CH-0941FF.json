@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQUZI2CH-0941FF",
+  "from": "reviewer",
+  "to": "content-worker",
+  "taskId": "WM-0079",
+  "kind": "review-approved",
+  "subject": "WM-0079 review: verified",
+  "body": "No blocking findings; owner-surface allowlist repair verified, blocked catalog row preserved, and WM-0079 validation gates pass.",
+  "artifacts": [
+    "coordination/reports/WM-0079.md"
+  ],
+  "createdAt": "2026-06-26T13:46:05.538Z",
+  "acknowledgedAt": "2026-06-26T13:47:10.902Z"
+}

@@ -1,0 +1,66 @@
+{
+  "taskId": "WM-0079",
+  "acceptedFixture": "packages/content-schema/src/m5-alpha-content-catalog-fixtures.ts",
+  "definitionCount": 30,
+  "catalogEntryCount": 20,
+  "approvedOwnerSurfaces": [
+    "BuildSiteStore",
+    "ItemStackStore",
+    "JobCoreStore",
+    "M4ChronicleCaseFileStore",
+    "M4EvidenceFactStore",
+    "M4LampNetworkStore",
+    "M4ObligationStore",
+    "M4TownRuleStore",
+    "M5AnomalyRosterStore",
+    "M5FactionFactStore",
+    "M5GovernanceHookStore",
+    "M5OldBridgeGuestCrisisStore",
+    "M5SeasonEventPoolStore",
+    "M5ThirdKnockCrisisStore",
+    "StorageLogisticsIndex",
+    "WorkOfferIndex"
+  ],
+  "supportingDefinitions": {
+    "anomalies": [
+      "core.anomaly.borrowed_shadow.v1",
+      "core.anomaly.third_knock.v1",
+      "core.anomaly.old_bridge_guest.v1"
+    ],
+    "factionHooks": [
+      "core.faction_hook.nine_inns_guest_network.v1",
+      "core.faction_hook.mountain_contract_guides.v1"
+    ],
+    "governanceHooks": [
+      "core.governance_hook.lampkeeper_patrol_policy.v1",
+      "core.governance_hook.chronicler_evidence_seal.v1"
+    ],
+    "seasonEvents": [
+      "core.season_event.resource_pressure.v1",
+      "core.season_event.registration_pressure.v1",
+      "core.season_event.bridge_route_pressure.v1"
+    ]
+  },
+  "blockedCatalogEntries": [
+    {
+      "id": "core.catalog.market_contract_board.v1",
+      "reason": "No reviewed market-contract owner surface exists in M5; keep as blocked catalog data."
+    }
+  ],
+  "rejectedFixtures": [
+    "building-owner-surface",
+    "tag-owner-surface",
+    "anomaly-evidence",
+    "faction-hook-lanes",
+    "season-event-cooldown",
+    "missing-localization",
+    "unsafe-data"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm content:validate",
+    "pnpm test --filter m5-content-validation",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ]
+}

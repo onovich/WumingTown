@@ -9,6 +9,15 @@ export {
   validateContentFixture,
 } from "./content-fixtures";
 export {
+  M5_ALPHA_APPROVED_OWNER_SURFACES,
+  M5_ALPHA_CATALOG_ENTRY_COUNT,
+  M5_ALPHA_DEFINITION_COUNT,
+  M5_ALPHA_REJECTED_FIXTURE_KINDS,
+  createM5AlphaContentCatalogPack,
+  createRejectedM5AlphaContentCatalogPack,
+  listM5AlphaCatalogReviewNotes,
+} from "./m5-alpha-content-catalog-fixtures";
+export {
   M5_CONTENT_SCHEMA_VERSION,
   M5_DEFAULT_MAX_FILE_BYTES,
   M5_DEFAULT_MAX_PATH_SEGMENTS,
@@ -30,6 +39,10 @@ export type {
   ValidatedLocaleFile,
   ValidatedPatchFile,
 } from "./content-fixtures";
+export type {
+  M5AlphaCatalogReviewNote,
+  M5AlphaRejectedFixtureKind,
+} from "./m5-alpha-content-catalog-fixtures";
 export type {
   M5ContentCapability,
   M5ContentKind,

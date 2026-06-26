@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import type { M5ContentPack } from "@wuming-town/content-schema";
+import {
+  M5_ALPHA_CATALOG_ENTRY_COUNT,
+  M5_ALPHA_DEFINITION_COUNT,
+  createM5AlphaContentCatalogPack,
+  type M5ContentPack,
+} from "@wuming-town/content-schema";
 
 import { compileM5ContentPack } from "./m5-content-compiler";
 
@@ -48,6 +53,39 @@ describe("M5 content compilation", () => {
     }
 
     expect(second.catalog.contentManifestHash).toBe(first.catalog.contentManifestHash);
+  });
+
+  it("compiles the WM-0079 alpha catalog fixture with deterministic catalog rows", () => {
+    const result = compileM5ContentPack(createM5AlphaContentCatalogPack());
+
+    expect(result.ok).toBe(true);
+    if (!result.ok || result.catalog === undefined) {
+      throw new Error("expected WM-0079 alpha catalog compilation to succeed");
+    }
+
+    expect(result.catalog.definitions).toHaveLength(M5_ALPHA_DEFINITION_COUNT);
+    expect(result.catalog.counters).toMatchObject({
+      definitionCount: M5_ALPHA_DEFINITION_COUNT,
+      catalogEntryCount: M5_ALPHA_CATALOG_ENTRY_COUNT,
+      diagnosticCount: 0,
+    });
+    expect(result.catalog.definitions.map((definition) => definition.defIndex)).toStrictEqual(
+      Array.from({ length: M5_ALPHA_DEFINITION_COUNT }, (_, index) => index),
+    );
+    expect(result.catalog.definitions[0]).toMatchObject({
+      defIndex: 0,
+      id: "core.anomaly.borrowed_shadow.v1",
+    });
+    expect(result.catalog.definitions.at(-1)).toMatchObject({
+      defIndex: M5_ALPHA_DEFINITION_COUNT - 1,
+      id: "core.season_event.resource_pressure.v1",
+    });
+    expect(
+      result.catalog.definitions.some(
+        (definition) => definition.id === "core.catalog.market_contract_board.v1",
+      ),
+    ).toBe(true);
+    expect(result.catalog.contentManifestHash).toMatch(/^0x[0-9a-f]{8}$/);
   });
 });
 

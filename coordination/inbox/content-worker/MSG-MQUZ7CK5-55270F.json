@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQUZ7CK5-55270F",
+  "from": "reviewer",
+  "to": "content-worker",
+  "taskId": "WM-0079",
+  "kind": "changes-requested",
+  "subject": "WM-0079 review: changes_requested",
+  "body": "High: accepted catalog entries cite unapproved/nonexistent owner surfaces instead of reviewed owner surfaces or explicit blocked rows; tests only check ownerSurfaces is non-empty.",
+  "artifacts": [
+    "coordination/reports/WM-0079.md"
+  ],
+  "createdAt": "2026-06-26T13:37:45.557Z",
+  "acknowledgedAt": "2026-06-26T13:47:01.038Z"
+}

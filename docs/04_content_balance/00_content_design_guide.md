@@ -60,3 +60,16 @@ keys, reference validation and `contentBudget.bespokeRuntimeComponents: 0`.
 The compiler records deterministic DefIndex order, a content manifest hash and
 validation counters. Runtime M5 behavior, Worker protocol changes and save
 format changes remain out of scope for content authoring.
+
+## WM-0079 alpha catalog review rule
+
+The WM-0079 accepted fixture keeps alpha content data-only. Catalog entries
+must declare `contentBudget.bespokeRuntimeComponents: 0`, at least one
+owner-surface mapping, system value, reusable tags, localization keys and
+review notes. Entries that cannot map to a reviewed owner surface may remain in
+the catalog only when their owner surface is explicitly blocked, as with
+`core.catalog.market_contract_board.v1`.
+
+Rejected fixtures must prove fail-closed behavior for building and tag owner
+surface failures, anomaly semantic failures, faction hook lane failures,
+season-event failures, localization gaps and unsafe data.

@@ -2,7 +2,7 @@
   "id": "WM-0079",
   "title": "Add alpha content catalog and validation fixtures",
   "summary": "Add the first M5 alpha content catalog definitions and validation fixtures for buildings, tags, localization references and review notes without bespoke runtime code per item.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "content-worker",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -40,7 +40,7 @@
   ],
   "branch": "task/WM-0079-add-alpha-content-catalog",
   "createdAt": "2026-06-26T09:24:00.000Z",
-  "updatedAt": "2026-06-26T13:19:37.059Z",
+  "updatedAt": "2026-06-26T13:48:14.327Z",
   "history": [
     {
       "at": "2026-06-26T09:24:00.000Z",
@@ -53,6 +53,48 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-26T13:21:57.862Z",
+      "actor": "content-worker",
+      "action": "claim",
+      "details": "thread=Beacon"
+    },
+    {
+      "at": "2026-06-26T13:33:54.158Z",
+      "actor": "content-worker",
+      "action": "complete",
+      "details": "Added WM-0079 alpha catalog fixtures and validation coverage; all required gates pass"
+    },
+    {
+      "at": "2026-06-26T13:37:45.556Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: accepted catalog entries cite unapproved/nonexistent owner surfaces instead of reviewed owner surfaces or explicit blocked rows; tests only check ownerSurfaces is non-empty."
+    },
+    {
+      "at": "2026-06-26T13:42:51.056Z",
+      "actor": "content-worker",
+      "action": "complete",
+      "details": "Repaired owner-surface allowlist for WM-0079 catalog entries; all gates pass"
+    },
+    {
+      "at": "2026-06-26T13:46:05.537Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; owner-surface allowlist repair verified, blocked catalog row preserved, and WM-0079 validation gates pass."
+    },
+    {
+      "at": "2026-06-26T13:48:05.266Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Gate verified WM-0079; full integration gate passed with 57 unit files / 329 tests"
+    },
+    {
+      "at": "2026-06-26T13:48:14.327Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M5",
@@ -97,5 +139,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Although content-heavy, the first alpha catalog validates new schema and ownership policy and should not be assigned to Spark."
+  },
+  "claimedBy": "content-worker",
+  "threadLabel": "Beacon",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0079.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; owner-surface allowlist repair verified, blocked catalog row preserved, and WM-0079 validation gates pass.",
+    "at": "2026-06-26T13:46:05.536Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Gate verified WM-0079; full integration gate passed with 57 unit files / 329 tests",
+    "at": "2026-06-26T13:48:05.266Z"
   }
 }
