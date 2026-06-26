@@ -2,7 +2,7 @@
   "id": "WM-0071",
   "title": "Close the M4 core vertical slice gate",
   "summary": "Close M4 after scenario, architecture, implementation, save/replay, Worker parity, benchmarks and invariants are verified and integrated, then write a non-executable future M5 entry prompt.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -37,7 +37,7 @@
   ],
   "branch": "task/WM-0071-close-the-m4-core-vertical-slice-gate",
   "createdAt": "2026-06-25T19:08:30.000Z",
-  "updatedAt": "2026-06-26T08:30:16.351Z",
+  "updatedAt": "2026-06-26T08:49:45.266Z",
   "history": [
     {
       "at": "2026-06-25T19:08:30.000Z",
@@ -50,6 +50,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-26T08:33:05.632Z",
+      "actor": "project-director",
+      "action": "claim",
+      "details": "thread=Beacon WM-0071 M4 closeout"
+    },
+    {
+      "at": "2026-06-26T08:42:40.615Z",
+      "actor": "project-director",
+      "action": "complete",
+      "details": "Closed M4 evidence package and future M5 non-executable prompt; required closeout gates pass."
+    },
+    {
+      "at": "2026-06-26T08:48:02.003Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Confirmed WM-0062 through WM-0070 are done with verified reviews; WM-0071 changes are limited to allowed M4 closeout roadmap/project-state/report/task/inbox files; no WM-0072 or M5 task exists. Closeout evidence matches artifacts and rerun gates pass. Reviewer pnpm bench temp run passed with a non-blocking M4 warning at 10.69% over baseline, below the 20% blocking threshold and with no invariant mismatches."
+    },
+    {
+      "at": "2026-06-26T08:49:38.867Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integrated reviewed M4 closeout evidence and non-executable future M5 prompt; M5 remains unstarted."
+    },
+    {
+      "at": "2026-06-26T08:49:45.266Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Close M4 with reviewed evidence and write a future M5 entry prompt while keeping M5 blocked until a later reviewed planning task.",
@@ -86,5 +116,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Milestone closeout and final coordination gates cannot be assigned to Spark."
+  },
+  "claimedBy": "project-director",
+  "threadLabel": "Beacon WM-0071 M4 closeout",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0071.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Confirmed WM-0062 through WM-0070 are done with verified reviews; WM-0071 changes are limited to allowed M4 closeout roadmap/project-state/report/task/inbox files; no WM-0072 or M5 task exists. Closeout evidence matches artifacts and rerun gates pass. Reviewer pnpm bench temp run passed with a non-blocking M4 warning at 10.69% over baseline, below the 20% blocking threshold and with no invariant mismatches.",
+    "at": "2026-06-26T08:48:02.002Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integrated reviewed M4 closeout evidence and non-executable future M5 prompt; M5 remains unstarted.",
+    "at": "2026-06-26T08:49:38.867Z"
   }
 }

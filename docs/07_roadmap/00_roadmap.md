@@ -114,3 +114,32 @@ M4 planning preserves the M3 closeout baseline and keeps the benchmark policy:
 P95 regression over 10 percent requires explanation, and over 20 percent blocks
 merge by default. WM-0061 does not create, promote, claim, implement, or review
 any M5 task.
+
+## M4 Closeout Addendum
+
+WM-0071 closes the M4 core vertical slice gate after reviewed integration of
+WM-0062 through WM-0070. The closeout evidence records the focused
+borrowed-shadow lamp rule-discovery scenario
+`m4.core_vertical_slice.borrowed_shadow_lamps.v1` with requested seed `4`,
+authoritative scenario seed `50`, content hash `0x698f2c41`, command stream
+hash `0x538d0e43`, 36000-tick final world hash `0xc201a925`, and 100000-tick
+final world hash `0xdafa3b25`.
+
+M4 is a core product-loop vertical slice for lamp-network rule fields,
+Chronicle evidence, obligations, town rules, borrowed-shadow crisis state,
+director recovery windows, structured dawn review, focused save/replay,
+Worker/headless parity, and benchmarked long-run invariants. It is not M5
+alpha content framework, broad anomaly roster, faction campaign, governance
+simulation, season event pool, data-mod production, platform save UI or public
+save compatibility.
+
+The reviewed M4 benchmark artifact is
+`coordination/artifacts/WM-0070/benchmarks/benchmark-results.json` with actual
+file SHA-256
+`FDC0DFE779264134C23F3DAF95C92C879C683DDCBB22A9E704F12359B3DC0E71`.
+Benchmark warning/blocking thresholds remain 10 percent and 20 percent.
+
+M5 remains unstarted by this closeout. WM-0071 writes only the non-executable
+future handoff prompt at
+`coordination/reports/WM-0071-future-m5-entry-prompt.md`; a later reviewed M5
+planning task must create any M5 DAG before implementation can begin.

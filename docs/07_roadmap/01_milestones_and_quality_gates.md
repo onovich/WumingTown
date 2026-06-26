@@ -136,3 +136,46 @@ unchanged.
 
 M4 closeout must include a future M5 entry prompt, but no M5 task may be
 created or implemented by M4 planning.
+
+## M4 Closeout Status
+
+WM-0071 closes M4 as a core vertical-slice milestone after reviewed integration
+of WM-0062 through WM-0070. The reviewed task chain establishes authoritative
+lamp-network rule fields, Chronicle evidence and dissemination, obligations,
+town-rule compliance, borrowed-shadow crisis state, director recovery windows,
+the integrated M4 scenario, focused save/replay, Worker/headless parity, and
+benchmark-backed long-run invariants.
+
+Closeout evidence:
+
+- Headless M4 core scenario:
+  `pnpm sim:run -- --seed 4 --scenario m4-core-vertical-slice --ticks 100000`
+  passed with scenario id `m4.core_vertical_slice.borrowed_shadow_lamps.v1`,
+  requested seed `4`, authoritative scenario seed `50`, command stream hash
+  `0x538d0e43`, content hash `0x698f2c41`, final world hash `0xdafa3b25` and
+  scenario read-model hash `0xa896439d`.
+- Rule-discovery gate: prevention, containment and failure use branch-specific
+  owner fixtures; Chronicle identity evidence, lamp obligation fulfillment,
+  town-rule compliance, low-risk evidence and dawn-review rows are structured
+  owner-derived facts.
+- Save/replay: WM-0068 verified focused save tick `12000`, load tick `12001`,
+  save bytes `8124`, rebuilt M4 derived surfaces and
+  `firstDivergentTick: null`.
+- Worker parity: WM-0069 verified Node Worker and real browser module Worker
+  coverage for M4 checkpoints with read-only projections and
+  `firstMismatchedCheckpointTick: null`.
+- Benchmarks: WM-0070 verified `m4-core-vertical-slice-long-run` in the default
+  benchmark suite, with artifact
+  `coordination/artifacts/WM-0070/benchmarks/benchmark-results.json`, actual
+  file SHA-256
+  `FDC0DFE779264134C23F3DAF95C92C879C683DDCBB22A9E704F12359B3DC0E71`, and no
+  threshold weakening.
+- M0-M3 regression status remains protected, including M3 final world hash
+  `0x7eb81a69`, final benchmark read-model hash `0x82bf87d6`, and zero active
+  M4 facts in the M3 baseline evidence lane.
+
+Residuals that are deliberately not M4 scope: M5 alpha content framework,
+multiple anomaly roster, faction campaign, broad governance simulation, season
+event pool, production content catalog, data-mod pipeline expansion, platform
+save UI, public save compatibility, public Worker protocol redesign and UI
+authority. WM-0071 creates no M5 task and implements no M5 runtime behavior.
