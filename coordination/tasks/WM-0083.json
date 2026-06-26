@@ -2,7 +2,7 @@
   "id": "WM-0083",
   "title": "Add M5 benchmarks, invariants and M6 stop signs",
   "summary": "Add M5 long-run benchmarks and invariant gates, record M6 readiness stop-sign evidence, and preserve 10 percent warning / 20 percent blocking thresholds.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -44,7 +44,7 @@
   ],
   "branch": "task/WM-0083-add-m5-benchmarks-invariants-stop-signs",
   "createdAt": "2026-06-26T09:24:00.000Z",
-  "updatedAt": "2026-06-26T16:23:10.541Z",
+  "updatedAt": "2026-06-26T16:26:02.189Z",
   "history": [
     {
       "at": "2026-06-26T09:24:00.000Z",
@@ -75,6 +75,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: Verified M5 invariant gate, benchmark artifact SHA/canonical hash evidence, environment fields, unchanged 10/20 thresholds, M6 stop-sign-only scope, allowed paths, and required gates."
+    },
+    {
+      "at": "2026-06-26T16:25:53.582Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Fast-forward merged c9e659f into main after reviewer verified WM-0083; required gates passed and M6 remained stop-sign-only."
+    },
+    {
+      "at": "2026-06-26T16:26:02.188Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M5",
@@ -140,5 +152,10 @@
     "verdict": "verified",
     "summary": "Verified M5 invariant gate, benchmark artifact SHA/canonical hash evidence, environment fields, unchanged 10/20 thresholds, M6 stop-sign-only scope, allowed paths, and required gates.",
     "at": "2026-06-26T16:23:10.540Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Fast-forward merged c9e659f into main after reviewer verified WM-0083; required gates passed and M6 remained stop-sign-only.",
+    "at": "2026-06-26T16:25:53.581Z"
   }
 }
