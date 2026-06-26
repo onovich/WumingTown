@@ -2,7 +2,7 @@
   "id": "WM-0082",
   "title": "Add M5 Worker projections and parity",
   "summary": "Prove Node Worker and browser Worker parity for M5 read-only projections with content, anomaly, faction, governance and event basis metadata.",
-  "state": "review_requested",
+  "state": "verified",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -38,7 +38,7 @@
   ],
   "branch": "task/WM-0082-add-m5-worker-projections-parity",
   "createdAt": "2026-06-26T09:24:00.000Z",
-  "updatedAt": "2026-06-26T15:38:39.348Z",
+  "updatedAt": "2026-06-26T15:44:39.612Z",
   "history": [
     {
       "at": "2026-06-26T09:24:00.000Z",
@@ -63,6 +63,12 @@
       "actor": "simulation-engineer",
       "action": "complete",
       "details": "Implemented M5 Worker read-only projections, Node/browser parity, stale basis rejection and browser-safe content-schema loader repair; required checks and pnpm quality pass"
+    },
+    {
+      "at": "2026-06-26T15:44:39.612Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; verified read-only M5 Worker projections, Node/browser parity at checkpoints, canonical content basis 0xe55d3015, structured stale-basis rejection, allowed scope, and required gates."
     }
   ],
   "milestone": "M5",
@@ -115,5 +121,11 @@
   "claimedBy": "simulation-engineer",
   "threadLabel": "Beacon",
   "blocker": null,
-  "reportPath": "coordination/reports/WM-0082.md"
+  "reportPath": "coordination/reports/WM-0082.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; verified read-only M5 Worker projections, Node/browser parity at checkpoints, canonical content basis 0xe55d3015, structured stale-basis rejection, allowed scope, and required gates.",
+    "at": "2026-06-26T15:44:39.611Z"
+  }
 }

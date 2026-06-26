@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQV3QJLP-8A81C5",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0082",
+  "kind": "review-approved",
+  "subject": "WM-0082 review: verified",
+  "body": "No blocking findings; verified read-only M5 Worker projections, Node/browser parity at checkpoints, canonical content basis 0xe55d3015, structured stale-basis rejection, allowed scope, and required gates.",
+  "artifacts": [
+    "coordination/reports/WM-0082.md"
+  ],
+  "createdAt": "2026-06-26T15:44:39.613Z",
+  "acknowledgedAt": "2026-06-26T15:51:06.429Z"
+}
