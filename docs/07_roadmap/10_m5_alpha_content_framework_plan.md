@@ -268,6 +268,23 @@ packet intent.
 - Benchmark impact: scenario metrics for save/replay, Worker parity and
   benchmark tasks without baseline updates.
 
+WM-0080 implementation note: the headless scenario is now available as
+`m5-alpha-content-framework` and records seed/hash evidence in
+`coordination/artifacts/WM-0080/m5-alpha-scenario-summary.json`.
+
+Recorded WM-0080 run:
+
+- `requestedSeed`: `5`
+- `authoritativeScenarioSeed`: `155`
+- `finalTick`: `36000`
+- `contentHash`: `0xe55d3015`
+- `commandStreamHash`: `0x81d37435`
+- `finalWorldHash`: `0x9a4a905c`
+- `readModelHash`: `0x57eba2b7`
+
+WM-0080 deliberately leaves save/replay, Worker parity, benchmark baselines and
+M6 readiness as stop signs for WM-0081 through WM-0083.
+
 ### WM-0081 - Add M5 Focused Save/Replay
 
 - Owner: `simulation-engineer`

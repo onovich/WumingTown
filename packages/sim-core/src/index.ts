@@ -584,6 +584,13 @@ export {
   runM4CoreVerticalSliceScenario,
 } from "./m4-core-vertical-slice-scenario";
 export {
+  M5_ALPHA_CONTENT_ALIAS,
+  M5_ALPHA_CONTENT_EXPECTED_TICKS,
+  M5_ALPHA_CONTENT_SCENARIO_ID,
+  deriveM5AlphaContentScenarioSeed,
+  runM5AlphaContentScenario,
+} from "./m5-alpha-content-scenario";
+export {
   M3_ABILITY_COMMUNICATION,
   M3_ABILITY_CONSCIOUSNESS,
   M3_ABILITY_LANE_COUNT,
@@ -1353,6 +1360,22 @@ export type {
   M4CoreVerticalSliceScenarioOptions,
   M4CoreVerticalSliceScenarioSummary,
 } from "./m4-core-vertical-slice-scenario";
+export type {
+  M5AlphaBorrowedShadowEvidence,
+  M5AlphaCommandEntry,
+  M5AlphaContentCatalogEvidence,
+  M5AlphaContentScenarioOptions,
+  M5AlphaContentScenarioReason,
+  M5AlphaContentScenarioSummary,
+  M5AlphaFactionGovernanceEvidence,
+  M5AlphaOldBridgeEvidence,
+  M5AlphaRegressionEvidence,
+  M5AlphaRosterEvidence,
+  M5AlphaSeasonEvidence,
+  M5AlphaStopSigns,
+  M5AlphaStrategyPathEvidence,
+  M5AlphaThirdKnockEvidence,
+} from "./m5-alpha-content-scenario";
 export type {
   M3AbilityMetrics,
   M3AbilityQueryResult,

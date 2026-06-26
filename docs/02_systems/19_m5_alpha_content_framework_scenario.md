@@ -193,3 +193,33 @@ carry source versions.
   thresholds and protecting M0-M4 regression.
 - M6 readiness stop-sign report confirming whether M6 can be planned or must
   remain blocked.
+
+## WM-0080 Integrated Scenario Evidence
+
+WM-0080 implements the first headless alpha scenario under
+`packages/sim-core/src/m5-alpha-content-scenario.ts` and exposes it through the
+headless alias `m5-alpha-content-framework`.
+
+Recorded run:
+
+- Requested seed: `5`
+- Authoritative scenario seed: `155`
+- Tick horizon: `36000` at 30 TPS
+- Content hash: `0xe55d3015`
+- Command stream hash: `0x81d37435`
+- Final world hash: `0x9a4a905c`
+- Read-model hash: `0x57eba2b7`
+- Artifact: `coordination/artifacts/WM-0080/m5-alpha-scenario-summary.json`
+
+The scenario composes the WM-0079 alpha content catalog, M5 anomaly roster,
+borrowed-shadow lift, third-knock rule, old-bridge guest rule,
+faction/governance hooks and first-season event pool. It records four strategy
+paths: evidence-first, lamp patrol, faction negotiation and conservative
+governance.
+
+Scope kept for downstream tasks:
+
+- Save/replay implementation remains a WM-0081 stop sign.
+- Worker projection/parity implementation remains a WM-0082 stop sign.
+- Benchmark baseline updates and M6 readiness decisions remain WM-0083 stop
+  signs.

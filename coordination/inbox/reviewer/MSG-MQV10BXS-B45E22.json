@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQV10BXS-B45E22",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0080",
+  "kind": "review-request",
+  "subject": "WM-0080 ready for review",
+  "body": "Repaired reviewer finding by deriving M5 content basis from validated compiler-compatible content manifest hash 0xe55d3015 and binding read-model evidence to it; required gates and pnpm quality pass",
+  "artifacts": [
+    "coordination/reports/WM-0080.md",
+    "task/WM-0080-integrate-m5-alpha-scenario"
+  ],
+  "createdAt": "2026-06-26T14:28:17.392Z",
+  "acknowledgedAt": "2026-06-26T14:29:04.923Z"
+}

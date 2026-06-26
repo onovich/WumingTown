@@ -1,0 +1,83 @@
+{
+  "taskId": "WM-0080",
+  "scenarioId": "m5.alpha_content_framework.first_season.v1",
+  "alias": "m5-alpha-content-framework",
+  "requestedSeed": "5",
+  "authoritativeScenarioSeed": "155",
+  "finalTick": 36000,
+  "tickRate": 30,
+  "contentHash": "0xe55d3015",
+  "commandStreamHash": "0x81d37435",
+  "finalWorldHash": "0x9a4a905c",
+  "readModelHash": "0x57eba2b7",
+  "contentCatalog": {
+    "definitionCount": 30,
+    "catalogEntryCount": 20,
+    "reviewNoteCount": 20,
+    "blockedCatalogEntryCount": 1,
+    "blockedReasonCount": 1
+  },
+  "anomalies": {
+    "borrowedShadow": {
+      "rostered": true,
+      "evidenceKindCount": 4,
+      "m4ContainmentLowRiskEvidenceCount": 2,
+      "m4DawnReviewRowCount": 20
+    },
+    "thirdKnock": {
+      "queryCandidateCapHit": true,
+      "lowRiskEvidenceCount": 5,
+      "reviewReason": "third_knock_resolved_contained",
+      "preventionReason": "third_knock_activation_prevented_threshold"
+    },
+    "oldBridgeGuest": {
+      "queryCandidateCapHit": true,
+      "lowRiskEvidenceCount": 5,
+      "reviewReason": "old_bridge_resolved_reciprocity",
+      "cleanupReason": "old_bridge_terminal_cleanup_drained"
+    }
+  },
+  "factionGovernance": {
+    "factionQueryReason": "m5_faction_query_cap_reached",
+    "factionSelectedFactIds": [1, 2],
+    "governanceAllowedReason": "m5_governance_query_allowed",
+    "governanceBlockedReason": "m5_governance_query_risk_blocked",
+    "governanceSelectedHookIds": [1, 0, 2, 3]
+  },
+  "season": {
+    "preconditionFailureReason": "m5_season_event_precondition_failed",
+    "incidentSelectionReason": "m5_season_event_incident_selected",
+    "cooldownSelectionReason": "m5_season_event_cooldown_active",
+    "recoveryPreconditionFailureReason": "m5_season_event_precondition_failed",
+    "recoverySelectionReason": "m5_season_event_recovery_selected",
+    "selectionCount": 5,
+    "totalCandidateVisits": 8,
+    "cooldownWriteCount": 1,
+    "eventFreshnessWriteCount": 1,
+    "preconditionFailureCount": 5,
+    "preconditionFailureStoredCount": 4
+  },
+  "strategyPaths": [
+    "evidence_first",
+    "lamp_patrol",
+    "faction_negotiation",
+    "conservative_governance"
+  ],
+  "m4Regression": {
+    "scenarioId": "m4.core_vertical_slice.borrowed_shadow_lamps.v1",
+    "requestedSeed": "4",
+    "authoritativeScenarioSeed": "50",
+    "contentHash": "0x698f2c41",
+    "commandStreamHash": "0x538d0e43",
+    "finalWorldHash": "0xc201a925",
+    "readModelHash": "0xce261d9d",
+    "unchanged": true
+  },
+  "stopSigns": {
+    "saveReplayImplemented": false,
+    "workerProjectionImplemented": false,
+    "benchmarkBaselineUpdated": false,
+    "m6Created": false,
+    "nextTasks": ["WM-0081", "WM-0082", "WM-0083"]
+  }
+}

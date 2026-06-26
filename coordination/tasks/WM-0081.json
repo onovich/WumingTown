@@ -2,7 +2,7 @@
   "id": "WM-0081",
   "title": "Add M5 focused save/replay",
   "summary": "Add focused save/load/resume diagnostics for the M5 alpha scenario with content manifest hash, owner-state validation and rebuilt derived surfaces.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -39,13 +39,19 @@
   ],
   "branch": "task/WM-0081-add-m5-focused-save-replay",
   "createdAt": "2026-06-26T09:24:00.000Z",
-  "updatedAt": "2026-06-26T09:24:00.000Z",
+  "updatedAt": "2026-06-26T14:32:28.204Z",
   "history": [
     {
       "at": "2026-06-26T09:24:00.000Z",
       "actor": "systems-architect",
       "action": "create",
       "details": "Created by WM-0072 M5 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-26T14:32:28.204Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "M5",

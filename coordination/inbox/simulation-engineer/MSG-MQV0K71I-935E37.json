@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQV0K71I-935E37",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0080",
+  "kind": "changes-requested",
+  "subject": "WM-0080 review: changes_requested",
+  "body": "High: WM-0080 records a private raw-pack hash 0xb1f1a06a as the M5 contentManifestHash basis, but the canonical content compiler hash for the same WM-0079 alpha pack is 0xe55d3015; downstream save/replay and Worker basis would not be tied to validated compiled content.",
+  "artifacts": [
+    "coordination/reports/WM-0080.md"
+  ],
+  "createdAt": "2026-06-26T14:15:44.550Z",
+  "acknowledgedAt": "2026-06-26T14:23:35.304Z"
+}

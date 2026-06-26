@@ -2,7 +2,7 @@
   "id": "WM-0080",
   "title": "Integrate M5 alpha scenario",
   "summary": "Compose m5.alpha_content_framework.first_season.v1 in headless runtime using the anomaly roster, faction/governance hooks, first-season event pool and alpha content catalog.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -39,7 +39,7 @@
   ],
   "branch": "task/WM-0080-integrate-m5-alpha-scenario",
   "createdAt": "2026-06-26T09:24:00.000Z",
-  "updatedAt": "2026-06-26T13:48:14.333Z",
+  "updatedAt": "2026-06-26T14:32:28.199Z",
   "history": [
     {
       "at": "2026-06-26T09:24:00.000Z",
@@ -52,6 +52,48 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-26T13:50:56.846Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Beacon"
+    },
+    {
+      "at": "2026-06-26T14:09:43.286Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented m5-alpha-content-framework scenario with recorded seed/hash artifact; focused tests, headless run, typecheck, taskctl validate, git diff --check and pnpm quality pass"
+    },
+    {
+      "at": "2026-06-26T14:15:44.549Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: WM-0080 records a private raw-pack hash 0xb1f1a06a as the M5 contentManifestHash basis, but the canonical content compiler hash for the same WM-0079 alpha pack is 0xe55d3015; downstream save/replay and Worker basis would not be tied to validated compiled content."
+    },
+    {
+      "at": "2026-06-26T14:28:17.391Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Repaired reviewer finding by deriving M5 content basis from validated compiler-compatible content manifest hash 0xe55d3015 and binding read-model evidence to it; required gates and pnpm quality pass"
+    },
+    {
+      "at": "2026-06-26T14:31:36.556Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; canonical M5 content hash 0xe55d3015 matches content-compiler output, scenario/artifact/docs hashes are consistent, stop signs remain false, and required gates plus pnpm quality pass."
+    },
+    {
+      "at": "2026-06-26T14:32:22.085Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified by independent reviewer after canonical content hash repair; required gates and pnpm quality passed on task branch"
+    },
+    {
+      "at": "2026-06-26T14:32:28.199Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M5",
@@ -98,5 +140,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Integrated deterministic scenario composition is cross-surface simulation work."
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Beacon",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0080.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; canonical M5 content hash 0xe55d3015 matches content-compiler output, scenario/artifact/docs hashes are consistent, stop signs remain false, and required gates plus pnpm quality pass.",
+    "at": "2026-06-26T14:31:36.556Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified by independent reviewer after canonical content hash repair; required gates and pnpm quality passed on task branch",
+    "at": "2026-06-26T14:32:22.085Z"
   }
 }
