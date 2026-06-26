@@ -11,6 +11,11 @@ import { createShellHudElement, createShellStore, type ShellState } from "@wumin
 
 import { createShellReleaseGateInfo, readShellBrowserLabel } from "./product-gate-harness";
 import { WEB_SHELL_SMOKE_READ_MODEL } from "./smoke-read-model";
+import {
+  createInitialStorageGateState,
+  createWebStorageGateController,
+  type WebStorageDebugState,
+} from "./web-storage-gate";
 
 export interface WebShellDebugPayload extends PixiWorldRendererDebugState {
   readonly browserTargets: readonly string[];
@@ -18,6 +23,7 @@ export interface WebShellDebugPayload extends PixiWorldRendererDebugState {
   readonly platformHost: PlatformHostInfo;
   readonly runtimeBrowser: string;
   readonly runtimeCrossOriginIsolated: boolean;
+  readonly storageGate: WebStorageDebugState;
 }
 
 export interface MountedWebShell {
@@ -48,6 +54,7 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
   const initialState: ShellState = {
     readModel: WEB_SHELL_SMOKE_READ_MODEL,
     releaseGate,
+    storageGate: createInitialStorageGateState(),
     canvasWidth: Math.max(shellFrame.clientWidth, 1),
     canvasHeight: Math.max(shellFrame.clientHeight, 1),
     zoom: 1,
@@ -56,8 +63,24 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
     hoverTile: undefined,
   };
   const store = createShellStore(initialState);
+  const storageController = createWebStorageGateController({
+    onStorageGateStateChange: () => {
+      const activeRenderer = rendererRef.current;
+      if (activeRenderer === undefined) {
+        return;
+      }
+
+      syncDebug(
+        activeRenderer.readDebugState(),
+        platformPorts.host,
+        storageController.readDebugState(),
+      );
+    },
+    platformPorts,
+    store,
+  });
   const reactRoot = createRoot(hudHost);
-  reactRoot.render(createShellHudElement(store));
+  reactRoot.render(createShellHudElement(store, storageController.actions));
 
   const rendererRef: {
     current: Awaited<ReturnType<typeof createPixiWorldRenderer>> | undefined;
@@ -78,7 +101,11 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
       });
       const activeRenderer = rendererRef.current;
       if (activeRenderer !== undefined) {
-        syncDebug(activeRenderer.readDebugState(), platformPorts.host);
+        syncDebug(
+          activeRenderer.readDebugState(),
+          platformPorts.host,
+          storageController.readDebugState(),
+        );
       }
     },
     onStateChange(nextRendererState): void {
@@ -94,22 +121,27 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
       });
       const activeRenderer = rendererRef.current;
       if (activeRenderer !== undefined) {
-        syncDebug(activeRenderer.readDebugState(), platformPorts.host);
+        syncDebug(
+          activeRenderer.readDebugState(),
+          platformPorts.host,
+          storageController.readDebugState(),
+        );
       }
     },
   });
   rendererRef.current = renderer;
+  void storageController.refresh();
 
   const resizeObserver = new ResizeObserver(() => {
     const nextWidth = Math.max(shellFrame.clientWidth, 1);
     const nextHeight = Math.max(shellFrame.clientHeight, 1);
     renderer.resize(nextWidth, nextHeight, readDevicePixelRatio());
-    syncDebug(renderer.readDebugState(), platformPorts.host);
+    syncDebug(renderer.readDebugState(), platformPorts.host, storageController.readDebugState());
   });
   resizeObserver.observe(shellFrame);
 
   renderer.resize(shellFrame.clientWidth, shellFrame.clientHeight, readDevicePixelRatio());
-  syncDebug(renderer.readDebugState(), platformPorts.host);
+  syncDebug(renderer.readDebugState(), platformPorts.host, storageController.readDebugState());
 
   return {
     async destroy(): Promise<void> {
@@ -133,7 +165,11 @@ function readDevicePixelRatio(): number {
   return Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
 }
 
-function syncDebug(debugState: PixiWorldRendererDebugState, platformHost: PlatformHostInfo): void {
+function syncDebug(
+  debugState: PixiWorldRendererDebugState,
+  platformHost: PlatformHostInfo,
+  storageGate: WebStorageDebugState,
+): void {
   const releaseGate = createShellReleaseGateInfo({
     browserLabel: readShellBrowserLabel(navigator.userAgent),
     crossOriginIsolated: window.crossOriginIsolated,
@@ -145,6 +181,7 @@ function syncDebug(debugState: PixiWorldRendererDebugState, platformHost: Platfo
     platformHost,
     runtimeBrowser: releaseGate.runtimeBrowser,
     runtimeCrossOriginIsolated: releaseGate.runtimeCrossOriginIsolated,
+    storageGate,
   };
   const debugNode = document.getElementById("wm-shell-debug");
   if (debugNode !== null) {

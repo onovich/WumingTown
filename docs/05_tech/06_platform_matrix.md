@@ -12,3 +12,10 @@
 ## Web 决策门
 
 真实垂直切片运行 192×192、40 活动角色、20k 实体，在目标浏览器中达到 30 TPS、可接受内存和加载体积。失败时按顺序：降低快进 → 降上限 → Web 作为试玩 → 取消正式 Web，不重写核心。
+
+## WM-0088 存档互通状态
+
+- Chrome/Edge Web：WM-0088 证明了 OPFS 本地写入、读取、导出、导入与配额失败恢复的 gate evidence 路径。
+- Windows Electron：截至 WM-0088，桌面 preload 仍只暴露 placeholder
+  unavailable save ports，因此 Windows/Web save container interoperability
+  尚未证明，必须作为 M6 product-gate blocker 记录，待后续桌面安全存档桥接完成后复核。

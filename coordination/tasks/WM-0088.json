@@ -2,7 +2,7 @@
   "id": "WM-0088",
   "title": "Web storage OPFS save import export and quota gate",
   "summary": "Validate Web storage, OPFS, save/load, export/import and quota failure behavior for the M6 product gate.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -33,7 +33,7 @@
   ],
   "branch": "task/WM-0088-web-storage-opfs-import-export",
   "createdAt": "2026-06-26T20:20:00.000Z",
-  "updatedAt": "2026-06-26T21:23:43.091Z",
+  "updatedAt": "2026-06-26T23:27:47.271Z",
   "history": [
     {
       "at": "2026-06-26T20:20:00.000Z",
@@ -46,6 +46,42 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-26T22:38:14.163Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": "thread=codex-client-engineer-wm0088"
+    },
+    {
+      "at": "2026-06-27T00:00:00.000Z",
+      "actor": "project-director",
+      "action": "narrow-scope-exception",
+      "details": "Allowed tools/test-runner.mjs only to route the required pnpm test --filter persistence command to persistence tests; no other tools or test-runner behavior changes are approved."
+    },
+    {
+      "at": "2026-06-26T23:21:21.135Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Implemented Web OPFS save/load/export/import/quota gate evidence with structured UI diagnostics and Playwright coverage; recorded Windows/Web container interoperability as a blocker; added only the project-director-approved persistence filter route in tools/test-runner.mjs; required checks passed."
+    },
+    {
+      "at": "2026-06-26T23:26:25.031Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Verified OPFS A/B slot + manifest save path, SHA-256/size integrity checks, export/import/load/delete and quota failure recovery with old slot preserved; user-facing and structured diagnostics are present and limited to safe ids/sizes/checksums/reason codes. Windows/Web container interoperability is correctly recorded as blocked because Electron preload still exposes placeholder unavailable save ports. No sim-core/Worker authority, public save compatibility, schema/codec migration, dependency, baseline, or M5 artifact changes found. tools/test-runner.mjs only adds the approved persistence filter route. Required checks passed: typecheck, test --filter persistence, test:e2e --filter web-shell, taskctl validate, git diff --check, and pnpm quality."
+    },
+    {
+      "at": "2026-06-26T23:27:47.228Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integrated verified Web OPFS storage gate: save/load/export/import/quota recovery pass, diagnostics are structured and safe, Windows interoperability remains an explicit blocker, and no public save compatibility or simulation-authority changes were introduced."
+    },
+    {
+      "at": "2026-06-26T23:27:47.271Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M6",
@@ -58,6 +94,7 @@
     "packages/platform/**",
     "apps/web/**",
     "packages/ui-react/**",
+    "tools/test-runner.mjs",
     "docs/05_tech/04_persistence_mods_security.md",
     "docs/05_tech/06_platform_matrix.md",
     "coordination/reports/WM-0088.md",
@@ -81,6 +118,7 @@
   "risksAndFileOwnership": [
     "Risk: browser quota APIs are inconsistent.",
     "Risk: save export may expose local paths or sensitive diagnostics.",
+    "Narrow scope exception: tools/test-runner.mjs may change only to route pnpm test --filter persistence to persistence tests; it must not alter other filters or test semantics.",
     "File ownership is limited to persistence, platform and web storage UI surfaces."
   ],
   "ownerGate": [
@@ -98,5 +136,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Web persistence, save/export and quota behavior touch product and security boundaries."
+  },
+  "claimedBy": "client-engineer",
+  "threadLabel": "codex-client-engineer-wm0088",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0088.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Verified OPFS A/B slot + manifest save path, SHA-256/size integrity checks, export/import/load/delete and quota failure recovery with old slot preserved; user-facing and structured diagnostics are present and limited to safe ids/sizes/checksums/reason codes. Windows/Web container interoperability is correctly recorded as blocked because Electron preload still exposes placeholder unavailable save ports. No sim-core/Worker authority, public save compatibility, schema/codec migration, dependency, baseline, or M5 artifact changes found. tools/test-runner.mjs only adds the approved persistence filter route. Required checks passed: typecheck, test --filter persistence, test:e2e --filter web-shell, taskctl validate, git diff --check, and pnpm quality.",
+    "at": "2026-06-26T23:26:25.030Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integrated verified Web OPFS storage gate: save/load/export/import/quota recovery pass, diagnostics are structured and safe, Windows interoperability remains an explicit blocker, and no public save compatibility or simulation-authority changes were introduced.",
+    "at": "2026-06-26T23:27:47.228Z"
   }
 }

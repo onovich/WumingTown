@@ -86,6 +86,31 @@ describe("shell-hud", () => {
           },
         ],
       },
+      storageGate: {
+        diagnostic: undefined,
+        interoperabilityDetail:
+          "Blocked until the Electron preload exposes a reviewed save-store bridge.",
+        interoperabilityVerdict: "blocked",
+        lastActionLabel: "Idle",
+        quotaAvailableBytes: 1024 * 1024,
+        quotaBytes: 2 * 1024 * 1024,
+        saveId: "m6-gate-slot",
+        saveSlots: [
+          {
+            checksumSha256Hex: "1234567890abcdef1234567890abcdef",
+            id: "m6-gate-slot",
+            sizeBytes: 512,
+            updatedAtUnixMs: 1_717_000_000_000,
+          },
+        ],
+        scopeNote:
+          "M6 gate envelope only. This does not promise public save compatibility beyond the product gate.",
+        statusDetail: "OPFS available and ready for import/export evidence.",
+        statusTone: "stable",
+        storageKindLabel: "OPFS ready",
+        usageBytes: 256 * 1024,
+        userMessage: "Web storage ready for gate evidence.",
+      },
       canvasWidth: 1280,
       canvasHeight: 720,
       zoom: 1.25,
@@ -97,7 +122,18 @@ describe("shell-hud", () => {
       },
     };
     const store = createShellStore(state);
-    const markup = renderToStaticMarkup(createShellHudElement(store));
+    const noopAsync = (): Promise<void> => Promise.resolve();
+    const noopImport: (file: File) => Promise<void> = () => Promise.resolve();
+    const markup = renderToStaticMarkup(
+      createShellHudElement(store, {
+        onDeleteSave: noopAsync,
+        onExportSave: noopAsync,
+        onImportFile: noopImport,
+        onLoadSave: noopAsync,
+        onRefreshStorage: noopAsync,
+        onSaveFixture: noopAsync,
+      }),
+    );
 
     expect(markup).toContain("Chronicler Lin");
     expect(markup).toContain("Ledger review");
@@ -106,5 +142,10 @@ describe("shell-hud", () => {
     expect(markup).toContain("Web Product Gate");
     expect(markup).toContain("Chrome Stable, Edge Stable");
     expect(markup).toContain("Map 192 x 192");
+    expect(markup).toContain("Storage Gate");
+    expect(markup).toContain("Web storage ready for gate evidence.");
+    expect(markup).toContain(
+      "Blocked until the Electron preload exposes a reviewed save-store bridge.",
+    );
   });
 });

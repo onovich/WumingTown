@@ -1,18 +1,25 @@
 import { createElement, useSyncExternalStore, type CSSProperties, type ReactElement } from "react";
 
+import { ShellStoragePanel } from "./shell-storage-panel";
 import { getSelectedEntity, type ShellState, type ShellStore } from "./shell-store";
+import type { ShellStorageActions } from "./shell-store";
 
 export interface ShellHudRootProps {
   readonly store: ShellStore;
+  readonly storageActions: ShellStorageActions;
 }
 
-export function createShellHudElement(store: ShellStore): ReactElement {
+export function createShellHudElement(
+  store: ShellStore,
+  storageActions: ShellStorageActions,
+): ReactElement {
   return createElement(ShellHudRoot, {
     store,
+    storageActions,
   });
 }
 
-export function ShellHudRoot({ store }: ShellHudRootProps): ReactElement {
+export function ShellHudRoot({ store, storageActions }: ShellHudRootProps): ReactElement {
   const state = useSyncExternalStore(
     (listener) => store.subscribe(listener),
     () => store.getSnapshot(),
@@ -218,6 +225,10 @@ export function ShellHudRoot({ store }: ShellHudRootProps): ReactElement {
             ),
           ),
         ),
+        createElement(ShellStoragePanel, {
+          actions: storageActions,
+          state: state.storageGate,
+        }),
       ),
     ),
     createElement(

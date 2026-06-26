@@ -26,6 +26,19 @@ Web 使用 OPFS；Electron 通过安全 Preload 调用主进程。模拟 Worker 
 
 如启用 SharedArrayBuffer，部署 COOP/COEP/CORP。否则 Transferable 降级。存档 UI 明确浏览器清理风险并支持导出。
 
+### WM-0088 M6 Web storage gate note
+
+- Web M6 gate save evidence now uses OPFS A/B slot writes plus manifest pointer
+  switch inside the browser shell.
+- The saved payload is an M6 gate-scoped read-only shell evidence envelope. It
+  is not a public save compatibility promise, schema migration or codec
+  commitment beyond the Web/Windows product gate.
+- Export/import must stay path-safe and secret-safe: user-facing and diagnostic
+  failures may include save id, reason code, byte sizes and checksums, but must
+  not expose local filesystem paths, secrets or full save contents.
+- Quota failure must fail closed with a structured recoverable reason and leave
+  the previous active slot readable/exportable for recovery.
+
 ## 模组
 
 ZIP/目录 → Manifest → 文件大小/路径安全检查 → Schema → 依赖 → Patch → 编译。防 Zip Slip、递归压缩炸弹和超大纹理。禁止代码、网络和平台 API。

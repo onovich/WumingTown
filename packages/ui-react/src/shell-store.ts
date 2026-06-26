@@ -7,6 +7,7 @@ import type {
 export interface ShellState {
   readonly readModel: WorldReadModel;
   readonly releaseGate: ShellReleaseGateInfo;
+  readonly storageGate: ShellStorageGateState;
   readonly canvasWidth: number;
   readonly canvasHeight: number;
   readonly zoom: number;
@@ -28,6 +29,47 @@ export interface ShellReleaseGateInfo {
   readonly runtimeBrowser: string;
   readonly runtimeCrossOriginIsolated: boolean;
   readonly sections: readonly ShellReleaseGateLine[];
+}
+
+export interface ShellStorageDiagnosticState {
+  readonly code: string;
+  readonly detailJson: string;
+  readonly message: string;
+  readonly recoverable: boolean;
+  readonly userMessage: string;
+}
+
+export interface ShellStorageGateState {
+  readonly interoperabilityDetail: string;
+  readonly interoperabilityVerdict: "blocked" | "pending" | "proven";
+  readonly lastActionLabel: string;
+  readonly quotaAvailableBytes: number | null;
+  readonly quotaBytes: number | null;
+  readonly scopeNote: string;
+  readonly statusDetail: string;
+  readonly statusTone: "danger" | "stable" | "warning";
+  readonly storageKindLabel: string;
+  readonly usageBytes: number | null;
+  readonly userMessage: string;
+  readonly saveId: string;
+  readonly saveSlots: readonly ShellStorageSlotState[];
+  readonly diagnostic: ShellStorageDiagnosticState | undefined;
+}
+
+export interface ShellStorageSlotState {
+  readonly checksumSha256Hex: string;
+  readonly id: string;
+  readonly sizeBytes: number;
+  readonly updatedAtUnixMs: number;
+}
+
+export interface ShellStorageActions {
+  readonly onDeleteSave: () => Promise<void>;
+  readonly onExportSave: () => Promise<void>;
+  readonly onImportFile: (file: File) => Promise<void>;
+  readonly onLoadSave: () => Promise<void>;
+  readonly onRefreshStorage: () => Promise<void>;
+  readonly onSaveFixture: () => Promise<void>;
 }
 
 export interface ShellStore {

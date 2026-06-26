@@ -1,11 +1,27 @@
 import { defineWorkspaceSmoke, type WorkspaceSmoke } from "@wuming-town/foundation";
-import { PERSISTENCE_SMOKE } from "@wuming-town/persistence";
+import {
+  createBrowserOpfsSaveStore,
+  type SaveExportPayload,
+  type SaveStoreDiagnosticValue,
+  type SaveStoreError,
+  type SaveStoreErrorCode,
+  type SaveStoreResult,
+  type SaveSummary as PersistenceSaveSummary,
+  type SaveStoreStatus,
+  PERSISTENCE_SMOKE,
+} from "@wuming-town/persistence";
 import { SIM_PROTOCOL_SMOKE } from "@wuming-town/sim-protocol";
 
 export const PLATFORM_BRIDGE_KEY = "wumingTownPlatform";
 
+export {
+  buildM6GateSaveEnvelope,
+  decodeM6GateSaveEnvelope,
+  encodeM6GateSaveEnvelope,
+} from "@wuming-town/persistence";
+
 export type PlatformHostKind = "electron" | "web";
-export type PlatformPortErrorCode = "unavailable";
+export type PlatformPortErrorCode = SaveStoreErrorCode | "unavailable";
 
 export interface PlatformHostInfo {
   readonly contextIsolation: boolean;
@@ -16,7 +32,10 @@ export interface PlatformHostInfo {
 
 export interface PlatformPortError {
   readonly code: PlatformPortErrorCode;
+  readonly detail?: Readonly<Record<string, SaveStoreDiagnosticValue>>;
   readonly message: string;
+  readonly recoverable?: boolean;
+  readonly userMessage?: string;
 }
 
 export type PlatformCallResult<T> =
@@ -30,6 +49,7 @@ export type PlatformCallResult<T> =
     };
 
 export interface PlatformSaveSummary {
+  readonly checksumSha256Hex: string;
   readonly id: string;
   readonly sizeBytes: number;
   readonly updatedAtUnixMs: number;
@@ -40,16 +60,35 @@ export interface PlatformSaveWriteRequest {
   readonly id: string;
 }
 
+export interface PlatformSaveExportPayload {
+  readonly bytes: Uint8Array;
+  readonly mediaType: string;
+  readonly suggestedFileName: string;
+  readonly summary: PlatformSaveSummary;
+}
+
+export interface PlatformSaveStoreStatus {
+  readonly available: boolean;
+  readonly kind: "opfs";
+  readonly quota: {
+    readonly availableBytes: number | null;
+    readonly quotaBytes: number | null;
+    readonly usageBytes: number | null;
+  };
+}
+
 export interface PlatformModPackageSummary {
   readonly id: string;
   readonly version: string;
 }
 
 export interface PlatformSaveStorePort {
+  describe?(): Promise<PlatformCallResult<PlatformSaveStoreStatus>>;
+  export?(id: string): Promise<PlatformCallResult<PlatformSaveExportPayload>>;
   list(): Promise<PlatformCallResult<readonly PlatformSaveSummary[]>>;
   read(id: string): Promise<PlatformCallResult<ArrayBuffer>>;
   remove(id: string): Promise<PlatformCallResult<undefined>>;
-  writeAtomic(request: PlatformSaveWriteRequest): Promise<PlatformCallResult<undefined>>;
+  writeAtomic(request: PlatformSaveWriteRequest): Promise<PlatformCallResult<PlatformSaveSummary>>;
 }
 
 export interface PlatformModsPort {
@@ -83,13 +122,18 @@ const WEB_FALLBACK_HOST: PlatformHostInfo = Object.freeze({
   sandboxedRenderer: false,
 });
 
+const WEB_SAVE_STORE = createBrowserOpfsSaveStore();
+
 export function createUnavailablePlatformPorts(
   host: PlatformHostInfo,
   message: string,
 ): PlatformPorts {
   const error = Object.freeze<PlatformPortError>({
     code: "unavailable",
+    detail: Object.freeze({}),
     message,
+    recoverable: false,
+    userMessage: message,
   });
 
   const unavailable = <T>(): Promise<PlatformCallResult<T>> =>
@@ -109,6 +153,12 @@ export function createUnavailablePlatformPorts(
       },
     }),
     saveStore: Object.freeze({
+      async describe(): Promise<PlatformCallResult<PlatformSaveStoreStatus>> {
+        return unavailable<PlatformSaveStoreStatus>();
+      },
+      async export(): Promise<PlatformCallResult<PlatformSaveExportPayload>> {
+        return unavailable<PlatformSaveExportPayload>();
+      },
       async list(): Promise<PlatformCallResult<readonly PlatformSaveSummary[]>> {
         return unavailable<readonly PlatformSaveSummary[]>();
       },
@@ -118,8 +168,8 @@ export function createUnavailablePlatformPorts(
       async remove(): Promise<PlatformCallResult<undefined>> {
         return unavailable<undefined>();
       },
-      async writeAtomic(): Promise<PlatformCallResult<undefined>> {
-        return unavailable<undefined>();
+      async writeAtomic(): Promise<PlatformCallResult<PlatformSaveSummary>> {
+        return unavailable<PlatformSaveSummary>();
       },
     }),
   });
@@ -131,10 +181,14 @@ export function resolvePlatformPorts(): PlatformPorts {
     return bridge;
   }
 
-  return createUnavailablePlatformPorts(
-    WEB_FALLBACK_HOST,
-    "Native save and mod ports are unavailable in the browser shell.",
-  );
+  return Object.freeze({
+    host: WEB_FALLBACK_HOST,
+    mods: createUnavailablePlatformPorts(
+      WEB_FALLBACK_HOST,
+      "Native mod ports are unavailable in the browser shell.",
+    ).mods,
+    saveStore: createWebPlatformSaveStore(),
+  });
 }
 
 function isHostInfo(value: unknown): value is PlatformHostInfo {
@@ -176,6 +230,102 @@ function isSaveStorePort(value: unknown): value is PlatformSaveStorePort {
     typeof value["remove"] === "function" &&
     typeof value["writeAtomic"] === "function"
   );
+}
+
+function createWebPlatformSaveStore(): PlatformSaveStorePort {
+  return Object.freeze({
+    async describe(): Promise<PlatformCallResult<PlatformSaveStoreStatus>> {
+      return mapSaveStoreResult(await WEB_SAVE_STORE.describe(), mapStatus);
+    },
+    async export(id: string): Promise<PlatformCallResult<PlatformSaveExportPayload>> {
+      return mapSaveStoreResult(await WEB_SAVE_STORE.export(id), mapExportPayload);
+    },
+    async list(): Promise<PlatformCallResult<readonly PlatformSaveSummary[]>> {
+      return mapSaveStoreResult(await WEB_SAVE_STORE.list(), mapSaveSummaries);
+    },
+    async read(id: string): Promise<PlatformCallResult<ArrayBuffer>> {
+      return mapSaveStoreResult(await WEB_SAVE_STORE.read(id), toArrayBuffer);
+    },
+    async remove(id: string): Promise<PlatformCallResult<undefined>> {
+      return mapSaveStoreResult(await WEB_SAVE_STORE.remove(id), (value) => value);
+    },
+    async writeAtomic(
+      request: PlatformSaveWriteRequest,
+    ): Promise<PlatformCallResult<PlatformSaveSummary>> {
+      return mapSaveStoreResult(await WEB_SAVE_STORE.writeAtomic(request), mapSaveSummary);
+    },
+  });
+}
+
+function mapExportPayload(value: SaveExportPayload): PlatformSaveExportPayload {
+  return Object.freeze({
+    bytes: value.bytes,
+    mediaType: value.mediaType,
+    suggestedFileName: value.suggestedFileName,
+    summary: mapSaveSummary(value.summary),
+  });
+}
+
+function mapPlatformError(error: SaveStoreError): PlatformPortError {
+  return Object.freeze({
+    code: error.code,
+    detail: Object.freeze({
+      ...error.detail,
+    }),
+    message: error.message,
+    recoverable: error.recoverable,
+    userMessage: error.userMessage,
+  });
+}
+
+function mapSaveStoreResult<TInput, TOutput>(
+  result: SaveStoreResult<TInput>,
+  mapValue: (value: TInput) => TOutput,
+): PlatformCallResult<TOutput> {
+  if (!result.ok) {
+    return {
+      error: mapPlatformError(result.error),
+      ok: false,
+    };
+  }
+
+  return {
+    ok: true,
+    value: mapValue(result.value),
+  };
+}
+
+function mapSaveSummaries(
+  value: readonly PersistenceSaveSummary[],
+): readonly PlatformSaveSummary[] {
+  return value.map(mapSaveSummary);
+}
+
+function mapSaveSummary(value: PersistenceSaveSummary): PlatformSaveSummary {
+  return Object.freeze({
+    checksumSha256Hex: value.checksumSha256Hex,
+    id: value.id,
+    sizeBytes: value.sizeBytes,
+    updatedAtUnixMs: value.updatedAtUnixMs,
+  });
+}
+
+function mapStatus(value: SaveStoreStatus): PlatformSaveStoreStatus {
+  return Object.freeze({
+    available: value.available,
+    kind: value.kind,
+    quota: Object.freeze({
+      availableBytes: value.quota.availableBytes,
+      quotaBytes: value.quota.quotaBytes,
+      usageBytes: value.quota.usageBytes,
+    }),
+  });
+}
+
+function toArrayBuffer(value: Uint8Array): ArrayBuffer {
+  const copy = new Uint8Array(value.byteLength);
+  copy.set(value);
+  return copy.buffer;
 }
 
 function readBridgeFromGlobal(value: unknown): PlatformPorts | undefined {
