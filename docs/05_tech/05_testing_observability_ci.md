@@ -171,3 +171,19 @@ The documented M3 headless reproduction command is
 `pnpm sim:run -- --seed 3 --scenario m3-ordinary-life --ticks 100000`. The
 command prints the authoritative M3 scenario summary from the Node headless
 runner; UI, Worker projection consumers and Electron remain read-only.
+
+## WM-0068 implementation note
+
+`pnpm test --filter m4-save-replay` covers the focused M4 core vertical slice
+save/load/resume harness. It validates the `12000` save tick, `12001` load
+tick, `36000` final horizon, scenario id, requested and authoritative seeds,
+versions, sorted owner rows, integer lanes, crisis/director rows, command tail,
+projection hashes, rebuilt surfaces and structured first-divergent-tick
+diagnostics.
+
+`pnpm sim:replay-test -- --scenario m4-core-vertical-slice` runs the M4 replay
+gate with requested seed `4` and authoritative scenario seed `50`. It writes
+expected, actual, save, resumed and summary artifacts under
+`coordination/artifacts/WM-0068/m4-save-replay/`, including save byte size,
+load validation time, rebuild time, rebuilt surface names/hashes, command tail
+and checkpoint hashes.

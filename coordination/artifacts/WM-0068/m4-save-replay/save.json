@@ -1,0 +1,519 @@
+{
+  "magic": "wuming-town.m4.core-vertical-slice.save",
+  "formatVersion": 1,
+  "sectionDirectoryVersion": 1,
+  "scenarioId": "m4.core_vertical_slice.borrowed_shadow_lamps.v1",
+  "alias": "m4-core-vertical-slice",
+  "requestedSeed": "4",
+  "seed": "50",
+  "contentHash": "0x698f2c41",
+  "commandStreamHash": "0x538d0e43",
+  "createdTick": 12000,
+  "nextTick": 12001,
+  "sections": {
+    "ownerStores": {
+      "ownerStoresVersion": 1,
+      "ownerHandles": [
+        {
+          "handleId": 0,
+          "storeKind": 1,
+          "ownerVersion": 9,
+          "activeCount": 1
+        },
+        {
+          "handleId": 1,
+          "storeKind": 2,
+          "ownerVersion": 3,
+          "activeCount": 3
+        },
+        {
+          "handleId": 2,
+          "storeKind": 3,
+          "ownerVersion": 2,
+          "activeCount": 2
+        },
+        {
+          "handleId": 3,
+          "storeKind": 4,
+          "ownerVersion": 19,
+          "activeCount": 2
+        }
+      ],
+      "branchRecords": [
+        {
+          "branchId": 1,
+          "crisisId": 0,
+          "selectedCandidateId": 0,
+          "activationTick": 1000,
+          "identityConfirmedTick": 700,
+          "obligationFulfilledTick": 800,
+          "townRuleDecisionTick": 900,
+          "identityConfirmed": 1,
+          "identitySupportTier": 4,
+          "identityIndependentClassCount": 4,
+          "evidenceOwnerVersion": 9,
+          "obligationOwnerVersion": 4,
+          "townRuleOwnerVersion": 2,
+          "supportTier": 4,
+          "lowRiskEvidenceCount": 0,
+          "evidenceBeforeIrreversibleHarm": 1,
+          "terminalReason": 0,
+          "dawnReviewRowId": 6
+        },
+        {
+          "branchId": 2,
+          "crisisId": 1,
+          "selectedCandidateId": 1,
+          "activationTick": 1100,
+          "identityConfirmedTick": 1240,
+          "obligationFulfilledTick": 1220,
+          "townRuleDecisionTick": 1250,
+          "identityConfirmed": 0,
+          "identitySupportTier": 4,
+          "identityIndependentClassCount": 4,
+          "evidenceOwnerVersion": 8,
+          "obligationOwnerVersion": 3,
+          "townRuleOwnerVersion": 2,
+          "supportTier": 4,
+          "lowRiskEvidenceCount": 2,
+          "evidenceBeforeIrreversibleHarm": 1,
+          "terminalReason": 1,
+          "dawnReviewRowId": 106
+        },
+        {
+          "branchId": 3,
+          "crisisId": 2,
+          "selectedCandidateId": 2,
+          "activationTick": 1400,
+          "identityConfirmedTick": 0,
+          "obligationFulfilledTick": 0,
+          "townRuleDecisionTick": 0,
+          "identityConfirmed": 0,
+          "identitySupportTier": 4,
+          "identityIndependentClassCount": 4,
+          "evidenceOwnerVersion": 8,
+          "obligationOwnerVersion": 3,
+          "townRuleOwnerVersion": 2,
+          "supportTier": 4,
+          "lowRiskEvidenceCount": 2,
+          "evidenceBeforeIrreversibleHarm": 1,
+          "terminalReason": 3,
+          "dawnReviewRowId": 203
+        }
+      ]
+    },
+    "crisisDirector": {
+      "crisisDirectorVersion": 1,
+      "crisisRecords": [
+        {
+          "crisisId": 0,
+          "branchId": 1,
+          "state": 0,
+          "activationTick": 1000,
+          "lowRiskEvidenceCount": 0,
+          "evidenceBeforeIrreversibleHarm": 1,
+          "terminalReason": 0,
+          "ownerVersion": 13
+        },
+        {
+          "crisisId": 1,
+          "branchId": 2,
+          "state": 4,
+          "activationTick": 1100,
+          "lowRiskEvidenceCount": 2,
+          "evidenceBeforeIrreversibleHarm": 1,
+          "terminalReason": 1,
+          "ownerVersion": 17
+        },
+        {
+          "crisisId": 2,
+          "branchId": 3,
+          "state": 5,
+          "activationTick": 1400,
+          "lowRiskEvidenceCount": 2,
+          "evidenceBeforeIrreversibleHarm": 1,
+          "terminalReason": 3,
+          "ownerVersion": 19
+        }
+      ],
+      "recoveryWindowRecords": [
+        {
+          "windowId": 0,
+          "recoveryType": 1,
+          "startTick": 3000,
+          "endTick": 4200,
+          "sourceSampleVersion": 6,
+          "selectedCommandKind": 2
+        },
+        {
+          "windowId": 1,
+          "recoveryType": 2,
+          "startTick": 5400,
+          "endTick": 6000,
+          "sourceSampleVersion": 7,
+          "selectedCommandKind": 3
+        }
+      ]
+    },
+    "commandLogTail": {
+      "commandLogTailVersion": 1,
+      "checkpointTick": 12000,
+      "checkpointWorldHash": "0x4dbbc7e5",
+      "commandStreamHash": "0x538d0e43",
+      "contentHash": "0x698f2c41",
+      "nextCommandSequence": 9,
+      "commandTail": [
+        {
+          "tick": 1000,
+          "sequence": 5,
+          "commandHash": "0x96341db3"
+        },
+        {
+          "tick": 1300,
+          "sequence": 6,
+          "commandHash": "0xa8f2f9f5"
+        },
+        {
+          "tick": 1600,
+          "sequence": 7,
+          "commandHash": "0x24fd4f1f"
+        },
+        {
+          "tick": 3200,
+          "sequence": 8,
+          "commandHash": "0x9d2f161b"
+        }
+      ]
+    },
+    "reasonMetrics": {
+      "reasonMetricsVersion": 1,
+      "checkpointHashes": [
+        {
+          "tick": 12000,
+          "worldHash": "0x4dbbc7e5",
+          "readModelHash": "0x050c41fc",
+          "checkpointHash": "0x3161bde7"
+        }
+      ],
+      "boundedReads": {
+        "lampGapVisited": 2,
+        "lampGapCandidateCap": 2,
+        "chronicleEvidenceVisited": 4,
+        "chronicleEvidenceCandidateCap": 8,
+        "obligationVisited": 2,
+        "obligationScanCap": 4,
+        "townRuleVisited": 2,
+        "townRuleScanCap": 8,
+        "crisisCandidateVisited": 1,
+        "crisisCandidateCap": 1,
+        "directorVisited": 1,
+        "directorCandidateCap": 1
+      },
+      "invariantCounters": {
+        "preventionPathCount": 1,
+        "containmentPathCount": 1,
+        "failurePathCount": 1,
+        "lowRiskEvidenceBeforeHarmCount": 4,
+        "dawnReviewSourceRowCount": 20,
+        "directFactMutationByDirectorCount": 0,
+        "m0ToM3RegressionCount": 0
+      },
+      "dawnReviewRows": [
+        {
+          "rowId": 0,
+          "branchId": 1,
+          "tick": 0,
+          "sourceKind": 0,
+          "sourceId": 0,
+          "ownerVersion": 0,
+          "reason": "m4.scenario.initialized"
+        },
+        {
+          "rowId": 1,
+          "branchId": 1,
+          "tick": 600,
+          "sourceKind": 1,
+          "sourceId": 1,
+          "ownerVersion": 1,
+          "reason": "m4.lamp_gap.candidate_selected"
+        },
+        {
+          "rowId": 2,
+          "branchId": 1,
+          "tick": 700,
+          "sourceKind": 3,
+          "sourceId": 4,
+          "ownerVersion": 9,
+          "reason": "m4.chronicle.identity_rule_confirmed"
+        },
+        {
+          "rowId": 3,
+          "branchId": 1,
+          "tick": 800,
+          "sourceKind": 3,
+          "sourceId": 0,
+          "ownerVersion": 4,
+          "reason": "m4.obligation.lamp_oil_fulfilled"
+        },
+        {
+          "rowId": 4,
+          "branchId": 1,
+          "tick": 820,
+          "sourceKind": 4,
+          "sourceId": 0,
+          "ownerVersion": 2,
+          "reason": "m4.town_rule.name_confirmed"
+        },
+        {
+          "rowId": 5,
+          "branchId": 1,
+          "tick": 900,
+          "sourceKind": 4,
+          "sourceId": 1,
+          "ownerVersion": 2,
+          "reason": "m4.town_rule.night_knock_complied"
+        },
+        {
+          "rowId": 6,
+          "branchId": 1,
+          "tick": 1000,
+          "sourceKind": 5,
+          "sourceId": 0,
+          "ownerVersion": 1,
+          "reason": "m4.borrowed_shadow.activation_prevented"
+        },
+        {
+          "rowId": 100,
+          "branchId": 2,
+          "tick": 0,
+          "sourceKind": 0,
+          "sourceId": 0,
+          "ownerVersion": 0,
+          "reason": "m4.scenario.initialized"
+        },
+        {
+          "rowId": 101,
+          "branchId": 2,
+          "tick": 600,
+          "sourceKind": 1,
+          "sourceId": 1,
+          "ownerVersion": 1,
+          "reason": "m4.lamp_gap.candidate_selected"
+        },
+        {
+          "rowId": 102,
+          "branchId": 2,
+          "tick": 1120,
+          "sourceKind": 5,
+          "sourceId": 1,
+          "ownerVersion": 3,
+          "reason": "m4.borrowed_shadow.low_risk_evidence_before_harm"
+        },
+        {
+          "rowId": 103,
+          "branchId": 2,
+          "tick": 1220,
+          "sourceKind": 3,
+          "sourceId": 0,
+          "ownerVersion": 4,
+          "reason": "m4.obligation.lamp_oil_fulfilled"
+        },
+        {
+          "rowId": 104,
+          "branchId": 2,
+          "tick": 1240,
+          "sourceKind": 3,
+          "sourceId": 4,
+          "ownerVersion": 9,
+          "reason": "m4.chronicle.identity_rule_confirmed"
+        },
+        {
+          "rowId": 105,
+          "branchId": 2,
+          "tick": 1250,
+          "sourceKind": 4,
+          "sourceId": 1,
+          "ownerVersion": 2,
+          "reason": "m4.town_rule.night_knock_complied"
+        },
+        {
+          "rowId": 106,
+          "branchId": 2,
+          "tick": 1300,
+          "sourceKind": 5,
+          "sourceId": 1,
+          "ownerVersion": 6,
+          "reason": "m4.borrowed_shadow.contained_non_combat"
+        },
+        {
+          "rowId": 200,
+          "branchId": 3,
+          "tick": 0,
+          "sourceKind": 0,
+          "sourceId": 0,
+          "ownerVersion": 0,
+          "reason": "m4.scenario.initialized"
+        },
+        {
+          "rowId": 201,
+          "branchId": 3,
+          "tick": 600,
+          "sourceKind": 1,
+          "sourceId": 1,
+          "ownerVersion": 1,
+          "reason": "m4.lamp_gap.candidate_selected"
+        },
+        {
+          "rowId": 202,
+          "branchId": 3,
+          "tick": 1420,
+          "sourceKind": 5,
+          "sourceId": 2,
+          "ownerVersion": 3,
+          "reason": "m4.borrowed_shadow.low_risk_evidence_before_harm"
+        },
+        {
+          "rowId": 203,
+          "branchId": 3,
+          "tick": 1600,
+          "sourceKind": 5,
+          "sourceId": 2,
+          "ownerVersion": 6,
+          "reason": "m4.borrowed_shadow.accident_review_terminal"
+        },
+        {
+          "rowId": 300,
+          "branchId": 4,
+          "tick": 3200,
+          "sourceKind": 6,
+          "sourceId": 2,
+          "ownerVersion": 6,
+          "reason": "m4.director.recovery_window_selected"
+        },
+        {
+          "rowId": 400,
+          "branchId": 0,
+          "tick": 36000,
+          "sourceKind": 7,
+          "sourceId": 3,
+          "ownerVersion": 0,
+          "reason": "m4.m3_regression.baseline_preserved"
+        }
+      ]
+    }
+  },
+  "readOnlyProjection": {
+    "projectionVersion": 1,
+    "scenarioId": "m4.core_vertical_slice.borrowed_shadow_lamps.v1",
+    "tick": 12000,
+    "worldHash": "0x4dbbc7e5",
+    "readModelHash": "0x050c41fc",
+    "renderSnapshot": {
+      "renderSnapshotSchemaVersion": 1,
+      "snapshotSequence": 3,
+      "tick": 12000,
+      "branchCount": 3,
+      "worldHash": "0x4dbbc7e5",
+      "readModelHash": "0x5e29ad15"
+    },
+    "scenarioReadModel": {
+      "scenarioReadModelSchemaVersion": 1,
+      "scenarioId": "m4.core_vertical_slice.borrowed_shadow_lamps.v1",
+      "basisTick": 12000,
+      "commandStreamHash": "0x538d0e43",
+      "contentHash": "0x698f2c41",
+      "dawnReviewRowCount": 20,
+      "boundedReadHash": "0xf4cc26de",
+      "detailHash": "0x0cda1a5a",
+      "summaries": [
+        "prevention=1",
+        "containment=1",
+        "failure=3",
+        "dawnRows=20"
+      ]
+    },
+    "rebuiltIndexes": {
+      "rebuiltIndexesSchemaVersion": 1,
+      "names": [
+        "lamp-gap",
+        "evidence",
+        "dissemination",
+        "obligation",
+        "town-rule",
+        "crisis",
+        "director",
+        "work-offers",
+        "path",
+        "read-model",
+        "dawn-review",
+        "metrics"
+      ],
+      "surfaces": [
+        {
+          "name": "lamp-gap",
+          "hash": "0xa5c3ce37",
+          "sourceVersion": 1
+        },
+        {
+          "name": "evidence",
+          "hash": "0x6e43fe61",
+          "sourceVersion": 2
+        },
+        {
+          "name": "dissemination",
+          "hash": "0x5998010f",
+          "sourceVersion": 3
+        },
+        {
+          "name": "obligation",
+          "hash": "0xce506e3e",
+          "sourceVersion": 4
+        },
+        {
+          "name": "town-rule",
+          "hash": "0x3e0f43df",
+          "sourceVersion": 5
+        },
+        {
+          "name": "crisis",
+          "hash": "0x3448dbe5",
+          "sourceVersion": 6
+        },
+        {
+          "name": "director",
+          "hash": "0xc5cdddd6",
+          "sourceVersion": 7
+        },
+        {
+          "name": "work-offers",
+          "hash": "0x683d5725",
+          "sourceVersion": 8
+        },
+        {
+          "name": "path",
+          "hash": "0xef91016f",
+          "sourceVersion": 9
+        },
+        {
+          "name": "read-model",
+          "hash": "0x61d2e2b2",
+          "sourceVersion": 10
+        },
+        {
+          "name": "dawn-review",
+          "hash": "0xe160772f",
+          "sourceVersion": 11
+        },
+        {
+          "name": "metrics",
+          "hash": "0xa3c0802f",
+          "sourceVersion": 12
+        }
+      ],
+      "basisTick": 12000,
+      "basisWorldHash": "0x4dbbc7e5",
+      "rebuildTimeTicks": 1,
+      "indexHash": "0x4ea56eed"
+    }
+  }
+}

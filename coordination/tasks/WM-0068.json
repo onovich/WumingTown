@@ -2,7 +2,7 @@
   "id": "WM-0068",
   "title": "Add M4 save replay resume harness",
   "summary": "Add focused save, load and resume diagnostics for the M4 core vertical slice without public save compatibility or platform save UI.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,7 +31,7 @@
   ],
   "branch": "task/WM-0068-add-m4-save-replay-resume-harness",
   "createdAt": "2026-06-25T19:08:30.000Z",
-  "updatedAt": "2026-06-26T06:34:48.289Z",
+  "updatedAt": "2026-06-26T07:10:50.707Z",
   "history": [
     {
       "at": "2026-06-25T19:08:30.000Z",
@@ -44,6 +44,42 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-26T06:37:53.244Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Tally WM-0068 M4 save replay"
+    },
+    {
+      "at": "2026-06-26T06:42:11.000Z",
+      "actor": "project-director",
+      "action": "scope-correction",
+      "details": "Allowed the existing replay diagnostics CLI files because the approved required check is pnpm sim:replay-test -- --scenario m4-core-vertical-slice and the current CLI only supports earlier scenario filters."
+    },
+    {
+      "at": "2026-06-26T07:03:18.374Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented focused M4 core vertical slice save/replay harness with scratch validation, resumed replay parity, M4 replay diagnostics CLI support, artifacts, docs, and focused tests."
+    },
+    {
+      "at": "2026-06-26T07:09:07.481Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Confirmed focused M4 save/load/replay validates before returning loaded state, reports all required rebuilt surfaces, matches uninterrupted/resumed hashes with divergent-tick diagnostics, and stays within approved save/replay tooling scope; required checks and quality pass."
+    },
+    {
+      "at": "2026-06-26T07:10:37.250Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified by reviewer; branch gate passed with pnpm quality and M4 replay diagnostics; ready for main merge"
+    },
+    {
+      "at": "2026-06-26T07:10:50.707Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Prove M4 focused save/load/resume parity for the core scenario while keeping public save compatibility out of scope.",
@@ -53,6 +89,8 @@
     "packages/sim-core/src/**m4**",
     "packages/sim-core/src/index.ts",
     "tools/test-runner.mjs",
+    "tools/sim-replay-test.mjs",
+    "tools/sim-replay-diagnostics-lib.mjs",
     "tools/headless-runner/src/index.ts",
     "docs/02_systems/13_save_replay_migration.md",
     "docs/05_tech/05_testing_observability_ci.md",
@@ -86,5 +124,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Save/replay and migration boundaries are explicitly excluded from Spark."
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Tally WM-0068 M4 save replay",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0068.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Confirmed focused M4 save/load/replay validates before returning loaded state, reports all required rebuilt surfaces, matches uninterrupted/resumed hashes with divergent-tick diagnostics, and stays within approved save/replay tooling scope; required checks and quality pass.",
+    "at": "2026-06-26T07:09:07.481Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified by reviewer; branch gate passed with pnpm quality and M4 replay diagnostics; ready for main merge",
+    "at": "2026-06-26T07:10:37.249Z"
   }
 }

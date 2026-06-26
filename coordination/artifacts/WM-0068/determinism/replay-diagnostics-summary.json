@@ -1,0 +1,212 @@
+{
+  "ok": true,
+  "scenarioId": "m4.core_vertical_slice.borrowed_shadow_lamps.v1",
+  "seed": "50",
+  "requestedSeed": "4",
+  "firstDivergentTick": null,
+  "m4Scenario": {
+    "ok": true,
+    "scenarioId": "m4.core_vertical_slice.borrowed_shadow_lamps.v1",
+    "seed": "50",
+    "requestedSeed": "4",
+    "finalWorldHash": "0xc201a925",
+    "finalReadModelHash": "0x37ffe469",
+    "resumedFinalWorldHash": "0xc201a925",
+    "resumedFinalReadModelHash": "0x37ffe469",
+    "resumedSource": "loaded-save",
+    "loadedStateHash": "0x576b125c",
+    "checkpointCount": 6,
+    "checkpointHashes": [
+      {
+        "tick": 0,
+        "worldHash": "0x13772985",
+        "readModelHash": "0xd9c2e7f6",
+        "checkpointHash": "0x04f5a84b"
+      },
+      {
+        "tick": 3600,
+        "worldHash": "0x433cdf75",
+        "readModelHash": "0x02e25e3a",
+        "checkpointHash": "0x4e7e1e3f"
+      },
+      {
+        "tick": 7200,
+        "worldHash": "0x1a77d4a5",
+        "readModelHash": "0x4e733bf5",
+        "checkpointHash": "0xd779aca6"
+      },
+      {
+        "tick": 12000,
+        "worldHash": "0x4dbbc7e5",
+        "readModelHash": "0x050c41fc",
+        "checkpointHash": "0x3161bde7"
+      },
+      {
+        "tick": 18000,
+        "worldHash": "0xc2531935",
+        "readModelHash": "0x349dcf25",
+        "checkpointHash": "0x832c3128"
+      },
+      {
+        "tick": 36000,
+        "worldHash": "0xc201a925",
+        "readModelHash": "0x37ffe469",
+        "checkpointHash": "0xb3e488c6"
+      }
+    ],
+    "saveTick": 12000,
+    "loadTick": 12001,
+    "finalTick": 36000,
+    "saveBytes": 8124,
+    "loadValidationTimeTicks": 1,
+    "rebuildTimeTicks": 1,
+    "rebuiltSurfaceNames": [
+      "lamp-gap",
+      "evidence",
+      "dissemination",
+      "obligation",
+      "town-rule",
+      "crisis",
+      "director",
+      "work-offers",
+      "path",
+      "read-model",
+      "dawn-review",
+      "metrics"
+    ],
+    "rebuiltSurfaces": [
+      {
+        "name": "lamp-gap",
+        "hash": "0xa5c3ce37",
+        "sourceVersion": 1
+      },
+      {
+        "name": "evidence",
+        "hash": "0x6e43fe61",
+        "sourceVersion": 2
+      },
+      {
+        "name": "dissemination",
+        "hash": "0x5998010f",
+        "sourceVersion": 3
+      },
+      {
+        "name": "obligation",
+        "hash": "0xce506e3e",
+        "sourceVersion": 4
+      },
+      {
+        "name": "town-rule",
+        "hash": "0x3e0f43df",
+        "sourceVersion": 5
+      },
+      {
+        "name": "crisis",
+        "hash": "0x3448dbe5",
+        "sourceVersion": 6
+      },
+      {
+        "name": "director",
+        "hash": "0xc5cdddd6",
+        "sourceVersion": 7
+      },
+      {
+        "name": "work-offers",
+        "hash": "0x683d5725",
+        "sourceVersion": 8
+      },
+      {
+        "name": "path",
+        "hash": "0xef91016f",
+        "sourceVersion": 9
+      },
+      {
+        "name": "read-model",
+        "hash": "0x61d2e2b2",
+        "sourceVersion": 10
+      },
+      {
+        "name": "dawn-review",
+        "hash": "0xe160772f",
+        "sourceVersion": 11
+      },
+      {
+        "name": "metrics",
+        "hash": "0xa3c0802f",
+        "sourceVersion": 12
+      }
+    ],
+    "commandTail": [
+      {
+        "tick": 1000,
+        "sequence": 5,
+        "commandHash": "0x96341db3"
+      },
+      {
+        "tick": 1300,
+        "sequence": 6,
+        "commandHash": "0xa8f2f9f5"
+      },
+      {
+        "tick": 1600,
+        "sequence": 7,
+        "commandHash": "0x24fd4f1f"
+      },
+      {
+        "tick": 3200,
+        "sequence": 8,
+        "commandHash": "0x9d2f161b"
+      }
+    ],
+    "saveCheckpointHashes": [
+      {
+        "tick": 12000,
+        "worldHash": "0x4dbbc7e5",
+        "readModelHash": "0x050c41fc",
+        "checkpointHash": "0x3161bde7"
+      }
+    ],
+    "firstDivergentTick": null,
+    "artifactPaths": {
+      "expected": "coordination/artifacts/WM-0068/m4-save-replay/expected.json",
+      "actual": "coordination/artifacts/WM-0068/m4-save-replay/actual.json",
+      "resumed": "coordination/artifacts/WM-0068/m4-save-replay/resumed.json",
+      "save": "coordination/artifacts/WM-0068/m4-save-replay/save.json",
+      "summary": "coordination/artifacts/WM-0068/m4-save-replay/summary.json"
+    }
+  },
+  "artifactPaths": {
+    "expected": "coordination/artifacts/WM-0068/determinism/expected-checkpoints.json",
+    "actual": "coordination/artifacts/WM-0068/determinism/actual-checkpoints.json",
+    "perturbed": "coordination/artifacts/WM-0068/determinism/perturbed-checkpoints.json",
+    "summary": "coordination/artifacts/WM-0068/determinism/replay-diagnostics-summary.json",
+    "m1": {
+      "expected": "coordination/artifacts/WM-0068/m1-save-replay/expected.json",
+      "actual": "coordination/artifacts/WM-0068/m1-save-replay/actual.json",
+      "resumed": "coordination/artifacts/WM-0068/m1-save-replay/resumed.json",
+      "save": "coordination/artifacts/WM-0068/m1-save-replay/save.json",
+      "summary": "coordination/artifacts/WM-0068/m1-save-replay/summary.json"
+    },
+    "m2": {
+      "expected": "coordination/artifacts/WM-0068/m2-save-replay/expected.json",
+      "actual": "coordination/artifacts/WM-0068/m2-save-replay/actual.json",
+      "resumed": "coordination/artifacts/WM-0068/m2-save-replay/resumed.json",
+      "save": "coordination/artifacts/WM-0068/m2-save-replay/save.json",
+      "summary": "coordination/artifacts/WM-0068/m2-save-replay/summary.json"
+    },
+    "m3": {
+      "expected": "coordination/artifacts/WM-0068/m3-save-replay/expected.json",
+      "actual": "coordination/artifacts/WM-0068/m3-save-replay/actual.json",
+      "resumed": "coordination/artifacts/WM-0068/m3-save-replay/resumed.json",
+      "save": "coordination/artifacts/WM-0068/m3-save-replay/save.json",
+      "summary": "coordination/artifacts/WM-0068/m3-save-replay/summary.json"
+    },
+    "m4": {
+      "expected": "coordination/artifacts/WM-0068/m4-save-replay/expected.json",
+      "actual": "coordination/artifacts/WM-0068/m4-save-replay/actual.json",
+      "resumed": "coordination/artifacts/WM-0068/m4-save-replay/resumed.json",
+      "save": "coordination/artifacts/WM-0068/m4-save-replay/save.json",
+      "summary": "coordination/artifacts/WM-0068/m4-save-replay/summary.json"
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "scenarioId": "m4.core_vertical_slice.borrowed_shadow_lamps.v1",
+  "seed": "50",
+  "requestedSeed": "4",
+  "source": "uninterrupted",
+  "loadedStateHash": "0x00000000",
+  "checkpoints": [
+    {
+      "tick": 0,
+      "worldHash": "0x13772985",
+      "readModelHash": "0xd9c2e7f6",
+      "checkpointHash": "0x04f5a84b",
+      "rebuiltIndexHash": "0x3a23cf61"
+    },
+    {
+      "tick": 3600,
+      "worldHash": "0x433cdf75",
+      "readModelHash": "0x02e25e3a",
+      "checkpointHash": "0x4e7e1e3f",
+      "rebuiltIndexHash": "0xde3d899b"
+    },
+    {
+      "tick": 7200,
+      "worldHash": "0x1a77d4a5",
+      "readModelHash": "0x4e733bf5",
+      "checkpointHash": "0xd779aca6",
+      "rebuiltIndexHash": "0x2366fb63"
+    },
+    {
+      "tick": 12000,
+      "worldHash": "0x4dbbc7e5",
+      "readModelHash": "0x050c41fc",
+      "checkpointHash": "0x3161bde7",
+      "rebuiltIndexHash": "0x4ea56eed"
+    },
+    {
+      "tick": 18000,
+      "worldHash": "0xc2531935",
+      "readModelHash": "0x349dcf25",
+      "checkpointHash": "0x832c3128",
+      "rebuiltIndexHash": "0x84eccd21"
+    },
+    {
+      "tick": 36000,
+      "worldHash": "0xc201a925",
+      "readModelHash": "0x37ffe469",
+      "checkpointHash": "0xb3e488c6",
+      "rebuiltIndexHash": "0x129647f6"
+    }
+  ],
+  "finalTick": 36000,
+  "finalWorldHash": "0xc201a925",
+  "finalReadModelHash": "0x37ffe469"
+}

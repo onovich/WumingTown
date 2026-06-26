@@ -70,7 +70,7 @@ function parseReplayDiagnosticArgs(rawArgs) {
     return {
       ok: false,
       error:
-        "Unsupported replay diagnostics arguments. Use --scenario m2-work-logistics, --scenario m3-ordinary-life, --seed <seed>, or --artifact-root <path>.",
+        "Unsupported replay diagnostics arguments. Use --scenario m2-work-logistics, --scenario m3-ordinary-life, --scenario m4-core-vertical-slice, --seed <seed>, or --artifact-root <path>.",
     };
   }
 

@@ -177,3 +177,24 @@ reservations, path caches, ability cache, mood/social read models, food, rest
 and medical indexes, weather and schedule projections, reason and metric
 materialization, and read models. These rebuilt surfaces are diagnostics and
 read-only projections, not authoritative save sections.
+
+## WM-0068 implementation note
+
+`packages/sim-core/src/m4-save-replay.ts` implements the focused M4
+save/replay harness for
+`m4.core_vertical_slice.borrowed_shadow_lamps.v1` / `m4-core-vertical-slice`.
+It is a scenario harness only: no public save container, platform save UI,
+Worker protocol, schema migration, codec dependency, or cross-version
+compatibility promise is introduced.
+
+The M4 checkpoint envelope validates scenario id, requested and authoritative
+seed, content hash, command hash, tick and section versions, sorted owner
+handles, integer lanes, branch-local owner records, crisis state rows, director
+recovery windows, command tail rows, bounded-read metrics, dawn-review rows and
+read-only projection hashes in scratch before a resumed run is returned.
+
+Load reports rebuilt surfaces for lamp-gap, evidence, dissemination,
+obligation, town-rule, crisis, director, WorkOffer, path, read-model,
+dawn-review and metrics before tick `12001`. These rebuilt surfaces are hashes
+for replay diagnostics and are not persisted authority or derived-cache save
+payloads.

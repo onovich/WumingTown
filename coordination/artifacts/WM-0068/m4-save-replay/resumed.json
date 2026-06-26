@@ -1,0 +1,33 @@
+{
+  "scenarioId": "m4.core_vertical_slice.borrowed_shadow_lamps.v1",
+  "seed": "50",
+  "requestedSeed": "4",
+  "source": "loaded-save",
+  "loadedStateHash": "0x576b125c",
+  "checkpoints": [
+    {
+      "tick": 12000,
+      "worldHash": "0x4dbbc7e5",
+      "readModelHash": "0x050c41fc",
+      "checkpointHash": "0x3161bde7",
+      "rebuiltIndexHash": "0x4ea56eed"
+    },
+    {
+      "tick": 18000,
+      "worldHash": "0xc2531935",
+      "readModelHash": "0x349dcf25",
+      "checkpointHash": "0x832c3128",
+      "rebuiltIndexHash": "0x84eccd21"
+    },
+    {
+      "tick": 36000,
+      "worldHash": "0xc201a925",
+      "readModelHash": "0x37ffe469",
+      "checkpointHash": "0xb3e488c6",
+      "rebuiltIndexHash": "0x129647f6"
+    }
+  ],
+  "finalTick": 36000,
+  "finalWorldHash": "0xc201a925",
+  "finalReadModelHash": "0x37ffe469"
+}
