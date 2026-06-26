@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQUK182L-4E6890",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0067",
+  "kind": "review-approved",
+  "subject": "WM-0067 review: verified",
+  "body": "No blocking findings. Confirmed prevention, containment and failure use branch-specific owner fixtures and activation candidates are registered from branch-local basis before activation; required scenario, validation, diff and quality checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0067.md"
+  ],
+  "createdAt": "2026-06-26T06:33:05.565Z",
+  "acknowledgedAt": "2026-06-26T06:34:01.866Z"
+}

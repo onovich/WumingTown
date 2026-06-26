@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQUJEMN9-0203CF",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0067",
+  "kind": "changes-requested",
+  "subject": "WM-0067 review: changes_requested",
+  "body": "High: scenario uses one shared fixture/timeline for prevention, containment and failure. It confirms Chronicle identity, fulfills lamp-oil obligation, and records town-rule compliance before activating containment/failure candidates that were registered earlier with stale unconfirmed identity basis; the summary therefore shows harm after the same authoritative prevention facts. Split branch fixtures or rebuild/register activation candidates from branch-specific owner states before activation. Required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0067.md"
+  ],
+  "createdAt": "2026-06-26T06:15:31.366Z",
+  "acknowledgedAt": "2026-06-26T06:18:53.548Z"
+}

@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "scenarioId": "m4.core_vertical_slice.borrowed_shadow_lamps.v1",
+  "alias": "m4-core-vertical-slice",
+  "requestedSeed": "4",
+  "authoritativeScenarioSeed": "50",
+  "finalTick": 36000,
+  "tickRate": 30,
+  "contentHash": "0x698f2c41",
+  "commandStreamHash": "0x538d0e43",
+  "finalWorldHash": "0xc201a925",
+  "readModelHash": "0xce261d9d",
+  "boundedReads": {
+    "lampGapVisited": 2,
+    "lampGapCandidateCap": 2,
+    "chronicleEvidenceVisited": 4,
+    "chronicleEvidenceCandidateCap": 8,
+    "obligationVisited": 2,
+    "obligationScanCap": 4,
+    "townRuleVisited": 2,
+    "townRuleScanCap": 8,
+    "crisisCandidateVisited": 1,
+    "crisisCandidateCap": 1,
+    "directorVisited": 1,
+    "directorCandidateCap": 1
+  },
+  "paths": {
+    "prevention": {
+      "branchId": 1,
+      "activationTick": 1000,
+      "identityConfirmedTick": 700,
+      "obligationFulfilledTick": 800,
+      "townRuleDecisionTick": 900,
+      "activationBasis": {
+        "candidateId": 0,
+        "identityConfirmed": 1,
+        "identitySupportTier": 4,
+        "identityIndependentClassCount": 4,
+        "evidenceOwnerVersion": 9,
+        "obligationOwnerVersion": 4,
+        "townRuleOwnerVersion": 2
+      },
+      "reason": "borrowed_shadow_activation_prevented_identity_confirmed",
+      "dawnReviewRowId": 6
+    },
+    "containment": {
+      "branchId": 2,
+      "activationTick": 1100,
+      "identityConfirmedTick": 1240,
+      "obligationFulfilledTick": 1220,
+      "townRuleDecisionTick": 1250,
+      "activationBasis": {
+        "candidateId": 1,
+        "identityConfirmed": 0,
+        "identitySupportTier": 4,
+        "identityIndependentClassCount": 4,
+        "evidenceOwnerVersion": 8,
+        "obligationOwnerVersion": 3,
+        "townRuleOwnerVersion": 2
+      },
+      "reason": "borrowed_shadow_resolved_contained",
+      "terminalReason": 1,
+      "lowRiskEvidenceCount": 2,
+      "dawnReviewRowId": 106
+    },
+    "failure": {
+      "branchId": 3,
+      "activationTick": 1400,
+      "identityConfirmedTick": 0,
+      "obligationFulfilledTick": 0,
+      "townRuleDecisionTick": 0,
+      "activationBasis": {
+        "candidateId": 2,
+        "identityConfirmed": 0,
+        "identitySupportTier": 4,
+        "identityIndependentClassCount": 4,
+        "evidenceOwnerVersion": 8,
+        "obligationOwnerVersion": 3,
+        "townRuleOwnerVersion": 2
+      },
+      "reason": "borrowed_shadow_failed",
+      "terminalReason": 3,
+      "lowRiskEvidenceCount": 2,
+      "dawnReviewRowId": 203
+    }
+  },
+  "dawnReviewReasonCount": 20,
+  "m3Regression": {
+    "scenarioId": "m3.ordinary_life.injured_caregiver.v1",
+    "requestedSeed": "3",
+    "authoritativeScenarioSeed": "46",
+    "commandStreamHash": "0x226832d2",
+    "contentHash": "0xdfe7107e",
+    "finalWorldHash": "0x7eb81a69",
+    "readModelHash": "0x82bf87d6",
+    "activeM4FactCountInM3Baseline": 0
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQUJWFYJ-15ADFF",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0067",
+  "kind": "review-request",
+  "subject": "WM-0067 ready for review",
+  "body": "Repaired shared-timeline issue by isolating prevention, containment and failure into branch-specific fixtures; activation candidates are registered from each branch owner basis immediately before activation, with tests/artifact/docs updated; required checks and pnpm quality pass",
+  "artifacts": [
+    "coordination/reports/WM-0067.md",
+    "task/WM-0067-integrate-m4-core-vertical-slice-scenario"
+  ],
+  "createdAt": "2026-06-26T06:29:22.507Z",
+  "acknowledgedAt": "2026-06-26T06:30:10.552Z"
+}

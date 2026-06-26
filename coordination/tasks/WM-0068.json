@@ -2,7 +2,7 @@
   "id": "WM-0068",
   "title": "Add M4 save replay resume harness",
   "summary": "Add focused save, load and resume diagnostics for the M4 core vertical slice without public save compatibility or platform save UI.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,13 +31,19 @@
   ],
   "branch": "task/WM-0068-add-m4-save-replay-resume-harness",
   "createdAt": "2026-06-25T19:08:30.000Z",
-  "updatedAt": "2026-06-25T19:08:30.000Z",
+  "updatedAt": "2026-06-26T06:34:48.289Z",
   "history": [
     {
       "at": "2026-06-25T19:08:30.000Z",
       "actor": "systems-architect",
       "action": "create",
       "details": "Created by WM-0061 M4 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-26T06:34:48.289Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "objective": "Prove M4 focused save/load/resume parity for the core scenario while keeping public save compatibility out of scope.",

@@ -2,7 +2,7 @@
   "id": "WM-0067",
   "title": "Integrate M4 core vertical slice scenario",
   "summary": "Compose the focused M4 dusk-to-dawn borrowed-shadow lamp scenario with deterministic headless evidence, hashes and structured explanations.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,7 +31,7 @@
   ],
   "branch": "task/WM-0067-integrate-m4-core-vertical-slice-scenario",
   "createdAt": "2026-06-25T19:08:30.000Z",
-  "updatedAt": "2026-06-25T23:02:38.797Z",
+  "updatedAt": "2026-06-26T06:34:48.276Z",
   "history": [
     {
       "at": "2026-06-25T19:08:30.000Z",
@@ -44,6 +44,48 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-25T23:05:24.720Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Tally WM-0067 M4 scenario"
+    },
+    {
+      "at": "2026-06-25T23:22:18.965Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented deterministic m4-core-vertical-slice headless scenario alias with owner-store evidence, bounded read metrics, dawn-review rows, pinned hashes and artifact; required checks and pnpm quality pass"
+    },
+    {
+      "at": "2026-06-26T06:15:31.365Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: scenario uses one shared fixture/timeline for prevention, containment and failure. It confirms Chronicle identity, fulfills lamp-oil obligation, and records town-rule compliance before activating containment/failure candidates that were registered earlier with stale unconfirmed identity basis; the summary therefore shows harm after the same authoritative prevention facts. Split branch fixtures or rebuild/register activation candidates from branch-specific owner states before activation. Required checks pass."
+    },
+    {
+      "at": "2026-06-26T06:29:22.506Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Repaired shared-timeline issue by isolating prevention, containment and failure into branch-specific fixtures; activation candidates are registered from each branch owner basis immediately before activation, with tests/artifact/docs updated; required checks and pnpm quality pass"
+    },
+    {
+      "at": "2026-06-26T06:33:05.564Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Confirmed prevention, containment and failure use branch-specific owner fixtures and activation candidates are registered from branch-local basis before activation; required scenario, validation, diff and quality checks pass."
+    },
+    {
+      "at": "2026-06-26T06:34:43.564Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified by reviewer; branch gate passed with pnpm quality; ready for main merge"
+    },
+    {
+      "at": "2026-06-26T06:34:48.275Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Compose the first playable M4 rule-discovery path after the focused owner surfaces are reviewed.",
@@ -83,5 +125,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Integrated deterministic scenario composition crosses multiple M4 owner surfaces and is not suitable for Spark."
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Tally WM-0067 M4 scenario",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0067.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Confirmed prevention, containment and failure use branch-specific owner fixtures and activation candidates are registered from branch-local basis before activation; required scenario, validation, diff and quality checks pass.",
+    "at": "2026-06-26T06:33:05.563Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified by reviewer; branch gate passed with pnpm quality; ready for main merge",
+    "at": "2026-06-26T06:34:43.564Z"
   }
 }

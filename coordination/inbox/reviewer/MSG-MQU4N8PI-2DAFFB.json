@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQU4N8PI-2DAFFB",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0067",
+  "kind": "review-request",
+  "subject": "WM-0067 ready for review",
+  "body": "Implemented deterministic m4-core-vertical-slice headless scenario alias with owner-store evidence, bounded read metrics, dawn-review rows, pinned hashes and artifact; required checks and pnpm quality pass",
+  "artifacts": [
+    "coordination/reports/WM-0067.md",
+    "task/WM-0067-integrate-m4-core-vertical-slice-scenario"
+  ],
+  "createdAt": "2026-06-25T23:22:18.966Z",
+  "acknowledgedAt": "2026-06-26T06:12:27.258Z"
+}

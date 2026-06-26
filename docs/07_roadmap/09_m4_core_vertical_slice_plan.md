@@ -1,7 +1,9 @@
 # M4 Core Vertical Slice Plan
 
-Status: planning package created by WM-0061 and awaiting independent review.
-Runtime implementation remains unstarted. No M5 task is created by this plan.
+Status: planning package created by WM-0061. WM-0067 now provides the first
+deterministic headless integration for the focused M4 owner-store scenario.
+Save/replay, Worker parity, benchmark baselines, public protocols and M5 remain
+outside this task.
 
 ## Objective
 
@@ -232,6 +234,15 @@ packet intent.
   explains prevention and failure, and preserves M0-M3 invariants.
 - Benchmark impact: produces scenario metrics for save/replay, Worker parity,
   and benchmark tasks without baseline updates.
+- Implementation note: `pnpm sim:run -- --seed 4 --scenario
+  m4-core-vertical-slice --ticks 36000` runs
+  `m4.core_vertical_slice.borrowed_shadow_lamps.v1` with authoritative scenario
+  seed `50`, content hash `0x698f2c41`, command stream hash `0x538d0e43`,
+  final world hash `0xc201a925`, and read-model hash `0xce261d9d`. Prevention,
+  containment, and failure are isolated branch fixtures so later harm is not
+  shown after the same authoritative prevention facts. The deterministic
+  artifact is
+  `coordination/artifacts/WM-0067/m4-core-vertical-slice-summary.json`.
 
 ### WM-0068 - Add M4 Save/Replay Resume Harness
 

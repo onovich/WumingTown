@@ -386,6 +386,14 @@ export {
   runM3OrdinaryLifeScenario,
 } from "./m3-ordinary-life-scenario";
 export {
+  M4_CORE_VERTICAL_SLICE_ALIAS,
+  M4_CORE_VERTICAL_SLICE_EXPECTED_TICKS,
+  M4_CORE_VERTICAL_SLICE_SCENARIO_ID,
+  M4_CORE_VERTICAL_SLICE_TRACE_CAPACITY,
+  deriveM4CoreVerticalSliceScenarioSeed,
+  runM4CoreVerticalSliceScenario,
+} from "./m4-core-vertical-slice-scenario";
+export {
   M3_ABILITY_COMMUNICATION,
   M3_ABILITY_CONSCIOUSNESS,
   M3_ABILITY_LANE_COUNT,
@@ -1036,6 +1044,17 @@ export type {
   M3OrdinaryLifeScenarioSummary,
   M3OrdinaryLifeTerminalInvariantCounters,
 } from "./m3-ordinary-life-scenario";
+export type {
+  M4CoreActivationBasisEvidence,
+  M4CoreBoundedReadEvidence,
+  M4CoreDawnReviewRow,
+  M4CoreM3RegressionEvidence,
+  M4CorePathEvidence,
+  M4CoreScenarioInvariantCounters,
+  M4CoreVerticalSliceReason,
+  M4CoreVerticalSliceScenarioOptions,
+  M4CoreVerticalSliceScenarioSummary,
+} from "./m4-core-vertical-slice-scenario";
 export type {
   M3AbilityMetrics,
   M3AbilityQueryResult,

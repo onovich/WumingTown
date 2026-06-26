@@ -1,8 +1,8 @@
 # M4 Core Vertical Slice Scenario
 
-Status: planning contract created by WM-0061. Runtime implementation remains
-unstarted until downstream M4 tasks are reviewed, promoted, claimed, and
-implemented.
+Status: WM-0067 adds the first deterministic headless integration for the
+focused M4 owner-store slice. Save/replay, Worker parity, benchmark baseline
+updates, public protocols, and UI remain later gates.
 
 ## Scenario Identity
 
@@ -137,3 +137,32 @@ M4 may add new facts, but it must not regress M0-M3 invariants or weaken the
   regression evidence.
 - Dawn review output whose facts are derived from the same ReasonTrace and
   owner-store rows asserted by tests.
+
+## WM-0067 Headless Scenario Note
+
+`pnpm sim:run -- --seed 4 --scenario m4-core-vertical-slice --ticks 36000`
+now runs scenario id `m4.core_vertical_slice.borrowed_shadow_lamps.v1`.
+The requested seed `4` derives authoritative scenario seed `50`; the current
+fixture evidence hashes are:
+
+- content hash `0x698f2c41`
+- command stream hash `0x538d0e43`
+- final world hash `0xc201a925`
+- read-model hash `0xce261d9d`
+
+The WM-0067 fixture composes the reviewed M4 owner stores directly. It queries
+lamp gaps through the WM-0062 gap index, confirms the identity rule through
+Chronicle evidence support, reads due obligation and town-rule compliance
+candidates through bounded WM-0064 APIs, drives the borrowed-shadow crisis
+state machine through prevention, low-risk evidence, containment and failure,
+and selects a lamp-repair recovery descriptor through the WM-0066 director
+recovery lane. Prevention, containment, and failure are separate branch
+fixtures: containment and failure activation candidates are registered from
+unconfirmed branch owner state before any later branch-local repair,
+confirmation, or accident-review facts. Dawn-review rows are structured numeric
+source rows with reason codes; they are not save authority or UI-only prose.
+
+This implementation intentionally does not add focused save/resume, Worker
+projection parity, benchmark baseline changes, public protocol/schema changes,
+or M5 content. The deterministic artifact for this task is
+`coordination/artifacts/WM-0067/m4-core-vertical-slice-summary.json`.
