@@ -169,7 +169,15 @@ export {
   M5AnomalyRosterStore,
   createM5AnomalyRosterStore,
   createM5BorrowedShadowAnomalyDefinition,
+  createM5ThirdKnockAnomalyDefinition,
 } from "./m5-anomaly-roster";
+export {
+  M5_THIRD_KNOCK_EVIDENCE_MASK,
+  M5_THIRD_KNOCK_NON_COMBAT_MASK,
+  M5ThirdKnockCrisisStore,
+  createM5ThirdKnockCrisisStore,
+  validThirdKnockDefinition,
+} from "./m5-third-knock";
 export {
   M4DirectorPressureStore,
   createM4DirectorPressureStore,
@@ -205,13 +213,47 @@ export {
 } from "./m4-borrowed-shadow-types";
 export {
   M5_ANOMALY_ACTIVATION_POLICY_BORROWED_SHADOW_LAMP_IDENTITY,
+  M5_ANOMALY_ACTIVATION_POLICY_THIRD_KNOCK_THRESHOLD_INVITATION,
   M5_ANOMALY_DEF_BORROWED_SHADOW,
+  M5_ANOMALY_DEF_THIRD_KNOCK,
   M5_ANOMALY_KIND,
   M5_ANOMALY_NONE,
   M5_ANOMALY_ROSTER_SNAPSHOT_VERSION,
   M5_ANOMALY_RULE_COMPONENT_BORROWED_SHADOW,
+  M5_ANOMALY_RULE_COMPONENT_THIRD_KNOCK,
   M5_ANOMALY_STATE_OWNER_BORROWED_SHADOW_CRISIS,
+  M5_ANOMALY_STATE_OWNER_THIRD_KNOCK_CRISIS,
 } from "./m5-anomaly-roster-types";
+export {
+  M5_THIRD_KNOCK_EVIDENCE_LODGING_REGISTER_MISMATCH,
+  M5_THIRD_KNOCK_EVIDENCE_NONE,
+  M5_THIRD_KNOCK_EVIDENCE_OBLIGATION_PRESSURE,
+  M5_THIRD_KNOCK_EVIDENCE_PRIOR_KNOCKS,
+  M5_THIRD_KNOCK_EVIDENCE_THRESHOLD_MARKS,
+  M5_THIRD_KNOCK_EVIDENCE_WITNESS_DISAGREEMENT,
+  M5_THIRD_KNOCK_MIN_CONTAINMENT_SCORE,
+  M5_THIRD_KNOCK_MIN_INVITATION_SCORE,
+  M5_THIRD_KNOCK_MIN_POLICY_SCORE,
+  M5_THIRD_KNOCK_NONE,
+  M5_THIRD_KNOCK_RESOLUTION_CONTAINMENT,
+  M5_THIRD_KNOCK_RESOLUTION_TEMPORARY_POLICY,
+  M5_THIRD_KNOCK_STATE_ACTIVATED,
+  M5_THIRD_KNOCK_STATE_EMPTY,
+  M5_THIRD_KNOCK_STATE_ESCALATED,
+  M5_THIRD_KNOCK_STATE_FAILED,
+  M5_THIRD_KNOCK_STATE_RESOLVED,
+  M5_THIRD_KNOCK_STATE_TRACE,
+  M5_THIRD_KNOCK_TERMINAL_ABORTED,
+  M5_THIRD_KNOCK_TERMINAL_CONTAINED,
+  M5_THIRD_KNOCK_TERMINAL_DEBT_INVITED,
+  M5_THIRD_KNOCK_TERMINAL_NONE,
+  M5_THIRD_KNOCK_TERMINAL_POLICY_BOUND,
+  M5_THIRD_KNOCK_TRACE_ACTIVATION,
+  M5_THIRD_KNOCK_TRACE_ESCALATION,
+  M5_THIRD_KNOCK_TRACE_FAILURE,
+  M5_THIRD_KNOCK_TRACE_LOW_RISK_EVIDENCE,
+  M5_THIRD_KNOCK_TRACE_RESOLUTION,
+} from "./m5-third-knock-types";
 export {
   M4_DIRECTOR_CANDIDATE_INCIDENT,
   M4_DIRECTOR_CANDIDATE_RECOVERY,
@@ -853,6 +895,23 @@ export type {
   M5CompiledAnomalyDefinitionInput,
   M5CompiledAnomalyRosterInput,
 } from "./m5-anomaly-roster-types";
+export type {
+  M5ThirdKnockAccidentReviewView,
+  M5ThirdKnockActivateInput,
+  M5ThirdKnockActivationBasis,
+  M5ThirdKnockCandidateQuery,
+  M5ThirdKnockCandidateQueryResult,
+  M5ThirdKnockCandidateView,
+  M5ThirdKnockCrisisView,
+  M5ThirdKnockFailureInput,
+  M5ThirdKnockMetrics,
+  M5ThirdKnockMutationResult,
+  M5ThirdKnockReason,
+  M5ThirdKnockResolutionInput,
+  M5ThirdKnockStoreOptions,
+  M5ThirdKnockTraceInput,
+  M5ThirdKnockTraceView,
+} from "./m5-third-knock-types";
 export type {
   M4DirectorCandidateInput,
   M4DirectorCandidateView,

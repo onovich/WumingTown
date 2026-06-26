@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQUUOIOE-3E3A1B",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0075",
+  "kind": "review-request",
+  "subject": "WM-0075 ready for review",
+  "body": "Third-knock owner store, roster row and tests implemented",
+  "artifacts": [
+    "coordination/reports/WM-0075.md",
+    "task/WM-0075-add-third-knock-anomaly"
+  ],
+  "createdAt": "2026-06-26T11:31:08.558Z",
+  "acknowledgedAt": null
+}

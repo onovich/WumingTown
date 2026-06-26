@@ -2,7 +2,7 @@
   "id": "WM-0075",
   "title": "Add third-knock anomaly rule",
   "summary": "Add core.anomaly.third_knock.v1 with threshold, invitation/debt, evidence, town-rule and non-combat resolution state using the M5 anomaly roster.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -37,7 +37,7 @@
   ],
   "branch": "task/WM-0075-add-third-knock-anomaly",
   "createdAt": "2026-06-26T09:24:00.000Z",
-  "updatedAt": "2026-06-26T11:14:24.057Z",
+  "updatedAt": "2026-06-26T11:47:09.002Z",
   "history": [
     {
       "at": "2026-06-26T09:24:00.000Z",
@@ -50,6 +50,48 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-26T11:17:53.754Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": ""
+    },
+    {
+      "at": "2026-06-26T11:31:08.557Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Third-knock owner store, roster row and tests implemented"
+    },
+    {
+      "at": "2026-06-26T11:39:36.424Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: third-knock activation accepts NONE sentinel ids and invalid basis facts; Medium: roster/content basis can mix stale candidates under a newer query; Medium: resolution/evidence counters miss numeric/wrap validation."
+    },
+    {
+      "at": "2026-06-26T11:43:29.520Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Reviewer repairs applied for third-knock basis validation, stale-basis pinning, resolution scores and evidence cap"
+    },
+    {
+      "at": "2026-06-26T11:46:03.471Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings on re-review; repairs confirmed for NONE sentinel basis rejection, pinned roster/content basis and candidate hash, resolution input validation, and low-risk evidence cap."
+    },
+    {
+      "at": "2026-06-26T11:47:03.914Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "WM-0075 verified after reviewer repair pass"
+    },
+    {
+      "at": "2026-06-26T11:47:09.002Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M5",
@@ -95,5 +137,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "New deterministic anomaly state-machine implementation is not suitable for Spark."
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": null,
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0075.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings on re-review; repairs confirmed for NONE sentinel basis rejection, pinned roster/content basis and candidate hash, resolution input validation, and low-risk evidence cap.",
+    "at": "2026-06-26T11:46:03.470Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "WM-0075 verified after reviewer repair pass",
+    "at": "2026-06-26T11:47:03.914Z"
   }
 }

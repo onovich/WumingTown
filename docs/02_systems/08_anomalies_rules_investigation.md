@@ -86,3 +86,34 @@ are versioned by roster/content basis and partitioned by `DefIndex`, so a normal
 activation read walks only bounded candidates for the requested anomaly def and
 uses stable Top-K order: score descending, priority descending, stable owner id,
 stable sequence, then candidate id.
+
+## WM-0075 M5 third-knock anomaly rule
+
+`core.anomaly.third_knock.v1` is a rostered M5 anomaly row with a dedicated
+`M5ThirdKnockCrisisStore`. The roster row owns immutable rule metadata only:
+stable `defId`, `DefIndex`, component id, activation policy, evidence mask,
+non-combat resolution mask, minimum invitation/debt threshold, roster version
+and content manifest hash. Mutable crisis progress remains in the third-knock
+owner store.
+
+Activation basis rows are explicit numeric facts. They carry the threshold
+basis version, Chronicle case/hypothesis and evidence owner version, town-rule
+owner version, resident rule knowledge, temporary policy state, obligation
+owner version and pressure, guesthouse policy version, lodging-register version,
+door/threshold ids, knock count and invitation/debt score. Candidate writes and
+reads reject stale roster/content basis before mutation or traversal.
+
+Activation is prevented if the third knock was not answered, the invitation
+score is below the rostered threshold, or a confirmed rule/temporary policy is
+already known. Low-risk evidence is recorded as structured trace rows for prior
+knocks, witness disagreement, threshold marks, lodging-register mismatch and
+obligation pressure. Escalation requires evidence.
+
+Crisis progress is a serializable numeric state machine:
+`activated -> trace -> escalated -> resolved|failed`. Non-combat resolution can
+contain the threshold through aligned witnesses and a sealed threshold, or bind
+the case through a published temporary policy and acknowledged debt. Terminal
+resolution/failure writes bounded accident-review rows containing crisis id,
+tick, resolution method, terminal reason, evidence count, invitation score,
+obligation pressure, town-rule/guesthouse basis versions, owner version and
+structured reason.

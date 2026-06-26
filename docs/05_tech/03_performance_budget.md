@@ -421,6 +421,26 @@ before traversal and then walk only the requested definition lane with caller
 candidate and selected caps. Stable Top-K order is score descending, priority
 descending, stable owner id, stable sequence and candidate id.
 
+## WM-0075 M5 third-knock metrics
+
+`M5ThirdKnockCrisisStore.createMetrics()` records third-knock owner version,
+active activation candidate count, active/resolved/failed crisis counts,
+low-risk evidence count, last/total activation candidate visits,
+candidate-cap hit count, trace-ring usage and accident-review ring usage.
+
+Normal third-knock activation reads do not scan doors, residents, Chronicle,
+obligations, town rules, guesthouse policy, lodging registers or map state.
+Approved producer surfaces provide versioned numeric activation basis rows.
+The store walks only its sorted activation lane with caller `candidateCap` and
+`selectedCap` limits, rejecting stale roster/content basis before traversal.
+Stable Top-K order is invitation/debt score descending, priority descending,
+stable owner id, stable sequence and candidate id.
+
+Third-knock crisis mutations are O(1) typed-array state transitions. Low-risk
+evidence, escalation, non-combat resolution, failure and accident review write
+bounded ring rows with numeric reason codes. Baseline timing and artifact
+updates wait for the M5 closeout benchmark task.
+
 ## WM-0070 M4 benchmark note
 
 `pnpm bench` now includes `m4-core-vertical-slice-long-run` in the default

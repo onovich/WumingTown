@@ -2,7 +2,7 @@
   "id": "WM-0076",
   "title": "Add old-bridge guest anomaly rule",
   "summary": "Add core.anomaly.old_bridge_guest.v1 using logistics, bridge route, prepared item, obligation, faction and season basis facts.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -38,13 +38,19 @@
   ],
   "branch": "task/WM-0076-add-old-bridge-guest-anomaly",
   "createdAt": "2026-06-26T09:24:00.000Z",
-  "updatedAt": "2026-06-26T09:24:00.000Z",
+  "updatedAt": "2026-06-26T11:47:09.007Z",
   "history": [
     {
       "at": "2026-06-26T09:24:00.000Z",
       "actor": "systems-architect",
       "action": "create",
       "details": "Created by WM-0072 M5 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-26T11:47:09.007Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "M5",

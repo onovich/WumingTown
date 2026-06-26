@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQUV7P74-7CDADA",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0075",
+  "kind": "review-approved",
+  "subject": "WM-0075 review: verified",
+  "body": "No blocking findings on re-review; repairs confirmed for NONE sentinel basis rejection, pinned roster/content basis and candidate hash, resolution input validation, and low-risk evidence cap.",
+  "artifacts": [
+    "coordination/reports/WM-0075.md"
+  ],
+  "createdAt": "2026-06-26T11:46:03.472Z",
+  "acknowledgedAt": null
+}

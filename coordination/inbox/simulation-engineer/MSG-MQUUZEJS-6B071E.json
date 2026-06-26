@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQUUZEJS-6B071E",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0075",
+  "kind": "changes-requested",
+  "subject": "WM-0075 review: changes_requested",
+  "body": "High: third-knock activation accepts NONE sentinel ids and invalid basis facts; Medium: roster/content basis can mix stale candidates under a newer query; Medium: resolution/evidence counters miss numeric/wrap validation.",
+  "artifacts": [
+    "coordination/reports/WM-0075.md"
+  ],
+  "createdAt": "2026-06-26T11:39:36.425Z",
+  "acknowledgedAt": null
+}
