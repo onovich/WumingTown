@@ -123,4 +123,4 @@ export type {
   BenchmarkComparison,
   BenchmarkComparisonStatus,
 } from "./baseline";
-export type { BenchmarkCliReport, BenchmarkCliResult } from "./cli-lib";
+export type { BenchmarkArtifactHashing, BenchmarkCliReport, BenchmarkCliResult } from "./cli-lib";

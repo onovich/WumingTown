@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-06-26T07:54:08.190Z",
+  "generatedAt": "2026-06-26T08:20:13.475Z",
   "baselinePath": "packages/benchmarks/baseline.json",
   "artifactPath": "coordination/artifacts/WM-0070/benchmarks/benchmark-results.json",
   "sampleCount": 5,
@@ -13,7 +13,7 @@
     "arch": "x64",
     "cpuModel": "AMD Ryzen 7 9700X 8-Core Processor             ",
     "cpuCount": 16,
-    "gitCommit": "03f33c319e03d1aa00c42a58ae03042ba1ff1f21"
+    "gitCommit": "8632a6896db198e17434fb221fd7e72334b75319"
   },
   "results": [
     {
@@ -22,9 +22,9 @@
         "name": "empty-tick",
         "requestedTicks": 1000000,
         "advancedTicks": 1000000,
-        "elapsedMs": 5.456799999999987,
-        "heapUsedBeforeBytes": 13227888,
-        "heapUsedAfterBytes": 13242584,
+        "elapsedMs": 5.8344000000000165,
+        "heapUsedBeforeBytes": 13809872,
+        "heapUsedAfterBytes": 13824568,
         "heapDeltaBytes": 14696,
         "summary": {
           "version": 2,
@@ -43,18 +43,18 @@
         }
       },
       "sampleElapsedMs": [
-        5.780499999999989,
-        5.450500000000005,
-        5.4547000000000025,
-        5.85929999999999,
-        5.456799999999987
+        5.586099999999988,
+        5.609699999999975,
+        5.511300000000006,
+        5.7712999999999965,
+        5.8344000000000165
       ],
       "stats": {
         "sampleCount": 5,
-        "minElapsedMs": 5.450500000000005,
-        "medianElapsedMs": 5.456799999999987,
-        "maxElapsedMs": 5.85929999999999,
-        "meanElapsedMs": 5.600359999999995
+        "minElapsedMs": 5.511300000000006,
+        "medianElapsedMs": 5.609699999999975,
+        "maxElapsedMs": 5.8344000000000165,
+        "meanElapsedMs": 5.6625599999999965
       },
       "invariants": {
         "requestedTicks": 1000000,
@@ -67,9 +67,9 @@
       "comparison": {
         "name": "empty-tick",
         "status": "ok",
-        "actualMedianElapsedMs": 5.456799999999987,
+        "actualMedianElapsedMs": 5.609699999999975,
         "baselineMedianElapsedMs": 8.176,
-        "regressionPercent": -33.258317025440476,
+        "regressionPercent": -31.388209393346685,
         "warnRegressionPercent": 10,
         "failRegressionPercent": 20,
         "invariantMismatches": []
@@ -86,24 +86,24 @@
         "failedCommands": 0,
         "attachedComponents": 8192,
         "iterationChecksum": 134209536,
-        "elapsedMs": 234.96759999999995,
-        "heapUsedBeforeBytes": 12840872,
-        "heapUsedAfterBytes": 15634264,
-        "heapDeltaBytes": 2793392
+        "elapsedMs": 245.56899999999996,
+        "heapUsedBeforeBytes": 13928352,
+        "heapUsedAfterBytes": 16809488,
+        "heapDeltaBytes": 2881136
       },
       "sampleElapsedMs": [
-        244.6015,
-        240.84219999999993,
-        236.85559999999998,
-        237.27099999999996,
-        234.96759999999995
+        258.0616,
+        240.3526999999999,
+        240.99260000000004,
+        244.02700000000004,
+        245.56899999999996
       ],
       "stats": {
         "sampleCount": 5,
-        "minElapsedMs": 234.96759999999995,
-        "medianElapsedMs": 237.27099999999996,
-        "maxElapsedMs": 244.6015,
-        "meanElapsedMs": 238.90757999999997
+        "minElapsedMs": 240.3526999999999,
+        "medianElapsedMs": 244.02700000000004,
+        "maxElapsedMs": 258.0616,
+        "meanElapsedMs": 245.80058
       },
       "invariants": {
         "capacity": 8192,
@@ -117,9 +117,9 @@
       "comparison": {
         "name": "entity-store",
         "status": "ok",
-        "actualMedianElapsedMs": 237.27099999999996,
+        "actualMedianElapsedMs": 244.02700000000004,
         "baselineMedianElapsedMs": 244.507,
-        "regressionPercent": -2.95942447455494,
+        "regressionPercent": -0.1963133979804101,
         "warnRegressionPercent": 10,
         "failRegressionPercent": 20,
         "invariantMismatches": []
@@ -148,24 +148,24 @@
         "dirtyBacklog": 0,
         "selectionChecksum": 1148929120,
         "quantityChecksum": 1647230824,
-        "elapsedMs": 9.356599999999844,
-        "heapUsedBeforeBytes": 17657784,
-        "heapUsedAfterBytes": 19532584,
-        "heapDeltaBytes": 1874800
+        "elapsedMs": 12.291999999999916,
+        "heapUsedBeforeBytes": 15208496,
+        "heapUsedAfterBytes": 17187896,
+        "heapDeltaBytes": 1979400
       },
       "sampleElapsedMs": [
-        14.688400000000001,
-        10.397199999999884,
-        9.404200000000174,
-        9.481399999999894,
-        9.356599999999844
+        15.414600000000064,
+        10.998700000000099,
+        10.660399999999981,
+        10.445199999999886,
+        12.291999999999916
       ],
       "stats": {
         "sampleCount": 5,
-        "minElapsedMs": 9.356599999999844,
-        "medianElapsedMs": 9.481399999999894,
-        "maxElapsedMs": 14.688400000000001,
-        "meanElapsedMs": 10.66555999999996
+        "minElapsedMs": 10.445199999999886,
+        "medianElapsedMs": 10.998700000000099,
+        "maxElapsedMs": 15.414600000000064,
+        "meanElapsedMs": 11.96217999999999
       },
       "invariants": {
         "sourceSlotCount": 10000,
@@ -191,9 +191,9 @@
       "comparison": {
         "name": "logistics-10k",
         "status": "ok",
-        "actualMedianElapsedMs": 9.481399999999894,
+        "actualMedianElapsedMs": 10.998700000000099,
         "baselineMedianElapsedMs": 30,
-        "regressionPercent": -68.39533333333368,
+        "regressionPercent": -63.33766666666634,
         "warnRegressionPercent": 10,
         "failRegressionPercent": 20,
         "invariantMismatches": []
@@ -227,24 +227,24 @@
         "noQueueGrowth": true,
         "noHashDivergence": true,
         "materialConserved": true,
-        "elapsedMs": 2.2090999999998076,
-        "heapUsedBeforeBytes": 25737104,
-        "heapUsedAfterBytes": 15959976,
-        "heapDeltaBytes": -9777128
+        "elapsedMs": 0.791300000000092,
+        "heapUsedBeforeBytes": 16440688,
+        "heapUsedAfterBytes": 18010240,
+        "heapDeltaBytes": 1569552
       },
       "sampleElapsedMs": [
-        1.0027999999999793,
-        0.7802999999998974,
-        1.0176000000001295,
-        1.1557999999999993,
-        2.2090999999998076
+        1.1763999999998305,
+        0.797800000000052,
+        0.9166999999999916,
+        1.4132999999999356,
+        0.791300000000092
       ],
       "stats": {
         "sampleCount": 5,
-        "minElapsedMs": 0.7802999999998974,
-        "medianElapsedMs": 1.0176000000001295,
-        "maxElapsedMs": 2.2090999999998076,
-        "meanElapsedMs": 1.2331199999999627
+        "minElapsedMs": 0.791300000000092,
+        "medianElapsedMs": 0.9166999999999916,
+        "maxElapsedMs": 1.4132999999999356,
+        "meanElapsedMs": 1.0190999999999804
       },
       "invariants": {
         "scenarioId": "m1.hauling_building.road_lantern_frame.v1",
@@ -275,9 +275,9 @@
       "comparison": {
         "name": "m1-hauling-building-long-run",
         "status": "ok",
-        "actualMedianElapsedMs": 1.0176000000001295,
+        "actualMedianElapsedMs": 0.9166999999999916,
         "baselineMedianElapsedMs": 10,
-        "regressionPercent": -89.8239999999987,
+        "regressionPercent": -90.83300000000008,
         "warnRegressionPercent": 10,
         "failRegressionPercent": 20,
         "invariantMismatches": []
@@ -301,24 +301,24 @@
         "queueBacklogPeak": 100,
         "finalQueueBacklog": 0,
         "pathChecksum": 1481150542,
-        "elapsedMs": 4.083400000000211,
-        "heapUsedBeforeBytes": 20965136,
-        "heapUsedAfterBytes": 22774648,
-        "heapDeltaBytes": 1809512
+        "elapsedMs": 4.380800000000136,
+        "heapUsedBeforeBytes": 22950560,
+        "heapUsedAfterBytes": 16448368,
+        "heapDeltaBytes": -6502192
       },
       "sampleElapsedMs": [
-        4.241899999999987,
-        4.6276000000000295,
-        4.201000000000022,
-        3.9529999999999745,
-        4.083400000000211
+        4.303300000000036,
+        4.191600000000108,
+        4.113299999999981,
+        3.9696000000001277,
+        4.380800000000136
       ],
       "stats": {
         "sampleCount": 5,
-        "minElapsedMs": 3.9529999999999745,
-        "medianElapsedMs": 4.201000000000022,
-        "maxElapsedMs": 4.6276000000000295,
-        "meanElapsedMs": 4.221380000000044
+        "minElapsedMs": 3.9696000000001277,
+        "medianElapsedMs": 4.191600000000108,
+        "maxElapsedMs": 4.380800000000136,
+        "meanElapsedMs": 4.191720000000077
       },
       "invariants": {
         "scenarioId": "m2.work_logistics.lantern_yard.v1",
@@ -339,9 +339,9 @@
       "comparison": {
         "name": "m2-pathing-invalidation",
         "status": "ok",
-        "actualMedianElapsedMs": 4.201000000000022,
+        "actualMedianElapsedMs": 4.191600000000108,
         "baselineMedianElapsedMs": 10,
-        "regressionPercent": -57.98999999999979,
+        "regressionPercent": -58.08399999999892,
         "warnRegressionPercent": 10,
         "failRegressionPercent": 20,
         "invariantMismatches": []
@@ -384,24 +384,24 @@
         "noQueueGrowth": true,
         "noHashDivergence": true,
         "materialConserved": true,
-        "elapsedMs": 1.817600000000084,
-        "heapUsedBeforeBytes": 18877048,
-        "heapUsedAfterBytes": 22903640,
-        "heapDeltaBytes": 4026592
+        "elapsedMs": 2.5212000000001353,
+        "heapUsedBeforeBytes": 20770856,
+        "heapUsedAfterBytes": 24797472,
+        "heapDeltaBytes": 4026616
       },
       "sampleElapsedMs": [
-        3.4286999999999352,
-        2.5171000000000276,
-        1.912599999999884,
-        2.269700000000057,
-        1.817600000000084
+        3.613299999999981,
+        2.2840000000001055,
+        2.2163000000000466,
+        2.293899999999894,
+        2.5212000000001353
       ],
       "stats": {
         "sampleCount": 5,
-        "minElapsedMs": 1.817600000000084,
-        "medianElapsedMs": 2.269700000000057,
-        "maxElapsedMs": 3.4286999999999352,
-        "meanElapsedMs": 2.3891399999999976
+        "minElapsedMs": 2.2163000000000466,
+        "medianElapsedMs": 2.293899999999894,
+        "maxElapsedMs": 3.613299999999981,
+        "meanElapsedMs": 2.5857400000000323
       },
       "invariants": {
         "scenarioId": "m2.work_logistics.lantern_yard.v1",
@@ -441,9 +441,9 @@
       "comparison": {
         "name": "m2-work-logistics-long-run",
         "status": "ok",
-        "actualMedianElapsedMs": 2.269700000000057,
+        "actualMedianElapsedMs": 2.293899999999894,
         "baselineMedianElapsedMs": 10,
-        "regressionPercent": -77.30299999999943,
+        "regressionPercent": -77.06100000000106,
         "warnRegressionPercent": 10,
         "failRegressionPercent": 20,
         "invariantMismatches": []
@@ -531,7 +531,7 @@
         "exactPathRequests": 1,
         "pathNodeCount": 2,
         "reservationCleanupActiveCount": 0,
-        "saveLoadRebuildTimeMs": 0.8036999999999352,
+        "saveLoadRebuildTimeMs": 0.931800000000294,
         "saveLoadRebuiltSurfaceCount": 15,
         "workerRenderSnapshotBytes": 137,
         "workerScenarioReadModelBytes": 295,
@@ -556,24 +556,24 @@
         "noM4Facts": true,
         "itemConserved": true,
         "medicalStockConserved": true,
-        "elapsedMs": 15.115999999999985,
-        "heapUsedBeforeBytes": 21417248,
-        "heapUsedAfterBytes": 24159416,
-        "heapDeltaBytes": 2742168
+        "elapsedMs": 17.794700000000148,
+        "heapUsedBeforeBytes": 23408400,
+        "heapUsedAfterBytes": 21851248,
+        "heapDeltaBytes": -1557152
       },
       "sampleElapsedMs": [
-        18.445999999999913,
-        16.818899999999985,
-        16.13559999999984,
-        18.223200000000134,
-        15.115999999999985
+        20.752500000000055,
+        19.083200000000033,
+        16.790199999999913,
+        18.905500000000075,
+        17.794700000000148
       ],
       "stats": {
         "sampleCount": 5,
-        "minElapsedMs": 15.115999999999985,
-        "medianElapsedMs": 16.818899999999985,
-        "maxElapsedMs": 18.445999999999913,
-        "meanElapsedMs": 16.94793999999997
+        "minElapsedMs": 16.790199999999913,
+        "medianElapsedMs": 18.905500000000075,
+        "maxElapsedMs": 20.752500000000055,
+        "meanElapsedMs": 18.665220000000044
       },
       "invariants": {
         "scenarioId": "m3.ordinary_life.injured_caregiver.v1",
@@ -643,9 +643,9 @@
       "comparison": {
         "name": "m3-ordinary-life-long-run",
         "status": "ok",
-        "actualMedianElapsedMs": 16.818899999999985,
+        "actualMedianElapsedMs": 18.905500000000075,
         "baselineMedianElapsedMs": 24.456,
-        "regressionPercent": -31.22791952895001,
+        "regressionPercent": -22.69586195616587,
         "warnRegressionPercent": 10,
         "failRegressionPercent": 20,
         "invariantMismatches": []
@@ -1137,7 +1137,7 @@
           "reasonTraceStoredCount": 14,
           "reasonTraceBacklogCount": 0
         },
-        "saveLoadRebuildTimeMs": 0.2846999999999298,
+        "saveLoadRebuildTimeMs": 0.29140000000006694,
         "saveLoadRebuiltSurfaceCount": 12,
         "workerRenderSnapshotBytes": 138,
         "workerScenarioReadModelBytes": 330,
@@ -1158,24 +1158,24 @@
         "noM0ToM3Regression": true,
         "noQueueGrowth": true,
         "noHashDivergence": true,
-        "elapsedMs": 3.5187000000000808,
-        "heapUsedBeforeBytes": 24144896,
-        "heapUsedAfterBytes": 29322552,
-        "heapDeltaBytes": 5177656
+        "elapsedMs": 4.841900000000351,
+        "heapUsedBeforeBytes": 32818616,
+        "heapUsedAfterBytes": 21595632,
+        "heapDeltaBytes": -11222984
       },
       "sampleElapsedMs": [
-        4.858999999999924,
-        5.844400000000178,
-        4.611199999999826,
-        3.4675999999999476,
-        3.5187000000000808
+        4.8270000000002256,
+        6.235900000000129,
+        3.1528000000002976,
+        3.569500000000062,
+        4.841900000000351
       ],
       "stats": {
         "sampleCount": 5,
-        "minElapsedMs": 3.4675999999999476,
-        "medianElapsedMs": 4.611199999999826,
-        "maxElapsedMs": 5.844400000000178,
-        "meanElapsedMs": 4.460179999999991
+        "minElapsedMs": 3.1528000000002976,
+        "medianElapsedMs": 4.8270000000002256,
+        "maxElapsedMs": 6.235900000000129,
+        "meanElapsedMs": 4.525420000000213
       },
       "invariants": {
         "scenarioId": "m4.core_vertical_slice.borrowed_shadow_lamps.v1",
@@ -1228,9 +1228,9 @@
       "comparison": {
         "name": "m4-core-vertical-slice-long-run",
         "status": "ok",
-        "actualMedianElapsedMs": 4.611199999999826,
-        "baselineMedianElapsedMs": 4.560600000000022,
-        "regressionPercent": 1.1095031355480347,
+        "actualMedianElapsedMs": 4.8270000000002256,
+        "baselineMedianElapsedMs": 4.611199999999826,
+        "regressionPercent": 4.679909784880456,
         "warnRegressionPercent": 10,
         "failRegressionPercent": 20,
         "invariantMismatches": []
@@ -1252,24 +1252,24 @@
         "finalGlobalVersion": 1024,
         "processedChecksum": 3385099136,
         "mapHash": "0xba7253ca",
-        "elapsedMs": 0.8422999999997955,
-        "heapUsedBeforeBytes": 31368472,
-        "heapUsedAfterBytes": 31518136,
+        "elapsedMs": 1.51949999999988,
+        "heapUsedBeforeBytes": 23450160,
+        "heapUsedAfterBytes": 23599824,
         "heapDeltaBytes": 149664
       },
       "sampleElapsedMs": [
-        1.0222999999998592,
-        0.8801999999998316,
-        0.8508999999999105,
-        0.8411999999998443,
-        0.8422999999997955
+        1.227100000000064,
+        0.7506000000003041,
+        0.7294000000001688,
+        0.8998999999998887,
+        1.51949999999988
       ],
       "stats": {
         "sampleCount": 5,
-        "minElapsedMs": 0.8411999999998443,
-        "medianElapsedMs": 0.8508999999999105,
-        "maxElapsedMs": 1.0222999999998592,
-        "meanElapsedMs": 0.8873799999998482
+        "minElapsedMs": 0.7294000000001688,
+        "medianElapsedMs": 0.8998999999998887,
+        "maxElapsedMs": 1.51949999999988,
+        "meanElapsedMs": 1.0253000000000612
       },
       "invariants": {
         "width": 256,
@@ -1288,9 +1288,9 @@
       "comparison": {
         "name": "map-dirty",
         "status": "ok",
-        "actualMedianElapsedMs": 0.8508999999999105,
+        "actualMedianElapsedMs": 0.8998999999998887,
         "baselineMedianElapsedMs": 1,
-        "regressionPercent": -14.91000000000895,
+        "regressionPercent": -10.010000000011132,
         "warnRegressionPercent": 10,
         "failRegressionPercent": 20,
         "invariantMismatches": []
@@ -1312,24 +1312,24 @@
         "queueBacklogPeak": 100,
         "finalQueueBacklog": 0,
         "pathChecksum": 267449330,
-        "elapsedMs": 3.5815999999999804,
-        "heapUsedBeforeBytes": 26976304,
-        "heapUsedAfterBytes": 19056104,
-        "heapDeltaBytes": -7920200
+        "elapsedMs": 4.7784999999998945,
+        "heapUsedBeforeBytes": 21184064,
+        "heapUsedAfterBytes": 29940232,
+        "heapDeltaBytes": 8756168
       },
       "sampleElapsedMs": [
-        3.7740000000001146,
-        3.5953000000001794,
-        3.6707000000001244,
-        3.2232000000001335,
-        3.5815999999999804
+        3.7719999999999345,
+        3.920599999999922,
+        4.177400000000034,
+        5.060099999999693,
+        4.7784999999998945
       ],
       "stats": {
         "sampleCount": 5,
-        "minElapsedMs": 3.2232000000001335,
-        "medianElapsedMs": 3.5953000000001794,
-        "maxElapsedMs": 3.7740000000001146,
-        "meanElapsedMs": 3.5689600000001063
+        "minElapsedMs": 3.7719999999999345,
+        "medianElapsedMs": 4.177400000000034,
+        "maxElapsedMs": 5.060099999999693,
+        "meanElapsedMs": 4.341719999999896
       },
       "invariants": {
         "width": 32,
@@ -1348,9 +1348,9 @@
       "comparison": {
         "name": "pathing-100",
         "status": "ok",
-        "actualMedianElapsedMs": 3.5953000000001794,
+        "actualMedianElapsedMs": 4.177400000000034,
         "baselineMedianElapsedMs": 10,
-        "regressionPercent": -64.0469999999982,
+        "regressionPercent": -58.22599999999966,
         "warnRegressionPercent": 10,
         "failRegressionPercent": 20,
         "invariantMismatches": []
@@ -1373,24 +1373,24 @@
         "capacityReservationCount": 3840,
         "transactionChecksum": 2856632320,
         "cleanupChecksum": 1674513408,
-        "elapsedMs": 1.2712000000001353,
-        "heapUsedBeforeBytes": 27015880,
-        "heapUsedAfterBytes": 17931888,
-        "heapDeltaBytes": -9083992
+        "elapsedMs": 1.0558999999998377,
+        "heapUsedBeforeBytes": 21093776,
+        "heapUsedAfterBytes": 28707560,
+        "heapDeltaBytes": 7613784
       },
       "sampleElapsedMs": [
-        2.6965999999999894,
-        2.2369000000003325,
-        1.4329000000002452,
-        0.9805999999998676,
-        1.2712000000001353
+        2.4773999999997613,
+        2.8052999999999884,
+        1.7685999999998785,
+        2.0064000000002125,
+        1.0558999999998377
       ],
       "stats": {
         "sampleCount": 5,
-        "minElapsedMs": 0.9805999999998676,
-        "medianElapsedMs": 1.4329000000002452,
-        "maxElapsedMs": 2.6965999999999894,
-        "meanElapsedMs": 1.723640000000114
+        "minElapsedMs": 1.0558999999998377,
+        "medianElapsedMs": 2.0064000000002125,
+        "maxElapsedMs": 2.8052999999999884,
+        "meanElapsedMs": 2.0227199999999357
       },
       "invariants": {
         "ownerCount": 64,
@@ -1410,9 +1410,9 @@
       "comparison": {
         "name": "reservations",
         "status": "ok",
-        "actualMedianElapsedMs": 1.4329000000002452,
+        "actualMedianElapsedMs": 2.0064000000002125,
         "baselineMedianElapsedMs": 10,
-        "regressionPercent": -85.67099999999755,
+        "regressionPercent": -79.93599999999788,
         "warnRegressionPercent": 10,
         "failRegressionPercent": 20,
         "invariantMismatches": []
@@ -1441,24 +1441,24 @@
         "regionGraphVersion": 129,
         "processedChecksum": 2639483583,
         "regionRoomHash": "0x8c6c6b2d",
-        "elapsedMs": 4.875400000000354,
-        "heapUsedBeforeBytes": 17976424,
-        "heapUsedAfterBytes": 21304032,
-        "heapDeltaBytes": 3327608
+        "elapsedMs": 4.73279999999977,
+        "heapUsedBeforeBytes": 28812464,
+        "heapUsedAfterBytes": 32074712,
+        "heapDeltaBytes": 3262248
       },
       "sampleElapsedMs": [
-        5.278099999999995,
-        5.006199999999808,
-        4.794100000000071,
-        4.889099999999871,
-        4.875400000000354
+        5.48739999999998,
+        4.7973000000001775,
+        4.675500000000284,
+        4.7676000000001295,
+        4.73279999999977
       ],
       "stats": {
         "sampleCount": 5,
-        "minElapsedMs": 4.794100000000071,
-        "medianElapsedMs": 4.889099999999871,
-        "maxElapsedMs": 5.278099999999995,
-        "meanElapsedMs": 4.96858000000002
+        "minElapsedMs": 4.675500000000284,
+        "medianElapsedMs": 4.7676000000001295,
+        "maxElapsedMs": 5.48739999999998,
+        "meanElapsedMs": 4.892120000000068
       },
       "invariants": {
         "width": 128,
@@ -1484,9 +1484,9 @@
       "comparison": {
         "name": "region-room",
         "status": "ok",
-        "actualMedianElapsedMs": 4.889099999999871,
+        "actualMedianElapsedMs": 4.7676000000001295,
         "baselineMedianElapsedMs": 10,
-        "regressionPercent": -51.109000000001295,
+        "regressionPercent": -52.323999999998705,
         "warnRegressionPercent": 10,
         "failRegressionPercent": 20,
         "invariantMismatches": []
@@ -1514,24 +1514,24 @@
         "queryChecksum": 1919598032,
         "movementChecksum": 2674197504,
         "cleanupChecksum": 308407296,
-        "elapsedMs": 1433.3219000000008,
-        "heapUsedBeforeBytes": 23650880,
-        "heapUsedAfterBytes": 29499640,
-        "heapDeltaBytes": 5848760
+        "elapsedMs": 1448.740100000001,
+        "heapUsedBeforeBytes": 44540512,
+        "heapUsedAfterBytes": 50498696,
+        "heapDeltaBytes": 5958184
       },
       "sampleElapsedMs": [
-        1430.9526000000005,
-        1436.7264000000005,
-        1449.6129,
-        1435.6569999999992,
-        1433.3219000000008
+        1466.6135,
+        1446.0476000000008,
+        1456.6259,
+        1444.9675000000007,
+        1448.740100000001
       ],
       "stats": {
         "sampleCount": 5,
-        "minElapsedMs": 1430.9526000000005,
-        "medianElapsedMs": 1435.6569999999992,
-        "maxElapsedMs": 1449.6129,
-        "meanElapsedMs": 1437.2541600000002
+        "minElapsedMs": 1444.9675000000007,
+        "medianElapsedMs": 1448.740100000001,
+        "maxElapsedMs": 1466.6135,
+        "meanElapsedMs": 1452.5989200000004
       },
       "invariants": {
         "entityCount": 50000,
@@ -1556,9 +1556,9 @@
       "comparison": {
         "name": "spatial-index",
         "status": "ok",
-        "actualMedianElapsedMs": 1435.6569999999992,
+        "actualMedianElapsedMs": 1448.740100000001,
         "baselineMedianElapsedMs": 1436.717,
-        "regressionPercent": -0.07377931770841821,
+        "regressionPercent": 0.8368453912636097,
         "warnRegressionPercent": 10,
         "failRegressionPercent": 20,
         "invariantMismatches": []
@@ -1583,24 +1583,24 @@
         "storedTraceCount": 16,
         "indexActiveOffers": 10000,
         "selectionChecksum": 22148512,
-        "elapsedMs": 0.9502999999986059,
-        "heapUsedBeforeBytes": 39678176,
-        "heapUsedAfterBytes": 41663784,
-        "heapDeltaBytes": 1985608
+        "elapsedMs": 0.923399999999674,
+        "heapUsedBeforeBytes": 16970856,
+        "heapUsedAfterBytes": 18956552,
+        "heapDeltaBytes": 1985696
       },
       "sampleElapsedMs": [
-        1.298399999999674,
-        1.25,
-        1.0446000000010827,
-        0.9711000000006607,
-        0.9502999999986059
+        1.1270000000004075,
+        1.7227999999995518,
+        1.3624999999992724,
+        1.8040000000000873,
+        0.923399999999674
       ],
       "stats": {
         "sampleCount": 5,
-        "minElapsedMs": 0.9502999999986059,
-        "medianElapsedMs": 1.0446000000010827,
-        "maxElapsedMs": 1.298399999999674,
-        "meanElapsedMs": 1.1028800000000047
+        "minElapsedMs": 0.923399999999674,
+        "medianElapsedMs": 1.3624999999992724,
+        "maxElapsedMs": 1.8040000000000873,
+        "meanElapsedMs": 1.3879399999997986
       },
       "invariants": {
         "pawnCount": 100,
@@ -1622,14 +1622,20 @@
       "comparison": {
         "name": "work-offers",
         "status": "ok",
-        "actualMedianElapsedMs": 1.0446000000010827,
+        "actualMedianElapsedMs": 1.3624999999992724,
         "baselineMedianElapsedMs": 10,
-        "regressionPercent": -89.55399999998917,
+        "regressionPercent": -86.37500000000728,
         "warnRegressionPercent": 10,
         "failRegressionPercent": 20,
         "invariantMismatches": []
       }
     }
   ],
-  "reviewedSha256": "2E537A601FE41868C02E89D57322318F88841F471DF20749638FC17FF0674DE3"
+  "hashing": {
+    "schemaVersion": 1,
+    "canonicalPayloadSha256": "B406B940AA8C55531DD9A8A47EEF4C248C1761E471B1D5B2D611491256370293",
+    "canonicalPayloadDescription": "SHA-256 of benchmark-results.json payload before hashing metadata is added.",
+    "artifactFileSha256Path": "coordination/artifacts/WM-0070/benchmarks/benchmark-results.json.sha256",
+    "artifactFileSha256Description": "Actual SHA-256 of benchmark-results.json is written to this sidecar after the JSON artifact is written."
+  }
 }

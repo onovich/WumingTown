@@ -420,8 +420,12 @@ obligation due/violation counts, town-rule candidate visits, crisis transition
 counts, director candidate/recovery-window counts, ReasonTrace capacity/use,
 save/load rebuilt surface count, Worker projection bytes and final hashes.
 The artifact is written under
-`coordination/artifacts/WM-0070/benchmarks/benchmark-results.json` with
-reviewed SHA-256
-`2E537A601FE41868C02E89D57322318F88841F471DF20749638FC17FF0674DE3`.
+`coordination/artifacts/WM-0070/benchmarks/benchmark-results.json`. The
+actual JSON file SHA-256 is recorded in
+`coordination/artifacts/WM-0070/benchmarks/benchmark-results.json.sha256` as
+`FDC0DFE779264134C23F3DAF95C92C879C683DDCBB22A9E704F12359B3DC0E71`; the JSON
+also records canonical payload SHA-256
+`B406B940AA8C55531DD9A8A47EEF4C248C1761E471B1D5B2D611491256370293` for the
+pre-hashing metadata payload.
 The benchmark baseline update preserves the existing 10 percent warning and
 20 percent blocking regression thresholds.

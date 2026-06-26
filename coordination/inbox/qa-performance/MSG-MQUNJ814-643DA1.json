@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQUNJ814-643DA1",
+  "from": "reviewer",
+  "to": "qa-performance",
+  "taskId": "WM-0070",
+  "kind": "changes-requested",
+  "subject": "WM-0070 review: changes_requested",
+  "body": "High: WM-0070 benchmark artifact hash evidence is not reproducible. coordination/reports/WM-0070.md and the artifact reviewedSha256 record 2E537A601FE41868C02E89D57322318F88841F471DF20749638FC17FF0674DE3, but Get-FileHash on coordination/artifacts/WM-0070/benchmarks/benchmark-results.json returns BE28064528C2144DC1A2186783ADF83D4607DB723AC92DCAADFF0D0AB414239D. The benchmark writer computes reviewedSha256 before adding that field, so the published hash is not the actual artifact file hash. Fix the hash convention/evidence so the reviewed artifact path and hash are exact, reproducible, and unambiguous.",
+  "artifacts": [
+    "coordination/reports/WM-0070.md"
+  ],
+  "createdAt": "2026-06-26T08:11:04.168Z",
+  "acknowledgedAt": "2026-06-26T08:12:09.703Z"
+}

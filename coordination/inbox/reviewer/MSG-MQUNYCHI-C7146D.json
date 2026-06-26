@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQUNYCHI-C7146D",
+  "from": "qa-performance",
+  "to": "reviewer",
+  "taskId": "WM-0070",
+  "kind": "review-request",
+  "subject": "WM-0070 ready for review",
+  "body": "Repaired WM-0070 benchmark artifact hash convention: renamed pre-field digest to canonicalPayloadSha256, added actual benchmark-results.json SHA-256 sidecar, regenerated artifact/docs/report, and reran required typecheck, m4 invariants, bench, sim, validate, diff check, plus quality.",
+  "artifacts": [
+    "coordination/reports/WM-0070.md",
+    "task/WM-0070-add-m4-benchmarks-and-invariants"
+  ],
+  "createdAt": "2026-06-26T08:22:49.783Z",
+  "acknowledgedAt": null
+}

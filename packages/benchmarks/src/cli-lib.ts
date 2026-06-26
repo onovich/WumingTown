@@ -27,7 +27,7 @@ export interface BenchmarkCliReport {
   readonly artifactPath: string;
   readonly sampleCount: number;
   readonly warmupCount: number;
-  readonly reviewedSha256: string;
+  readonly hashing: BenchmarkArtifactHashing;
   readonly environment: {
     readonly nodeVersion: string;
     readonly pnpmVersion: string;
@@ -39,6 +39,14 @@ export interface BenchmarkCliReport {
     readonly gitCommit: string;
   };
   readonly results: readonly BenchmarkCliResult[];
+}
+
+export interface BenchmarkArtifactHashing {
+  readonly schemaVersion: 1;
+  readonly canonicalPayloadSha256: string;
+  readonly canonicalPayloadDescription: string;
+  readonly artifactFileSha256Path: string;
+  readonly artifactFileSha256Description: string;
 }
 
 export interface BenchmarkCliResult {
@@ -90,7 +98,8 @@ export function runBenchmarksCli(argv: readonly string[]): number {
     comparison: compareAgainstNamedBaseline(result, baseline),
   }));
 
-  const reportWithoutHash: Omit<BenchmarkCliReport, "reviewedSha256"> = {
+  const artifactHashPath = createArtifactHashPath(parsed.value.artifactPath);
+  const reportPayload: Omit<BenchmarkCliReport, "hashing"> = {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
     baselinePath: toRelativePath(parsed.value.baselinePath),
@@ -110,12 +119,27 @@ export function runBenchmarksCli(argv: readonly string[]): number {
     results,
   };
   const report: BenchmarkCliReport = {
-    ...reportWithoutHash,
-    reviewedSha256: createArtifactReviewHash(reportWithoutHash),
+    ...reportPayload,
+    hashing: {
+      schemaVersion: 1,
+      canonicalPayloadSha256: createSha256(`${JSON.stringify(reportPayload, undefined, 2)}\n`),
+      canonicalPayloadDescription:
+        "SHA-256 of benchmark-results.json payload before hashing metadata is added.",
+      artifactFileSha256Path: toRelativePath(artifactHashPath),
+      artifactFileSha256Description:
+        "Actual SHA-256 of benchmark-results.json is written to this sidecar after the JSON artifact is written.",
+    },
   };
+  const artifactText = `${JSON.stringify(report, undefined, 2)}\n`;
+  const artifactFileSha256 = createSha256(artifactText);
 
   mkdirSync(path.dirname(parsed.value.artifactPath), { recursive: true });
-  writeFileSync(parsed.value.artifactPath, `${JSON.stringify(report, undefined, 2)}\n`, "utf8");
+  writeFileSync(parsed.value.artifactPath, artifactText, "utf8");
+  writeFileSync(
+    artifactHashPath,
+    `${artifactFileSha256}  ${path.basename(parsed.value.artifactPath)}\n`,
+    "utf8",
+  );
 
   printBenchmarkSummary(results, report.artifactPath);
   return results.some((result) => result.comparison.status === "fail") ? 1 : 0;
@@ -1931,11 +1955,12 @@ function toRelativePath(targetPath: string): string {
   return path.relative(process.cwd(), targetPath).replaceAll("\\", "/");
 }
 
-function createArtifactReviewHash(report: Omit<BenchmarkCliReport, "reviewedSha256">): string {
-  return createHash("sha256")
-    .update(`${JSON.stringify(report, undefined, 2)}\n`, "utf8")
-    .digest("hex")
-    .toUpperCase();
+function createArtifactHashPath(artifactPath: string): string {
+  return `${artifactPath}.sha256`;
+}
+
+function createSha256(value: string): string {
+  return createHash("sha256").update(value, "utf8").digest("hex").toUpperCase();
 }
 
 function failedArgs(error: string): { readonly ok: false; readonly error: string } {

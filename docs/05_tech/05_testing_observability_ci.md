@@ -220,8 +220,13 @@ includes the environment block (`nodeVersion`, `pnpmVersion`, `osRelease`,
 `platform`, `arch`, `cpuModel`, `cpuCount`, `gitCommit`), scenario id, seed,
 tick horizon, checkpoint hashes through `100000`, final summary, M4 metric
 block, save/load rebuilt surface count, Worker projection bytes, final world
-hash `0xdafa3b25`, final read-model hash `0x08dd9343`, and reviewed SHA-256
-`2E537A601FE41868C02E89D57322318F88841F471DF20749638FC17FF0674DE3`.
+hash `0xdafa3b25`, final read-model hash `0x08dd9343`, actual JSON file
+SHA-256 sidecar
+`coordination/artifacts/WM-0070/benchmarks/benchmark-results.json.sha256`
+with hash `FDC0DFE779264134C23F3DAF95C92C879C683DDCBB22A9E704F12359B3DC0E71`,
+and canonical payload SHA-256
+`B406B940AA8C55531DD9A8A47EEF4C248C1761E471B1D5B2D611491256370293` inside
+the JSON artifact.
 
 The documented M4 headless reproduction command is
 `pnpm sim:run -- --seed 4 --scenario m4-core-vertical-slice --ticks 100000`.

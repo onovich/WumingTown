@@ -33,7 +33,7 @@
   ],
   "branch": "task/WM-0070-add-m4-benchmarks-and-invariants",
   "createdAt": "2026-06-25T19:08:30.000Z",
-  "updatedAt": "2026-06-26T08:00:00.815Z",
+  "updatedAt": "2026-06-26T08:22:49.781Z",
   "history": [
     {
       "at": "2026-06-25T19:08:30.000Z",
@@ -58,6 +58,18 @@
       "actor": "qa-performance",
       "action": "complete",
       "details": "Added M4 long-run invariants and default benchmark artifact with 100000-tick samples, save/replay, Worker parity, baseline, docs and report; required checks pass."
+    },
+    {
+      "at": "2026-06-26T08:11:04.166Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: WM-0070 benchmark artifact hash evidence is not reproducible. coordination/reports/WM-0070.md and the artifact reviewedSha256 record 2E537A601FE41868C02E89D57322318F88841F471DF20749638FC17FF0674DE3, but Get-FileHash on coordination/artifacts/WM-0070/benchmarks/benchmark-results.json returns BE28064528C2144DC1A2186783ADF83D4607DB723AC92DCAADFF0D0AB414239D. The benchmark writer computes reviewedSha256 before adding that field, so the published hash is not the actual artifact file hash. Fix the hash convention/evidence so the reviewed artifact path and hash are exact, reproducible, and unambiguous."
+    },
+    {
+      "at": "2026-06-26T08:22:49.781Z",
+      "actor": "qa-performance",
+      "action": "complete",
+      "details": "Repaired WM-0070 benchmark artifact hash convention: renamed pre-field digest to canonicalPayloadSha256, added actual benchmark-results.json SHA-256 sidecar, regenerated artifact/docs/report, and reran required typecheck, m4 invariants, bench, sim, validate, diff check, plus quality."
     }
   ],
   "objective": "Create artifact-backed M4 performance and invariant evidence before closeout while protecting all prior milestone gates.",
@@ -108,5 +120,11 @@
   "claimedBy": "qa-performance",
   "threadLabel": "Gauge WM-0070 M4 benchmarks",
   "blocker": null,
-  "reportPath": "coordination/reports/WM-0070.md"
+  "reportPath": "coordination/reports/WM-0070.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "changes_requested",
+    "summary": "High: WM-0070 benchmark artifact hash evidence is not reproducible. coordination/reports/WM-0070.md and the artifact reviewedSha256 record 2E537A601FE41868C02E89D57322318F88841F471DF20749638FC17FF0674DE3, but Get-FileHash on coordination/artifacts/WM-0070/benchmarks/benchmark-results.json returns BE28064528C2144DC1A2186783ADF83D4607DB723AC92DCAADFF0D0AB414239D. The benchmark writer computes reviewedSha256 before adding that field, so the published hash is not the actual artifact file hash. Fix the hash convention/evidence so the reviewed artifact path and hash are exact, reproducible, and unambiguous.",
+    "at": "2026-06-26T08:11:04.166Z"
+  }
 }
