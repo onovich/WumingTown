@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQULSEDO-253580",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0069",
+  "kind": "review-request",
+  "subject": "WM-0069 ready for review",
+  "body": "Implemented M4 Worker/headless parity using existing Worker protocol surfaces, added read-only M4 basis projections, browser Worker smoke coverage, diagnostics artifact, docs, and required checks.",
+  "artifacts": [
+    "coordination/reports/WM-0069.md",
+    "task/WM-0069-add-m4-worker-projections-and-parity"
+  ],
+  "createdAt": "2026-06-26T07:22:13.069Z",
+  "acknowledgedAt": "2026-06-26T07:22:52.946Z"
+}

@@ -2,7 +2,7 @@
   "id": "WM-0069",
   "title": "Add M4 Worker projections and parity",
   "summary": "Prove Node Worker and browser Worker parity for M4 authoritative hashes and read-only lamp, evidence, obligation, crisis, director and dawn-review projections.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,7 +31,7 @@
   ],
   "branch": "task/WM-0069-add-m4-worker-projections-and-parity",
   "createdAt": "2026-06-25T19:08:30.000Z",
-  "updatedAt": "2026-06-26T07:10:50.721Z",
+  "updatedAt": "2026-06-26T07:28:04.923Z",
   "history": [
     {
       "at": "2026-06-25T19:08:30.000Z",
@@ -44,6 +44,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-26T07:13:41.067Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Tally WM-0069 M4 worker parity"
+    },
+    {
+      "at": "2026-06-26T07:22:13.067Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented M4 Worker/headless parity using existing Worker protocol surfaces, added read-only M4 basis projections, browser Worker smoke coverage, diagnostics artifact, docs, and required checks."
+    },
+    {
+      "at": "2026-06-26T07:26:42.482Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Confirmed M4 Worker parity reuses existing protocol surfaces, Node/browser Workers match authoritative M4 hashes at checkpoint ticks, projections are read-only and basis-versioned, existing M1-M3 worker-smoke coverage remains, and required checks plus quality pass."
+    },
+    {
+      "at": "2026-06-26T07:27:59.804Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified by reviewer; worker parity and browser smoke gates passed; ready for main merge"
+    },
+    {
+      "at": "2026-06-26T07:28:04.922Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "objective": "Gate M4 through Worker/headless parity while keeping every client-facing M4 surface read-only.",
@@ -84,5 +114,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Worker parity and authority boundaries are not suitable for Spark."
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Tally WM-0069 M4 worker parity",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0069.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Confirmed M4 Worker parity reuses existing protocol surfaces, Node/browser Workers match authoritative M4 hashes at checkpoint ticks, projections are read-only and basis-versioned, existing M1-M3 worker-smoke coverage remains, and required checks plus quality pass.",
+    "at": "2026-06-26T07:26:42.482Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified by reviewer; worker parity and browser smoke gates passed; ready for main merge",
+    "at": "2026-06-26T07:27:59.804Z"
   }
 }

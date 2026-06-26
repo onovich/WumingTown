@@ -9,15 +9,20 @@ import {
   M2_WORK_LOGISTICS_SCENARIO_ID,
   M3_ORDINARY_LIFE_CHECKPOINTS,
   M3_ORDINARY_LIFE_SCENARIO_ID,
+  M4_CORE_VERTICAL_SLICE_SCENARIO_ID,
+  M4_REPLAY_CHECKPOINT_SEQUENCE,
   createM1AdvanceCommandId,
   createM2AdvanceCommandId,
   createM3AdvanceCommandId,
+  createM4AdvanceCommandId,
   runM1HaulingBuildingReplay,
   runM2WorkLogisticsReplay,
   runM3OrdinaryLifeReplay,
+  runM4CoreVerticalSliceReplay,
   type M1ReplayRun,
   type M2ReplayRun,
   type M3ReplayRun,
+  type M4ReplayRun,
 } from "@wuming-town/sim-core";
 import {
   MAIN_TO_SIMULATION_MESSAGE_KIND,
@@ -277,6 +282,52 @@ describe("worker-smoke simulation Worker protocol", () => {
     });
   }, 120000);
 
+  it("matches Node headless hashes for M4 in a real browser module Worker", async () => {
+    const expected = readM4Replay(
+      runM4CoreVerticalSliceReplay({
+        seed: "4",
+        checkpointTicks: M4_REPLAY_CHECKPOINT_SEQUENCE,
+      }),
+    );
+    const browserMessages = await runBrowserWorker([
+      makeM4InitSession(1),
+      makeM4AdvanceBatch(2, 3_600, 1),
+      makeM4AdvanceBatch(3, 7_200, 2),
+      makeM4AdvanceBatch(4, 12_000, 3),
+      makeM4AdvanceBatch(5, 18_000, 4),
+      makeM4AdvanceBatch(6, 36_000, 5),
+    ]);
+    const snapshots = renderSnapshots(browserMessages);
+    const finalUiDelta = lastUiDelta(browserMessages);
+
+    expect(snapshots).toHaveLength(M4_REPLAY_CHECKPOINT_SEQUENCE.length);
+    for (let index = 0; index < snapshots.length; index += 1) {
+      const snapshot = snapshots[index] ?? failMissingSnapshot();
+      const checkpoint = expected.checkpoints[index] ?? failMissingCheckpoint();
+      expect(snapshot.payload).toMatchObject({
+        scenarioId: M4_CORE_VERTICAL_SLICE_SCENARIO_ID,
+        tick: checkpoint.tick,
+        worldHash: checkpoint.worldHash,
+        readModelHash: checkpoint.readModelHash,
+        readOnly: true,
+      });
+    }
+
+    expect(finalUiDelta.payload).toMatchObject({
+      scenarioId: M4_CORE_VERTICAL_SLICE_SCENARIO_ID,
+      readModelHash: expected.finalReadModelHash,
+      readOnly: true,
+    });
+    expect(finalUiDelta.payload.summaries).toContainEqual(
+      expect.stringContaining("m4-basis:dawn-review="),
+    );
+    expect(lastMetricsSample(browserMessages).payload).toMatchObject({
+      scenarioId: M4_CORE_VERTICAL_SLICE_SCENARIO_ID,
+      worldHash: expected.finalWorldHash,
+      checkpointCount: M4_REPLAY_CHECKPOINT_SEQUENCE.length,
+    });
+  }, 120000);
+
   it("returns M1 save metadata without exposing mutable authority through the Worker", () => {
     const worker = createSimulationWorker();
 
@@ -379,6 +430,20 @@ function makeM3InitSession(sequence: number): MainToSimulationMessage {
   };
 }
 
+function makeM4InitSession(sequence: number): MainToSimulationMessage {
+  return {
+    protocolVersion: SIM_PROTOCOL_VERSION,
+    schemaVersion: SIM_SCHEMA_VERSION,
+    sessionId: "session-a",
+    sequence,
+    kind: MAIN_TO_SIMULATION_MESSAGE_KIND.InitSession,
+    payload: {
+      seed: "4",
+      catalogVersion: M4_CORE_VERTICAL_SLICE_SCENARIO_ID,
+    },
+  };
+}
+
 function makeNoopBatch(sequence: number): MainToSimulationMessage {
   return {
     protocolVersion: SIM_PROTOCOL_VERSION,
@@ -451,6 +516,28 @@ function makeM3AdvanceBatch(sequence: number, tick: number): MainToSimulationMes
   };
 }
 
+function makeM4AdvanceBatch(
+  sequence: number,
+  tick: number,
+  commandSequence: number,
+): MainToSimulationMessage {
+  return {
+    protocolVersion: SIM_PROTOCOL_VERSION,
+    schemaVersion: SIM_SCHEMA_VERSION,
+    sessionId: "session-a",
+    sequence,
+    kind: MAIN_TO_SIMULATION_MESSAGE_KIND.PlayerCommandBatch,
+    payload: {
+      commands: [
+        {
+          commandId: createM4AdvanceCommandId(tick, commandSequence),
+          kind: PLAYER_COMMAND_KIND.Noop,
+        },
+      ],
+    },
+  };
+}
+
 function makePause(sequence: number): MainToSimulationMessage {
   return {
     protocolVersion: SIM_PROTOCOL_VERSION,
@@ -508,6 +595,22 @@ function uiDelta(messages: readonly SimulationToMainMessage[]): UiDeltaMessage {
     if (message.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.UiDelta) {
       return message;
     }
+  }
+
+  throw new Error("expected UiDelta message");
+}
+
+function lastUiDelta(messages: readonly SimulationToMainMessage[]): UiDeltaMessage {
+  let latest: UiDeltaMessage | undefined;
+
+  for (const message of messages) {
+    if (message.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.UiDelta) {
+      latest = message;
+    }
+  }
+
+  if (latest !== undefined) {
+    return latest;
   }
 
   throw new Error("expected UiDelta message");
@@ -580,6 +683,14 @@ function readM2Replay(result: ReturnType<typeof runM2WorkLogisticsReplay>): M2Re
 }
 
 function readM3Replay(result: ReturnType<typeof runM3OrdinaryLifeReplay>): M3ReplayRun {
+  if (!result.ok) {
+    throw new Error(result.reason);
+  }
+
+  return result.replay;
+}
+
+function readM4Replay(result: ReturnType<typeof runM4CoreVerticalSliceReplay>): M4ReplayRun {
   if (!result.ok) {
     throw new Error(result.reason);
   }

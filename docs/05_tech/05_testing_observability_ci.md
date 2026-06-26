@@ -187,3 +187,20 @@ expected, actual, save, resumed and summary artifacts under
 `coordination/artifacts/WM-0068/m4-save-replay/`, including save byte size,
 load validation time, rebuild time, rebuilt surface names/hashes, command tail
 and checkpoint hashes.
+
+## WM-0069 implementation note
+
+`pnpm test --filter m4-worker-parity` covers the focused M4 Worker/headless
+parity gate. It runs the M4 core vertical slice command stream through the Node
+Worker harness and compares all six checkpoint ticks against
+`runM4CoreVerticalSliceReplay`, including authoritative world hashes,
+read-model hashes, read-only basis summaries, snapshot byte size, read-model
+byte size, projection byte size, first mismatch tick and Worker message latency
+counts.
+
+`pnpm test:e2e --filter worker-smoke` keeps existing M1, M2 and M3 browser
+Worker smoke coverage and now also runs
+`m4.core_vertical_slice.borrowed_shadow_lamps.v1` through a real browser module
+Worker. The Worker still uses the existing protocol message kinds; no UI,
+Electron, platform save, public protocol redesign or client repair surface
+becomes authoritative.

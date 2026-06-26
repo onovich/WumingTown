@@ -186,3 +186,22 @@ final read-model byte size, and projection-message latency counts for the six
 M3 contract checkpoints. Browser Worker smoke compares the same checkpoint
 hashes against Node headless replay and keeps UI, React, Pixi, Electron, and
 read-model consumers read-only.
+
+## WM-0069 implementation note
+
+M4 Worker/headless parity reuses the existing Worker message kinds. For
+`m4.core_vertical_slice.borrowed_shadow_lamps.v1`, `RenderSnapshot`, `UiDelta`
+and `MetricsSample` carry authoritative world/read-model hashes, checkpoint
+count and `readOnly: true` where the protocol already supports it.
+
+The M4 `UiDelta` summary lane includes read-only basis metadata for lamp-gap,
+evidence, dissemination, obligation, town-rule, crisis, director, WorkOffer,
+path, read-model, dawn-review and metrics surfaces. These rows are projection
+evidence only; they are not UI mutation authority, a saved derived cache, or a
+client repair path.
+
+Focused diagnostics are written to
+`coordination/artifacts/WM-0069/m4-worker-parity-diagnostics.json` and record
+requested seed, authoritative seed, scenario id, first mismatched checkpoint
+tick, snapshot bytes, read-model bytes, projection bytes and projection-message
+latency counts.

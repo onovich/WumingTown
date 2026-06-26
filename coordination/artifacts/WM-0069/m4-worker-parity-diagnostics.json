@@ -1,0 +1,17 @@
+{
+  "seed": "50",
+  "requestedSeed": "4",
+  "scenarioId": "m4.core_vertical_slice.borrowed_shadow_lamps.v1",
+  "checkpointCount": 6,
+  "firstMismatchedCheckpointTick": null,
+  "finalSnapshotSizeBytes": 184,
+  "finalReadModelSizeBytes": 767,
+  "finalProjectionSizeBytes": 1059,
+  "latencyMetrics": {
+    "renderSnapshotMessages": 6,
+    "uiDeltaMessages": 6,
+    "metricsSampleMessages": 6,
+    "totalProjectionMessages": 18
+  },
+  "basisSurfaceCount": 13
+}
