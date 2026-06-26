@@ -51,20 +51,68 @@ export interface SampledMapDirtyBenchmark {
   readonly stats: BenchmarkSampleStats;
 }
 
+const MAP_DIRTY_TIMED_PASS_COUNT = 16;
+const MAP_DIRTY_WIDTH = 256;
+const MAP_DIRTY_HEIGHT = 256;
+const MAP_DIRTY_CHUNK_SIZE = 32;
+const MAP_DIRTY_REBUILD_BUDGET_PER_TICK = 8;
+
+interface MapDirtyBenchmarkPassReport {
+  readonly width: number;
+  readonly height: number;
+  readonly chunkSize: number;
+  readonly changedCells: number;
+  readonly dirtyQueuePeak: number;
+  readonly rebuildBudgetPerTick: number;
+  readonly drainTicks: number;
+  readonly processedChunks: number;
+  readonly remainingDirtyChunks: number;
+  readonly finalGlobalVersion: number;
+  readonly processedChecksum: number;
+  readonly mapHash: string;
+  readonly elapsedMs: number;
+}
+
 export function runMapDirtyBenchmark(): MapDirtyBenchmarkReport {
-  const width = 256;
-  const height = 256;
-  const chunkSize = 32;
-  const rebuildBudgetPerTick = 8;
-  const grid = createMapGrid({ width, height, chunkSize });
-  const processedOutput = new Uint32Array(rebuildBudgetPerTick);
   const heapUsedBeforeBytes = process.memoryUsage().heapUsed;
+  let totalElapsedMs = 0;
+  let lastPass: MapDirtyBenchmarkPassReport | undefined;
+
+  // Average identical passes to reduce sub-ms timing noise without changing the path.
+  for (let index = 0; index < MAP_DIRTY_TIMED_PASS_COUNT; index += 1) {
+    lastPass = runMapDirtyPass();
+    totalElapsedMs += lastPass.elapsedMs;
+  }
+
+  const heapUsedAfterBytes = process.memoryUsage().heapUsed;
+
+  if (lastPass === undefined) {
+    throw new Error("map-dirty benchmark pass did not produce a report");
+  }
+
+  return {
+    name: "map-dirty",
+    ...lastPass,
+    elapsedMs: totalElapsedMs / MAP_DIRTY_TIMED_PASS_COUNT,
+    heapUsedBeforeBytes,
+    heapUsedAfterBytes,
+    heapDeltaBytes: heapUsedAfterBytes - heapUsedBeforeBytes,
+  };
+}
+
+function runMapDirtyPass(): MapDirtyBenchmarkPassReport {
+  const grid = createMapGrid({
+    width: MAP_DIRTY_WIDTH,
+    height: MAP_DIRTY_HEIGHT,
+    chunkSize: MAP_DIRTY_CHUNK_SIZE,
+  });
+  const processedOutput = new Uint32Array(MAP_DIRTY_REBUILD_BUDGET_PER_TICK);
   const startedAtMs = performance.now();
   let changedCells = 0;
 
   for (let chunkY = 0; chunkY < grid.chunkRows; chunkY += 1) {
     for (let chunkX = 0; chunkX < grid.chunkColumns; chunkX += 1) {
-      changedCells += dirtyCellsInsideChunk(grid, chunkX, chunkY, chunkSize);
+      changedCells += dirtyCellsInsideChunk(grid, chunkX, chunkY, MAP_DIRTY_CHUNK_SIZE);
     }
   }
 
@@ -74,7 +122,7 @@ export function runMapDirtyBenchmark(): MapDirtyBenchmarkReport {
   let drainTicks = 0;
 
   while (grid.dirtyChunkCount > 0) {
-    const processed = grid.processDirtyChunks(rebuildBudgetPerTick, processedOutput);
+    const processed = grid.processDirtyChunks(MAP_DIRTY_REBUILD_BUDGET_PER_TICK, processedOutput);
 
     if (!processed.ok) {
       throw new Error(processed.reason);
@@ -94,16 +142,14 @@ export function runMapDirtyBenchmark(): MapDirtyBenchmarkReport {
     queuedCommands: [],
   });
   const elapsedMs = performance.now() - startedAtMs;
-  const heapUsedAfterBytes = process.memoryUsage().heapUsed;
 
   return {
-    name: "map-dirty",
-    width,
-    height,
-    chunkSize,
+    width: MAP_DIRTY_WIDTH,
+    height: MAP_DIRTY_HEIGHT,
+    chunkSize: MAP_DIRTY_CHUNK_SIZE,
     changedCells,
     dirtyQueuePeak,
-    rebuildBudgetPerTick,
+    rebuildBudgetPerTick: MAP_DIRTY_REBUILD_BUDGET_PER_TICK,
     drainTicks,
     processedChunks,
     remainingDirtyChunks: grid.dirtyChunkCount,
@@ -111,9 +157,6 @@ export function runMapDirtyBenchmark(): MapDirtyBenchmarkReport {
     processedChecksum,
     mapHash,
     elapsedMs,
-    heapUsedBeforeBytes,
-    heapUsedAfterBytes,
-    heapDeltaBytes: heapUsedAfterBytes - heapUsedBeforeBytes,
   };
 }
 

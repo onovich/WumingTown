@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQVHAUDE-5D0162",
+  "from": "qa-performance",
+  "to": "reviewer",
+  "taskId": "WM-0087",
+  "kind": "review-request",
+  "subject": "WM-0087 ready for review",
+  "body": "WM-0087 rerun after changes_requested: Chrome/Edge web-performance evidence unchanged; benchmark gate now stabilizes default sampling at 9 samples / 2 warmups without changing thresholds or baselines; final temp-artifact full-suite bench passed with entity-store 242.351ms vs 244.507ms baseline (-0.88%) and m5-alpha-content-long-run 63.413ms vs 74.634ms baseline (-15.04%); pnpm test:e2e --filter web-shell, taskctl validate, git diff --check, and pnpm quality all passed.",
+  "artifacts": [
+    "coordination/reports/WM-0087.md",
+    "task/WM-0087-web-performance-memory-loading"
+  ],
+  "createdAt": "2026-06-26T22:04:21.698Z",
+  "acknowledgedAt": "2026-06-26T22:08:38.624Z"
+}

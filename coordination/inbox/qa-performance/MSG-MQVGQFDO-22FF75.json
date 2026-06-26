@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQVGQFDO-22FF75",
+  "from": "reviewer",
+  "to": "qa-performance",
+  "taskId": "WM-0087",
+  "kind": "changes-requested",
+  "subject": "WM-0087 review: changes_requested",
+  "body": "High: WM-0087 cannot be verified while required pnpm bench is reported failed on protected m5-alpha-content-long-run at +92.81% (143.905 ms vs 74.634 ms). This violates WM-0087 requiredChecks and ownerGate (>20% regression without accepted explanation) and AGENTS DoD requiring related tests pass/no performance budget regression. Browser evidence/tooling and demo-only tier reporting otherwise look properly scoped.",
+  "artifacts": [
+    "coordination/reports/WM-0087.md"
+  ],
+  "createdAt": "2026-06-26T21:48:29.148Z",
+  "acknowledgedAt": "2026-06-26T21:50:12.928Z"
+}

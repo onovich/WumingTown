@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQVHG3UD-BA36DB",
+  "from": "reviewer",
+  "to": "qa-performance",
+  "taskId": "WM-0087",
+  "kind": "changes-requested",
+  "subject": "WM-0087 review: changes_requested",
+  "body": "High: required full-suite pnpm bench --artifacts-dir %TEMP%/wuming-town/WM-0087/review3-bench-full-suite still fails on reviewer rerun: map-dirty median 1.263ms vs 1.000ms baseline (+26.30%), exceeding the protected 20% blocking threshold. Temp artifact root did not dirty tracked M5/baseline artifacts; entity-store and m5-alpha-content-long-run were OK, and Chrome/Edge demo-only scope/threshold docs otherwise remain properly bounded.",
+  "artifacts": [
+    "coordination/reports/WM-0087.md"
+  ],
+  "createdAt": "2026-06-26T22:08:27.253Z",
+  "acknowledgedAt": "2026-06-26T22:10:20.918Z"
+}

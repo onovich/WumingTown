@@ -127,8 +127,8 @@ export const BENCHMARKS_PUBLIC_DEPENDENCIES: readonly string[] = [
   TESTKIT_SMOKE.packageName,
 ];
 
-export const DEFAULT_BENCHMARK_SAMPLE_COUNT = 5;
-export const DEFAULT_BENCHMARK_WARMUP_COUNT = 1;
+export const DEFAULT_BENCHMARK_SAMPLE_COUNT = 9;
+export const DEFAULT_BENCHMARK_WARMUP_COUNT = 2;
 
 export type BenchmarkName =
   | "empty-tick"

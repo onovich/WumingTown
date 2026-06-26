@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQVI3R9A-162C7F",
+  "from": "qa-performance",
+  "to": "reviewer",
+  "taskId": "WM-0087",
+  "kind": "review-request",
+  "subject": "WM-0087 ready for review",
+  "body": "WM-0087 rerun after third review: Chrome/Edge web-performance evidence unchanged; default benchmark sampling remains 9 samples / 2 warmups for entity-store stability; map-dirty now keeps the original dirtyCellsInsideChunk coordinate/updateCell workload and original timer window while averaging 16 identical passes per sample; baseline and 10%/20% thresholds remain unchanged. Isolated map-dirty reruns passed 5/5 at 0.835-0.908ms median vs 1.000ms baseline. Isolated full-suite reruns passed twice with entity-store 236.986ms and 239.861ms vs 244.507ms baseline, m5-alpha-content-long-run 51.904ms and 50.825ms vs 74.634ms baseline, and map-dirty 1.081ms and 0.923ms vs 1.000ms baseline. pnpm test:e2e --filter web-shell, taskctl validate, git diff --check, and pnpm quality all passed.",
+  "artifacts": [
+    "coordination/reports/WM-0087.md",
+    "task/WM-0087-web-performance-memory-loading"
+  ],
+  "createdAt": "2026-06-26T22:26:50.686Z",
+  "acknowledgedAt": "2026-06-26T22:31:25.713Z"
+}

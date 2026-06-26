@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQVH0GQ1-80C0BB",
+  "from": "reviewer",
+  "to": "qa-performance",
+  "taskId": "WM-0087",
+  "kind": "changes-requested",
+  "subject": "WM-0087 review: changes_requested",
+  "body": "High: temp artifact root is acceptable and did not dirty tracked artifacts, and m5-alpha-content-long-run is OK on reviewer rerun, but required full-suite pnpm bench --artifacts-dir %TEMP%/wuming-town/WM-0087/review-bench-full-suite failed: entity-store median 318.948 ms vs baseline 244.507 ms (+30.45%), exceeding the 20% blocking threshold. Report claim that final bench all entries OK is not reproducible.",
+  "artifacts": [
+    "coordination/reports/WM-0087.md"
+  ],
+  "createdAt": "2026-06-26T21:56:17.450Z",
+  "acknowledgedAt": "2026-06-26T21:59:57.191Z"
+}

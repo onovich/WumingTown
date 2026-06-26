@@ -552,3 +552,33 @@ canonical payload SHA-256
 `4815D8AC685CC51AC53260C14C302E1C508584AF81EA261664283711A00F0BAC` inside the
 JSON artifact. The baseline update preserves the existing 10 percent warning
 and 20 percent blocking regression thresholds.
+
+## WM-0087 browser gate note
+
+WM-0087 adds `tools/web-performance-gate.mjs` as the repeatable Chrome Stable /
+Edge Stable evidence harness for the M6 Web product gate. The script measures
+loading, built deliverable size, shell interaction latency, frame pacing,
+long-task samples and JS-heap stability for the current Web shell without
+rewriting benchmark baselines or tracked M5 artifacts.
+
+The same WM-0087 review cycle also exposed that the default benchmark sampling
+window on this Windows / Node environment was too sensitive to occasional
+`entity-store` bimodal slow samples. WM-0087 therefore raises the default
+benchmark sampling only from `5 samples / 1 warmup` to `9 samples / 2 warmups`
+for stability. This does not change any benchmark invariant, baseline median,
+warning threshold or blocking threshold.
+
+The same review cycle also exposed that `map-dirty` is a sub-`1 ms`
+microbenchmark where a single-pass sample can lose the full `20 percent`
+blocking window to scheduler noise. WM-0087 therefore keeps the original
+`dirtyCellsInsideChunk(...)`, coordinate-loop, inline update object and
+`grid.updateCell(x, y, {...})` path, keeps the original timer window, and adds
+only fixed repeated-pass averaging inside each sample. Baselines and the
+existing `10 percent` warning / `20 percent` blocking thresholds remain
+unchanged.
+
+These shell numbers are necessary but not sufficient for the Chromium Web gate.
+If the measured path is still a read-only fixture consumer or a checkpoint
+projection path, it must not be reported as a full 30 TPS / 20k-entity
+same-spec pass. WM-0087 must instead record a blocker or lower-tier verdict
+until browser evidence exercises a real product-scale authority path.

@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQVI9DRL-07E611",
+  "from": "reviewer",
+  "to": "qa-performance",
+  "taskId": "WM-0087",
+  "kind": "review-approved",
+  "subject": "WM-0087 review: verified",
+  "body": "No blocking findings. Verified map-dirty keeps the original dirtyCellsInsideChunk/inline update object/grid.updateCell path and original timer window, adding only 16 identical-pass averaging per sample; default bench sampling is 9/2. Full-suite pnpm bench --artifacts-dir %TEMP%/wuming-town/WM-0087/review4-bench-full-suite passed with entity-store 236.361ms vs 244.507ms, m5-alpha-content-long-run 55.536ms vs 74.634ms, and map-dirty 0.953ms vs 1.000ms. Baseline/10%/20% thresholds/M5 artifacts/sim-core unchanged; Chrome/Edge Web conclusion remains demo-only with same-spec/lower-cap/lower-fast-forward unproved.",
+  "artifacts": [
+    "coordination/reports/WM-0087.md"
+  ],
+  "createdAt": "2026-06-26T22:31:13.137Z",
+  "acknowledgedAt": "2026-06-26T22:33:07.900Z"
+}

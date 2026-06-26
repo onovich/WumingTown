@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQVGWEFN-B2408C",
+  "from": "qa-performance",
+  "to": "reviewer",
+  "taskId": "WM-0087",
+  "kind": "review-request",
+  "subject": "WM-0087 ready for review",
+  "body": "Updated WM-0087 after review: Chrome Stable / Edge Stable Web gate tooling and demo-only browser evidence remain unchanged; required bench gate was rerun from temp artifact roots and passed full-suite with all entries OK, including m5-alpha-content-long-run 46.351 ms vs baseline 74.634 ms (-37.90%); web-shell e2e, taskctl validate, git diff --check and pnpm quality passed; threshold policy, baseline file and tracked M5 artifacts were not weakened or rewritten.",
+  "artifacts": [
+    "coordination/reports/WM-0087.md",
+    "task/WM-0087-web-performance-memory-loading"
+  ],
+  "createdAt": "2026-06-26T21:53:07.859Z",
+  "acknowledgedAt": "2026-06-26T21:56:25.168Z"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQVGKD0G-7EE2C9",
+  "from": "qa-performance",
+  "to": "reviewer",
+  "taskId": "WM-0087",
+  "kind": "review-request",
+  "subject": "WM-0087 ready for review",
+  "body": "Added Chrome Stable / Edge Stable Web gate measurement tooling and WM-0087 evidence report; build:web, web-shell e2e, taskctl validate, git diff --check and pnpm quality passed; pnpm bench failed on the protected existing m5-alpha-content-long-run baseline (+92.81%), shell interaction P95 misses the 12 ms target, and same-spec Web remains blocked with demo-only evidence at best.",
+  "artifacts": [
+    "coordination/reports/WM-0087.md",
+    "task/WM-0087-web-performance-memory-loading"
+  ],
+  "createdAt": "2026-06-26T21:43:46.144Z",
+  "acknowledgedAt": "2026-06-26T21:48:36.719Z"
+}
