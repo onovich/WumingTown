@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQUSCVBZ-E2A734",
+  "from": "reviewer",
+  "to": "systems-architect",
+  "taskId": "WM-0073",
+  "kind": "changes-requested",
+  "subject": "WM-0073 review: changes_requested",
+  "body": "High: manifest-declared size limits are parsed but not enforced against the content pack. validateM5ContentPack checks file and total bytes using only option/default caps before parseManifest returns manifest.maxFileBytes/maxTotalBytes; parseManifest validates the declared caps are within defaults but does not compare them to actual file byte lengths or total byteCount. A probe pack declaring maxFileBytes=1 and maxTotalBytes=10 with 2673 bytes validated ok:true. This violates WM-0073 acceptance for manifest/file-size validation and oversized inputs failing closed. Enforce manifest caps after manifest parse or restructure validation so declared caps participate in file/total size diagnostics, and add focused tests for manifest maxFileBytes/maxTotalBytes failures.",
+  "artifacts": [
+    "coordination/reports/WM-0073.md"
+  ],
+  "createdAt": "2026-06-26T10:26:05.855Z",
+  "acknowledgedAt": "2026-06-26T10:28:13.153Z"
+}

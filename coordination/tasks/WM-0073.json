@@ -2,7 +2,7 @@
   "id": "WM-0073",
   "title": "Add M5 content schema and data-mod validation gate",
   "summary": "Implement the first M5 content validation gate and schema policy for anomaly roster, faction/governance hooks, season events and alpha catalog definitions without granting runtime code-mod authority.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -42,7 +42,7 @@
   ],
   "branch": "task/WM-0073-add-m5-content-schema-data-mod-validation",
   "createdAt": "2026-06-26T09:24:00.000Z",
-  "updatedAt": "2026-06-26T09:45:00.869Z",
+  "updatedAt": "2026-06-26T10:46:11.743Z",
   "history": [
     {
       "at": "2026-06-26T09:24:00.000Z",
@@ -55,6 +55,60 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-26T09:48:52.341Z",
+      "actor": "systems-architect",
+      "action": "claim",
+      "details": "thread=Compass WM-0073 M5 content validation"
+    },
+    {
+      "at": "2026-06-26T10:21:21.201Z",
+      "actor": "systems-architect",
+      "action": "complete",
+      "details": "Implemented M5 data-only content schema/data-mod validation gate with deterministic compiler output, focused tests, CLI mode, docs and report; all required checks pass."
+    },
+    {
+      "at": "2026-06-26T10:26:05.854Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: manifest-declared size limits are parsed but not enforced against the content pack. validateM5ContentPack checks file and total bytes using only option/default caps before parseManifest returns manifest.maxFileBytes/maxTotalBytes; parseManifest validates the declared caps are within defaults but does not compare them to actual file byte lengths or total byteCount. A probe pack declaring maxFileBytes=1 and maxTotalBytes=10 with 2673 bytes validated ok:true. This violates WM-0073 acceptance for manifest/file-size validation and oversized inputs failing closed. Enforce manifest caps after manifest parse or restructure validation so declared caps participate in file/total size diagnostics, and add focused tests for manifest maxFileBytes/maxTotalBytes failures."
+    },
+    {
+      "at": "2026-06-26T10:33:01.822Z",
+      "actor": "systems-architect",
+      "action": "complete",
+      "details": "Repaired manifest-declared maxFileBytes/maxTotalBytes enforcement against actual M5 pack bytes; added focused regressions; all WM-0073 required checks pass."
+    },
+    {
+      "at": "2026-06-26T10:37:56.323Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: previous manifest-declared maxFileBytes/maxTotalBytes repair is present for honest byte measurements, but validateM5ContentPack still trusts caller-provided M5ContentPackFile.byteLength instead of deriving or cross-checking bytes from file.text. A semantic-valid probe with manifest maxFileBytes=1 and maxTotalBytes=10, actual text total 4856 bytes, and every file byteLength spoofed to 1 returned ok:true with counters.byteCount=7 and no diagnostics. This violates WM-0073 file-size/oversized-input fail-closed acceptance for the exported validation entry point. Compute actual bytes from text for validation or reject mismatched byteLength metadata, then add a regression for spoofed byteLength under manifest-declared caps."
+    },
+    {
+      "at": "2026-06-26T10:41:50.178Z",
+      "actor": "systems-architect",
+      "action": "complete",
+      "details": "Repaired exported validator byte measurement to derive size/counters from file.text instead of caller byteLength metadata; added spoofed byteLength regression; all WM-0073 required checks pass."
+    },
+    {
+      "at": "2026-06-26T10:44:31.837Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Verified validateM5ContentPack now derives file and total byte counts from file.text, so spoofed M5ContentPackFile.byteLength cannot bypass manifest maxFileBytes/maxTotalBytes; counters.byteCount reports actual UTF-8 text bytes. Original manifest cap enforcement, deterministic compiler evidence, fail-closed validation tests, allowed scope, and required gates are confirmed."
+    },
+    {
+      "at": "2026-06-26T10:46:04.740Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Reviewed M5 content validation gate accepted after manifest cap and spoofed byteLength repairs; integration gates passed: validate-handoff, taskctl validate/status, focused m5-content-validation tests, git diff --check and pnpm quality. No runtime/protocol/save/package/M6 changes."
+    },
+    {
+      "at": "2026-06-26T10:46:11.742Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M5",
@@ -101,5 +155,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Content schema and data-mod validation define public content boundaries and security policy, so they require systems-architect ownership."
+  },
+  "claimedBy": "systems-architect",
+  "threadLabel": "Compass WM-0073 M5 content validation",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0073.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Verified validateM5ContentPack now derives file and total byte counts from file.text, so spoofed M5ContentPackFile.byteLength cannot bypass manifest maxFileBytes/maxTotalBytes; counters.byteCount reports actual UTF-8 text bytes. Original manifest cap enforcement, deterministic compiler evidence, fail-closed validation tests, allowed scope, and required gates are confirmed.",
+    "at": "2026-06-26T10:44:31.837Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Reviewed M5 content validation gate accepted after manifest cap and spoofed byteLength repairs; integration gates passed: validate-handoff, taskctl validate/status, focused m5-content-validation tests, git diff --check and pnpm quality. No runtime/protocol/save/package/M6 changes.",
+    "at": "2026-06-26T10:46:04.739Z"
   }
 }

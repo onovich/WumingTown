@@ -30,6 +30,18 @@ Web 使用 OPFS；Electron 通过安全 Preload 调用主进程。模拟 Worker 
 
 ZIP/目录 → Manifest → 文件大小/路径安全检查 → Schema → 依赖 → Patch → 编译。防 Zip Slip、递归压缩炸弹和超大纹理。禁止代码、网络和平台 API。
 
+### WM-0073 M5 data-mod validation
+
+M5 data mods are fail-closed before runtime. The gate validates manifest shape,
+relative path safety, per-file and total size limits, JSON/JSON5 syntax, schema
+refs, M5 semantics, localization coverage and supported capabilities.
+
+Executable scripts, code mods, network mods, platform API mods, remote URLs,
+unsafe paths, recursive archive inputs and oversized files are rejected with
+structured diagnostics. Accepted packs compile to stable DefIndex order,
+content manifest hash and validation counters only; WM-0073 does not change the
+save format or public Worker protocol.
+
 ## 供应链
 
 pnpm lockfile 必须提交；依赖脚本默认禁用，只允许明确审核包。CI 运行审计、许可证和过期依赖报告；安全升级单独基准。

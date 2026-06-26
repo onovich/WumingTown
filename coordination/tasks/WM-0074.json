@@ -2,7 +2,7 @@
   "id": "WM-0074",
   "title": "Add M5 anomaly roster and borrowed-shadow data lift",
   "summary": "Add the M5 anomaly roster owner surface and lift the reviewed M4 borrowed-shadow rule into the roster without changing M4 behavior or introducing bespoke content code paths.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -38,13 +38,19 @@
   ],
   "branch": "task/WM-0074-add-m5-anomaly-roster",
   "createdAt": "2026-06-26T09:24:00.000Z",
-  "updatedAt": "2026-06-26T09:24:00.000Z",
+  "updatedAt": "2026-06-26T10:46:11.750Z",
   "history": [
     {
       "at": "2026-06-26T09:24:00.000Z",
       "actor": "systems-architect",
       "action": "create",
       "details": "Created by WM-0072 M5 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-26T10:46:11.750Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "M5",

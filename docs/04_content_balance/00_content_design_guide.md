@@ -42,3 +42,21 @@
 ## 内容审查
 
 每个内容条目经过：Schema → 引用 → 语义 → 本地化 → 自动场景 → 设计评审 → 文化审查（如适用）→ 性能预算。
+
+## WM-0073 M5 content definition gate
+
+M5 alpha content packs are data-only inputs. They must pass the versioned M5
+validation gate before any runtime owner consumes them. The accepted definition
+kinds are:
+
+- `m5.anomaly`
+- `m5.faction_hook`
+- `m5.governance_hook`
+- `m5.season_event`
+- `m5.catalog_entry`
+
+Every accepted definition uses `schemaVersion: 1`, stable def ids, localization
+keys, reference validation and `contentBudget.bespokeRuntimeComponents: 0`.
+The compiler records deterministic DefIndex order, a content manifest hash and
+validation counters. Runtime M5 behavior, Worker protocol changes and save
+format changes remain out of scope for content authoring.

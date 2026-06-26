@@ -7,11 +7,17 @@ export {
   compileLoadedContentFixture,
   formatCompilationFailure,
 } from "./compiler";
+export { compileM5ContentPack, compileM5ContentPackFromDirectory } from "./m5-content-compiler";
 export type {
   CompiledContentDefinition,
   ContentCompilationCatalog,
   ContentCompilationOutcome,
 } from "./compiler";
+export type {
+  M5CompiledContentDefinition,
+  M5ContentCompilationCatalog,
+  M5ContentCompilationOutcome,
+} from "./m5-content-compiler";
 
 export const CONTENT_COMPILER_SMOKE: WorkspaceSmoke = defineWorkspaceSmoke(
   "@wuming-town/content-compiler",

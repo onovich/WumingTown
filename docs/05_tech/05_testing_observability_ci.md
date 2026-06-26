@@ -232,3 +232,16 @@ The documented M4 headless reproduction command is
 `pnpm sim:run -- --seed 4 --scenario m4-core-vertical-slice --ticks 100000`.
 The command prints the authoritative M4 scenario summary from the Node headless
 runner; UI, Worker projection consumers and Electron remain read-only.
+
+## WM-0073 implementation note
+
+`pnpm test --filter m5-content-validation` covers the focused M5 content gate.
+It validates complete alpha packs, invalid schema and semantics, missing
+localization, unsafe paths, unsupported capabilities, fail-closed archive/code
+inputs, file-size limits and deterministic compiler output.
+
+`pnpm content:validate` remains the M0-M4 fixture validation entry point, while
+M5 pack validation is exposed through the content schema package, compiler and
+`content-cli --m5-pack <dir>`. `pnpm quality` and local CI must keep the M5
+filter registered in `tools/test-runner.mjs` so content-boundary regressions
+are caught without starting runtime M5 behavior.

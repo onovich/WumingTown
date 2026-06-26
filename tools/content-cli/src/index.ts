@@ -1,5 +1,6 @@
 import {
   compileContentFixtureByName,
+  compileM5ContentPackFromDirectory,
   formatCompilationFailure,
 } from "@wuming-town/content-compiler";
 import { CONTENT_COMPILER_SMOKE } from "@wuming-town/content-compiler";
@@ -17,11 +18,14 @@ export const CONTENT_CLI_PUBLIC_DEPENDENCIES: readonly string[] = [
 ];
 
 export interface ContentCliOptions {
-  readonly fixtureName: string;
+  readonly mode: "fixture" | "m5-pack";
+  readonly fixtureName?: string;
+  readonly packRoot?: string;
 }
 
 export function parseContentCliOptions(argv: readonly string[]): ContentCliResultOptions {
   let fixtureName: string | undefined;
+  let packRoot: string | undefined;
   let index = 0;
 
   while (index < argv.length) {
@@ -37,16 +41,45 @@ export function parseContentCliOptions(argv: readonly string[]): ContentCliResul
       continue;
     }
 
+    if (arg === "--m5-pack") {
+      const value = argv[index + 1];
+      if (value === undefined || value.length === 0) {
+        return failedOptions("--m5-pack requires a non-empty value");
+      }
+      packRoot = value;
+      index += 2;
+      continue;
+    }
+
     return failedOptions(`unsupported argument: ${arg ?? ""}`);
   }
 
+  if (fixtureName !== undefined && packRoot !== undefined) {
+    return failedOptions("use either --fixture or --m5-pack, not both");
+  }
+
+  if (fixtureName === undefined && packRoot === undefined) {
+    return failedOptions("--fixture or --m5-pack is required");
+  }
+
+  if (packRoot !== undefined) {
+    return {
+      ok: true,
+      options: {
+        mode: "m5-pack",
+        packRoot,
+      },
+    };
+  }
+
   if (fixtureName === undefined) {
-    return failedOptions("--fixture is required");
+    return failedOptions("--fixture value is required");
   }
 
   return {
     ok: true,
     options: {
+      mode: "fixture",
       fixtureName,
     },
   };
@@ -59,7 +92,28 @@ export async function runContentCli(argv: readonly string[], io: ContentCliIo): 
     return 1;
   }
 
-  const result = await compileContentFixtureByName(parsed.options.fixtureName);
+  if (parsed.options.mode === "m5-pack") {
+    const packRoot = parsed.options.packRoot;
+    if (packRoot === undefined) {
+      io.writeError("--m5-pack is required");
+      return 1;
+    }
+    const result = await compileM5ContentPackFromDirectory(packRoot);
+    if (!result.ok || result.catalog === undefined) {
+      io.writeError(formatCompilationFailure(result.diagnostics));
+      return 1;
+    }
+
+    io.writeLine(JSON.stringify(result.catalog, undefined, 2));
+    return 0;
+  }
+
+  const fixtureName = parsed.options.fixtureName;
+  if (fixtureName === undefined) {
+    io.writeError("--fixture is required");
+    return 1;
+  }
+  const result = await compileContentFixtureByName(fixtureName);
   if (!result.ok || result.catalog === undefined) {
     io.writeError(formatCompilationFailure(result.diagnostics));
     return 1;

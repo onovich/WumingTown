@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQUSX3Z8-54A640",
+  "from": "systems-architect",
+  "to": "reviewer",
+  "taskId": "WM-0073",
+  "kind": "review-request",
+  "subject": "WM-0073 ready for review",
+  "body": "Repaired exported validator byte measurement to derive size/counters from file.text instead of caller byteLength metadata; added spoofed byteLength regression; all WM-0073 required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0073.md",
+    "task/WM-0073-add-m5-content-schema-data-mod-validation"
+  ],
+  "createdAt": "2026-06-26T10:41:50.180Z",
+  "acknowledgedAt": "2026-06-26T10:42:57.012Z"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQUSS3J8-02B177",
+  "from": "reviewer",
+  "to": "systems-architect",
+  "taskId": "WM-0073",
+  "kind": "changes-requested",
+  "subject": "WM-0073 review: changes_requested",
+  "body": "High: previous manifest-declared maxFileBytes/maxTotalBytes repair is present for honest byte measurements, but validateM5ContentPack still trusts caller-provided M5ContentPackFile.byteLength instead of deriving or cross-checking bytes from file.text. A semantic-valid probe with manifest maxFileBytes=1 and maxTotalBytes=10, actual text total 4856 bytes, and every file byteLength spoofed to 1 returned ok:true with counters.byteCount=7 and no diagnostics. This violates WM-0073 file-size/oversized-input fail-closed acceptance for the exported validation entry point. Compute actual bytes from text for validation or reject mismatched byteLength metadata, then add a regression for spoofed byteLength under manifest-declared caps.",
+  "artifacts": [
+    "coordination/reports/WM-0073.md"
+  ],
+  "createdAt": "2026-06-26T10:37:56.324Z",
+  "acknowledgedAt": "2026-06-26T10:38:56.298Z"
+}

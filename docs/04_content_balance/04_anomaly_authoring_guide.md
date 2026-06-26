@@ -30,3 +30,15 @@
 ## 组合性
 
 异类应复用公共触发与效果；专有性来自组合和社会含义。一个“不能跨被承认的门槛”规则可以与门、户籍、家庭关系和镇规系统结合。
+
+## WM-0073 M5 anomaly validation
+
+M5 anomaly definitions are accepted only as data. Each `m5.anomaly` entry must
+declare `schemaVersion: 1`, localization keys, stable references, and
+`contentBudget.bespokeRuntimeComponents: 0`.
+
+The M5 gate requires at least one rule component, three affected systems, four
+evidence classes, one non-combat resolution, a three-state behavior/state list,
+a `commonMisread`, and accident review keys. If an anomaly needs bespoke UI,
+AI, Worker protocol, save format, code mods, or runtime behavior, it is not an
+M5 content-pack change and must be split into a later implementation task.

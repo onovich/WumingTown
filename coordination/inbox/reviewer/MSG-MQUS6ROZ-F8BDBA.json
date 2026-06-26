@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQUS6ROZ-F8BDBA",
+  "from": "systems-architect",
+  "to": "reviewer",
+  "taskId": "WM-0073",
+  "kind": "review-request",
+  "subject": "WM-0073 ready for review",
+  "body": "Implemented M5 data-only content schema/data-mod validation gate with deterministic compiler output, focused tests, CLI mode, docs and report; all required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0073.md",
+    "task/WM-0073-add-m5-content-schema-data-mod-validation"
+  ],
+  "createdAt": "2026-06-26T10:21:21.203Z",
+  "acknowledgedAt": "2026-06-26T10:23:03.779Z"
+}
