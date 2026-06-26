@@ -2,7 +2,7 @@
   "id": "WM-0082",
   "title": "Add M5 Worker projections and parity",
   "summary": "Prove Node Worker and browser Worker parity for M5 read-only projections with content, anomaly, faction, governance and event basis metadata.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -38,13 +38,19 @@
   ],
   "branch": "task/WM-0082-add-m5-worker-projections-parity",
   "createdAt": "2026-06-26T09:24:00.000Z",
-  "updatedAt": "2026-06-26T09:24:00.000Z",
+  "updatedAt": "2026-06-26T15:11:56.266Z",
   "history": [
     {
       "at": "2026-06-26T09:24:00.000Z",
       "actor": "systems-architect",
       "action": "create",
       "details": "Created by WM-0072 M5 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-26T15:11:56.266Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "M5",

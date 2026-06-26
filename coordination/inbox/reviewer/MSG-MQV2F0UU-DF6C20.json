@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQV2F0UU-DF6C20",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0081",
+  "kind": "review-request",
+  "subject": "WM-0081 ready for review",
+  "body": "Repaired review scope finding by adding required replay diagnostics tool entrypoints and plan file to allowedPaths; focused M5 save/replay gates and pnpm quality pass",
+  "artifacts": [
+    "coordination/reports/WM-0081.md",
+    "task/WM-0081-add-m5-focused-save-replay"
+  ],
+  "createdAt": "2026-06-26T15:07:42.486Z",
+  "acknowledgedAt": "2026-06-26T15:08:22.156Z"
+}

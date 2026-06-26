@@ -1,0 +1,54 @@
+{
+  "scenarioId": "m5.alpha_content_framework.first_season.v1",
+  "seed": "155",
+  "requestedSeed": "5",
+  "source": "uninterrupted",
+  "loadedStateHash": "0x00000000",
+  "checkpoints": [
+    {
+      "tick": 0,
+      "worldHash": "0xc2a4c9bc",
+      "readModelHash": "0x8ad12cd7",
+      "checkpointHash": "0xbbc6e304",
+      "rebuiltSurfaceHash": "0x93994367"
+    },
+    {
+      "tick": 3600,
+      "worldHash": "0x26103b4c",
+      "readModelHash": "0xfe3a4987",
+      "checkpointHash": "0xc0631c89",
+      "rebuiltSurfaceHash": "0xda5278cf"
+    },
+    {
+      "tick": 7200,
+      "worldHash": "0x687c43dc",
+      "readModelHash": "0x328c0a37",
+      "checkpointHash": "0x59d5e92e",
+      "rebuiltSurfaceHash": "0x172f09e2"
+    },
+    {
+      "tick": 12000,
+      "worldHash": "0xc359959c",
+      "readModelHash": "0x7f02f3f7",
+      "checkpointHash": "0x82767752",
+      "rebuiltSurfaceHash": "0xabacc7de"
+    },
+    {
+      "tick": 18000,
+      "worldHash": "0xb522fc8c",
+      "readModelHash": "0x844ccdc7",
+      "checkpointHash": "0xca2a9682",
+      "rebuiltSurfaceHash": "0xd3ba1062"
+    },
+    {
+      "tick": 36000,
+      "worldHash": "0x9a4a905c",
+      "readModelHash": "0x57eba2b7",
+      "checkpointHash": "0x7e5f17d4",
+      "rebuiltSurfaceHash": "0xdf7329d2"
+    }
+  ],
+  "finalTick": 36000,
+  "finalWorldHash": "0x9a4a905c",
+  "finalReadModelHash": "0x57eba2b7"
+}

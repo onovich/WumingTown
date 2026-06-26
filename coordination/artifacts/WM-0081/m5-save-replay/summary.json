@@ -1,0 +1,253 @@
+{
+  "ok": true,
+  "scenarioId": "m5.alpha_content_framework.first_season.v1",
+  "seed": "155",
+  "requestedSeed": "5",
+  "contentManifestHash": "0xe55d3015",
+  "commandStreamHash": "0x81d37435",
+  "finalWorldHash": "0x9a4a905c",
+  "finalReadModelHash": "0x57eba2b7",
+  "resumedFinalWorldHash": "0x9a4a905c",
+  "resumedFinalReadModelHash": "0x57eba2b7",
+  "resumedSource": "loaded-save",
+  "loadedStateHash": "0x8d3c06e6",
+  "checkpointCount": 6,
+  "checkpointHashes": [
+    {
+      "tick": 0,
+      "worldHash": "0xc2a4c9bc",
+      "readModelHash": "0x8ad12cd7",
+      "checkpointHash": "0xbbc6e304"
+    },
+    {
+      "tick": 3600,
+      "worldHash": "0x26103b4c",
+      "readModelHash": "0xfe3a4987",
+      "checkpointHash": "0xc0631c89"
+    },
+    {
+      "tick": 7200,
+      "worldHash": "0x687c43dc",
+      "readModelHash": "0x328c0a37",
+      "checkpointHash": "0x59d5e92e"
+    },
+    {
+      "tick": 12000,
+      "worldHash": "0xc359959c",
+      "readModelHash": "0x7f02f3f7",
+      "checkpointHash": "0x82767752"
+    },
+    {
+      "tick": 18000,
+      "worldHash": "0xb522fc8c",
+      "readModelHash": "0x844ccdc7",
+      "checkpointHash": "0xca2a9682"
+    },
+    {
+      "tick": 36000,
+      "worldHash": "0x9a4a905c",
+      "readModelHash": "0x57eba2b7",
+      "checkpointHash": "0x7e5f17d4"
+    }
+  ],
+  "saveTick": 12000,
+  "loadTick": 12001,
+  "finalTick": 36000,
+  "saveBytes": 6125,
+  "loadValidationTimeTicks": 2,
+  "rebuildTimeTicks": 2,
+  "rebuiltSurfaceNames": [
+    "anomaly-roster",
+    "borrowed-shadow",
+    "third-knock",
+    "old-bridge",
+    "faction-governance",
+    "season-events",
+    "content-validation",
+    "work-offers",
+    "path",
+    "read-model",
+    "review",
+    "metrics"
+  ],
+  "rebuiltSurfaces": [
+    {
+      "name": "anomaly-roster",
+      "hash": "0x2cea3e47",
+      "sourceVersion": 1
+    },
+    {
+      "name": "borrowed-shadow",
+      "hash": "0x8c8f8149",
+      "sourceVersion": 2
+    },
+    {
+      "name": "third-knock",
+      "hash": "0xa50fd874",
+      "sourceVersion": 3
+    },
+    {
+      "name": "old-bridge",
+      "hash": "0xb854c305",
+      "sourceVersion": 4
+    },
+    {
+      "name": "faction-governance",
+      "hash": "0x06128827",
+      "sourceVersion": 5
+    },
+    {
+      "name": "season-events",
+      "hash": "0x260f4647",
+      "sourceVersion": 6
+    },
+    {
+      "name": "content-validation",
+      "hash": "0x3e163fef",
+      "sourceVersion": 7
+    },
+    {
+      "name": "work-offers",
+      "hash": "0xd8b35469",
+      "sourceVersion": 8
+    },
+    {
+      "name": "path",
+      "hash": "0x8fef531b",
+      "sourceVersion": 9
+    },
+    {
+      "name": "read-model",
+      "hash": "0xa2ef272a",
+      "sourceVersion": 10
+    },
+    {
+      "name": "review",
+      "hash": "0xaf488aee",
+      "sourceVersion": 11
+    },
+    {
+      "name": "metrics",
+      "hash": "0xdd84d6db",
+      "sourceVersion": 12
+    }
+  ],
+  "ownerHandles": [
+    {
+      "handleId": 1,
+      "storeKind": 1,
+      "ownerVersion": 30,
+      "activeCount": 20
+    },
+    {
+      "handleId": 2,
+      "storeKind": 2,
+      "ownerVersion": 5,
+      "activeCount": 3
+    },
+    {
+      "handleId": 3,
+      "storeKind": 3,
+      "ownerVersion": 10,
+      "activeCount": 1
+    },
+    {
+      "handleId": 4,
+      "storeKind": 4,
+      "ownerVersion": 11,
+      "activeCount": 1
+    },
+    {
+      "handleId": 5,
+      "storeKind": 5,
+      "ownerVersion": 4,
+      "activeCount": 4
+    },
+    {
+      "handleId": 6,
+      "storeKind": 6,
+      "ownerVersion": 4,
+      "activeCount": 4
+    },
+    {
+      "handleId": 7,
+      "storeKind": 7,
+      "ownerVersion": 13,
+      "activeCount": 7
+    }
+  ],
+  "randomStreams": [
+    {
+      "streamName": "m5-alpha-season-events",
+      "drawCount": 7,
+      "position": 3044917750,
+      "stateHash": "0xf33ec6df"
+    }
+  ],
+  "commandTail": [
+    {
+      "tick": 400,
+      "sequence": 9,
+      "commandHash": "0xfa500b43"
+    },
+    {
+      "tick": 430,
+      "sequence": 10,
+      "commandHash": "0xb63b57a2"
+    },
+    {
+      "tick": 440,
+      "sequence": 11,
+      "commandHash": "0x73735f3d"
+    },
+    {
+      "tick": 470,
+      "sequence": 12,
+      "commandHash": "0x88eb9cbd"
+    },
+    {
+      "tick": 600,
+      "sequence": 13,
+      "commandHash": "0xb328a2da"
+    },
+    {
+      "tick": 700,
+      "sequence": 14,
+      "commandHash": "0xb7537f79"
+    }
+  ],
+  "saveCheckpointHashes": [
+    {
+      "tick": 0,
+      "worldHash": "0xc2a4c9bc",
+      "readModelHash": "0x8ad12cd7",
+      "checkpointHash": "0xbbc6e304"
+    },
+    {
+      "tick": 3600,
+      "worldHash": "0x26103b4c",
+      "readModelHash": "0xfe3a4987",
+      "checkpointHash": "0xc0631c89"
+    },
+    {
+      "tick": 7200,
+      "worldHash": "0x687c43dc",
+      "readModelHash": "0x328c0a37",
+      "checkpointHash": "0x59d5e92e"
+    },
+    {
+      "tick": 12000,
+      "worldHash": "0xc359959c",
+      "readModelHash": "0x7f02f3f7",
+      "checkpointHash": "0x82767752"
+    }
+  ],
+  "firstDivergentTick": null,
+  "artifactPaths": {
+    "expected": "coordination/artifacts/WM-0081/m5-save-replay/expected.json",
+    "actual": "coordination/artifacts/WM-0081/m5-save-replay/actual.json",
+    "resumed": "coordination/artifacts/WM-0081/m5-save-replay/resumed.json",
+    "save": "coordination/artifacts/WM-0081/m5-save-replay/save.json",
+    "summary": "coordination/artifacts/WM-0081/m5-save-replay/summary.json"
+  }
+}

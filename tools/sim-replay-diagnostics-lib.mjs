@@ -7,6 +7,7 @@ import {
   compareM2ReplayRuns,
   compareM3ReplayRuns,
   compareM4ReplayRuns,
+  compareM5ReplayRuns,
   compareReplayCheckpoints,
   createM1HaulingBuildingSaveEnvelope,
   createHeadlessReplayCheckpoint,
@@ -14,6 +15,7 @@ import {
   createM2WorkLogisticsSaveEnvelope,
   createM3OrdinaryLifeSaveEnvelope,
   createM4CoreVerticalSliceSaveEnvelope,
+  createM5AlphaContentSaveEnvelope,
   M3_FINAL_TICK,
   M3_LOAD_TICK,
   M3_ORDINARY_LIFE_SCENARIO_ID,
@@ -23,17 +25,25 @@ import {
   M4_LOAD_TICK,
   M4_REPLAY_CHECKPOINT_SEQUENCE,
   M4_SAVE_TICK,
+  M5_ALPHA_CONTENT_SCENARIO_ID,
+  M5_FINAL_TICK,
+  M5_LOAD_TICK,
+  M5_REPLAY_CHECKPOINT_SEQUENCE,
+  M5_SAVE_TICK,
   M2_WORK_LOGISTICS_SCENARIO_ID,
   queueHeadlessCommand,
   loadM4CoreVerticalSliceSaveEnvelope,
+  loadM5AlphaContentSaveEnvelope,
   resumeM1HaulingBuildingFromSave,
   resumeM2WorkLogisticsFromSave,
   resumeM3OrdinaryLifeFromSave,
   resumeM4CoreVerticalSliceFromSave,
+  resumeM5AlphaContentFromSave,
   runM1HaulingBuildingReplay,
   runM2WorkLogisticsReplay,
   runM3OrdinaryLifeReplay,
   runM4CoreVerticalSliceReplay,
+  runM5AlphaContentReplay,
   summarizeHeadlessRun,
 } from "../packages/sim-core/src/index.ts";
 
@@ -41,11 +51,13 @@ const M1_SCENARIO_ID = "m1.hauling_building.road_lantern_frame.v1";
 const M2_SCENARIO_FILTER = "m2-work-logistics";
 const M3_SCENARIO_FILTER = "m3-ordinary-life";
 const M4_SCENARIO_FILTER = "m4-core-vertical-slice";
+const M5_SCENARIO_FILTER = "m5-alpha-content-framework";
 
 const DEFAULT_SEED = "WM-0010-long-run";
 const DEFAULT_M2_SEED = "2";
 const DEFAULT_M3_SEED = "3";
 const DEFAULT_M4_SEED = "4";
+const DEFAULT_M5_SEED = "5";
 const DEFAULT_SEGMENT_TICKS = 5_000;
 const DEFAULT_SEGMENT_COUNT = 24;
 
@@ -60,6 +72,10 @@ export function runReplayDiagnostics(options = {}) {
 
   if (options.scenario === M4_SCENARIO_FILTER) {
     return runM4ReplayDiagnostics(options);
+  }
+
+  if (options.scenario === M5_SCENARIO_FILTER) {
+    return runM5ReplayDiagnostics(options);
   }
 
   if (options.scenario !== undefined && options.scenario !== "all") {
@@ -233,6 +249,7 @@ export function printReplayDiagnosticsResult(result) {
           m2Scenario: result.m2Scenario ?? null,
           m3Scenario: result.m3Scenario ?? null,
           m4Scenario: result.m4Scenario ?? null,
+          m5Scenario: result.m5Scenario ?? null,
         },
         null,
         2,
@@ -356,6 +373,7 @@ function createArtifactPaths(customArtifactRoot) {
   const m2Dir = path.join(resolveArtifactRoot(customArtifactRoot), "m2-save-replay");
   const m3Dir = path.join(resolveArtifactRoot(customArtifactRoot), "m3-save-replay");
   const m4Dir = path.join(resolveArtifactRoot(customArtifactRoot), "m4-save-replay");
+  const m5Dir = path.join(resolveArtifactRoot(customArtifactRoot), "m5-save-replay");
 
   return {
     expected: path.join(artifactDir, "expected-checkpoints.json"),
@@ -389,6 +407,13 @@ function createArtifactPaths(customArtifactRoot) {
       resumed: path.join(m4Dir, "resumed.json"),
       save: path.join(m4Dir, "save.json"),
       summary: path.join(m4Dir, "summary.json"),
+    },
+    m5: {
+      expected: path.join(m5Dir, "expected.json"),
+      actual: path.join(m5Dir, "actual.json"),
+      resumed: path.join(m5Dir, "resumed.json"),
+      save: path.join(m5Dir, "save.json"),
+      summary: path.join(m5Dir, "summary.json"),
     },
   };
 }
@@ -440,6 +465,13 @@ function toRelativeArtifactPaths(artifactPaths) {
       resumed: toRelativePath(artifactPaths.m4.resumed),
       save: toRelativePath(artifactPaths.m4.save),
       summary: toRelativePath(artifactPaths.m4.summary),
+    },
+    m5: {
+      expected: toRelativePath(artifactPaths.m5.expected),
+      actual: toRelativePath(artifactPaths.m5.actual),
+      resumed: toRelativePath(artifactPaths.m5.resumed),
+      save: toRelativePath(artifactPaths.m5.save),
+      summary: toRelativePath(artifactPaths.m5.summary),
     },
   };
 }
@@ -783,6 +815,129 @@ function runM4ReplayDiagnostics(options) {
   }
 }
 
+function runM5ReplayDiagnostics(options) {
+  const seed = options.seed ?? DEFAULT_M5_SEED;
+  const artifactPaths = createArtifactPaths(
+    options.artifactRoot ?? path.join("coordination", "artifacts", "WM-0081"),
+  );
+  const failureContext = {
+    seed,
+    firstDivergentTick: null,
+    artifactPaths,
+  };
+
+  mkdirSync(path.dirname(artifactPaths.m5.summary), { recursive: true });
+  mkdirSync(path.dirname(artifactPaths.summary), { recursive: true });
+
+  try {
+    const checkpointTicks = M5_REPLAY_CHECKPOINT_SEQUENCE;
+    const resumeCheckpointTicks = [M5_SAVE_TICK, 18_000, M5_FINAL_TICK];
+    const expected = readM5Replay(runM5AlphaContentReplay({ seed, checkpointTicks }));
+    const actual = readM5Replay(runM5AlphaContentReplay({ seed, checkpointTicks }));
+    const expectedResume = filterReplayRunToTicks(expected, resumeCheckpointTicks);
+    const save = createM5AlphaContentSaveEnvelope(seed, M5_SAVE_TICK);
+    const loaded = readM5Load(loadM5AlphaContentSaveEnvelope(save));
+    const resumed = readM5Replay(
+      resumeM5AlphaContentFromSave({
+        save,
+        loadTick: M5_LOAD_TICK,
+        finalTick: M5_FINAL_TICK,
+        checkpointTicks: resumeCheckpointTicks,
+      }),
+    );
+
+    writeJson(artifactPaths.m5.expected, expected);
+    writeJson(artifactPaths.m5.actual, actual);
+    writeJson(artifactPaths.m5.save, save);
+    writeJson(artifactPaths.m5.resumed, resumed);
+
+    const relativeArtifacts = {
+      expected: toRelativePath(artifactPaths.m5.expected),
+      actual: toRelativePath(artifactPaths.m5.actual),
+      resumed: toRelativePath(artifactPaths.m5.resumed),
+      save: toRelativePath(artifactPaths.m5.save),
+      summary: toRelativePath(artifactPaths.m5.summary),
+    };
+    const comparison = compareM5ReplayRuns(expected, actual, relativeArtifacts);
+    const resumedComparison = compareM5ReplayRuns(expectedResume, resumed, relativeArtifacts);
+
+    if (!comparison.ok || !resumedComparison.ok) {
+      const divergence = comparison.ok ? resumedComparison : comparison;
+      return createReplayFailure(
+        "m5_alpha_content_divergence",
+        "M5 alpha content save/replay diagnostics diverged.",
+        failureContext,
+        {
+          scenarioId: M5_ALPHA_CONTENT_SCENARIO_ID,
+          firstDivergentTick: divergence.firstDivergentTick,
+          divergence,
+        },
+      );
+    }
+
+    const m5Scenario = {
+      ok: true,
+      scenarioId: M5_ALPHA_CONTENT_SCENARIO_ID,
+      seed: save.seed,
+      requestedSeed: seed,
+      contentManifestHash: save.contentManifestHash,
+      commandStreamHash: save.commandStreamHash,
+      finalWorldHash: expected.finalWorldHash,
+      finalReadModelHash: expected.finalReadModelHash,
+      resumedFinalWorldHash: resumed.finalWorldHash,
+      resumedFinalReadModelHash: resumed.finalReadModelHash,
+      resumedSource: resumed.source,
+      loadedStateHash: resumed.loadedStateHash,
+      checkpointCount: expected.checkpoints.length,
+      checkpointHashes: expected.checkpoints.map((checkpoint) => ({
+        tick: checkpoint.tick,
+        worldHash: checkpoint.worldHash,
+        readModelHash: checkpoint.readModelHash,
+        checkpointHash: checkpoint.checkpointHash,
+      })),
+      saveTick: save.createdTick,
+      loadTick: M5_LOAD_TICK,
+      finalTick: M5_FINAL_TICK,
+      saveBytes: JSON.stringify(save).length,
+      loadValidationTimeTicks: loaded.validationTimeTicks,
+      rebuildTimeTicks: loaded.rebuildTimeTicks,
+      rebuiltSurfaceNames: loaded.rebuiltSurfaceNames,
+      rebuiltSurfaces: loaded.projection.rebuiltIndexes.surfaces,
+      ownerHandles: save.sections.ownerStores.ownerHandles,
+      randomStreams: save.sections.randomStreams.streamPositions,
+      commandTail: save.sections.commandLogTail.commandTail,
+      saveCheckpointHashes: save.sections.reasonMetrics.checkpointHashes,
+      firstDivergentTick: null,
+      artifactPaths: relativeArtifacts,
+    };
+
+    const summary = {
+      ok: true,
+      scenarioId: M5_ALPHA_CONTENT_SCENARIO_ID,
+      seed: save.seed,
+      requestedSeed: seed,
+      contentManifestHash: save.contentManifestHash,
+      firstDivergentTick: null,
+      m5Scenario,
+      artifactPaths: toRelativeArtifactPaths(artifactPaths),
+    };
+
+    writeJson(artifactPaths.m5.summary, m5Scenario);
+    writeJson(artifactPaths.summary, summary);
+    return summary;
+  } catch (error) {
+    return createReplayFailure(
+      "unexpected_error",
+      "M5 replay diagnostics crashed before completing structured checks.",
+      failureContext,
+      {
+        scenarioId: M5_ALPHA_CONTENT_SCENARIO_ID,
+        error,
+      },
+    );
+  }
+}
+
 function runM1ReplayDiagnostics(seed, artifactPaths) {
   mkdirSync(path.dirname(artifactPaths.summary), { recursive: true });
 
@@ -906,6 +1061,22 @@ function readM4Replay(result) {
 }
 
 function readM4Load(result) {
+  if (!result.ok) {
+    throw new Error(result.reason);
+  }
+
+  return result;
+}
+
+function readM5Replay(result) {
+  if (!result.ok) {
+    throw new Error(result.reason);
+  }
+
+  return result.replay;
+}
+
+function readM5Load(result) {
   if (!result.ok) {
     throw new Error(result.reason);
   }

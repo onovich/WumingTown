@@ -1,0 +1,33 @@
+{
+  "scenarioId": "m5.alpha_content_framework.first_season.v1",
+  "seed": "155",
+  "requestedSeed": "5",
+  "source": "loaded-save",
+  "loadedStateHash": "0x8d3c06e6",
+  "checkpoints": [
+    {
+      "tick": 12000,
+      "worldHash": "0xc359959c",
+      "readModelHash": "0x7f02f3f7",
+      "checkpointHash": "0x82767752",
+      "rebuiltSurfaceHash": "0xabacc7de"
+    },
+    {
+      "tick": 18000,
+      "worldHash": "0xb522fc8c",
+      "readModelHash": "0x844ccdc7",
+      "checkpointHash": "0xca2a9682",
+      "rebuiltSurfaceHash": "0xd3ba1062"
+    },
+    {
+      "tick": 36000,
+      "worldHash": "0x9a4a905c",
+      "readModelHash": "0x57eba2b7",
+      "checkpointHash": "0x7e5f17d4",
+      "rebuiltSurfaceHash": "0xdf7329d2"
+    }
+  ],
+  "finalTick": 36000,
+  "finalWorldHash": "0x9a4a905c",
+  "finalReadModelHash": "0x57eba2b7"
+}

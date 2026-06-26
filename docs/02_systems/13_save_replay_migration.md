@@ -198,3 +198,26 @@ obligation, town-rule, crisis, director, WorkOffer, path, read-model,
 dawn-review and metrics before tick `12001`. These rebuilt surfaces are hashes
 for replay diagnostics and are not persisted authority or derived-cache save
 payloads.
+
+## WM-0081 implementation note
+
+`packages/sim-core/src/m5-save-replay.ts` implements the focused M5
+save/replay harness for
+`m5.alpha_content_framework.first_season.v1` / `m5-alpha-content-framework`.
+It is scenario evidence only: no public save compatibility, platform save UI,
+schema migration, codec dependency, Worker protocol change or cross-version
+compatibility promise is introduced.
+
+The M5 envelope records scenario id, requested and authoritative seeds,
+content manifest hash, command stream hash, save tick, next tick, owner-store
+versions, anomaly/faction/governance/season rows, deterministic random stream
+positions, command tail rows, checkpoint hashes and read-only projection
+hashes. Load validates unknown input in scratch before returning a loaded
+result, including content identity, owner handles, integer lanes, random stream
+positions and command continuity.
+
+Load reports rebuilt surfaces for anomaly roster, borrowed shadow,
+third-knock, old-bridge, faction/governance, season events, content
+validation, WorkOffer, path, read-model, review and metrics before tick
+`12001`. These rebuilt surfaces are diagnostic hashes and are not persisted
+authority or derived-cache save payloads.

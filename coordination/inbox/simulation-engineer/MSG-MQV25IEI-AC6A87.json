@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQV25IEI-AC6A87",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0081",
+  "kind": "changes-requested",
+  "subject": "WM-0081 review: changes_requested",
+  "body": "Blocking scope issue: WM-0081 modifies tools/sim-replay-diagnostics-lib.mjs and tools/sim-replay-test.mjs, but the task allowedPaths only authorize tools/test-runner.mjs and tools/headless-runner/src/index.ts under tools. Update task ownership/allowed paths or move the replay CLI changes into authorized scope before verification.",
+  "artifacts": [
+    "coordination/reports/WM-0081.md"
+  ],
+  "createdAt": "2026-06-26T15:00:18.666Z",
+  "acknowledgedAt": "2026-06-26T15:05:53.550Z"
+}

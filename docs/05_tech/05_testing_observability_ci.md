@@ -245,3 +245,18 @@ M5 pack validation is exposed through the content schema package, compiler and
 `content-cli --m5-pack <dir>`. `pnpm quality` and local CI must keep the M5
 filter registered in `tools/test-runner.mjs` so content-boundary regressions
 are caught without starting runtime M5 behavior.
+
+## WM-0081 implementation note
+
+`pnpm test --filter m5-save-replay` covers the focused M5 save/load/resume
+harness. It validates the `12000` save tick, `12001` load tick, `36000` final
+horizon, scenario id, content manifest hash, owner handles, integer lanes,
+anomaly/faction/governance/season rows, random stream positions, command tail,
+projection hashes and structured divergence diagnostics.
+
+`pnpm sim:replay-test -- --scenario m5-alpha-content-framework` runs the M5
+replay gate with requested seed `5` and authoritative scenario seed `155`. It
+writes expected, actual, save, resumed and summary artifacts under
+`coordination/artifacts/WM-0081/m5-save-replay/`, including save byte size,
+load validation time, rebuild time, rebuilt surface names/hashes, command tail
+and checkpoint hashes.

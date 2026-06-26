@@ -2,7 +2,7 @@
   "id": "WM-0081",
   "title": "Add M5 focused save/replay",
   "summary": "Add focused save/load/resume diagnostics for the M5 alpha scenario with content manifest hash, owner-state validation and rebuilt derived surfaces.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -39,7 +39,7 @@
   ],
   "branch": "task/WM-0081-add-m5-focused-save-replay",
   "createdAt": "2026-06-26T09:24:00.000Z",
-  "updatedAt": "2026-06-26T14:32:28.204Z",
+  "updatedAt": "2026-06-26T15:11:56.260Z",
   "history": [
     {
       "at": "2026-06-26T09:24:00.000Z",
@@ -52,6 +52,48 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-26T14:35:42.715Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Beacon"
+    },
+    {
+      "at": "2026-06-26T14:55:20.459Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented focused M5 save/load/resume harness with content manifest validation, rebuilt surfaces, replay diagnostics artifacts and all required gates plus pnpm quality passing"
+    },
+    {
+      "at": "2026-06-26T15:00:18.665Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: Blocking scope issue: WM-0081 modifies tools/sim-replay-diagnostics-lib.mjs and tools/sim-replay-test.mjs, but the task allowedPaths only authorize tools/test-runner.mjs and tools/headless-runner/src/index.ts under tools. Update task ownership/allowed paths or move the replay CLI changes into authorized scope before verification."
+    },
+    {
+      "at": "2026-06-26T15:07:42.485Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Repaired review scope finding by adding required replay diagnostics tool entrypoints and plan file to allowedPaths; focused M5 save/replay gates and pnpm quality pass"
+    },
+    {
+      "at": "2026-06-26T15:10:58.032Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Previous scope blocker is resolved: allowedPaths now includes tools/sim-replay-diagnostics-lib.mjs, tools/sim-replay-test.mjs and coordination/reports/WM-0081-plan.md. Focused M5 save/replay acceptance confirmed via task/report/code/artifacts: content manifest 0xe55d3015, command stream 0x81d37435, save/load ticks 12000/12001, 12 rebuilt diagnostic surfaces, matching final/resumed hashes 0x9a4a905c / 0x57eba2b7 and firstDivergentTick null. Reviewer reran taskctl validate, pnpm typecheck, pnpm test --filter m5-save-replay, git diff --check, read-only artifact consistency check and pnpm quality; all passed."
+    },
+    {
+      "at": "2026-06-26T15:11:49.585Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified by independent reviewer after allowed-path repair; focused M5 save/replay gates and pnpm quality passed"
+    },
+    {
+      "at": "2026-06-26T15:11:56.260Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M5",
@@ -62,11 +104,14 @@
     "packages/sim-core/src/replay-diagnostics.ts",
     "packages/sim-core/src/index.ts",
     "tools/headless-runner/src/index.ts",
+    "tools/sim-replay-diagnostics-lib.mjs",
+    "tools/sim-replay-test.mjs",
     "tools/test-runner.mjs",
     "docs/02_systems/13_save_replay_migration.md",
     "docs/05_tech/05_testing_observability_ci.md",
     "coordination/artifacts/WM-0081/**",
     "coordination/tasks/WM-0081.json",
+    "coordination/reports/WM-0081-plan.md",
     "coordination/reports/WM-0081.md"
   ],
   "forbiddenPaths": [
@@ -98,5 +143,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Save/replay determinism and migration boundaries are not suitable for Spark."
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Beacon",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0081.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Previous scope blocker is resolved: allowedPaths now includes tools/sim-replay-diagnostics-lib.mjs, tools/sim-replay-test.mjs and coordination/reports/WM-0081-plan.md. Focused M5 save/replay acceptance confirmed via task/report/code/artifacts: content manifest 0xe55d3015, command stream 0x81d37435, save/load ticks 12000/12001, 12 rebuilt diagnostic surfaces, matching final/resumed hashes 0x9a4a905c / 0x57eba2b7 and firstDivergentTick null. Reviewer reran taskctl validate, pnpm typecheck, pnpm test --filter m5-save-replay, git diff --check, read-only artifact consistency check and pnpm quality; all passed.",
+    "at": "2026-06-26T15:10:58.032Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified by independent reviewer after allowed-path repair; focused M5 save/replay gates and pnpm quality passed",
+    "at": "2026-06-26T15:11:49.585Z"
   }
 }

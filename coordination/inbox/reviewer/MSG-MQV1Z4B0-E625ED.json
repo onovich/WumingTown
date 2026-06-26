@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQV1Z4B0-E625ED",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0081",
+  "kind": "review-request",
+  "subject": "WM-0081 ready for review",
+  "body": "Implemented focused M5 save/load/resume harness with content manifest validation, rebuilt surfaces, replay diagnostics artifacts and all required gates plus pnpm quality passing",
+  "artifacts": [
+    "coordination/reports/WM-0081.md",
+    "task/WM-0081-add-m5-focused-save-replay"
+  ],
+  "createdAt": "2026-06-26T14:55:20.460Z",
+  "acknowledgedAt": "2026-06-26T14:55:54.998Z"
+}

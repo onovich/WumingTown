@@ -1,0 +1,388 @@
+{
+  "magic": "wuming-town.m5.alpha-content-framework.save",
+  "formatVersion": 1,
+  "sectionDirectoryVersion": 1,
+  "scenarioId": "m5.alpha_content_framework.first_season.v1",
+  "alias": "m5-alpha-content-framework",
+  "requestedSeed": "5",
+  "seed": "155",
+  "contentManifestHash": "0xe55d3015",
+  "commandStreamHash": "0x81d37435",
+  "createdTick": 12000,
+  "nextTick": 12001,
+  "sections": {
+    "ownerStores": {
+      "ownerStoresVersion": 1,
+      "ownerHandles": [
+        {
+          "handleId": 1,
+          "storeKind": 1,
+          "ownerVersion": 30,
+          "activeCount": 20
+        },
+        {
+          "handleId": 2,
+          "storeKind": 2,
+          "ownerVersion": 5,
+          "activeCount": 3
+        },
+        {
+          "handleId": 3,
+          "storeKind": 3,
+          "ownerVersion": 10,
+          "activeCount": 1
+        },
+        {
+          "handleId": 4,
+          "storeKind": 4,
+          "ownerVersion": 11,
+          "activeCount": 1
+        },
+        {
+          "handleId": 5,
+          "storeKind": 5,
+          "ownerVersion": 4,
+          "activeCount": 4
+        },
+        {
+          "handleId": 6,
+          "storeKind": 6,
+          "ownerVersion": 4,
+          "activeCount": 4
+        },
+        {
+          "handleId": 7,
+          "storeKind": 7,
+          "ownerVersion": 13,
+          "activeCount": 7
+        }
+      ],
+      "anomalyRecords": [
+        {
+          "recordId": 1,
+          "anomalyKind": 1,
+          "selectedCandidateId": 0,
+          "activeCrisisCount": 0,
+          "resolvedCrisisCount": 1,
+          "evidenceKindCount": 4,
+          "terminalReason": 1,
+          "reviewTick": 0,
+          "ownerVersion": 5,
+          "queryVisitedCount": 1,
+          "candidateCapHit": 1
+        },
+        {
+          "recordId": 2,
+          "anomalyKind": 2,
+          "selectedCandidateId": 0,
+          "activeCrisisCount": 0,
+          "resolvedCrisisCount": 1,
+          "evidenceKindCount": 5,
+          "terminalReason": 1,
+          "reviewTick": 150,
+          "ownerVersion": 10,
+          "queryVisitedCount": 1,
+          "candidateCapHit": 1
+        },
+        {
+          "recordId": 3,
+          "anomalyKind": 3,
+          "selectedCandidateId": 1,
+          "activeCrisisCount": 0,
+          "resolvedCrisisCount": 1,
+          "evidenceKindCount": 5,
+          "terminalReason": 1,
+          "reviewTick": 250,
+          "ownerVersion": 11,
+          "queryVisitedCount": 1,
+          "candidateCapHit": 1
+        }
+      ],
+      "factionRecords": [
+        {
+          "factKind": 1,
+          "selectedCount": 2,
+          "activeFactCount": 4,
+          "queryVisitedCount": 4,
+          "ownerVersion": 4,
+          "reason": "m5_faction_query_cap_reached"
+        }
+      ],
+      "governanceRecords": [
+        {
+          "hookKind": 1,
+          "selectedCount": 4,
+          "activeHookCount": 4,
+          "queryVisitedCount": 4,
+          "allowed": 1,
+          "ownerVersion": 4,
+          "reason": "m5_governance_query_allowed"
+        },
+        {
+          "hookKind": 2,
+          "selectedCount": 4,
+          "activeHookCount": 4,
+          "queryVisitedCount": 4,
+          "allowed": 0,
+          "ownerVersion": 4,
+          "reason": "m5_governance_query_risk_blocked"
+        }
+      ],
+      "seasonRecords": [
+        {
+          "recordId": 1,
+          "selectionCount": 5,
+          "totalCandidateVisits": 8,
+          "activeIncidentCandidateCount": 5,
+          "activeRecoveryCandidateCount": 2,
+          "preconditionFailureCount": 5,
+          "cooldownWriteCount": 1,
+          "freshnessWriteCount": 1,
+          "ownerVersion": 13,
+          "reason": "m5_season_event_incident_selected"
+        }
+      ]
+    },
+    "contentValidation": {
+      "contentValidationVersion": 1,
+      "contentManifestHash": "0xe55d3015",
+      "definitionCount": 30,
+      "catalogEntryCount": 20,
+      "reviewNoteCount": 20,
+      "blockedCatalogEntryCount": 1,
+      "blockedReasonCount": 1
+    },
+    "randomStreams": {
+      "randomStreamsVersion": 1,
+      "streamPositions": [
+        {
+          "streamName": "m5-alpha-season-events",
+          "drawCount": 7,
+          "position": 3044917750,
+          "stateHash": "0xf33ec6df"
+        }
+      ]
+    },
+    "commandLogTail": {
+      "commandLogTailVersion": 1,
+      "checkpointTick": 12000,
+      "checkpointWorldHash": "0xc359959c",
+      "commandStreamHash": "0x81d37435",
+      "contentManifestHash": "0xe55d3015",
+      "nextCommandSequence": 15,
+      "commandTail": [
+        {
+          "tick": 400,
+          "sequence": 9,
+          "commandHash": "0xfa500b43"
+        },
+        {
+          "tick": 430,
+          "sequence": 10,
+          "commandHash": "0xb63b57a2"
+        },
+        {
+          "tick": 440,
+          "sequence": 11,
+          "commandHash": "0x73735f3d"
+        },
+        {
+          "tick": 470,
+          "sequence": 12,
+          "commandHash": "0x88eb9cbd"
+        },
+        {
+          "tick": 600,
+          "sequence": 13,
+          "commandHash": "0xb328a2da"
+        },
+        {
+          "tick": 700,
+          "sequence": 14,
+          "commandHash": "0xb7537f79"
+        }
+      ]
+    },
+    "reasonMetrics": {
+      "reasonMetricsVersion": 1,
+      "checkpointHashes": [
+        {
+          "tick": 0,
+          "worldHash": "0xc2a4c9bc",
+          "readModelHash": "0x8ad12cd7",
+          "checkpointHash": "0xbbc6e304"
+        },
+        {
+          "tick": 3600,
+          "worldHash": "0x26103b4c",
+          "readModelHash": "0xfe3a4987",
+          "checkpointHash": "0xc0631c89"
+        },
+        {
+          "tick": 7200,
+          "worldHash": "0x687c43dc",
+          "readModelHash": "0x328c0a37",
+          "checkpointHash": "0x59d5e92e"
+        },
+        {
+          "tick": 12000,
+          "worldHash": "0xc359959c",
+          "readModelHash": "0x7f02f3f7",
+          "checkpointHash": "0x82767752"
+        }
+      ],
+      "reviewRows": [
+        {
+          "rowId": 1,
+          "sourceKind": 1,
+          "sourceId": 0,
+          "tick": 150,
+          "ownerVersion": 10,
+          "reason": "third_knock_resolved_contained"
+        },
+        {
+          "rowId": 2,
+          "sourceKind": 2,
+          "sourceId": 0,
+          "tick": 250,
+          "ownerVersion": 10,
+          "reason": "old_bridge_resolved_reciprocity"
+        },
+        {
+          "rowId": 3,
+          "sourceKind": 3,
+          "sourceId": 5,
+          "tick": 470,
+          "ownerVersion": 13,
+          "reason": "m5_season_event_recovery_selected"
+        }
+      ],
+      "queueMetrics": {
+        "anomalyCandidateVisits": 3,
+        "factionCandidateVisits": 4,
+        "governanceCandidateVisits": 8,
+        "seasonCandidateVisits": 8,
+        "seasonPreconditionFailures": 5,
+        "capHitCount": 5
+      }
+    }
+  },
+  "readOnlyProjection": {
+    "projectionVersion": 1,
+    "scenarioId": "m5.alpha_content_framework.first_season.v1",
+    "tick": 12000,
+    "contentManifestHash": "0xe55d3015",
+    "worldHash": "0xc359959c",
+    "readModelHash": "0x288b1f05",
+    "renderSnapshot": {
+      "renderSnapshotSchemaVersion": 1,
+      "snapshotSequence": 3,
+      "tick": 12000,
+      "anomalyCount": 3,
+      "strategyPathCount": 4,
+      "worldHash": "0xc359959c",
+      "readModelHash": "0x181a5b6f"
+    },
+    "scenarioReadModel": {
+      "scenarioReadModelSchemaVersion": 1,
+      "scenarioId": "m5.alpha_content_framework.first_season.v1",
+      "basisTick": 12000,
+      "commandStreamHash": "0x81d37435",
+      "contentManifestHash": "0xe55d3015",
+      "thirdKnockReviewReason": "third_knock_resolved_contained",
+      "oldBridgeReviewReason": "old_bridge_resolved_reciprocity",
+      "seasonSelectionCount": 5,
+      "detailHash": "0xabc28fc5",
+      "summaries": [
+        "catalog=20",
+        "anomalies=3",
+        "thirdKnock=third_knock_resolved_contained",
+        "oldBridge=old_bridge_resolved_reciprocity",
+        "seasonSelections=5"
+      ]
+    },
+    "rebuiltIndexes": {
+      "rebuiltIndexesSchemaVersion": 1,
+      "names": [
+        "anomaly-roster",
+        "borrowed-shadow",
+        "third-knock",
+        "old-bridge",
+        "faction-governance",
+        "season-events",
+        "content-validation",
+        "work-offers",
+        "path",
+        "read-model",
+        "review",
+        "metrics"
+      ],
+      "surfaces": [
+        {
+          "name": "anomaly-roster",
+          "hash": "0x2cea3e47",
+          "sourceVersion": 1
+        },
+        {
+          "name": "borrowed-shadow",
+          "hash": "0x8c8f8149",
+          "sourceVersion": 2
+        },
+        {
+          "name": "third-knock",
+          "hash": "0xa50fd874",
+          "sourceVersion": 3
+        },
+        {
+          "name": "old-bridge",
+          "hash": "0xb854c305",
+          "sourceVersion": 4
+        },
+        {
+          "name": "faction-governance",
+          "hash": "0x06128827",
+          "sourceVersion": 5
+        },
+        {
+          "name": "season-events",
+          "hash": "0x260f4647",
+          "sourceVersion": 6
+        },
+        {
+          "name": "content-validation",
+          "hash": "0x3e163fef",
+          "sourceVersion": 7
+        },
+        {
+          "name": "work-offers",
+          "hash": "0xd8b35469",
+          "sourceVersion": 8
+        },
+        {
+          "name": "path",
+          "hash": "0x8fef531b",
+          "sourceVersion": 9
+        },
+        {
+          "name": "read-model",
+          "hash": "0xa2ef272a",
+          "sourceVersion": 10
+        },
+        {
+          "name": "review",
+          "hash": "0xaf488aee",
+          "sourceVersion": 11
+        },
+        {
+          "name": "metrics",
+          "hash": "0xdd84d6db",
+          "sourceVersion": 12
+        }
+      ],
+      "basisTick": 12000,
+      "basisWorldHash": "0xc359959c",
+      "rebuildTimeTicks": 2,
+      "indexHash": "0xabacc7de"
+    }
+  }
+}
