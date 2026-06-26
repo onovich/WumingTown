@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQUQTFUT-B2F446",
+  "from": "reviewer",
+  "to": "systems-architect",
+  "taskId": "WM-0072",
+  "kind": "review-approved",
+  "subject": "WM-0072 review: verified",
+  "body": "No blocking findings. Confirmed WM-0072 adopts the reviewed WM-0071 future M5 prompt, preserves the M4 closeout baseline, limits edits to allowed planning/control-plane paths plus workflow inbox, and creates only proposed/unclaimed WM-0073 through WM-0083 M5 task packets. ADR-0010, scenario contract and roadmap plan cover anomaly roster, faction/governance facts, season/event pools, data-mod validation, focused save/replay, Worker projections, benchmark policy, owner-store boundaries and M6 stop signs. Required gates passed; ci:local used a temporary WM_ARTIFACT_DIR. Runtime M5 and M6 remain unstarted.",
+  "artifacts": [
+    "coordination/reports/WM-0072.md"
+  ],
+  "createdAt": "2026-06-26T09:42:59.717Z",
+  "acknowledgedAt": "2026-06-26T09:43:54.230Z"
+}

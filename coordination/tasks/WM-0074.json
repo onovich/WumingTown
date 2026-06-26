@@ -1,0 +1,95 @@
+{
+  "id": "WM-0074",
+  "title": "Add M5 anomaly roster and borrowed-shadow data lift",
+  "summary": "Add the M5 anomaly roster owner surface and lift the reviewed M4 borrowed-shadow rule into the roster without changing M4 behavior or introducing bespoke content code paths.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0073"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0010.md",
+    "docs/02_systems/19_m5_alpha_content_framework_scenario.md",
+    "docs/02_systems/08_anomalies_rules_investigation.md",
+    "docs/02_systems/18_m4_core_vertical_slice_scenario.md",
+    "docs/05_tech/03_performance_budget.md"
+  ],
+  "acceptance": [
+    "M5 anomaly roster rows are compiled immutable rule inputs with stable def ids DefIndex order roster version and validation basis",
+    "Mutable anomaly state remains in explicit sim-core owner stores and not in content defs UI projections or director state",
+    "Borrowed-shadow behavior is lifted as core.anomaly.borrowed_shadow.v1 without regressing the reviewed M4 scenario hashes or owner boundaries",
+    "Activation reads use bounded versioned candidates and stable Top-K ordering rather than scanning all lamps evidence residents or content defs",
+    "Focused tests cover roster validation stable ordering borrowed-shadow parity activation cap hits stale content basis rejection and structured reasons"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m5-anomaly-roster",
+    "pnpm sim:run -- --seed 4 --scenario m4-core-vertical-slice --ticks 36000",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "validationCommands": [
+    "pnpm typecheck",
+    "pnpm test --filter m5-anomaly-roster",
+    "pnpm sim:run -- --seed 4 --scenario m4-core-vertical-slice --ticks 36000",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0074-add-m5-anomaly-roster",
+  "createdAt": "2026-06-26T09:24:00.000Z",
+  "updatedAt": "2026-06-26T09:24:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-26T09:24:00.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0072 M5 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "milestone": "M5",
+  "objective": "Introduce the M5 anomaly roster owner contract and prove borrowed shadow can be rostered data without behavior drift.",
+  "allowedPaths": [
+    "packages/sim-core/src/**m5**anomaly**",
+    "packages/sim-core/src/**borrowed**shadow**",
+    "packages/sim-core/src/m4-borrowed-shadow-crisis.ts",
+    "packages/sim-core/src/index.ts",
+    "packages/content-schema/src/**",
+    "packages/content-compiler/src/**",
+    "tools/test-runner.mjs",
+    "docs/02_systems/08_anomalies_rules_investigation.md",
+    "docs/05_tech/03_performance_budget.md",
+    "coordination/tasks/WM-0074.json",
+    "coordination/reports/WM-0074.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-worker/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "third-knock or old-bridge implementation",
+    "faction governance season event implementation",
+    "public Worker protocol changes",
+    "public save format changes",
+    "new dependencies",
+    "M6 task creation or implementation"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: lifting borrowed shadow changes M4 evidence; owner must preserve M4 scenario command/content hashes or document a blocker.",
+    "Risk: roster becomes authority; mutable state must stay in sim-core owner stores.",
+    "Risk: activation scans content or world; candidate lanes and caps must be measured."
+  ],
+  "benchmarkImpact": "Adds anomaly roster count activation candidate and cap-hit counters; baseline update waits for WM-0083.",
+  "reviewRouting": "Simulation-engineer completes to reviewer; systems-architect must be consulted before changing roster schema or M4 borrowed-shadow semantics.",
+  "rollbackModel": "Revert M5 roster and borrowed-shadow data-lift changes; keep WM-0073 validation and all M4 behavior intact.",
+  "ownerGate": [
+    "Keep content defs immutable and non-authoritative",
+    "Preserve M4 borrowed-shadow regression evidence",
+    "Use bounded activation lanes with stable Top-K ordering",
+    "Block on schema protocol save dependency UI authority or M6 scope"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Anomaly roster ownership and M4 behavior preservation touch deterministic simulation architecture."
+  }
+}

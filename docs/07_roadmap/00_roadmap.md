@@ -143,3 +143,22 @@ M5 remains unstarted by this closeout. WM-0071 writes only the non-executable
 future handoff prompt at
 `coordination/reports/WM-0071-future-m5-entry-prompt.md`; a later reviewed M5
 planning task must create any M5 DAG before implementation can begin.
+
+## M5 Planning Addendum
+
+WM-0072 creates the reviewed-planning candidate package for M5. The package
+defines scenario contract `m5.alpha_content_framework.first_season.v1`,
+ADR-0010, roadmap plan and proposed task packets WM-0073 through WM-0083.
+Runtime M5 implementation remains unstarted until WM-0072 is independently
+reviewed and integrated, and the project-director promotes downstream ready
+tasks through taskctl.
+
+M5 planning preserves the M4 closeout baseline, including the M4 benchmark
+artifact
+`coordination/artifacts/WM-0070/benchmarks/benchmark-results.json` with actual
+file SHA-256
+`FDC0DFE779264134C23F3DAF95C92C879C683DDCBB22A9E704F12359B3DC0E71`.
+Benchmark warning/blocking thresholds remain 10 percent and 20 percent.
+
+WM-0072 does not create, promote, claim, implement or review any M6 task. M6
+readiness is represented only as stop signs inside the M5 plan.

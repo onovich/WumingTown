@@ -1,0 +1,94 @@
+{
+  "id": "WM-0082",
+  "title": "Add M5 Worker projections and parity",
+  "summary": "Prove Node Worker and browser Worker parity for M5 read-only projections with content, anomaly, faction, governance and event basis metadata.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0081"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0010.md",
+    "docs/02_systems/19_m5_alpha_content_framework_scenario.md",
+    "docs/05_tech/02_worker_protocol.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "Node Worker and browser Worker consume the same M5 command stream and compare authoritative hashes at fixed checkpoints",
+    "Read-only projections include content manifest anomaly roster faction/governance season event validation and review basis metadata with canonical projection hashes",
+    "Stale projection basis is rejected or discarded with structured reasons and UI cannot repair authoritative state",
+    "Existing Worker message families are reused where feasible; any public protocol change blocks for separate review",
+    "Focused tests and e2e smoke cover projection byte size parity checkpoint diagnostics stale rejection and no UI authority"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m5-worker-parity",
+    "pnpm test:e2e --filter worker-smoke",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "validationCommands": [
+    "pnpm typecheck",
+    "pnpm test --filter m5-worker-parity",
+    "pnpm test:e2e --filter worker-smoke",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0082-add-m5-worker-projections-parity",
+  "createdAt": "2026-06-26T09:24:00.000Z",
+  "updatedAt": "2026-06-26T09:24:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-26T09:24:00.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0072 M5 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "milestone": "M5",
+  "objective": "Expose M5 content-framework state through read-only Worker projections and prove Node/browser parity.",
+  "allowedPaths": [
+    "packages/sim-core/src/**m5**worker**",
+    "packages/sim-core/src/**m5**projection**",
+    "packages/sim-core/src/index.ts",
+    "packages/sim-worker/src/**",
+    "packages/sim-protocol/src/**",
+    "apps/web/src/**worker**",
+    "tools/test-runner.mjs",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "coordination/artifacts/WM-0082/**",
+    "coordination/tasks/WM-0082.json",
+    "coordination/reports/WM-0082.md"
+  ],
+  "forbiddenPaths": [
+    "apps/desktop-electron/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "public Worker protocol redesign without separate gate",
+    "public save format changes",
+    "new dependencies",
+    "UI-authoritative state or client repair",
+    "benchmark baseline updates",
+    "M6 task creation or implementation"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: projection fields become protocol changes; use existing message families where feasible or block.",
+    "Risk: UI accepts stale content basis; tests must assert stale rejection/discard paths.",
+    "Risk: Worker parity hides runtime hash mismatch; compare both authoritative and read-model/projection hashes."
+  ],
+  "benchmarkImpact": "Adds projection byte size stale rejection and Worker parity diagnostics; baseline update waits for WM-0083.",
+  "reviewRouting": "Simulation-engineer completes to reviewer; client-engineer and systems-architect must be consulted before protocol/client surface changes.",
+  "rollbackModel": "Revert M5 Worker projection/parity changes artifacts docs and report; leave save/replay and scenario harness intact.",
+  "ownerGate": [
+    "Keep Worker projections read-only",
+    "Reuse existing protocol message families where feasible",
+    "Compare Node and browser projection hashes",
+    "Block on public protocol save dependency UI authority or M6 scope"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Worker parity and protocol-adjacent projection work require simulation/client architecture review."
+  }
+}

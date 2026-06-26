@@ -1,0 +1,94 @@
+{
+  "id": "WM-0076",
+  "title": "Add old-bridge guest anomaly rule",
+  "summary": "Add core.anomaly.old_bridge_guest.v1 using logistics, bridge route, prepared item, obligation, faction and season basis facts.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0075"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0010.md",
+    "docs/02_systems/19_m5_alpha_content_framework_scenario.md",
+    "docs/02_systems/06_economy_logistics_production.md",
+    "docs/02_systems/08_anomalies_rules_investigation.md",
+    "docs/02_systems/09_obligations_pacts_factions.md",
+    "docs/04_content_balance/04_anomaly_authoring_guide.md",
+    "docs/05_tech/03_performance_budget.md"
+  ],
+  "acceptance": [
+    "Old-bridge guest crisis state is an explicit serializable owner store with bridge window prepared-item basis route basis resolution and terminal reason fields",
+    "Activation and safe-passage checks use existing logistics route item obligation Chronicle and faction basis facts without owning those source facts",
+    "Low-risk evidence includes bridge ledgers missing prepared goods route delays merchant testimony and old-family oral records",
+    "Resolution supports non-combat reciprocity rerouting or obligation settlement and writes structured review rows",
+    "Focused tests cover prepared-item validation stale route/content basis rejection terminal cleanup cap hits and no full logistics scan"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m5-old-bridge",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "validationCommands": [
+    "pnpm typecheck",
+    "pnpm test --filter m5-old-bridge",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0076-add-old-bridge-guest-anomaly",
+  "createdAt": "2026-06-26T09:24:00.000Z",
+  "updatedAt": "2026-06-26T09:24:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-26T09:24:00.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0072 M5 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "milestone": "M5",
+  "objective": "Implement the old-bridge guest anomaly as a reusable road/logistics rule without duplicating logistics or obligation authority.",
+  "allowedPaths": [
+    "packages/sim-core/src/**old**bridge**",
+    "packages/sim-core/src/**m5**anomaly**",
+    "packages/sim-core/src/index.ts",
+    "packages/content-schema/src/**old**bridge**",
+    "packages/content-compiler/src/**old**bridge**",
+    "tools/test-runner.mjs",
+    "docs/02_systems/08_anomalies_rules_investigation.md",
+    "docs/05_tech/03_performance_budget.md",
+    "coordination/tasks/WM-0076.json",
+    "coordination/reports/WM-0076.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-worker/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "broad faction governance or season event implementation",
+    "public Worker protocol changes",
+    "public save format changes",
+    "new dependencies",
+    "global logistics scans",
+    "M6 task creation or implementation"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: bridge anomaly duplicates item or route authority; existing owner stores must remain source truth.",
+    "Risk: faction pressure enters before owner facts exist; use placeholders only as versioned basis rows or block for WM-0077.",
+    "Risk: route/prepared-item checks become global scans; use bounded indexed candidates."
+  ],
+  "benchmarkImpact": "Adds old-bridge candidate route/prepared-item and terminal reason metrics; baseline update waits for WM-0083.",
+  "reviewRouting": "Simulation-engineer completes to reviewer; systems-architect must be consulted before changing logistics ownership or public schema.",
+  "rollbackModel": "Revert old-bridge owner store, tests, content def and docs; keep prior M5 anomaly roster and third-knock work intact.",
+  "ownerGate": [
+    "Do not duplicate logistics item route or obligation authority",
+    "Validate bridge window and prepared-item basis before mutation",
+    "Use bounded candidates and stable ordering",
+    "Block on public protocol save schema dependency UI authority or M6 scope"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "New anomaly/logistics integration touches deterministic simulation ownership."
+  }
+}

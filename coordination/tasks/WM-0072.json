@@ -1,0 +1,172 @@
+{
+  "id": "WM-0072",
+  "title": "Create M5 planning package",
+  "summary": "Create the reviewed M5 alpha content framework planning package from the WM-0071 future M5 entry prompt, including scenario contract, ADR, task DAG, risk/performance/save/Worker/content-validation plan, and executable M5 task packets without implementing runtime M5 behavior.",
+  "state": "done",
+  "ownerRole": "systems-architect",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0071"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "CODEX_START_HERE.md",
+    "coordination/reports/WM-0071.md",
+    "coordination/reports/WM-0071-future-m5-entry-prompt.md",
+    "docs/00_project/05_decision_register.md",
+    "docs/02_systems/07_chronicle_evidence_knowledge.md",
+    "docs/02_systems/08_anomalies_rules_investigation.md",
+    "docs/02_systems/09_obligations_pacts_factions.md",
+    "docs/02_systems/10_ordinances_governance_identity.md",
+    "docs/02_systems/11_story_director_incidents_quests.md",
+    "docs/02_systems/13_save_replay_migration.md",
+    "docs/02_systems/18_m4_core_vertical_slice_scenario.md",
+    "docs/03_world/03_factions.md",
+    "docs/03_world/05_supernatural_taxonomy.md",
+    "docs/04_content_balance/00_content_design_guide.md",
+    "docs/04_content_balance/04_anomaly_authoring_guide.md",
+    "docs/04_content_balance/05_incident_authoring_guide.md",
+    "docs/04_content_balance/08_sample_content_catalog.md",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/05_tech/04_persistence_mods_security.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "docs/06_engineering/03_definition_of_done.md",
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "docs/07_roadmap/03_future_content_backlog.md",
+    "docs/08_codex/00_multi_agent_operating_model.md",
+    "docs/08_codex/08_spark_execution_lane.md"
+  ],
+  "acceptance": [
+    "M5 planning package adopts the reviewed WM-0071 future M5 entry prompt and records startup audit evidence from main at M4 closeout",
+    "M5 scenario contract defines a concrete alpha content framework path with at least three anomaly rules, faction/governance hooks, season/event pool expectations, data-mod validation boundaries and explicit M6 non-goals",
+    "ADR-0010 or equivalent records M5 ownership boundaries for anomaly roster, faction/campaign facts, governance, season/event pools, content schemas, data-mod validation, save/replay scope, Worker projections and benchmark policy",
+    "M5 task DAG JSON packets are created with dependencies, milestone, owners, reviewers, allowed paths, forbidden paths, validation commands, risks, file ownership, benchmark impact, rollback model and owner gates",
+    "Planning report records M4 baseline evidence, M5 objective, protected M0-M4 regression scope, performance/invariant plan, save/Worker policy, data-mod policy, Spark classification and M6 readiness stop signs",
+    "No runtime M5 implementation begins in WM-0072 and no M6 task is created, promoted, claimed or implemented"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality",
+    "pnpm ci:local"
+  ],
+  "branch": "task/WM-0072-create-m5-planning-package",
+  "createdAt": "2026-06-26T09:15:51.813Z",
+  "updatedAt": "2026-06-26T09:45:00.862Z",
+  "history": [
+    {
+      "at": "2026-06-26T09:15:51.814Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    },
+    {
+      "at": "2026-06-26T09:17:20.000Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-26T09:21:09.636Z",
+      "actor": "systems-architect",
+      "action": "claim",
+      "details": "thread=Compass WM-0072 M5 planning"
+    },
+    {
+      "at": "2026-06-26T09:38:01.482Z",
+      "actor": "systems-architect",
+      "action": "complete",
+      "details": "Created M5 planning package: scenario contract, ADR-0010, roadmap plan, proposed WM-0073 through WM-0083 task DAG, reports, project-state marker, M5 performance/save/Worker/data-mod policy and M6 stop signs; required checks pass; no runtime M5 or M6 work started."
+    },
+    {
+      "at": "2026-06-26T09:42:59.716Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Confirmed WM-0072 adopts the reviewed WM-0071 future M5 prompt, preserves the M4 closeout baseline, limits edits to allowed planning/control-plane paths plus workflow inbox, and creates only proposed/unclaimed WM-0073 through WM-0083 M5 task packets. ADR-0010, scenario contract and roadmap plan cover anomaly roster, faction/governance facts, season/event pools, data-mod validation, focused save/replay, Worker projections, benchmark policy, owner-store boundaries and M6 stop signs. Required gates passed; ci:local used a temporary WM_ARTIFACT_DIR. Runtime M5 and M6 remain unstarted."
+    },
+    {
+      "at": "2026-06-26T09:44:44.374Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Reviewed M5 planning package accepted; integration gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality. Downstream M5 packets remain proposed until WM-0072 is closed; no runtime M5 or M6 work started."
+    },
+    {
+      "at": "2026-06-26T09:45:00.862Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
+    }
+  ],
+  "milestone": "M5",
+  "objective": "Create the reviewed M5 planning package, including scenario contract, ADR, roadmap plan, proposed task DAG and reports, without implementing runtime M5 behavior or starting M6.",
+  "allowedPaths": [
+    "coordination/tasks/WM-0072.json",
+    "coordination/tasks/WM-0073.json",
+    "coordination/tasks/WM-0074.json",
+    "coordination/tasks/WM-0075.json",
+    "coordination/tasks/WM-0076.json",
+    "coordination/tasks/WM-0077.json",
+    "coordination/tasks/WM-0078.json",
+    "coordination/tasks/WM-0079.json",
+    "coordination/tasks/WM-0080.json",
+    "coordination/tasks/WM-0081.json",
+    "coordination/tasks/WM-0082.json",
+    "coordination/tasks/WM-0083.json",
+    "coordination/reports/WM-0072.md",
+    "coordination/reports/WM-0072-plan.md",
+    "coordination/decisions/ADR-0010.md",
+    "docs/02_systems/19_m5_alpha_content_framework_scenario.md",
+    "docs/05_tech/07_architecture_decision_records.md",
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "docs/07_roadmap/10_m5_alpha_content_framework_plan.md",
+    "coordination/project-state.json"
+  ],
+  "forbiddenPaths": [
+    "packages/**",
+    "apps/**",
+    "tools/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "runtime implementation",
+    "test implementation",
+    "benchmark baseline updates",
+    "public Worker protocol changes",
+    "public save format changes",
+    "content schema implementation",
+    "new dependencies",
+    "M6 task creation or implementation"
+  ],
+  "benchmarkImpact": "None directly. WM-0072 defines required M5 benchmark and invariant tasks while preserving the existing 10 percent warning and 20 percent blocking thresholds.",
+  "reviewRouting": "Systems-architect completes to reviewer. Project-director integrates only after independent verification that downstream M5 tasks remain proposed and no runtime M5 or M6 work started.",
+  "rollbackModel": "Revert the M5 planning documents, ADR-0010, proposed WM-0073 through WM-0083 packets, WM-0072 reports and narrow roadmap/project-state markers; restore M4 closed / M5 unstarted.",
+  "ownerGate": [
+    "Do not edit product runtime tests benchmarks package manifests or generated baselines in WM-0072",
+    "Keep all downstream M5 tasks proposed until WM-0072 is reviewed integrated and done",
+    "Define explicit block conditions for owner-store gaps global scans public protocol save schema dependencies UI authority content-schema drift and M6 scope creep",
+    "Preserve M0-M4 regression protection independent reviewer separation and benchmark thresholds",
+    "Do not create promote claim implement or review M6 work"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "M5 milestone planning, ADR ownership, task DAG design, save/replay scope, content schema policy and benchmark policy cannot be assigned to Spark."
+  },
+  "claimedBy": "systems-architect",
+  "threadLabel": "Compass WM-0072 M5 planning",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0072.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Confirmed WM-0072 adopts the reviewed WM-0071 future M5 prompt, preserves the M4 closeout baseline, limits edits to allowed planning/control-plane paths plus workflow inbox, and creates only proposed/unclaimed WM-0073 through WM-0083 M5 task packets. ADR-0010, scenario contract and roadmap plan cover anomaly roster, faction/governance facts, season/event pools, data-mod validation, focused save/replay, Worker projections, benchmark policy, owner-store boundaries and M6 stop signs. Required gates passed; ci:local used a temporary WM_ARTIFACT_DIR. Runtime M5 and M6 remain unstarted.",
+    "at": "2026-06-26T09:42:59.716Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Reviewed M5 planning package accepted; integration gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality. Downstream M5 packets remain proposed until WM-0072 is closed; no runtime M5 or M6 work started.",
+    "at": "2026-06-26T09:44:44.373Z"
+  }
+}

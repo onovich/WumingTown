@@ -1,0 +1,105 @@
+{
+  "id": "WM-0073",
+  "title": "Add M5 content schema and data-mod validation gate",
+  "summary": "Implement the first M5 content validation gate and schema policy for anomaly roster, faction/governance hooks, season events and alpha catalog definitions without granting runtime code-mod authority.",
+  "state": "ready",
+  "ownerRole": "systems-architect",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0072"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0010.md",
+    "docs/02_systems/19_m5_alpha_content_framework_scenario.md",
+    "docs/04_content_balance/00_content_design_guide.md",
+    "docs/04_content_balance/04_anomaly_authoring_guide.md",
+    "docs/05_tech/04_persistence_mods_security.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "M5 content definitions for anomaly roster faction/governance hooks season events and alpha catalog entries have versioned schema validation and deterministic compile order",
+    "Data-mod inputs are validated for manifest shape path safety file size schema references semantics localization coverage and unsupported capabilities before runtime",
+    "Code mods network mods platform API mods executable scripts remote URLs unsafe paths recursive archive expansion and oversized assets fail closed with structured reasons",
+    "Compiled output records stable DefIndex ordering content manifest hash validation counters and failure diagnostics suitable for save/replay and Worker basis checks",
+    "Focused tests cover valid content invalid schema unknown references semantic failures missing localization unsafe paths unsupported capabilities and deterministic compile order"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m5-content-validation",
+    "pnpm content:validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "validationCommands": [
+    "pnpm typecheck",
+    "pnpm test --filter m5-content-validation",
+    "pnpm content:validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0073-add-m5-content-schema-data-mod-validation",
+  "createdAt": "2026-06-26T09:24:00.000Z",
+  "updatedAt": "2026-06-26T09:45:00.869Z",
+  "history": [
+    {
+      "at": "2026-06-26T09:24:00.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0072 M5 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-26T09:45:00.869Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
+    }
+  ],
+  "milestone": "M5",
+  "objective": "Create the M5 data-only content validation gate before runtime M5 systems consume alpha content.",
+  "allowedPaths": [
+    "packages/content-schema/src/**",
+    "packages/content-compiler/src/**",
+    "tools/content-cli/src/**",
+    "tools/test-runner.mjs",
+    "docs/04_content_balance/00_content_design_guide.md",
+    "docs/04_content_balance/04_anomaly_authoring_guide.md",
+    "docs/05_tech/04_persistence_mods_security.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "coordination/tasks/WM-0073.json",
+    "coordination/reports/WM-0073.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-core/**",
+    "packages/sim-worker/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "runtime M5 behavior",
+    "public Worker protocol changes",
+    "public save format changes",
+    "new dependencies",
+    "code mods network mods platform API mods executable scripts",
+    "M6 task creation or implementation"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: schema work becomes runtime behavior; ownership is limited to content-schema, content-compiler and content-cli validation surfaces.",
+    "Risk: unsafe mod inputs reach runtime; every accepted input must have a structured validation report and fail-closed tests.",
+    "Risk: public schema changes sprawl; ADR-0010 must be cited and any dependency/package-manifest need blocks."
+  ],
+  "benchmarkImpact": "Adds validation counters and compile-order evidence only; no runtime benchmark baseline update until WM-0083.",
+  "reviewRouting": "Systems-architect completes to reviewer; simulation-engineer must be consulted before runtime owner stores consume compiled M5 defs.",
+  "rollbackModel": "Revert M5 schema/compiler/CLI validation changes, tests, docs and report; leave M4 content validation behavior intact.",
+  "ownerGate": [
+    "Keep M5 content data-only",
+    "Reject unsafe paths unsupported capabilities and executable content before runtime",
+    "Record stable content manifest and DefIndex evidence",
+    "Block on package manifest dependency public protocol save schema or M6 needs"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Content schema and data-mod validation define public content boundaries and security policy, so they require systems-architect ownership."
+  }
+}

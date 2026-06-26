@@ -1,0 +1,109 @@
+{
+  "id": "WM-0083",
+  "title": "Add M5 benchmarks, invariants and M6 stop signs",
+  "summary": "Add M5 long-run benchmarks and invariant gates, record M6 readiness stop-sign evidence, and preserve 10 percent warning / 20 percent blocking thresholds.",
+  "state": "proposed",
+  "ownerRole": "qa-performance",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0082"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0010.md",
+    "docs/02_systems/19_m5_alpha_content_framework_scenario.md",
+    "docs/07_roadmap/10_m5_alpha_content_framework_plan.md",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "docs/06_engineering/03_definition_of_done.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md"
+  ],
+  "acceptance": [
+    "M5 invariant gate runs the alpha scenario long enough to detect content validation drift anomaly leaks faction/governance hidden authority event queue growth save/replay divergence Worker mismatch and M0-M4 regression",
+    "Benchmarks report anomaly roster counts activation candidates transition counts faction/governance candidates event pool candidates cooldowns validation failures save/load rebuild time Worker projection bytes final hashes and M6 stop-sign verdict",
+    "Benchmark artifacts include Node pnpm OS CPU commit seed scenario id content manifest hash tick horizon checkpoint hashes final summary and reviewed SHA-256",
+    "Baseline updates are reviewed artifacts and preserve 10 percent warning and 20 percent blocking thresholds",
+    "M6 readiness is reported as stop signs only; no M6 task is created promoted claimed implemented or reviewed"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m5-invariants",
+    "pnpm bench",
+    "pnpm sim:run -- --seed 5 --scenario m5-alpha-content-framework --ticks 100000",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "validationCommands": [
+    "pnpm typecheck",
+    "pnpm test --filter m5-invariants",
+    "pnpm bench",
+    "pnpm sim:run -- --seed 5 --scenario m5-alpha-content-framework --ticks 100000",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0083-add-m5-benchmarks-invariants-stop-signs",
+  "createdAt": "2026-06-26T09:24:00.000Z",
+  "updatedAt": "2026-06-26T09:24:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-26T09:24:00.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0072 M5 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "milestone": "M5",
+  "objective": "Create artifact-backed M5 performance, invariant and M6 stop-sign evidence before any M6 planning can begin.",
+  "allowedPaths": [
+    "packages/sim-core/src/**m5**invariant**",
+    "packages/sim-core/src/**m5**",
+    "packages/benchmarks/src/**m5**",
+    "packages/benchmarks/src/index.ts",
+    "packages/benchmarks/src/benchmarks.ts",
+    "packages/benchmarks/src/baseline.ts",
+    "packages/benchmarks/src/cli-lib.ts",
+    "packages/benchmarks/baseline.json",
+    "tools/test-runner.mjs",
+    "tools/headless-runner/src/index.ts",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "coordination/artifacts/WM-0083/**",
+    "coordination/tasks/WM-0083.json",
+    "coordination/reports/WM-0083.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "product behavior fixes to satisfy tests",
+    "threshold weakening",
+    "silent retries repeatEach or retries changes",
+    "public save compatibility changes",
+    "public Worker protocol redesign",
+    "schema changes outside approved M5 validation surfaces",
+    "new dependencies",
+    "M6 task creation promotion claim implementation or review",
+    "platform packaging crash reporting external playtest or storefront work"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: benchmark task fixes product behavior; product fixes must be blocked or split.",
+    "Risk: M6 readiness report becomes M6 planning; it may record stop signs only.",
+    "Risk: artifact hash evidence is ambiguous; report must name exact file SHA-256 and any canonical payload digest separately."
+  ],
+  "benchmarkImpact": "Adds reviewed M5 long-run benchmark artifacts and baseline changes only with explicit 10/20 percent threshold preservation and M0-M4 regression evidence.",
+  "reviewRouting": "Qa-performance completes to reviewer; project-director integrates only after artifact evidence and required checks are reproducible and no M6 task exists.",
+  "rollbackModel": "Revert M5 benchmark tests artifacts baseline changes stop-sign notes and report; leave M5 open and do not advance M6.",
+  "ownerGate": [
+    "Name exact artifact paths and hashes in the report",
+    "Preserve warning/blocking regression thresholds",
+    "Do not fix product behavior inside the benchmark task",
+    "Do not create promote claim implement or review M6 work",
+    "Block on unreproducible artifacts threshold weakening protocol save schema dependency UI authority or M6 scope"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Benchmark baselines, long-run invariant gates and milestone stop signs require qa-performance ownership and independent review."
+  }
+}

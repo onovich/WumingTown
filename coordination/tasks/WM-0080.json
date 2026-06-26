@@ -1,0 +1,96 @@
+{
+  "id": "WM-0080",
+  "title": "Integrate M5 alpha scenario",
+  "summary": "Compose m5.alpha_content_framework.first_season.v1 in headless runtime using the anomaly roster, faction/governance hooks, first-season event pool and alpha content catalog.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0079"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0010.md",
+    "docs/02_systems/19_m5_alpha_content_framework_scenario.md",
+    "docs/07_roadmap/10_m5_alpha_content_framework_plan.md",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "Headless scenario m5.alpha_content_framework.first_season.v1 runs deterministically with recorded requested seed authoritative seed content hash command stream hash final world hash and read-model hash",
+    "Scenario exercises borrowed-shadow third-knock and old-bridge guest rules through structured evidence non-combat handling and accident-review rows",
+    "Scenario exercises faction/governance hooks first-season events alpha content definitions and at least four strategy paths without UI authority",
+    "M0-M4 regression protection remains active and no M4 baseline behavior is weakened to make M5 pass",
+    "Focused tests and scenario artifacts record structured reasons cap hits queue metrics and stop signs for save/replay Worker and benchmark tasks"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m5-alpha-scenario",
+    "pnpm sim:run -- --seed 5 --scenario m5-alpha-content-framework --ticks 36000",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "validationCommands": [
+    "pnpm typecheck",
+    "pnpm test --filter m5-alpha-scenario",
+    "pnpm sim:run -- --seed 5 --scenario m5-alpha-content-framework --ticks 36000",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0080-integrate-m5-alpha-scenario",
+  "createdAt": "2026-06-26T09:24:00.000Z",
+  "updatedAt": "2026-06-26T09:24:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-26T09:24:00.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0072 M5 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "milestone": "M5",
+  "objective": "Create the first integrated M5 headless alpha content scenario as the basis for save/replay Worker and benchmark gates.",
+  "allowedPaths": [
+    "packages/sim-core/src/**m5**",
+    "packages/sim-core/src/runner.ts",
+    "packages/sim-core/src/index.ts",
+    "tools/headless-runner/src/index.ts",
+    "tools/test-runner.mjs",
+    "docs/02_systems/19_m5_alpha_content_framework_scenario.md",
+    "docs/07_roadmap/10_m5_alpha_content_framework_plan.md",
+    "coordination/artifacts/WM-0080/**",
+    "coordination/tasks/WM-0080.json",
+    "coordination/reports/WM-0080.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-worker/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "benchmark baseline updates",
+    "focused save/replay implementation",
+    "Worker parity implementation",
+    "public Worker protocol changes",
+    "public save format changes",
+    "new dependencies",
+    "M6 task creation or implementation"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: integrated scenario papers over owner gaps; any owner-store gap blocks instead of adding hidden state.",
+    "Risk: strategy path proof becomes prose; tests must assert structured facts and hashes.",
+    "Risk: scenario creates save/Worker/public contract changes early; those remain downstream tasks."
+  ],
+  "benchmarkImpact": "Produces scenario metrics and artifacts for WM-0081 through WM-0083; no baseline update in this task.",
+  "reviewRouting": "Simulation-engineer completes to reviewer; qa-performance must be consulted before changing invariant or benchmark expectations.",
+  "rollbackModel": "Revert M5 integrated scenario code artifacts docs and report; leave individual M5 owner surfaces intact.",
+  "ownerGate": [
+    "Do not implement save/replay Worker parity or benchmark baselines in this task",
+    "Record deterministic hashes and scenario artifact paths",
+    "Protect M0-M4 regression evidence",
+    "Block on owner gaps global scans public contracts dependencies UI authority or M6 scope"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Integrated deterministic scenario composition is cross-surface simulation work."
+  }
+}

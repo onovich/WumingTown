@@ -1,0 +1,95 @@
+{
+  "id": "WM-0079",
+  "title": "Add alpha content catalog and validation fixtures",
+  "summary": "Add the first M5 alpha content catalog definitions and validation fixtures for buildings, tags, localization references and review notes without bespoke runtime code per item.",
+  "state": "proposed",
+  "ownerRole": "content-worker",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0078"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0010.md",
+    "docs/02_systems/19_m5_alpha_content_framework_scenario.md",
+    "docs/04_content_balance/00_content_design_guide.md",
+    "docs/04_content_balance/08_sample_content_catalog.md",
+    "docs/04_content_balance/07_localization_text_templates.md",
+    "docs/03_world/07_cultural_research_policy.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "Alpha content catalog provides 20 to 30 building/tag/localization-ready definitions that map to approved owner surfaces or explicitly block",
+    "Every catalog entry passes M5 schema reference semantic localization and deterministic compile-order validation",
+    "Catalog entries reuse public rule components and do not require bespoke runtime code per item",
+    "Design review notes record system value alternatives faction/governance/anomaly hooks and culture/fairness review needs where applicable",
+    "Validation fixtures include accepted and rejected examples for buildings tags anomalies faction hooks season events localization and unsafe data"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm content:validate",
+    "pnpm test --filter m5-content-validation",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "validationCommands": [
+    "pnpm typecheck",
+    "pnpm content:validate",
+    "pnpm test --filter m5-content-validation",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0079-add-alpha-content-catalog",
+  "createdAt": "2026-06-26T09:24:00.000Z",
+  "updatedAt": "2026-06-26T09:24:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-26T09:24:00.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0072 M5 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "milestone": "M5",
+  "objective": "Create the first validated alpha content catalog and fixture set for downstream integration.",
+  "allowedPaths": [
+    "packages/content-schema/src/**",
+    "packages/content-compiler/src/**",
+    "tools/content-cli/src/**",
+    "docs/04_content_balance/**",
+    "docs/03_world/**",
+    "coordination/artifacts/WM-0079/**",
+    "coordination/tasks/WM-0079.json",
+    "coordination/reports/WM-0079.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-core/**",
+    "packages/sim-worker/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "runtime behavior implementation",
+    "public Worker protocol changes",
+    "public save format changes",
+    "new dependencies",
+    "code mods or executable content",
+    "M6 task creation or implementation"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: content volume outruns schema; every entry must pass validation and cite owner surfaces.",
+    "Risk: content requires bespoke code; entries must block instead of adding runtime hacks.",
+    "Risk: cultural/fairness issues hide in catalog text; review notes must name required checks."
+  ],
+  "benchmarkImpact": "Adds content count validation artifact and fixture metrics only; no runtime baseline update until WM-0083.",
+  "reviewRouting": "Content-worker completes to reviewer; gameplay-designer and systems-architect should be consulted for content value and schema/ownership blockers.",
+  "rollbackModel": "Revert alpha content definitions fixtures artifacts docs and report; leave schema/runtime owner tasks intact.",
+  "ownerGate": [
+    "No bespoke runtime code per content item",
+    "Every accepted entry maps to approved owner surfaces",
+    "Rejected fixtures prove fail-closed validation",
+    "Block on unsafe content public contract dependency or M6 scope"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Although content-heavy, the first alpha catalog validates new schema and ownership policy and should not be assigned to Spark."
+  }
+}

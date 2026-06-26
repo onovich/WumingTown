@@ -1,0 +1,93 @@
+{
+  "id": "WM-0075",
+  "title": "Add third-knock anomaly rule",
+  "summary": "Add core.anomaly.third_knock.v1 with threshold, invitation/debt, evidence, town-rule and non-combat resolution state using the M5 anomaly roster.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0074"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0010.md",
+    "docs/02_systems/19_m5_alpha_content_framework_scenario.md",
+    "docs/02_systems/08_anomalies_rules_investigation.md",
+    "docs/02_systems/10_ordinances_governance_identity.md",
+    "docs/04_content_balance/04_anomaly_authoring_guide.md",
+    "docs/05_tech/03_performance_budget.md"
+  ],
+  "acceptance": [
+    "Third-knock crisis state is an explicit serializable owner store with activation trace escalation resolution failure and terminal reason fields",
+    "Activation requires versioned threshold town-rule knowledge Chronicle evidence obligation and guesthouse basis facts before mutation",
+    "Low-risk evidence includes prior knocks witness disagreement threshold marks lodging register mismatch and obligation pressure",
+    "Resolution includes at least one non-combat containment or policy path and records structured accident-review rows",
+    "Focused tests cover prevention containment failure stale basis rejection cap hits serializable state and no UI or Promise/coroutine authority"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m5-third-knock",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "validationCommands": [
+    "pnpm typecheck",
+    "pnpm test --filter m5-third-knock",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0075-add-third-knock-anomaly",
+  "createdAt": "2026-06-26T09:24:00.000Z",
+  "updatedAt": "2026-06-26T09:24:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-26T09:24:00.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0072 M5 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "milestone": "M5",
+  "objective": "Implement the third-knock anomaly as a reusable M5 rule without bypassing Chronicle, obligation or town-rule authority.",
+  "allowedPaths": [
+    "packages/sim-core/src/**third**knock**",
+    "packages/sim-core/src/**m5**anomaly**",
+    "packages/sim-core/src/index.ts",
+    "packages/content-schema/src/**third**knock**",
+    "packages/content-compiler/src/**third**knock**",
+    "tools/test-runner.mjs",
+    "docs/02_systems/08_anomalies_rules_investigation.md",
+    "docs/05_tech/03_performance_budget.md",
+    "coordination/tasks/WM-0075.json",
+    "coordination/reports/WM-0075.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-worker/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "old-bridge faction governance season event implementation",
+    "public Worker protocol changes",
+    "public save format changes",
+    "new dependencies",
+    "UI-owned anomaly state",
+    "M6 task creation or implementation"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: threshold behavior duplicates town-rule authority; town-rule knowledge and policy facts must stay in existing owner stores.",
+    "Risk: evidence becomes prose-only; tests must assert structured evidence and trace rows.",
+    "Risk: crisis progress hides in callbacks; all states must be serializable lanes."
+  ],
+  "benchmarkImpact": "Adds third-knock activation transition evidence and cap-hit metrics; baseline update waits for WM-0083.",
+  "reviewRouting": "Simulation-engineer completes to reviewer; systems-architect must be consulted before changing anomaly state machine shape or public schema.",
+  "rollbackModel": "Revert third-knock owner store, tests, content def and docs; keep anomaly roster and borrowed-shadow data lift intact.",
+  "ownerGate": [
+    "Keep third-knock mutable state in sim-core owner stores",
+    "Validate all basis versions before mutation",
+    "Emit structured reasons for activation rejection and terminal states",
+    "Block on public protocol save schema dependency UI authority or M6 scope"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "New deterministic anomaly state-machine implementation is not suitable for Spark."
+  }
+}

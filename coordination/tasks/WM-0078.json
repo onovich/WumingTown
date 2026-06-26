@@ -1,0 +1,93 @@
+{
+  "id": "WM-0078",
+  "title": "Add first-season event pool",
+  "summary": "Add the bounded M5 first-season event pool with cooldowns, recovery opportunities, anomaly/faction/governance hooks and legal command scheduling.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0077"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0010.md",
+    "docs/02_systems/19_m5_alpha_content_framework_scenario.md",
+    "docs/02_systems/11_story_director_incidents_quests.md",
+    "docs/04_content_balance/05_incident_authoring_guide.md",
+    "docs/05_tech/03_performance_budget.md"
+  ],
+  "acceptance": [
+    "M5SeasonEventPoolStore owns active event pool rows cooldowns recovery windows event freshness precondition failures and pool version",
+    "Event candidates include anomaly faction governance season resource and recovery basis versions and are selected through bounded stable Top-K lanes",
+    "The director schedules legal commands or opportunities only and cannot directly mutate source owner facts",
+    "Season pool includes resource pressure registration pressure market night bridge-route pressure archive damage risk and recovery opportunities",
+    "Focused tests cover event preconditions cooldowns recovery-window suppression wrong-type recovery rejection structured reasons queue bounds and deterministic random stream use"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m5-season-events",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "validationCommands": [
+    "pnpm typecheck",
+    "pnpm test --filter m5-season-events",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0078-add-first-season-event-pool",
+  "createdAt": "2026-06-26T09:24:00.000Z",
+  "updatedAt": "2026-06-26T09:24:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-26T09:24:00.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0072 M5 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "milestone": "M5",
+  "objective": "Implement the first deterministic season/event pool needed by M5 alpha content without creating an unbounded quest generator.",
+  "allowedPaths": [
+    "packages/sim-core/src/**m5**season**",
+    "packages/sim-core/src/**m5**event**",
+    "packages/sim-core/src/**director**",
+    "packages/sim-core/src/index.ts",
+    "packages/content-schema/src/**event**",
+    "packages/content-compiler/src/**event**",
+    "tools/test-runner.mjs",
+    "docs/02_systems/11_story_director_incidents_quests.md",
+    "docs/05_tech/03_performance_budget.md",
+    "coordination/tasks/WM-0078.json",
+    "coordination/reports/WM-0078.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-worker/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "public Worker protocol changes",
+    "public save format changes",
+    "new dependencies",
+    "unbounded quest generation",
+    "direct director mutation of owner facts",
+    "M6 task creation or implementation"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: event pool becomes a hidden director brain; it must schedule legal commands only.",
+    "Risk: cooldown/recovery queues grow without bound; tests and metrics must assert bounded lanes.",
+    "Risk: season events bypass faction/governance basis; candidates must carry source versions."
+  ],
+  "benchmarkImpact": "Adds season event candidate cooldown recovery precondition and queue metrics; baseline update waits for WM-0083.",
+  "reviewRouting": "Simulation-engineer completes to reviewer; systems-architect must be consulted before changing director authority or public schema.",
+  "rollbackModel": "Revert M5 season/event pool, tests, content schema hooks and docs; keep anomaly and faction/governance stores intact.",
+  "ownerGate": [
+    "Director schedules legal commands only",
+    "Use bounded event lanes cooldowns and recovery windows",
+    "Emit structured rejection reasons",
+    "Block on public protocol save schema dependency UI authority or M6 scope"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Season/event director integration touches simulation authority and deterministic scheduling."
+  }
+}

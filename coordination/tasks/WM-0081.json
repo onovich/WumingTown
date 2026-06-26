@@ -1,0 +1,96 @@
+{
+  "id": "WM-0081",
+  "title": "Add M5 focused save/replay",
+  "summary": "Add focused save/load/resume diagnostics for the M5 alpha scenario with content manifest hash, owner-state validation and rebuilt derived surfaces.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0080"
+  ],
+  "docs": [
+    "coordination/decisions/ADR-0010.md",
+    "docs/02_systems/19_m5_alpha_content_framework_scenario.md",
+    "docs/02_systems/13_save_replay_migration.md",
+    "docs/05_tech/04_persistence_mods_security.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "Focused M5 save envelope records scenario id seed content manifest hash command stream hash checkpoint tick owner-store versions deterministic stream positions command tail and projection hashes",
+    "Load validates content identity schema versions owner handles integer lanes anomaly/faction/governance/event states random stream positions and command continuity in scratch state before mutation",
+    "Load rebuilds anomaly roster faction/governance season event content validation WorkOffer path read-model review and metric surfaces before the first resumed tick",
+    "Uninterrupted and resumed runs match through the scenario horizon and failures report seed scenario id first divergent tick and artifact paths",
+    "Task does not introduce public save compatibility platform save UI codec dependency schema migration public Worker protocol or M6 scope"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m5-save-replay",
+    "pnpm sim:replay-test -- --scenario m5-alpha-content-framework",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "validationCommands": [
+    "pnpm typecheck",
+    "pnpm test --filter m5-save-replay",
+    "pnpm sim:replay-test -- --scenario m5-alpha-content-framework",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0081-add-m5-focused-save-replay",
+  "createdAt": "2026-06-26T09:24:00.000Z",
+  "updatedAt": "2026-06-26T09:24:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-26T09:24:00.000Z",
+      "actor": "systems-architect",
+      "action": "create",
+      "details": "Created by WM-0072 M5 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "milestone": "M5",
+  "objective": "Prove focused M5 save/load/resume determinism without making public save compatibility promises.",
+  "allowedPaths": [
+    "packages/sim-core/src/**m5**save**",
+    "packages/sim-core/src/**m5**replay**",
+    "packages/sim-core/src/replay-diagnostics.ts",
+    "packages/sim-core/src/index.ts",
+    "tools/headless-runner/src/index.ts",
+    "tools/test-runner.mjs",
+    "docs/02_systems/13_save_replay_migration.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "coordination/artifacts/WM-0081/**",
+    "coordination/tasks/WM-0081.json",
+    "coordination/reports/WM-0081.md"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/sim-worker/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "public save compatibility changes",
+    "platform save UI",
+    "codec dependencies",
+    "public Worker protocol changes",
+    "benchmark baseline updates",
+    "M6 task creation or implementation"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: focused harness is mistaken for public save compatibility; report must state non-goal clearly.",
+    "Risk: compiled content basis is not validated; save/load must fail closed on manifest/schema mismatch.",
+    "Risk: derived content indexes persist as authority; load must rebuild them from owner stores."
+  ],
+  "benchmarkImpact": "Adds save bytes validation time rebuild time first-resumed hash and divergence diagnostics; baseline update waits for WM-0083.",
+  "reviewRouting": "Simulation-engineer completes to reviewer; systems-architect must be consulted before any public save/schema/codec change.",
+  "rollbackModel": "Revert M5 focused save/replay harness artifacts docs and report; leave integrated M5 scenario intact.",
+  "ownerGate": [
+    "Keep save/replay focused to the M5 scenario",
+    "Validate content manifest and owner versions before mutation",
+    "Rebuild derived surfaces before resume",
+    "Block on public save compatibility protocol dependency UI authority or M6 scope"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Save/replay determinism and migration boundaries are not suitable for Spark."
+  }
+}

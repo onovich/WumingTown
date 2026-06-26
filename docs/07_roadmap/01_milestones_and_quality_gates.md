@@ -179,3 +179,21 @@ multiple anomaly roster, faction campaign, broad governance simulation, season
 event pool, production content catalog, data-mod pipeline expansion, platform
 save UI, public save compatibility, public Worker protocol redesign and UI
 authority. WM-0071 creates no M5 task and implements no M5 runtime behavior.
+
+## M5 Planning Status
+
+WM-0072 starts M5 planning only. The planning package adds the M5 scenario
+contract, ADR-0010, roadmap plan, and proposed WM-0073 through WM-0083 packets.
+Implementation remains blocked behind review/integration of WM-0072 and normal
+taskctl promotion.
+
+The M5 gate must preserve M0-M4 evidence, including M4 final world hash
+`0xdafa3b25`, M4 scenario read-model hash `0xa896439d`, M4 benchmark final
+world/read-model hashes `0xdafa3b25` / `0x08dd9343`, and reviewed M4 benchmark
+artifact SHA-256
+`FDC0DFE779264134C23F3DAF95C92C879C683DDCBB22A9E704F12359B3DC0E71`.
+The 10 percent warning and 20 percent blocking benchmark thresholds remain
+unchanged.
+
+M5 closeout must report M6 readiness stop signs, but no M6 task may be created
+or implemented by M5 planning.
