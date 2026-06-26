@@ -197,3 +197,50 @@ unchanged.
 
 M5 closeout must report M6 readiness stop signs, but no M6 task may be created
 or implemented by M5 planning.
+
+## M5 Closeout Status
+
+WM-0083 closes M5 as the alpha content framework milestone after reviewed
+integration of WM-0073 through WM-0082. The reviewed task chain establishes
+schema-validated alpha content, anomaly roster data, third-knock and old-bridge
+rules, faction/governance owner stores, first-season event pool, integrated M5
+headless scenario, focused save/replay, Worker/headless parity and
+benchmark-backed long-run invariants.
+
+Closeout evidence:
+
+- Headless M5 alpha content framework:
+  `pnpm sim:run -- --seed 5 --scenario m5-alpha-content-framework --ticks 100000`
+  passed with scenario id `m5.alpha_content_framework.first_season.v1`,
+  requested seed `5`, authoritative seed `155`, command stream hash
+  `0x81d37435`, content manifest hash `0xe55d3015`, final world hash
+  `0xfba70a5c` and scenario read-model hash `0x9ba83cb7`.
+- Content and anomaly gates: the M5 baseline records 30 content definitions,
+  20 catalog entries, one fail-closed validation/block reason, three anomaly
+  definitions, three anomaly activation candidate visits, 16 anomaly
+  transition trace rows, and one resolved third-knock plus one resolved
+  old-bridge case with no active crisis leaks.
+- Faction/governance and season gates: bounded faction candidate visits `4`,
+  governance candidate visits `8`, selected faction facts `2`, selected
+  governance hooks `4`, event pool candidates `7`, cooldown writes `1` and
+  precondition failures `5`.
+- Save/replay and Worker parity: WM-0083 verifies focused save tick `12000`,
+  load tick `12001`, checkpoint hashes through `100000`, no divergent replay
+  tick through the comparison helper, Worker projection bytes `1631`, Worker
+  projection hash `0xc6420cb1`, and Worker authoritative read-model hash
+  `0x57eba2b7` at the reviewed `36000` checkpoint.
+- Benchmarks: `pnpm bench` passed the default benchmark suite with artifact
+  `coordination/artifacts/WM-0083/benchmarks/benchmark-results.json`, actual
+  file SHA-256
+  `04DB70ECD54022C298293BE9B00EDF404AC18122742F3ACB0C17AC21EE58D346`,
+  canonical payload SHA-256
+  `4815D8AC685CC51AC53260C14C302E1C508584AF81EA261664283711A00F0BAC`, and no
+  threshold weakening.
+- M0-M4 regression status remains protected, including M4 seed `4`,
+  authoritative seed `50`, content hash `0x698f2c41`, command stream hash
+  `0x538d0e43`, final world hash `0xc201a925`, and read-model hash
+  `0xce261d9d` in the M5 scenario's regression evidence lane.
+
+M6 readiness is deliberately not M6 planning. WM-0083 records
+`m6StopSignVerdict: "stop_signs_only"` and `m6Created: false`; no M6 task is
+created, promoted, claimed, implemented or reviewed during M5 closeout.

@@ -2,7 +2,7 @@
   "id": "WM-0083",
   "title": "Add M5 benchmarks, invariants and M6 stop signs",
   "summary": "Add M5 long-run benchmarks and invariant gates, record M6 readiness stop-sign evidence, and preserve 10 percent warning / 20 percent blocking thresholds.",
-  "state": "ready",
+  "state": "verified",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -44,7 +44,7 @@
   ],
   "branch": "task/WM-0083-add-m5-benchmarks-invariants-stop-signs",
   "createdAt": "2026-06-26T09:24:00.000Z",
-  "updatedAt": "2026-06-26T15:52:50.205Z",
+  "updatedAt": "2026-06-26T16:23:10.541Z",
   "history": [
     {
       "at": "2026-06-26T09:24:00.000Z",
@@ -57,6 +57,24 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-26T15:54:06.491Z",
+      "actor": "qa-performance",
+      "action": "claim",
+      "details": "thread=Beacon"
+    },
+    {
+      "at": "2026-06-26T16:15:30.545Z",
+      "actor": "qa-performance",
+      "action": "complete",
+      "details": "Implemented M5 invariant gate, long-run benchmark baseline/artifact, docs and stop-sign closeout; required checks pass; no M6 task created."
+    },
+    {
+      "at": "2026-06-26T16:23:10.541Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: Verified M5 invariant gate, benchmark artifact SHA/canonical hash evidence, environment fields, unchanged 10/20 thresholds, M6 stop-sign-only scope, allowed paths, and required gates."
     }
   ],
   "milestone": "M5",
@@ -77,6 +95,7 @@
     "docs/07_roadmap/01_milestones_and_quality_gates.md",
     "coordination/artifacts/WM-0083/**",
     "coordination/tasks/WM-0083.json",
+    "coordination/reports/WM-0083-plan.md",
     "coordination/reports/WM-0083.md"
   ],
   "forbiddenPaths": [
@@ -111,5 +130,15 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Benchmark baselines, long-run invariant gates and milestone stop signs require qa-performance ownership and independent review."
+  },
+  "claimedBy": "qa-performance",
+  "threadLabel": "Beacon",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0083.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "Verified M5 invariant gate, benchmark artifact SHA/canonical hash evidence, environment fields, unchanged 10/20 thresholds, M6 stop-sign-only scope, allowed paths, and required gates.",
+    "at": "2026-06-26T16:23:10.540Z"
   }
 }

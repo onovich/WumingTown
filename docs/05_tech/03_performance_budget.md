@@ -525,3 +525,30 @@ also records canonical payload SHA-256
 pre-hashing metadata payload.
 The benchmark baseline update preserves the existing 10 percent warning and
 20 percent blocking regression thresholds.
+
+## WM-0083 M5 benchmark note
+
+`pnpm bench` now includes `m5-alpha-content-long-run` in the default benchmark
+suite and writes the default suite artifact under
+`coordination/artifacts/WM-0083/benchmarks/benchmark-results.json`. The M5
+benchmark runs `m5.alpha_content_framework.first_season.v1` with requested
+seed `5` and authoritative seed `155` to `100000` ticks, samples `12000`,
+`36000`, `60000`, `80000` and `100000`, verifies focused save/resume parity,
+and compares the reviewed Worker projection checkpoint at `36000`.
+
+The M5 baseline records content definition count `30`, catalog entry count
+`20`, content validation failure count `1`, anomaly definition count `3`,
+anomaly activation candidate visits `3`, anomaly transition count `16`,
+resolved third-knock and old-bridge counts, faction candidate visits `4`,
+governance candidate visits `8`, event pool candidate count `7`, cooldown
+writes `1`, precondition failures `5`, rebuilt surface count `12`, Worker
+projection bytes `1631`, Worker projection hash `0xc6420cb1`, final world hash
+`0xfba70a5c` and final read-model hash `0x9ba83cb7`.
+
+The WM-0083 artifact records actual file SHA-256
+`04DB70ECD54022C298293BE9B00EDF404AC18122742F3ACB0C17AC21EE58D346` in
+`coordination/artifacts/WM-0083/benchmarks/benchmark-results.json.sha256` and
+canonical payload SHA-256
+`4815D8AC685CC51AC53260C14C302E1C508584AF81EA261664283711A00F0BAC` inside the
+JSON artifact. The baseline update preserves the existing 10 percent warning
+and 20 percent blocking regression thresholds.

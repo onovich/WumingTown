@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQV4U7SJ-7090F6",
+  "from": "qa-performance",
+  "to": "reviewer",
+  "taskId": "WM-0083",
+  "kind": "review-request",
+  "subject": "WM-0083 ready for review",
+  "body": "Implemented M5 invariant gate, long-run benchmark baseline/artifact, docs and stop-sign closeout; required checks pass; no M6 task created.",
+  "artifacts": [
+    "coordination/reports/WM-0083.md",
+    "task/WM-0083-add-m5-benchmarks-invariants-stop-signs"
+  ],
+  "createdAt": "2026-06-26T16:15:30.547Z",
+  "acknowledgedAt": "2026-06-26T16:17:13.660Z"
+}

@@ -155,7 +155,7 @@ function parseBenchmarkArgs(
   let warmupCount = DEFAULT_BENCHMARK_WARMUP_COUNT;
   let baselinePath = path.join(process.cwd(), "packages", "benchmarks", "baseline.json");
   let artifactPath = path.join(
-    resolveArtifactRoot("WM-0070"),
+    resolveArtifactRoot("WM-0083"),
     "benchmarks",
     "benchmark-results.json",
   );
@@ -169,7 +169,7 @@ function parseBenchmarkArgs(
 
       if (!isBenchmarkName(value)) {
         return failedArgs(
-          "Unsupported benchmark filter. Use empty-tick, entity-store, logistics-10k, m1-hauling-building-long-run, m2-pathing-invalidation, m2-work-logistics-long-run, m3-ordinary-life-long-run, m4-core-vertical-slice-long-run, map-dirty, pathing-100, reservations, region-room, spatial-index, or work-offers.",
+          "Unsupported benchmark filter. Use empty-tick, entity-store, logistics-10k, m1-hauling-building-long-run, m2-pathing-invalidation, m2-work-logistics-long-run, m3-ordinary-life-long-run, m4-core-vertical-slice-long-run, m5-alpha-content-long-run, map-dirty, pathing-100, reservations, region-room, spatial-index, or work-offers.",
         );
       }
 
@@ -183,7 +183,7 @@ function parseBenchmarkArgs(
 
       if (!isBenchmarkName(value)) {
         return failedArgs(
-          "Unsupported benchmark filter. Use empty-tick, entity-store, logistics-10k, m1-hauling-building-long-run, m2-pathing-invalidation, m2-work-logistics-long-run, m3-ordinary-life-long-run, m4-core-vertical-slice-long-run, map-dirty, pathing-100, reservations, region-room, spatial-index, or work-offers.",
+          "Unsupported benchmark filter. Use empty-tick, entity-store, logistics-10k, m1-hauling-building-long-run, m2-pathing-invalidation, m2-work-logistics-long-run, m3-ordinary-life-long-run, m4-core-vertical-slice-long-run, m5-alpha-content-long-run, map-dirty, pathing-100, reservations, region-room, spatial-index, or work-offers.",
         );
       }
 
@@ -349,6 +349,12 @@ function parseBenchmarkArgs(
       "benchmarks",
       "benchmark-results.json",
     );
+  } else if (!artifactPathWasConfigured && filter === "m5-alpha-content-long-run") {
+    artifactPath = path.join(
+      resolveArtifactRoot("WM-0083"),
+      "benchmarks",
+      "benchmark-results.json",
+    );
   }
 
   return {
@@ -405,6 +411,9 @@ function loadBenchmarkBaseline(filePath: string): BenchmarkBaselineFile {
       ),
       "m4-core-vertical-slice-long-run": parseM4CoreVerticalSliceLongRunBaselineEntry(
         rawBenchmarks["m4-core-vertical-slice-long-run"],
+      ),
+      "m5-alpha-content-long-run": parseM5AlphaContentLongRunBaselineEntry(
+        rawBenchmarks["m5-alpha-content-long-run"],
       ),
       "map-dirty": parseMapDirtyBaselineEntry(rawBenchmarks["map-dirty"]),
       "pathing-100": parsePathing100BaselineEntry(rawBenchmarks["pathing-100"]),
@@ -651,6 +660,39 @@ function parseM4CoreVerticalSliceLongRunBaselineEntry(
     ),
     invariants: parseM4CoreVerticalSliceLongRunBaselineInvariants(
       requireRecord(value["invariants"], "m4-core-vertical-slice-long-run"),
+    ),
+  };
+}
+
+function parseM5AlphaContentLongRunBaselineEntry(
+  value: unknown,
+): BenchmarkBaselineEntry<"m5-alpha-content-long-run"> {
+  if (!isRecord(value)) {
+    throw new Error("benchmark baseline entry m5-alpha-content-long-run must be an object");
+  }
+
+  if (value["name"] !== "m5-alpha-content-long-run") {
+    throw new Error(
+      "benchmark baseline entry m5-alpha-content-long-run must declare the same name",
+    );
+  }
+
+  return {
+    name: "m5-alpha-content-long-run",
+    medianElapsedMs: requireNumber(
+      value["medianElapsedMs"],
+      "m5-alpha-content-long-run.medianElapsedMs",
+    ),
+    warnRegressionPercent: requireNumber(
+      value["warnRegressionPercent"],
+      "m5-alpha-content-long-run.warnRegressionPercent",
+    ),
+    failRegressionPercent: requireNumber(
+      value["failRegressionPercent"],
+      "m5-alpha-content-long-run.failRegressionPercent",
+    ),
+    invariants: parseM5AlphaContentLongRunBaselineInvariants(
+      requireRecord(value["invariants"], "m5-alpha-content-long-run"),
     ),
   };
 }
@@ -1521,6 +1563,181 @@ function parseM4CoreVerticalSliceLongRunBaselineInvariants(
   };
 }
 
+function parseM5AlphaContentLongRunBaselineInvariants(
+  value: Record<string, unknown>,
+): BenchmarkBaselineEntry<"m5-alpha-content-long-run">["invariants"] {
+  return {
+    scenarioId: requireString(value["scenarioId"], "m5-alpha-content-long-run.scenarioId"),
+    scenarioSeed: requireString(value["scenarioSeed"], "m5-alpha-content-long-run.scenarioSeed"),
+    requestedSeed: requireString(value["requestedSeed"], "m5-alpha-content-long-run.requestedSeed"),
+    finalTick: requireNumber(value["finalTick"], "m5-alpha-content-long-run.finalTick"),
+    saveTick: requireNumber(value["saveTick"], "m5-alpha-content-long-run.saveTick"),
+    loadTick: requireNumber(value["loadTick"], "m5-alpha-content-long-run.loadTick"),
+    tickRate: requireNumber(value["tickRate"], "m5-alpha-content-long-run.tickRate"),
+    checkpointCount: requireNumber(
+      value["checkpointCount"],
+      "m5-alpha-content-long-run.checkpointCount",
+    ),
+    commandStreamHash: requireString(
+      value["commandStreamHash"],
+      "m5-alpha-content-long-run.commandStreamHash",
+    ),
+    contentManifestHash: requireString(
+      value["contentManifestHash"],
+      "m5-alpha-content-long-run.contentManifestHash",
+    ),
+    finalWorldHash: requireString(
+      value["finalWorldHash"],
+      "m5-alpha-content-long-run.finalWorldHash",
+    ),
+    finalReadModelHash: requireString(
+      value["finalReadModelHash"],
+      "m5-alpha-content-long-run.finalReadModelHash",
+    ),
+    contentDefinitionCount: requireNumber(
+      value["contentDefinitionCount"],
+      "m5-alpha-content-long-run.contentDefinitionCount",
+    ),
+    catalogEntryCount: requireNumber(
+      value["catalogEntryCount"],
+      "m5-alpha-content-long-run.catalogEntryCount",
+    ),
+    contentValidationFailureCount: requireNumber(
+      value["contentValidationFailureCount"],
+      "m5-alpha-content-long-run.contentValidationFailureCount",
+    ),
+    anomalyDefinitionCount: requireNumber(
+      value["anomalyDefinitionCount"],
+      "m5-alpha-content-long-run.anomalyDefinitionCount",
+    ),
+    anomalyActivationCandidateVisits: requireNumber(
+      value["anomalyActivationCandidateVisits"],
+      "m5-alpha-content-long-run.anomalyActivationCandidateVisits",
+    ),
+    anomalyTransitionCount: requireNumber(
+      value["anomalyTransitionCount"],
+      "m5-alpha-content-long-run.anomalyTransitionCount",
+    ),
+    thirdKnockResolvedCount: requireNumber(
+      value["thirdKnockResolvedCount"],
+      "m5-alpha-content-long-run.thirdKnockResolvedCount",
+    ),
+    oldBridgeResolvedCount: requireNumber(
+      value["oldBridgeResolvedCount"],
+      "m5-alpha-content-long-run.oldBridgeResolvedCount",
+    ),
+    factionCandidateVisits: requireNumber(
+      value["factionCandidateVisits"],
+      "m5-alpha-content-long-run.factionCandidateVisits",
+    ),
+    governanceCandidateVisits: requireNumber(
+      value["governanceCandidateVisits"],
+      "m5-alpha-content-long-run.governanceCandidateVisits",
+    ),
+    factionSelectedFactCount: requireNumber(
+      value["factionSelectedFactCount"],
+      "m5-alpha-content-long-run.factionSelectedFactCount",
+    ),
+    governanceSelectedHookCount: requireNumber(
+      value["governanceSelectedHookCount"],
+      "m5-alpha-content-long-run.governanceSelectedHookCount",
+    ),
+    eventPoolCandidateCount: requireNumber(
+      value["eventPoolCandidateCount"],
+      "m5-alpha-content-long-run.eventPoolCandidateCount",
+    ),
+    eventTransitionCount: requireNumber(
+      value["eventTransitionCount"],
+      "m5-alpha-content-long-run.eventTransitionCount",
+    ),
+    eventCooldownWriteCount: requireNumber(
+      value["eventCooldownWriteCount"],
+      "m5-alpha-content-long-run.eventCooldownWriteCount",
+    ),
+    eventPreconditionFailureCount: requireNumber(
+      value["eventPreconditionFailureCount"],
+      "m5-alpha-content-long-run.eventPreconditionFailureCount",
+    ),
+    saveLoadRebuiltSurfaceCount: requireNumber(
+      value["saveLoadRebuiltSurfaceCount"],
+      "m5-alpha-content-long-run.saveLoadRebuiltSurfaceCount",
+    ),
+    workerProjectionBytes: requireNumber(
+      value["workerProjectionBytes"],
+      "m5-alpha-content-long-run.workerProjectionBytes",
+    ),
+    workerProjectionSurfaceCount: requireNumber(
+      value["workerProjectionSurfaceCount"],
+      "m5-alpha-content-long-run.workerProjectionSurfaceCount",
+    ),
+    workerProjectionHash: requireString(
+      value["workerProjectionHash"],
+      "m5-alpha-content-long-run.workerProjectionHash",
+    ),
+    workerReadModelHash: requireString(
+      value["workerReadModelHash"],
+      "m5-alpha-content-long-run.workerReadModelHash",
+    ),
+    terminalSampleCount: requireNumber(
+      value["terminalSampleCount"],
+      "m5-alpha-content-long-run.terminalSampleCount",
+    ),
+    terminalFirstSampleTick: requireNumber(
+      value["terminalFirstSampleTick"],
+      "m5-alpha-content-long-run.terminalFirstSampleTick",
+    ),
+    terminalLastSampleTick: requireNumber(
+      value["terminalLastSampleTick"],
+      "m5-alpha-content-long-run.terminalLastSampleTick",
+    ),
+    replayMatches: requireBoolean(
+      value["replayMatches"],
+      "m5-alpha-content-long-run.replayMatches",
+    ),
+    saveRoundTripMatches: requireBoolean(
+      value["saveRoundTripMatches"],
+      "m5-alpha-content-long-run.saveRoundTripMatches",
+    ),
+    workerProjectionMatches: requireBoolean(
+      value["workerProjectionMatches"],
+      "m5-alpha-content-long-run.workerProjectionMatches",
+    ),
+    noContentValidationDrift: requireBoolean(
+      value["noContentValidationDrift"],
+      "m5-alpha-content-long-run.noContentValidationDrift",
+    ),
+    noAnomalyLeaks: requireBoolean(
+      value["noAnomalyLeaks"],
+      "m5-alpha-content-long-run.noAnomalyLeaks",
+    ),
+    noFactionGovernanceHiddenAuthority: requireBoolean(
+      value["noFactionGovernanceHiddenAuthority"],
+      "m5-alpha-content-long-run.noFactionGovernanceHiddenAuthority",
+    ),
+    noEventQueueGrowth: requireBoolean(
+      value["noEventQueueGrowth"],
+      "m5-alpha-content-long-run.noEventQueueGrowth",
+    ),
+    noM0ToM4Regression: requireBoolean(
+      value["noM0ToM4Regression"],
+      "m5-alpha-content-long-run.noM0ToM4Regression",
+    ),
+    noQueueGrowth: requireBoolean(
+      value["noQueueGrowth"],
+      "m5-alpha-content-long-run.noQueueGrowth",
+    ),
+    noHashDivergence: requireBoolean(
+      value["noHashDivergence"],
+      "m5-alpha-content-long-run.noHashDivergence",
+    ),
+    m6StopSignVerdict: requireString(
+      value["m6StopSignVerdict"],
+      "m5-alpha-content-long-run.m6StopSignVerdict",
+    ),
+    m6Created: requireBoolean(value["m6Created"], "m5-alpha-content-long-run.m6Created"),
+  };
+}
+
 function parseMapDirtyBaselineInvariants(
   value: Record<string, unknown>,
 ): BenchmarkBaselineEntry<"map-dirty">["invariants"] {
@@ -1770,6 +1987,13 @@ function sampleNamedBenchmark(
     });
   }
 
+  if (name === "m5-alpha-content-long-run") {
+    return sampleBenchmark("m5-alpha-content-long-run", {
+      sampleCount,
+      warmupCount,
+    });
+  }
+
   if (name === "map-dirty") {
     return sampleBenchmark("map-dirty", {
       sampleCount,
@@ -1848,6 +2072,10 @@ function compareAgainstNamedBaseline(
       result,
       baseline.benchmarks["m4-core-vertical-slice-long-run"],
     );
+  }
+
+  if (result.name === "m5-alpha-content-long-run") {
+    return compareBenchmarkToBaseline(result, baseline.benchmarks["m5-alpha-content-long-run"]);
   }
 
   if (result.name === "map-dirty") {
@@ -1980,6 +2208,7 @@ function isBenchmarkName(value: string | undefined): value is BenchmarkName {
     value === "m2-work-logistics-long-run" ||
     value === "m3-ordinary-life-long-run" ||
     value === "m4-core-vertical-slice-long-run" ||
+    value === "m5-alpha-content-long-run" ||
     value === "map-dirty" ||
     value === "pathing-100" ||
     value === "reservations" ||

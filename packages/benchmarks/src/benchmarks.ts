@@ -61,6 +61,13 @@ import {
   type SampledM4CoreVerticalSliceLongRunBenchmark,
 } from "./m4-core-vertical-slice-long-run-benchmark";
 import {
+  m5AlphaContentLongRunInvariantsFromReport,
+  runM5AlphaContentLongRunBenchmark,
+  type M5AlphaContentLongRunBenchmarkInvariants,
+  type M5AlphaContentLongRunBenchmarkReport,
+  type SampledM5AlphaContentLongRunBenchmark,
+} from "./m5-alpha-content-long-run-benchmark";
+import {
   runSpatialIndexBenchmark,
   spatialIndexInvariantsFromReport,
   type SampledSpatialIndexBenchmark,
@@ -103,6 +110,7 @@ export { runM2PathingInvalidationBenchmark } from "./m2-pathing-invalidation-ben
 export { runM2WorkLogisticsLongRunBenchmark } from "./m2-work-logistics-long-run-benchmark";
 export { runM3OrdinaryLifeLongRunBenchmark } from "./m3-ordinary-life-long-run-benchmark";
 export { runM4CoreVerticalSliceLongRunBenchmark } from "./m4-core-vertical-slice-long-run-benchmark";
+export { runM5AlphaContentLongRunBenchmark } from "./m5-alpha-content-long-run-benchmark";
 export { runPathing100Benchmark } from "./pathing-100-benchmark";
 export { runRegionRoomBenchmark } from "./region-room-benchmark";
 export { runReservationsBenchmark } from "./reservations-benchmark";
@@ -131,6 +139,7 @@ export type BenchmarkName =
   | "m2-work-logistics-long-run"
   | "m3-ordinary-life-long-run"
   | "m4-core-vertical-slice-long-run"
+  | "m5-alpha-content-long-run"
   | "map-dirty"
   | "pathing-100"
   | "reservations"
@@ -226,6 +235,7 @@ export type BenchmarkReport =
   | M2WorkLogisticsLongRunBenchmarkReport
   | M3OrdinaryLifeLongRunBenchmarkReport
   | M4CoreVerticalSliceLongRunBenchmarkReport
+  | M5AlphaContentLongRunBenchmarkReport
   | MapDirtyBenchmarkReport
   | Pathing100BenchmarkReport
   | ReservationsBenchmarkReport
@@ -241,6 +251,7 @@ export type BenchmarkInvariants =
   | M2WorkLogisticsLongRunBenchmarkInvariants
   | M3OrdinaryLifeLongRunBenchmarkInvariants
   | M4CoreVerticalSliceLongRunBenchmarkInvariants
+  | M5AlphaContentLongRunBenchmarkInvariants
   | MapDirtyBenchmarkInvariants
   | Pathing100BenchmarkInvariants
   | ReservationsBenchmarkInvariants
@@ -256,6 +267,7 @@ export type SampledBenchmarkResult =
   | SampledM2WorkLogisticsLongRunBenchmark
   | SampledM3OrdinaryLifeLongRunBenchmark
   | SampledM4CoreVerticalSliceLongRunBenchmark
+  | SampledM5AlphaContentLongRunBenchmark
   | SampledMapDirtyBenchmark
   | SampledPathing100Benchmark
   | SampledReservationsBenchmark
@@ -272,6 +284,7 @@ export interface BenchmarkReportMap {
   readonly "m2-work-logistics-long-run": M2WorkLogisticsLongRunBenchmarkReport;
   readonly "m3-ordinary-life-long-run": M3OrdinaryLifeLongRunBenchmarkReport;
   readonly "m4-core-vertical-slice-long-run": M4CoreVerticalSliceLongRunBenchmarkReport;
+  readonly "m5-alpha-content-long-run": M5AlphaContentLongRunBenchmarkReport;
   readonly "map-dirty": MapDirtyBenchmarkReport;
   readonly "pathing-100": Pathing100BenchmarkReport;
   readonly reservations: ReservationsBenchmarkReport;
@@ -289,6 +302,7 @@ export interface BenchmarkInvariantMap {
   readonly "m2-work-logistics-long-run": M2WorkLogisticsLongRunBenchmarkInvariants;
   readonly "m3-ordinary-life-long-run": M3OrdinaryLifeLongRunBenchmarkInvariants;
   readonly "m4-core-vertical-slice-long-run": M4CoreVerticalSliceLongRunBenchmarkInvariants;
+  readonly "m5-alpha-content-long-run": M5AlphaContentLongRunBenchmarkInvariants;
   readonly "map-dirty": MapDirtyBenchmarkInvariants;
   readonly "pathing-100": Pathing100BenchmarkInvariants;
   readonly reservations: ReservationsBenchmarkInvariants;
@@ -343,6 +357,9 @@ export function benchmarkInvariantsFromReport(
 export function benchmarkInvariantsFromReport(
   report: M4CoreVerticalSliceLongRunBenchmarkReport,
 ): M4CoreVerticalSliceLongRunBenchmarkInvariants;
+export function benchmarkInvariantsFromReport(
+  report: M5AlphaContentLongRunBenchmarkReport,
+): M5AlphaContentLongRunBenchmarkInvariants;
 export function benchmarkInvariantsFromReport(
   report: MapDirtyBenchmarkReport,
 ): MapDirtyBenchmarkInvariants;
@@ -409,6 +426,10 @@ export function benchmarkInvariantsFromReport(report: BenchmarkReport): Benchmar
     return m4CoreVerticalSliceLongRunInvariantsFromReport(report);
   }
 
+  if (report.name === "m5-alpha-content-long-run") {
+    return m5AlphaContentLongRunInvariantsFromReport(report);
+  }
+
   if (report.name === "map-dirty") {
     return mapDirtyInvariantsFromReport(report);
   }
@@ -450,6 +471,9 @@ export function runBenchmarkByName(
 export function runBenchmarkByName(
   name: "m4-core-vertical-slice-long-run",
 ): M4CoreVerticalSliceLongRunBenchmarkReport;
+export function runBenchmarkByName(
+  name: "m5-alpha-content-long-run",
+): M5AlphaContentLongRunBenchmarkReport;
 export function runBenchmarkByName(name: "map-dirty"): MapDirtyBenchmarkReport;
 export function runBenchmarkByName(name: "pathing-100"): Pathing100BenchmarkReport;
 export function runBenchmarkByName(name: "reservations"): ReservationsBenchmarkReport;
@@ -490,6 +514,10 @@ export function runBenchmarkByName(name: BenchmarkName): BenchmarkReport {
 
   if (name === "m4-core-vertical-slice-long-run") {
     return runM4CoreVerticalSliceLongRunBenchmark();
+  }
+
+  if (name === "m5-alpha-content-long-run") {
+    return runM5AlphaContentLongRunBenchmark();
   }
 
   if (name === "map-dirty") {
@@ -548,6 +576,10 @@ export function sampleBenchmark(
   options?: BenchmarkSamplingOptions,
 ): SampledM4CoreVerticalSliceLongRunBenchmark;
 export function sampleBenchmark(
+  name: "m5-alpha-content-long-run",
+  options?: BenchmarkSamplingOptions,
+): SampledM5AlphaContentLongRunBenchmark;
+export function sampleBenchmark(
   name: "map-dirty",
   options?: BenchmarkSamplingOptions,
 ): SampledMapDirtyBenchmark;
@@ -596,6 +628,8 @@ export function sampleBenchmark(
       runBenchmarkByName("m3-ordinary-life-long-run");
     } else if (name === "m4-core-vertical-slice-long-run") {
       runBenchmarkByName("m4-core-vertical-slice-long-run");
+    } else if (name === "m5-alpha-content-long-run") {
+      runBenchmarkByName("m5-alpha-content-long-run");
     } else if (name === "map-dirty") {
       runBenchmarkByName("map-dirty");
     } else if (name === "pathing-100") {
@@ -643,6 +677,10 @@ export function sampleBenchmark(
     return sampleM4CoreVerticalSliceLongRunBenchmark(sampleCount);
   }
 
+  if (name === "m5-alpha-content-long-run") {
+    return sampleM5AlphaContentLongRunBenchmark(sampleCount);
+  }
+
   if (name === "map-dirty") {
     return sampleMapDirtyBenchmark(sampleCount);
   }
@@ -678,6 +716,7 @@ export function runDefaultBenchmarkSuite(
     sampleBenchmark("m2-work-logistics-long-run", options),
     sampleBenchmark("m3-ordinary-life-long-run", options),
     sampleBenchmark("m4-core-vertical-slice-long-run", options),
+    sampleBenchmark("m5-alpha-content-long-run", options),
     sampleBenchmark("map-dirty", options),
     sampleBenchmark("pathing-100", options),
     sampleBenchmark("reservations", options),
@@ -825,6 +864,24 @@ function sampleM4CoreVerticalSliceLongRunBenchmark(
   };
 }
 
+function sampleM5AlphaContentLongRunBenchmark(
+  sampleCount: number,
+): SampledM5AlphaContentLongRunBenchmark {
+  const reports: M5AlphaContentLongRunBenchmarkReport[] = [];
+
+  for (let index = 0; index < sampleCount; index += 1) {
+    reports.push(runM5AlphaContentLongRunBenchmark());
+  }
+
+  return {
+    name: "m5-alpha-content-long-run",
+    report: reports[reports.length - 1] ?? failMissingReport(),
+    invariants: validateInvariantConsistency("m5-alpha-content-long-run", reports),
+    sampleElapsedMs: reports.map((report) => report.elapsedMs),
+    stats: createBenchmarkStats(reports.map((report) => report.elapsedMs)),
+  };
+}
+
 function sampleMapDirtyBenchmark(sampleCount: number): SampledMapDirtyBenchmark {
   const reports: MapDirtyBenchmarkReport[] = [];
 
@@ -964,6 +1021,10 @@ function validateInvariantConsistency(
   reports: readonly M4CoreVerticalSliceLongRunBenchmarkReport[],
 ): M4CoreVerticalSliceLongRunBenchmarkInvariants;
 function validateInvariantConsistency(
+  name: "m5-alpha-content-long-run",
+  reports: readonly M5AlphaContentLongRunBenchmarkReport[],
+): M5AlphaContentLongRunBenchmarkInvariants;
+function validateInvariantConsistency(
   name: "map-dirty",
   reports: readonly MapDirtyBenchmarkReport[],
 ): MapDirtyBenchmarkInvariants;
@@ -1078,6 +1139,10 @@ function readInvariantUnion(report: BenchmarkReport): BenchmarkInvariants {
   }
 
   if (report.name === "m4-core-vertical-slice-long-run") {
+    return benchmarkInvariantsFromReport(report);
+  }
+
+  if (report.name === "m5-alpha-content-long-run") {
     return benchmarkInvariantsFromReport(report);
   }
 

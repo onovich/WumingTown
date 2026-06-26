@@ -275,3 +275,32 @@ Worker coverage and also runs `m5.alpha_content_framework.first_season.v1`
 through a real browser module Worker. M5 stale projection basis checks use the
 existing structured protocol reason codes and do not add a public Worker
 message family, platform save UI, client repair path or authoritative UI state.
+
+## WM-0083 implementation note
+
+`pnpm test --filter m5-invariants` is the focused M5 long-run invariant gate.
+It runs the alpha content framework with requested seed `5` through samples at
+`12000`, `36000`, `60000`, `80000` and `100000`, verifies content validation
+stability, anomaly leak absence, faction/governance bounded authority, season
+event queue stability, focused save/resume hash parity, Worker projection
+parity at the reviewed `36000` checkpoint and preserved M0-M4 regression
+evidence.
+
+`pnpm bench` writes the WM-0083 artifact to
+`coordination/artifacts/WM-0083/benchmarks/benchmark-results.json`. The
+artifact includes the environment block (`nodeVersion`, `pnpmVersion`,
+`osRelease`, `platform`, `arch`, `cpuModel`, `cpuCount`, `gitCommit`),
+scenario id, requested and authoritative seeds, content manifest hash
+`0xe55d3015`, tick horizon `100000`, checkpoint hashes through `100000`, final
+summary, save/load rebuilt surface count, save/load rebuild timing, Worker
+projection bytes, final world hash `0xfba70a5c`, final read-model hash
+`0x9ba83cb7`, actual JSON file SHA-256
+`04DB70ECD54022C298293BE9B00EDF404AC18122742F3ACB0C17AC21EE58D346`, and
+canonical payload SHA-256
+`4815D8AC685CC51AC53260C14C302E1C508584AF81EA261664283711A00F0BAC`.
+
+The documented M5 headless reproduction command is
+`pnpm sim:run -- --seed 5 --scenario m5-alpha-content-framework --ticks 100000`.
+M6 readiness remains a stop-sign report only: the artifact records
+`m6StopSignVerdict: "stop_signs_only"` and `m6Created: false`; no M6 task is a
+testing or CI prerequisite for M5 closeout.

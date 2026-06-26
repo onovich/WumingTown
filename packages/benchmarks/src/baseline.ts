@@ -22,6 +22,7 @@ export interface BenchmarkBaselineFile {
     readonly "m2-work-logistics-long-run": BenchmarkBaselineEntry<"m2-work-logistics-long-run">;
     readonly "m3-ordinary-life-long-run": BenchmarkBaselineEntry<"m3-ordinary-life-long-run">;
     readonly "m4-core-vertical-slice-long-run": BenchmarkBaselineEntry<"m4-core-vertical-slice-long-run">;
+    readonly "m5-alpha-content-long-run": BenchmarkBaselineEntry<"m5-alpha-content-long-run">;
     readonly "map-dirty": BenchmarkBaselineEntry<"map-dirty">;
     readonly "pathing-100": BenchmarkBaselineEntry<"pathing-100">;
     readonly reservations: BenchmarkBaselineEntry<"reservations">;
@@ -76,6 +77,10 @@ export function compareBenchmarkToBaseline(
   actual: Extract<SampledBenchmarkResult, { readonly name: "m4-core-vertical-slice-long-run" }>,
   baseline: BenchmarkBaselineEntry<"m4-core-vertical-slice-long-run">,
 ): BenchmarkComparison<"m4-core-vertical-slice-long-run">;
+export function compareBenchmarkToBaseline(
+  actual: Extract<SampledBenchmarkResult, { readonly name: "m5-alpha-content-long-run" }>,
+  baseline: BenchmarkBaselineEntry<"m5-alpha-content-long-run">,
+): BenchmarkComparison<"m5-alpha-content-long-run">;
 export function compareBenchmarkToBaseline(
   actual: Extract<SampledBenchmarkResult, { readonly name: "map-dirty" }>,
   baseline: BenchmarkBaselineEntry<"map-dirty">,

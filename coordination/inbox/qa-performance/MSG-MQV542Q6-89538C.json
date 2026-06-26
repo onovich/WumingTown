@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQV542Q6-89538C",
+  "from": "reviewer",
+  "to": "qa-performance",
+  "taskId": "WM-0083",
+  "kind": "review-approved",
+  "subject": "WM-0083 review: verified",
+  "body": "Verified M5 invariant gate, benchmark artifact SHA/canonical hash evidence, environment fields, unchanged 10/20 thresholds, M6 stop-sign-only scope, allowed paths, and required gates.",
+  "artifacts": [
+    "coordination/reports/WM-0083.md"
+  ],
+  "createdAt": "2026-06-26T16:23:10.542Z",
+  "acknowledgedAt": "2026-06-26T16:24:29.756Z"
+}
