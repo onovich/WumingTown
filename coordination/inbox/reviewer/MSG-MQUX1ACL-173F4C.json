@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQUX1ACL-173F4C",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0077",
+  "kind": "review-request",
+  "subject": "WM-0077 ready for review",
+  "body": "Faction fact and governance hook owner stores implemented; all WM-0077 gates pass",
+  "artifacts": [
+    "coordination/reports/WM-0077.md",
+    "task/WM-0077-add-m5-faction-governance-hooks"
+  ],
+  "createdAt": "2026-06-26T12:37:03.525Z",
+  "acknowledgedAt": "2026-06-26T12:45:50.099Z"
+}

@@ -63,3 +63,21 @@ obligation queries, then pass it into compliance context. They must not infer
 automatic behavior from presentation text. Automatic resident action remains
 gated by known confirmed rules or explicit temporary policies from the
 Chronicle/knowledge owner state.
+
+## WM-0077 M5 governance hook store
+
+`M5GovernanceHookStore` is the first M5 governance hook owner surface. It owns
+typed-array rows for policy id, hook kind, authority actor, council post,
+temporary policy authority, enforcement capacity, legitimacy source,
+legitimacy score, risk flags, town-rule owner version, obligation owner
+version, Chronicle owner version, source event, source owner version, active
+window and stable ordering keys.
+
+Governance hooks are bounded numeric inputs for event legality and town-rule
+pressure. `evaluatePolicyHooks` walks only the requested policy lane after
+checking the expected governance owner version. It returns selected hook ids,
+aggregate enforcement capacity, legitimacy score, policy pressure score, risk
+flags and a structured reason such as allowed, risk blocked, insufficient
+legitimacy or cap reached. The store does not bypass `M4TownRuleStore`,
+`M4ObligationStore` or Chronicle/knowledge authority; it only records versioned
+basis facts for downstream legal command selection.

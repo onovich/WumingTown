@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQUX43AZ-D8EA1C",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0077",
+  "kind": "changes-requested",
+  "subject": "WM-0077 review: changes_requested",
+  "body": "Blocking review finding: faction/governance bounded query cap detection treats any next lane row as a cap hit before verifying it matches the query, which can return cap_reached and allowed=false for otherwise legal governance queries and gives false cap reasons for faction facts.",
+  "artifacts": [
+    "coordination/reports/WM-0077.md"
+  ],
+  "createdAt": "2026-06-26T12:39:14.363Z",
+  "acknowledgedAt": "2026-06-26T12:45:50.182Z"
+}

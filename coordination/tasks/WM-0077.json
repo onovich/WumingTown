@@ -2,7 +2,7 @@
   "id": "WM-0077",
   "title": "Add M5 faction and governance hooks",
   "summary": "Add decomposed faction facts and governance hooks for event legality, policy pressure and strategy variation without a monolithic political director.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -37,7 +37,7 @@
   ],
   "branch": "task/WM-0077-add-m5-faction-governance-hooks",
   "createdAt": "2026-06-26T09:24:00.000Z",
-  "updatedAt": "2026-06-26T12:20:32.677Z",
+  "updatedAt": "2026-06-26T12:46:40.014Z",
   "history": [
     {
       "at": "2026-06-26T09:24:00.000Z",
@@ -50,6 +50,48 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-26T12:22:45.122Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Beacon"
+    },
+    {
+      "at": "2026-06-26T12:37:03.523Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Faction fact and governance hook owner stores implemented; all WM-0077 gates pass"
+    },
+    {
+      "at": "2026-06-26T12:39:14.362Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: Blocking review finding: faction/governance bounded query cap detection treats any next lane row as a cap hit before verifying it matches the query, which can return cap_reached and allowed=false for otherwise legal governance queries and gives false cap reasons for faction facts."
+    },
+    {
+      "at": "2026-06-26T12:42:55.191Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Repaired faction/governance cap-hit semantics; all WM-0077 gates pass"
+    },
+    {
+      "at": "2026-06-26T12:45:25.516Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; cap-hit repair confirmed for faction/governance matching-row semantics, with decomposed owner stores, stale-basis checks, bounded queries, scoped exports, and quality gates passing."
+    },
+    {
+      "at": "2026-06-26T12:46:34.102Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Gate verified WM-0077; integration quality passed with 56 files / 318 tests, taskctl validate passed, git diff --check clean"
+    },
+    {
+      "at": "2026-06-26T12:46:40.013Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M5",
@@ -97,5 +139,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Faction/governance ownership affects simulation architecture and strategy authority."
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Beacon",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0077.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; cap-hit repair confirmed for faction/governance matching-row semantics, with decomposed owner stores, stale-basis checks, bounded queries, scoped exports, and quality gates passing.",
+    "at": "2026-06-26T12:45:25.515Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Gate verified WM-0077; integration quality passed with 56 files / 318 tests, taskctl validate passed, git diff --check clean",
+    "at": "2026-06-26T12:46:34.102Z"
   }
 }

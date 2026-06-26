@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQUX8TP4-40843A",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0077",
+  "kind": "review-request",
+  "subject": "WM-0077 ready for review",
+  "body": "Repaired faction/governance cap-hit semantics; all WM-0077 gates pass",
+  "artifacts": [
+    "coordination/reports/WM-0077.md",
+    "task/WM-0077-add-m5-faction-governance-hooks"
+  ],
+  "createdAt": "2026-06-26T12:42:55.192Z",
+  "acknowledgedAt": "2026-06-26T12:45:50.139Z"
+}

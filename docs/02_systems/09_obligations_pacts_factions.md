@@ -48,3 +48,21 @@ matches, while scan cap limits total debtor-lane rows inspected. If scan cap is
 exhausted, the result reports `obligation_due_scan_cap_reached` instead of
 claiming no candidate. These reads are intended to feed downstream numeric
 compliance context rather than hidden prose or probability state.
+
+## WM-0077 M5 faction fact hooks
+
+`M5FactionFactStore` is the first M5 faction fact owner surface. It owns
+typed-array rows for faction id, subject id, fact kind, score/value, source
+event, Chronicle owner version, obligation owner version, source owner version,
+tick and stable ordering keys. The fact kinds are intentionally decomposed:
+legal stance, trade stance, debt stance, legitimacy, fear/memory, memory event
+and known claim. There is no single faction mood, diplomacy text authority or
+UI-owned consequence field.
+
+Faction reads use `queryFacts` against one faction lane at a time. A query
+must provide the expected faction owner version, a kind mask, candidate cap and
+scan cap. Stale owner basis is rejected before traversal, and accepted queries
+walk only the requested faction lane in stable priority order. Returned fact
+ids are numeric basis rows for event legality, anomaly context and town-rule
+pressure; they do not mutate obligations, Chronicle facts or source faction
+authority.

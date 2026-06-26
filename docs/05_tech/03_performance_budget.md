@@ -464,6 +464,26 @@ remaining cleanup rows pending without scanning source logistics or all crisis
 capacity. Baseline timing and artifact updates wait for the M5 closeout
 benchmark task.
 
+## WM-0077 M5 faction and governance metrics
+
+`M5FactionFactStore.createMetrics()` records faction owner version, active and
+indexed fact counts, per-lane counts for legal/trade/debt/legitimacy/fear or
+memory/memory-event/known-claim rows, last/total query visits, last selected
+count, query cap-hit count and stale-basis rejects. Normal reads walk only the
+requested faction lane with caller `candidateCap` and `scanCap`; stale owner
+basis is rejected before traversal. The store does not scan all factions or
+collapse consequences into a single mood number.
+
+`M5GovernanceHookStore.createMetrics()` records governance owner version,
+active and indexed hook counts, per-hook-kind counts for council post,
+temporary policy, enforcement, legitimacy and risk rows, last/total query
+visits, last selected count, query cap-hit count, stale-basis rejects,
+risk-blocked count and insufficient-legitimacy count. Normal policy legality
+queries walk only the requested policy lane with caller caps and return
+structured pressure/risk output. They do not mutate town-rule, obligation,
+Chronicle or UI authority. Baseline timing and artifact updates wait for the
+M5 closeout benchmark task.
+
 ## WM-0070 M4 benchmark note
 
 `pnpm bench` now includes `m4-core-vertical-slice-long-run` in the default

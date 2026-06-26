@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQUXC1OT-905183",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0077",
+  "kind": "review-approved",
+  "subject": "WM-0077 review: verified",
+  "body": "No blocking findings; cap-hit repair confirmed for faction/governance matching-row semantics, with decomposed owner stores, stale-basis checks, bounded queries, scoped exports, and quality gates passing.",
+  "artifacts": [
+    "coordination/reports/WM-0077.md"
+  ],
+  "createdAt": "2026-06-26T12:45:25.517Z",
+  "acknowledgedAt": "2026-06-26T12:45:50.228Z"
+}
