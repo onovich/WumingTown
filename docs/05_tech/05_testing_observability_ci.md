@@ -260,3 +260,18 @@ writes expected, actual, save, resumed and summary artifacts under
 `coordination/artifacts/WM-0081/m5-save-replay/`, including save byte size,
 load validation time, rebuild time, rebuilt surface names/hashes, command tail
 and checkpoint hashes.
+
+## WM-0082 implementation note
+
+`pnpm test --filter m5-worker-parity` covers the focused M5 Worker/headless
+parity gate. It runs the Node Worker through the reviewed M5 checkpoint stream,
+compares authoritative world and read-model hashes, records projection byte
+size diagnostics under `coordination/artifacts/WM-0082/`, and verifies that M5
+content, anomaly roster, faction/governance, season event, validation and
+review basis hashes are exposed only as read-only Worker projection summaries.
+
+`pnpm test:e2e --filter worker-smoke` now keeps the existing M1-M4 browser
+Worker coverage and also runs `m5.alpha_content_framework.first_season.v1`
+through a real browser module Worker. M5 stale projection basis checks use the
+existing structured protocol reason codes and do not add a public Worker
+message family, platform save UI, client repair path or authoritative UI state.

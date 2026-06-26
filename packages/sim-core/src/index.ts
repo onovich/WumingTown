@@ -577,6 +577,23 @@ export {
   runM5AlphaContentReplay,
 } from "./m5-save-replay";
 export {
+  M5_WORKER_ALPHA_CONTENT_ALIAS,
+  M5_WORKER_ALPHA_CONTENT_SCENARIO_ID,
+  M5_WORKER_AUTHORITATIVE_SEED,
+  M5_WORKER_COMMAND_PREFIX,
+  M5_WORKER_COMMAND_STREAM_HASH,
+  M5_WORKER_CONTENT_MANIFEST_HASH,
+  M5_WORKER_FINAL_TICK,
+  M5_WORKER_REBUILT_SURFACE_NAMES,
+  M5_WORKER_REPLAY_CHECKPOINT_SEQUENCE,
+  M5_WORKER_REQUESTED_SEED,
+  M5_WORKER_SAVE_TICK,
+  createM5WorkerAdvanceCommandId,
+  createM5WorkerFocusedSaveEnvelope,
+  createM5WorkerProjection,
+  parseM5WorkerAdvanceCommandId,
+} from "./m5-worker-projection";
+export {
   M2_BLUEPRINT_ROAD_LANTERN_FRAME,
   M2_BUILDING_ROAD_LANTERN_FRAME,
   M2_ITEM_BINDING_PAPER,
@@ -1382,6 +1399,11 @@ export type {
   M5SeasonSaveRecord,
   M5SurfaceHashRecord,
 } from "./m5-save-replay";
+export type {
+  M5WorkerFocusedSaveEnvelope,
+  M5WorkerProjection,
+  M5WorkerProjectionSurface,
+} from "./m5-worker-projection";
 export type {
   M2WorkLogisticsCounters,
   M2WorkLogisticsEndState,

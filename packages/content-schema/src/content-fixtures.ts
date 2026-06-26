@@ -1,4 +1,3 @@
-import { readFile, readdir } from "node:fs/promises";
 import * as path from "node:path";
 
 export const DEF_BASE_ID_PATTERN = /^[a-z][a-z0-9_-]*(\.[a-z][a-z0-9_-]*){2,}$/;
@@ -86,6 +85,7 @@ export interface ContentValidationOutcome {
 }
 
 export async function loadContentFixture(rootDir: string): Promise<ContentFixture> {
+  const { readFile } = await import("node:fs/promises");
   const files: ContentRawFile[] = [];
   const filePaths = await collectContentFiles(rootDir);
 
@@ -273,6 +273,7 @@ export function validateContentFixture(fixture: ContentFixture): ContentValidati
 }
 
 export async function discoverContentFixtureRoots(contentRoot: string): Promise<readonly string[]> {
+  const { readdir } = await import("node:fs/promises");
   const entries = await readdir(contentRoot, { withFileTypes: true });
   const roots: string[] = [];
 
@@ -307,6 +308,7 @@ async function collectContentFiles(rootDir: string): Promise<readonly string[]> 
 }
 
 async function collectJsonFiles(directoryPath: string): Promise<readonly string[]> {
+  const { readdir } = await import("node:fs/promises");
   const entries = await readdir(directoryPath, { withFileTypes: true });
   const filePaths: string[] = [];
 

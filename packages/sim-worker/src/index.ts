@@ -4,6 +4,7 @@ import {
   M2_WORK_LOGISTICS_SCENARIO_ID,
   M3_ORDINARY_LIFE_SCENARIO_ID,
   M4_CORE_VERTICAL_SLICE_SCENARIO_ID,
+  M5_WORKER_ALPHA_CONTENT_SCENARIO_ID,
   createM4AdvanceCommandId,
   SIM_CORE_SMOKE,
   createM1AdvanceCommandId,
@@ -17,10 +18,14 @@ import {
   createM3ReadOnlyProjection,
   createM4CoreVerticalSliceSaveEnvelope,
   createM4ReadOnlyProjection,
+  createM5WorkerAdvanceCommandId,
+  createM5WorkerFocusedSaveEnvelope,
+  createM5WorkerProjection,
   parseM1AdvanceCommandId,
   parseM2AdvanceCommandId,
   parseM3AdvanceCommandId,
   parseM4AdvanceCommandId,
+  parseM5WorkerAdvanceCommandId,
   runM4CoreVerticalSliceScenario,
   runM3OrdinaryLifeScenario,
   runM2WorkLogisticsScenario,
@@ -29,6 +34,7 @@ import {
   type M2ReadOnlyProjection,
   type M3ReadOnlyProjection,
   type M4ReadOnlyProjection,
+  type M5WorkerProjection,
 } from "@wuming-town/sim-core";
 import {
   MAIN_TO_SIMULATION_MESSAGE_KIND,
@@ -91,6 +97,7 @@ interface SimulationWorkerState {
   m2Scenario: M2WorkerScenarioState | undefined;
   m3Scenario: M3WorkerScenarioState | undefined;
   m4Scenario: M4WorkerScenarioState | undefined;
+  m5Scenario: M5WorkerScenarioState | undefined;
 }
 
 interface M1WorkerScenarioState {
@@ -113,6 +120,26 @@ interface M4WorkerScenarioState {
   checkpointCount: number;
 }
 
+interface M5WorkerScenarioState {
+  readonly seed: string;
+  checkpointCount: number;
+}
+
+export type M5WorkerProjectionBasisValidation =
+  | {
+      readonly ok: true;
+      readonly contentManifestHash: string;
+      readonly projectionHash: string;
+      readonly worldHash: string;
+    }
+  | {
+      readonly ok: false;
+      readonly expectedContentManifestHash: string;
+      readonly observedContentManifestHash: string;
+      readonly projectionHash: string;
+      readonly reason: ProtocolRejection;
+    };
+
 export function createSimulationWorker(): SimulationWorker {
   const state: SimulationWorkerState = {
     lifecycle: "idle",
@@ -128,6 +155,7 @@ export function createSimulationWorker(): SimulationWorker {
     m2Scenario: undefined,
     m3Scenario: undefined,
     m4Scenario: undefined,
+    m5Scenario: undefined,
   };
 
   return {
@@ -246,6 +274,10 @@ function handleAcceptedMessage(
         message.payload.catalogVersion === M4_CORE_VERTICAL_SLICE_SCENARIO_ID
           ? { seed: message.payload.seed, checkpointCount: 1 }
           : undefined;
+      state.m5Scenario =
+        message.payload.catalogVersion === M5_WORKER_ALPHA_CONTENT_SCENARIO_ID
+          ? { seed: message.payload.seed, checkpointCount: 1 }
+          : undefined;
       return [
         makeReady(state),
         makeRenderSnapshot(state, message.sequence),
@@ -261,6 +293,7 @@ function handleAcceptedMessage(
       state.m2Scenario = undefined;
       state.m3Scenario = undefined;
       state.m4Scenario = undefined;
+      state.m5Scenario = undefined;
       return [
         makeReady(state),
         makeRenderSnapshot(state, message.sequence),
@@ -277,6 +310,8 @@ function handleAcceptedMessage(
         applyM3Commands(state, message.payload.commands);
       } else if (state.m4Scenario !== undefined) {
         applyM4Commands(state, message.payload.commands);
+      } else if (state.m5Scenario !== undefined) {
+        applyM5Commands(state, message.payload.commands);
       } else {
         state.tick += message.payload.commands.length;
       }
@@ -567,6 +602,21 @@ function applyM4Commands(
   }
 }
 
+function applyM5Commands(
+  state: SimulationWorkerState,
+  commands: readonly { readonly commandId: string }[],
+): void {
+  for (const command of commands) {
+    const parsed = parseM5WorkerAdvanceCommandId(command.commandId);
+    if (parsed.ok && parsed.tick >= state.tick) {
+      state.tick = parsed.tick;
+      if (state.m5Scenario !== undefined) {
+        state.m5Scenario.checkpointCount += 1;
+      }
+    }
+  }
+}
+
 interface WorkerProjectionView {
   readonly scenarioId: string;
   readonly worldHash: string;
@@ -618,18 +668,31 @@ function readWorkerProjection(state: SimulationWorkerState): WorkerProjectionVie
   }
 
   const m4Projection = readM4Projection(state);
-  if (m4Projection === undefined) {
+  if (m4Projection !== undefined) {
+    return {
+      scenarioId: m4Projection.scenarioId,
+      worldHash: m4Projection.worldHash,
+      readModelHash: m4Projection.readModelHash,
+      entityCount: m4Projection.renderSnapshot.branchCount,
+      summaries: createM4WorkerSummaries(m4Projection),
+      detailHash: m4Projection.scenarioReadModel.detailHash,
+      checkpointCount: state.m4Scenario?.checkpointCount ?? 0,
+    };
+  }
+
+  const m5Projection = readM5Projection(state);
+  if (m5Projection === undefined) {
     return undefined;
   }
 
   return {
-    scenarioId: m4Projection.scenarioId,
-    worldHash: m4Projection.worldHash,
-    readModelHash: m4Projection.readModelHash,
-    entityCount: m4Projection.renderSnapshot.branchCount,
-    summaries: createM4WorkerSummaries(m4Projection),
-    detailHash: m4Projection.scenarioReadModel.detailHash,
-    checkpointCount: state.m4Scenario?.checkpointCount ?? 0,
+    scenarioId: m5Projection.scenarioId,
+    worldHash: m5Projection.worldHash,
+    readModelHash: m5Projection.authoritativeReadModelHash,
+    entityCount: m5Projection.entityCount,
+    summaries: createM5WorkerSummaries(m5Projection),
+    detailHash: m5Projection.detailHash,
+    checkpointCount: state.m5Scenario?.checkpointCount ?? 0,
   };
 }
 
@@ -673,6 +736,15 @@ function readM4Projection(state: SimulationWorkerState): M4ReadOnlyProjection | 
   return createM4ReadOnlyProjection(summary, scenario.checkpointCount - 1);
 }
 
+function readM5Projection(state: SimulationWorkerState): M5WorkerProjection | undefined {
+  const scenario = state.m5Scenario;
+  if (scenario === undefined) {
+    return undefined;
+  }
+
+  return createM5WorkerProjection(scenario.seed, state.tick);
+}
+
 function createM4WorkerSummaries(projection: M4ReadOnlyProjection): readonly string[] {
   const summaries: string[] = [];
 
@@ -690,6 +762,80 @@ function createM4WorkerSummaries(projection: M4ReadOnlyProjection): readonly str
   return summaries;
 }
 
+function createM5WorkerSummaries(projection: M5WorkerProjection): readonly string[] {
+  const summaries: string[] = [];
+
+  for (const summary of projection.summaries) {
+    summaries.push(summary);
+  }
+
+  summaries.push(`m5-basis:content=${projection.contentManifestHash}`);
+  summaries.push(
+    `m5-basis:review=third-knock:${projection.thirdKnockReviewReason};old-bridge:${projection.oldBridgeReviewReason}`,
+  );
+  summaries.push(`m5-basis:season-events=count:${String(projection.seasonSelectionCount)}`);
+
+  for (const surface of projection.rebuiltSurfaces) {
+    summaries.push(
+      `m5-basis:${surface.name}=${surface.hash};version=${String(surface.sourceVersion)}`,
+    );
+  }
+
+  summaries.push(`m5-basis:read-model=${projection.authoritativeReadModelHash}`);
+  summaries.push(
+    `m5-basis:projection=${projection.projectionHash};tick=${String(projection.tick)}`,
+  );
+  return summaries;
+}
+
+export interface M5WorkerProjectionBasisView {
+  readonly contentManifestHash: string;
+  readonly projectionHash?: string;
+  readonly readModelHash?: string;
+  readonly worldHash: string;
+  readonly scenarioReadModel: {
+    readonly contentManifestHash: string;
+  };
+}
+
+export function validateM5WorkerProjectionBasis(
+  projection: M5WorkerProjectionBasisView,
+  expectedContentManifestHash: string,
+): M5WorkerProjectionBasisValidation {
+  const observedContentManifestHash =
+    projection.contentManifestHash === projection.scenarioReadModel.contentManifestHash
+      ? projection.contentManifestHash
+      : `${projection.contentManifestHash}/${projection.scenarioReadModel.contentManifestHash}`;
+
+  if (
+    projection.contentManifestHash !== expectedContentManifestHash ||
+    projection.scenarioReadModel.contentManifestHash !== expectedContentManifestHash
+  ) {
+    return {
+      ok: false,
+      expectedContentManifestHash,
+      observedContentManifestHash,
+      projectionHash: readProjectionHash(projection),
+      reason: {
+        code: SIMULATION_PROTOCOL_REASON_CODE.InvalidPayload,
+        detail:
+          "stale M5 projection basis: content manifest hash does not match active Worker content basis",
+      },
+    };
+  }
+
+  return {
+    ok: true,
+    contentManifestHash: projection.contentManifestHash,
+    projectionHash: readProjectionHash(projection),
+    worldHash: projection.worldHash,
+  };
+}
+
+function readProjectionHash(projection: M5WorkerProjectionBasisView): string {
+  return projection.projectionHash ?? projection.readModelHash ?? "0x00000000";
+}
+
 function createFocusedSave(
   state: SimulationWorkerState,
 ):
@@ -697,6 +843,7 @@ function createFocusedSave(
   | ReturnType<typeof createM2WorkLogisticsSaveEnvelope>
   | ReturnType<typeof createM3OrdinaryLifeSaveEnvelope>
   | ReturnType<typeof createM4CoreVerticalSliceSaveEnvelope>
+  | ReturnType<typeof createM5WorkerFocusedSaveEnvelope>
   | undefined {
   if (state.m1Scenario !== undefined) {
     return createM1HaulingBuildingSaveEnvelope(state.m1Scenario.seed, state.tick);
@@ -712,6 +859,10 @@ function createFocusedSave(
 
   if (state.m4Scenario !== undefined) {
     return createM4CoreVerticalSliceSaveEnvelope(state.m4Scenario.seed, state.tick);
+  }
+
+  if (state.m5Scenario !== undefined) {
+    return createM5WorkerFocusedSaveEnvelope(state.m5Scenario.seed, state.tick);
   }
 
   return undefined;
@@ -806,6 +957,21 @@ export function createM4WorkerAdvanceCommandIds(
     const tick = checkpointTicks[index];
     if (tick !== undefined) {
       commandIds.push(createM4AdvanceCommandId(tick, index));
+    }
+  }
+
+  return commandIds;
+}
+
+export function createM5WorkerAdvanceCommandIds(
+  checkpointTicks: readonly number[],
+): readonly string[] {
+  const commandIds: string[] = [];
+
+  for (let index = 0; index < checkpointTicks.length; index += 1) {
+    const tick = checkpointTicks[index];
+    if (tick !== undefined) {
+      commandIds.push(createM5WorkerAdvanceCommandId(tick, index));
     }
   }
 

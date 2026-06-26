@@ -2,7 +2,7 @@
   "id": "WM-0082",
   "title": "Add M5 Worker projections and parity",
   "summary": "Prove Node Worker and browser Worker parity for M5 read-only projections with content, anomaly, faction, governance and event basis metadata.",
-  "state": "ready",
+  "state": "review_requested",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -38,7 +38,7 @@
   ],
   "branch": "task/WM-0082-add-m5-worker-projections-parity",
   "createdAt": "2026-06-26T09:24:00.000Z",
-  "updatedAt": "2026-06-26T15:11:56.266Z",
+  "updatedAt": "2026-06-26T15:38:39.348Z",
   "history": [
     {
       "at": "2026-06-26T09:24:00.000Z",
@@ -51,6 +51,18 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-26T15:15:15.858Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Beacon"
+    },
+    {
+      "at": "2026-06-26T15:38:39.348Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented M5 Worker read-only projections, Node/browser parity, stale basis rejection and browser-safe content-schema loader repair; required checks and pnpm quality pass"
     }
   ],
   "milestone": "M5",
@@ -61,11 +73,14 @@
     "packages/sim-core/src/index.ts",
     "packages/sim-worker/src/**",
     "packages/sim-protocol/src/**",
+    "packages/content-schema/src/content-fixtures.ts",
+    "packages/content-schema/src/m5-content-pack-files.ts",
     "apps/web/src/**worker**",
     "tools/test-runner.mjs",
     "docs/05_tech/05_testing_observability_ci.md",
     "coordination/artifacts/WM-0082/**",
     "coordination/tasks/WM-0082.json",
+    "coordination/reports/WM-0082-plan.md",
     "coordination/reports/WM-0082.md"
   ],
   "forbiddenPaths": [
@@ -96,5 +111,9 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Worker parity and protocol-adjacent projection work require simulation/client architecture review."
-  }
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Beacon",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0082.md"
 }

@@ -1,4 +1,3 @@
-import { readFile, readdir } from "node:fs/promises";
 import * as path from "node:path";
 
 import type { ContentDiagnostic, ContentFixture, ContentRawFile } from "./content-fixtures";
@@ -6,6 +5,7 @@ import type { M5ContentPack, M5ContentPackFile, ParsedM5File } from "./m5-conten
 import { fileLocation } from "./m5-content-validation-utils";
 
 export async function loadM5ContentPackFromDirectory(rootDir: string): Promise<M5ContentPack> {
+  const { readFile } = await import("node:fs/promises");
   const filePaths = await collectPackFiles(rootDir);
   const files: M5ContentPackFile[] = [];
 
@@ -260,6 +260,7 @@ async function collectPackFiles(rootDir: string): Promise<readonly string[]> {
 }
 
 async function collectFilesRecursive(directoryPath: string): Promise<readonly string[]> {
+  const { readdir } = await import("node:fs/promises");
   const entries = await readdir(directoryPath, { withFileTypes: true });
   const files: string[] = [];
 

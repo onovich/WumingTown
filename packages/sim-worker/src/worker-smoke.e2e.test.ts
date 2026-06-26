@@ -11,18 +11,23 @@ import {
   M3_ORDINARY_LIFE_SCENARIO_ID,
   M4_CORE_VERTICAL_SLICE_SCENARIO_ID,
   M4_REPLAY_CHECKPOINT_SEQUENCE,
+  M5_ALPHA_CONTENT_SCENARIO_ID,
+  M5_REPLAY_CHECKPOINT_SEQUENCE,
   createM1AdvanceCommandId,
   createM2AdvanceCommandId,
   createM3AdvanceCommandId,
   createM4AdvanceCommandId,
+  createM5AdvanceCommandId,
   runM1HaulingBuildingReplay,
   runM2WorkLogisticsReplay,
   runM3OrdinaryLifeReplay,
   runM4CoreVerticalSliceReplay,
+  runM5AlphaContentReplay,
   type M1ReplayRun,
   type M2ReplayRun,
   type M3ReplayRun,
   type M4ReplayRun,
+  type M5ReplayRun,
 } from "@wuming-town/sim-core";
 import {
   MAIN_TO_SIMULATION_MESSAGE_KIND,
@@ -328,6 +333,55 @@ describe("worker-smoke simulation Worker protocol", () => {
     });
   }, 120000);
 
+  it("matches Node headless hashes for M5 in a real browser module Worker", async () => {
+    const expected = readM5Replay(
+      runM5AlphaContentReplay({
+        seed: "5",
+        checkpointTicks: M5_REPLAY_CHECKPOINT_SEQUENCE,
+      }),
+    );
+    const browserMessages = await runBrowserWorker([
+      makeM5InitSession(1),
+      makeM5AdvanceBatch(2, 3_600, 1),
+      makeM5AdvanceBatch(3, 7_200, 2),
+      makeM5AdvanceBatch(4, 12_000, 3),
+      makeM5AdvanceBatch(5, 18_000, 4),
+      makeM5AdvanceBatch(6, 36_000, 5),
+    ]);
+    const snapshots = renderSnapshots(browserMessages);
+    const finalUiDelta = lastUiDelta(browserMessages);
+
+    expect(snapshots).toHaveLength(M5_REPLAY_CHECKPOINT_SEQUENCE.length);
+    for (let index = 0; index < snapshots.length; index += 1) {
+      const snapshot = snapshots[index] ?? failMissingSnapshot();
+      const checkpoint = expected.checkpoints[index] ?? failMissingCheckpoint();
+      expect(snapshot.payload).toMatchObject({
+        scenarioId: M5_ALPHA_CONTENT_SCENARIO_ID,
+        tick: checkpoint.tick,
+        worldHash: checkpoint.worldHash,
+        readModelHash: checkpoint.readModelHash,
+        readOnly: true,
+      });
+    }
+
+    expect(finalUiDelta.payload).toMatchObject({
+      scenarioId: M5_ALPHA_CONTENT_SCENARIO_ID,
+      readModelHash: expected.finalReadModelHash,
+      readOnly: true,
+    });
+    expect(finalUiDelta.payload.summaries).toContainEqual(
+      expect.stringContaining("m5-basis:content-validation="),
+    );
+    expect(finalUiDelta.payload.summaries).toContainEqual(
+      expect.stringContaining("m5-basis:projection="),
+    );
+    expect(lastMetricsSample(browserMessages).payload).toMatchObject({
+      scenarioId: M5_ALPHA_CONTENT_SCENARIO_ID,
+      worldHash: expected.finalWorldHash,
+      checkpointCount: M5_REPLAY_CHECKPOINT_SEQUENCE.length,
+    });
+  }, 120000);
+
   it("returns M1 save metadata without exposing mutable authority through the Worker", () => {
     const worker = createSimulationWorker();
 
@@ -444,6 +498,20 @@ function makeM4InitSession(sequence: number): MainToSimulationMessage {
   };
 }
 
+function makeM5InitSession(sequence: number): MainToSimulationMessage {
+  return {
+    protocolVersion: SIM_PROTOCOL_VERSION,
+    schemaVersion: SIM_SCHEMA_VERSION,
+    sessionId: "session-a",
+    sequence,
+    kind: MAIN_TO_SIMULATION_MESSAGE_KIND.InitSession,
+    payload: {
+      seed: "5",
+      catalogVersion: M5_ALPHA_CONTENT_SCENARIO_ID,
+    },
+  };
+}
+
 function makeNoopBatch(sequence: number): MainToSimulationMessage {
   return {
     protocolVersion: SIM_PROTOCOL_VERSION,
@@ -531,6 +599,28 @@ function makeM4AdvanceBatch(
       commands: [
         {
           commandId: createM4AdvanceCommandId(tick, commandSequence),
+          kind: PLAYER_COMMAND_KIND.Noop,
+        },
+      ],
+    },
+  };
+}
+
+function makeM5AdvanceBatch(
+  sequence: number,
+  tick: number,
+  commandSequence: number,
+): MainToSimulationMessage {
+  return {
+    protocolVersion: SIM_PROTOCOL_VERSION,
+    schemaVersion: SIM_SCHEMA_VERSION,
+    sessionId: "session-a",
+    sequence,
+    kind: MAIN_TO_SIMULATION_MESSAGE_KIND.PlayerCommandBatch,
+    payload: {
+      commands: [
+        {
+          commandId: createM5AdvanceCommandId(tick, commandSequence),
           kind: PLAYER_COMMAND_KIND.Noop,
         },
       ],
@@ -691,6 +781,14 @@ function readM3Replay(result: ReturnType<typeof runM3OrdinaryLifeReplay>): M3Rep
 }
 
 function readM4Replay(result: ReturnType<typeof runM4CoreVerticalSliceReplay>): M4ReplayRun {
+  if (!result.ok) {
+    throw new Error(result.reason);
+  }
+
+  return result.replay;
+}
+
+function readM5Replay(result: ReturnType<typeof runM5AlphaContentReplay>): M5ReplayRun {
   if (!result.ok) {
     throw new Error(result.reason);
   }

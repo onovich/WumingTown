@@ -1,0 +1,21 @@
+{
+  "seed": "155",
+  "requestedSeed": "5",
+  "scenarioId": "m5.alpha_content_framework.first_season.v1",
+  "checkpointCount": 6,
+  "firstMismatchedCheckpointTick": null,
+  "authoritativeReadModelHash": "0x57eba2b7",
+  "projectionHash": "0xc6420cb1",
+  "finalSnapshotSizeBytes": 179,
+  "finalReadModelSizeBytes": 1073,
+  "finalProjectionSizeBytes": 1960,
+  "latencyMetrics": {
+    "renderSnapshotMessages": 6,
+    "uiDeltaMessages": 6,
+    "metricsSampleMessages": 6,
+    "totalProjectionMessages": 18
+  },
+  "basisSurfaceCount": 17,
+  "staleProjectionRejectCode": "InvalidPayload",
+  "staleProjectionRejectDetail": "stale M5 projection basis: content manifest hash does not match active Worker content basis"
+}
