@@ -2,7 +2,7 @@
   "id": "WM-0070",
   "title": "Add M4 benchmarks and invariants",
   "summary": "Add M4 long-run benchmark and invariant gates for lamp network, Chronicle evidence, obligations, crisis chains, director recovery windows, save/replay, Worker parity and M0-M3 regression protection.",
-  "state": "ready",
+  "state": "review_requested",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -33,7 +33,7 @@
   ],
   "branch": "task/WM-0070-add-m4-benchmarks-and-invariants",
   "createdAt": "2026-06-25T19:08:30.000Z",
-  "updatedAt": "2026-06-26T07:28:04.927Z",
+  "updatedAt": "2026-06-26T08:00:00.815Z",
   "history": [
     {
       "at": "2026-06-25T19:08:30.000Z",
@@ -46,6 +46,18 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-26T07:34:15.664Z",
+      "actor": "qa-performance",
+      "action": "claim",
+      "details": "thread=Gauge WM-0070 M4 benchmarks"
+    },
+    {
+      "at": "2026-06-26T08:00:00.815Z",
+      "actor": "qa-performance",
+      "action": "complete",
+      "details": "Added M4 long-run invariants and default benchmark artifact with 100000-tick samples, save/replay, Worker parity, baseline, docs and report; required checks pass."
     }
   ],
   "objective": "Create artifact-backed M4 performance and invariant evidence before closeout while protecting all prior milestone gates.",
@@ -92,5 +104,9 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Benchmark baselines and long-run invariant gates require qa-performance ownership and independent review."
-  }
+  },
+  "claimedBy": "qa-performance",
+  "threadLabel": "Gauge WM-0070 M4 benchmarks",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0070.md"
 }

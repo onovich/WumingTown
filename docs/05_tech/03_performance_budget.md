@@ -404,3 +404,24 @@ Wrong-type recovery candidates are in different lanes and cannot consume the
 active window's cap. Cooldowns are direct-indexed by cooldown key, and selected
 Top-K rows are resolved through a named deterministic random stream. Recovery
 opportunities are descriptors only; they do not mutate source owner facts.
+
+## WM-0070 M4 benchmark note
+
+`pnpm bench` now includes `m4-core-vertical-slice-long-run` in the default
+benchmark suite. The benchmark runs
+`m4.core_vertical_slice.borrowed_shadow_lamps.v1` with requested seed `4` and
+authoritative seed `50` to `100000` ticks, samples `12000`, `36000`, `60000`,
+`80000` and `100000`, verifies focused save/resume parity, and records Worker
+projection byte sizes from the read-only projection path.
+
+The M4 baseline records lamp dirty backlog peak/final counts, active lamp-gap
+count, evidence support visits, confirmed rules, dissemination backlog,
+obligation due/violation counts, town-rule candidate visits, crisis transition
+counts, director candidate/recovery-window counts, ReasonTrace capacity/use,
+save/load rebuilt surface count, Worker projection bytes and final hashes.
+The artifact is written under
+`coordination/artifacts/WM-0070/benchmarks/benchmark-results.json` with
+reviewed SHA-256
+`2E537A601FE41868C02E89D57322318F88841F471DF20749638FC17FF0674DE3`.
+The benchmark baseline update preserves the existing 10 percent warning and
+20 percent blocking regression thresholds.

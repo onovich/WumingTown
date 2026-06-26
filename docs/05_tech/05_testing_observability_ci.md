@@ -204,3 +204,26 @@ Worker smoke coverage and now also runs
 Worker. The Worker still uses the existing protocol message kinds; no UI,
 Electron, platform save, public protocol redesign or client repair surface
 becomes authoritative.
+
+## WM-0070 implementation note
+
+`pnpm test --filter m4-invariants` is the focused M4 long-run invariant gate.
+It runs the core vertical slice with requested seed `4` through samples at
+`12000`, `36000`, `60000`, `80000` and `100000`, checks the post-`36000` idle
+window for lamp dirty backlog growth, evidence drift, dissemination backlog
+growth and obligation leaks, and reuses the M4 Worker parity test to catch
+Worker projection mismatch.
+
+`pnpm bench` writes the WM-0070 artifact to
+`coordination/artifacts/WM-0070/benchmarks/benchmark-results.json`. The artifact
+includes the environment block (`nodeVersion`, `pnpmVersion`, `osRelease`,
+`platform`, `arch`, `cpuModel`, `cpuCount`, `gitCommit`), scenario id, seed,
+tick horizon, checkpoint hashes through `100000`, final summary, M4 metric
+block, save/load rebuilt surface count, Worker projection bytes, final world
+hash `0xdafa3b25`, final read-model hash `0x08dd9343`, and reviewed SHA-256
+`2E537A601FE41868C02E89D57322318F88841F471DF20749638FC17FF0674DE3`.
+
+The documented M4 headless reproduction command is
+`pnpm sim:run -- --seed 4 --scenario m4-core-vertical-slice --ticks 100000`.
+The command prints the authoritative M4 scenario summary from the Node headless
+runner; UI, Worker projection consumers and Electron remain read-only.

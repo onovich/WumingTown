@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQUN506O-A73877",
+  "from": "qa-performance",
+  "to": "reviewer",
+  "taskId": "WM-0070",
+  "kind": "review-request",
+  "subject": "WM-0070 ready for review",
+  "body": "Added M4 long-run invariants and default benchmark artifact with 100000-tick samples, save/replay, Worker parity, baseline, docs and report; required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0070.md",
+    "task/WM-0070-add-m4-benchmarks-and-invariants"
+  ],
+  "createdAt": "2026-06-26T08:00:00.816Z",
+  "acknowledgedAt": null
+}

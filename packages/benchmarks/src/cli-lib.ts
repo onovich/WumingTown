@@ -2,6 +2,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { cpus, release } from "node:os";
 import * as path from "node:path";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 
 import {
   BENCHMARK_BASELINE_SCHEMA_VERSION,
@@ -26,6 +27,7 @@ export interface BenchmarkCliReport {
   readonly artifactPath: string;
   readonly sampleCount: number;
   readonly warmupCount: number;
+  readonly reviewedSha256: string;
   readonly environment: {
     readonly nodeVersion: string;
     readonly pnpmVersion: string;
@@ -88,7 +90,7 @@ export function runBenchmarksCli(argv: readonly string[]): number {
     comparison: compareAgainstNamedBaseline(result, baseline),
   }));
 
-  const report: BenchmarkCliReport = {
+  const reportWithoutHash: Omit<BenchmarkCliReport, "reviewedSha256"> = {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
     baselinePath: toRelativePath(parsed.value.baselinePath),
@@ -106,6 +108,10 @@ export function runBenchmarksCli(argv: readonly string[]): number {
       gitCommit: readCommandOutput("git", ["rev-parse", "HEAD"]),
     },
     results,
+  };
+  const report: BenchmarkCliReport = {
+    ...reportWithoutHash,
+    reviewedSha256: createArtifactReviewHash(reportWithoutHash),
   };
 
   mkdirSync(path.dirname(parsed.value.artifactPath), { recursive: true });
@@ -125,7 +131,7 @@ function parseBenchmarkArgs(
   let warmupCount = DEFAULT_BENCHMARK_WARMUP_COUNT;
   let baselinePath = path.join(process.cwd(), "packages", "benchmarks", "baseline.json");
   let artifactPath = path.join(
-    resolveArtifactRoot("WM-0059"),
+    resolveArtifactRoot("WM-0070"),
     "benchmarks",
     "benchmark-results.json",
   );
@@ -139,7 +145,7 @@ function parseBenchmarkArgs(
 
       if (!isBenchmarkName(value)) {
         return failedArgs(
-          "Unsupported benchmark filter. Use empty-tick, entity-store, logistics-10k, m1-hauling-building-long-run, m2-pathing-invalidation, m2-work-logistics-long-run, m3-ordinary-life-long-run, map-dirty, pathing-100, reservations, region-room, spatial-index, or work-offers.",
+          "Unsupported benchmark filter. Use empty-tick, entity-store, logistics-10k, m1-hauling-building-long-run, m2-pathing-invalidation, m2-work-logistics-long-run, m3-ordinary-life-long-run, m4-core-vertical-slice-long-run, map-dirty, pathing-100, reservations, region-room, spatial-index, or work-offers.",
         );
       }
 
@@ -153,7 +159,7 @@ function parseBenchmarkArgs(
 
       if (!isBenchmarkName(value)) {
         return failedArgs(
-          "Unsupported benchmark filter. Use empty-tick, entity-store, logistics-10k, m1-hauling-building-long-run, m2-pathing-invalidation, m2-work-logistics-long-run, m3-ordinary-life-long-run, map-dirty, pathing-100, reservations, region-room, spatial-index, or work-offers.",
+          "Unsupported benchmark filter. Use empty-tick, entity-store, logistics-10k, m1-hauling-building-long-run, m2-pathing-invalidation, m2-work-logistics-long-run, m3-ordinary-life-long-run, m4-core-vertical-slice-long-run, map-dirty, pathing-100, reservations, region-room, spatial-index, or work-offers.",
         );
       }
 
@@ -313,6 +319,12 @@ function parseBenchmarkArgs(
       "benchmarks",
       "benchmark-results.json",
     );
+  } else if (!artifactPathWasConfigured && filter === "m4-core-vertical-slice-long-run") {
+    artifactPath = path.join(
+      resolveArtifactRoot("WM-0070"),
+      "benchmarks",
+      "benchmark-results.json",
+    );
   }
 
   return {
@@ -366,6 +378,9 @@ function loadBenchmarkBaseline(filePath: string): BenchmarkBaselineFile {
       ),
       "m3-ordinary-life-long-run": parseM3OrdinaryLifeLongRunBaselineEntry(
         rawBenchmarks["m3-ordinary-life-long-run"],
+      ),
+      "m4-core-vertical-slice-long-run": parseM4CoreVerticalSliceLongRunBaselineEntry(
+        rawBenchmarks["m4-core-vertical-slice-long-run"],
       ),
       "map-dirty": parseMapDirtyBaselineEntry(rawBenchmarks["map-dirty"]),
       "pathing-100": parsePathing100BaselineEntry(rawBenchmarks["pathing-100"]),
@@ -579,6 +594,39 @@ function parseM3OrdinaryLifeLongRunBaselineEntry(
     ),
     invariants: parseM3OrdinaryLifeLongRunBaselineInvariants(
       requireRecord(value["invariants"], "m3-ordinary-life-long-run"),
+    ),
+  };
+}
+
+function parseM4CoreVerticalSliceLongRunBaselineEntry(
+  value: unknown,
+): BenchmarkBaselineEntry<"m4-core-vertical-slice-long-run"> {
+  if (!isRecord(value)) {
+    throw new Error("benchmark baseline entry m4-core-vertical-slice-long-run must be an object");
+  }
+
+  if (value["name"] !== "m4-core-vertical-slice-long-run") {
+    throw new Error(
+      "benchmark baseline entry m4-core-vertical-slice-long-run must declare the same name",
+    );
+  }
+
+  return {
+    name: "m4-core-vertical-slice-long-run",
+    medianElapsedMs: requireNumber(
+      value["medianElapsedMs"],
+      "m4-core-vertical-slice-long-run.medianElapsedMs",
+    ),
+    warnRegressionPercent: requireNumber(
+      value["warnRegressionPercent"],
+      "m4-core-vertical-slice-long-run.warnRegressionPercent",
+    ),
+    failRegressionPercent: requireNumber(
+      value["failRegressionPercent"],
+      "m4-core-vertical-slice-long-run.failRegressionPercent",
+    ),
+    invariants: parseM4CoreVerticalSliceLongRunBaselineInvariants(
+      requireRecord(value["invariants"], "m4-core-vertical-slice-long-run"),
     ),
   };
 }
@@ -1276,6 +1324,179 @@ function parseM3OrdinaryLifeLongRunBaselineInvariants(
   };
 }
 
+function parseM4CoreVerticalSliceLongRunBaselineInvariants(
+  value: Record<string, unknown>,
+): BenchmarkBaselineEntry<"m4-core-vertical-slice-long-run">["invariants"] {
+  return {
+    scenarioId: requireString(value["scenarioId"], "m4-core-vertical-slice-long-run.scenarioId"),
+    scenarioSeed: requireString(
+      value["scenarioSeed"],
+      "m4-core-vertical-slice-long-run.scenarioSeed",
+    ),
+    requestedSeed: requireString(
+      value["requestedSeed"],
+      "m4-core-vertical-slice-long-run.requestedSeed",
+    ),
+    finalTick: requireNumber(value["finalTick"], "m4-core-vertical-slice-long-run.finalTick"),
+    saveTick: requireNumber(value["saveTick"], "m4-core-vertical-slice-long-run.saveTick"),
+    loadTick: requireNumber(value["loadTick"], "m4-core-vertical-slice-long-run.loadTick"),
+    tickRate: requireNumber(value["tickRate"], "m4-core-vertical-slice-long-run.tickRate"),
+    checkpointCount: requireNumber(
+      value["checkpointCount"],
+      "m4-core-vertical-slice-long-run.checkpointCount",
+    ),
+    commandStreamHash: requireString(
+      value["commandStreamHash"],
+      "m4-core-vertical-slice-long-run.commandStreamHash",
+    ),
+    contentHash: requireString(value["contentHash"], "m4-core-vertical-slice-long-run.contentHash"),
+    finalWorldHash: requireString(
+      value["finalWorldHash"],
+      "m4-core-vertical-slice-long-run.finalWorldHash",
+    ),
+    finalReadModelHash: requireString(
+      value["finalReadModelHash"],
+      "m4-core-vertical-slice-long-run.finalReadModelHash",
+    ),
+    lampDirtyBacklogPeak: requireNumber(
+      value["lampDirtyBacklogPeak"],
+      "m4-core-vertical-slice-long-run.lampDirtyBacklogPeak",
+    ),
+    lampDirtyBacklogFinal: requireNumber(
+      value["lampDirtyBacklogFinal"],
+      "m4-core-vertical-slice-long-run.lampDirtyBacklogFinal",
+    ),
+    activeGapCount: requireNumber(
+      value["activeGapCount"],
+      "m4-core-vertical-slice-long-run.activeGapCount",
+    ),
+    evidenceSupportCandidateVisits: requireNumber(
+      value["evidenceSupportCandidateVisits"],
+      "m4-core-vertical-slice-long-run.evidenceSupportCandidateVisits",
+    ),
+    evidenceConfirmedRuleCount: requireNumber(
+      value["evidenceConfirmedRuleCount"],
+      "m4-core-vertical-slice-long-run.evidenceConfirmedRuleCount",
+    ),
+    disseminationDirtyBacklogFinal: requireNumber(
+      value["disseminationDirtyBacklogFinal"],
+      "m4-core-vertical-slice-long-run.disseminationDirtyBacklogFinal",
+    ),
+    obligationDueIndexedCount: requireNumber(
+      value["obligationDueIndexedCount"],
+      "m4-core-vertical-slice-long-run.obligationDueIndexedCount",
+    ),
+    obligationViolatedCount: requireNumber(
+      value["obligationViolatedCount"],
+      "m4-core-vertical-slice-long-run.obligationViolatedCount",
+    ),
+    townRuleComplianceCandidateVisits: requireNumber(
+      value["townRuleComplianceCandidateVisits"],
+      "m4-core-vertical-slice-long-run.townRuleComplianceCandidateVisits",
+    ),
+    crisisTransitionCount: requireNumber(
+      value["crisisTransitionCount"],
+      "m4-core-vertical-slice-long-run.crisisTransitionCount",
+    ),
+    directorCandidateVisits: requireNumber(
+      value["directorCandidateVisits"],
+      "m4-core-vertical-slice-long-run.directorCandidateVisits",
+    ),
+    directorRecoveryWindowCount: requireNumber(
+      value["directorRecoveryWindowCount"],
+      "m4-core-vertical-slice-long-run.directorRecoveryWindowCount",
+    ),
+    reasonTraceCapacity: requireNumber(
+      value["reasonTraceCapacity"],
+      "m4-core-vertical-slice-long-run.reasonTraceCapacity",
+    ),
+    reasonTraceStoredCount: requireNumber(
+      value["reasonTraceStoredCount"],
+      "m4-core-vertical-slice-long-run.reasonTraceStoredCount",
+    ),
+    saveLoadRebuiltSurfaceCount: requireNumber(
+      value["saveLoadRebuiltSurfaceCount"],
+      "m4-core-vertical-slice-long-run.saveLoadRebuiltSurfaceCount",
+    ),
+    workerRenderSnapshotBytes: requireNumber(
+      value["workerRenderSnapshotBytes"],
+      "m4-core-vertical-slice-long-run.workerRenderSnapshotBytes",
+    ),
+    workerScenarioReadModelBytes: requireNumber(
+      value["workerScenarioReadModelBytes"],
+      "m4-core-vertical-slice-long-run.workerScenarioReadModelBytes",
+    ),
+    workerProjectionBytes: requireNumber(
+      value["workerProjectionBytes"],
+      "m4-core-vertical-slice-long-run.workerProjectionBytes",
+    ),
+    terminalSampleCount: requireNumber(
+      value["terminalSampleCount"],
+      "m4-core-vertical-slice-long-run.terminalSampleCount",
+    ),
+    terminalFirstSampleTick: requireNumber(
+      value["terminalFirstSampleTick"],
+      "m4-core-vertical-slice-long-run.terminalFirstSampleTick",
+    ),
+    terminalLastSampleTick: requireNumber(
+      value["terminalLastSampleTick"],
+      "m4-core-vertical-slice-long-run.terminalLastSampleTick",
+    ),
+    replayMatches: requireBoolean(
+      value["replayMatches"],
+      "m4-core-vertical-slice-long-run.replayMatches",
+    ),
+    saveRoundTripMatches: requireBoolean(
+      value["saveRoundTripMatches"],
+      "m4-core-vertical-slice-long-run.saveRoundTripMatches",
+    ),
+    workerProjectionMatches: requireBoolean(
+      value["workerProjectionMatches"],
+      "m4-core-vertical-slice-long-run.workerProjectionMatches",
+    ),
+    noLampDirtyBacklogGrowth: requireBoolean(
+      value["noLampDirtyBacklogGrowth"],
+      "m4-core-vertical-slice-long-run.noLampDirtyBacklogGrowth",
+    ),
+    noEvidenceDrift: requireBoolean(
+      value["noEvidenceDrift"],
+      "m4-core-vertical-slice-long-run.noEvidenceDrift",
+    ),
+    noDisseminationBacklogGrowth: requireBoolean(
+      value["noDisseminationBacklogGrowth"],
+      "m4-core-vertical-slice-long-run.noDisseminationBacklogGrowth",
+    ),
+    noObligationLeaks: requireBoolean(
+      value["noObligationLeaks"],
+      "m4-core-vertical-slice-long-run.noObligationLeaks",
+    ),
+    noInvalidCrisisTransitions: requireBoolean(
+      value["noInvalidCrisisTransitions"],
+      "m4-core-vertical-slice-long-run.noInvalidCrisisTransitions",
+    ),
+    noDirectorRecoveryWindowViolation: requireBoolean(
+      value["noDirectorRecoveryWindowViolation"],
+      "m4-core-vertical-slice-long-run.noDirectorRecoveryWindowViolation",
+    ),
+    noReasonTraceOverflow: requireBoolean(
+      value["noReasonTraceOverflow"],
+      "m4-core-vertical-slice-long-run.noReasonTraceOverflow",
+    ),
+    noM0ToM3Regression: requireBoolean(
+      value["noM0ToM3Regression"],
+      "m4-core-vertical-slice-long-run.noM0ToM3Regression",
+    ),
+    noQueueGrowth: requireBoolean(
+      value["noQueueGrowth"],
+      "m4-core-vertical-slice-long-run.noQueueGrowth",
+    ),
+    noHashDivergence: requireBoolean(
+      value["noHashDivergence"],
+      "m4-core-vertical-slice-long-run.noHashDivergence",
+    ),
+  };
+}
+
 function parseMapDirtyBaselineInvariants(
   value: Record<string, unknown>,
 ): BenchmarkBaselineEntry<"map-dirty">["invariants"] {
@@ -1518,6 +1739,13 @@ function sampleNamedBenchmark(
     });
   }
 
+  if (name === "m4-core-vertical-slice-long-run") {
+    return sampleBenchmark("m4-core-vertical-slice-long-run", {
+      sampleCount,
+      warmupCount,
+    });
+  }
+
   if (name === "map-dirty") {
     return sampleBenchmark("map-dirty", {
       sampleCount,
@@ -1589,6 +1817,13 @@ function compareAgainstNamedBaseline(
 
   if (result.name === "m3-ordinary-life-long-run") {
     return compareBenchmarkToBaseline(result, baseline.benchmarks["m3-ordinary-life-long-run"]);
+  }
+
+  if (result.name === "m4-core-vertical-slice-long-run") {
+    return compareBenchmarkToBaseline(
+      result,
+      baseline.benchmarks["m4-core-vertical-slice-long-run"],
+    );
   }
 
   if (result.name === "map-dirty") {
@@ -1696,6 +1931,13 @@ function toRelativePath(targetPath: string): string {
   return path.relative(process.cwd(), targetPath).replaceAll("\\", "/");
 }
 
+function createArtifactReviewHash(report: Omit<BenchmarkCliReport, "reviewedSha256">): string {
+  return createHash("sha256")
+    .update(`${JSON.stringify(report, undefined, 2)}\n`, "utf8")
+    .digest("hex")
+    .toUpperCase();
+}
+
 function failedArgs(error: string): { readonly ok: false; readonly error: string } {
   return {
     ok: false,
@@ -1712,6 +1954,7 @@ function isBenchmarkName(value: string | undefined): value is BenchmarkName {
     value === "m2-pathing-invalidation" ||
     value === "m2-work-logistics-long-run" ||
     value === "m3-ordinary-life-long-run" ||
+    value === "m4-core-vertical-slice-long-run" ||
     value === "map-dirty" ||
     value === "pathing-100" ||
     value === "reservations" ||

@@ -1100,6 +1100,7 @@ export type {
   M4CoreM3RegressionEvidence,
   M4CorePathEvidence,
   M4CoreScenarioInvariantCounters,
+  M4CoreVerticalSlicePerformanceMetrics,
   M4CoreVerticalSliceReason,
   M4CoreVerticalSliceScenarioOptions,
   M4CoreVerticalSliceScenarioSummary,

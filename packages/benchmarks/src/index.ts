@@ -15,6 +15,7 @@ export { runM1HaulingBuildingLongRunBenchmark } from "./m1-hauling-building-long
 export { runM2PathingInvalidationBenchmark } from "./m2-pathing-invalidation-benchmark";
 export { runM2WorkLogisticsLongRunBenchmark } from "./m2-work-logistics-long-run-benchmark";
 export { runM3OrdinaryLifeLongRunBenchmark } from "./m3-ordinary-life-long-run-benchmark";
+export { runM4CoreVerticalSliceLongRunBenchmark } from "./m4-core-vertical-slice-long-run-benchmark";
 export { runMapDirtyBenchmark } from "./map-dirty-benchmark";
 export {
   runM2PathWorkSelectionBenchmark,
@@ -78,6 +79,11 @@ export type {
   M3OrdinaryLifeLongRunBenchmarkReport,
   SampledM3OrdinaryLifeLongRunBenchmark,
 } from "./m3-ordinary-life-long-run-benchmark";
+export type {
+  M4CoreVerticalSliceLongRunBenchmarkInvariants,
+  M4CoreVerticalSliceLongRunBenchmarkReport,
+  SampledM4CoreVerticalSliceLongRunBenchmark,
+} from "./m4-core-vertical-slice-long-run-benchmark";
 export type {
   M2LogisticsHaulingBenchmarkInvariants,
   M2LogisticsHaulingBenchmarkReport,

@@ -180,6 +180,63 @@ export interface M4CoreScenarioInvariantCounters {
   readonly m0ToM3RegressionCount: number;
 }
 
+export interface M4CoreVerticalSlicePerformanceMetrics {
+  readonly lampActiveCount: number;
+  readonly lampGroupCount: number;
+  readonly lampDirtyBacklogPeak: number;
+  readonly lampDirtyBacklogFinal: number;
+  readonly lampDirtyDrainCount: number;
+  readonly lampDirtyDrainedKeyCount: number;
+  readonly lampNormalTickVisitedLampCount: number;
+  readonly lampNormalTickVisitedCellCount: number;
+  readonly lampFullMapDiffusionCount: number;
+  readonly activeGapCount: number;
+  readonly lampGapDirtyBacklogPeak: number;
+  readonly lampGapDirtyBacklogFinal: number;
+  readonly lampGapRefreshedCount: number;
+  readonly evidenceSourceCount: number;
+  readonly evidenceRowCount: number;
+  readonly evidenceHypothesisCount: number;
+  readonly evidenceContradictionCount: number;
+  readonly evidenceConfirmedRuleCount: number;
+  readonly evidenceSupportCandidateVisits: number;
+  readonly evidenceTraceCapacity: number;
+  readonly evidenceTraceStoredCount: number;
+  readonly evidenceTraceBacklogCount: number;
+  readonly disseminationRowCount: number;
+  readonly disseminationDirtyBacklogPeak: number;
+  readonly disseminationDirtyBacklogFinal: number;
+  readonly obligationActiveCount: number;
+  readonly obligationDueIndexedCount: number;
+  readonly obligationFulfilledCount: number;
+  readonly obligationViolatedCount: number;
+  readonly obligationDueCandidateVisits: number;
+  readonly townRuleActiveCount: number;
+  readonly townRuleComplianceIndexedCount: number;
+  readonly townRuleComplianceCandidateVisits: number;
+  readonly townRuleEnforcementCostTotal: number;
+  readonly crisisActiveCandidateCount: number;
+  readonly crisisActiveCount: number;
+  readonly crisisResolvedCount: number;
+  readonly crisisFailedCount: number;
+  readonly crisisLowRiskEvidenceCount: number;
+  readonly crisisTransitionCount: number;
+  readonly crisisCandidateVisits: number;
+  readonly crisisTraceStoredCount: number;
+  readonly directorPressureSampleCount: number;
+  readonly directorIncidentCandidateCount: number;
+  readonly directorRecoveryCandidateCount: number;
+  readonly directorRecoveryWindowCount: number;
+  readonly directorActiveRecoveryWindowId: number;
+  readonly directorSelectionCount: number;
+  readonly directorCandidateVisits: number;
+  readonly directorCooldownWriteCount: number;
+  readonly directorTraceStoredCount: number;
+  readonly reasonTraceCapacity: number;
+  readonly reasonTraceStoredCount: number;
+  readonly reasonTraceBacklogCount: number;
+}
+
 export interface M4CoreM3RegressionEvidence {
   readonly scenarioId: typeof M3_ORDINARY_LIFE_SCENARIO_ID;
   readonly requestedSeed: "3";
@@ -209,6 +266,7 @@ export interface M4CoreVerticalSliceScenarioSummary {
   readonly failurePath: M4CorePathEvidence;
   readonly boundedReads: M4CoreBoundedReadEvidence;
   readonly invariantCounters: M4CoreScenarioInvariantCounters;
+  readonly performanceMetrics: M4CoreVerticalSlicePerformanceMetrics;
   readonly dawnReviewRows: readonly M4CoreDawnReviewRow[];
   readonly m3Regression: M4CoreM3RegressionEvidence;
 }
@@ -281,6 +339,7 @@ export function runM4CoreVerticalSliceScenario(
     failurePath: run.failurePath,
     boundedReads: run.boundedReads,
     invariantCounters: createInvariantCounters(run),
+    performanceMetrics: createPerformanceMetrics(run),
     dawnReviewRows: run.dawnRows.slice(),
     m3Regression: createM3RegressionEvidence(),
   };
@@ -1163,6 +1222,170 @@ function readRowBase(fixture: ScenarioFixture): number {
 
 function max3(first: number, second: number, third: number): number {
   return Math.max(first, second, third);
+}
+
+function createPerformanceMetrics(run: ScenarioRunCore): M4CoreVerticalSlicePerformanceMetrics {
+  const fixtures = [run.preventionFixture, run.containmentFixture, run.failureFixture] as const;
+  const directorMetrics = run.directorFixture.director.createMetrics();
+  let lampActiveCount = 0;
+  let lampGroupCount = 0;
+  let lampDirtyBacklogPeak = 0;
+  let lampDirtyBacklogFinal = 0;
+  let lampDirtyDrainCount = 0;
+  let lampDirtyDrainedKeyCount = 0;
+  let lampNormalTickVisitedLampCount = 0;
+  let lampNormalTickVisitedCellCount = 0;
+  let lampFullMapDiffusionCount = 0;
+  let activeGapCount = 0;
+  let lampGapDirtyBacklogPeak = 0;
+  let lampGapDirtyBacklogFinal = 0;
+  let lampGapRefreshedCount = 0;
+  let evidenceSourceCount = 0;
+  let evidenceRowCount = 0;
+  let evidenceHypothesisCount = 0;
+  let evidenceContradictionCount = 0;
+  let evidenceConfirmedRuleCount = 0;
+  let evidenceSupportCandidateVisits = 0;
+  let evidenceTraceCapacity = 0;
+  let evidenceTraceStoredCount = 0;
+  let evidenceTraceBacklogCount = 0;
+  let disseminationRowCount = 0;
+  let disseminationDirtyBacklogPeak = 0;
+  let disseminationDirtyBacklogFinal = 0;
+  let obligationActiveCount = 0;
+  let obligationDueIndexedCount = 0;
+  let obligationFulfilledCount = 0;
+  let obligationViolatedCount = 0;
+  let obligationDueCandidateVisits = 0;
+  let townRuleActiveCount = 0;
+  let townRuleComplianceIndexedCount = 0;
+  let townRuleComplianceCandidateVisits = 0;
+  let townRuleEnforcementCostTotal = 0;
+  let crisisActiveCandidateCount = 0;
+  let crisisActiveCount = 0;
+  let crisisResolvedCount = 0;
+  let crisisFailedCount = 0;
+  let crisisLowRiskEvidenceCount = 0;
+  let crisisCandidateVisits = 0;
+  let crisisTraceStoredCount = 0;
+  let reasonTraceCapacity = 0;
+
+  for (const fixture of fixtures) {
+    const lampMetrics = fixture.lamps.createMetrics();
+    const gapMetrics = fixture.lampGap.createMetrics();
+    const evidenceMetrics = fixture.evidence.createMetrics();
+    const evidenceTraceMetrics = fixture.evidenceTrace.createMetrics();
+    const knowledgeMetrics = fixture.knowledge.createMetrics();
+    const obligationMetrics = fixture.obligations.createMetrics();
+    const ruleMetrics = fixture.rules.createMetrics();
+    const crisisMetrics = fixture.crises.createMetrics();
+
+    lampActiveCount += lampMetrics.activeLampCount;
+    lampGroupCount += lampMetrics.activeGroupCount;
+    lampDirtyBacklogPeak = Math.max(lampDirtyBacklogPeak, lampMetrics.dirtyBacklogPeak);
+    lampDirtyBacklogFinal += lampMetrics.dirtyBacklog;
+    lampDirtyDrainCount += lampMetrics.dirtyDrainCount;
+    lampDirtyDrainedKeyCount += lampMetrics.dirtyDrainedKeyCount;
+    lampNormalTickVisitedLampCount += lampMetrics.normalTickVisitedLampCount;
+    lampNormalTickVisitedCellCount += lampMetrics.normalTickVisitedCellCount;
+    lampFullMapDiffusionCount += lampMetrics.fullMapDiffusionCount;
+    activeGapCount += gapMetrics.activeGapCount;
+    lampGapDirtyBacklogPeak = Math.max(lampGapDirtyBacklogPeak, gapMetrics.dirtyBacklogPeak);
+    lampGapDirtyBacklogFinal += gapMetrics.dirtyBacklog;
+    lampGapRefreshedCount += gapMetrics.refreshedCount;
+    evidenceSourceCount += evidenceMetrics.sourceCount;
+    evidenceRowCount += evidenceMetrics.evidenceRowCount;
+    evidenceHypothesisCount += evidenceMetrics.hypothesisCount;
+    evidenceContradictionCount += evidenceMetrics.contradictionCount;
+    evidenceConfirmedRuleCount += evidenceMetrics.confirmedRuleCount;
+    evidenceSupportCandidateVisits += evidenceMetrics.totalSupportCandidateVisits;
+    evidenceTraceCapacity += evidenceTraceMetrics.capacity;
+    evidenceTraceStoredCount += evidenceTraceMetrics.storedCount;
+    evidenceTraceBacklogCount += evidenceTraceMetrics.backlogCount;
+    disseminationRowCount += knowledgeMetrics.rowCount;
+    disseminationDirtyBacklogPeak = Math.max(
+      disseminationDirtyBacklogPeak,
+      knowledgeMetrics.dirtyBacklogPeak,
+    );
+    disseminationDirtyBacklogFinal += knowledgeMetrics.dirtyBacklog;
+    obligationActiveCount += obligationMetrics.activeCount;
+    obligationDueIndexedCount += obligationMetrics.dueIndexedCount;
+    obligationFulfilledCount += obligationMetrics.fulfilledCount;
+    obligationViolatedCount += obligationMetrics.violatedCount;
+    obligationDueCandidateVisits += obligationMetrics.totalDueCandidateVisits;
+    townRuleActiveCount += ruleMetrics.activeCount;
+    townRuleComplianceIndexedCount += ruleMetrics.complianceIndexedCount;
+    townRuleComplianceCandidateVisits += ruleMetrics.totalComplianceCandidateVisits;
+    townRuleEnforcementCostTotal += ruleMetrics.enforcementCostTotal;
+    crisisActiveCandidateCount += crisisMetrics.activeCandidateCount;
+    crisisActiveCount += crisisMetrics.activeCrisisCount;
+    crisisResolvedCount += crisisMetrics.resolvedCrisisCount;
+    crisisFailedCount += crisisMetrics.failedCrisisCount;
+    crisisLowRiskEvidenceCount += crisisMetrics.lowRiskEvidenceCount;
+    crisisCandidateVisits += crisisMetrics.totalCandidateVisits;
+    crisisTraceStoredCount += crisisMetrics.traceStoredCount;
+    reasonTraceCapacity += evidenceTraceMetrics.capacity + fixture.crises.traceCapacity;
+  }
+
+  reasonTraceCapacity += run.directorFixture.director.traceCapacity;
+
+  return {
+    lampActiveCount,
+    lampGroupCount,
+    lampDirtyBacklogPeak,
+    lampDirtyBacklogFinal,
+    lampDirtyDrainCount,
+    lampDirtyDrainedKeyCount,
+    lampNormalTickVisitedLampCount,
+    lampNormalTickVisitedCellCount,
+    lampFullMapDiffusionCount,
+    activeGapCount,
+    lampGapDirtyBacklogPeak,
+    lampGapDirtyBacklogFinal,
+    lampGapRefreshedCount,
+    evidenceSourceCount,
+    evidenceRowCount,
+    evidenceHypothesisCount,
+    evidenceContradictionCount,
+    evidenceConfirmedRuleCount,
+    evidenceSupportCandidateVisits,
+    evidenceTraceCapacity,
+    evidenceTraceStoredCount,
+    evidenceTraceBacklogCount,
+    disseminationRowCount,
+    disseminationDirtyBacklogPeak,
+    disseminationDirtyBacklogFinal,
+    obligationActiveCount,
+    obligationDueIndexedCount,
+    obligationFulfilledCount,
+    obligationViolatedCount,
+    obligationDueCandidateVisits,
+    townRuleActiveCount,
+    townRuleComplianceIndexedCount,
+    townRuleComplianceCandidateVisits,
+    townRuleEnforcementCostTotal,
+    crisisActiveCandidateCount,
+    crisisActiveCount,
+    crisisResolvedCount,
+    crisisFailedCount,
+    crisisLowRiskEvidenceCount,
+    crisisTransitionCount: crisisTraceStoredCount,
+    crisisCandidateVisits,
+    crisisTraceStoredCount,
+    directorPressureSampleCount: directorMetrics.pressureSampleCount,
+    directorIncidentCandidateCount: directorMetrics.activeIncidentCandidateCount,
+    directorRecoveryCandidateCount: directorMetrics.activeRecoveryCandidateCount,
+    directorRecoveryWindowCount: directorMetrics.recoveryWindowCount,
+    directorActiveRecoveryWindowId: directorMetrics.activeRecoveryWindowId,
+    directorSelectionCount: directorMetrics.selectionCount,
+    directorCandidateVisits: directorMetrics.totalCandidateVisits,
+    directorCooldownWriteCount: directorMetrics.cooldownWriteCount,
+    directorTraceStoredCount: directorMetrics.traceStoredCount,
+    reasonTraceCapacity,
+    reasonTraceStoredCount:
+      evidenceTraceStoredCount + crisisTraceStoredCount + directorMetrics.traceStoredCount,
+    reasonTraceBacklogCount: evidenceTraceBacklogCount,
+  };
 }
 
 function createInvariantCounters(run: ScenarioRunCore): M4CoreScenarioInvariantCounters {
