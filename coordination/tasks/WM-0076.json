@@ -2,7 +2,7 @@
   "id": "WM-0076",
   "title": "Add old-bridge guest anomaly rule",
   "summary": "Add core.anomaly.old_bridge_guest.v1 using logistics, bridge route, prepared item, obligation, faction and season basis facts.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -38,7 +38,7 @@
   ],
   "branch": "task/WM-0076-add-old-bridge-guest-anomaly",
   "createdAt": "2026-06-26T09:24:00.000Z",
-  "updatedAt": "2026-06-26T11:47:09.007Z",
+  "updatedAt": "2026-06-26T12:20:32.671Z",
   "history": [
     {
       "at": "2026-06-26T09:24:00.000Z",
@@ -51,6 +51,48 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-26T11:49:42.045Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": ""
+    },
+    {
+      "at": "2026-06-26T12:03:47.951Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Old-bridge guest owner store, roster row and tests implemented"
+    },
+    {
+      "at": "2026-06-26T12:11:28.608Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: Blocking review finding: drainTerminalCleanup unlinks terminal cleanup rows before owner-version preflight, so version exhaustion returns old_bridge_version_exhausted after clearing cleanupPending and dropping the pending row."
+    },
+    {
+      "at": "2026-06-26T12:16:28.768Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Repaired terminal cleanup version preflight atomicity; all WM-0076 gates pass"
+    },
+    {
+      "at": "2026-06-26T12:18:58.136Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; terminal cleanup version-exhaustion repair preserves pending rows/output/metrics, and old-bridge owner-store, roster/export, stale-basis, bounded-cleanup, and scope gates are confirmed."
+    },
+    {
+      "at": "2026-06-26T12:20:28.256Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Gate verified WM-0076; pre-integration quality passed with 55 files / 312 tests, taskctl validate passed, git diff --check clean"
+    },
+    {
+      "at": "2026-06-26T12:20:32.671Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M5",
@@ -96,5 +138,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "New anomaly/logistics integration touches deterministic simulation ownership."
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": null,
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0076.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; terminal cleanup version-exhaustion repair preserves pending rows/output/metrics, and old-bridge owner-store, roster/export, stale-basis, bounded-cleanup, and scope gates are confirmed.",
+    "at": "2026-06-26T12:18:58.135Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Gate verified WM-0076; pre-integration quality passed with 55 files / 312 tests, taskctl validate passed, git diff --check clean",
+    "at": "2026-06-26T12:20:28.256Z"
   }
 }

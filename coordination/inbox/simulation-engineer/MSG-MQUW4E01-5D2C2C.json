@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQUW4E01-5D2C2C",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0076",
+  "kind": "changes-requested",
+  "subject": "WM-0076 review: changes_requested",
+  "body": "Blocking review finding: drainTerminalCleanup unlinks terminal cleanup rows before owner-version preflight, so version exhaustion returns old_bridge_version_exhausted after clearing cleanupPending and dropping the pending row.",
+  "artifacts": [
+    "coordination/reports/WM-0076.md"
+  ],
+  "createdAt": "2026-06-26T12:11:28.609Z",
+  "acknowledgedAt": "2026-06-26T12:19:34.845Z"
+}

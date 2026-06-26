@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQUVUIK0-47D9B2",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0076",
+  "kind": "review-request",
+  "subject": "WM-0076 ready for review",
+  "body": "Old-bridge guest owner store, roster row and tests implemented",
+  "artifacts": [
+    "coordination/reports/WM-0076.md",
+    "task/WM-0076-add-old-bridge-guest-anomaly"
+  ],
+  "createdAt": "2026-06-26T12:03:47.952Z",
+  "acknowledgedAt": "2026-06-26T12:19:34.657Z"
+}

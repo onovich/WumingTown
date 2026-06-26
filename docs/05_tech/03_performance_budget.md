@@ -441,6 +441,29 @@ evidence, escalation, non-combat resolution, failure and accident review write
 bounded ring rows with numeric reason codes. Baseline timing and artifact
 updates wait for the M5 closeout benchmark task.
 
+## WM-0076 M5 old-bridge metrics
+
+`M5OldBridgeGuestCrisisStore.createMetrics()` records old-bridge owner version,
+active activation candidate count, active/resolved/failed crisis counts,
+low-risk evidence count, pending terminal cleanup count, last/total activation
+candidate visits, candidate-cap hit count, terminal-cleanup cap-hit count,
+trace-ring usage and review-ring usage.
+
+Normal old-bridge activation reads do not scan route graphs, logistics storage,
+item stacks, reservations, obligations, Chronicle rows, factions, season pools
+or map cells. Producer surfaces provide versioned numeric basis rows for route,
+prepared item, logistics index, bridge ledger, obligation, faction, season and
+Chronicle facts. The old-bridge store walks only its sorted activation lane
+with caller `candidateCap` and `selectedCap` limits, rejecting stale
+roster/content basis before traversal.
+
+Terminal cleanup is also bounded. Resolved or failed crises are appended to an
+explicit cleanup lane; callers drain it with a cleanup cap and typed output
+buffer. A cap hit reports `old_bridge_terminal_cleanup_cap_reached` and leaves
+remaining cleanup rows pending without scanning source logistics or all crisis
+capacity. Baseline timing and artifact updates wait for the M5 closeout
+benchmark task.
+
 ## WM-0070 M4 benchmark note
 
 `pnpm bench` now includes `m4-core-vertical-slice-long-run` in the default

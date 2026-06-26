@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQUWE0UX-44F8C6",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0076",
+  "kind": "review-approved",
+  "subject": "WM-0076 review: verified",
+  "body": "No blocking findings; terminal cleanup version-exhaustion repair preserves pending rows/output/metrics, and old-bridge owner-store, roster/export, stale-basis, bounded-cleanup, and scope gates are confirmed.",
+  "artifacts": [
+    "coordination/reports/WM-0076.md"
+  ],
+  "createdAt": "2026-06-26T12:18:58.137Z",
+  "acknowledgedAt": "2026-06-26T12:19:34.891Z"
+}

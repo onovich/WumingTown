@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQUWATLU-FB94B4",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0076",
+  "kind": "review-request",
+  "subject": "WM-0076 ready for review",
+  "body": "Repaired terminal cleanup version preflight atomicity; all WM-0076 gates pass",
+  "artifacts": [
+    "coordination/reports/WM-0076.md",
+    "task/WM-0076-add-old-bridge-guest-anomaly"
+  ],
+  "createdAt": "2026-06-26T12:16:28.770Z",
+  "acknowledgedAt": "2026-06-26T12:19:34.704Z"
+}

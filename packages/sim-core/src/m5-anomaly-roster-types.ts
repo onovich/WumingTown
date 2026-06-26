@@ -6,6 +6,7 @@ export const M5_ANOMALY_NONE = 0xffff_ffff;
 export const M5_ANOMALY_KIND = "m5.anomaly";
 export const M5_ANOMALY_DEF_BORROWED_SHADOW = "core.anomaly.borrowed_shadow.v1";
 export const M5_ANOMALY_DEF_THIRD_KNOCK = "core.anomaly.third_knock.v1";
+export const M5_ANOMALY_DEF_OLD_BRIDGE_GUEST = "core.anomaly.old_bridge_guest.v1";
 
 export const M5_ANOMALY_RULE_COMPONENT_BORROWED_SHADOW = 1;
 export const M5_ANOMALY_ACTIVATION_POLICY_BORROWED_SHADOW_LAMP_IDENTITY = 1;
@@ -13,6 +14,9 @@ export const M5_ANOMALY_STATE_OWNER_BORROWED_SHADOW_CRISIS = 1;
 export const M5_ANOMALY_RULE_COMPONENT_THIRD_KNOCK = 2;
 export const M5_ANOMALY_ACTIVATION_POLICY_THIRD_KNOCK_THRESHOLD_INVITATION = 2;
 export const M5_ANOMALY_STATE_OWNER_THIRD_KNOCK_CRISIS = 2;
+export const M5_ANOMALY_RULE_COMPONENT_OLD_BRIDGE_GUEST = 3;
+export const M5_ANOMALY_ACTIVATION_POLICY_OLD_BRIDGE_GUEST_RECIPROCITY = 3;
+export const M5_ANOMALY_STATE_OWNER_OLD_BRIDGE_GUEST_CRISIS = 3;
 
 export type M5AnomalyRosterReason =
   | "m5_anomaly_roster_already_loaded"

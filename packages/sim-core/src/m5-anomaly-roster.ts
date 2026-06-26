@@ -10,17 +10,23 @@ import {
   type M4BorrowedShadowActivationBasis,
 } from "./m4-borrowed-shadow-types";
 import { M4_EVIDENCE_TIER_CONFIRMED } from "./m4-chronicle-types";
+import { M5_OLD_BRIDGE_EVIDENCE_MASK, M5_OLD_BRIDGE_NON_COMBAT_MASK } from "./m5-old-bridge";
+import { M5_OLD_BRIDGE_MIN_RECIPROCITY_SCORE } from "./m5-old-bridge-types";
 import {
+  M5_ANOMALY_ACTIVATION_POLICY_OLD_BRIDGE_GUEST_RECIPROCITY,
   M5_ANOMALY_ACTIVATION_POLICY_BORROWED_SHADOW_LAMP_IDENTITY,
   M5_ANOMALY_ACTIVATION_POLICY_THIRD_KNOCK_THRESHOLD_INVITATION,
   M5_ANOMALY_DEF_BORROWED_SHADOW,
+  M5_ANOMALY_DEF_OLD_BRIDGE_GUEST,
   M5_ANOMALY_DEF_THIRD_KNOCK,
   M5_ANOMALY_KIND,
   M5_ANOMALY_NONE,
   M5_ANOMALY_ROSTER_SNAPSHOT_VERSION,
   M5_ANOMALY_RULE_COMPONENT_BORROWED_SHADOW,
+  M5_ANOMALY_RULE_COMPONENT_OLD_BRIDGE_GUEST,
   M5_ANOMALY_RULE_COMPONENT_THIRD_KNOCK,
   M5_ANOMALY_STATE_OWNER_BORROWED_SHADOW_CRISIS,
+  M5_ANOMALY_STATE_OWNER_OLD_BRIDGE_GUEST_CRISIS,
   M5_ANOMALY_STATE_OWNER_THIRD_KNOCK_CRISIS,
   type M5AnomalyActivationCandidateInput,
   type M5AnomalyActivationCandidateQuery,
@@ -559,6 +565,27 @@ export function createM5ThirdKnockAnomalyDefinition(
   };
 }
 
+export function createM5OldBridgeGuestAnomalyDefinition(
+  defIndex = 2,
+  contentDefIndex = 2,
+  validationBasisHash = "m5.old_bridge_guest.rule.v1",
+): M5CompiledAnomalyDefinitionInput {
+  return {
+    defId: M5_ANOMALY_DEF_OLD_BRIDGE_GUEST,
+    defIndex,
+    contentDefIndex,
+    kind: M5_ANOMALY_KIND,
+    schemaVersion: M5_ANOMALY_ROSTER_SNAPSHOT_VERSION,
+    ruleComponent: M5_ANOMALY_RULE_COMPONENT_OLD_BRIDGE_GUEST,
+    activationPolicy: M5_ANOMALY_ACTIVATION_POLICY_OLD_BRIDGE_GUEST_RECIPROCITY,
+    stateOwnerKind: M5_ANOMALY_STATE_OWNER_OLD_BRIDGE_GUEST_CRISIS,
+    minActivationScore: M5_OLD_BRIDGE_MIN_RECIPROCITY_SCORE,
+    evidenceClassMask: M5_OLD_BRIDGE_EVIDENCE_MASK,
+    nonCombatResolutionMask: M5_OLD_BRIDGE_NON_COMBAT_MASK,
+    validationBasisHash,
+  };
+}
+
 function validateDefinition(
   definition: M5CompiledAnomalyDefinitionInput,
 ): { readonly ok: true } | { readonly ok: false; readonly reason: M5AnomalyRosterReason } {
@@ -597,6 +624,17 @@ function validateDefinition(
       definition.minActivationScore !== M5_THIRD_KNOCK_MIN_INVITATION_SCORE ||
       definition.evidenceClassMask !== M5_THIRD_KNOCK_EVIDENCE_MASK ||
       definition.nonCombatResolutionMask !== M5_THIRD_KNOCK_NON_COMBAT_MASK)
+  )
+    return { ok: false, reason: "m5_anomaly_roster_invalid_definition" };
+  if (
+    definition.defId === M5_ANOMALY_DEF_OLD_BRIDGE_GUEST &&
+    (definition.ruleComponent !== M5_ANOMALY_RULE_COMPONENT_OLD_BRIDGE_GUEST ||
+      definition.activationPolicy !== M5_ANOMALY_ACTIVATION_POLICY_OLD_BRIDGE_GUEST_RECIPROCITY ||
+      definition.stateOwnerKind !== M5_ANOMALY_STATE_OWNER_OLD_BRIDGE_GUEST_CRISIS ||
+      definition.schemaVersion !== M5_ANOMALY_ROSTER_SNAPSHOT_VERSION ||
+      definition.minActivationScore !== M5_OLD_BRIDGE_MIN_RECIPROCITY_SCORE ||
+      definition.evidenceClassMask !== M5_OLD_BRIDGE_EVIDENCE_MASK ||
+      definition.nonCombatResolutionMask !== M5_OLD_BRIDGE_NON_COMBAT_MASK)
   )
     return { ok: false, reason: "m5_anomaly_roster_invalid_definition" };
   return { ok: true };

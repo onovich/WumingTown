@@ -117,3 +117,36 @@ resolution/failure writes bounded accident-review rows containing crisis id,
 tick, resolution method, terminal reason, evidence count, invitation score,
 obligation pressure, town-rule/guesthouse basis versions, owner version and
 structured reason.
+
+## WM-0076 M5 old-bridge guest anomaly rule
+
+`core.anomaly.old_bridge_guest.v1` is a rostered M5 anomaly row with a dedicated
+`M5OldBridgeGuestCrisisStore`. The roster row owns immutable rule metadata:
+stable `defId`, `DefIndex`, component id, activation policy, evidence mask,
+non-combat resolution mask, minimum reciprocity score, roster version and
+content manifest hash. Mutable bridge-crossing progress remains in the
+old-bridge owner store.
+
+Activation basis rows are explicit numeric facts produced by existing source
+owners. They carry route id and route basis version, bridge and season window
+ids, bridge ledger version, prepared-item def/stack/recipient facts,
+prepared-item owner version, logistics index version, Chronicle case/hypothesis
+and evidence version, obligation id/version/pressure, faction fact version,
+season owner version and old-family record version. The bridge anomaly does not
+own item quantities, routes, obligations, faction state or season windows.
+
+Safe passage is prevented from becoming a crisis when the bridge window is
+active, the route basis is passable, and a prepared item exists for another
+actor rather than as a self-serving toll. Unsafe crossings activate only from
+bounded candidate lanes that already carry the route/prepared-item/logistics
+basis. Candidate writes and reads reject stale roster/content basis before
+mutation or traversal.
+
+Low-risk evidence is recorded as structured trace rows for bridge ledgers,
+missing prepared goods, route delays, merchant testimony and old-family oral
+records. Crisis progress is a serializable numeric state machine:
+`activated -> trace -> escalated -> resolved|failed`. Non-combat resolution can
+complete reciprocity through delivered prepared goods, reroute the crossing, or
+settle the obligation. Terminal resolution/failure writes bounded review rows
+and adds the crisis to a bounded terminal-cleanup lane so cleanup can be drained
+without scanning logistics, routes or all crisis rows.
