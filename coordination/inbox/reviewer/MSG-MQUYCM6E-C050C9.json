@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQUYCM6E-C050C9",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0078",
+  "kind": "review-request",
+  "subject": "WM-0078 ready for review",
+  "body": "Repaired recovery-window fallback and recovery rejection reasons; all WM-0078 gates pass",
+  "artifacts": [
+    "coordination/reports/WM-0078.md",
+    "task/WM-0078-add-first-season-event-pool"
+  ],
+  "createdAt": "2026-06-26T13:13:51.686Z",
+  "acknowledgedAt": "2026-06-26T13:18:27.079Z"
+}

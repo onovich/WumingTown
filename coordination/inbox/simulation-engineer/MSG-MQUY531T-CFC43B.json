@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQUY531T-CFC43B",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0078",
+  "kind": "changes-requested",
+  "subject": "WM-0078 review: changes_requested",
+  "body": "High: overlapping recovery windows can let incidents through after a later window expires; Medium: matching recovery candidates that fail preconditions report wrong_recovery_type instead of precondition_failed.",
+  "artifacts": [
+    "coordination/reports/WM-0078.md"
+  ],
+  "createdAt": "2026-06-26T13:08:00.306Z",
+  "acknowledgedAt": "2026-06-26T13:18:32.676Z"
+}

@@ -2,7 +2,7 @@
   "id": "WM-0078",
   "title": "Add first-season event pool",
   "summary": "Add the bounded M5 first-season event pool with cooldowns, recovery opportunities, anomaly/faction/governance hooks and legal command scheduling.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -36,7 +36,7 @@
   ],
   "branch": "task/WM-0078-add-first-season-event-pool",
   "createdAt": "2026-06-26T09:24:00.000Z",
-  "updatedAt": "2026-06-26T12:46:40.020Z",
+  "updatedAt": "2026-06-26T13:19:37.054Z",
   "history": [
     {
       "at": "2026-06-26T09:24:00.000Z",
@@ -49,6 +49,48 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-26T12:49:30.657Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Beacon"
+    },
+    {
+      "at": "2026-06-26T13:02:35.950Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "First-season event pool owner store implemented; all WM-0078 gates pass"
+    },
+    {
+      "at": "2026-06-26T13:08:00.304Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: overlapping recovery windows can let incidents through after a later window expires; Medium: matching recovery candidates that fail preconditions report wrong_recovery_type instead of precondition_failed."
+    },
+    {
+      "at": "2026-06-26T13:13:51.684Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Repaired recovery-window fallback and recovery rejection reasons; all WM-0078 gates pass"
+    },
+    {
+      "at": "2026-06-26T13:17:45.946Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; recovery-window fallback and recovery rejection reason repairs verified with focused tests, direct probes, required checks and boundary scans."
+    },
+    {
+      "at": "2026-06-26T13:19:28.222Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Gate verified WM-0078; full integration gate passed with 57 unit files / 326 tests"
+    },
+    {
+      "at": "2026-06-26T13:19:37.053Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M5",
@@ -95,5 +137,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Season/event director integration touches simulation authority and deterministic scheduling."
+  },
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Beacon",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0078.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; recovery-window fallback and recovery rejection reason repairs verified with focused tests, direct probes, required checks and boundary scans.",
+    "at": "2026-06-26T13:17:45.946Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Gate verified WM-0078; full integration gate passed with 57 unit files / 326 tests",
+    "at": "2026-06-26T13:19:28.221Z"
   }
 }

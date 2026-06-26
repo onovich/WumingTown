@@ -484,6 +484,23 @@ structured pressure/risk output. They do not mutate town-rule, obligation,
 Chronicle or UI authority. Baseline timing and artifact updates wait for the
 M5 closeout benchmark task.
 
+## WM-0078 M5 first-season event metrics
+
+`M5SeasonEventPoolStore.createMetrics()` records event-pool owner version,
+active incident and recovery candidate counts, recovery window count, active
+recovery window id, selection count, last/total candidate visits, cooldown
+write count, freshness write count and precondition failure ring usage.
+
+Normal M5 season/event selection does not scan all events, factions,
+governance hooks, anomalies, resources, map state or UI queues. It walks only
+the active incident lane, or the exact recovery lane for the active recovery
+window type, with caller `candidateCap` and `selectedCap` limits. Candidate
+rows carry anomaly, faction, governance, season, resource and recovery basis
+versions by value. Failed preconditions write bounded diagnostic rows with
+numeric reason codes; selected candidates write only cooldown and freshness
+owner state plus a legal command descriptor. Baseline timing and artifact
+updates wait for the M5 closeout benchmark task.
+
 ## WM-0070 M4 benchmark note
 
 `pnpm bench` now includes `m4-core-vertical-slice-long-run` in the default

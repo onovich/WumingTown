@@ -57,3 +57,24 @@ remain save-shaped state views. These descriptors are scheduled
 commands/opportunities for downstream owner-store command paths; they do not
 erase evidence, forgive debts, heal residents, rewrite relationships or mutate
 crisis state.
+
+## WM-0078 M5 first-season event pool
+
+`M5SeasonEventPoolStore` is the first M5 season/event owner surface. It owns
+first-season candidate rows, cooldown rows, recovery windows, per-theme
+freshness, precondition failure evidence and the pool owner version. Candidate
+rows carry event def id, anomaly, faction, governance, season, resource and
+recovery basis versions by value.
+
+Normal selection walks either the active incident lane or the recovery lane
+matching the current recovery window type. Recovery windows suppress incident
+selection, and wrong-type recovery rows remain in their own lanes. Candidates
+must pass time, cooldown, freshness and precondition checks before entering the
+selected Top-K output. The final selected command/opportunity is chosen from
+the bounded output through a named deterministic random stream.
+
+The event pool only returns legal command descriptors such as schedule event,
+resource opportunity, registration opportunity, market-night opportunity,
+bridge-route opportunity and archive-repair opportunity. It does not mutate
+source owner facts, repair resources, rewrite factions/governance, alter
+anomaly state or create an unbounded quest queue.
