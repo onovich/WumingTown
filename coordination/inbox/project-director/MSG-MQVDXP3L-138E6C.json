@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQVDXP3L-138E6C",
+  "from": "reviewer",
+  "to": "project-director",
+  "taskId": "WM-0085",
+  "kind": "review-approved",
+  "subject": "WM-0085 review: verified",
+  "body": "No blocking findings. Verified WM-0086-WM-0097 preserve reviewed M6 DAG/current roadmap scope, downstream packets are proposed/unclaimed, no product or M7 work changed, and required review commands passed.",
+  "artifacts": [
+    "coordination/reports/WM-0085.md"
+  ],
+  "createdAt": "2026-06-26T20:30:09.489Z",
+  "acknowledgedAt": "2026-06-26T20:31:10.866Z"
+}

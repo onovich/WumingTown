@@ -1,0 +1,104 @@
+{
+  "id": "WM-0094",
+  "title": "External test build smoke",
+  "summary": "Smoke Web and Windows external-test build artifacts across launch, load, save/export/import, input and diagnostics after prerequisite M6 product-gate slices land.",
+  "state": "proposed",
+  "ownerRole": "qa-performance",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0087",
+    "WM-0088",
+    "WM-0089",
+    "WM-0090",
+    "WM-0091",
+    "WM-0092",
+    "WM-0093"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0083-future-m6-entry-prompt.md",
+    "coordination/reports/WM-0084-m6-task-dag.md",
+    "docs/07_roadmap/04_web_release_gate.md",
+    "docs/05_tech/06_platform_matrix.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "Windows external-test build starts from a clean artifact path",
+    "Web build starts from a product-gate target",
+    "Smoke covers launch, load, save/export/import where available, basic input and diagnostics",
+    "Smoke exercises M5 product-gate surfaces and not only an empty shell"
+  ],
+  "requiredChecks": [
+    "pnpm test:e2e",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0094-external-test-build-smoke",
+  "createdAt": "2026-06-26T20:20:00.000Z",
+  "updatedAt": "2026-06-26T20:20:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-26T20:20:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Instantiated from reviewed WM-0084 M6 DAG; keep proposed until all prerequisite product-gate slices are done."
+    }
+  ],
+  "milestone": "M6",
+  "objective": "Consolidate Web and Windows external-test smoke evidence after platform, storage, security, accessibility and diagnostics gates.",
+  "dependencies": [
+    "WM-0087",
+    "WM-0088",
+    "WM-0089",
+    "WM-0090",
+    "WM-0091",
+    "WM-0092",
+    "WM-0093"
+  ],
+  "allowedPaths": [
+    "apps/**",
+    "packages/platform/**",
+    "tools/**",
+    "docs/05_tech/**",
+    "coordination/reports/WM-0094.md",
+    "coordination/reports/WM-0094-plan.md",
+    "coordination/tasks/WM-0094.json"
+  ],
+  "forbiddenPaths": [
+    "storefront material",
+    "public release upload",
+    "signing credentials",
+    "telemetry"
+  ],
+  "validationCommands": [
+    "pnpm test:e2e",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: build smoke passes without meaningful scenario coverage.",
+    "Risk: external-test smoke grows into release/store work.",
+    "File ownership is limited to smoke tooling, docs and reports."
+  ],
+  "ownerGate": [
+    "Block if smoke does not exercise product gate surfaces",
+    "Block on public release upload, signing credentials or telemetry",
+    "Block if smoke hides prerequisite gate failures"
+  ],
+  "m0M5RegressionCoverage": [
+    "Smoke does not alter simulation baselines",
+    "M5 product-gate surfaces must be visible in the smoke path"
+  ],
+  "benchmarkImpact": "May record external smoke timing and artifact paths; no benchmark threshold changes.",
+  "reviewRouting": "qa-performance completes to reviewer; reviewer verifies smoke coverage and non-release boundaries.",
+  "rollbackModel": "Revert smoke tooling/docs changes and leave product decision blocked on external-test smoke evidence.",
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "External-test smoke spans product build validation and is not a small Spark slice."
+  }
+}

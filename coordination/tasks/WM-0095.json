@@ -1,0 +1,108 @@
+{
+  "id": "WM-0095",
+  "title": "Long-run scenario and benchmark consolidation",
+  "summary": "Consolidate M6 headless, Worker, Web and Windows evidence with M5 invariant and benchmark protection before product verdict.",
+  "state": "proposed",
+  "ownerRole": "qa-performance",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0087",
+    "WM-0088",
+    "WM-0089",
+    "WM-0090",
+    "WM-0091",
+    "WM-0092",
+    "WM-0093"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0083.md",
+    "coordination/reports/WM-0083-future-m6-entry-prompt.md",
+    "coordination/reports/WM-0084-m6-task-dag.md",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md"
+  ],
+  "acceptance": [
+    "M6 consolidates headless, Worker, Web and Windows evidence",
+    "Runs M5 alpha content long-run and M6 product-gate checks without M0-M5 regression",
+    "Records performance, memory, loading, save/import/export and diagnostic evidence needed for product-gate verdict",
+    "M5 final world/read-model hashes 0xfba70a5c / 0x9ba83cb7 remain protected unless reviewed migration changes them"
+  ],
+  "requiredChecks": [
+    "pnpm test --filter m5-invariants",
+    "pnpm bench",
+    "pnpm sim:run -- --seed 5 --scenario m5-alpha-content-framework --ticks 100000",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0095-m6-long-run-benchmark-consolidation",
+  "createdAt": "2026-06-26T20:20:00.000Z",
+  "updatedAt": "2026-06-26T20:20:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-26T20:20:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Instantiated from reviewed WM-0084 M6 DAG; keep proposed until all prerequisite product-gate slices are done."
+    }
+  ],
+  "milestone": "M6",
+  "objective": "Produce the consolidated M6 regression, benchmark and long-run evidence required before product-gate decision.",
+  "dependencies": [
+    "WM-0087",
+    "WM-0088",
+    "WM-0089",
+    "WM-0090",
+    "WM-0091",
+    "WM-0092",
+    "WM-0093"
+  ],
+  "allowedPaths": [
+    "packages/benchmarks/**",
+    "tools/headless-runner/**",
+    "tools/**",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "coordination/reports/WM-0095.md",
+    "coordination/reports/WM-0095-plan.md",
+    "coordination/tasks/WM-0095.json"
+  ],
+  "forbiddenPaths": [
+    "threshold weakening",
+    "product fixes inside QA task",
+    "artifact rewrites from verified M5",
+    "M7 work"
+  ],
+  "validationCommands": [
+    "pnpm test --filter m5-invariants",
+    "pnpm bench",
+    "pnpm sim:run -- --seed 5 --scenario m5-alpha-content-framework --ticks 100000",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: product-gate results legitimately change hashes and require reviewed migration evidence.",
+    "Risk: QA consolidation becomes product repair instead of evidence.",
+    "File ownership is limited to benchmarks, headless runner diagnostics and observability docs."
+  ],
+  "ownerGate": [
+    "Block on unexplained hash drift",
+    "Block on threshold weakening",
+    "Block on benchmark artifact ambiguity"
+  ],
+  "m0M5RegressionCoverage": [
+    "M5 final world/read-model hashes 0xfba70a5c / 0x9ba83cb7 remain protected",
+    "M0-M4 regression evidence from M5 closeout remains intact"
+  ],
+  "benchmarkImpact": "May add M6 consolidation artifacts and baseline evidence; existing 10 percent warning / 20 percent blocking policy remains unchanged.",
+  "reviewRouting": "qa-performance completes to reviewer; reviewer verifies benchmark, hash and artifact evidence.",
+  "rollbackModel": "Revert consolidation tooling/artifacts if product gate evidence is invalid; leave M6 decision blocked.",
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Long-run and benchmark consolidation owns product-gate evidence and cannot use Spark."
+  }
+}

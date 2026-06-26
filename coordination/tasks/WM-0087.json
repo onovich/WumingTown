@@ -1,0 +1,92 @@
+{
+  "id": "WM-0087",
+  "title": "Chrome and Edge performance memory and loading gate",
+  "summary": "Measure Chrome/Edge Web product-gate performance, memory and loading against the reviewed M6 Web release criteria.",
+  "state": "proposed",
+  "ownerRole": "qa-performance",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0086"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0083-future-m6-entry-prompt.md",
+    "coordination/reports/WM-0084-m6-task-dag.md",
+    "docs/07_roadmap/04_web_release_gate.md",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/05_tech/05_testing_observability_ci.md"
+  ],
+  "acceptance": [
+    "Chrome and Edge evidence covers 30 TPS P95 <= 12 ms target, main-thread P95 <= 12 ms target, memory no-growth and initial compressed download target or documented failure",
+    "Evidence uses product-gate scale from the Web release gate: 192 x 192, 40 active actors, 20k entities, lamp network, dossiers/events and 90 TPS requests where implemented",
+    "Records whether Web is same-spec, lower fast-forward, lower cap, demo-only or cancellation candidate",
+    "Does not weaken existing 10 percent warning or 20 percent blocking benchmark thresholds"
+  ],
+  "requiredChecks": [
+    "pnpm bench",
+    "pnpm test:e2e --filter web-shell",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0087-web-performance-memory-loading",
+  "createdAt": "2026-06-26T20:20:00.000Z",
+  "updatedAt": "2026-06-26T20:20:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-26T20:20:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Instantiated from reviewed WM-0084 M6 DAG; keep proposed until dependencies are done."
+    }
+  ],
+  "milestone": "M6",
+  "objective": "Produce browser performance, memory and loading evidence for the Web tier verdict.",
+  "dependencies": [
+    "WM-0086"
+  ],
+  "allowedPaths": [
+    "packages/benchmarks/**",
+    "apps/web/**",
+    "tools/**",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/07_roadmap/04_web_release_gate.md",
+    "coordination/reports/WM-0087.md",
+    "coordination/reports/WM-0087-plan.md",
+    "coordination/tasks/WM-0087.json"
+  ],
+  "forbiddenPaths": [
+    "threshold weakening",
+    "product behavior fixes inside benchmark task",
+    "M5 benchmark artifact rewrites",
+    "simulation authority changes"
+  ],
+  "validationCommands": [
+    "pnpm bench",
+    "pnpm test:e2e --filter web-shell",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: local hardware variance affects browser metrics.",
+    "Risk: browser tooling cannot capture stable memory metrics.",
+    "File ownership is limited to benchmarks, web gate tooling and performance docs."
+  ],
+  "ownerGate": [
+    "Block on greater than 20 percent regression without accepted explanation",
+    "Block if evidence uses empty-world results",
+    "Block if Web tier decision would cancel Web without owner approval"
+  ],
+  "m0M5RegressionCoverage": [
+    "Run M5 invariant and final hash checks when product behavior changes",
+    "Preserve M5 final world/read-model hashes unless reviewed migration accepts new baseline"
+  ],
+  "benchmarkImpact": "May add M6 browser gate measurements and artifacts but must not weaken baseline thresholds.",
+  "reviewRouting": "qa-performance completes to reviewer; reviewer verifies real browser evidence and threshold discipline.",
+  "rollbackModel": "Revert M6 browser benchmark/tooling changes; keep failed evidence in report if gate blocks.",
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Performance baseline and product gate verdict evidence are not Spark-eligible."
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "id": "WM-0091",
+  "title": "Electron security and preload audit",
+  "summary": "Audit and lock Electron security, preload and platform API surfaces for the Windows M6 product gate.",
+  "state": "proposed",
+  "ownerRole": "systems-architect",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0090"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0083-future-m6-entry-prompt.md",
+    "coordination/reports/WM-0084-m6-task-dag.md",
+    "docs/05_tech/04_persistence_mods_security.md",
+    "docs/05_tech/06_platform_matrix.md",
+    "docs/06_engineering/06_dependency_security_policy.md",
+    "docs/06_engineering/04_review_checklist.md"
+  ],
+  "acceptance": [
+    "Electron settings are audited and locked to nodeIntegration false, contextIsolation true and sandbox true",
+    "Preload surface is minimal and typed",
+    "Storage and diagnostic APIs expose only whitelisted operations",
+    "No generic fs, shell or arbitrary IPC exposure exists"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test:e2e --filter desktop-shell",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0091-electron-security-preload-audit",
+  "createdAt": "2026-06-26T20:20:00.000Z",
+  "updatedAt": "2026-06-26T20:20:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-26T20:20:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Instantiated from reviewed WM-0084 M6 DAG; keep proposed until dependencies are done."
+    }
+  ],
+  "milestone": "M6",
+  "objective": "Verify Electron security posture and preload API minimality before external-test verdict.",
+  "dependencies": [
+    "WM-0090"
+  ],
+  "allowedPaths": [
+    "apps/desktop-electron/**",
+    "packages/platform/**",
+    "docs/05_tech/04_persistence_mods_security.md",
+    "docs/06_engineering/06_dependency_security_policy.md",
+    "coordination/reports/WM-0091.md",
+    "coordination/reports/WM-0091-plan.md",
+    "coordination/tasks/WM-0091.json"
+  ],
+  "forbiddenPaths": [
+    "nodeIntegration=true",
+    "contextIsolation=false",
+    "sandbox=false",
+    "generic fs shell or arbitrary IPC exposure",
+    "secret handling"
+  ],
+  "validationCommands": [
+    "pnpm typecheck",
+    "pnpm test:e2e --filter desktop-shell",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: external test diagnostics tempt broad IPC.",
+    "Risk: file save/export features expose host paths or secrets.",
+    "File ownership is limited to Electron main/preload/platform security docs."
+  ],
+  "ownerGate": [
+    "Block on any broad host API exposure",
+    "Block on changed security settings that weaken sandboxing",
+    "Block on secret, path or full-save leakage"
+  ],
+  "m0M5RegressionCoverage": [
+    "Renderer remains read-only to simulation authority",
+    "Save/export diagnostics cannot mutate authoritative world state"
+  ],
+  "benchmarkImpact": "No benchmark baseline impact; security audit evidence only.",
+  "reviewRouting": "systems-architect completes to reviewer; reviewer verifies security settings and preload surface.",
+  "rollbackModel": "Revert security/preload changes or leave Windows verdict blocked on Electron security evidence.",
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Electron preload and sandbox security are explicit non-Spark boundaries."
+  }
+}

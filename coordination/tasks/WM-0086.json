@@ -1,0 +1,106 @@
+{
+  "id": "WM-0086",
+  "title": "Add Web build and release-gate harness",
+  "summary": "Create the repeatable Web product-gate build and harness for the current alpha content framework without changing simulation authority.",
+  "state": "ready",
+  "ownerRole": "client-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0085"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0083-future-m6-entry-prompt.md",
+    "coordination/reports/WM-0084-m6-task-dag.md",
+    "docs/07_roadmap/04_web_release_gate.md",
+    "docs/05_tech/01_technical_architecture.md",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/05_tech/06_platform_matrix.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "Web build has a repeatable release-gate command or documented harness",
+    "Harness runs against real M5/M4-derived vertical-slice content, not an empty map",
+    "Chrome and Edge target assumptions are recorded",
+    "Build strategy records bundle-size, asset and cross-origin-isolation assumptions",
+    "UI, Pixi and React remain read-model consumers and do not become simulation authority"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm build:web",
+    "pnpm test:e2e --filter web-shell",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0086-web-build-release-gate-harness",
+  "createdAt": "2026-06-26T20:20:00.000Z",
+  "updatedAt": "2026-06-26T20:32:09.113Z",
+  "history": [
+    {
+      "at": "2026-06-26T20:20:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Instantiated from reviewed WM-0084 M6 DAG; keep proposed until WM-0085 is verified and done."
+    },
+    {
+      "at": "2026-06-26T20:32:09.113Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
+    }
+  ],
+  "milestone": "M6",
+  "objective": "Add the Web build and product-gate harness needed for later browser performance, storage and SharedArrayBuffer gates.",
+  "dependencies": [
+    "WM-0085"
+  ],
+  "allowedPaths": [
+    "apps/web/**",
+    "packages/ui-react/**",
+    "packages/renderer-pixi/**",
+    "packages/platform/**",
+    "tools/**web**",
+    "docs/05_tech/**",
+    "docs/07_roadmap/**",
+    "coordination/reports/WM-0086.md",
+    "coordination/reports/WM-0086-plan.md",
+    "coordination/tasks/WM-0086.json"
+  ],
+  "forbiddenPaths": [
+    "packages/sim-core/** unless separately approved",
+    "public Worker protocol redesign",
+    "public save compatibility promise",
+    "content expansion",
+    "M7 store or public playtest material"
+  ],
+  "validationCommands": [
+    "pnpm typecheck",
+    "pnpm build:web",
+    "pnpm test:e2e --filter web-shell",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: harness proves shell behavior but not product gate scale.",
+    "Risk: Web build requires a new dependency or hosting assumption.",
+    "File ownership is limited to Web app, UI/renderer/platform Web surfaces and docs."
+  ],
+  "ownerGate": [
+    "Block on new runtime dependency, public protocol change or server requirement",
+    "Block if Web harness uses empty-world evidence",
+    "Block if UI becomes authoritative"
+  ],
+  "m0M5RegressionCoverage": [
+    "No authoritative simulation changes",
+    "M5 alpha content must remain product-gate fixture basis"
+  ],
+  "benchmarkImpact": "Defines future Web release-gate harness evidence; no benchmark threshold weakening.",
+  "reviewRouting": "client-engineer completes to reviewer; reviewer verifies Web harness scope and authority boundaries.",
+  "rollbackModel": "Revert Web harness/build changes and docs; later M6 Web evidence tasks remain proposed.",
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Web product-gate harness spans app, renderer/platform surfaces and M6 product readiness."
+  }
+}

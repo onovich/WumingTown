@@ -1,0 +1,97 @@
+{
+  "id": "WM-0092",
+  "title": "Input and accessibility baseline",
+  "summary": "Validate baseline keyboard/mouse input, UI scaling, bilingual text fit, reduced flashing and non-color cues for M6 product-gate surfaces.",
+  "state": "ready",
+  "ownerRole": "client-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0085"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0083-future-m6-entry-prompt.md",
+    "coordination/reports/WM-0084-m6-task-dag.md",
+    "docs/01_design/05_ui_ux_information_design.md",
+    "docs/06_engineering/03_definition_of_done.md",
+    "docs/06_engineering/05_testing_policy.md"
+  ],
+  "acceptance": [
+    "Keyboard and mouse basics work for product gate surfaces",
+    "UI scaling, long text, Chinese/English layout, reduced flashing and non-color danger/lamp cues are checked",
+    "Key audio cues have visual alternatives or documented blockers",
+    "React and Pixi remain read-model consumers and never repair authoritative simulation state"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test:e2e",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0092-input-accessibility-baseline",
+  "createdAt": "2026-06-26T20:20:00.000Z",
+  "updatedAt": "2026-06-26T20:32:09.114Z",
+  "history": [
+    {
+      "at": "2026-06-26T20:20:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Instantiated from reviewed WM-0084 M6 DAG; keep proposed until WM-0085 is verified and done."
+    },
+    {
+      "at": "2026-06-26T20:32:09.114Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
+    }
+  ],
+  "milestone": "M6",
+  "objective": "Establish input and accessibility baseline evidence for Web and Windows product-gate surfaces.",
+  "dependencies": [
+    "WM-0085"
+  ],
+  "allowedPaths": [
+    "apps/web/**",
+    "apps/desktop-electron/**",
+    "packages/ui-react/**",
+    "packages/renderer-pixi/**",
+    "docs/01_design/05_ui_ux_information_design.md",
+    "coordination/reports/WM-0092.md",
+    "coordination/reports/WM-0092-plan.md",
+    "coordination/tasks/WM-0092.json"
+  ],
+  "forbiddenPaths": [
+    "UI-authoritative simulation repair",
+    "inaccessible color-only states",
+    "M7 tutorial expansion"
+  ],
+  "validationCommands": [
+    "pnpm typecheck",
+    "pnpm test:e2e",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: accessibility scope expands into full tutorial or full localization overhaul.",
+    "Risk: color-only lamp/danger states pass visually but fail accessibility baseline.",
+    "File ownership is limited to UI, renderer input and accessibility docs."
+  ],
+  "ownerGate": [
+    "Block on player-critical state conveyed by color or sound alone",
+    "Block if UI mutates authoritative simulation state",
+    "Block if M7 tutorial or public playtest work is needed"
+  ],
+  "m0M5RegressionCoverage": [
+    "UI remains a read-model consumer",
+    "No simulation authority or hash baseline changes"
+  ],
+  "benchmarkImpact": "No benchmark baseline impact except possible UI smoke timing notes.",
+  "reviewRouting": "client-engineer completes to reviewer; reviewer verifies input/a11y coverage and authority boundaries.",
+  "rollbackModel": "Revert input/a11y changes and record missing baseline as product-gate blocker.",
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Accessibility baseline requires product-surface judgment and Playwright evidence, not Spark."
+  }
+}

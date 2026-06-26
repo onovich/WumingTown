@@ -1,0 +1,96 @@
+{
+  "id": "WM-0088",
+  "title": "Web storage OPFS save import export and quota gate",
+  "summary": "Validate Web storage, OPFS, save/load, export/import and quota failure behavior for the M6 product gate.",
+  "state": "proposed",
+  "ownerRole": "client-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0086"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0083-future-m6-entry-prompt.md",
+    "coordination/reports/WM-0084-m6-task-dag.md",
+    "docs/05_tech/04_persistence_mods_security.md",
+    "docs/05_tech/06_platform_matrix.md",
+    "docs/07_roadmap/04_web_release_gate.md",
+    "docs/06_engineering/06_dependency_security_policy.md"
+  ],
+  "acceptance": [
+    "OPFS save, load, export, import and quota-failure recovery are tested",
+    "Windows/Web save container interoperability is proven or recorded as a product-gate blocker",
+    "Error states produce user-facing and diagnostic structured reasons",
+    "No public save compatibility promise is made beyond the M6 gate"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter persistence",
+    "pnpm test:e2e --filter web-shell",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0088-web-storage-opfs-import-export",
+  "createdAt": "2026-06-26T20:20:00.000Z",
+  "updatedAt": "2026-06-26T20:20:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-26T20:20:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Instantiated from reviewed WM-0084 M6 DAG; keep proposed until dependencies are done."
+    }
+  ],
+  "milestone": "M6",
+  "objective": "Validate Web storage and save/import/export behavior required for product-gate decision evidence.",
+  "dependencies": [
+    "WM-0086"
+  ],
+  "allowedPaths": [
+    "packages/persistence/**",
+    "packages/platform/**",
+    "apps/web/**",
+    "packages/ui-react/**",
+    "docs/05_tech/04_persistence_mods_security.md",
+    "docs/05_tech/06_platform_matrix.md",
+    "coordination/reports/WM-0088.md",
+    "coordination/reports/WM-0088-plan.md",
+    "coordination/tasks/WM-0088.json"
+  ],
+  "forbiddenPaths": [
+    "public save compatibility promise beyond M6 gate",
+    "arbitrary code mods",
+    "platform secret handling",
+    "simulation authority changes"
+  ],
+  "validationCommands": [
+    "pnpm typecheck",
+    "pnpm test --filter persistence",
+    "pnpm test:e2e --filter web-shell",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: browser quota APIs are inconsistent.",
+    "Risk: save export may expose local paths or sensitive diagnostics.",
+    "File ownership is limited to persistence, platform and web storage UI surfaces."
+  ],
+  "ownerGate": [
+    "Block on public save migration, codec change or compatibility commitment without ADR",
+    "Block on local path, secret or full-save leakage in diagnostics",
+    "Block if platform storage mutates authoritative simulation state"
+  ],
+  "m0M5RegressionCoverage": [
+    "Save/load changes must preserve M5 focused save/replay evidence or provide reviewed migration evidence",
+    "Simulation Worker remains the only world writer"
+  ],
+  "benchmarkImpact": "May add storage timing or quota evidence; does not update M0-M5 benchmark baselines.",
+  "reviewRouting": "client-engineer completes to reviewer; reviewer verifies persistence/security boundaries.",
+  "rollbackModel": "Revert Web storage gate changes and leave product decision blocked on storage evidence.",
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Web persistence, save/export and quota behavior touch product and security boundaries."
+  }
+}

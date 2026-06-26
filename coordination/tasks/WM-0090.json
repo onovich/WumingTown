@@ -1,0 +1,99 @@
+{
+  "id": "WM-0090",
+  "title": "Windows Electron package gate",
+  "summary": "Produce and validate a reproducible Windows Electron external-testable package or unpacked build for the M6 product gate.",
+  "state": "ready",
+  "ownerRole": "client-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0085"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0083-future-m6-entry-prompt.md",
+    "coordination/reports/WM-0084-m6-task-dag.md",
+    "docs/05_tech/00_tech_stack.md",
+    "docs/05_tech/04_persistence_mods_security.md",
+    "docs/05_tech/06_platform_matrix.md",
+    "docs/06_engineering/06_dependency_security_policy.md"
+  ],
+  "acceptance": [
+    "Windows package or unpacked external-test build is reproducible",
+    "Build opens the current product shell and M5 scenario surfaces",
+    "Package metadata, artifact path, size and known warnings are recorded",
+    "Electron remains a platform shell and not simulation authority"
+  ],
+  "requiredChecks": [
+    "pnpm build:desktop",
+    "pnpm test:e2e --filter desktop-shell",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0090-windows-electron-package-gate",
+  "createdAt": "2026-06-26T20:20:00.000Z",
+  "updatedAt": "2026-06-26T20:32:09.114Z",
+  "history": [
+    {
+      "at": "2026-06-26T20:20:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Instantiated from reviewed WM-0084 M6 DAG; keep proposed until WM-0085 is verified and done."
+    },
+    {
+      "at": "2026-06-26T20:32:09.114Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
+    }
+  ],
+  "milestone": "M6",
+  "objective": "Gate the Windows Electron external-test build path without expanding into installer, signing, updater or store work.",
+  "dependencies": [
+    "WM-0085"
+  ],
+  "allowedPaths": [
+    "apps/desktop-electron/**",
+    "packages/platform/**",
+    "packages/ui-react/**",
+    "packages/renderer-pixi/**",
+    "docs/05_tech/06_platform_matrix.md",
+    "coordination/reports/WM-0090.md",
+    "coordination/reports/WM-0090-plan.md",
+    "coordination/tasks/WM-0090.json"
+  ],
+  "forbiddenPaths": [
+    "adding packaging dependencies without ADR",
+    "enabling renderer Node integration",
+    "exposing generic fs or shell IPC",
+    "M7 installer or store work"
+  ],
+  "validationCommands": [
+    "pnpm build:desktop",
+    "pnpm test:e2e --filter desktop-shell",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: packaging tool download brittleness.",
+    "Risk: package size or smoke coverage is insufficient for external test.",
+    "File ownership is limited to Desktop Electron app and platform shell docs."
+  ],
+  "ownerGate": [
+    "Block on installer, signing or updater scope",
+    "Block on new packaging dependency without ADR",
+    "Block if Electron renderer gets Node authority"
+  ],
+  "m0M5RegressionCoverage": [
+    "Electron remains a platform shell, not simulation authority",
+    "M5 scenario surfaces remain the product-gate content basis"
+  ],
+  "benchmarkImpact": "May record build size and launch smoke evidence; no benchmark threshold changes.",
+  "reviewRouting": "client-engineer completes to reviewer; reviewer verifies package reproducibility and Electron boundary constraints.",
+  "rollbackModel": "Revert packaging changes and leave Windows verdict blocked on reproducible external-test build evidence.",
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Windows packaging and Electron product gate work touches platform/security boundaries."
+  }
+}

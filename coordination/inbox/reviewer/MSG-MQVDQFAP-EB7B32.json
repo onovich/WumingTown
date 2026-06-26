@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQVDQFAP-EB7B32",
+  "from": "project-director",
+  "to": "reviewer",
+  "taskId": "WM-0085",
+  "kind": "review-request",
+  "subject": "WM-0085 ready for review",
+  "body": "Instantiated the reviewed M6 Web / Windows Product Gate DAG as WM-0086 through WM-0097 task JSON, recorded startup audit evidence, kept all downstream M6 tasks proposed, and started no product implementation or M7 work; required gates passed.",
+  "artifacts": [
+    "coordination/reports/WM-0085.md",
+    "task/WM-0085-create-m6-execution-packets"
+  ],
+  "createdAt": "2026-06-26T20:24:30.193Z",
+  "acknowledgedAt": "2026-06-26T20:31:10.940Z"
+}

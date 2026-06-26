@@ -1,0 +1,96 @@
+{
+  "id": "WM-0089",
+  "title": "SharedArrayBuffer unavailable fallback gate",
+  "summary": "Validate Web runtime behavior when SharedArrayBuffer is unavailable while preserving Worker authority and read-only projections.",
+  "state": "proposed",
+  "ownerRole": "systems-architect",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0086"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0083-future-m6-entry-prompt.md",
+    "coordination/reports/WM-0084-m6-task-dag.md",
+    "docs/05_tech/02_worker_protocol.md",
+    "docs/05_tech/06_platform_matrix.md",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/06_engineering/00_coding_standard.md"
+  ],
+  "acceptance": [
+    "Web runtime behaves correctly without SharedArrayBuffer",
+    "Transferable snapshot or documented fallback path preserves authority and read-only projections",
+    "Cross-origin isolation assumptions are recorded",
+    "Fallback performance or cap impact is measured or recorded as product-gate evidence"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter worker-smoke",
+    "pnpm test:e2e --filter worker-smoke",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0089-sharedarraybuffer-fallback",
+  "createdAt": "2026-06-26T20:20:00.000Z",
+  "updatedAt": "2026-06-26T20:20:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-26T20:20:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Instantiated from reviewed WM-0084 M6 DAG; keep proposed until dependencies are done."
+    }
+  ],
+  "milestone": "M6",
+  "objective": "Gate SharedArrayBuffer-unavailable Web behavior without changing Worker authority or public protocol scope unless separately approved.",
+  "dependencies": [
+    "WM-0086"
+  ],
+  "allowedPaths": [
+    "packages/sim-worker/**",
+    "packages/sim-protocol/**",
+    "packages/platform/**",
+    "apps/web/**",
+    "docs/05_tech/02_worker_protocol.md",
+    "docs/05_tech/06_platform_matrix.md",
+    "coordination/reports/WM-0089.md",
+    "coordination/reports/WM-0089-plan.md",
+    "coordination/tasks/WM-0089.json"
+  ],
+  "forbiddenPaths": [
+    "UI authority",
+    "public protocol redesign without ADR",
+    "real-time or ambient-random authority",
+    "M7 hosting assumptions"
+  ],
+  "validationCommands": [
+    "pnpm typecheck",
+    "pnpm test --filter worker-smoke",
+    "pnpm test:e2e --filter worker-smoke",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: fallback lowers fast-forward or entity caps.",
+    "Risk: protocol drift is smuggled in as a fallback convenience.",
+    "File ownership is limited to Worker/protocol/platform fallback surfaces."
+  ],
+  "ownerGate": [
+    "Block on new protocol family, schema version or UI repair path",
+    "Block if fallback requires server, account or hosting commitment",
+    "Block if fallback changes locked 30 TPS simulation semantics"
+  ],
+  "m0M5RegressionCoverage": [
+    "Worker parity and M5 read-model projections remain read-only",
+    "Headless and Worker authoritative hashes must remain protected"
+  ],
+  "benchmarkImpact": "May record fallback overhead or cap implications; no threshold weakening.",
+  "reviewRouting": "systems-architect completes to reviewer; reviewer verifies protocol and authority boundaries.",
+  "rollbackModel": "Revert fallback changes; Web tier decision may record SharedArrayBuffer as blocker.",
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "SharedArrayBuffer fallback touches Worker protocol, authority and product gate architecture."
+  }
+}

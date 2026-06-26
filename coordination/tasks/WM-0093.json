@@ -1,0 +1,100 @@
+{
+  "id": "WM-0093",
+  "title": "Crash and diagnostic package path",
+  "summary": "Create a local crash or diagnostic package path for Web and Windows product-gate evidence without telemetry or private data leakage.",
+  "state": "ready",
+  "ownerRole": "client-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0085"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0083-future-m6-entry-prompt.md",
+    "coordination/reports/WM-0084-m6-task-dag.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "docs/05_tech/04_persistence_mods_security.md",
+    "docs/06_engineering/06_dependency_security_policy.md"
+  ],
+  "acceptance": [
+    "Local diagnostic package captures build, platform, scenario id, hashes, recent structured errors and safe logs",
+    "Crash/recovery path works for Web and Windows or records platform-specific blockers",
+    "No private paths, secrets or full save contents are written to reports",
+    "No telemetry, network upload or public feedback system is introduced"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter diagnostics",
+    "pnpm test:e2e",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0093-crash-diagnostic-package-path",
+  "createdAt": "2026-06-26T20:20:00.000Z",
+  "updatedAt": "2026-06-26T20:32:09.114Z",
+  "history": [
+    {
+      "at": "2026-06-26T20:20:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Instantiated from reviewed WM-0084 M6 DAG; keep proposed until WM-0085 is verified and done."
+    },
+    {
+      "at": "2026-06-26T20:32:09.114Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
+    }
+  ],
+  "milestone": "M6",
+  "objective": "Provide safe local diagnostics for external test blockers while preserving privacy and simulation authority.",
+  "dependencies": [
+    "WM-0085"
+  ],
+  "allowedPaths": [
+    "apps/web/**",
+    "apps/desktop-electron/**",
+    "packages/platform/**",
+    "packages/persistence/**",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "coordination/reports/WM-0093.md",
+    "coordination/reports/WM-0093-plan.md",
+    "coordination/tasks/WM-0093.json"
+  ],
+  "forbiddenPaths": [
+    "telemetry or network upload",
+    "secrets or complete personal save dumps in logs",
+    "simulation authority changes",
+    "M7 public feedback system"
+  ],
+  "validationCommands": [
+    "pnpm typecheck",
+    "pnpm test --filter diagnostics",
+    "pnpm test:e2e",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: diagnostic scope becomes telemetry.",
+    "Risk: package captures local paths, secrets or full saves.",
+    "File ownership is limited to platform diagnostics and safe reporting docs."
+  ],
+  "ownerGate": [
+    "Block on network upload, account system, telemetry or PII leakage",
+    "Block on broad file access",
+    "Block if diagnostics can mutate authoritative simulation state"
+  ],
+  "m0M5RegressionCoverage": [
+    "Diagnostics are derived from structured state and cannot mutate authority",
+    "M5 scenario hashes should be captured as evidence but not rewritten"
+  ],
+  "benchmarkImpact": "No benchmark baseline impact; diagnostic package may record safe hashes and build metadata.",
+  "reviewRouting": "client-engineer completes to reviewer; reviewer verifies privacy, safety and platform boundaries.",
+  "rollbackModel": "Revert diagnostics changes and record crash/diagnostic path as product-gate blocker.",
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Diagnostics touch privacy, persistence and platform/security boundaries."
+  }
+}

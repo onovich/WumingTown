@@ -1,0 +1,173 @@
+{
+  "id": "WM-0085",
+  "title": "Create M6 execution packets and baseline audit",
+  "summary": "Instantiate the reviewed M6 Web / Windows Product Gate DAG as concrete task JSON, record the M6 startup audit from current main, and keep all product implementation unstarted until normal taskctl promotion after WM-0085 review.",
+  "state": "done",
+  "ownerRole": "project-director",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0084"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "CODEX_START_HERE.md",
+    ".agents/skills/wuming-town-agent-workflow/SKILL.md",
+    ".agents/skills/wuming-town-agent-workflow/references/task-schema.md",
+    "coordination/project-state.json",
+    "coordination/thread-registry.json",
+    "coordination/reports/WM-0083.md",
+    "coordination/reports/WM-0083-future-m6-entry-prompt.md",
+    "coordination/reports/WM-0084.md",
+    "coordination/reports/WM-0084-m6-task-dag.md",
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "docs/07_roadmap/04_web_release_gate.md",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/05_tech/06_platform_matrix.md",
+    "docs/06_engineering/03_definition_of_done.md",
+    "docs/08_codex/03_task_state_machine.md",
+    "PLANS.md"
+  ],
+  "acceptance": [
+    "Creates concrete M6 task JSON packets from the reviewed DAG in coordination/reports/WM-0084-m6-task-dag.md",
+    "Records the startup audit confirming current roadmap authority, M5 closeout evidence, WM-0084 reviewed status, main/origin sync, clean worktree, inbox 0, no WM-0085+ preexisting tasks and no M6 implementation started before this task",
+    "Defines M6 as Web / Windows Product Gate, M7 as Early Access / public playtest preparation and M8 as 1.0 in task packet metadata where relevant",
+    "Downstream M6 task packets include milestone, ownerRole, reviewerRole, dependencies, allowed paths, forbidden paths, acceptance, validation commands, risks/file ownership, owner gates, M0-M5 regression coverage, benchmark impact, rollback model and Spark eligibility",
+    "Downstream M6 task packets remain proposed until normal taskctl promotion after WM-0085 is independently reviewed, integrated and marked done",
+    "No product runtime, simulation, content data, package manifest, lockfile, test behavior, benchmark artifact, M7 task or M7 implementation is changed"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0085-create-m6-execution-packets",
+  "createdAt": "2026-06-26T20:14:34.000Z",
+  "updatedAt": "2026-06-26T20:32:09.107Z",
+  "history": [
+    {
+      "at": "2026-06-26T20:14:34.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created from the reviewed M6 entry prompt and WM-0084 M6 DAG after owner started the M6 Web / Windows Product Gate goal."
+    },
+    {
+      "at": "2026-06-26T20:14:34.000Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "WM-0084 is done and reviewed; WM-0085 is the first non-implementation M6 execution-packet task."
+    },
+    {
+      "at": "2026-06-26T20:15:33.349Z",
+      "actor": "project-director",
+      "action": "claim",
+      "details": "thread=Beacon M6 WM-0085 execution packets"
+    },
+    {
+      "at": "2026-06-26T20:24:30.191Z",
+      "actor": "project-director",
+      "action": "complete",
+      "details": "Instantiated the reviewed M6 Web / Windows Product Gate DAG as WM-0086 through WM-0097 task JSON, recorded startup audit evidence, kept all downstream M6 tasks proposed, and started no product implementation or M7 work; required gates passed."
+    },
+    {
+      "at": "2026-06-26T20:30:09.488Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Verified WM-0086-WM-0097 preserve reviewed M6 DAG/current roadmap scope, downstream packets are proposed/unclaimed, no product or M7 work changed, and required review commands passed."
+    },
+    {
+      "at": "2026-06-26T20:32:01.354Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Reviewer verified WM-0085 with no findings. Integration gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality with pnpm 11.8.0. M6 task packets WM-0086 through WM-0097 are instantiated; no product implementation or M7 work started."
+    },
+    {
+      "at": "2026-06-26T20:32:09.107Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
+    }
+  ],
+  "milestone": "M6",
+  "objective": "Create the formal M6 task packets and startup audit from the reviewed M6 Web / Windows Product Gate DAG without starting implementation.",
+  "allowedPaths": [
+    "coordination/tasks/WM-0085.json",
+    "coordination/tasks/WM-0086.json",
+    "coordination/tasks/WM-0087.json",
+    "coordination/tasks/WM-0088.json",
+    "coordination/tasks/WM-0089.json",
+    "coordination/tasks/WM-0090.json",
+    "coordination/tasks/WM-0091.json",
+    "coordination/tasks/WM-0092.json",
+    "coordination/tasks/WM-0093.json",
+    "coordination/tasks/WM-0094.json",
+    "coordination/tasks/WM-0095.json",
+    "coordination/tasks/WM-0096.json",
+    "coordination/tasks/WM-0097.json",
+    "coordination/reports/WM-0085*.md",
+    "coordination/project-state.json",
+    "docs/07_roadmap/*"
+  ],
+  "forbiddenPaths": [
+    "packages/**",
+    "apps/**",
+    "tools/**",
+    "content/**",
+    "schemas/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "coordination/artifacts/**",
+    "product runtime implementation",
+    "simulation implementation",
+    "content data implementation",
+    "test behavior changes",
+    "benchmark artifact rewrites",
+    "M0-M5 task history rewrites",
+    "downstream M6 implementation task claim before WM-0085 done",
+    "M7 task creation, promotion, claim, implementation or review"
+  ],
+  "validationCommands": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: old M6/M7/M8/M9 inference leaks back into task packets; owner must cite current roadmap authority and WM-0084 reviewed DAG.",
+    "Risk: downstream packets are too broad, too narrow or miss owner gates; reviewer must compare against coordination/reports/WM-0084-m6-task-dag.md.",
+    "Risk: taskctl auto-promotes executable tasks after WM-0085 is done; this is allowed only after WM-0085 independent review and integration because the owner has explicitly started M6.",
+    "File ownership is limited to M6 coordination task packets, WM-0085 reports and narrow roadmap/project-state markers if needed."
+  ],
+  "benchmarkImpact": "No product benchmark baseline or artifact changes. WM-0085 records M6 benchmark requirements only and preserves the existing 10 percent warning / 20 percent blocking thresholds plus M5 final hashes.",
+  "reviewRouting": "Project-director completes to reviewer. Reviewer must verify that WM-0086 through WM-0097 exactly preserve the reviewed M6 Web / Windows Product Gate scope, dependencies and non-goals before WM-0085 can be integrated.",
+  "rollbackModel": "Revert WM-0085 task/report files and the newly created WM-0086 through WM-0097 task JSON packets; leave WM-0084 reviewed prompt/DAG intact and M6 unstarted beyond owner authorization.",
+  "ownerGate": [
+    "Block if any packet defines M6 as non-product-gate work",
+    "Block if any packet starts product implementation inside WM-0085",
+    "Block if task schema cannot represent the reviewed DAG without losing required owner gates",
+    "Block if M5 hashes or benchmark thresholds would be weakened",
+    "Do not create, promote, claim or implement M7"
+  ],
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "This is milestone execution planning and task DAG instantiation under project-director ownership; Spark cannot own planning, product gates or final review."
+  },
+  "claimedBy": "project-director",
+  "threadLabel": "Beacon M6 WM-0085 execution packets",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0085.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Verified WM-0086-WM-0097 preserve reviewed M6 DAG/current roadmap scope, downstream packets are proposed/unclaimed, no product or M7 work changed, and required review commands passed.",
+    "at": "2026-06-26T20:30:09.488Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Reviewer verified WM-0085 with no findings. Integration gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality with pnpm 11.8.0. M6 task packets WM-0086 through WM-0097 are instantiated; no product implementation or M7 work started.",
+    "at": "2026-06-26T20:32:01.354Z"
+  }
+}

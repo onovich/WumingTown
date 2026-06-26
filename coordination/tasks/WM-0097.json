@@ -1,0 +1,99 @@
+{
+  "id": "WM-0097",
+  "title": "M6 closeout and future M7 entry prompt",
+  "summary": "Close M6 after all product-gate tasks are independently reviewed and integrated, then write a non-executable future M7 entry prompt without starting M7.",
+  "state": "proposed",
+  "ownerRole": "project-director",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0096"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0083-future-m6-entry-prompt.md",
+    "coordination/reports/WM-0084-m6-task-dag.md",
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "docs/07_roadmap/04_web_release_gate.md",
+    "docs/05_tech/06_platform_matrix.md",
+    "docs/08_codex/05_human_approval_gates.md"
+  ],
+  "acceptance": [
+    "Closes M6 only after all M6 tasks are done and independently reviewed",
+    "Records Web tier verdict, Windows external-test verdict, performance and memory baselines, save/import/export results, blockers and M7 readiness",
+    "Writes coordination/reports/WM-0097-future-m7-entry-prompt.md as a non-executable future M7 prompt",
+    "Does not create, promote, claim, implement or review M7"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality",
+    "pnpm test --filter m5-invariants",
+    "pnpm bench",
+    "pnpm sim:run -- --seed 5 --scenario m5-alpha-content-framework --ticks 100000"
+  ],
+  "branch": "task/WM-0097-m6-closeout-future-m7-entry",
+  "createdAt": "2026-06-26T20:20:00.000Z",
+  "updatedAt": "2026-06-26T20:20:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-26T20:20:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Instantiated from reviewed WM-0084 M6 DAG; keep proposed until WM-0096 is done."
+    }
+  ],
+  "milestone": "M6",
+  "objective": "Close M6 Web / Windows Product Gate, record all verdicts and evidence, and prepare the future M7 entry prompt without starting M7.",
+  "dependencies": [
+    "WM-0096"
+  ],
+  "allowedPaths": [
+    "coordination/reports/WM-0097.md",
+    "coordination/reports/WM-0097-plan.md",
+    "coordination/reports/WM-0097-future-m7-entry-prompt.md",
+    "coordination/tasks/WM-0097.json",
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "coordination/project-state.json"
+  ],
+  "forbiddenPaths": [
+    "M7 task creation promotion claim implementation or review",
+    "public release upload",
+    "store material production",
+    "privacy policy commitments beyond readiness prompt"
+  ],
+  "validationCommands": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality",
+    "pnpm test --filter m5-invariants",
+    "pnpm bench",
+    "pnpm sim:run -- --seed 5 --scenario m5-alpha-content-framework --ticks 100000"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: M7 readiness prompt becomes M7 implementation.",
+    "Risk: closeout hides a missing M6 gate.",
+    "File ownership is limited to closeout report, future M7 prompt and narrow roadmap/project-state markers."
+  ],
+  "ownerGate": [
+    "Do not create, promote, claim or implement M7",
+    "Block if any M6 task remains unverified or any required gate is missing",
+    "Block if final M6 verdict requires owner approval and approval is absent"
+  ],
+  "m0M5RegressionCoverage": [
+    "Final M6 closeout must preserve or explicitly migrate all prior milestone baseline evidence",
+    "M5 final world/read-model hashes 0xfba70a5c / 0x9ba83cb7 remain protected unless reviewed migration changes them"
+  ],
+  "benchmarkImpact": "Final M6 gate verdict cites benchmark evidence and preserves existing threshold policy.",
+  "reviewRouting": "project-director completes to reviewer; reviewer verifies all M6 tasks are done and no M7 work was started.",
+  "rollbackModel": "Leave M6 open, revert closeout/future prompt markers and do not promote M7.",
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Milestone closeout, product verdict and future M7 prompt are project-director work and not Spark-eligible."
+  }
+}
