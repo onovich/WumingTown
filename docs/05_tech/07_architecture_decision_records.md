@@ -12,5 +12,6 @@
 - [ADR-0008 M3 ordinary-life architecture gate](../../coordination/decisions/ADR-0008.md) — Proposed
 - [ADR-0009 M4 core vertical slice architecture gate](../../coordination/decisions/ADR-0009.md) — Proposed
 - [ADR-0010 M5 alpha content framework architecture gate](../../coordination/decisions/ADR-0010.md) — Proposed
+- [ADR-0011 M8 i18n architecture and locale settings contract](../../coordination/decisions/ADR-0011.md) — Proposed
 
 ADR 模板见 `templates/ADR.md`。状态：Proposed / Accepted / Superseded / Rejected。改变已锁定项目决策需要人类批准。

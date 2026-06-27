@@ -2,7 +2,7 @@
   "id": "WM-0114",
   "title": "Localization infrastructure and missing-key gate",
   "summary": "Implement the zh-CN/en localization runtime, locale detection, settings persistence and missing-key validation gate.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -33,13 +33,19 @@
   ],
   "branch": "task/WM-0114-m8-localization-infrastructure",
   "createdAt": "2026-06-27T15:46:00.000Z",
-  "updatedAt": "2026-06-27T15:46:00.000Z",
+  "updatedAt": "2026-06-27T16:41:28.571Z",
   "history": [
     {
       "at": "2026-06-27T15:46:00.000Z",
       "actor": "project-director",
       "action": "create",
       "details": "Created by WM-0111 M8 UI/i18n scope amendment DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-27T16:41:28.571Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "M8",

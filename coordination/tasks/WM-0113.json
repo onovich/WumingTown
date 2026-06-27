@@ -2,7 +2,7 @@
   "id": "WM-0113",
   "title": "I18n architecture and locale settings contract",
   "summary": "Define locale ownership, browser/system detection, manual override, persistence and missing-key behavior before localization implementation.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,7 +32,7 @@
   ],
   "branch": "task/WM-0113-m8-i18n-architecture",
   "createdAt": "2026-06-27T15:46:00.000Z",
-  "updatedAt": "2026-06-27T15:59:47.169Z",
+  "updatedAt": "2026-06-27T16:41:28.541Z",
   "history": [
     {
       "at": "2026-06-27T15:46:00.000Z",
@@ -45,6 +45,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-27T16:17:16.429Z",
+      "actor": "systems-architect",
+      "action": "claim",
+      "details": ""
+    },
+    {
+      "at": "2026-06-27T16:29:24.795Z",
+      "actor": "systems-architect",
+      "action": "complete",
+      "details": "Defined M8 i18n architecture, locale settings contract and ADR-0011; added WM-0113 report; required checks pass with pnpm 11.8.0 path."
+    },
+    {
+      "at": "2026-06-27T16:38:47.486Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; acceptance evidence confirmed. Required checks pass; scope limited to docs and coordination state with no apps/packages/tools changes."
+    },
+    {
+      "at": "2026-06-27T16:41:28.492Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Independent reviewer verified WM-0113; integration gate passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality."
+    },
+    {
+      "at": "2026-06-27T16:41:28.540Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M8",
@@ -60,5 +90,20 @@
     "packages/**",
     "tools/**",
     "release/store/signing/telemetry/account/paid-service work"
-  ]
+  ],
+  "claimedBy": "systems-architect",
+  "threadLabel": null,
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0113.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; acceptance evidence confirmed. Required checks pass; scope limited to docs and coordination state with no apps/packages/tools changes.",
+    "at": "2026-06-27T16:38:47.486Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Independent reviewer verified WM-0113; integration gate passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality.",
+    "at": "2026-06-27T16:41:28.492Z"
+  }
 }

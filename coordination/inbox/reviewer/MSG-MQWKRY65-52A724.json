@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQWKRY65-52A724",
+  "from": "systems-architect",
+  "to": "reviewer",
+  "taskId": "WM-0113",
+  "kind": "review-request",
+  "subject": "WM-0113 ready for review",
+  "body": "Defined M8 i18n architecture, locale settings contract and ADR-0011; added WM-0113 report; required checks pass with pnpm 11.8.0 path.",
+  "artifacts": [
+    "coordination/reports/WM-0113.md",
+    "task/WM-0113-m8-i18n-architecture"
+  ],
+  "createdAt": "2026-06-27T16:29:24.798Z",
+  "acknowledgedAt": "2026-06-27T16:33:20.910Z"
+}
