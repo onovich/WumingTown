@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQWA6PVJ-06B73B",
+  "from": "gameplay-designer",
+  "to": "reviewer",
+  "taskId": "WM-0101",
+  "kind": "review-request",
+  "subject": "WM-0101 ready for review",
+  "body": "Added M7 cultural review package and public-facing terminology checklist for downstream WM-0106/WM-0108 use; recorded fictionalization rules, sensitive-topic gates, blocked claims, owner/external-review gates and missing legacy product brief path; no runtime, release, store, telemetry, save-commitment or M8 work; required checks passed.",
+  "artifacts": [
+    "coordination/reports/WM-0101.md",
+    "task/WM-0101-m7-cultural-review-terminology"
+  ],
+  "createdAt": "2026-06-27T11:32:58.111Z",
+  "acknowledgedAt": "2026-06-27T11:40:40.509Z"
+}

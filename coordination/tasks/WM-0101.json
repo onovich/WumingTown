@@ -2,7 +2,7 @@
   "id": "WM-0101",
   "title": "Cultural review package and terminology safety",
   "summary": "Prepare the M7 cultural review package for folk-horror expression, fictionalization boundaries and Chinese/English terminology before public-facing materials are drafted.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "gameplay-designer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -37,7 +37,7 @@
   ],
   "branch": "task/WM-0101-m7-cultural-review-terminology",
   "createdAt": "2026-06-27T11:00:00.000Z",
-  "updatedAt": "2026-06-27T11:26:46.021Z",
+  "updatedAt": "2026-06-27T11:41:45.079Z",
   "history": [
     {
       "at": "2026-06-27T11:00:00.000Z",
@@ -50,6 +50,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-27T11:29:26.690Z",
+      "actor": "gameplay-designer",
+      "action": "claim",
+      "details": "thread=Beacon-root-gameplay-designer-WM-0101"
+    },
+    {
+      "at": "2026-06-27T11:32:58.110Z",
+      "actor": "gameplay-designer",
+      "action": "complete",
+      "details": "Added M7 cultural review package and public-facing terminology checklist for downstream WM-0106/WM-0108 use; recorded fictionalization rules, sensitive-topic gates, blocked claims, owner/external-review gates and missing legacy product brief path; no runtime, release, store, telemetry, save-commitment or M8 work; required checks passed."
+    },
+    {
+      "at": "2026-06-27T11:39:24.398Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; cultural and terminology acceptance confirmed, Roadmap/Web/Windows boundaries preserved, and release/legal/privacy/save/service/M8 gates remain owner-blocked. Required review gates passed; quality subchecks pass via corepack pnpm 11.8.0, while plain pnpm is a local 11.7.0 shim."
+    },
+    {
+      "at": "2026-06-27T11:41:39.008Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integrated verified M7 cultural review package after independent reviewer found no blocking issues. Integration gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality via pinned Node pnpm."
+    },
+    {
+      "at": "2026-06-27T11:41:45.079Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M7",
@@ -103,5 +133,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Cultural review and terminology safety are product-risk decisions, not a narrow mechanical implementation."
+  },
+  "claimedBy": "gameplay-designer",
+  "threadLabel": "Beacon-root-gameplay-designer-WM-0101",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0101.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; cultural and terminology acceptance confirmed, Roadmap/Web/Windows boundaries preserved, and release/legal/privacy/save/service/M8 gates remain owner-blocked. Required review gates passed; quality subchecks pass via corepack pnpm 11.8.0, while plain pnpm is a local 11.7.0 shim.",
+    "at": "2026-06-27T11:39:24.398Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integrated verified M7 cultural review package after independent reviewer found no blocking issues. Integration gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality via pinned Node pnpm.",
+    "at": "2026-06-27T11:41:39.008Z"
   }
 }
