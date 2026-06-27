@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQW2A8CH-4BAC1C",
+  "from": "reviewer",
+  "to": "qa-performance",
+  "taskId": "WM-0095",
+  "kind": "changes-requested",
+  "subject": "WM-0095 review: changes_requested",
+  "body": "Gate requested a blocking fix: consolidation tool must assert benchmark warn/fail thresholds remain exactly 10/20 and must verify the benchmark baseline/artifact paths target packages/benchmarks/baseline.json and coordination/artifacts/WM-0095/benchmarks/benchmark-results.json before claiming threshold protection.",
+  "artifacts": [
+    "coordination/reports/WM-0095.md"
+  ],
+  "createdAt": "2026-06-27T07:51:45.089Z",
+  "acknowledgedAt": "2026-06-27T07:53:34.164Z"
+}

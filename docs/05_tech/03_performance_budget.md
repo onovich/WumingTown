@@ -582,3 +582,32 @@ If the measured path is still a read-only fixture consumer or a checkpoint
 projection path, it must not be reported as a full 30 TPS / 20k-entity
 same-spec pass. WM-0087 must instead record a blocker or lower-tier verdict
 until browser evidence exercises a real product-scale authority path.
+
+## WM-0095 M6 consolidation note
+
+WM-0095 records the current M6 benchmark and platform evidence without changing
+baselines, thresholds or verified M5 artifacts. The required `pnpm bench` run
+uses `WM_ARTIFACT_DIR=coordination/artifacts/WM-0095` and writes
+`coordination/artifacts/WM-0095/benchmarks/benchmark-results.json` with
+`9` samples and `2` warmups. All `15` benchmark comparisons are `OK`; warning
+and failure counts are both `0`.
+
+Key WM-0095 performance evidence:
+
+- `m5-alpha-content-long-run`: median `50.173 ms` vs baseline `74.634 ms`,
+  final world/read-model hashes `0xfba70a5c` / `0x9ba83cb7`, Worker projection
+  bytes `1631`, save/load rebuild time `11.570 ms`.
+- `spatial-index`: median `1425.591 ms` vs baseline `1436.717 ms`, still below
+  the 10 percent warning threshold and with no invariant mismatch.
+- Web build: runtime deliverable estimated gzip bytes `273561`, under the
+  `150 MB` Web bundle budget.
+- Chrome Stable Web shell: shell-ready `480 ms`, interaction P95 `17.1 ms`,
+  frame P95 `18.3 ms`, JS heap delta `0.684 MB`.
+- Edge Stable Web shell: shell-ready `456 ms`, interaction P95 `17.4 ms`, frame
+  P95 `18.3 ms`, JS heap delta `0.691 MB`.
+- Windows unpacked package: `376084065` bytes, `91` files, unsigned local
+  external-test directory only.
+
+These numbers remain product-gate inputs, not a Web same-spec pass. The current
+browser path is still a product-gate shell plus Worker projection evidence, not
+a measured 30 TPS / 20k-entity browser authority runtime.

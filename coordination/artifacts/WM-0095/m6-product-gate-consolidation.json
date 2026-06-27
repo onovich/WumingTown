@@ -1,0 +1,251 @@
+{
+  "schemaVersion": 1,
+  "taskId": "WM-0095",
+  "generatedAt": "2026-06-27T07:52:16.714Z",
+  "sourceArtifacts": {
+    "benchmarkReportPath": "coordination/artifacts/WM-0095/benchmarks/benchmark-results.json",
+    "webReleaseReportPath": "apps/desktop-electron/dist/renderer/wm-release-gate-report.json",
+    "webPerformanceReportPath": "coordination/artifacts/WM-0095/web-performance-gate.json",
+    "desktopPackageReportPath": "dist/desktop/wm-desktop-package-report.json",
+    "smokeReportPath": "coordination/reports/WM-0094.md"
+  },
+  "acceptance": {
+    "headlessWorkerWebWindowsEvidence": true,
+    "m5HashesProtected": true,
+    "benchmarkThresholdsUnchanged": true,
+    "saveImportExportEvidenceRecorded": true,
+    "diagnosticEvidenceRecorded": true,
+    "noM7Work": true,
+    "noPublicReleaseUploadSigningOrTelemetry": true
+  },
+  "benchmark": {
+    "artifactPath": "coordination/artifacts/WM-0095/benchmarks/benchmark-results.json",
+    "sampleCount": 9,
+    "warmupCount": 2,
+    "gitCommit": "307f627a7ef11313c63df2d6d7db56532e1eb487",
+    "resultCount": 15,
+    "failedCount": 0,
+    "warningCount": 0,
+    "warningNames": [],
+    "results": [
+      {
+        "name": "empty-tick",
+        "status": "ok",
+        "medianElapsedMs": 5.4243999999999915,
+        "baselineMedianElapsedMs": 8.176,
+        "regressionPercent": -33.65459882583181
+      },
+      {
+        "name": "entity-store",
+        "status": "ok",
+        "medianElapsedMs": 236.23630000000003,
+        "baselineMedianElapsedMs": 244.507,
+        "regressionPercent": -3.382602543076467
+      },
+      {
+        "name": "logistics-10k",
+        "status": "ok",
+        "medianElapsedMs": 10.137299999999868,
+        "baselineMedianElapsedMs": 30,
+        "regressionPercent": -66.20900000000044
+      },
+      {
+        "name": "m1-hauling-building-long-run",
+        "status": "ok",
+        "medianElapsedMs": 0.9428000000002612,
+        "baselineMedianElapsedMs": 10,
+        "regressionPercent": -90.57199999999739
+      },
+      {
+        "name": "m2-pathing-invalidation",
+        "status": "ok",
+        "medianElapsedMs": 4.629899999999907,
+        "baselineMedianElapsedMs": 10,
+        "regressionPercent": -53.70100000000093
+      },
+      {
+        "name": "m2-work-logistics-long-run",
+        "status": "ok",
+        "medianElapsedMs": 2.940400000000409,
+        "baselineMedianElapsedMs": 10,
+        "regressionPercent": -70.59599999999591
+      },
+      {
+        "name": "m3-ordinary-life-long-run",
+        "status": "ok",
+        "medianElapsedMs": 18.095400000000154,
+        "baselineMedianElapsedMs": 24.456,
+        "regressionPercent": -26.008341511284943
+      },
+      {
+        "name": "m4-core-vertical-slice-long-run",
+        "status": "ok",
+        "medianElapsedMs": 3.7810999999996966,
+        "baselineMedianElapsedMs": 4.611199999999826,
+        "regressionPercent": -18.0018216516343
+      },
+      {
+        "name": "m5-alpha-content-long-run",
+        "status": "ok",
+        "medianElapsedMs": 50.172599999999875,
+        "baselineMedianElapsedMs": 74.63440000000003,
+        "regressionPercent": -32.77550298521881
+      },
+      {
+        "name": "map-dirty",
+        "status": "ok",
+        "medianElapsedMs": 0.8289437499998371,
+        "baselineMedianElapsedMs": 1,
+        "regressionPercent": -17.10562500001629
+      },
+      {
+        "name": "pathing-100",
+        "status": "ok",
+        "medianElapsedMs": 3.217899999999645,
+        "baselineMedianElapsedMs": 10,
+        "regressionPercent": -67.82100000000355
+      },
+      {
+        "name": "reservations",
+        "status": "ok",
+        "medianElapsedMs": 0.9254000000000815,
+        "baselineMedianElapsedMs": 10,
+        "regressionPercent": -90.74599999999919
+      },
+      {
+        "name": "region-room",
+        "status": "ok",
+        "medianElapsedMs": 5.986599999999271,
+        "baselineMedianElapsedMs": 10,
+        "regressionPercent": -40.13400000000729
+      },
+      {
+        "name": "spatial-index",
+        "status": "ok",
+        "medianElapsedMs": 1425.5913999999993,
+        "baselineMedianElapsedMs": 1436.717,
+        "regressionPercent": -0.7743765821661996
+      },
+      {
+        "name": "work-offers",
+        "status": "ok",
+        "medianElapsedMs": 1.5332999999991443,
+        "baselineMedianElapsedMs": 10,
+        "regressionPercent": -84.66700000000856
+      }
+    ],
+    "m5": {
+      "scenarioId": "m5.alpha_content_framework.first_season.v1",
+      "requestedSeed": "5",
+      "scenarioSeed": "155",
+      "finalTick": 100000,
+      "finalWorldHash": "0xfba70a5c",
+      "finalReadModelHash": "0x9ba83cb7",
+      "contentManifestHash": "0xe55d3015",
+      "commandStreamHash": "0x81d37435",
+      "saveLoadRebuildTimeMs": 11.57049999999981,
+      "workerProjectionBytes": 1631,
+      "workerProjectionHash": "0xc6420cb1",
+      "m6StopSignVerdict": "stop_signs_only"
+    }
+  },
+  "webBuild": {
+    "harnessId": "wm-0086-web-product-gate",
+    "fixtureLabel": "M5 first-season Web product-gate fixture",
+    "targetActiveActors": 40,
+    "targetTotalEntities": 20000,
+    "distDir": "apps/desktop-electron/dist/renderer",
+    "runtimeDeliverableBytes": 937401,
+    "runtimeDeliverableEstimatedGzipBytes": 273561,
+    "bundleBudgetBytes": 157286400,
+    "browserTargets": [
+      "Chrome Stable",
+      "Edge Stable"
+    ],
+    "authorityBoundary": "Simulation Worker or headless remains the only world authority. Web UI, Pixi and React consume read-only fixture and projection data only.",
+    "fallbackWithoutIsolation": "SharedArrayBuffer remains optional. Without cross-origin isolation, the Web gate must stay on Transferable snapshot/projection fallback without moving authority into the UI."
+  },
+  "webPerformance": {
+    "browserCount": 2,
+    "options": {
+      "frameSampleDurationMs": 8000,
+      "interactionPasses": 3,
+      "idleBetweenSamplesMs": 300
+    },
+    "browsers": [
+      {
+        "browser": "Chrome Stable",
+        "fixtureId": "wm-0086-web-product-gate",
+        "runtimeCrossOriginIsolated": false,
+        "visibleEntityCount": 40,
+        "shellReadyMs": 480,
+        "requestCount": 6,
+        "interactionP95Ms": 17.1,
+        "frameDeltaP95Ms": 18.3,
+        "longTaskCount": 3,
+        "jsHeapStartMb": 42.134,
+        "jsHeapEndMb": 42.818,
+        "jsHeapPeakMb": 42.818,
+        "jsHeapDeltaMb": 0.684
+      },
+      {
+        "browser": "Edge Stable",
+        "fixtureId": "wm-0086-web-product-gate",
+        "runtimeCrossOriginIsolated": false,
+        "visibleEntityCount": 40,
+        "shellReadyMs": 456,
+        "requestCount": 6,
+        "interactionP95Ms": 17.4,
+        "frameDeltaP95Ms": 18.3,
+        "longTaskCount": 3,
+        "jsHeapStartMb": 42.129,
+        "jsHeapEndMb": 42.82,
+        "jsHeapPeakMb": 42.82,
+        "jsHeapDeltaMb": 0.691
+      }
+    ]
+  },
+  "windowsPackage": {
+    "packageKind": "windows-unpacked-directory",
+    "artifactPath": "dist/desktop/win-unpacked",
+    "executablePath": "dist/desktop/win-unpacked/WumingTown.exe",
+    "totalBytes": 376084065,
+    "fileCount": 91,
+    "contentSha256Hex": "79e7f734fc6741f09070921dcdbc992db3b612619537271faae2774dc4cbeb60",
+    "securityBoundary": {
+      "contextIsolation": true,
+      "nodeIntegration": false,
+      "sandbox": true,
+      "simulationAuthority": "simulation-worker-or-headless"
+    },
+    "knownWarnings": [
+      "unsigned-unpacked-directory",
+      "renderer-chunk-size-warning"
+    ]
+  },
+  "smokeCoverage": {
+    "sourceTask": "WM-0094",
+    "webLaunchSaveImportExportInputDiagnostics": true,
+    "desktopLaunchSandboxInputDiagnostics": true,
+    "m5ProductGateSurfaceVisible": true,
+    "windowsHostDiagnosticsBridgeStatus": "blocked-by-reviewed-WM-0093-boundary",
+    "windowsSaveInteroperabilityStatus": "blocked-by-reviewed-WM-0088-boundary"
+  },
+  "verdictInputs": {
+    "m6ProductGateEvidenceReadyForDecision": true,
+    "webSameSpecPassProven": false,
+    "webSameSpecBlocker": "Current Web evidence is a product-gate shell and Worker projection path, not a measured 30 TPS / 20k-entity browser authority runtime.",
+    "windowsExternalTestBuildReady": true,
+    "unresolvedBlockers": [
+      "Windows/Web save-container interoperability remains blocked until a reviewed desktop save bridge exists.",
+      "Windows host-side diagnostic package writing remains blocked until a reviewed narrow diagnostics bridge exists."
+    ]
+  },
+  "hashing": {
+    "schemaVersion": 1,
+    "canonicalPayloadSha256": "CD5B43F89891B77566AEE5CAF0CDADC80026464D43A156B873794D0A5D47F430",
+    "canonicalPayloadDescription": "SHA-256 of the WM-0095 consolidation payload before hashing metadata is added.",
+    "artifactFileSha256Path": "coordination/artifacts/WM-0095/m6-product-gate-consolidation.json.sha256",
+    "artifactFileSha256Description": "Actual SHA-256 of m6-product-gate-consolidation.json after hashing metadata is added."
+  }
+}

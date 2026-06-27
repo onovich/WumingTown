@@ -2,7 +2,7 @@
   "id": "WM-0095",
   "title": "Long-run scenario and benchmark consolidation",
   "summary": "Consolidate M6 headless, Worker, Web and Windows evidence with M5 invariant and benchmark protection before product verdict.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -39,7 +39,7 @@
   ],
   "branch": "task/WM-0095-m6-long-run-benchmark-consolidation",
   "createdAt": "2026-06-26T20:20:00.000Z",
-  "updatedAt": "2026-06-27T07:13:13.804Z",
+  "updatedAt": "2026-06-27T07:56:07.382Z",
   "history": [
     {
       "at": "2026-06-26T20:20:00.000Z",
@@ -52,6 +52,48 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-27T07:36:28.417Z",
+      "actor": "qa-performance",
+      "action": "claim",
+      "details": "thread=Beacon-root-qa-WM-0095"
+    },
+    {
+      "at": "2026-06-27T07:47:05.368Z",
+      "actor": "qa-performance",
+      "action": "complete",
+      "details": "M6 long-run and benchmark evidence consolidated into WM-0095 artifacts; M5 hashes 0xfba70a5c/0x9ba83cb7 protected; benchmark suite 15 OK / 0 warnings / 0 failures; Web/Windows smoke, performance, package and diagnostics evidence recorded; required checks passed."
+    },
+    {
+      "at": "2026-06-27T07:51:45.088Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: Gate requested a blocking fix: consolidation tool must assert benchmark warn/fail thresholds remain exactly 10/20 and must verify the benchmark baseline/artifact paths target packages/benchmarks/baseline.json and coordination/artifacts/WM-0095/benchmarks/benchmark-results.json before claiming threshold protection."
+    },
+    {
+      "at": "2026-06-27T07:53:34.164Z",
+      "actor": "qa-performance",
+      "action": "complete",
+      "details": "Addressed changes_requested: consolidation now fails unless benchmark baselinePath is packages/benchmarks/baseline.json, artifactPath is coordination/artifacts/WM-0095/benchmarks/benchmark-results.json, and every comparison keeps warn/fail thresholds exactly 10/20. Regenerated WM-0095 consolidation artifact and SHA-256 sidecar; consolidation, taskctl validate, git diff --check and pnpm quality pass."
+    },
+    {
+      "at": "2026-06-27T07:55:41.536Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: Independent reviewer Gate verified the changes_requested fix: consolidation now asserts benchmark baseline/artifact paths and exact 10/20 thresholds, regenerated artifact and sidecar are consistent, and taskctl validate / git diff --check passed."
+    },
+    {
+      "at": "2026-06-27T07:55:51.112Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integrated verified WM-0095 M6 long-run, benchmark and product-gate evidence consolidation."
+    },
+    {
+      "at": "2026-06-27T07:56:07.381Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M6",
@@ -72,6 +114,7 @@
     "docs/05_tech/03_performance_budget.md",
     "docs/05_tech/05_testing_observability_ci.md",
     "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "coordination/artifacts/WM-0095/**",
     "coordination/reports/WM-0095.md",
     "coordination/reports/WM-0095-plan.md",
     "coordination/tasks/WM-0095.json"
@@ -110,5 +153,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Long-run and benchmark consolidation owns product-gate evidence and cannot use Spark."
+  },
+  "claimedBy": "qa-performance",
+  "threadLabel": "Beacon-root-qa-WM-0095",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0095.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "Independent reviewer Gate verified the changes_requested fix: consolidation now asserts benchmark baseline/artifact paths and exact 10/20 thresholds, regenerated artifact and sidecar are consistent, and taskctl validate / git diff --check passed.",
+    "at": "2026-06-27T07:55:41.535Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integrated verified WM-0095 M6 long-run, benchmark and product-gate evidence consolidation.",
+    "at": "2026-06-27T07:55:51.112Z"
   }
 }

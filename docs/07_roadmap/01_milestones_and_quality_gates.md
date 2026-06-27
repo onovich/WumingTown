@@ -244,3 +244,31 @@ Closeout evidence:
 M6 readiness is deliberately not M6 planning. WM-0083 records
 `m6StopSignVerdict: "stop_signs_only"` and `m6Created: false`; no M6 task is
 created, promoted, claimed, implemented or reviewed during M5 closeout.
+
+## M6 Product-Gate Consolidation Status
+
+WM-0095 consolidates M6 evidence for the Web / Windows Product Gate after the
+Web build, Web performance, storage fallback, SAB fallback, Windows package,
+preload security, input/accessibility, diagnostics and external smoke tasks.
+
+Current consolidation evidence:
+
+- `coordination/artifacts/WM-0095/m6-product-gate-consolidation.json` records
+  the machine-readable evidence matrix and SHA-256 sidecar.
+- M5 final world/read-model hashes remain protected at `0xfba70a5c` /
+  `0x9ba83cb7`.
+- `pnpm bench` under the WM-0095 artifact root passed all `15` comparisons with
+  zero warnings and zero failures.
+- Chrome Stable and Edge Stable Web shell measurements are present, but Web
+  same-spec remains unproven because the current browser path is not a measured
+  30 TPS / 20k-entity authority runtime.
+- Windows has an unsigned local external-test directory build with preserved
+  Electron security boundaries.
+- Web save/export/import and local diagnostics are covered by WM-0094 smoke;
+  Windows host diagnostics writing and Windows/Web save-container
+  interoperability remain explicit product-gate blockers until reviewed bridges
+  exist.
+
+WM-0095 does not start M7, create a public release, upload artifacts, add
+signing credentials, add telemetry, weaken thresholds or rewrite verified M5
+benchmark artifacts.

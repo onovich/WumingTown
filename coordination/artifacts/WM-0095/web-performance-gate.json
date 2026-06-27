@@ -1,0 +1,355 @@
+{
+  "generatedAt": "2026-06-27T07:42:14.148Z",
+  "repoRoot": "D:/WebProjects/WumingTown",
+  "distDir": "D:/WebProjects/WumingTown/apps/desktop-electron/dist/renderer",
+  "buildReportPath": "D:/WebProjects/WumingTown/apps/desktop-electron/dist/renderer/wm-release-gate-report.json",
+  "browserCount": 2,
+  "options": {
+    "frameSampleDurationMs": 8000,
+    "interactionPasses": 3,
+    "idleBetweenSamplesMs": 300
+  },
+  "build": {
+    "harnessId": "wm-0086-web-product-gate",
+    "fixture": {
+      "label": "M5 first-season Web product-gate fixture",
+      "mapWidth": 192,
+      "mapHeight": 192,
+      "visibleActors": 40,
+      "targetActiveActors": 40,
+      "targetTotalEntities": 20000
+    },
+    "evidence": {
+      "primary": {
+        "taskId": "WM-0083",
+        "label": "Reviewed M5 alpha content framework closeout",
+        "scenarioId": "m5.alpha_content_framework.first_season.v1",
+        "finalTick": 100000,
+        "contentHash": "0xe55d3015",
+        "commandStreamHash": "0x81d37435",
+        "finalReadModelHash": "0x9ba83cb7"
+      },
+      "regression": {
+        "taskId": "WM-0067",
+        "label": "Reviewed M4 borrowed-shadow regression slice",
+        "scenarioId": "m4.core_vertical_slice.borrowed_shadow_lamps.v1",
+        "finalTick": 36000,
+        "contentHash": "0x698f2c41",
+        "commandStreamHash": "0x538d0e43",
+        "finalReadModelHash": "0xce261d9d"
+      },
+      "strategyPaths": [
+        "evidence_first",
+        "lamp_patrol",
+        "faction_negotiation",
+        "conservative_governance"
+      ]
+    },
+    "browserTargets": [
+      {
+        "browser": "Chrome Stable",
+        "note": "Primary Chromium Web product-gate target for WM-0087 performance and loading evidence."
+      },
+      {
+        "browser": "Edge Stable",
+        "note": "Same-spec Chromium target with explicit later measurement in WM-0087; WM-0086 records assumptions only."
+      }
+    ],
+    "buildAssumptions": {
+      "bundleBudgetMb": 150,
+      "assetPolicy": "WM-0086 ships a deterministic code-only fixture with no remote fetches. Future Web media or data packs must remain same-origin and stay inside the M6 compressed download budget.",
+      "authorityBoundary": "Simulation Worker or headless remains the only world authority. Web UI, Pixi and React consume read-only fixture and projection data only.",
+      "expectedHeadersForSharedArrayBuffer": [
+        "Cross-Origin-Opener-Policy: same-origin",
+        "Cross-Origin-Embedder-Policy: require-corp"
+      ],
+      "fallbackWithoutIsolation": "SharedArrayBuffer remains optional. Without cross-origin isolation, the Web gate must stay on Transferable snapshot/projection fallback without moving authority into the UI.",
+      "gzipEstimateNote": "estimatedGzipBytes is a local gzip proxy for release-gate tracking, not a CDN guarantee.",
+      "bundleComparisonNote": "Use runtimeDeliverableEstimatedGzipBytes for the Web download budget; sourcemaps stay in the internal artifact set."
+    },
+    "output": {
+      "distDir": "apps/desktop-electron/dist/renderer",
+      "fileCount": 12,
+      "totalRawBytes": 4806303,
+      "totalEstimatedGzipBytes": 1039727,
+      "runtimeDeliverableBytes": 937401,
+      "runtimeDeliverableEstimatedGzipBytes": 273561,
+      "files": [
+        {
+          "relativePath": "assets/index-b-51Fytp.js.map",
+          "rawBytes": 3063703,
+          "estimatedGzipBytes": 589156,
+          "sourceMap": true
+        },
+        {
+          "relativePath": "assets/index-b-51Fytp.js",
+          "rawBytes": 756983,
+          "estimatedGzipBytes": 219135,
+          "sourceMap": false
+        },
+        {
+          "relativePath": "assets/Filter-BJj7WQEa.js.map",
+          "rawBytes": 504101,
+          "estimatedGzipBytes": 110248,
+          "sourceMap": true
+        },
+        {
+          "relativePath": "assets/RenderTargetSystem-bkc7uWxC.js.map",
+          "rawBytes": 298832,
+          "estimatedGzipBytes": 65924,
+          "sourceMap": true
+        },
+        {
+          "relativePath": "assets/Filter-BJj7WQEa.js",
+          "rawBytes": 101839,
+          "estimatedGzipBytes": 31019,
+          "sourceMap": false
+        },
+        {
+          "relativePath": "assets/RenderTargetSystem-bkc7uWxC.js",
+          "rawBytes": 77225,
+          "estimatedGzipBytes": 22513,
+          "sourceMap": false
+        },
+        {
+          "relativePath": "assets/browserAll-DjCWHAQX.js.map",
+          "rawBytes": 1644,
+          "estimatedGzipBytes": 506,
+          "sourceMap": true
+        },
+        {
+          "relativePath": "index.html",
+          "rawBytes": 901,
+          "estimatedGzipBytes": 484,
+          "sourceMap": false
+        },
+        {
+          "relativePath": "assets/init-BVZJY-TA.js.map",
+          "rawBytes": 622,
+          "estimatedGzipBytes": 332,
+          "sourceMap": true
+        },
+        {
+          "relativePath": "assets/browserAll-DjCWHAQX.js",
+          "rawBytes": 240,
+          "estimatedGzipBytes": 195,
+          "sourceMap": false
+        },
+        {
+          "relativePath": "assets/init-BVZJY-TA.js",
+          "rawBytes": 158,
+          "estimatedGzipBytes": 152,
+          "sourceMap": false
+        },
+        {
+          "relativePath": "assets/webworkerAll-DcpNhYAA.js",
+          "rawBytes": 55,
+          "estimatedGzipBytes": 63,
+          "sourceMap": false
+        }
+      ]
+    }
+  },
+  "browsers": [
+    {
+      "browser": "Chrome Stable",
+      "executablePath": "C:/Program Files/Google/Chrome/Application/chrome.exe",
+      "debug": {
+        "fixtureId": "wm-0086-web-product-gate",
+        "runtimeBrowser": "Chrome-family browser",
+        "runtimeCrossOriginIsolated": false,
+        "selectedEntityId": "chronicler-lin",
+        "visibleEntityCount": 40
+      },
+      "navigation": {
+        "shellReadyMs": 480,
+        "domContentLoadedMs": 193,
+        "loadEventEndMs": 193.20000004768372,
+        "responseEndMs": 4.900000095367432,
+        "requestCount": 6,
+        "transferSizeBytes": 938254,
+        "encodedBodySizeBytes": 936454,
+        "decodedBodySizeBytes": 936454
+      },
+      "interactions": {
+        "sampleCount": 120,
+        "latencyMedianMs": 16.3,
+        "latencyP95Ms": 17.1,
+        "latencyMaxMs": 17.7
+      },
+      "frameStats": {
+        "frameSampleCount": 455,
+        "frameDeltaMedianMs": 17.6,
+        "frameDeltaP95Ms": 18.3,
+        "frameDeltaMaxMs": 18.8,
+        "longTaskCount": 3,
+        "longTaskP95Ms": 164.1,
+        "longTaskMaxMs": 168
+      },
+      "memory": {
+        "sampleCount": 5,
+        "samples": [
+          {
+            "label": "post-ready",
+            "rendererUsedSizeBytes": 44180772,
+            "rendererTotalSizeBytes": 45195264,
+            "jsHeapUsedMb": 42.134,
+            "jsHeapTotalMb": 43.102,
+            "pageHeapUsedMb": 46.957,
+            "pageHeapTotalMb": 47.915,
+            "pageHeapLimitMb": 4192
+          },
+          {
+            "label": "after-pass-1",
+            "rendererUsedSizeBytes": 44737860,
+            "rendererTotalSizeBytes": 45719552,
+            "jsHeapUsedMb": 42.665,
+            "jsHeapTotalMb": 43.602,
+            "pageHeapUsedMb": 47.496,
+            "pageHeapTotalMb": 48.42,
+            "pageHeapLimitMb": 4192
+          },
+          {
+            "label": "after-pass-2",
+            "rendererUsedSizeBytes": 44800888,
+            "rendererTotalSizeBytes": 45719552,
+            "jsHeapUsedMb": 42.725,
+            "jsHeapTotalMb": 43.602,
+            "pageHeapUsedMb": 47.554,
+            "pageHeapTotalMb": 48.42,
+            "pageHeapLimitMb": 4192
+          },
+          {
+            "label": "after-pass-3",
+            "rendererUsedSizeBytes": 44891352,
+            "rendererTotalSizeBytes": 45719552,
+            "jsHeapUsedMb": 42.812,
+            "jsHeapTotalMb": 43.602,
+            "pageHeapUsedMb": 47.64,
+            "pageHeapTotalMb": 48.42,
+            "pageHeapLimitMb": 4192
+          },
+          {
+            "label": "post-idle",
+            "rendererUsedSizeBytes": 44897660,
+            "rendererTotalSizeBytes": 45719552,
+            "jsHeapUsedMb": 42.818,
+            "jsHeapTotalMb": 43.602,
+            "pageHeapUsedMb": 47.646,
+            "pageHeapTotalMb": 48.42,
+            "pageHeapLimitMb": 4192
+          }
+        ],
+        "jsHeapStartMb": 42.134,
+        "jsHeapEndMb": 42.818,
+        "jsHeapPeakMb": 42.818,
+        "jsHeapDeltaMb": 0.684,
+        "userAgentSpecificMemory": {
+          "available": false,
+          "bytes": null,
+          "error": "measureUserAgentSpecificMemory unavailable"
+        }
+      }
+    },
+    {
+      "browser": "Edge Stable",
+      "executablePath": "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
+      "debug": {
+        "fixtureId": "wm-0086-web-product-gate",
+        "runtimeBrowser": "Edge-family browser",
+        "runtimeCrossOriginIsolated": false,
+        "selectedEntityId": "chronicler-lin",
+        "visibleEntityCount": 40
+      },
+      "navigation": {
+        "shellReadyMs": 456,
+        "domContentLoadedMs": 202.39999997615814,
+        "loadEventEndMs": 202.60000002384186,
+        "responseEndMs": 4.899999976158142,
+        "requestCount": 6,
+        "transferSizeBytes": 938254,
+        "encodedBodySizeBytes": 936454,
+        "decodedBodySizeBytes": 936454
+      },
+      "interactions": {
+        "sampleCount": 120,
+        "latencyMedianMs": 16.4,
+        "latencyP95Ms": 17.4,
+        "latencyMaxMs": 18
+      },
+      "frameStats": {
+        "frameSampleCount": 454,
+        "frameDeltaMedianMs": 17.6,
+        "frameDeltaP95Ms": 18.3,
+        "frameDeltaMaxMs": 18.7,
+        "longTaskCount": 3,
+        "longTaskP95Ms": 171.3,
+        "longTaskMaxMs": 178
+      },
+      "memory": {
+        "sampleCount": 5,
+        "samples": [
+          {
+            "label": "post-ready",
+            "rendererUsedSizeBytes": 44175732,
+            "rendererTotalSizeBytes": 45457408,
+            "jsHeapUsedMb": 42.129,
+            "jsHeapTotalMb": 43.352,
+            "pageHeapUsedMb": 47.111,
+            "pageHeapTotalMb": 48.415,
+            "pageHeapLimitMb": 4192
+          },
+          {
+            "label": "after-pass-1",
+            "rendererUsedSizeBytes": 44734756,
+            "rendererTotalSizeBytes": 45719552,
+            "jsHeapUsedMb": 42.662,
+            "jsHeapTotalMb": 43.602,
+            "pageHeapUsedMb": 47.493,
+            "pageHeapTotalMb": 48.42,
+            "pageHeapLimitMb": 4192
+          },
+          {
+            "label": "after-pass-2",
+            "rendererUsedSizeBytes": 44788900,
+            "rendererTotalSizeBytes": 45981696,
+            "jsHeapUsedMb": 42.714,
+            "jsHeapTotalMb": 43.852,
+            "pageHeapUsedMb": 47.542,
+            "pageHeapTotalMb": 48.67,
+            "pageHeapLimitMb": 4192
+          },
+          {
+            "label": "after-pass-3",
+            "rendererUsedSizeBytes": 44893924,
+            "rendererTotalSizeBytes": 45981696,
+            "jsHeapUsedMb": 42.814,
+            "jsHeapTotalMb": 43.852,
+            "pageHeapUsedMb": 47.642,
+            "pageHeapTotalMb": 48.67,
+            "pageHeapLimitMb": 4192
+          },
+          {
+            "label": "post-idle",
+            "rendererUsedSizeBytes": 44900304,
+            "rendererTotalSizeBytes": 45981696,
+            "jsHeapUsedMb": 42.82,
+            "jsHeapTotalMb": 43.852,
+            "pageHeapUsedMb": 47.648,
+            "pageHeapTotalMb": 48.67,
+            "pageHeapLimitMb": 4192
+          }
+        ],
+        "jsHeapStartMb": 42.129,
+        "jsHeapEndMb": 42.82,
+        "jsHeapPeakMb": 42.82,
+        "jsHeapDeltaMb": 0.691,
+        "userAgentSpecificMemory": {
+          "available": false,
+          "bytes": null,
+          "error": "measureUserAgentSpecificMemory unavailable"
+        }
+      }
+    }
+  ]
+}

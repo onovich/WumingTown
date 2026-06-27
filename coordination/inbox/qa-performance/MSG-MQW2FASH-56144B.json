@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQW2FASH-56144B",
+  "from": "reviewer",
+  "to": "qa-performance",
+  "taskId": "WM-0095",
+  "kind": "review-approved",
+  "subject": "WM-0095 review: verified",
+  "body": "Independent reviewer Gate verified the changes_requested fix: consolidation now asserts benchmark baseline/artifact paths and exact 10/20 thresholds, regenerated artifact and sidecar are consistent, and taskctl validate / git diff --check passed.",
+  "artifacts": [
+    "coordination/reports/WM-0095.md"
+  ],
+  "createdAt": "2026-06-27T07:55:41.537Z",
+  "acknowledgedAt": "2026-06-27T07:56:07.403Z"
+}

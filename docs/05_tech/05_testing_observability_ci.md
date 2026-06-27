@@ -357,3 +357,32 @@ Additional WM-0094 package checks:
 - This smoke remains an unsigned local external-test artifact. It does not
   upload public builds, use signing credentials, add telemetry or create a store
   release.
+
+## WM-0095 M6 Product-Gate Consolidation
+
+WM-0095 adds `tools/m6-product-gate-consolidation.mjs` as the machine-readable
+M6 evidence aggregator. It reads the WM-0095 benchmark artifact, Web
+release-gate report, Web performance-gate report, Windows package report and
+WM-0094 smoke report, then writes:
+
+- `coordination/artifacts/WM-0095/m6-product-gate-consolidation.json`
+- `coordination/artifacts/WM-0095/m6-product-gate-consolidation.json.sha256`
+
+The consolidation gate asserts:
+
+- M5 long-run hashes remain `0xfba70a5c` / `0x9ba83cb7`.
+- `pnpm bench` comparisons have no failures or invariant mismatches.
+- Web build evidence is still the reviewed `wm-0086-web-product-gate` target.
+- Chrome Stable and Edge Stable performance evidence is present.
+- Windows Electron package evidence preserves `contextIsolation=true`,
+  `nodeIntegration=false`, `sandbox=true` and
+  `simulationAuthority=simulation-worker-or-headless`.
+- Web save/export/import, diagnostics, input and Windows package launch evidence
+  remains covered by WM-0094 `pnpm test:e2e`.
+
+WM-0095 runs `pnpm bench` with
+`WM_ARTIFACT_DIR=coordination/artifacts/WM-0095` so the benchmark entry point is
+unchanged while reviewed WM-0083 artifacts are not rewritten. The task records
+current Web/Windows evidence for product verdict input; it does not claim a Web
+same-spec pass, start M7, upload a release, add signing, add telemetry or weaken
+benchmark thresholds.

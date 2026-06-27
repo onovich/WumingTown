@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQW248IH-2B9818",
+  "from": "qa-performance",
+  "to": "reviewer",
+  "taskId": "WM-0095",
+  "kind": "review-request",
+  "subject": "WM-0095 ready for review",
+  "body": "M6 long-run and benchmark evidence consolidated into WM-0095 artifacts; M5 hashes 0xfba70a5c/0x9ba83cb7 protected; benchmark suite 15 OK / 0 warnings / 0 failures; Web/Windows smoke, performance, package and diagnostics evidence recorded; required checks passed.",
+  "artifacts": [
+    "coordination/reports/WM-0095.md",
+    "task/WM-0095-m6-long-run-benchmark-consolidation"
+  ],
+  "createdAt": "2026-06-27T07:47:05.369Z",
+  "acknowledgedAt": "2026-06-27T07:51:45.387Z"
+}
