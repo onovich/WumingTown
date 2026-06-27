@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQWOTB29-379F79",
+  "from": "content-worker",
+  "to": "reviewer",
+  "taskId": "WM-0115",
+  "kind": "review-request",
+  "subject": "WM-0115 ready for review",
+  "body": "Expanded the hardcoded-string inventory to include the missing diagnostics-only English literals and reran the required validation gates.",
+  "artifacts": [
+    "coordination/reports/WM-0115.md",
+    "task/WM-0115-m8-translation-resources"
+  ],
+  "createdAt": "2026-06-27T18:22:26.625Z",
+  "acknowledgedAt": "2026-06-27T18:36:02.070Z"
+}

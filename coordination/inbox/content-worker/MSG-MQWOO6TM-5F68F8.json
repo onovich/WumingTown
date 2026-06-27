@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQWOO6TM-5F68F8",
+  "from": "reviewer",
+  "to": "content-worker",
+  "taskId": "WM-0115",
+  "kind": "changes-requested",
+  "subject": "WM-0115 review: changes_requested",
+  "body": "High: hardcoded-string inventory is incomplete; diagnostics-only English literals in apps/web/src/diagnostic-package-gate.ts, apps/web/src/shell-bootstrap.ts, and apps/web/src/web-storage-gate.ts are hidden/gated but not documented as debug/dev.",
+  "artifacts": [
+    "coordination/reports/WM-0115.md"
+  ],
+  "createdAt": "2026-06-27T18:18:27.851Z",
+  "acknowledgedAt": "2026-06-27T18:20:28.803Z"
+}

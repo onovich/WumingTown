@@ -2,7 +2,7 @@
   "id": "WM-0117",
   "title": "Player HUD and debug overlay separation",
   "summary": "Replace the default diagnostics harness surface with a player HUD and move diagnostics into explicit dev/debug mode.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -34,13 +34,19 @@
   ],
   "branch": "task/WM-0117-m8-player-hud-debug-overlay",
   "createdAt": "2026-06-27T15:46:00.000Z",
-  "updatedAt": "2026-06-27T15:46:00.000Z",
+  "updatedAt": "2026-06-27T18:46:55.610Z",
   "history": [
     {
       "at": "2026-06-27T15:46:00.000Z",
       "actor": "project-director",
       "action": "create",
       "details": "Created by WM-0111 M8 UI/i18n scope amendment DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-27T18:46:55.610Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "M8",

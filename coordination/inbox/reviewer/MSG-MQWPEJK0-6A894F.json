@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQWPEJK0-6A894F",
+  "from": "content-worker",
+  "to": "reviewer",
+  "taskId": "WM-0115",
+  "kind": "review-request",
+  "subject": "WM-0115 ready for review",
+  "body": "Expanded the hardcoded-string inventory to include the missing diagnostics-only web shell literals from shell-bootstrap and web-storage-gate, and reran the required validation gates.",
+  "artifacts": [
+    "coordination/reports/WM-0115.md",
+    "task/WM-0115-m8-translation-resources"
+  ],
+  "createdAt": "2026-06-27T18:38:57.408Z",
+  "acknowledgedAt": "2026-06-27T18:40:14.767Z"
+}

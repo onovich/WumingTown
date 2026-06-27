@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQWP3Z3H-8A4094",
+  "from": "reviewer",
+  "to": "content-worker",
+  "taskId": "WM-0115",
+  "kind": "changes-requested",
+  "subject": "WM-0115 review: changes_requested",
+  "body": "High: hardcoded-string inventory remains incomplete. docs/04_content_balance/13_m8_translation_inventory.md omits diagnostics-only English literals from apps/web/src/shell-bootstrap.ts:257 (Diagnostic package exported) and apps/web/src/web-storage-gate.ts:63/143/170/264/442 (Checking OPFS; save slot(s) visible in OPFS.; Deleted the local gate save.; Loaded <last input>; Selected entity <id> is not present in the current gate fixture.). Visible diagnostic panels are gated by wmDiagnostics=1, but inventory completeness is still not satisfied.",
+  "artifacts": [
+    "coordination/reports/WM-0115.md"
+  ],
+  "createdAt": "2026-06-27T18:30:44.334Z",
+  "acknowledgedAt": "2026-06-27T18:36:02.055Z"
+}

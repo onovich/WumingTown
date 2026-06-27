@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQWOEEN5-A8A648",
+  "from": "content-worker",
+  "to": "reviewer",
+  "taskId": "WM-0115",
+  "kind": "review-request",
+  "subject": "WM-0115 ready for review",
+  "body": "Added zh-CN default UI test coverage, a hardcoded-string inventory, and completed the required validation gates.",
+  "artifacts": [
+    "coordination/reports/WM-0115.md",
+    "task/WM-0115-m8-translation-resources"
+  ],
+  "createdAt": "2026-06-27T18:10:51.425Z",
+  "acknowledgedAt": "2026-06-27T18:12:09.600Z"
+}
