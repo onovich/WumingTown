@@ -2,7 +2,7 @@
   "id": "WM-0122",
   "title": "12-15 anomaly roster and content expansion",
   "summary": "Expand the validated content roster toward 12-15 anomalies and required localized content resources through data-driven definitions.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "content-worker",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,7 +31,7 @@
   ],
   "branch": "task/WM-0122-m8-anomaly-roster-content",
   "createdAt": "2026-06-27T15:46:00.000Z",
-  "updatedAt": "2026-06-27T16:55:31.183Z",
+  "updatedAt": "2026-06-27T17:44:22.432Z",
   "history": [
     {
       "at": "2026-06-27T15:46:00.000Z",
@@ -44,6 +44,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-27T16:59:36.890Z",
+      "actor": "content-worker",
+      "action": "claim",
+      "details": "thread=WM-0122 content-worker"
+    },
+    {
+      "at": "2026-06-27T17:35:05.359Z",
+      "actor": "content-worker",
+      "action": "complete",
+      "details": "Delivered independent M8 anomaly roster/spec artifact with 12 accepted targets, 3 stretch targets, zh-CN/en coverage expectations, scenario fixture expectations, data-mod policy alignment, and WM-0123/WM-0124 handoff notes. Protected M5 files stayed at HEAD/no-diff; verified m5-invariants, handoff validation, taskctl validate/status, diff check, and pnpm quality."
+    },
+    {
+      "at": "2026-06-27T17:42:28.189Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; WM-0122 verified as repaired-scope planning artifact with 12 accepted and 3 stretch anomaly targets, zh-CN/en and fixture expectations, data-only policy/handoff, unchanged protected M5 paths and hashes, and passing required checks."
+    },
+    {
+      "at": "2026-06-27T17:44:22.390Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Independent reviewer verified WM-0122; integration gate passed including handoff, taskctl validate/status, git diff --check, m5-invariants and pnpm quality; protected M5 hashes remain unchanged."
+    },
+    {
+      "at": "2026-06-27T17:44:22.432Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M8",
@@ -61,5 +91,20 @@
     "packages/platform/**",
     "code mods or executable mod support",
     "release/store/signing/telemetry/account/paid-service work"
-  ]
+  ],
+  "claimedBy": "content-worker",
+  "threadLabel": "WM-0122 content-worker",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0122.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; WM-0122 verified as repaired-scope planning artifact with 12 accepted and 3 stretch anomaly targets, zh-CN/en and fixture expectations, data-only policy/handoff, unchanged protected M5 paths and hashes, and passing required checks.",
+    "at": "2026-06-27T17:42:28.189Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Independent reviewer verified WM-0122; integration gate passed including handoff, taskctl validate/status, git diff --check, m5-invariants and pnpm quality; protected M5 hashes remain unchanged.",
+    "at": "2026-06-27T17:44:22.389Z"
+  }
 }

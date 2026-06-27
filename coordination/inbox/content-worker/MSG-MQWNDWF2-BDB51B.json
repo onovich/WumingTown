@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQWNDWF2-BDB51B",
+  "from": "reviewer",
+  "to": "content-worker",
+  "taskId": "WM-0122",
+  "kind": "review-approved",
+  "subject": "WM-0122 review: verified",
+  "body": "No blocking findings; WM-0122 verified as repaired-scope planning artifact with 12 accepted and 3 stretch anomaly targets, zh-CN/en and fixture expectations, data-only policy/handoff, unchanged protected M5 paths and hashes, and passing required checks.",
+  "artifacts": [
+    "coordination/reports/WM-0122.md"
+  ],
+  "createdAt": "2026-06-27T17:42:28.190Z",
+  "acknowledgedAt": "2026-06-27T17:43:33.651Z"
+}

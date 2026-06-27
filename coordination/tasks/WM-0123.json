@@ -2,7 +2,7 @@
   "id": "WM-0123",
   "title": "Full faction and endgame arc integration",
   "summary": "Integrate faction and endgame arcs through authoritative owner stores, deterministic state machines and scenario evidence.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -34,13 +34,19 @@
   ],
   "branch": "task/WM-0123-m8-faction-endgame-integration",
   "createdAt": "2026-06-27T15:46:00.000Z",
-  "updatedAt": "2026-06-27T15:46:00.000Z",
+  "updatedAt": "2026-06-27T17:44:22.455Z",
   "history": [
     {
       "at": "2026-06-27T15:46:00.000Z",
       "actor": "project-director",
       "action": "create",
       "details": "Created by WM-0111 M8 UI/i18n scope amendment DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-27T17:44:22.455Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "M8",

@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQWN4EQ8-A64E3B",
+  "from": "content-worker",
+  "to": "reviewer",
+  "taskId": "WM-0122",
+  "kind": "review-request",
+  "subject": "WM-0122 ready for review",
+  "body": "Delivered independent M8 anomaly roster/spec artifact with 12 accepted targets, 3 stretch targets, zh-CN/en coverage expectations, scenario fixture expectations, data-mod policy alignment, and WM-0123/WM-0124 handoff notes. Protected M5 files stayed at HEAD/no-diff; verified m5-invariants, handoff validation, taskctl validate/status, diff check, and pnpm quality.",
+  "artifacts": [
+    "coordination/reports/WM-0122.md",
+    "task/WM-0122-m8-anomaly-roster-content"
+  ],
+  "createdAt": "2026-06-27T17:35:05.360Z",
+  "acknowledgedAt": "2026-06-27T17:38:02.732Z"
+}
