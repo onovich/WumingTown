@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQWLBB6H-49BC84",
+  "from": "gameplay-designer",
+  "to": "reviewer",
+  "taskId": "WM-0121",
+  "kind": "review-request",
+  "subject": "WM-0121 ready for review",
+  "body": "Drafted M8 1.0 content/endgame scope contract and WM-0121 report; required checks pass, with pnpm quality run via Corepack pnpm 11.8.0 after the default shim failed engine checks.",
+  "artifacts": [
+    "coordination/reports/WM-0121.md",
+    "task/WM-0121-m8-content-endgame-scope"
+  ],
+  "createdAt": "2026-06-27T16:44:28.121Z",
+  "acknowledgedAt": "2026-06-27T16:47:33.738Z"
+}

@@ -2,7 +2,7 @@
   "id": "WM-0121",
   "title": "M8 1.0 content and endgame scope contract",
   "summary": "Define the 1.0 content, anomaly, faction, endgame, mod, long-save and localization scope before content implementation.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "gameplay-designer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,7 +32,7 @@
   ],
   "branch": "task/WM-0121-m8-content-endgame-scope",
   "createdAt": "2026-06-27T15:46:00.000Z",
-  "updatedAt": "2026-06-27T15:59:47.169Z",
+  "updatedAt": "2026-06-27T16:55:31.134Z",
   "history": [
     {
       "at": "2026-06-27T15:46:00.000Z",
@@ -45,6 +45,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-27T16:37:40.263Z",
+      "actor": "gameplay-designer",
+      "action": "claim",
+      "details": ""
+    },
+    {
+      "at": "2026-06-27T16:44:28.120Z",
+      "actor": "gameplay-designer",
+      "action": "complete",
+      "details": "Drafted M8 1.0 content/endgame scope contract and WM-0121 report; required checks pass, with pnpm quality run via Corepack pnpm 11.8.0 after the default shim failed engine checks."
+    },
+    {
+      "at": "2026-06-27T16:53:19.857Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Acceptance evidence confirmed: M8 1.0 content/endgame scope is planning-only, preserves M0-M7 baselines and owner gates, defines downstream anomaly/faction/endgame/data-mod/long-save/localization contracts, and touches no apps/packages/tools/schema/runtime content data."
+    },
+    {
+      "at": "2026-06-27T16:55:31.057Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Independent reviewer verified WM-0121; integration gate passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality."
+    },
+    {
+      "at": "2026-06-27T16:55:31.133Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M8",
@@ -61,5 +91,20 @@
     "packages/**",
     "tools/**",
     "release/store/signing/telemetry/account/paid-service work"
-  ]
+  ],
+  "claimedBy": "gameplay-designer",
+  "threadLabel": null,
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0121.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Acceptance evidence confirmed: M8 1.0 content/endgame scope is planning-only, preserves M0-M7 baselines and owner gates, defines downstream anomaly/faction/endgame/data-mod/long-save/localization contracts, and touches no apps/packages/tools/schema/runtime content data.",
+    "at": "2026-06-27T16:53:19.857Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Independent reviewer verified WM-0121; integration gate passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality.",
+    "at": "2026-06-27T16:55:31.057Z"
+  }
 }

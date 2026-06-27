@@ -2,7 +2,7 @@
   "id": "WM-0122",
   "title": "12-15 anomaly roster and content expansion",
   "summary": "Expand the validated content roster toward 12-15 anomalies and required localized content resources through data-driven definitions.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "content-worker",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,13 +31,19 @@
   ],
   "branch": "task/WM-0122-m8-anomaly-roster-content",
   "createdAt": "2026-06-27T15:46:00.000Z",
-  "updatedAt": "2026-06-27T15:46:00.000Z",
+  "updatedAt": "2026-06-27T16:55:31.183Z",
   "history": [
     {
       "at": "2026-06-27T15:46:00.000Z",
       "actor": "project-director",
       "action": "create",
       "details": "Created by WM-0111 M8 UI/i18n scope amendment DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-27T16:55:31.183Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "M8",

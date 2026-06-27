@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQWLMPGZ-5B2D81",
+  "from": "reviewer",
+  "to": "gameplay-designer",
+  "taskId": "WM-0121",
+  "kind": "review-approved",
+  "subject": "WM-0121 review: verified",
+  "body": "No blocking findings. Acceptance evidence confirmed: M8 1.0 content/endgame scope is planning-only, preserves M0-M7 baselines and owner gates, defines downstream anomaly/faction/endgame/data-mod/long-save/localization contracts, and touches no apps/packages/tools/schema/runtime content data.",
+  "artifacts": [
+    "coordination/reports/WM-0121.md"
+  ],
+  "createdAt": "2026-06-27T16:53:19.859Z",
+  "acknowledgedAt": "2026-06-27T16:54:24.177Z"
+}
