@@ -14,6 +14,15 @@ interface WebShellDebugPayload {
   readonly canvasHeight: number;
   readonly diagnostics: WebDiagnosticDebugState;
   readonly fixtureId: string;
+  readonly locale?: {
+    readonly diagnosticsVisible: boolean;
+    readonly manualLocale: string | null;
+    readonly persistenceDiagnosticCode: string;
+    readonly persistenceMode: string;
+    readonly resolvedLocale: string;
+    readonly source: string;
+    readonly systemLocale: string;
+  };
   readonly zoom: number;
   readonly runtimeBrowser: string;
   readonly runtimeCrossOriginIsolated: boolean;
@@ -85,7 +94,7 @@ describe("web shell smoke", () => {
       });
       const page = await context.newPage();
 
-      await page.goto(serverUrl, {
+      await page.goto(withQuery(serverUrl, "wmDiagnostics=1"), {
         waitUntil: "networkidle",
       });
       await page.waitForSelector("[data-shell-ready='true']");
@@ -214,7 +223,7 @@ describe("web shell smoke", () => {
       });
       const page = await context.newPage();
 
-      await page.goto(serverUrl, {
+      await page.goto(withQuery(serverUrl, "wmDiagnostics=1"), {
         waitUntil: "networkidle",
       });
       await page.waitForSelector("[data-shell-ready='true']");
@@ -288,6 +297,7 @@ describe("web shell smoke", () => {
     try {
       const context = await browser.newContext({
         deviceScaleFactor: 1,
+        locale: "en-US",
         viewport: {
           width: 1440,
           height: 900,
@@ -299,7 +309,7 @@ describe("web shell smoke", () => {
         waitUntil: "networkidle",
       });
       await page.waitForSelector("[data-shell-ready='true']");
-      await waitForHudText(page, "Canvas 1440 x 900");
+      await waitForLocale(page, "en", "system");
       await assertAccessibilityBaseline(page);
 
       const debugPayload = await readDebugPayload(page);
@@ -316,7 +326,7 @@ describe("web shell smoke", () => {
         width: 390,
         height: 720,
       });
-      await waitForHudText(page, "Canvas 390 x 720");
+      await page.waitForTimeout(150);
       await assertAccessibilityBaseline(page);
 
       await context.close();
@@ -353,7 +363,7 @@ describe("web shell smoke", () => {
       });
       const page = await context.newPage();
 
-      await page.goto(serverUrl, {
+      await page.goto(withQuery(serverUrl, "wmDiagnostics=1"), {
         waitUntil: "networkidle",
       });
       await page.waitForSelector("[data-shell-ready='true']");
@@ -425,14 +435,76 @@ describe("web shell smoke", () => {
       await server.close();
     }
   }, 120000);
+
+  it("defaults locale by browser language and persists a manual override across reload", async () => {
+    const appRoot = path.join(process.cwd(), "apps", "web");
+    const server = await createServer({
+      configFile: false,
+      logLevel: "error",
+      root: appRoot,
+      server: {
+        host: "127.0.0.1",
+        port: 0,
+        strictPort: false,
+      },
+    });
+    await server.listen();
+
+    const serverUrl = readServerUrl(server);
+    const browser = await chromium.launch();
+
+    try {
+      const englishContext = await browser.newContext({
+        locale: "en-US",
+        viewport: {
+          width: 1280,
+          height: 800,
+        },
+      });
+      const englishPage = await englishContext.newPage();
+      await englishPage.goto(serverUrl, {
+        waitUntil: "networkidle",
+      });
+      await englishPage.waitForSelector("[data-shell-ready='true']");
+      await waitForLocale(englishPage, "en", "system");
+      await englishContext.close();
+
+      const chineseContext = await browser.newContext({
+        locale: "zh-TW",
+        viewport: {
+          width: 1280,
+          height: 800,
+        },
+      });
+      const chinesePage = await chineseContext.newPage();
+      await chinesePage.goto(serverUrl, {
+        waitUntil: "networkidle",
+      });
+      await chinesePage.waitForSelector("[data-shell-ready='true']");
+      await waitForLocale(chinesePage, "zh-CN", "system");
+
+      await chinesePage.getByTestId("locale-select").selectOption("en");
+      await waitForLocale(chinesePage, "en", "manual");
+      await chinesePage.reload({
+        waitUntil: "networkidle",
+      });
+      await chinesePage.waitForSelector("[data-shell-ready='true']");
+      await waitForLocale(chinesePage, "en", "manual");
+
+      await chineseContext.close();
+    } finally {
+      await browser.close();
+      await server.close();
+    }
+  }, 120000);
 });
 
 async function assertAccessibilityBaseline(page: import("playwright").Page): Promise<void> {
   const shellText = await page.locator("[data-shell-ready='true']").textContent();
-  expect(shellText ?? "").toContain("M5 first-season Web product-gate fixture");
-  expect(shellText ?? "").toContain("m5.alpha_content_framework.first_season.v1");
   expect(shellText ?? "").toContain("Wuming Town");
   expect(shellText ?? "").toContain("无明镇");
+  expect(shellText ?? "").toContain("Language settings");
+  expect(shellText ?? "").not.toContain("Web Product Gate");
 
   const warningAlertText = await page
     .locator("[data-alert-severity='warning']")
@@ -446,10 +518,10 @@ async function assertAccessibilityBaseline(page: import("playwright").Page): Pro
   expect(warningAlertText ?? "").toContain("Lantern corridor gap");
   expect(stableAlertText ?? "").toContain("STABLE");
 
-  const storageStatusText = await page.getByTestId("storage-status").textContent();
-  const interoperabilityText = await page.getByTestId("storage-interoperability").textContent();
-  expect(storageStatusText ?? "").toContain("Web storage");
-  expect(interoperabilityText ?? "").toContain("BLOCKED");
+  expect(await page.getByTestId("storage-panel").count()).toBe(0);
+  expect(await page.locator("[data-release-gate-fixture='wm-0086-web-product-gate']").count()).toBe(
+    0,
+  );
   await assertOnboardingBaseline(page);
 
   const mediaCueCount = await page.locator("audio, video").count();
@@ -464,12 +536,10 @@ async function assertAccessibilityBaseline(page: import("playwright").Page): Pro
     const selectors = [
       "button",
       "[aria-label='Town status']",
-      "[aria-label='Viewport and alerts']",
-      "[aria-label='Web product gate harness']",
-      "[aria-label='M7 first-run onboarding']",
+      "[aria-label='Town alerts']",
+      "[aria-label='Language settings']",
+      "[aria-label='First-play guidance']",
       "[aria-label='Selected entity inspector']",
-      "[data-testid='storage-status']",
-      "[data-testid='storage-interoperability']",
     ];
     const offenders: string[] = [];
     for (const selector of selectors) {
@@ -499,13 +569,10 @@ async function assertAccessibilityBaseline(page: import("playwright").Page): Pro
 async function assertOnboardingBaseline(page: import("playwright").Page): Promise<void> {
   const panel = page.getByTestId("onboarding-panel");
   const panelText = await panel.textContent();
-  expect(panelText ?? "").toContain("M7 first-run path");
-  expect(panelText ?? "").toContain("Launch, movement, input, time control");
-  expect(panelText ?? "").toContain("Residents, work, hauling and building");
-  expect(panelText ?? "").toContain("Saving and diagnostics");
-  expect(panelText ?? "").toContain("Events and lamps");
-  expect(panelText ?? "").toContain("Chronicle, town rules and evidence");
-  expect(panelText ?? "").toContain("Structured failure explanations");
+  expect(panelText ?? "").toContain("M8 first-run path");
+  expect(panelText ?? "").toContain("Read the town state first");
+  expect(panelText ?? "").toContain("Choose presentation language");
+  expect(panelText ?? "").toContain("Follow evidence, not hidden truth");
   expect(panelText ?? "").toContain("Web remains demo-only");
   expect(panelText ?? "").toContain("Windows remains unsigned controlled external test");
   expect(panelText ?? "").toContain("no telemetry, accounts, paid service");
@@ -513,7 +580,7 @@ async function assertOnboardingBaseline(page: import("playwright").Page): Promis
   expect(await panel.getAttribute("data-release-boundary")).toBe(
     "web-demo-windows-controlled-test",
   );
-  expect(await page.getByTestId("onboarding-step").count()).toBe(6);
+  expect(await page.getByTestId("onboarding-step").count()).toBe(3);
 }
 
 async function clickCanvasPoint(
@@ -620,6 +687,36 @@ function readServerUrl(server: ViteDevServer): string {
   }
 
   return localUrl;
+}
+
+async function waitForLocale(
+  page: import("playwright").Page,
+  expectedLocale: "en" | "zh-CN",
+  expectedSource: "manual" | "system",
+): Promise<void> {
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    const locale = await page.locator("[data-shell-ready='true']").getAttribute("data-locale");
+    const source = await page
+      .locator("[data-shell-ready='true']")
+      .getAttribute("data-locale-source");
+    if (locale === expectedLocale && source === expectedSource) {
+      return;
+    }
+
+    await page.waitForTimeout(100);
+  }
+
+  throw new Error(`Timed out waiting for locale ${expectedLocale}/${expectedSource}.`);
+}
+
+function withQuery(url: string, query: string): string {
+  const nextUrl = new URL(url);
+  const params = new URLSearchParams(query);
+  for (const [key, value] of params.entries()) {
+    nextUrl.searchParams.set(key, value);
+  }
+
+  return nextUrl.toString();
 }
 
 function parseDebugPayload(text: string): WebShellDebugPayload {

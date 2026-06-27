@@ -19,8 +19,8 @@ if (!selection.ok) {
 }
 
 const result = spawnSync(
-  "pnpm",
-  ["exec", "vitest", "run", ...selection.extraArgs, ...selection.targets],
+  "corepack",
+  ["pnpm", "exec", "vitest", "run", ...selection.extraArgs, ...selection.targets],
   {
     shell: process.platform === "win32",
     stdio: "inherit",

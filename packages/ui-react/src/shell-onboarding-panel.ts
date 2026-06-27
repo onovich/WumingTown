@@ -1,17 +1,48 @@
 import { createElement, type CSSProperties, type ReactElement } from "react";
 
-import type { ShellOnboardingState, ShellOnboardingStep } from "./shell-store";
+import { formatMessage, type LocaleId, type MessageKey } from "./localization";
+import type { ShellOnboardingState } from "./shell-store";
 
 export interface ShellOnboardingPanelProps {
   readonly compact: boolean;
+  readonly locale: LocaleId;
   readonly state: ShellOnboardingState;
 }
 
-export function ShellOnboardingPanel({ compact, state }: ShellOnboardingPanelProps): ReactElement {
+const ONBOARDING_STEP_KEYS = [
+  {
+    body: "ui.onboarding.step1.body",
+    title: "ui.onboarding.step1.title",
+  },
+  {
+    body: "ui.onboarding.step2.body",
+    title: "ui.onboarding.step2.title",
+  },
+  {
+    body: "ui.onboarding.step3.body",
+    title: "ui.onboarding.step3.title",
+  },
+] as const satisfies readonly {
+  readonly body: MessageKey;
+  readonly title: MessageKey;
+}[];
+
+const COPY_LIMIT_KEYS = [
+  "ui.onboarding.copyLimit.scope",
+  "ui.onboarding.copyLimit.release",
+  "ui.onboarding.copyLimit.privacy",
+  "ui.onboarding.copyLimit.save",
+] as const satisfies readonly MessageKey[];
+
+export function ShellOnboardingPanel({
+  compact,
+  locale,
+  state,
+}: ShellOnboardingPanelProps): ReactElement {
   return createElement(
     "section",
     {
-      "aria-label": "M7 first-run onboarding",
+      "aria-label": formatMessage(locale, "ui.onboarding.aria"),
       "data-authority-boundary": state.authorityBoundary,
       "data-release-boundary": state.releaseBoundary,
       "data-testid": "onboarding-panel",
@@ -27,21 +58,21 @@ export function ShellOnboardingPanel({ compact, state }: ShellOnboardingPanelPro
         {
           style: eyebrowStyle,
         },
-        state.scopeLabel,
+        formatMessage(locale, "ui.onboarding.scopeLabel"),
       ),
       createElement(
         "div",
         {
           style: titleStyle,
         },
-        state.title,
+        formatMessage(locale, "ui.onboarding.title"),
       ),
       createElement(
         "p",
         {
           style: bodyStyle,
         },
-        state.summary,
+        formatMessage(locale, "ui.onboarding.summary"),
       ),
     ),
     createElement(
@@ -49,15 +80,15 @@ export function ShellOnboardingPanel({ compact, state }: ShellOnboardingPanelPro
       {
         style: boundaryGridStyle,
       },
-      createBoundaryLine("Authority", state.authorityBoundary),
-      createBoundaryLine("Release", state.releaseBoundary),
+      createBoundaryLine(locale, "ui.onboarding.authority", state.authorityBoundary),
+      createBoundaryLine(locale, "ui.onboarding.release", state.releaseBoundary),
     ),
     createElement(
       "ol",
       {
         style: stepListStyle,
       },
-      ...state.steps.map((step, index) => createStep(step, index)),
+      ...ONBOARDING_STEP_KEYS.map((step, index) => createStep(locale, step, index)),
     ),
     createElement(
       "ul",
@@ -65,21 +96,21 @@ export function ShellOnboardingPanel({ compact, state }: ShellOnboardingPanelPro
         "data-testid": "onboarding-copy-limits",
         style: copyLimitListStyle,
       },
-      ...state.copyLimits.map((copyLimit) =>
+      ...COPY_LIMIT_KEYS.map((copyLimitKey) =>
         createElement(
           "li",
           {
-            key: copyLimit,
+            key: copyLimitKey,
             style: copyLimitItemStyle,
           },
-          copyLimit,
+          formatMessage(locale, copyLimitKey),
         ),
       ),
     ),
   );
 }
 
-function createBoundaryLine(label: string, value: string): ReactElement {
+function createBoundaryLine(locale: LocaleId, labelKey: MessageKey, value: string): ReactElement {
   return createElement(
     "div",
     {
@@ -90,7 +121,7 @@ function createBoundaryLine(label: string, value: string): ReactElement {
       {
         style: boundaryLabelStyle,
       },
-      label,
+      formatMessage(locale, labelKey),
     ),
     createElement(
       "span",
@@ -102,13 +133,20 @@ function createBoundaryLine(label: string, value: string): ReactElement {
   );
 }
 
-function createStep(step: ShellOnboardingStep, index: number): ReactElement {
+function createStep(
+  locale: LocaleId,
+  step: {
+    readonly body: MessageKey;
+    readonly title: MessageKey;
+  },
+  index: number,
+): ReactElement {
   return createElement(
     "li",
     {
-      "data-onboarding-step": step.id,
+      "data-onboarding-step": String(index + 1),
       "data-testid": "onboarding-step",
-      key: step.id,
+      key: step.title,
       style: stepItemStyle,
     },
     createElement(
@@ -128,14 +166,14 @@ function createStep(step: ShellOnboardingStep, index: number): ReactElement {
         {
           style: stepTitleStyle,
         },
-        step.title,
+        formatMessage(locale, step.title),
       ),
       createElement(
         "span",
         {
           style: stepBodyStyle,
         },
-        step.body,
+        formatMessage(locale, step.body),
       ),
     ),
   );

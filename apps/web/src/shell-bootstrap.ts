@@ -15,6 +15,7 @@ import {
   createShellHudElement,
   createShellStore,
   type ShellOnboardingState,
+  type ShellLocaleState,
   type ShellState,
 } from "@wuming-town/ui-react";
 
@@ -29,6 +30,7 @@ import {
   type WebDiagnosticDebugState,
 } from "./diagnostic-package-gate";
 import { createShellReleaseGateInfo, readShellBrowserLabel } from "./product-gate-harness";
+import { createShellLocaleController, readDiagnosticsVisibility } from "./shell-locale";
 import { WEB_SHELL_SMOKE_READ_MODEL } from "./smoke-read-model";
 import {
   createInitialStorageGateState,
@@ -40,6 +42,15 @@ export interface WebShellDebugPayload extends PixiWorldRendererDebugState {
   readonly browserTargets: readonly string[];
   readonly diagnostics: WebDiagnosticDebugState;
   readonly fixtureId: string;
+  readonly locale: {
+    readonly diagnosticsVisible: boolean;
+    readonly manualLocale: string | null;
+    readonly persistenceDiagnosticCode: string;
+    readonly persistenceMode: string;
+    readonly resolvedLocale: string;
+    readonly source: string;
+    readonly systemLocale: string;
+  };
   readonly platformHost: PlatformHostInfo;
   readonly runtimeBrowser: string;
   readonly runtimeCrossOriginIsolated: boolean;
@@ -53,6 +64,8 @@ export interface MountedWebShell {
 export async function mountWebClientShell(rootElement: HTMLElement): Promise<MountedWebShell> {
   prepareDocumentChrome();
   const platformPorts = resolvePlatformPorts();
+  const localeController = createShellLocaleController();
+  const diagnosticsVisible = readDiagnosticsVisibility(window.location.search);
   const releaseGate = createShellReleaseGateInfo({
     browserLabel: readShellBrowserLabel(navigator.userAgent),
     crossOriginIsolated: window.crossOriginIsolated,
@@ -79,11 +92,14 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
   shellFrame.append(canvasHost, hudHost);
   rootElement.replaceChildren(shellFrame);
 
+  applyDocumentLocale(localeController.readState());
   const initialState: ShellState = {
     readModel: WEB_SHELL_SMOKE_READ_MODEL,
     releaseGate,
     storageGate: createInitialStorageGateState(),
-    onboarding: createM7OnboardingState(),
+    onboarding: createM8OnboardingState(),
+    locale: localeController.readState(),
+    diagnosticsVisible,
     canvasWidth: Math.max(shellFrame.clientWidth, 1),
     canvasHeight: Math.max(shellFrame.clientHeight, 1),
     zoom: 1,
@@ -101,6 +117,7 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
 
       syncDebug(
         activeRenderer.readDebugState(),
+        store.getSnapshot(),
         platformPorts.host,
         storageController.readDebugState(),
         diagnosticState,
@@ -114,9 +131,22 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
     exportDiagnostics();
   });
   diagnosticDock.update(diagnosticState);
-  shellFrame.append(diagnosticDock.element);
+  if (diagnosticsVisible) {
+    shellFrame.append(diagnosticDock.element);
+  }
   const reactRoot = createRoot(hudHost);
-  reactRoot.render(createShellHudElement(store, storageController.actions));
+  reactRoot.render(
+    createShellHudElement(store, storageController.actions, {
+      async onUseManualLocale(locale): Promise<void> {
+        await localeController.actions.onUseManualLocale(locale);
+        syncLocaleState();
+      },
+      async onUseSystemLocale(): Promise<void> {
+        await localeController.actions.onUseSystemLocale();
+        syncLocaleState();
+      },
+    }),
+  );
   const windowErrorListener = (event: ErrorEvent): void => {
     recordStructuredError(recentStructuredErrors, "window_error", {
       message: event.message,
@@ -145,6 +175,7 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
       if (activeRenderer !== undefined) {
         syncDebug(
           activeRenderer.readDebugState(),
+          store.getSnapshot(),
           platformPorts.host,
           storageController.readDebugState(),
           diagnosticState,
@@ -166,6 +197,7 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
       if (activeRenderer !== undefined) {
         syncDebug(
           activeRenderer.readDebugState(),
+          store.getSnapshot(),
           platformPorts.host,
           storageController.readDebugState(),
           diagnosticState,
@@ -182,6 +214,7 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
     renderer.resize(nextWidth, nextHeight, readDevicePixelRatio());
     syncDebug(
       renderer.readDebugState(),
+      store.getSnapshot(),
       platformPorts.host,
       storageController.readDebugState(),
       diagnosticState,
@@ -192,6 +225,7 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
   renderer.resize(shellFrame.clientWidth, shellFrame.clientHeight, readDevicePixelRatio());
   syncDebug(
     renderer.readDebugState(),
+    store.getSnapshot(),
     platformPorts.host,
     storageController.readDebugState(),
     diagnosticState,
@@ -224,10 +258,32 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
     diagnosticDock.update(diagnosticState);
     syncDebug(
       activeRenderer.readDebugState(),
+      store.getSnapshot(),
       platformPorts.host,
       storageController.readDebugState(),
       diagnosticState,
     );
+  }
+
+  function syncLocaleState(): void {
+    const currentState = store.getSnapshot();
+    const localeState = localeController.readState();
+    applyDocumentLocale(localeState);
+    const nextState = {
+      ...currentState,
+      locale: localeState,
+    };
+    store.setState(nextState);
+    const activeRenderer = rendererRef.current;
+    if (activeRenderer !== undefined) {
+      syncDebug(
+        activeRenderer.readDebugState(),
+        nextState,
+        platformPorts.host,
+        storageController.readDebugState(),
+        diagnosticState,
+      );
+    }
   }
 
   return {
@@ -242,52 +298,16 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
   };
 }
 
-function createM7OnboardingState(): ShellOnboardingState {
+function applyDocumentLocale(localeState: ShellLocaleState): void {
+  document.documentElement.lang = localeState.resolvedLocale;
+  document.documentElement.dir = "ltr";
+  document.body.dataset["locale"] = localeState.resolvedLocale;
+}
+
+function createM8OnboardingState(): ShellOnboardingState {
   return {
     authorityBoundary: "read-model-only",
-    copyLimits: [
-      "Copy limit: explains existing M5/M6 surfaces only; no M8 tutorial volume.",
-      "Release limit: Web remains demo-only; Windows remains unsigned controlled external test.",
-      "Privacy limit: no telemetry, accounts, paid service, crash upload or public feedback flow.",
-      "Save limit: public save compatibility remains draft/gated until owner approval.",
-    ],
     releaseBoundary: "web-demo-windows-controlled-test",
-    scopeLabel: "External test briefing",
-    steps: [
-      {
-        body: "Confirm shell ready, select a resident, use keyboard pan/zoom and read speed/time labels before interpreting outcomes.",
-        id: "launch-input-time",
-        title: "Launch, movement, input, time control",
-      },
-      {
-        body: "Inspect current job, current step, needs, thoughts and decision text before changing the plan.",
-        id: "residents-work-hauling-building",
-        title: "Residents, work, hauling and building",
-      },
-      {
-        body: "Use Web OPFS save/export/import and local diagnostic download; Windows host save and diagnostic bridges remain blocked.",
-        id: "saving-diagnostics",
-        title: "Saving and diagnostics",
-      },
-      {
-        body: "Read warning/stable alerts, lantern corridor gap and night-risk cues as current evidence, not final balance.",
-        id: "events-lamps",
-        title: "Events and lamps",
-      },
-      {
-        body: "Treat hypotheses, confirmed rules and temporary policies as source-backed knowledge rather than hidden truth.",
-        id: "chronicle-rules-evidence",
-        title: "Chronicle, town rules and evidence",
-      },
-      {
-        body: "When work, pathing, rules or storage fail, look for reason codes and details before retrying or reporting.",
-        id: "structured-failure-explanations",
-        title: "Structured failure explanations",
-      },
-    ],
-    summary:
-      "Follow launch, movement/input, time control, residents/work, hauling/building, saving, events, lamps, Chronicle, town rules, evidence and structured reasons.",
-    title: "M7 first-run path",
   };
 }
 
@@ -295,7 +315,7 @@ function prepareDocumentChrome(): void {
   document.body.style.margin = "0";
   document.body.style.background = "#120f0b";
   document.body.style.color = "#f7eed7";
-  document.body.style.fontFamily = "Inter, system-ui, sans-serif";
+  document.body.style.fontFamily = '"Noto Sans SC", "Segoe UI", sans-serif';
   document.body.style.overflow = "hidden";
 }
 
@@ -305,6 +325,7 @@ function readDevicePixelRatio(): number {
 
 function syncDebug(
   debugState: PixiWorldRendererDebugState,
+  shellState: Pick<ShellState, "diagnosticsVisible" | "locale">,
   platformHost: PlatformHostInfo,
   storageGate: WebStorageDebugState,
   diagnostics: WebDiagnosticDebugState,
@@ -318,6 +339,15 @@ function syncDebug(
     browserTargets: releaseGate.browserTargets,
     diagnostics,
     fixtureId: releaseGate.fixtureId,
+    locale: {
+      diagnosticsVisible: shellState.diagnosticsVisible,
+      manualLocale: shellState.locale.manualLocale ?? null,
+      persistenceDiagnosticCode: shellState.locale.persistence.diagnosticCode,
+      persistenceMode: shellState.locale.persistence.mode,
+      resolvedLocale: shellState.locale.resolvedLocale,
+      source: shellState.locale.source,
+      systemLocale: shellState.locale.systemLocale,
+    },
     platformHost,
     runtimeBrowser: releaseGate.runtimeBrowser,
     runtimeCrossOriginIsolated: releaseGate.runtimeCrossOriginIsolated,

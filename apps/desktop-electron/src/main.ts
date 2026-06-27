@@ -7,6 +7,10 @@ const DESKTOP_APP_ROOT = fileURLToPath(new URL("../..", import.meta.url));
 const PRELOAD_ENTRY_PATH = path.join(DESKTOP_APP_ROOT, "src", "preload.cjs");
 const RENDERER_INDEX_PATH = path.join(DESKTOP_APP_ROOT, "dist", "renderer", "index.html");
 const DEV_SERVER_URL_ENV = "WM_DESKTOP_DEV_SERVER_URL";
+const QUERY_ENV = "WM_DESKTOP_QUERY";
+const USER_DATA_DIR_ENV = "WM_DESKTOP_USER_DATA_DIR";
+
+configureUserDataPath();
 
 void app
   .whenReady()
@@ -47,6 +51,7 @@ async function loadRenderer(mainWindow: BrowserWindow): Promise<void> {
   if (devServerUrl !== undefined) {
     const launchUrl = new URL("./", devServerUrl);
     launchUrl.searchParams.set("wmDesktop", "1");
+    appendRendererQuery(launchUrl);
     await mainWindow.loadURL(launchUrl.toString());
     return;
   }
@@ -54,6 +59,7 @@ async function loadRenderer(mainWindow: BrowserWindow): Promise<void> {
   await access(RENDERER_INDEX_PATH);
   const launchUrl = pathToFileURL(RENDERER_INDEX_PATH);
   launchUrl.searchParams.set("wmDesktop", "1");
+  appendRendererQuery(launchUrl);
   await mainWindow.loadURL(launchUrl.toString());
 }
 
@@ -68,6 +74,27 @@ function readDevServerUrl(): string | undefined {
   }
 
   return devServerUrl;
+}
+
+function configureUserDataPath(): void {
+  const userDataDir = process.env[USER_DATA_DIR_ENV];
+  if (typeof userDataDir !== "string" || userDataDir.length === 0) {
+    return;
+  }
+
+  app.setPath("userData", userDataDir);
+}
+
+function appendRendererQuery(launchUrl: URL): void {
+  const queryValue = process.env[QUERY_ENV];
+  if (typeof queryValue !== "string" || queryValue.length === 0) {
+    return;
+  }
+
+  const extraParams = new URLSearchParams(queryValue);
+  for (const [key, value] of extraParams.entries()) {
+    launchUrl.searchParams.set(key, value);
+  }
 }
 
 function registerApplicationLifecycle(): void {

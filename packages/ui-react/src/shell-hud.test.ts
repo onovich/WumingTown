@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import type { WorldReadModel } from "@wuming-town/sim-protocol";
 
 import { createShellHudElement } from "./shell-hud";
+import { createDefaultShellLocaleState } from "./localization";
 import { createShellStore, type ShellState } from "./shell-store";
 
 const READ_MODEL: WorldReadModel = {
@@ -113,19 +114,10 @@ describe("shell-hud", () => {
       },
       onboarding: {
         authorityBoundary: "read-model-only",
-        copyLimits: ["Web remains demo-only."],
         releaseBoundary: "web-demo-windows-controlled-test",
-        scopeLabel: "External test briefing",
-        steps: [
-          {
-            body: "Read the fixture before changing plans.",
-            id: "launch-input-time",
-            title: "Launch, movement, input, time control",
-          },
-        ],
-        summary: "Follow the first-run path through existing read-model surfaces.",
-        title: "M7 first-run path",
       },
+      locale: createDefaultShellLocaleState(["en-US"]),
+      diagnosticsVisible: false,
       canvasWidth: 1280,
       canvasHeight: 720,
       zoom: 1.25,
@@ -138,30 +130,34 @@ describe("shell-hud", () => {
     };
     const store = createShellStore(state);
     const noopAsync = (): Promise<void> => Promise.resolve();
+    const noopSetLocale: (locale: "en" | "zh-CN") => Promise<void> = () => Promise.resolve();
     const noopImport: (file: File) => Promise<void> = () => Promise.resolve();
     const markup = renderToStaticMarkup(
-      createShellHudElement(store, {
-        onDeleteSave: noopAsync,
-        onExportSave: noopAsync,
-        onImportFile: noopImport,
-        onLoadSave: noopAsync,
-        onRefreshStorage: noopAsync,
-        onSaveFixture: noopAsync,
-      }),
+      createShellHudElement(
+        store,
+        {
+          onDeleteSave: noopAsync,
+          onExportSave: noopAsync,
+          onImportFile: noopImport,
+          onLoadSave: noopAsync,
+          onRefreshStorage: noopAsync,
+          onSaveFixture: noopAsync,
+        },
+        {
+          onUseManualLocale: noopSetLocale,
+          onUseSystemLocale: noopAsync,
+        },
+      ),
     );
 
     expect(markup).toContain("Chronicler Lin");
     expect(markup).toContain("Ledger review");
     expect(markup).toContain("Keep the archive open until the route list is clear.");
-    expect(markup).toContain("Canvas 1280 x 720");
-    expect(markup).toContain("Web Product Gate");
-    expect(markup).toContain("Chrome Stable, Edge Stable");
-    expect(markup).toContain("Map 192 x 192");
-    expect(markup).toContain("Storage Gate");
-    expect(markup).toContain("M7 first-run path");
-    expect(markup).toContain("Web storage ready for gate evidence.");
-    expect(markup).toContain(
-      "Blocked until the Electron preload exposes a reviewed save-store bridge.",
-    );
+    expect(markup).toContain("Language settings");
+    expect(markup).toContain("Current locale: English");
+    expect(markup).toContain("M8 first-run path");
+    expect(markup).toContain("Follow evidence, not hidden truth");
+    expect(markup).not.toContain("Web Product Gate");
+    expect(markup).not.toContain("Storage Gate");
   });
 });

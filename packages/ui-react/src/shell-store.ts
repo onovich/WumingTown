@@ -4,11 +4,15 @@ import type {
   WorldReadModel,
 } from "@wuming-town/sim-protocol";
 
+import type { LocaleId, ShellLocaleState } from "./localization";
+
 export interface ShellState {
   readonly readModel: WorldReadModel;
   readonly releaseGate: ShellReleaseGateInfo;
   readonly storageGate: ShellStorageGateState;
   readonly onboarding: ShellOnboardingState;
+  readonly locale: ShellLocaleState;
+  readonly diagnosticsVisible: boolean;
   readonly canvasWidth: number;
   readonly canvasHeight: number;
   readonly zoom: number;
@@ -39,13 +43,8 @@ export interface ShellOnboardingStep {
 }
 
 export interface ShellOnboardingState {
-  readonly title: string;
-  readonly scopeLabel: string;
-  readonly summary: string;
   readonly authorityBoundary: "read-model-only";
   readonly releaseBoundary: "web-demo-windows-controlled-test";
-  readonly steps: readonly ShellOnboardingStep[];
-  readonly copyLimits: readonly string[];
 }
 
 export interface ShellStorageDiagnosticState {
@@ -87,6 +86,11 @@ export interface ShellStorageActions {
   readonly onLoadSave: () => Promise<void>;
   readonly onRefreshStorage: () => Promise<void>;
   readonly onSaveFixture: () => Promise<void>;
+}
+
+export interface ShellLocaleActions {
+  readonly onUseManualLocale: (locale: LocaleId) => Promise<void>;
+  readonly onUseSystemLocale: () => Promise<void>;
 }
 
 export interface ShellStore {

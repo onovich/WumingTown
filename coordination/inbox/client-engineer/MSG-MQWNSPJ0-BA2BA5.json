@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQWNSPJ0-BA2BA5",
+  "from": "reviewer",
+  "to": "client-engineer",
+  "taskId": "WM-0114",
+  "kind": "review-approved",
+  "subject": "WM-0114 review: verified",
+  "body": "No blocking findings; verified zh-CN/en locale runtime, ADR-0011 detection, shell-local preference persistence, localization completeness gate, diagnostics opt-in isolation, preserved web e2e coverage, valid UTF-8 zh-CN catalog, and required checks passing.",
+  "artifacts": [
+    "coordination/reports/WM-0114.md"
+  ],
+  "createdAt": "2026-06-27T17:53:59.101Z",
+  "acknowledgedAt": "2026-06-27T17:55:14.241Z"
+}

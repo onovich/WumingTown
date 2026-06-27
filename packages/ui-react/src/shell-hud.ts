@@ -1,11 +1,14 @@
 import { createElement, useSyncExternalStore, type CSSProperties, type ReactElement } from "react";
 
+import { formatMessage, type LocaleId } from "./localization";
 import { ShellOnboardingPanel } from "./shell-onboarding-panel";
+import { ShellSettingsPanel } from "./shell-settings-panel";
 import { ShellStoragePanel } from "./shell-storage-panel";
 import { getSelectedEntity, type ShellState, type ShellStore } from "./shell-store";
-import type { ShellStorageActions } from "./shell-store";
+import type { ShellLocaleActions, ShellStorageActions } from "./shell-store";
 
 export interface ShellHudRootProps {
+  readonly localeActions: ShellLocaleActions;
   readonly store: ShellStore;
   readonly storageActions: ShellStorageActions;
 }
@@ -13,14 +16,20 @@ export interface ShellHudRootProps {
 export function createShellHudElement(
   store: ShellStore,
   storageActions: ShellStorageActions,
+  localeActions: ShellLocaleActions,
 ): ReactElement {
   return createElement(ShellHudRoot, {
+    localeActions,
     store,
     storageActions,
   });
 }
 
-export function ShellHudRoot({ store, storageActions }: ShellHudRootProps): ReactElement {
+export function ShellHudRoot({
+  localeActions,
+  store,
+  storageActions,
+}: ShellHudRootProps): ReactElement {
   const state = useSyncExternalStore(
     (listener) => store.subscribe(listener),
     () => store.getSnapshot(),
@@ -28,50 +37,28 @@ export function ShellHudRoot({ store, storageActions }: ShellHudRootProps): Reac
   );
   const selectedEntity = getSelectedEntity(state);
   const compactLayout = state.canvasWidth < 1040;
+  const uiLocale = state.locale.resolvedLocale;
 
   return createElement(
     "div",
     {
+      "data-diagnostics-visible": state.diagnosticsVisible ? "true" : "false",
+      "data-locale": state.locale.resolvedLocale,
+      "data-locale-source": state.locale.source,
       "data-shell-ready": "true",
       style: overlayRootStyle,
     },
     createElement(
       "section",
       {
-        "aria-label": "Town status",
+        "aria-label": formatMessage(uiLocale, "ui.surface.topBar"),
         style: compactLayout ? compactTopBarStyle : topBarStyle,
       },
-      createElement(
-        "div",
-        {
-          style: topBarIdentityStyle,
-        },
-        createElement(
-          "div",
-          {
-            style: eyebrowStyle,
-          },
-          state.readModel.town.phaseLabel,
-        ),
-        createElement(
-          "h1",
-          {
-            style: titleStyle,
-          },
-          state.readModel.town.settlementName,
-        ),
-        createElement(
-          "div",
-          {
-            style: compactMetaStyle,
-          },
-          [
-            state.readModel.town.cycleLabel,
-            state.readModel.mapName,
-            state.readModel.town.speedLabel,
-          ].join(" · "),
-        ),
-      ),
+      createIdentityCard(state, uiLocale),
+      createElement(ShellSettingsPanel, {
+        actions: localeActions,
+        state: state.locale,
+      }),
       createElement(
         "div",
         {
@@ -112,7 +99,7 @@ export function ShellHudRoot({ store, storageActions }: ShellHudRootProps): Reac
     createElement(
       "section",
       {
-        "aria-label": "Viewport and alerts",
+        "aria-label": formatMessage(uiLocale, "ui.surface.alerts"),
         style: compactLayout ? compactBottomStripStyle : bottomStripStyle,
       },
       createElement(
@@ -124,7 +111,7 @@ export function ShellHudRoot({ store, storageActions }: ShellHudRootProps): Reac
           createElement(
             "div",
             {
-              "aria-label": `${alert.severity} alert: ${alert.label}`,
+              "aria-label": `${formatAlertSeverity(alert.severity, uiLocale)}: ${alert.label}`,
               "data-alert-severity": alert.severity,
               key: alert.label,
               style: alertChipStyle(alert.severity),
@@ -134,7 +121,7 @@ export function ShellHudRoot({ store, storageActions }: ShellHudRootProps): Reac
               {
                 style: chipLabelStyle,
               },
-              alert.severity.toUpperCase(),
+              formatAlertSeverity(alert.severity, uiLocale).toUpperCase(),
             ),
             createElement(
               "div",
@@ -153,113 +140,119 @@ export function ShellHudRoot({ store, storageActions }: ShellHudRootProps): Reac
           ),
         ),
       ),
+      createElement(ShellOnboardingPanel, {
+        compact: compactLayout,
+        locale: uiLocale,
+        state: state.onboarding,
+      }),
+      state.diagnosticsVisible ? createDiagnosticsSurface(state, storageActions) : null,
+    ),
+    createElement(
+      "aside",
+      {
+        "aria-label": formatMessage(uiLocale, "ui.inspector.aria"),
+        "data-selected-entity": selectedEntity?.entityId ?? "",
+        style: compactLayout ? compactInspectorStyle : inspectorStyle,
+      },
+      selectedEntity === undefined
+        ? createEmptyInspector(uiLocale)
+        : createInspectorContent(state, selectedEntity, uiLocale),
+    ),
+  );
+}
+
+function createDiagnosticsSurface(
+  state: ShellState,
+  storageActions: ShellStorageActions,
+): ReactElement {
+  return createElement(
+    "section",
+    {
+      "aria-label": "Developer diagnostics",
+      "data-browser-targets": state.releaseGate.browserTargets.join(","),
+      "data-cross-origin-isolated": state.releaseGate.runtimeCrossOriginIsolated ? "true" : "false",
+      "data-release-gate-fixture": state.releaseGate.fixtureId,
+      style: releaseGateCardStyle,
+    },
+    createElement(
+      "div",
+      {
+        style: sectionLabelStyle,
+      },
+      state.releaseGate.title,
+    ),
+    createElement(
+      "div",
+      {
+        style: chipHintStyle,
+      },
+      `${state.releaseGate.runtimeBrowser} | targets ${state.releaseGate.browserTargets.join(", ")}`,
+    ),
+    createElement(
+      "div",
+      {
+        style: viewportInfoStyle,
+      },
       createElement(
         "div",
         {
-          style: viewportInfoStyle,
+          style: chipLabelStyle,
+        },
+        `Canvas ${String(state.canvasWidth)} x ${String(state.canvasHeight)}`,
+      ),
+      createElement(
+        "div",
+        {
+          style: chipHintStyle,
+        },
+        `Zoom ${String(Math.round(state.zoom * 100))}% | Hover ${formatHoverTile(state)}`,
+      ),
+      createElement(
+        "div",
+        {
+          style: chipHintStyle,
+        },
+        `Input ${state.lastInputLabel}`,
+      ),
+    ),
+    ...state.releaseGate.sections.map((section) =>
+      createElement(
+        "div",
+        {
+          key: section.label,
+          style: releaseGateRowStyle,
         },
         createElement(
           "div",
           {
             style: chipLabelStyle,
           },
-          `Canvas ${String(state.canvasWidth)} x ${String(state.canvasHeight)}`,
+          section.label,
+        ),
+        createElement(
+          "div",
+          {
+            style: chipValueStyle,
+          },
+          section.value,
         ),
         createElement(
           "div",
           {
             style: chipHintStyle,
           },
-          `Zoom ${String(Math.round(state.zoom * 100))}% · Hover ${formatHoverTile(state)}`,
-        ),
-        createElement(
-          "div",
-          {
-            style: chipHintStyle,
-          },
-          `Input ${state.lastInputLabel}`,
+          section.detail,
         ),
       ),
-      createElement(
-        "section",
-        {
-          "aria-label": "Web product gate harness",
-          "data-browser-targets": state.releaseGate.browserTargets.join(","),
-          "data-cross-origin-isolated": state.releaseGate.runtimeCrossOriginIsolated
-            ? "true"
-            : "false",
-          "data-release-gate-fixture": state.releaseGate.fixtureId,
-          style: releaseGateCardStyle,
-        },
-        createElement(
-          "div",
-          {
-            style: sectionLabelStyle,
-          },
-          state.releaseGate.title,
-        ),
-        createElement(
-          "div",
-          {
-            style: chipHintStyle,
-          },
-          `${state.releaseGate.runtimeBrowser} | targets ${state.releaseGate.browserTargets.join(", ")}`,
-        ),
-        ...state.releaseGate.sections.map((section) =>
-          createElement(
-            "div",
-            {
-              key: section.label,
-              style: releaseGateRowStyle,
-            },
-            createElement(
-              "div",
-              {
-                style: chipLabelStyle,
-              },
-              section.label,
-            ),
-            createElement(
-              "div",
-              {
-                style: chipValueStyle,
-              },
-              section.value,
-            ),
-            createElement(
-              "div",
-              {
-                style: chipHintStyle,
-              },
-              section.detail,
-            ),
-          ),
-        ),
-        createElement(ShellOnboardingPanel, {
-          compact: compactLayout,
-          state: state.onboarding,
-        }),
-        createElement(ShellStoragePanel, {
-          actions: storageActions,
-          state: state.storageGate,
-        }),
-      ),
     ),
-    createElement(
-      "aside",
-      {
-        "aria-label": "Selected entity inspector",
-        "data-selected-entity": selectedEntity?.entityId ?? "",
-        style: compactLayout ? compactInspectorStyle : inspectorStyle,
-      },
-      selectedEntity === undefined
-        ? createEmptyInspector()
-        : createInspectorContent(state, selectedEntity),
-    ),
+    createElement(ShellStoragePanel, {
+      actions: storageActions,
+      state: state.storageGate,
+    }),
   );
 }
 
-function createEmptyInspector(): ReactElement {
+function createEmptyInspector(locale: LocaleId): ReactElement {
   return createElement(
     "div",
     {
@@ -270,21 +263,55 @@ function createEmptyInspector(): ReactElement {
       {
         style: eyebrowStyle,
       },
-      "Selected entity",
+      formatMessage(locale, "ui.inspector.selected"),
     ),
     createElement(
       "h2",
       {
         style: inspectorTitleStyle,
       },
-      "No selection",
+      formatMessage(locale, "ui.inspector.noSelection.title"),
     ),
     createElement(
       "p",
       {
         style: bodyCopyStyle,
       },
-      "Use the canvas to inspect a resident, lantern keeper, or visitor.",
+      formatMessage(locale, "ui.inspector.noSelection.body"),
+    ),
+  );
+}
+
+function createIdentityCard(state: ShellState, locale: LocaleId): ReactElement {
+  return createElement(
+    "div",
+    {
+      style: topBarIdentityStyle,
+    },
+    createElement(
+      "div",
+      {
+        style: eyebrowStyle,
+      },
+      state.readModel.town.phaseLabel,
+    ),
+    createElement(
+      "h1",
+      {
+        style: titleStyle,
+      },
+      state.readModel.town.settlementName,
+    ),
+    createElement(
+      "div",
+      {
+        style: compactMetaStyle,
+      },
+      formatMessage(locale, "ui.surface.topBarMeta", {
+        cycle: state.readModel.town.cycleLabel,
+        map: state.readModel.mapName,
+        speed: state.readModel.town.speedLabel,
+      }),
     ),
   );
 }
@@ -292,6 +319,7 @@ function createEmptyInspector(): ReactElement {
 function createInspectorContent(
   state: ShellState,
   selectedEntity: NonNullable<ReturnType<typeof getSelectedEntity>>,
+  locale: LocaleId,
 ): ReactElement {
   return createElement(
     "div",
@@ -303,7 +331,7 @@ function createInspectorContent(
       {
         style: eyebrowStyle,
       },
-      `${selectedEntity.kind} · tile ${String(selectedEntity.tile.x)},${String(selectedEntity.tile.y)}`,
+      `${selectedEntity.kind} | ${formatMessage(locale, "ui.inspector.tile")} ${String(selectedEntity.tile.x)},${String(selectedEntity.tile.y)}`,
     ),
     createElement(
       "h2",
@@ -317,31 +345,31 @@ function createInspectorContent(
       {
         style: compactMetaStyle,
       },
-      [selectedEntity.inspector.roleLabel, selectedEntity.summary].join(" · "),
+      `${selectedEntity.inspector.roleLabel} | ${selectedEntity.summary}`,
     ),
     createPairGrid([
       {
-        label: "Current job",
+        label: formatMessage(locale, "ui.inspector.currentJob"),
         value: selectedEntity.inspector.currentJob,
       },
       {
-        label: "Current step",
+        label: formatMessage(locale, "ui.inspector.currentStep"),
         value: selectedEntity.inspector.currentStep,
       },
       {
-        label: "Mood",
+        label: formatMessage(locale, "ui.inspector.mood"),
         value: selectedEntity.inspector.moodLabel,
       },
       {
-        label: "Health",
+        label: formatMessage(locale, "ui.inspector.health"),
         value: selectedEntity.inspector.healthLabel,
       },
       {
-        label: "Last input",
+        label: formatMessage(locale, "ui.inspector.lastInput"),
         value: state.lastInputLabel,
       },
       {
-        label: "Decision",
+        label: formatMessage(locale, "ui.inspector.decision"),
         value: selectedEntity.inspector.lastDecision,
       },
     ]),
@@ -355,7 +383,7 @@ function createInspectorContent(
         {
           style: sectionLabelStyle,
         },
-        "Needs",
+        formatMessage(locale, "ui.inspector.needs"),
       ),
       createElement(
         "div",
@@ -386,7 +414,7 @@ function createInspectorContent(
                 {
                   style: chipHintStyle,
                 },
-                `${String(need.value)}% · ${need.state}`,
+                `${String(need.value)}% | ${need.state}`,
               ),
             ),
             createElement("div", {
@@ -400,7 +428,7 @@ function createInspectorContent(
       ),
     ),
     createStackSection(
-      "Thoughts",
+      formatMessage(locale, "ui.inspector.thoughts"),
       selectedEntity.inspector.thoughts.map((thought) =>
         createElement(
           "li",
@@ -413,7 +441,7 @@ function createInspectorContent(
       ),
     ),
     createStackSection(
-      "Why this matters",
+      formatMessage(locale, "ui.inspector.why"),
       selectedEntity.inspector.explainers.map((explainer) =>
         createElement(
           "li",
@@ -488,6 +516,17 @@ function createStackSection(title: string, children: readonly ReactElement[]): R
   );
 }
 
+function formatAlertSeverity(severity: "danger" | "stable" | "warning", locale: LocaleId): string {
+  switch (severity) {
+    case "danger":
+      return formatMessage(locale, "ui.alert.severity.danger");
+    case "stable":
+      return formatMessage(locale, "ui.alert.severity.stable");
+    case "warning":
+      return formatMessage(locale, "ui.alert.severity.warning");
+  }
+}
+
 function formatHoverTile(state: ShellState): string {
   if (state.hoverTile === undefined) {
     return "none";
@@ -529,13 +568,13 @@ const topBarIdentityStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
   gap: "4px",
-  maxWidth: "420px",
+  maxWidth: "360px",
   padding: "14px 16px",
 };
 
 const titleStyle: CSSProperties = {
   color: "#f7eed7",
-  fontFamily: "Inter, system-ui, sans-serif",
+  fontFamily: '"Noto Serif SC", "Noto Sans SC", serif',
   fontSize: "28px",
   fontWeight: 650,
   lineHeight: "32px",
@@ -544,7 +583,7 @@ const titleStyle: CSSProperties = {
 
 const eyebrowStyle: CSSProperties = {
   color: "#d5b87a",
-  fontFamily: "Inter, system-ui, sans-serif",
+  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
   fontSize: "11px",
   fontWeight: 600,
   letterSpacing: 0,
@@ -553,7 +592,7 @@ const eyebrowStyle: CSSProperties = {
 
 const compactMetaStyle: CSSProperties = {
   color: "#c8c0af",
-  fontFamily: "Inter, system-ui, sans-serif",
+  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
   fontSize: "13px",
   lineHeight: "18px",
 };
@@ -562,7 +601,7 @@ const summaryGroupStyle: CSSProperties = {
   display: "grid",
   gap: "10px",
   gridTemplateColumns: "repeat(auto-fit, minmax(108px, 1fr))",
-  maxWidth: "520px",
+  maxWidth: "420px",
   width: "100%",
 };
 
@@ -580,7 +619,7 @@ const statChipStyle: CSSProperties = {
 
 const chipLabelStyle: CSSProperties = {
   color: "#d3cab6",
-  fontFamily: "Inter, system-ui, sans-serif",
+  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
   fontSize: "11px",
   fontWeight: 600,
   lineHeight: "15px",
@@ -589,7 +628,7 @@ const chipLabelStyle: CSSProperties = {
 
 const chipValueStyle: CSSProperties = {
   color: "#f7eed7",
-  fontFamily: "Inter, system-ui, sans-serif",
+  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
   fontSize: "15px",
   fontWeight: 650,
   lineHeight: "20px",
@@ -597,7 +636,7 @@ const chipValueStyle: CSSProperties = {
 
 const chipHintStyle: CSSProperties = {
   color: "#b7a992",
-  fontFamily: "Inter, system-ui, sans-serif",
+  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
   fontSize: "12px",
   lineHeight: "16px",
 };
@@ -623,35 +662,32 @@ const compactBottomStripStyle: CSSProperties = {
 
 const calloutGroupStyle: CSSProperties = {
   display: "flex",
-  flex: "1 1 auto",
+  flex: "1 1 420px",
   flexWrap: "wrap",
   gap: "10px",
 };
 
 const viewportInfoStyle: CSSProperties = {
-  background: "rgba(18, 15, 11, 0.88)",
-  border: "1px solid rgba(232, 206, 151, 0.18)",
-  borderRadius: "8px",
-  boxShadow: "0 10px 24px rgba(0, 0, 0, 0.24)",
+  background: "rgba(255, 255, 255, 0.03)",
+  border: "1px solid rgba(169, 214, 255, 0.12)",
+  borderRadius: "6px",
   display: "flex",
   flexDirection: "column",
   gap: "3px",
-  justifyContent: "center",
-  minWidth: "220px",
-  padding: "12px 14px",
+  padding: "10px 12px",
 };
 
 const releaseGateCardStyle: CSSProperties = {
-  background: "rgba(18, 15, 11, 0.9)",
-  border: "1px solid rgba(232, 206, 151, 0.18)",
+  background: "rgba(16, 21, 28, 0.94)",
+  border: "1px solid rgba(169, 214, 255, 0.18)",
   borderRadius: "8px",
   boxShadow: "0 10px 24px rgba(0, 0, 0, 0.24)",
   display: "flex",
-  flex: "0 0 340px",
+  flex: "0 0 360px",
   flexDirection: "column",
   gap: "8px",
   maxHeight: "min(660px, calc(100vh - 48px))",
-  maxWidth: "360px",
+  maxWidth: "380px",
   overflowY: "auto",
   padding: "12px 14px",
 };
@@ -693,7 +729,7 @@ const inspectorStackStyle: CSSProperties = {
 
 const inspectorTitleStyle: CSSProperties = {
   color: "#f7eed7",
-  fontFamily: "Inter, system-ui, sans-serif",
+  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
   fontSize: "22px",
   fontWeight: 650,
   lineHeight: "26px",
@@ -702,7 +738,7 @@ const inspectorTitleStyle: CSSProperties = {
 
 const bodyCopyStyle: CSSProperties = {
   color: "#c8c0af",
-  fontFamily: "Inter, system-ui, sans-serif",
+  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
   fontSize: "13px",
   lineHeight: "18px",
   margin: 0,
@@ -727,7 +763,7 @@ const pairCellStyle: CSSProperties = {
 
 const pairValueStyle: CSSProperties = {
   color: "#f2e7d1",
-  fontFamily: "Inter, system-ui, sans-serif",
+  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
   fontSize: "13px",
   fontWeight: 600,
   lineHeight: "18px",
@@ -741,7 +777,7 @@ const stackSectionStyle: CSSProperties = {
 
 const sectionLabelStyle: CSSProperties = {
   color: "#d3cab6",
-  fontFamily: "Inter, system-ui, sans-serif",
+  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
   fontSize: "12px",
   fontWeight: 700,
   lineHeight: "16px",
@@ -783,7 +819,7 @@ const listStyle: CSSProperties = {
 };
 
 const listItemStyle: CSSProperties = {
-  fontFamily: "Inter, system-ui, sans-serif",
+  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
   fontSize: "13px",
   lineHeight: "18px",
 };

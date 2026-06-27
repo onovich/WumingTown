@@ -1,7 +1,8 @@
 /// <reference lib="dom" />
 
 import { spawn } from "node:child_process";
-import { access, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { access, mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import * as os from "node:os";
 import * as path from "node:path";
 
 import { _electron as electron, type Page } from "playwright";
@@ -84,10 +85,11 @@ describe("desktop Electron shell smoke", () => {
     await server.listen();
 
     const electronApp = await electron.launch({
-      args: [MAIN_ENTRY_PATH],
+      args: ["--lang=en-US", MAIN_ENTRY_PATH],
       env: {
         ...process.env,
         WM_DESKTOP_DEV_SERVER_URL: readServerUrl(server),
+        WM_DESKTOP_QUERY: "wmDiagnostics=1",
       },
     });
 
@@ -122,10 +124,12 @@ describe("desktop Electron shell smoke", () => {
     await server.listen();
 
     const electronApp = await electron.launch({
+      args: ["--lang=en-US"],
       executablePath: PACKAGED_EXE_PATH,
       env: {
         ...process.env,
         WM_DESKTOP_DEV_SERVER_URL: readServerUrl(server),
+        WM_DESKTOP_QUERY: "wmDiagnostics=1",
       },
     });
 
@@ -140,6 +144,92 @@ describe("desktop Electron shell smoke", () => {
     } finally {
       await electronApp.close();
       await server.close();
+    }
+  }, 180000);
+
+  it("defaults locale by renderer language and persists manual override across restart", async () => {
+    await ensureDesktopMainBuild();
+
+    const appRoot = path.join(process.cwd(), "apps", "web");
+    const server = await createServer({
+      configFile: false,
+      logLevel: "error",
+      root: appRoot,
+      server: {
+        host: "127.0.0.1",
+        port: 0,
+        strictPort: false,
+      },
+    });
+    await server.listen();
+
+    const userDataRoot = await mkdtemp(path.join(os.tmpdir(), "wuming-town-wm-0114-"));
+
+    try {
+      const englishApp = await electron.launch({
+        args: ["--lang=en-US", MAIN_ENTRY_PATH],
+        env: {
+          ...process.env,
+          WM_DESKTOP_DEV_SERVER_URL: readServerUrl(server),
+          WM_DESKTOP_USER_DATA_DIR: path.join(userDataRoot, "en"),
+        },
+      });
+
+      try {
+        const englishPage = await englishApp.firstWindow();
+        await englishPage.waitForSelector("[data-shell-ready='true']");
+        await waitForLocale(englishPage, "en", "system");
+        expect(
+          await englishPage
+            .locator("[data-release-gate-fixture='wm-0086-web-product-gate']")
+            .count(),
+        ).toBe(0);
+      } finally {
+        await englishApp.close();
+      }
+
+      const chineseUserDataDir = path.join(userDataRoot, "zh");
+      const chineseApp = await electron.launch({
+        args: ["--lang=zh-TW", MAIN_ENTRY_PATH],
+        env: {
+          ...process.env,
+          WM_DESKTOP_DEV_SERVER_URL: readServerUrl(server),
+          WM_DESKTOP_USER_DATA_DIR: chineseUserDataDir,
+        },
+      });
+
+      try {
+        const chinesePage = await chineseApp.firstWindow();
+        await chinesePage.waitForSelector("[data-shell-ready='true']");
+        await waitForLocale(chinesePage, "zh-CN", "system");
+        await chinesePage.getByTestId("locale-select").selectOption("en");
+        await waitForLocale(chinesePage, "en", "manual");
+      } finally {
+        await chineseApp.close();
+      }
+
+      const persistedApp = await electron.launch({
+        args: ["--lang=zh-TW", MAIN_ENTRY_PATH],
+        env: {
+          ...process.env,
+          WM_DESKTOP_DEV_SERVER_URL: readServerUrl(server),
+          WM_DESKTOP_USER_DATA_DIR: chineseUserDataDir,
+        },
+      });
+
+      try {
+        const persistedPage = await persistedApp.firstWindow();
+        await persistedPage.waitForSelector("[data-shell-ready='true']");
+        await waitForLocale(persistedPage, "en", "manual");
+      } finally {
+        await persistedApp.close();
+      }
+    } finally {
+      await server.close();
+      await rm(userDataRoot, {
+        force: true,
+        recursive: true,
+      });
     }
   }, 180000);
 });
@@ -314,20 +404,17 @@ async function assertDesktopAccessibilityBaseline(
 async function assertDesktopOnboardingBaseline(page: Page): Promise<void> {
   const panel = page.getByTestId("onboarding-panel");
   const panelText = await panel.textContent();
-  expect(panelText ?? "").toContain("M7 first-run path");
-  expect(panelText ?? "").toContain("Launch, movement, input, time control");
-  expect(panelText ?? "").toContain("Residents, work, hauling and building");
-  expect(panelText ?? "").toContain("Saving and diagnostics");
-  expect(panelText ?? "").toContain("Events and lamps");
-  expect(panelText ?? "").toContain("Chronicle, town rules and evidence");
-  expect(panelText ?? "").toContain("Structured failure explanations");
+  expect(panelText ?? "").toContain("M8 first-run path");
+  expect(panelText ?? "").toContain("Read the town state first");
+  expect(panelText ?? "").toContain("Choose presentation language");
+  expect(panelText ?? "").toContain("Follow evidence, not hidden truth");
   expect(panelText ?? "").toContain("Web remains demo-only");
   expect(panelText ?? "").toContain("Windows remains unsigned controlled external test");
   expect(await panel.getAttribute("data-authority-boundary")).toBe("read-model-only");
   expect(await panel.getAttribute("data-release-boundary")).toBe(
     "web-demo-windows-controlled-test",
   );
-  expect(await page.getByTestId("onboarding-step").count()).toBe(6);
+  expect(await page.getByTestId("onboarding-step").count()).toBe(3);
 }
 
 async function ensureDesktopMainBuild(): Promise<void> {
@@ -633,9 +720,31 @@ async function waitForSelectedEntity(page: Page, expectedEntityId: string): Prom
   throw new Error(`Timed out waiting for selected entity ${expectedEntityId}`);
 }
 
+async function waitForLocale(
+  page: Page,
+  expectedLocale: "en" | "zh-CN",
+  expectedSource: "manual" | "system",
+): Promise<void> {
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    const locale = await page.locator("[data-shell-ready='true']").getAttribute("data-locale");
+    const source = await page
+      .locator("[data-shell-ready='true']")
+      .getAttribute("data-locale-source");
+    if (locale === expectedLocale && source === expectedSource) {
+      return;
+    }
+
+    await page.waitForTimeout(100);
+  }
+
+  throw new Error(`Timed out waiting for locale ${expectedLocale}/${expectedSource}.`);
+}
+
 async function runCommand(command: string, args: readonly string[]): Promise<void> {
   await new Promise<void>((resolve, reject) => {
-    const child = spawn(command, args, {
+    const fullArgs = command === "pnpm" ? ["pnpm", ...args] : [...args];
+    const executable = command === "pnpm" ? "corepack" : command;
+    const child = spawn(executable, fullArgs, {
       shell: process.platform === "win32",
       stdio: "inherit",
     });
@@ -647,7 +756,7 @@ async function runCommand(command: string, args: readonly string[]): Promise<voi
         return;
       }
 
-      reject(new Error(`${command} ${args.join(" ")} exited with code ${String(code)}`));
+      reject(new Error(`${executable} ${fullArgs.join(" ")} exited with code ${String(code)}`));
     });
   });
 }

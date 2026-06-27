@@ -2,7 +2,7 @@
   "id": "WM-0114",
   "title": "Localization infrastructure and missing-key gate",
   "summary": "Implement the zh-CN/en localization runtime, locale detection, settings persistence and missing-key validation gate.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -33,7 +33,7 @@
   ],
   "branch": "task/WM-0114-m8-localization-infrastructure",
   "createdAt": "2026-06-27T15:46:00.000Z",
-  "updatedAt": "2026-06-27T16:41:28.571Z",
+  "updatedAt": "2026-06-27T17:56:45.540Z",
   "history": [
     {
       "at": "2026-06-27T15:46:00.000Z",
@@ -46,6 +46,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-27T16:48:20.320Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": ""
+    },
+    {
+      "at": "2026-06-27T17:42:01.620Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Implemented zh-CN/en shell localization runtime, ADR-0011 locale detection, manual shell-local persistence, missing-key completeness gate, and opt-in diagnostics isolation; required checks passed including quality, typecheck, test, and focused web/desktop e2e."
+    },
+    {
+      "at": "2026-06-27T17:53:59.099Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; verified zh-CN/en locale runtime, ADR-0011 detection, shell-local preference persistence, localization completeness gate, diagnostics opt-in isolation, preserved web e2e coverage, valid UTF-8 zh-CN catalog, and required checks passing."
+    },
+    {
+      "at": "2026-06-27T17:56:45.486Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Independent reviewer verified WM-0114; integration gate passed: localization validation, handoff, taskctl validate/status, git diff --check, pnpm quality, web-shell e2e and desktop-shell e2e."
+    },
+    {
+      "at": "2026-06-27T17:56:45.540Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M8",
@@ -64,5 +94,20 @@
     "packages/sim-protocol/**",
     "save schema changes",
     "release/store/signing/telemetry/account/paid-service work"
-  ]
+  ],
+  "claimedBy": "client-engineer",
+  "threadLabel": null,
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0114.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; verified zh-CN/en locale runtime, ADR-0011 detection, shell-local preference persistence, localization completeness gate, diagnostics opt-in isolation, preserved web e2e coverage, valid UTF-8 zh-CN catalog, and required checks passing.",
+    "at": "2026-06-27T17:53:59.098Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Independent reviewer verified WM-0114; integration gate passed: localization validation, handoff, taskctl validate/status, git diff --check, pnpm quality, web-shell e2e and desktop-shell e2e.",
+    "at": "2026-06-27T17:56:45.486Z"
+  }
 }

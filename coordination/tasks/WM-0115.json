@@ -2,7 +2,7 @@
   "id": "WM-0115",
   "title": "zh-CN/en translation resources and hardcoded string inventory",
   "summary": "Move player-visible strings into zh-CN/en translation resources and produce a hardcoded player-string inventory.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "content-worker",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,13 +31,19 @@
   ],
   "branch": "task/WM-0115-m8-translation-resources",
   "createdAt": "2026-06-27T15:46:00.000Z",
-  "updatedAt": "2026-06-27T15:46:00.000Z",
+  "updatedAt": "2026-06-27T17:56:45.571Z",
   "history": [
     {
       "at": "2026-06-27T15:46:00.000Z",
       "actor": "project-director",
       "action": "create",
       "details": "Created by WM-0111 M8 UI/i18n scope amendment DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-27T17:56:45.571Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "M8",
