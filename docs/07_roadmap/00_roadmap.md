@@ -216,3 +216,33 @@ launch, store submission, public Web launch, signing, installer/updater
 distribution, telemetry, accounts, hosted services, paid services, public
 feedback systems, final privacy/legal/store claims and public save
 compatibility commitments remain owner-gated. M8 remains unstarted.
+
+## M7 Closeout Addendum
+
+WM-0110 closes M7 as Early Access / public playtest preparation after reviewed
+integration of WM-0098 through WM-0109 and independent review of the final M7
+closeout. The closeout records that M7 produced first-run onboarding, early
+balance/readability evidence, cultural review and terminology safety, local
+privacy/feedback/diagnostics boundaries, Windows controlled external test
+instructions, Web demo-only scope, save compatibility policy draft, non-final
+store/playtest material draft, known issues and release notes, tester protocol
+and the M7 readiness matrix.
+
+M7 readiness remains preparation rather than launch approval. Early Access and
+public playtest materials are prepared for owner review, but public release,
+Early Access launch, public recruitment, store submission, public Web launch,
+signing, installer/updater distribution, telemetry, accounts, hosted services,
+paid services, public feedback systems, final privacy/legal/store claims and
+public save compatibility commitments remain owner-gated.
+
+The M6 verdicts remain unchanged: Web is `demo-only`, and Windows is
+`ready-for-controlled-external-test` as an unsigned unpacked local directory
+build. M7 preserves the M5 alpha content final world/read-model hashes
+`0xfba70a5c` / `0x9ba83cb7` and the benchmark threshold policy of 10 percent
+warning and 20 percent blocking regression.
+
+M8 remains unstarted by this closeout. WM-0110 writes only the non-executable
+future handoff prompt at
+`coordination/reports/WM-0110-future-m8-entry-prompt.md`; a later owner-sent M8
+goal must create or follow a reviewed M8 task DAG before any M8 implementation
+task is claimed.

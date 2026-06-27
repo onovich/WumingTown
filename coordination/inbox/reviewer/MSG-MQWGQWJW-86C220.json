@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQWGQWJW-86C220",
+  "from": "project-director",
+  "to": "reviewer",
+  "taskId": "WM-0110",
+  "kind": "review-request",
+  "subject": "WM-0110 ready for review",
+  "body": "Prepared M7 closeout, roadmap/project-state closeout notes, and non-executable future M8 prompt; all M7 upstream tasks are done/verified/integrated; required WM-0110 gates passed with bench confirmation after one initial map-dirty jitter failure.",
+  "artifacts": [
+    "coordination/reports/WM-0110.md",
+    "task/WM-0110-m7-closeout-future-m8-entry"
+  ],
+  "createdAt": "2026-06-27T14:36:37.580Z",
+  "acknowledgedAt": "2026-06-27T14:37:53.841Z"
+}

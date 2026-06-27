@@ -328,3 +328,40 @@ store submission, public Web launch, signing, installer/updater distribution,
 telemetry, accounts, hosted services, paid services, public feedback systems,
 final privacy/legal/store claims, public save compatibility commitment or M8
 startup.
+
+## M7 Closeout Status
+
+WM-0110 closes M7 as Early Access / public playtest preparation after the
+reviewed task chain WM-0098 through WM-0109 records planning, onboarding,
+balance/readability, cultural review, privacy/feedback/diagnostics, Windows
+controlled-test instructions, Web demo-only scope, save compatibility policy,
+store/public-playtest material draft, known issues, tester protocol and the M7
+readiness matrix.
+
+Closeout evidence:
+
+- WM-0098 through WM-0109 are `done`, independently reviewed as `verified` and
+  integrated before WM-0110 closeout.
+- Early Access preparation is ready for owner review but not launch-approved.
+- Public playtest preparation is ready as controlled-test/public-playtest
+  evaluation material but not public-recruitment-approved.
+- Web demo readiness is limited to demo-only evaluation; same-spec,
+  lower-fast-forward, lower-cap and public Web launch remain unproven or
+  owner-gated.
+- Windows controlled external test readiness is limited to the unsigned
+  unpacked local directory build; signing, installer, updater, store package
+  and public Windows release remain owner-gated.
+- Local/manual privacy, feedback and diagnostics support is documented; no
+  telemetry, upload, account, hosted feedback, crash upload or paid-service
+  path is approved.
+- Save compatibility remains a controlled-test draft. Public compatibility,
+  cross-version migration guarantees and Windows/Web save interoperability
+  remain owner-gated.
+- The M5 alpha content framework final world/read-model hashes remain
+  `0xfba70a5c` / `0x9ba83cb7`; benchmark warning/blocking thresholds remain
+  10 percent and 20 percent.
+
+WM-0110 does not start M8. It writes only the non-executable future M8 prompt
+at `coordination/reports/WM-0110-future-m8-entry-prompt.md`; a later
+owner-sent M8 goal and reviewed M8 task DAG are required before any M8
+implementation task can be claimed.

@@ -2,7 +2,7 @@
   "id": "WM-0110",
   "title": "M7 closeout and future M8 entry prompt",
   "summary": "Close M7 after all M7 tasks are independently reviewed and integrated, then write a non-executable future M8 entry prompt without starting M8.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -40,7 +40,7 @@
   ],
   "branch": "task/WM-0110-m7-closeout-future-m8-entry",
   "createdAt": "2026-06-27T11:00:00.000Z",
-  "updatedAt": "2026-06-27T14:23:54.692Z",
+  "updatedAt": "2026-06-27T14:48:04.813Z",
   "history": [
     {
       "at": "2026-06-27T11:00:00.000Z",
@@ -53,6 +53,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-27T14:26:15.704Z",
+      "actor": "project-director",
+      "action": "claim",
+      "details": "thread=Beacon-root-project-director-WM-0110"
+    },
+    {
+      "at": "2026-06-27T14:36:37.578Z",
+      "actor": "project-director",
+      "action": "complete",
+      "details": "Prepared M7 closeout, roadmap/project-state closeout notes, and non-executable future M8 prompt; all M7 upstream tasks are done/verified/integrated; required WM-0110 gates passed with bench confirmation after one initial map-dirty jitter failure."
+    },
+    {
+      "at": "2026-06-27T14:45:27.872Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; upstream WM-0098-WM-0109 are done/verified/integrated; M8 remains a non-executable future prompt only; release/Web/Windows/save/privacy gates are preserved; required review checks passed."
+    },
+    {
+      "at": "2026-06-27T14:47:52.341Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified WM-0110 integrated after independent review and final integration gates: validate-handoff, taskctl validate/status, git diff --check, pnpm quality; full WM-0110 regression evidence recorded in report."
+    },
+    {
+      "at": "2026-06-27T14:48:04.813Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M7",
@@ -109,5 +139,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Milestone closeout and future M8 handoff are project-director work requiring independent review."
+  },
+  "claimedBy": "project-director",
+  "threadLabel": "Beacon-root-project-director-WM-0110",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0110.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; upstream WM-0098-WM-0109 are done/verified/integrated; M8 remains a non-executable future prompt only; release/Web/Windows/save/privacy gates are preserved; required review checks passed.",
+    "at": "2026-06-27T14:45:27.872Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified WM-0110 integrated after independent review and final integration gates: validate-handoff, taskctl validate/status, git diff --check, pnpm quality; full WM-0110 regression evidence recorded in report.",
+    "at": "2026-06-27T14:47:52.340Z"
   }
 }
