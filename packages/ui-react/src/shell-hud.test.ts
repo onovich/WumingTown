@@ -15,8 +15,8 @@ const READ_MODEL: WorldReadModel = {
   mapWidth: 192,
   mapHeight: 192,
   town: {
-    settlementName: "Wuming Town",
-    phaseLabel: "Web product gate",
+    settlementName: "Wuming Town / 无明镇",
+    phaseLabel: "Dusk watch",
     cycleLabel: "First season gate",
     speedLabel: "Read-only fixture",
     alerts: [
@@ -70,183 +70,117 @@ const READ_MODEL: WorldReadModel = {
 };
 
 describe("shell-hud", () => {
-  it("renders selected entity inspector content and release-gate metadata", () => {
-    const state: ShellState = {
-      readModel: READ_MODEL,
-      releaseGate: {
-        fixtureId: "wm-0086-web-product-gate",
-        title: "Web Product Gate",
-        browserTargets: ["Chrome Stable", "Edge Stable"],
-        runtimeBrowser: "Chrome-family browser",
-        runtimeCrossOriginIsolated: false,
-        sections: [
-          {
-            label: "Fixture",
-            value: "M5 first-season Web product-gate fixture",
-            detail: "Map 192 x 192 | 40 visible actors | 20000 total-entity target",
-          },
-        ],
-      },
-      storageGate: {
-        diagnostic: undefined,
-        interoperabilityDetail:
-          "Blocked until the Electron preload exposes a reviewed save-store bridge.",
-        interoperabilityVerdict: "blocked",
-        lastActionLabel: "Idle",
-        quotaAvailableBytes: 1024 * 1024,
-        quotaBytes: 2 * 1024 * 1024,
-        saveId: "m6-gate-slot",
-        saveSlots: [
-          {
-            checksumSha256Hex: "1234567890abcdef1234567890abcdef",
-            id: "m6-gate-slot",
-            sizeBytes: 512,
-            updatedAtUnixMs: 1_717_000_000_000,
-          },
-        ],
-        scopeNote:
-          "M6 gate envelope only. This does not promise public save compatibility beyond the product gate.",
-        statusDetail: "OPFS available and ready for import/export evidence.",
-        statusTone: "stable",
-        storageKindLabel: "OPFS ready",
-        usageBytes: 256 * 1024,
-        userMessage: "Web storage ready for gate evidence.",
-      },
-      onboarding: {
-        authorityBoundary: "read-model-only",
-        releaseBoundary: "web-demo-windows-controlled-test",
-      },
-      locale: createDefaultShellLocaleState(["en-US"]),
-      diagnosticsVisible: false,
-      canvasWidth: 1280,
-      canvasHeight: 720,
-      zoom: 1.25,
-      lastInputLabel: "Ready",
-      selectedEntityId: "entity-a",
-      hoverTile: {
-        x: 96,
-        y: 80,
-      },
-    };
-    const store = createShellStore(state);
-    const noopAsync = (): Promise<void> => Promise.resolve();
-    const noopSetLocale: (locale: "en" | "zh-CN") => Promise<void> = () => Promise.resolve();
-    const noopImport: (file: File) => Promise<void> = () => Promise.resolve();
-    const markup = renderToStaticMarkup(
-      createShellHudElement(
-        store,
-        {
-          onDeleteSave: noopAsync,
-          onExportSave: noopAsync,
-          onImportFile: noopImport,
-          onLoadSave: noopAsync,
-          onRefreshStorage: noopAsync,
-          onSaveFixture: noopAsync,
-        },
-        {
-          onUseManualLocale: noopSetLocale,
-          onUseSystemLocale: noopAsync,
-        },
-      ),
-    );
+  it("renders the default main menu surface without diagnostics harness copy", () => {
+    const state = createShellState(createDefaultShellLocaleState(["en-US"]));
+    const markup = renderShell(state);
 
-    expect(markup).toContain("Chronicler Lin");
-    expect(markup).toContain("Ledger review");
-    expect(markup).toContain("Keep the archive open until the route list is clear.");
-    expect(markup).toContain("Language settings");
-    expect(markup).toContain("Current locale: English");
-    expect(markup).toContain("M8 first-run path");
-    expect(markup).toContain("Follow evidence, not hidden truth");
+    expect(markup).toContain("Main menu");
+    expect(markup).toContain("New Game");
+    expect(markup).toContain("Continue");
+    expect(markup).toContain("Settings");
+    expect(markup).toContain("Presentation language");
+    expect(markup).toContain("Current phase");
     expect(markup).not.toContain("Web Product Gate");
     expect(markup).not.toContain("Storage Gate");
+    expect(markup).not.toContain("M8 first-run path");
   });
 
-  it("renders zh-CN shell chrome for the covered player surfaces", () => {
-    const state: ShellState = {
-      readModel: READ_MODEL,
-      releaseGate: {
-        fixtureId: "wm-0086-web-product-gate",
-        title: "Web Product Gate",
-        browserTargets: ["Chrome Stable", "Edge Stable"],
-        runtimeBrowser: "Chrome-family browser",
-        runtimeCrossOriginIsolated: false,
-        sections: [
-          {
-            label: "Fixture",
-            value: "M5 first-season Web product-gate fixture",
-            detail: "Map 192 x 192 | 40 visible actors | 20000 total-entity target",
-          },
-        ],
-      },
-      storageGate: {
-        diagnostic: undefined,
-        interoperabilityDetail:
-          "Blocked until the Electron preload exposes a reviewed save-store bridge.",
-        interoperabilityVerdict: "blocked",
-        lastActionLabel: "Idle",
-        quotaAvailableBytes: 1024 * 1024,
-        quotaBytes: 2 * 1024 * 1024,
-        saveId: "m6-gate-slot",
-        saveSlots: [
-          {
-            checksumSha256Hex: "1234567890abcdef1234567890abcdef",
-            id: "m6-gate-slot",
-            sizeBytes: 512,
-            updatedAtUnixMs: 1_717_000_000_000,
-          },
-        ],
-        scopeNote:
-          "M6 gate envelope only. This does not promise public save compatibility beyond the product gate.",
-        statusDetail: "OPFS available and ready for import/export evidence.",
-        statusTone: "stable",
-        storageKindLabel: "OPFS ready",
-        usageBytes: 256 * 1024,
-        userMessage: "Web storage ready for gate evidence.",
-      },
-      onboarding: {
-        authorityBoundary: "read-model-only",
-        releaseBoundary: "web-demo-windows-controlled-test",
-      },
-      locale: createDefaultShellLocaleState(["zh-TW"]),
-      diagnosticsVisible: false,
-      canvasWidth: 1280,
-      canvasHeight: 720,
-      zoom: 1.25,
-      lastInputLabel: "Ready",
-      selectedEntityId: "entity-a",
-      hoverTile: {
-        x: 96,
-        y: 80,
-      },
-    };
-    const store = createShellStore(state);
-    const noopAsync = (): Promise<void> => Promise.resolve();
-    const noopSetLocale: (locale: "en" | "zh-CN") => Promise<void> = () => Promise.resolve();
-    const noopImport: (file: File) => Promise<void> = () => Promise.resolve();
-    const markup = renderToStaticMarkup(
-      createShellHudElement(
-        store,
-        {
-          onDeleteSave: noopAsync,
-          onExportSave: noopAsync,
-          onImportFile: noopImport,
-          onLoadSave: noopAsync,
-          onRefreshStorage: noopAsync,
-          onSaveFixture: noopAsync,
-        },
-        {
-          onUseManualLocale: noopSetLocale,
-          onUseSystemLocale: noopAsync,
-        },
-      ),
-    );
+  it("renders zh-CN shell chrome for the default main menu surface", () => {
+    const state = createShellState(createDefaultShellLocaleState(["zh-TW"]));
+    const markup = renderShell(state);
 
-    expect(markup).toContain("语言设置");
-    expect(markup).toContain("选择界面语言");
-    expect(markup).toContain("依据证据而非隐藏真相");
-    expect(markup).toContain("先读懂城镇状态");
-    expect(markup).not.toContain("Language settings");
-    expect(markup).not.toContain("Choose presentation language");
-    expect(markup).not.toContain("Follow evidence, not hidden truth");
+    expect(markup).toContain("主菜单");
+    expect(markup).toContain("新游戏");
+    expect(markup).toContain("继续");
+    expect(markup).toContain("设置");
+    expect(markup).toContain("界面语言");
+    expect(markup).not.toContain("Main menu");
+    expect(markup).not.toContain("New Game");
+    expect(markup).not.toContain("Settings");
   });
 });
+
+function createShellState(locale: ReturnType<typeof createDefaultShellLocaleState>): ShellState {
+  return {
+    readModel: READ_MODEL,
+    releaseGate: {
+      fixtureId: "wm-0086-web-product-gate",
+      title: "Web Product Gate",
+      browserTargets: ["Chrome Stable", "Edge Stable"],
+      runtimeBrowser: "Chrome-family browser",
+      runtimeCrossOriginIsolated: false,
+      sections: [
+        {
+          label: "Fixture",
+          value: "M5 first-season Web product-gate fixture",
+          detail: "Map 192 x 192 | 40 visible actors | 20000 total-entity target",
+        },
+      ],
+    },
+    storageGate: {
+      diagnostic: undefined,
+      interoperabilityDetail:
+        "Blocked until the Electron preload exposes a reviewed save-store bridge.",
+      interoperabilityVerdict: "blocked",
+      lastActionLabel: "Idle",
+      quotaAvailableBytes: 1024 * 1024,
+      quotaBytes: 2 * 1024 * 1024,
+      saveId: "m6-gate-slot",
+      saveSlots: [
+        {
+          checksumSha256Hex: "1234567890abcdef1234567890abcdef",
+          id: "m6-gate-slot",
+          sizeBytes: 512,
+          updatedAtUnixMs: 1_717_000_000_000,
+        },
+      ],
+      scopeNote:
+        "M6 gate envelope only. This does not promise public save compatibility beyond the product gate.",
+      statusDetail: "OPFS available and ready for import/export evidence.",
+      statusTone: "stable",
+      storageKindLabel: "OPFS ready",
+      usageBytes: 256 * 1024,
+      userMessage: "Web storage ready for gate evidence.",
+    },
+    onboarding: {
+      authorityBoundary: "read-model-only",
+      releaseBoundary: "web-demo-windows-controlled-test",
+    },
+    locale,
+    diagnosticsVisible: false,
+    canvasWidth: 1280,
+    canvasHeight: 720,
+    zoom: 1.25,
+    lastInputLabel: "Ready",
+    selectedEntityId: "entity-a",
+    hoverTile: {
+      x: 96,
+      y: 80,
+    },
+  };
+}
+
+function renderShell(state: ShellState): string {
+  const store = createShellStore(state);
+  const noopAsync = (): Promise<void> => Promise.resolve();
+  const noopSetLocale: (locale: "en" | "zh-CN") => Promise<void> = () => Promise.resolve();
+  const noopImport: (file: File) => Promise<void> = () => Promise.resolve();
+
+  return renderToStaticMarkup(
+    createShellHudElement(
+      store,
+      {
+        onDeleteSave: noopAsync,
+        onExportSave: noopAsync,
+        onImportFile: noopImport,
+        onLoadSave: noopAsync,
+        onRefreshStorage: noopAsync,
+        onSaveFixture: noopAsync,
+      },
+      {
+        onUseManualLocale: noopSetLocale,
+        onUseSystemLocale: noopAsync,
+      },
+    ),
+  );
+}

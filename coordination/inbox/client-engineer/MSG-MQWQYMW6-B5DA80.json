@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQWQYMW6-B5DA80",
+  "from": "reviewer",
+  "to": "client-engineer",
+  "taskId": "WM-0116",
+  "kind": "changes-requested",
+  "subject": "WM-0116 review: changes_requested",
+  "body": "Medium: compact main menu surface is not viewport-bounded or scrollable; at 800x720/1024x720 the panel starts at y=-48 and language section extends below viewport (bottom=747), and at 390x720 language buttons extend to y=842. Default desktop/diagnostics/i18n checks otherwise pass: typecheck, web-shell e2e, desktop-shell e2e, validate-handoff, taskctl validate/status, git diff --check, quality.",
+  "artifacts": [
+    "coordination/reports/WM-0116.md"
+  ],
+  "createdAt": "2026-06-27T19:22:34.470Z",
+  "acknowledgedAt": "2026-06-27T19:23:49.245Z"
+}

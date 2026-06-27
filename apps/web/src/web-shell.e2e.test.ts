@@ -436,6 +436,48 @@ describe("web shell smoke", () => {
     }
   }, 120000);
 
+  it("keeps the main menu viewport-bounded and scroll-reachable at compact viewports", async () => {
+    const appRoot = path.join(process.cwd(), "apps", "web");
+    const server = await createServer({
+      configFile: false,
+      logLevel: "error",
+      root: appRoot,
+      server: {
+        host: "127.0.0.1",
+        port: 0,
+        strictPort: false,
+      },
+    });
+    await server.listen();
+
+    const serverUrl = readServerUrl(server);
+    const browser = await chromium.launch();
+
+    try {
+      const context = await browser.newContext({
+        locale: "en-US",
+        viewport: {
+          width: 390,
+          height: 720,
+        },
+      });
+      const page = await context.newPage();
+
+      await page.goto(serverUrl, {
+        waitUntil: "networkidle",
+      });
+      await page.waitForSelector("[data-shell-ready='true']");
+      await waitForLocale(page, "en", "system");
+      await assertCompactStartSurfaceLayout(page, 390, 720);
+      await assertCompactStartSurfaceLayout(page, 800, 720);
+
+      await context.close();
+    } finally {
+      await browser.close();
+      await server.close();
+    }
+  }, 120000);
+
   it("defaults locale by browser language and persists a manual override across reload", async () => {
     const appRoot = path.join(process.cwd(), "apps", "web");
     const server = await createServer({
@@ -467,6 +509,7 @@ describe("web shell smoke", () => {
       });
       await englishPage.waitForSelector("[data-shell-ready='true']");
       await waitForLocale(englishPage, "en", "system");
+      await assertStartSurfaceBaseline(englishPage, "en");
       await englishContext.close();
 
       const chineseContext = await browser.newContext({
@@ -482,14 +525,16 @@ describe("web shell smoke", () => {
       });
       await chinesePage.waitForSelector("[data-shell-ready='true']");
       await waitForLocale(chinesePage, "zh-CN", "system");
-
-      await chinesePage.getByTestId("locale-select").selectOption("en");
+      await assertStartSurfaceBaseline(chinesePage, "zh-CN");
+      await chinesePage.getByTestId("main-menu-locale-en").click();
       await waitForLocale(chinesePage, "en", "manual");
+      await waitForHudText(chinesePage, "New Game");
       await chinesePage.reload({
         waitUntil: "networkidle",
       });
       await chinesePage.waitForSelector("[data-shell-ready='true']");
       await waitForLocale(chinesePage, "en", "manual");
+      await waitForHudText(chinesePage, "New Game");
 
       await chineseContext.close();
     } finally {
@@ -503,8 +548,14 @@ async function assertAccessibilityBaseline(page: import("playwright").Page): Pro
   const shellText = await page.locator("[data-shell-ready='true']").textContent();
   expect(shellText ?? "").toContain("Wuming Town");
   expect(shellText ?? "").toContain("无明镇");
-  expect(shellText ?? "").toContain("Language settings");
   expect(shellText ?? "").not.toContain("Web Product Gate");
+  if ((await page.getByTestId("main-menu-surface").count()) > 0) {
+    expect(shellText ?? "").toContain("Main menu");
+    await assertStartSurfaceBaseline(page, "en");
+    await page.getByTestId("main-menu-new-game").click();
+    await waitForStartSurfaceClosed(page);
+  }
+  await waitForHudText(page, "Language settings");
 
   const warningAlertText = await page
     .locator("[data-alert-severity='warning']")
@@ -522,8 +573,6 @@ async function assertAccessibilityBaseline(page: import("playwright").Page): Pro
   expect(await page.locator("[data-release-gate-fixture='wm-0086-web-product-gate']").count()).toBe(
     0,
   );
-  await assertOnboardingBaseline(page);
-
   const mediaCueCount = await page.locator("audio, video").count();
   expect(mediaCueCount).toBe(0);
 
@@ -535,10 +584,10 @@ async function assertAccessibilityBaseline(page: import("playwright").Page): Pro
   const overflow = await page.evaluate(() => {
     const selectors = [
       "button",
+      "[aria-label='Main menu']",
       "[aria-label='Town status']",
       "[aria-label='Town alerts']",
       "[aria-label='Language settings']",
-      "[aria-label='First-play guidance']",
       "[aria-label='Selected entity inspector']",
     ];
     const offenders: string[] = [];
@@ -567,20 +616,131 @@ async function assertAccessibilityBaseline(page: import("playwright").Page): Pro
 }
 
 async function assertOnboardingBaseline(page: import("playwright").Page): Promise<void> {
-  const panel = page.getByTestId("onboarding-panel");
-  const panelText = await panel.textContent();
-  expect(panelText ?? "").toContain("M8 first-run path");
-  expect(panelText ?? "").toContain("Read the town state first");
-  expect(panelText ?? "").toContain("Choose presentation language");
-  expect(panelText ?? "").toContain("Follow evidence, not hidden truth");
-  expect(panelText ?? "").toContain("Web remains demo-only");
-  expect(panelText ?? "").toContain("Windows remains unsigned controlled external test");
-  expect(panelText ?? "").toContain("no telemetry, accounts, paid service");
-  expect(await panel.getAttribute("data-authority-boundary")).toBe("read-model-only");
-  expect(await panel.getAttribute("data-release-boundary")).toBe(
-    "web-demo-windows-controlled-test",
+  const surface = page.getByTestId("main-menu-surface");
+  expect(await surface.count()).toBe(1);
+  const surfaceText = await surface.textContent();
+  expect(surfaceText ?? "").toContain("Wuming Town");
+  expect(await page.getByTestId("main-menu-new-game").count()).toBe(1);
+  expect(await page.getByTestId("main-menu-continue").count()).toBe(1);
+  expect(await page.getByTestId("main-menu-settings").count()).toBe(1);
+  expect(await page.getByTestId("main-menu-language").count()).toBe(1);
+}
+
+async function assertStartSurfaceBaseline(
+  page: import("playwright").Page,
+  locale: "en" | "zh-CN",
+): Promise<void> {
+  await assertOnboardingBaseline(page);
+  const surfaceText = await page.getByTestId("main-menu-surface").textContent();
+  if (locale === "en") {
+    expect(surfaceText ?? "").toContain("New Game");
+    expect(surfaceText ?? "").toContain("Settings");
+  } else {
+    expect(surfaceText ?? "").toContain("主菜单");
+    expect(surfaceText ?? "").toContain("新游戏");
+    expect(surfaceText ?? "").toContain("设置");
+  }
+
+  await page.getByTestId("main-menu-settings").click();
+  await page.getByTestId("locale-select").waitFor();
+  expect(await page.getByTestId("main-menu-back").count()).toBe(1);
+  await page.getByTestId("main-menu-back").click();
+  await page.getByTestId("main-menu-settings").waitFor();
+}
+
+async function assertCompactStartSurfaceLayout(
+  page: import("playwright").Page,
+  width: number,
+  height: number,
+): Promise<void> {
+  await page.setViewportSize({
+    width,
+    height,
+  });
+  await page.waitForTimeout(150);
+  await page.getByTestId("main-menu-panel").waitFor();
+
+  const panelMetrics = await readElementViewportMetrics(page, "[data-testid='main-menu-panel']");
+  expect(panelMetrics.top).toBeGreaterThanOrEqual(0);
+  expect(panelMetrics.left).toBeGreaterThanOrEqual(0);
+  expect(panelMetrics.right).toBeLessThanOrEqual(width + 1);
+  expect(panelMetrics.bottom).toBeLessThanOrEqual(height + 1);
+  expect(panelMetrics.overflowX).toBeLessThanOrEqual(1);
+
+  const documentOverflowX = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
-  expect(await page.getByTestId("onboarding-step").count()).toBe(3);
+  expect(documentOverflowX).toBeLessThanOrEqual(1);
+
+  await page.getByTestId("main-menu-language").scrollIntoViewIfNeeded();
+  await assertTestIdWithinViewport(page, "main-menu-language", width, height);
+  await assertTestIdWithinViewport(page, "main-menu-locale-system", width, height);
+  await assertTestIdWithinViewport(page, "main-menu-locale-zh-CN", width, height);
+  await assertTestIdWithinViewport(page, "main-menu-locale-en", width, height);
+
+  await page.getByTestId("main-menu-settings").click();
+  await page.getByTestId("locale-select").scrollIntoViewIfNeeded();
+  await assertTestIdWithinViewport(page, "main-menu-back", width, height);
+  await assertTestIdWithinViewport(page, "locale-select", width, height);
+  await page.getByTestId("main-menu-back").click();
+  await page.getByTestId("main-menu-settings").waitFor();
+}
+
+async function waitForStartSurfaceClosed(page: import("playwright").Page): Promise<void> {
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    if ((await page.getByTestId("main-menu-surface").count()) === 0) {
+      return;
+    }
+
+    await page.waitForTimeout(100);
+  }
+
+  throw new Error("Timed out waiting for the main menu surface to close.");
+}
+
+async function assertTestIdWithinViewport(
+  page: import("playwright").Page,
+  testId: string,
+  width: number,
+  height: number,
+): Promise<void> {
+  await page.locator(`[data-testid='${testId}']`).evaluate((element: HTMLElement) => {
+    element.scrollIntoView({
+      block: "nearest",
+      inline: "nearest",
+    });
+  });
+  await page.waitForTimeout(50);
+  const metrics = await readElementViewportMetrics(page, `[data-testid='${testId}']`);
+  expect(metrics.top).toBeGreaterThanOrEqual(0);
+  expect(metrics.left).toBeGreaterThanOrEqual(0);
+  expect(metrics.right).toBeLessThanOrEqual(width + 1);
+  expect(metrics.bottom).toBeLessThanOrEqual(height + 1);
+  expect(metrics.overflowX).toBeLessThanOrEqual(1);
+}
+
+async function readElementViewportMetrics(
+  page: import("playwright").Page,
+  selector: string,
+): Promise<{
+  readonly bottom: number;
+  readonly left: number;
+  readonly overflowX: number;
+  readonly right: number;
+  readonly top: number;
+}> {
+  const metrics = await page.locator(selector).evaluate((element: HTMLElement) => {
+    const rect = element.getBoundingClientRect();
+    return {
+      bottom: rect.bottom,
+      left: rect.left,
+      overflowX: element.scrollWidth - element.clientWidth,
+      right: rect.right,
+      top: rect.top,
+    };
+  });
+
+  return metrics;
 }
 
 async function clickCanvasPoint(

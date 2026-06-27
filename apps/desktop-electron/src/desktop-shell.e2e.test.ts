@@ -179,6 +179,7 @@ describe("desktop Electron shell smoke", () => {
         const englishPage = await englishApp.firstWindow();
         await englishPage.waitForSelector("[data-shell-ready='true']");
         await waitForLocale(englishPage, "en", "system");
+        await assertDesktopStartSurfaceBaseline(englishPage, "en");
         expect(
           await englishPage
             .locator("[data-release-gate-fixture='wm-0086-web-product-gate']")
@@ -202,8 +203,10 @@ describe("desktop Electron shell smoke", () => {
         const chinesePage = await chineseApp.firstWindow();
         await chinesePage.waitForSelector("[data-shell-ready='true']");
         await waitForLocale(chinesePage, "zh-CN", "system");
-        await chinesePage.getByTestId("locale-select").selectOption("en");
+        await assertDesktopStartSurfaceBaseline(chinesePage, "zh-CN");
+        await chinesePage.getByTestId("main-menu-locale-en").click();
         await waitForLocale(chinesePage, "en", "manual");
+        await waitForHudText(chinesePage, "New Game");
       } finally {
         await chineseApp.close();
       }
@@ -221,6 +224,7 @@ describe("desktop Electron shell smoke", () => {
         const persistedPage = await persistedApp.firstWindow();
         await persistedPage.waitForSelector("[data-shell-ready='true']");
         await waitForLocale(persistedPage, "en", "manual");
+        await waitForHudText(persistedPage, "New Game");
       } finally {
         await persistedApp.close();
       }
@@ -361,6 +365,12 @@ async function assertDesktopAccessibilityBaseline(
 ): Promise<void> {
   const shellText = await page.locator("[data-shell-ready='true']").textContent();
   expect(shellText ?? "").toContain("Wuming Town");
+  if ((await page.getByTestId("main-menu-surface").count()) > 0) {
+    await assertDesktopStartSurfaceBaseline(page, "en");
+    await page.getByTestId("main-menu-new-game").click();
+    await waitForDesktopStartSurfaceClosed(page);
+  }
+  await waitForHudText(page, "Language settings");
   expect(shellText ?? "").toContain("无明镇");
 
   const warningAlertText = await page
@@ -377,7 +387,6 @@ async function assertDesktopAccessibilityBaseline(
 
   const interoperabilityText = await page.getByTestId("storage-interoperability").textContent();
   expect(interoperabilityText ?? "").toContain("BLOCKED");
-  await assertDesktopOnboardingBaseline(page);
 
   const mediaCueCount = await page.locator("audio, video").count();
   expect(mediaCueCount).toBe(0);
@@ -402,19 +411,48 @@ async function assertDesktopAccessibilityBaseline(
 }
 
 async function assertDesktopOnboardingBaseline(page: Page): Promise<void> {
-  const panel = page.getByTestId("onboarding-panel");
-  const panelText = await panel.textContent();
-  expect(panelText ?? "").toContain("M8 first-run path");
-  expect(panelText ?? "").toContain("Read the town state first");
-  expect(panelText ?? "").toContain("Choose presentation language");
-  expect(panelText ?? "").toContain("Follow evidence, not hidden truth");
-  expect(panelText ?? "").toContain("Web remains demo-only");
-  expect(panelText ?? "").toContain("Windows remains unsigned controlled external test");
-  expect(await panel.getAttribute("data-authority-boundary")).toBe("read-model-only");
-  expect(await panel.getAttribute("data-release-boundary")).toBe(
-    "web-demo-windows-controlled-test",
-  );
-  expect(await page.getByTestId("onboarding-step").count()).toBe(3);
+  const surface = page.getByTestId("main-menu-surface");
+  expect(await surface.count()).toBe(1);
+  const surfaceText = await surface.textContent();
+  expect(surfaceText ?? "").toContain("Wuming Town");
+  expect(await page.getByTestId("main-menu-new-game").count()).toBe(1);
+  expect(await page.getByTestId("main-menu-continue").count()).toBe(1);
+  expect(await page.getByTestId("main-menu-settings").count()).toBe(1);
+  expect(await page.getByTestId("main-menu-language").count()).toBe(1);
+}
+
+async function assertDesktopStartSurfaceBaseline(
+  page: Page,
+  locale: "en" | "zh-CN",
+): Promise<void> {
+  await assertDesktopOnboardingBaseline(page);
+  const surfaceText = await page.getByTestId("main-menu-surface").textContent();
+  if (locale === "en") {
+    expect(surfaceText ?? "").toContain("New Game");
+    expect(surfaceText ?? "").toContain("Settings");
+  } else {
+    expect(surfaceText ?? "").toContain("主菜单");
+    expect(surfaceText ?? "").toContain("新游戏");
+    expect(surfaceText ?? "").toContain("设置");
+  }
+
+  await page.getByTestId("main-menu-settings").click();
+  await page.getByTestId("locale-select").waitFor();
+  expect(await page.getByTestId("main-menu-back").count()).toBe(1);
+  await page.getByTestId("main-menu-back").click();
+  await page.getByTestId("main-menu-settings").waitFor();
+}
+
+async function waitForDesktopStartSurfaceClosed(page: Page): Promise<void> {
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    if ((await page.getByTestId("main-menu-surface").count()) === 0) {
+      return;
+    }
+
+    await page.waitForTimeout(100);
+  }
+
+  throw new Error("Timed out waiting for the desktop main menu surface to close.");
 }
 
 async function ensureDesktopMainBuild(): Promise<void> {

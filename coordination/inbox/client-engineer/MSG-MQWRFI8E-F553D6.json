@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQWRFI8E-F553D6",
+  "from": "reviewer",
+  "to": "client-engineer",
+  "taskId": "WM-0116",
+  "kind": "review-approved",
+  "subject": "WM-0116 review: verified",
+  "body": "No blocking findings. Prior compact-menu issue is resolved: independent Web audit at 390x720 and 800x720 in en-US and zh-TW kept main-menu-panel within 16..704 vertical bounds, zero horizontal overflow, and language buttons plus Settings locale selector reachable before dismissal. Required gates passed: typecheck, web-shell e2e (6 tests), desktop-shell e2e (3 tests), validate-handoff, taskctl validate/status, git diff --check, quality.",
+  "artifacts": [
+    "coordination/reports/WM-0116.md"
+  ],
+  "createdAt": "2026-06-27T19:35:41.583Z",
+  "acknowledgedAt": "2026-06-27T19:36:32.219Z"
+}

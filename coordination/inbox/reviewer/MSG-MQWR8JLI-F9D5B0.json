@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQWR8JLI-F9D5B0",
+  "from": "client-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0116",
+  "kind": "review-request",
+  "subject": "WM-0116 ready for review",
+  "body": "Repaired compact main-menu layout by making the start panel viewport-bounded and scrollable; added focused Web compact-viewport E2E for language/settings reachability at 390x720 and 800x720; required typecheck, web-shell, desktop-shell, validate-handoff, taskctl validate/status, git diff --check and quality all pass.",
+  "artifacts": [
+    "coordination/reports/WM-0116.md",
+    "task/WM-0116-m8-main-menu-settings-language"
+  ],
+  "createdAt": "2026-06-27T19:30:16.759Z",
+  "acknowledgedAt": "2026-06-27T19:31:15.036Z"
+}

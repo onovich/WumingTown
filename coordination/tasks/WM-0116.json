@@ -2,7 +2,7 @@
   "id": "WM-0116",
   "title": "Main menu settings and language selection",
   "summary": "Add the default player start/settings surface with New/Continue/Settings and language selection.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -34,7 +34,7 @@
   ],
   "branch": "task/WM-0116-m8-main-menu-settings-language",
   "createdAt": "2026-06-27T15:46:00.000Z",
-  "updatedAt": "2026-06-27T18:46:55.610Z",
+  "updatedAt": "2026-06-27T19:38:53.719Z",
   "history": [
     {
       "at": "2026-06-27T15:46:00.000Z",
@@ -47,6 +47,54 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-27T18:52:48.768Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": "thread=codex-client-engineer-wm0116"
+    },
+    {
+      "at": "2026-06-27T19:12:41.971Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Default launch now opens a localized main menu with New Game, Continue, Settings and language controls; Web and desktop E2E, typecheck, handoff validation and quality all pass."
+    },
+    {
+      "at": "2026-06-27T19:22:34.469Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: Medium: compact main menu surface is not viewport-bounded or scrollable; at 800x720/1024x720 the panel starts at y=-48 and language section extends below viewport (bottom=747), and at 390x720 language buttons extend to y=842. Default desktop/diagnostics/i18n checks otherwise pass: typecheck, web-shell e2e, desktop-shell e2e, validate-handoff, taskctl validate/status, git diff --check, quality."
+    },
+    {
+      "at": "2026-06-27T19:24:34.411Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": "thread=codex-client-engineer-wm0116"
+    },
+    {
+      "at": "2026-06-27T19:30:16.757Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Repaired compact main-menu layout by making the start panel viewport-bounded and scrollable; added focused Web compact-viewport E2E for language/settings reachability at 390x720 and 800x720; required typecheck, web-shell, desktop-shell, validate-handoff, taskctl validate/status, git diff --check and quality all pass."
+    },
+    {
+      "at": "2026-06-27T19:35:41.581Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Prior compact-menu issue is resolved: independent Web audit at 390x720 and 800x720 in en-US and zh-TW kept main-menu-panel within 16..704 vertical bounds, zero horizontal overflow, and language buttons plus Settings locale selector reachable before dismissal. Required gates passed: typecheck, web-shell e2e (6 tests), desktop-shell e2e (3 tests), validate-handoff, taskctl validate/status, git diff --check, quality."
+    },
+    {
+      "at": "2026-06-27T19:38:45.325Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified by independent reviewer; integration gates passed: typecheck, web-shell e2e, desktop-shell e2e, validate-handoff, taskctl validate/status, git diff --check, quality."
+    },
+    {
+      "at": "2026-06-27T19:38:53.719Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M8",
@@ -62,5 +110,20 @@
     "packages/sim-worker/**",
     "save schema changes unless explicitly scoped by existing persistence APIs",
     "release/store/signing/telemetry/account/paid-service work"
-  ]
+  ],
+  "claimedBy": "client-engineer",
+  "threadLabel": "codex-client-engineer-wm0116",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0116.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Prior compact-menu issue is resolved: independent Web audit at 390x720 and 800x720 in en-US and zh-TW kept main-menu-panel within 16..704 vertical bounds, zero horizontal overflow, and language buttons plus Settings locale selector reachable before dismissal. Required gates passed: typecheck, web-shell e2e (6 tests), desktop-shell e2e (3 tests), validate-handoff, taskctl validate/status, git diff --check, quality.",
+    "at": "2026-06-27T19:35:41.580Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified by independent reviewer; integration gates passed: typecheck, web-shell e2e, desktop-shell e2e, validate-handoff, taskctl validate/status, git diff --check, quality.",
+    "at": "2026-06-27T19:38:45.325Z"
+  }
 }

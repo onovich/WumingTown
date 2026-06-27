@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQWQLXPX-FA3902",
+  "from": "client-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0116",
+  "kind": "review-request",
+  "subject": "WM-0116 ready for review",
+  "body": "Default launch now opens a localized main menu with New Game, Continue, Settings and language controls; Web and desktop E2E, typecheck, handoff validation and quality all pass.",
+  "artifacts": [
+    "coordination/reports/WM-0116.md",
+    "task/WM-0116-m8-main-menu-settings-language"
+  ],
+  "createdAt": "2026-06-27T19:12:41.974Z",
+  "acknowledgedAt": "2026-06-27T19:14:43.675Z"
+}

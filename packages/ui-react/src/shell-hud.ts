@@ -1,7 +1,13 @@
-import { createElement, useSyncExternalStore, type CSSProperties, type ReactElement } from "react";
+import {
+  createElement,
+  useState,
+  useSyncExternalStore,
+  type CSSProperties,
+  type ReactElement,
+} from "react";
 
 import { formatMessage, type LocaleId } from "./localization";
-import { ShellOnboardingPanel } from "./shell-onboarding-panel";
+import { ShellMainMenuSurface } from "./shell-main-menu-surface";
 import { ShellSettingsPanel } from "./shell-settings-panel";
 import { ShellStoragePanel } from "./shell-storage-panel";
 import { getSelectedEntity, type ShellState, type ShellStore } from "./shell-store";
@@ -30,6 +36,7 @@ export function ShellHudRoot({
   store,
   storageActions,
 }: ShellHudRootProps): ReactElement {
+  const [startSurfaceDismissed, setStartSurfaceDismissed] = useState(false);
   const state = useSyncExternalStore(
     (listener) => store.subscribe(listener),
     () => store.getSnapshot(),
@@ -38,6 +45,7 @@ export function ShellHudRoot({
   const selectedEntity = getSelectedEntity(state);
   const compactLayout = state.canvasWidth < 1040;
   const uiLocale = state.locale.resolvedLocale;
+  const startSurfaceVisible = !state.diagnosticsVisible && !startSurfaceDismissed;
 
   return createElement(
     "div",
@@ -48,116 +56,130 @@ export function ShellHudRoot({
       "data-shell-ready": "true",
       style: overlayRootStyle,
     },
-    createElement(
-      "section",
-      {
-        "aria-label": formatMessage(uiLocale, "ui.surface.topBar"),
-        style: compactLayout ? compactTopBarStyle : topBarStyle,
-      },
-      createIdentityCard(state, uiLocale),
-      createElement(ShellSettingsPanel, {
-        actions: localeActions,
-        state: state.locale,
-      }),
-      createElement(
-        "div",
-        {
-          style: summaryGroupStyle,
-        },
-        ...state.readModel.town.resources.map((resource) =>
+    startSurfaceVisible
+      ? createElement(ShellMainMenuSurface, {
+          compact: compactLayout,
+          cycleLabel: state.readModel.town.cycleLabel,
+          localeActions,
+          localeState: state.locale,
+          onDismiss: () => {
+            setStartSurfaceDismissed(true);
+          },
+          phaseLabel: state.readModel.town.phaseLabel,
+          settlementName: state.readModel.town.settlementName,
+          storageActions,
+          storageState: state.storageGate,
+        })
+      : [
           createElement(
-            "div",
+            "section",
             {
-              key: resource.label,
-              style: statChipStyle,
+              "aria-label": formatMessage(uiLocale, "ui.surface.topBar"),
+              key: "top-bar",
+              style: compactLayout ? compactTopBarStyle : topBarStyle,
+            },
+            createIdentityCard(state, uiLocale),
+            createElement(ShellSettingsPanel, {
+              actions: localeActions,
+              state: state.locale,
+            }),
+            createElement(
+              "div",
+              {
+                style: summaryGroupStyle,
+              },
+              ...state.readModel.town.resources.map((resource) =>
+                createElement(
+                  "div",
+                  {
+                    key: resource.label,
+                    style: statChipStyle,
+                  },
+                  createElement(
+                    "div",
+                    {
+                      style: chipLabelStyle,
+                    },
+                    resource.label,
+                  ),
+                  createElement(
+                    "div",
+                    {
+                      style: chipValueStyle,
+                    },
+                    `${String(resource.amount)}${resource.unit}`,
+                  ),
+                  createElement(
+                    "div",
+                    {
+                      style: chipHintStyle,
+                    },
+                    resource.trend,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          createElement(
+            "section",
+            {
+              "aria-label": formatMessage(uiLocale, "ui.surface.alerts"),
+              key: "bottom-strip",
+              style: compactLayout ? compactBottomStripStyle : bottomStripStyle,
             },
             createElement(
               "div",
               {
-                style: chipLabelStyle,
+                style: calloutGroupStyle,
               },
-              resource.label,
+              ...state.readModel.town.alerts.map((alert) =>
+                createElement(
+                  "div",
+                  {
+                    "aria-label": `${formatAlertSeverity(alert.severity, uiLocale)}: ${alert.label}`,
+                    "data-alert-severity": alert.severity,
+                    key: alert.label,
+                    style: alertChipStyle(alert.severity),
+                  },
+                  createElement(
+                    "div",
+                    {
+                      style: chipLabelStyle,
+                    },
+                    formatAlertSeverity(alert.severity, uiLocale).toUpperCase(),
+                  ),
+                  createElement(
+                    "div",
+                    {
+                      style: chipValueStyle,
+                    },
+                    alert.label,
+                  ),
+                  createElement(
+                    "div",
+                    {
+                      style: chipHintStyle,
+                    },
+                    alert.detail,
+                  ),
+                ),
+              ),
             ),
-            createElement(
-              "div",
-              {
-                style: chipValueStyle,
-              },
-              `${String(resource.amount)}${resource.unit}`,
-            ),
-            createElement(
-              "div",
-              {
-                style: chipHintStyle,
-              },
-              resource.trend,
-            ),
+            state.diagnosticsVisible ? createDiagnosticsSurface(state, storageActions) : null,
           ),
-        ),
-      ),
-    ),
-    createElement(
-      "section",
-      {
-        "aria-label": formatMessage(uiLocale, "ui.surface.alerts"),
-        style: compactLayout ? compactBottomStripStyle : bottomStripStyle,
-      },
-      createElement(
-        "div",
-        {
-          style: calloutGroupStyle,
-        },
-        ...state.readModel.town.alerts.map((alert) =>
           createElement(
-            "div",
+            "aside",
             {
-              "aria-label": `${formatAlertSeverity(alert.severity, uiLocale)}: ${alert.label}`,
-              "data-alert-severity": alert.severity,
-              key: alert.label,
-              style: alertChipStyle(alert.severity),
+              "aria-label": formatMessage(uiLocale, "ui.inspector.aria"),
+              "data-selected-entity": selectedEntity?.entityId ?? "",
+              key: "inspector",
+              style: compactLayout ? compactInspectorStyle : inspectorStyle,
             },
-            createElement(
-              "div",
-              {
-                style: chipLabelStyle,
-              },
-              formatAlertSeverity(alert.severity, uiLocale).toUpperCase(),
-            ),
-            createElement(
-              "div",
-              {
-                style: chipValueStyle,
-              },
-              alert.label,
-            ),
-            createElement(
-              "div",
-              {
-                style: chipHintStyle,
-              },
-              alert.detail,
-            ),
+            selectedEntity === undefined
+              ? createEmptyInspector(uiLocale)
+              : createInspectorContent(state, selectedEntity, uiLocale),
           ),
-        ),
-      ),
-      createElement(ShellOnboardingPanel, {
-        compact: compactLayout,
-        locale: uiLocale,
-        state: state.onboarding,
-      }),
-      state.diagnosticsVisible ? createDiagnosticsSurface(state, storageActions) : null,
-    ),
-    createElement(
-      "aside",
-      {
-        "aria-label": formatMessage(uiLocale, "ui.inspector.aria"),
-        "data-selected-entity": selectedEntity?.entityId ?? "",
-        style: compactLayout ? compactInspectorStyle : inspectorStyle,
-      },
-      selectedEntity === undefined
-        ? createEmptyInspector(uiLocale)
-        : createInspectorContent(state, selectedEntity, uiLocale),
-    ),
+        ],
   );
 }
 
