@@ -8,12 +8,16 @@ import {
   M5_REBUILT_SURFACE_NAMES,
   M5_REPLAY_CHECKPOINT_SEQUENCE,
   M5_SAVE_TICK,
+  M8_ENDGAME_ROUTE_STATE_AVAILABLE,
+  M8_ENDGAME_ROUTE_STATE_BLOCKED,
+  M8_ENDGAME_ROUTE_STATE_CONTESTED,
   createM5AlphaContentSaveEnvelope,
   createM5WorkerProjection,
   loadM5AlphaContentSaveEnvelope,
   resumeM5AlphaContentFromSave,
   runM5AlphaContentReplay,
   runM5AlphaContentScenario,
+  runM8FactionEndgameScenario,
   type M5AlphaContentScenarioSummary,
   type M5ReplayRun,
 } from "./index";
@@ -143,6 +147,20 @@ describe("M5 alpha content long-run invariants", () => {
       m6Created: false,
       nextTasks: ["WM-0081", "WM-0082", "WM-0083"],
     });
+
+    const endgame = runM8FactionEndgameScenario();
+    expect(endgame.protectedM5BaselineTouched).toBe(false);
+    expect(endgame.replay.matched).toBe(true);
+    expect(endgame.metrics).toMatchObject({
+      activeArcCount: 6,
+      negotiatedArcCount: 6,
+      activeRoutePathCount: 5,
+      queryCapHitCount: 0,
+      staleBasisRejectCount: 0,
+    });
+    expect(hasRouteState(endgame.routes, M8_ENDGAME_ROUTE_STATE_AVAILABLE)).toBe(true);
+    expect(hasRouteState(endgame.routes, M8_ENDGAME_ROUTE_STATE_BLOCKED)).toBe(true);
+    expect(hasRouteState(endgame.routes, M8_ENDGAME_ROUTE_STATE_CONTESTED)).toBe(true);
   });
 });
 
@@ -272,4 +290,14 @@ function noM0ToM4Regression(summary: M5AlphaContentScenarioSummary): boolean {
 
 function failMissingSample(): never {
   throw new Error("M5 invariant gate expected at least one sample");
+}
+
+function hasRouteState(
+  routes: readonly { readonly routeState: number }[],
+  routeState: number,
+): boolean {
+  for (const route of routes) {
+    if (route.routeState === routeState) return true;
+  }
+  return false;
 }

@@ -2,7 +2,7 @@
   "id": "WM-0123",
   "title": "Full faction and endgame arc integration",
   "summary": "Integrate faction and endgame arcs through authoritative owner stores, deterministic state machines and scenario evidence.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -34,7 +34,7 @@
   ],
   "branch": "task/WM-0123-m8-faction-endgame-integration",
   "createdAt": "2026-06-27T15:46:00.000Z",
-  "updatedAt": "2026-06-27T17:44:22.455Z",
+  "updatedAt": "2026-06-27T18:53:01.833Z",
   "history": [
     {
       "at": "2026-06-27T15:46:00.000Z",
@@ -47,6 +47,48 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-27T18:03:43.873Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": ""
+    },
+    {
+      "at": "2026-06-27T18:21:40.427Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented M8 faction/endgame owner slice with bounded sim-core store, headless scenario, invariant coverage, replay/performance evidence, docs/report; required checks pass and protected M5 hashes preserved."
+    },
+    {
+      "at": "2026-06-27T18:32:18.951Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: M8FactionEndgameStore re-register paths rewrite active arc/route rows without unlink/relink or terminal-state/accounting guards, resetting explicit state while leaving indexes and metrics stale. High: route faction masks and arc contradiction/negotiation/failure masks accept out-of-domain values, including invalid faction bits and numeric wrap/truncation, violating bounded structured owner facts."
+    },
+    {
+      "at": "2026-06-27T18:41:35.787Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Repaired WM-0123 changes_requested: duplicate active arc/route registrations now fail closed without state/index/metric mutation; arc and route masks now reject unsafe/out-of-domain values before typed-array writes; focused repair tests plus required gates pass and M5 protected hashes remain stable."
+    },
+    {
+      "at": "2026-06-27T18:45:55.485Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Re-reviewed WM-0123 repairs: duplicate active arc/route registration fails closed without state/index/metric/ownerVersion mutation; unsafe/out-of-domain masks reject before storage; M5 protected hashes and required gates pass."
+    },
+    {
+      "at": "2026-06-27T18:52:50.424Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified by independent reviewer; rebased on main f400dd9; integration gates passed: typecheck, test, m5-invariants, 100k sim, validate-handoff, taskctl validate/status, git diff --check, quality."
+    },
+    {
+      "at": "2026-06-27T18:53:01.832Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M8",
@@ -65,5 +107,20 @@
     "packages/ui-react/**",
     "packages/renderer-pixi/**",
     "release/store/signing/telemetry/account/paid-service work"
-  ]
+  ],
+  "claimedBy": "simulation-engineer",
+  "threadLabel": null,
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0123.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Re-reviewed WM-0123 repairs: duplicate active arc/route registration fails closed without state/index/metric/ownerVersion mutation; unsafe/out-of-domain masks reject before storage; M5 protected hashes and required gates pass.",
+    "at": "2026-06-27T18:45:55.485Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified by independent reviewer; rebased on main f400dd9; integration gates passed: typecheck, test, m5-invariants, 100k sim, validate-handoff, taskctl validate/status, git diff --check, quality.",
+    "at": "2026-06-27T18:52:50.423Z"
+  }
 }

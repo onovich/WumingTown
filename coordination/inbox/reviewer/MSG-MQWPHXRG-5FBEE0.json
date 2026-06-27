@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQWPHXRG-5FBEE0",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0123",
+  "kind": "review-request",
+  "subject": "WM-0123 ready for review",
+  "body": "Repaired WM-0123 changes_requested: duplicate active arc/route registrations now fail closed without state/index/metric mutation; arc and route masks now reject unsafe/out-of-domain values before typed-array writes; focused repair tests plus required gates pass and M5 protected hashes remain stable.",
+  "artifacts": [
+    "coordination/reports/WM-0123.md",
+    "task/WM-0123-m8-faction-endgame-integration"
+  ],
+  "createdAt": "2026-06-27T18:41:35.788Z",
+  "acknowledgedAt": "2026-06-27T18:42:29.136Z"
+}

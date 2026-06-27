@@ -321,6 +321,20 @@ Acceptance expectations:
 - no monolithic diplomacy mood, UI-owned ending flag or prose-only epilogue
   substitutes for scenario facts.
 
+WM-0123 implementation note:
+
+- `M8FactionEndgameStore` records six required faction arcs as decomposed
+  resource, constraint, contradiction, negotiation, failure and explanation
+  masks with faction, governance, Chronicle, obligation and ordinance owner
+  versions.
+- The route state machine derives Human Town, Cohabitation Town,
+  Secret-Keeping Town, Unlit Town and Migration eligibility from bounded route
+  rows and returns structured available, blocked or contested reasons.
+- `runM8FactionEndgameScenario()` is headless-only evidence. It composes M5
+  faction/governance owner facts with M8 route rows, records deterministic
+  replay hash equality and performance counters, and does not modify the
+  protected `m5-alpha-content-framework` fixture or hashes.
+
 ### WM-0124 Data-Mod Workflow And Localization Completeness
 
 WM-0124 should harden the content workflow and localization gates.

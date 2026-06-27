@@ -66,3 +66,33 @@ walk only the requested faction lane in stable priority order. Returned fact
 ids are numeric basis rows for event legality, anomaly context and town-rule
 pressure; they do not mutate obligations, Chronicle facts or source faction
 authority.
+
+## WM-0123 M8 faction/endgame owner slice
+
+`M8FactionEndgameStore` adds the first bounded endgame eligibility owner
+surface. It does not replace `M5FactionFactStore` or `M5GovernanceHookStore`;
+instead, endgame route rows carry those owner versions by value together with
+Chronicle, obligation and ordinance versions. A route is never opened by UI
+state, prose-only diplomacy text or a single hidden reputation number.
+
+Faction arcs are explicit serializable state machines:
+`seeded -> negotiated|failed`. Each required 1.0 faction arc records a resource
+mask, constraint mask, contradiction mask, negotiation route, failure
+consequence and explanation mask. Arc queries walk only the requested faction
+lane with caller caps and stable priority/sequence ordering.
+
+Endgame route rows are explicit serializable state machines:
+`seeded -> available|blocked|contested`. Route evaluation walks only the
+requested route lane, requires Chronicle plus obligation plus ordinance
+explanation bits, and returns structured reasons such as
+`m8_faction_endgame_route_available`,
+`m8_faction_endgame_route_blocked_low_support`,
+`m8_faction_endgame_route_blocked_missing_explanation` and
+`m8_faction_endgame_route_contested`.
+
+The headless scenario `m8.faction_endgame.owner_arcs.v1` proves one owner-fact
+path toward Human Town, Cohabitation Town, Secret-Keeping Town, Unlit Town and
+Migration while keeping the protected M5 alpha scenario, content hash, command
+hash and final world/read-model hashes unchanged. Its performance evidence
+records bounded faction fact visits, route visits, arc visits, cap hits and
+stale-basis rejects.

@@ -189,6 +189,7 @@ export {
 export { M5FactionFactStore, createM5FactionFactStore } from "./m5-faction-store";
 export { M5GovernanceHookStore, createM5GovernanceHookStore } from "./m5-governance-store";
 export { M5SeasonEventPoolStore, createM5SeasonEventPoolStore } from "./m5-season-event-pool";
+export { M8FactionEndgameStore, createM8FactionEndgameStore } from "./m8-faction-endgame-store";
 export {
   M4DirectorPressureStore,
   createM4DirectorPressureStore,
@@ -288,6 +289,51 @@ export {
   M5_GOVERNANCE_RISK_FLAG_CORRUPTION,
   M5_GOVERNANCE_RISK_FLAG_OVERREACH,
 } from "./m5-faction-governance-types";
+export {
+  M8_ENDGAME_EXPLANATION_ACCIDENT_REVIEW,
+  M8_ENDGAME_EXPLANATION_CHRONICLE,
+  M8_ENDGAME_EXPLANATION_COUNTEREVIDENCE,
+  M8_ENDGAME_EXPLANATION_MASK_ALL,
+  M8_ENDGAME_EXPLANATION_OBLIGATION,
+  M8_ENDGAME_EXPLANATION_ORDINANCE,
+  M8_ENDGAME_REQUIRED_EXPLANATION_MASK,
+  M8_ENDGAME_ROUTE_COHABITATION_TOWN,
+  M8_ENDGAME_ROUTE_COUNT,
+  M8_ENDGAME_ROUTE_HUMAN_TOWN,
+  M8_ENDGAME_ROUTE_MIGRATION,
+  M8_ENDGAME_ROUTE_SECRET_KEEPING_TOWN,
+  M8_ENDGAME_ROUTE_STATE_AVAILABLE,
+  M8_ENDGAME_ROUTE_STATE_BLOCKED,
+  M8_ENDGAME_ROUTE_STATE_CONTESTED,
+  M8_ENDGAME_ROUTE_STATE_SEEDED,
+  M8_ENDGAME_ROUTE_UNLIT_TOWN,
+  M8_FACTION_ARC_STATE_FAILED,
+  M8_FACTION_ARC_STATE_NEGOTIATED,
+  M8_FACTION_ARC_STATE_SEEDED,
+  M8_FACTION_CONSTRAINT_CENSORSHIP_RISK,
+  M8_FACTION_CONSTRAINT_COERCIVE_POLICY,
+  M8_FACTION_CONSTRAINT_DEBT_COMMERCIALIZATION,
+  M8_FACTION_CONSTRAINT_INHERITED_CLAIMS,
+  M8_FACTION_CONSTRAINT_LONG_DEBT_TERMS,
+  M8_FACTION_CONSTRAINT_MASK_ALL,
+  M8_FACTION_CONSTRAINT_MEMORIAL_DUTY,
+  M8_FACTION_COUNT,
+  M8_FACTION_ENDGAME_NONE,
+  M8_FACTION_MASK_ALL,
+  M8_FACTION_MOUNTAIN_CONTRACT_FAMILIES,
+  M8_FACTION_NIGHT_MARKET_GUESTS,
+  M8_FACTION_NINE_INNS_GUILD,
+  M8_FACTION_REGISTRY_OFFICE,
+  M8_FACTION_RESOURCE_CONTRACT_SERVICE,
+  M8_FACTION_RESOURCE_COUNCIL_AUTHORITY,
+  M8_FACTION_RESOURCE_LEGAL_RECOGNITION,
+  M8_FACTION_RESOURCE_LOCAL_KNOWLEDGE,
+  M8_FACTION_RESOURCE_MASK_ALL,
+  M8_FACTION_RESOURCE_MEMORIAL_TRUST,
+  M8_FACTION_RESOURCE_TRADE_SUPPLY,
+  M8_FACTION_RETURN_LAMP_SOCIETY,
+  M8_FACTION_TOWN_COUNCIL_POSTS,
+} from "./m8-faction-endgame-types";
 export {
   M5_ANOMALY_ACTIVATION_POLICY_OLD_BRIDGE_GUEST_RECIPROCITY,
   M5_ANOMALY_ACTIVATION_POLICY_BORROWED_SHADOW_LAMP_IDENTITY,
@@ -628,6 +674,12 @@ export {
   deriveM5AlphaContentScenarioSeed,
   runM5AlphaContentScenario,
 } from "./m5-alpha-content-scenario";
+export {
+  M8_FACTION_ENDGAME_ALIAS,
+  M8_FACTION_ENDGAME_SCENARIO_ID,
+  M8_FACTION_ENDGAME_SEED,
+  runM8FactionEndgameScenario,
+} from "./m8-faction-endgame-scenario";
 export {
   M3_ABILITY_COMMUNICATION,
   M3_ABILITY_CONSCIOUSNESS,
@@ -1107,6 +1159,21 @@ export type {
   M5GovernanceReason,
 } from "./m5-faction-governance-types";
 export type {
+  M8EndgameRouteEvaluationQuery,
+  M8EndgameRouteEvaluationResult,
+  M8EndgameRouteInput,
+  M8EndgameRouteView,
+  M8FactionArcInput,
+  M8FactionArcQuery,
+  M8FactionArcQueryResult,
+  M8FactionArcTransitionInput,
+  M8FactionArcView,
+  M8FactionEndgameMetrics,
+  M8FactionEndgameMutationResult,
+  M8FactionEndgameReason,
+  M8FactionEndgameStoreOptions,
+} from "./m8-faction-endgame-types";
+export type {
   M5SeasonEventCandidateInput,
   M5SeasonEventCandidateView,
   M5SeasonEventMetrics,
@@ -1452,6 +1519,13 @@ export type {
   M5AlphaStrategyPathEvidence,
   M5AlphaThirdKnockEvidence,
 } from "./m5-alpha-content-scenario";
+export type {
+  M8EndgameRouteScenarioEvidence,
+  M8FactionArcScenarioEvidence,
+  M8FactionEndgamePerformanceMetrics,
+  M8FactionEndgameReplayEvidence,
+  M8FactionEndgameScenarioSummary,
+} from "./m8-faction-endgame-scenario";
 export type {
   M3AbilityMetrics,
   M3AbilityQueryResult,

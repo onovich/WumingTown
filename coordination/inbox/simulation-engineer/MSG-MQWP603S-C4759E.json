@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQWP603S-C4759E",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0123",
+  "kind": "changes-requested",
+  "subject": "WM-0123 review: changes_requested",
+  "body": "High: M8FactionEndgameStore re-register paths rewrite active arc/route rows without unlink/relink or terminal-state/accounting guards, resetting explicit state while leaving indexes and metrics stale. High: route faction masks and arc contradiction/negotiation/failure masks accept out-of-domain values, including invalid faction bits and numeric wrap/truncation, violating bounded structured owner facts.",
+  "artifacts": [
+    "coordination/reports/WM-0123.md"
+  ],
+  "createdAt": "2026-06-27T18:32:18.952Z",
+  "acknowledgedAt": "2026-06-27T18:36:02.017Z"
+}

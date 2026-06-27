@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQWOSBF1-B2A9AD",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0123",
+  "kind": "review-request",
+  "subject": "WM-0123 ready for review",
+  "body": "Implemented M8 faction/endgame owner slice with bounded sim-core store, headless scenario, invariant coverage, replay/performance evidence, docs/report; required checks pass and protected M5 hashes preserved.",
+  "artifacts": [
+    "coordination/reports/WM-0123.md",
+    "task/WM-0123-m8-faction-endgame-integration"
+  ],
+  "createdAt": "2026-06-27T18:21:40.429Z",
+  "acknowledgedAt": "2026-06-27T18:24:41.502Z"
+}

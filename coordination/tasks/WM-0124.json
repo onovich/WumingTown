@@ -2,7 +2,7 @@
   "id": "WM-0124",
   "title": "Stable data-mod workflow and localization completeness",
   "summary": "Harden data-mod validation, non-code-mod restrictions, content localization and completeness reports for 1.0.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "content-worker",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -33,13 +33,19 @@
   ],
   "branch": "task/WM-0124-m8-data-mod-localization-completeness",
   "createdAt": "2026-06-27T15:46:00.000Z",
-  "updatedAt": "2026-06-27T15:46:00.000Z",
+  "updatedAt": "2026-06-27T18:53:01.841Z",
   "history": [
     {
       "at": "2026-06-27T15:46:00.000Z",
       "actor": "project-director",
       "action": "create",
       "details": "Created by WM-0111 M8 UI/i18n scope amendment DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-27T18:53:01.841Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "M8",
