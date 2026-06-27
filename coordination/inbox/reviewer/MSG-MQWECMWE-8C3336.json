@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQWECMWE-8C3336",
+  "from": "qa-performance",
+  "to": "reviewer",
+  "taskId": "WM-0107",
+  "kind": "review-request",
+  "subject": "WM-0107 ready for review",
+  "body": "Drafted M7 known issues and controlled-test release notes with Web/Windows blockers, diagnostics/save risks, support boundaries and owner gates; required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0107.md",
+    "task/WM-0107-m7-known-issues-release-notes"
+  ],
+  "createdAt": "2026-06-27T13:29:32.654Z",
+  "acknowledgedAt": "2026-06-27T13:30:02.362Z"
+}

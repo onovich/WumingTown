@@ -2,7 +2,7 @@
   "id": "WM-0108",
   "title": "Playtest checklist and tester protocol",
   "summary": "Create the M7 tester protocol and checklist for Windows controlled external test and Web demo-only evaluation after all prerequisite readiness packages are verified.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -46,13 +46,19 @@
   ],
   "branch": "task/WM-0108-m7-playtest-checklist-protocol",
   "createdAt": "2026-06-27T11:00:00.000Z",
-  "updatedAt": "2026-06-27T11:00:00.000Z",
+  "updatedAt": "2026-06-27T13:38:26.207Z",
   "history": [
     {
       "at": "2026-06-27T11:00:00.000Z",
       "actor": "project-director",
       "action": "create",
       "details": "Created by WM-0098 M7 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-27T13:38:26.207Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "M7",

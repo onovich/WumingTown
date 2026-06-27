@@ -2,7 +2,7 @@
   "id": "WM-0107",
   "title": "Known issues and release notes draft",
   "summary": "Draft M7 known issues and external-test release notes from verified M6/M7 evidence without hiding blockers or overclaiming readiness.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -44,7 +44,7 @@
   ],
   "branch": "task/WM-0107-m7-known-issues-release-notes",
   "createdAt": "2026-06-27T11:00:00.000Z",
-  "updatedAt": "2026-06-27T13:10:30.422Z",
+  "updatedAt": "2026-06-27T13:38:26.199Z",
   "history": [
     {
       "at": "2026-06-27T11:00:00.000Z",
@@ -57,6 +57,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-27T13:26:29.132Z",
+      "actor": "qa-performance",
+      "action": "claim",
+      "details": "thread=Beacon-root-qa-performance-WM-0107"
+    },
+    {
+      "at": "2026-06-27T13:29:32.652Z",
+      "actor": "qa-performance",
+      "action": "complete",
+      "details": "Drafted M7 known issues and controlled-test release notes with Web/Windows blockers, diagnostics/save risks, support boundaries and owner gates; required checks pass."
+    },
+    {
+      "at": "2026-06-27T13:36:23.333Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; WM-0107 preserves verified M6/M7 blocker evidence, explicit non-goals, support boundaries and downstream WM-0108/WM-0109 citation language; focused checks passed."
+    },
+    {
+      "at": "2026-06-27T13:38:26.151Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified WM-0107 integrated after validate-handoff, taskctl validate/status, git diff --check and pnpm quality passed."
+    },
+    {
+      "at": "2026-06-27T13:38:26.199Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M7",
@@ -114,5 +144,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Known issues and release notes consolidate milestone risk and public-facing readiness language."
+  },
+  "claimedBy": "qa-performance",
+  "threadLabel": "Beacon-root-qa-performance-WM-0107",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0107.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; WM-0107 preserves verified M6/M7 blocker evidence, explicit non-goals, support boundaries and downstream WM-0108/WM-0109 citation language; focused checks passed.",
+    "at": "2026-06-27T13:36:23.332Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified WM-0107 integrated after validate-handoff, taskctl validate/status, git diff --check and pnpm quality passed.",
+    "at": "2026-06-27T13:38:26.150Z"
   }
 }
