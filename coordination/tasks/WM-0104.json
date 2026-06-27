@@ -2,7 +2,7 @@
   "id": "WM-0104",
   "title": "Web demo-only scope statement",
   "summary": "Write and verify the M7 Web demo-only scope statement from M6 evidence without claiming same-spec, lower-fast-forward or full release support.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -41,7 +41,7 @@
   ],
   "branch": "task/WM-0104-m7-web-demo-only-scope",
   "createdAt": "2026-06-27T11:00:00.000Z",
-  "updatedAt": "2026-06-27T11:26:46.022Z",
+  "updatedAt": "2026-06-27T11:54:07.113Z",
   "history": [
     {
       "at": "2026-06-27T11:00:00.000Z",
@@ -54,6 +54,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-27T11:42:55.580Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": "thread=Beacon-root-client-engineer-WM-0104"
+    },
+    {
+      "at": "2026-06-27T11:46:10.662Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Added M7 Web demo-only scope statement and Web release-gate note grounded in reviewed M6 evidence; safe downstream copy preserves demo-only verdict, blocks same-spec/lower-fast-forward/lower-cap/public launch claims, and keeps owner gates; required checks passed including build:web, web-shell e2e and quality."
+    },
+    {
+      "at": "2026-06-27T11:51:55.524Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; demo-only Web scope is grounded in verified M6 evidence, blocks same-spec/lower-fast-forward/lower-cap/public-launch claims, preserves owner gates, and required check evidence was reproduced."
+    },
+    {
+      "at": "2026-06-27T11:54:00.341Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integrated verified Web demo-only scope after independent reviewer confirmed no overclaim, no verdict change and no public launch/release work. Integration gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality."
+    },
+    {
+      "at": "2026-06-27T11:54:07.113Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M7",
@@ -110,5 +140,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Web demo-only scope is a product verdict and public-facing boundary task."
+  },
+  "claimedBy": "client-engineer",
+  "threadLabel": "Beacon-root-client-engineer-WM-0104",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0104.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; demo-only Web scope is grounded in verified M6 evidence, blocks same-spec/lower-fast-forward/lower-cap/public-launch claims, preserves owner gates, and required check evidence was reproduced.",
+    "at": "2026-06-27T11:51:55.523Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integrated verified Web demo-only scope after independent reviewer confirmed no overclaim, no verdict change and no public launch/release work. Integration gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality.",
+    "at": "2026-06-27T11:54:00.340Z"
   }
 }

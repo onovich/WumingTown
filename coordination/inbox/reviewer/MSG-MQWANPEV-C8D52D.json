@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQWANPEV-C8D52D",
+  "from": "client-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0104",
+  "kind": "review-request",
+  "subject": "WM-0104 ready for review",
+  "body": "Added M7 Web demo-only scope statement and Web release-gate note grounded in reviewed M6 evidence; safe downstream copy preserves demo-only verdict, blocks same-spec/lower-fast-forward/lower-cap/public launch claims, and keeps owner gates; required checks passed including build:web, web-shell e2e and quality.",
+  "artifacts": [
+    "coordination/reports/WM-0104.md",
+    "task/WM-0104-m7-web-demo-only-scope"
+  ],
+  "createdAt": "2026-06-27T11:46:10.663Z",
+  "acknowledgedAt": "2026-06-27T11:53:03.276Z"
+}

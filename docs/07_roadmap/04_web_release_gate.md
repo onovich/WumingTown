@@ -80,3 +80,17 @@ Decision inputs:
   verified for the current shell path.
 - Same-spec, lower fast-forward and lower-cap tiers remain blocked until a
   future reviewed task measures a real product-scale browser authority path.
+
+## WM-0104 M7 Demo-Only Scope
+
+WM-0104 adds the M7 citable Web scope statement at
+`docs/07_roadmap/05_m7_web_demo_scope.md`.
+
+For M7 public-facing drafts, Web must be described as `demo-only`: a Chrome/Edge
+product-gate shell with Web OPFS save/export/import, local diagnostics and
+SharedArrayBuffer-unavailable fallback evidence, not full Web parity, public
+Web launch, same-spec support, lower-fast-forward support or lower-cap support.
+
+Web remains a formal gated target and is not cancelled. Public Web launch,
+store/public release claims, verdict changes and public save compatibility
+commitments remain owner-gated.
