@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQWB3M1N-BCCEAA",
+  "from": "client-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0103",
+  "kind": "review-request",
+  "subject": "WM-0103 ready for review",
+  "body": "Added M7 Windows controlled external test instructions for the unsigned unpacked directory build; documented run steps, support collection, sandbox/preload boundaries, known M6 blockers and non-goals; no signing, installer, store, telemetry, release, save-commitment or M8 work; required checks passed including build:desktop, desktop-shell e2e and quality.",
+  "artifacts": [
+    "coordination/reports/WM-0103.md",
+    "task/WM-0103-m7-windows-controlled-test-instructions"
+  ],
+  "createdAt": "2026-06-27T11:58:32.795Z",
+  "acknowledgedAt": "2026-06-27T12:05:16.878Z"
+}

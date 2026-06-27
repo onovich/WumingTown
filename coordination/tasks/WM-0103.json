@@ -2,7 +2,7 @@
   "id": "WM-0103",
   "title": "Windows controlled external test instructions",
   "summary": "Produce controlled external test instructions for the unsigned Windows unpacked directory build without signing, installer, updater, store upload or public release.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -39,7 +39,7 @@
   ],
   "branch": "task/WM-0103-m7-windows-controlled-test-instructions",
   "createdAt": "2026-06-27T11:00:00.000Z",
-  "updatedAt": "2026-06-27T11:26:46.022Z",
+  "updatedAt": "2026-06-27T12:07:56.429Z",
   "history": [
     {
       "at": "2026-06-27T11:00:00.000Z",
@@ -52,6 +52,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-27T11:55:21.147Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": "thread=Beacon-root-client-engineer-WM-0103"
+    },
+    {
+      "at": "2026-06-27T11:58:32.794Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Added M7 Windows controlled external test instructions for the unsigned unpacked directory build; documented run steps, support collection, sandbox/preload boundaries, known M6 blockers and non-goals; no signing, installer, store, telemetry, release, save-commitment or M8 work; required checks passed including build:desktop, desktop-shell e2e and quality."
+    },
+    {
+      "at": "2026-06-27T12:04:25.963Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; acceptance evidence confirmed; build:desktop and desktop-shell e2e rerun with documented pnpm 11.8.0 path; scope remains unsigned controlled external test only."
+    },
+    {
+      "at": "2026-06-27T12:07:50.483Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integrated verified Windows controlled external test instructions after independent reviewer confirmed unsigned controlled-test-only scope and no release/signing/store/telemetry/save/M8 work. Integration gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality."
+    },
+    {
+      "at": "2026-06-27T12:07:56.428Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M7",
@@ -106,5 +136,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Windows external-test instructions touch platform packaging, security boundaries and owner-gated release language."
+  },
+  "claimedBy": "client-engineer",
+  "threadLabel": "Beacon-root-client-engineer-WM-0103",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0103.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; acceptance evidence confirmed; build:desktop and desktop-shell e2e rerun with documented pnpm 11.8.0 path; scope remains unsigned controlled external test only.",
+    "at": "2026-06-27T12:04:25.963Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integrated verified Windows controlled external test instructions after independent reviewer confirmed unsigned controlled-test-only scope and no release/signing/store/telemetry/save/M8 work. Integration gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality.",
+    "at": "2026-06-27T12:07:50.483Z"
   }
 }

@@ -67,3 +67,13 @@ rewritten to force Web parity.
 - Remaining blockers: Windows/Web save-container interoperability and Windows
   host-side diagnostic package writing require reviewed narrow bridges before
   stronger release or Early Access claims.
+
+## WM-0103 Windows Controlled External Test Instructions
+
+WM-0103 adds M7 tester instructions at
+`docs/05_tech/09_m7_windows_controlled_external_test.md`.
+
+The Windows build remains an unsigned unpacked local directory build for
+controlled external testing only. It is not an installer, signed build, updater,
+Steam/store package, public release, telemetry path, account service, crash
+upload service, paid service or public save compatibility commitment.
