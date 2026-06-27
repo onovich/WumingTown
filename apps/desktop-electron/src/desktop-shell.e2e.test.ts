@@ -224,7 +224,31 @@ async function assertShellReady(page: Page, expectedHostKind: string): Promise<v
     .textContent();
   expect(releaseGateText ?? "").toContain("M5 first-season Web product-gate fixture");
   expect(releaseGateText ?? "").toContain("m5.alpha_content_framework.first_season.v1");
+  await assertDesktopDiagnosticBaseline(page, debugPayload);
   await assertDesktopAccessibilityBaseline(page, debugPayload);
+}
+
+async function assertDesktopDiagnosticBaseline(
+  page: Page,
+  debugPayload: Record<string, unknown>,
+): Promise<void> {
+  const diagnostics = readRecord(debugPayload["diagnostics"], "desktop diagnostics");
+  expect(diagnostics["packageKind"]).toBe("m6-local-diagnostic-package");
+  expect(diagnostics["telemetryEnabled"]).toBe(false);
+  expect(diagnostics["networkUploadEnabled"]).toBe(false);
+  expect(diagnostics["webDownloadStatus"]).toBe("available");
+  expect(diagnostics["windowsHostPackageStatus"]).toBe("blocked");
+  expect(diagnostics["suggestedFileName"]).toBe("wuming-town-m6-diagnostics.json");
+
+  const blockerCodes = diagnostics["blockerCodes"];
+  if (!Array.isArray(blockerCodes)) {
+    throw new Error("Desktop diagnostics did not expose blocker codes.");
+  }
+  expect(blockerCodes).toContain("windows_host_diagnostics_bridge_blocked");
+
+  const diagnosticStatusText = await page.getByTestId("diagnostic-status").textContent();
+  expect(diagnosticStatusText ?? "").toContain("Diagnostics idle");
+  expect(diagnosticStatusText ?? "").toContain("BLOCKED");
 }
 
 async function assertDesktopAccessibilityBaseline(
@@ -373,6 +397,14 @@ async function readDebugPayload(page: Page): Promise<Record<string, unknown>> {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function readRecord(value: unknown, label: string): Record<string, unknown> {
+  if (!isRecord(value)) {
+    throw new Error(`Expected ${label} to be an object.`);
+  }
+
+  return value;
 }
 
 function isStringArray(value: unknown): value is readonly string[] {

@@ -1,6 +1,6 @@
 /// <reference lib="dom" />
 
-import { mkdir, stat } from "node:fs/promises";
+import { mkdir, readFile, stat } from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
 
@@ -12,6 +12,7 @@ interface WebShellDebugPayload {
   readonly browserTargets: readonly string[];
   readonly canvasWidth: number;
   readonly canvasHeight: number;
+  readonly diagnostics: WebDiagnosticDebugState;
   readonly fixtureId: string;
   readonly zoom: number;
   readonly runtimeBrowser: string;
@@ -35,8 +36,26 @@ interface WebShellDebugPayload {
   }[];
 }
 
+interface WebDiagnosticDebugState {
+  readonly blockerCodes: readonly string[];
+  readonly lastActionLabel: string;
+  readonly lastPackageStatus: "blocked" | "error" | "exported" | "idle";
+  readonly networkUploadEnabled: false;
+  readonly packageKind: "m6-local-diagnostic-package";
+  readonly recentErrorCount: number;
+  readonly safeLogCount: number;
+  readonly suggestedFileName: string;
+  readonly telemetryEnabled: false;
+  readonly webDownloadStatus: "available" | "blocked";
+  readonly windowsHostPackageStatus: "available" | "blocked";
+}
+
 const SCREENSHOT_PATH = readScreenshotPath();
 const EXPORTED_SAVE_PATH = path.join(path.dirname(SCREENSHOT_PATH), "m6-gate-slot.wtsave");
+const DIAGNOSTIC_PACKAGE_PATH = path.join(
+  path.dirname(SCREENSHOT_PATH),
+  "wuming-town-m6-diagnostics.json",
+);
 
 describe("web shell smoke", () => {
   it("round-trips the Web gate save through OPFS export and import", async () => {
@@ -306,6 +325,106 @@ describe("web shell smoke", () => {
       await server.close();
     }
   }, 120000);
+
+  it("downloads a redacted local M6 diagnostic package", async () => {
+    const appRoot = path.join(process.cwd(), "apps", "web");
+    const server = await createServer({
+      configFile: false,
+      logLevel: "error",
+      root: appRoot,
+      server: {
+        host: "127.0.0.1",
+        port: 0,
+        strictPort: false,
+      },
+    });
+    await server.listen();
+
+    const serverUrl = readServerUrl(server);
+    const browser = await chromium.launch();
+
+    try {
+      const context = await browser.newContext({
+        deviceScaleFactor: 1,
+        viewport: {
+          width: 1280,
+          height: 800,
+        },
+      });
+      const page = await context.newPage();
+
+      await page.goto(serverUrl, {
+        waitUntil: "networkidle",
+      });
+      await page.waitForSelector("[data-shell-ready='true']");
+      await page.evaluate(() => {
+        window.dispatchEvent(
+          new ErrorEvent("error", {
+            message:
+              "Synthetic diagnostic failure at C:\\Users\\Beacon\\save.wtsave with token=abc123.",
+          }),
+        );
+      });
+
+      const downloadPromise = page.waitForEvent("download");
+      await page.getByTestId("diagnostic-export-button").click();
+      const download = await downloadPromise;
+      await mkdir(path.dirname(DIAGNOSTIC_PACKAGE_PATH), {
+        recursive: true,
+      });
+      await download.saveAs(DIAGNOSTIC_PACKAGE_PATH);
+
+      const packageText = await readFile(DIAGNOSTIC_PACKAGE_PATH, "utf8");
+      const diagnosticPackage = expectRecord(JSON.parse(packageText), "diagnostic package");
+      expect(diagnosticPackage["packageKind"]).toBe("m6-local-diagnostic-package");
+      expect(diagnosticPackage["schemaVersion"]).toBe(1);
+
+      const privacy = expectRecord(diagnosticPackage["privacy"], "diagnostic privacy");
+      expect(privacy["telemetry"]).toBe(false);
+      expect(privacy["networkUpload"]).toBe(false);
+      expect(privacy["includesPrivatePaths"]).toBe(false);
+      expect(privacy["includesFullSaveContents"]).toBe(false);
+
+      const hashes = expectRecord(diagnosticPackage["hashes"], "diagnostic hashes");
+      expect(hashes["commandStreamHash"]).toBe("0x81d37435");
+      expect(hashes["contentManifestHash"]).toBe("0xe55d3015");
+      expect(hashes["finalReadModelHash"]).toBe("0x9ba83cb7");
+      expect(hashes["m4RegressionReadModelHash"]).toBe("0xce261d9d");
+
+      const packagePath = expectRecord(diagnosticPackage["packagePath"], "diagnostic path");
+      expect(expectRecord(packagePath["webDownload"], "web diagnostic path")["status"]).toBe(
+        "available",
+      );
+      expect(
+        expectRecord(packagePath["windowsHostFilePackage"], "windows diagnostic path")["status"],
+      ).toBe("blocked");
+
+      const rawPackage = JSON.stringify(diagnosticPackage);
+      expect(rawPackage).not.toContain("C:\\Users");
+      expect(rawPackage).not.toContain("Beacon");
+      expect(rawPackage).not.toContain("abc123");
+      expect(rawPackage).toContain("[redacted-path]");
+      expect(rawPackage).toContain("[redacted-secret]");
+
+      const debugPayload = await readDebugPayload(page);
+      expect(debugPayload.diagnostics).toMatchObject({
+        lastPackageStatus: "exported",
+        networkUploadEnabled: false,
+        packageKind: "m6-local-diagnostic-package",
+        recentErrorCount: 1,
+        safeLogCount: 2,
+        telemetryEnabled: false,
+        webDownloadStatus: "available",
+        windowsHostPackageStatus: "blocked",
+      });
+      expect(debugPayload.diagnostics.suggestedFileName).toBe("wuming-town-m6-diagnostics.json");
+
+      await context.close();
+    } finally {
+      await browser.close();
+      await server.close();
+    }
+  }, 120000);
 });
 
 async function assertAccessibilityBaseline(page: import("playwright").Page): Promise<void> {
@@ -488,6 +607,7 @@ function parseDebugPayload(text: string): WebShellDebugPayload {
     !Array.isArray(parsed["browserTargets"]) ||
     typeof parsed["canvasWidth"] !== "number" ||
     typeof parsed["canvasHeight"] !== "number" ||
+    !isRecord(parsed["diagnostics"]) ||
     typeof parsed["fixtureId"] !== "string" ||
     typeof parsed["runtimeBrowser"] !== "string" ||
     typeof parsed["runtimeCrossOriginIsolated"] !== "boolean" ||
@@ -499,6 +619,7 @@ function parseDebugPayload(text: string): WebShellDebugPayload {
   }
 
   const storageGate = parsed["storageGate"];
+  const diagnostics = parsed["diagnostics"];
   if (
     typeof storageGate["interoperabilityVerdict"] !== "string" ||
     typeof storageGate["lastActionLabel"] !== "string" ||
@@ -507,6 +628,21 @@ function parseDebugPayload(text: string): WebShellDebugPayload {
     typeof storageGate["storageKindLabel"] !== "string"
   ) {
     throw new Error("Unexpected storage gate debug payload.");
+  }
+  if (
+    !Array.isArray(diagnostics["blockerCodes"]) ||
+    typeof diagnostics["lastActionLabel"] !== "string" ||
+    typeof diagnostics["lastPackageStatus"] !== "string" ||
+    diagnostics["networkUploadEnabled"] !== false ||
+    diagnostics["packageKind"] !== "m6-local-diagnostic-package" ||
+    typeof diagnostics["recentErrorCount"] !== "number" ||
+    typeof diagnostics["safeLogCount"] !== "number" ||
+    typeof diagnostics["suggestedFileName"] !== "string" ||
+    diagnostics["telemetryEnabled"] !== false ||
+    typeof diagnostics["webDownloadStatus"] !== "string" ||
+    typeof diagnostics["windowsHostPackageStatus"] !== "string"
+  ) {
+    throw new Error("Unexpected diagnostic debug payload.");
   }
 
   const positions = parsed["entityScreenPositions"].map((entry) => {
@@ -536,6 +672,25 @@ function parseDebugPayload(text: string): WebShellDebugPayload {
     }),
     canvasWidth: parsed["canvasWidth"],
     canvasHeight: parsed["canvasHeight"],
+    diagnostics: {
+      blockerCodes: diagnostics["blockerCodes"].map((entry) => {
+        if (typeof entry !== "string") {
+          throw new Error("Unexpected diagnostic blocker code.");
+        }
+
+        return entry;
+      }),
+      lastActionLabel: diagnostics["lastActionLabel"],
+      lastPackageStatus: readDiagnosticPackageStatus(diagnostics["lastPackageStatus"]),
+      networkUploadEnabled: false,
+      packageKind: "m6-local-diagnostic-package",
+      recentErrorCount: diagnostics["recentErrorCount"],
+      safeLogCount: diagnostics["safeLogCount"],
+      suggestedFileName: diagnostics["suggestedFileName"],
+      telemetryEnabled: false,
+      webDownloadStatus: readDiagnosticAvailability(diagnostics["webDownloadStatus"]),
+      windowsHostPackageStatus: readDiagnosticAvailability(diagnostics["windowsHostPackageStatus"]),
+    },
     fixtureId: parsed["fixtureId"],
     zoom: parsed["zoom"],
     runtimeBrowser: parsed["runtimeBrowser"],
@@ -575,6 +730,30 @@ function parseDebugPayload(text: string): WebShellDebugPayload {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function expectRecord(value: unknown, label: string): Record<string, unknown> {
+  if (!isRecord(value)) {
+    throw new Error(`Expected ${label} to be an object.`);
+  }
+
+  return value;
+}
+
+function readDiagnosticAvailability(value: string): "available" | "blocked" {
+  if (value === "available" || value === "blocked") {
+    return value;
+  }
+
+  throw new Error(`Unexpected diagnostic availability: ${value}`);
+}
+
+function readDiagnosticPackageStatus(value: string): "blocked" | "error" | "exported" | "idle" {
+  if (value === "blocked" || value === "error" || value === "exported" || value === "idle") {
+    return value;
+  }
+
+  throw new Error(`Unexpected diagnostic status: ${value}`);
 }
 
 function readScreenshotPath(): string {

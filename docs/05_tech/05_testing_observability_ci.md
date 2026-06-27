@@ -304,3 +304,30 @@ The documented M5 headless reproduction command is
 M6 readiness remains a stop-sign report only: the artifact records
 `m6StopSignVerdict: "stop_signs_only"` and `m6Created: false`; no M6 task is a
 testing or CI prerequisite for M5 closeout.
+
+## WM-0093 Local Diagnostic Package Gate
+
+`packages/platform` now exposes the M6 local diagnostic package builder used by
+the Web and Electron product-gate shells. The package records build task id,
+runtime platform facts, scenario id, reviewed M5/M4 hashes, recent structured
+renderer errors, safe logs and platform blockers.
+
+Privacy and safety rules for the package:
+
+- `telemetry=false` and `networkUpload=false`; diagnostics are local only.
+- Local filesystem paths, credential-like values and full-save-like fields are
+  redacted before serialization.
+- Full save contents are not included. The package may include save slot count,
+  status codes and checksums only.
+- Web exports the package as a user-local browser download named
+  `wuming-town-m6-diagnostics.json`.
+- Windows Electron records `windows_host_diagnostics_bridge_blocked` until a
+  reviewed narrow diagnostics bridge exists. WM-0093 does not add generic
+  filesystem, dialog, shell, clipboard or arbitrary IPC access.
+
+Focused validation:
+
+- `pnpm test --filter diagnostics` runs the platform redaction/package tests.
+- Web e2e downloads and inspects the local diagnostic package.
+- Desktop Electron e2e verifies the sanitized diagnostics debug payload and the
+  Windows host-package blocker in both dev and packaged launches.

@@ -20,6 +20,27 @@ export {
   encodeM6GateSaveEnvelope,
 } from "@wuming-town/persistence";
 
+export {
+  buildM6DiagnosticPackage,
+  encodeM6DiagnosticPackage,
+  serializeM6DiagnosticPackage,
+  type M6DiagnosticBlocker,
+  type M6DiagnosticBlockerInput,
+  type M6DiagnosticBuildInfo,
+  type M6DiagnosticEntry,
+  type M6DiagnosticEntryInput,
+  type M6DiagnosticHashEvidence,
+  type M6DiagnosticPackage,
+  type M6DiagnosticPackageInput,
+  type M6DiagnosticPackagePath,
+  type M6DiagnosticPackagePathInput,
+  type M6DiagnosticPlatformInfo,
+  type M6DiagnosticSafeValue,
+  type M6DiagnosticScenarioInfo,
+  type M6DiagnosticSeverity,
+  type M6DiagnosticStatus,
+} from "./diagnostics";
+
 export type PlatformHostKind = "electron" | "web";
 export type PlatformPortErrorCode = SaveStoreErrorCode | "unavailable";
 

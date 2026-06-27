@@ -2,13 +2,27 @@
 
 import { createRoot } from "react-dom/client";
 
-import { resolvePlatformPorts, type PlatformHostInfo } from "@wuming-town/platform";
+import {
+  resolvePlatformPorts,
+  type M6DiagnosticEntryInput,
+  type PlatformHostInfo,
+} from "@wuming-town/platform";
 import {
   createPixiWorldRenderer,
   type PixiWorldRendererDebugState,
 } from "@wuming-town/renderer-pixi";
 import { createShellHudElement, createShellStore, type ShellState } from "@wuming-town/ui-react";
 
+import {
+  buildShellDiagnosticPackage,
+  createDiagnosticDock,
+  createInitialDiagnosticDebugState,
+  readDiagnosticDebugState,
+  readUnknownReason,
+  recordStructuredError,
+  triggerDiagnosticDownload,
+  type WebDiagnosticDebugState,
+} from "./diagnostic-package-gate";
 import { createShellReleaseGateInfo, readShellBrowserLabel } from "./product-gate-harness";
 import { WEB_SHELL_SMOKE_READ_MODEL } from "./smoke-read-model";
 import {
@@ -19,6 +33,7 @@ import {
 
 export interface WebShellDebugPayload extends PixiWorldRendererDebugState {
   readonly browserTargets: readonly string[];
+  readonly diagnostics: WebDiagnosticDebugState;
   readonly fixtureId: string;
   readonly platformHost: PlatformHostInfo;
   readonly runtimeBrowser: string;
@@ -37,6 +52,8 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
     browserLabel: readShellBrowserLabel(navigator.userAgent),
     crossOriginIsolated: window.crossOriginIsolated,
   });
+  const recentStructuredErrors: M6DiagnosticEntryInput[] = [];
+  let diagnosticState = createInitialDiagnosticDebugState(platformPorts.host);
 
   const shellFrame = document.createElement("div");
   shellFrame.style.cssText =
@@ -47,6 +64,12 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
 
   const hudHost = document.createElement("div");
   hudHost.style.cssText = "position:absolute;inset:0;";
+
+  const rendererRef: {
+    current: Awaited<ReturnType<typeof createPixiWorldRenderer>> | undefined;
+  } = {
+    current: undefined,
+  };
 
   shellFrame.append(canvasHost, hudHost);
   rootElement.replaceChildren(shellFrame);
@@ -74,19 +97,32 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
         activeRenderer.readDebugState(),
         platformPorts.host,
         storageController.readDebugState(),
+        diagnosticState,
       );
     },
     platformPorts,
     store,
   });
+  const diagnosticDock = createDiagnosticDock();
+  diagnosticDock.button.addEventListener("click", () => {
+    exportDiagnostics();
+  });
+  diagnosticDock.update(diagnosticState);
+  shellFrame.append(diagnosticDock.element);
   const reactRoot = createRoot(hudHost);
   reactRoot.render(createShellHudElement(store, storageController.actions));
-
-  const rendererRef: {
-    current: Awaited<ReturnType<typeof createPixiWorldRenderer>> | undefined;
-  } = {
-    current: undefined,
+  const windowErrorListener = (event: ErrorEvent): void => {
+    recordStructuredError(recentStructuredErrors, "window_error", {
+      message: event.message,
+    });
   };
+  const unhandledRejectionListener = (event: PromiseRejectionEvent): void => {
+    recordStructuredError(recentStructuredErrors, "unhandled_rejection", {
+      message: readUnknownReason(event.reason),
+    });
+  };
+  window.addEventListener("error", windowErrorListener);
+  window.addEventListener("unhandledrejection", unhandledRejectionListener);
 
   const renderer = await createPixiWorldRenderer({
     container: canvasHost,
@@ -105,6 +141,7 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
           activeRenderer.readDebugState(),
           platformPorts.host,
           storageController.readDebugState(),
+          diagnosticState,
         );
       }
     },
@@ -125,6 +162,7 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
           activeRenderer.readDebugState(),
           platformPorts.host,
           storageController.readDebugState(),
+          diagnosticState,
         );
       }
     },
@@ -136,15 +174,60 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
     const nextWidth = Math.max(shellFrame.clientWidth, 1);
     const nextHeight = Math.max(shellFrame.clientHeight, 1);
     renderer.resize(nextWidth, nextHeight, readDevicePixelRatio());
-    syncDebug(renderer.readDebugState(), platformPorts.host, storageController.readDebugState());
+    syncDebug(
+      renderer.readDebugState(),
+      platformPorts.host,
+      storageController.readDebugState(),
+      diagnosticState,
+    );
   });
   resizeObserver.observe(shellFrame);
 
   renderer.resize(shellFrame.clientWidth, shellFrame.clientHeight, readDevicePixelRatio());
-  syncDebug(renderer.readDebugState(), platformPorts.host, storageController.readDebugState());
+  syncDebug(
+    renderer.readDebugState(),
+    platformPorts.host,
+    storageController.readDebugState(),
+    diagnosticState,
+  );
+
+  function exportDiagnostics(): void {
+    const activeRenderer = rendererRef.current;
+    if (activeRenderer === undefined) {
+      recordStructuredError(recentStructuredErrors, "diagnostic_renderer_unavailable", {
+        message: "Renderer debug state was unavailable during diagnostic export.",
+      });
+      diagnosticState = {
+        ...diagnosticState,
+        lastActionLabel: "Diagnostic export failed",
+        lastPackageStatus: "error",
+        recentErrorCount: recentStructuredErrors.length,
+      };
+      diagnosticDock.update(diagnosticState);
+      return;
+    }
+
+    const diagnosticPackage = buildShellDiagnosticPackage({
+      platformHost: platformPorts.host,
+      recentStructuredErrors,
+      rendererDebug: activeRenderer.readDebugState(),
+      storageGate: storageController.readDebugState(),
+    });
+    triggerDiagnosticDownload(diagnosticPackage);
+    diagnosticState = readDiagnosticDebugState(diagnosticPackage, "Diagnostic package exported");
+    diagnosticDock.update(diagnosticState);
+    syncDebug(
+      activeRenderer.readDebugState(),
+      platformPorts.host,
+      storageController.readDebugState(),
+      diagnosticState,
+    );
+  }
 
   return {
     async destroy(): Promise<void> {
+      window.removeEventListener("error", windowErrorListener);
+      window.removeEventListener("unhandledrejection", unhandledRejectionListener);
       resizeObserver.disconnect();
       reactRoot.unmount();
       await renderer.destroy();
@@ -169,6 +252,7 @@ function syncDebug(
   debugState: PixiWorldRendererDebugState,
   platformHost: PlatformHostInfo,
   storageGate: WebStorageDebugState,
+  diagnostics: WebDiagnosticDebugState,
 ): void {
   const releaseGate = createShellReleaseGateInfo({
     browserLabel: readShellBrowserLabel(navigator.userAgent),
@@ -177,6 +261,7 @@ function syncDebug(
   const debugPayload: WebShellDebugPayload = {
     ...debugState,
     browserTargets: releaseGate.browserTargets,
+    diagnostics,
     fixtureId: releaseGate.fixtureId,
     platformHost,
     runtimeBrowser: releaseGate.runtimeBrowser,

@@ -2,7 +2,7 @@
   "id": "WM-0093",
   "title": "Crash and diagnostic package path",
   "summary": "Create a local crash or diagnostic package path for Web and Windows product-gate evidence without telemetry or private data leakage.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,7 +32,7 @@
   ],
   "branch": "task/WM-0093-crash-diagnostic-package-path",
   "createdAt": "2026-06-26T20:20:00.000Z",
-  "updatedAt": "2026-06-26T20:32:09.114Z",
+  "updatedAt": "2026-06-27T07:13:13.788Z",
   "history": [
     {
       "at": "2026-06-26T20:20:00.000Z",
@@ -45,6 +45,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-27T06:42:50.027Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": "thread=Beacon-root-client-WM-0093"
+    },
+    {
+      "at": "2026-06-27T07:04:49.622Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Implemented local M6 diagnostic package path: Web downloads sanitized diagnostics, Electron records Windows host diagnostics blocker without preload/IPC expansion; diagnostics filter, Web/Desktop e2e, taskctl validate, git diff --check and pnpm quality pass."
+    },
+    {
+      "at": "2026-06-27T07:11:08.670Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Verified Web Chromium diagnostic download redacts paths/secrets/full-save-like fields; Electron dev/package shells expose windows_host_diagnostics_bridge_blocked with telemetry/upload false and no preload/IPC/FS expansion; diagnostics test filter is narrow; no sim/protocol/save/dependency/M7/public-feedback changes; required checks pass."
+    },
+    {
+      "at": "2026-06-27T07:13:06.200Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Reviewer verified WM-0093; integration gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality. Branch is ready for main merge."
+    },
+    {
+      "at": "2026-06-27T07:13:13.787Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M6",
@@ -57,6 +87,7 @@
     "apps/desktop-electron/**",
     "packages/platform/**",
     "packages/persistence/**",
+    "tools/test-runner.mjs",
     "docs/05_tech/05_testing_observability_ci.md",
     "coordination/reports/WM-0093.md",
     "coordination/reports/WM-0093-plan.md",
@@ -96,5 +127,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Diagnostics touch privacy, persistence and platform/security boundaries."
+  },
+  "claimedBy": "client-engineer",
+  "threadLabel": "Beacon-root-client-WM-0093",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0093.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Verified Web Chromium diagnostic download redacts paths/secrets/full-save-like fields; Electron dev/package shells expose windows_host_diagnostics_bridge_blocked with telemetry/upload false and no preload/IPC/FS expansion; diagnostics test filter is narrow; no sim/protocol/save/dependency/M7/public-feedback changes; required checks pass.",
+    "at": "2026-06-27T07:11:08.669Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Reviewer verified WM-0093; integration gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality. Branch is ready for main merge.",
+    "at": "2026-06-27T07:13:06.199Z"
   }
 }
