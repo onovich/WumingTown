@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQWK314E-87208E",
+  "from": "gameplay-designer",
+  "to": "reviewer",
+  "taskId": "WM-0112",
+  "kind": "review-request",
+  "subject": "WM-0112 ready for review",
+  "body": "Defined the M8 product UI design system, visual identity, HUD hierarchy, explicit debug overlay boundary and data-driven scenario fixtures; required checks passed.",
+  "artifacts": [
+    "coordination/reports/WM-0112.md",
+    "task/WM-0112-m8-product-ui-design-system"
+  ],
+  "createdAt": "2026-06-27T16:10:02.222Z",
+  "acknowledgedAt": "2026-06-27T16:12:35.838Z"
+}
