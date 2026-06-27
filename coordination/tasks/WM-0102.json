@@ -1,0 +1,112 @@
+{
+  "id": "WM-0102",
+  "title": "Privacy, feedback and diagnostics readiness package",
+  "summary": "Define M7 privacy, local feedback and diagnostic package readiness without enabling telemetry, accounts, uploads or external services.",
+  "state": "ready",
+  "ownerRole": "systems-architect",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0098"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0094.md",
+    "coordination/reports/WM-0095.md",
+    "coordination/reports/WM-0097.md",
+    "coordination/reports/WM-0097-future-m7-entry-prompt.md",
+    "coordination/reports/WM-0098-m7-task-dag.md",
+    "docs/05_tech/01_technical_architecture.md",
+    "docs/05_tech/04_persistence_mods_security.md",
+    "docs/05_tech/06_platform_matrix.md",
+    "docs/06_engineering/03_definition_of_done.md",
+    "docs/08_codex/05_human_approval_gates.md"
+  ],
+  "acceptance": [
+    "Defines local feedback and diagnostic package readiness without automatic upload, telemetry, accounts or external services",
+    "Carries forward M6 Web local diagnostic pass, Windows host diagnostics blocker and Windows/Web save-container interoperability blocker",
+    "Drafts privacy statement boundaries as non-final internal readiness material only",
+    "Records what tester data can be manually collected, where it is stored and what remains owner-gated",
+    "Does not implement telemetry, crash upload, hosted services, accounts, paid services or final privacy/legal commitments"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test:e2e --filter web-shell",
+    "pnpm test:e2e --filter desktop-shell",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0102-m7-privacy-feedback-diagnostics",
+  "createdAt": "2026-06-27T11:00:00.000Z",
+  "updatedAt": "2026-06-27T11:26:46.022Z",
+  "history": [
+    {
+      "at": "2026-06-27T11:00:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0098 M7 planning DAG; remains proposed until WM-0098 is verified, integrated and done."
+    },
+    {
+      "at": "2026-06-27T11:26:46.022Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
+    }
+  ],
+  "milestone": "M7",
+  "objective": "Prepare privacy, local feedback and diagnostics boundaries for controlled external testing without creating network services.",
+  "dependencies": [
+    "WM-0098"
+  ],
+  "allowedPaths": [
+    "apps/web/**",
+    "apps/desktop-electron/**",
+    "packages/platform/**",
+    "docs/05_tech/**",
+    "docs/07_roadmap/**",
+    "coordination/reports/WM-0102.md",
+    "coordination/reports/WM-0102-plan.md",
+    "coordination/tasks/WM-0102.json"
+  ],
+  "forbiddenPaths": [
+    "network upload implementation",
+    "telemetry crash-upload account hosted-service or paid-service implementation",
+    "signing credentials or release upload",
+    "final legal privacy or store claims",
+    "public save compatibility commitment",
+    "new runtime dependencies unless approved by ADR",
+    "M8 task creation, promotion, claim, implementation or review"
+  ],
+  "validationCommands": [
+    "pnpm typecheck",
+    "pnpm test:e2e --filter web-shell",
+    "pnpm test:e2e --filter desktop-shell",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: diagnostics readiness can accidentally become telemetry; no automatic upload or network service is allowed.",
+    "Risk: privacy copy can become final public policy; keep it draft/internal unless owner approval exists.",
+    "File ownership is limited to platform diagnostics surfaces, M7 privacy/feedback docs and task reports."
+  ],
+  "ownerGate": [
+    "Block on telemetry, accounts, hosted services, crash upload, paid services or network upload",
+    "Block on final privacy/legal commitments without owner approval",
+    "Block if diagnostics require broad host filesystem access or violate Electron preload boundaries"
+  ],
+  "m0M6RegressionCoverage": [
+    "Preserve Electron nodeIntegration=false, contextIsolation=true and sandbox=true boundaries",
+    "Preserve Web local diagnostic behavior and M6 product-gate blockers",
+    "No authoritative simulation, save schema or benchmark baseline change"
+  ],
+  "benchmarkImpact": "No baseline change expected. Any diagnostic overhead must remain outside hot simulation paths and be covered by existing quality gates.",
+  "reviewRouting": "systems-architect completes to reviewer; reviewer verifies no telemetry/upload/accounts or final privacy claims were introduced.",
+  "rollbackModel": "Revert privacy, feedback and diagnostics readiness docs/surfaces and WM-0102 reports; leave M6 diagnostic evidence intact.",
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Privacy, diagnostics and feedback boundaries touch security and owner-gated public commitments."
+  }
+}

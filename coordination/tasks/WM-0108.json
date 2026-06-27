@@ -1,0 +1,115 @@
+{
+  "id": "WM-0108",
+  "title": "Playtest checklist and tester protocol",
+  "summary": "Create the M7 tester protocol and checklist for Windows controlled external test and Web demo-only evaluation after all prerequisite readiness packages are verified.",
+  "state": "proposed",
+  "ownerRole": "qa-performance",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0101",
+    "WM-0102",
+    "WM-0103",
+    "WM-0104",
+    "WM-0105",
+    "WM-0106",
+    "WM-0107"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0097-future-m7-entry-prompt.md",
+    "coordination/reports/WM-0098-m7-task-dag.md",
+    "coordination/reports/WM-0101.md",
+    "coordination/reports/WM-0102.md",
+    "coordination/reports/WM-0103.md",
+    "coordination/reports/WM-0104.md",
+    "coordination/reports/WM-0105.md",
+    "coordination/reports/WM-0106.md",
+    "coordination/reports/WM-0107.md",
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "Produces a tester protocol and checklist for Windows controlled external test and Web demo-only evaluation",
+    "Includes tutorial, balance, privacy/diagnostics, cultural-risk, save-policy, known-issues and feedback checks",
+    "Distinguishes controlled external testing from public release or Early Access launch",
+    "Adds an automated checklist validation when feasible, or records why a docs-only checklist is sufficient",
+    "Does not execute public recruitment, public launch, store submission, signing, telemetry, accounts or paid services"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality",
+    "pnpm ci:local"
+  ],
+  "branch": "task/WM-0108-m7-playtest-checklist-protocol",
+  "createdAt": "2026-06-27T11:00:00.000Z",
+  "updatedAt": "2026-06-27T11:00:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-27T11:00:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0098 M7 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "milestone": "M7",
+  "objective": "Make M7 external testing repeatable, bounded and evidence-producing without launching publicly.",
+  "dependencies": [
+    "WM-0101",
+    "WM-0102",
+    "WM-0103",
+    "WM-0104",
+    "WM-0105",
+    "WM-0106",
+    "WM-0107"
+  ],
+  "allowedPaths": [
+    "docs/07_roadmap/**",
+    "docs/05_tech/**",
+    "tools/**",
+    "coordination/reports/WM-0108.md",
+    "coordination/reports/WM-0108-plan.md",
+    "coordination/tasks/WM-0108.json"
+  ],
+  "forbiddenPaths": [
+    "public release upload store submission signing installer or updater",
+    "public recruitment campaign or public Web launch",
+    "telemetry accounts paid services crash upload or public feedback service",
+    "final privacy legal store or public save compatibility claims",
+    "runtime behavior changes unless separately approved",
+    "M8 task creation, promotion, claim, implementation or review"
+  ],
+  "validationCommands": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality",
+    "pnpm ci:local"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: tester protocol can become public launch instructions; keep audience and distribution controlled.",
+    "Risk: checklist omits culture/privacy/save blockers; dependencies must be cited explicitly.",
+    "File ownership is limited to playtest checklist/protocol docs, optional validation tooling and WM-0108 reports."
+  ],
+  "ownerGate": [
+    "Block on public recruitment, public launch, store submission, signing or telemetry",
+    "Block if prerequisite cultural/privacy/save/Web/Windows evidence is missing",
+    "Block on final privacy/legal/store/save commitments without owner approval"
+  ],
+  "m0M6RegressionCoverage": [
+    "ci:local must pass with temporary artifact root when running integration-like gates",
+    "Checklist must include M5 hash, M6 Web verdict and M6 Windows verdict protections",
+    "No benchmark threshold weakening"
+  ],
+  "benchmarkImpact": "No benchmark baseline change expected. If checklist validation adds tooling, it must not affect benchmark artifacts.",
+  "reviewRouting": "qa-performance completes to reviewer; reviewer verifies checklist coverage, dependency citations and no public launch action.",
+  "rollbackModel": "Revert checklist/protocol docs, optional validation tool and WM-0108 reports; leave upstream evidence intact.",
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Playtest protocol consolidates multiple owner-gated readiness areas and public-facing boundaries."
+  }
+}

@@ -1,0 +1,132 @@
+{
+  "id": "WM-0109",
+  "title": "M7 validation matrix and readiness decision",
+  "summary": "Consolidate all verified M7 evidence into a readiness decision matrix for Early Access preparation, public playtest preparation, Web demo and Windows controlled external test.",
+  "state": "proposed",
+  "ownerRole": "project-director",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0099",
+    "WM-0100",
+    "WM-0101",
+    "WM-0102",
+    "WM-0103",
+    "WM-0104",
+    "WM-0105",
+    "WM-0106",
+    "WM-0107",
+    "WM-0108"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0097.md",
+    "coordination/reports/WM-0097-future-m7-entry-prompt.md",
+    "coordination/reports/WM-0098-m7-task-dag.md",
+    "coordination/tasks/*.json",
+    "coordination/reports/WM-0099.md",
+    "coordination/reports/WM-0100.md",
+    "coordination/reports/WM-0101.md",
+    "coordination/reports/WM-0102.md",
+    "coordination/reports/WM-0103.md",
+    "coordination/reports/WM-0104.md",
+    "coordination/reports/WM-0105.md",
+    "coordination/reports/WM-0106.md",
+    "coordination/reports/WM-0107.md",
+    "coordination/reports/WM-0108.md",
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "docs/08_codex/05_human_approval_gates.md"
+  ],
+  "acceptance": [
+    "Consolidates all M7 evidence into a readiness decision matrix",
+    "Records Early Access readiness, public playtest readiness, Web demo readiness and Windows controlled external test readiness separately",
+    "Runs M0-M6 regression gates required by M7 and records owner-gated residual decisions",
+    "Does not approve public release, EA launch, store submission, signing, telemetry, accounts, paid services or final public save compatibility by itself",
+    "Blocks M7 closeout if any upstream M7 task is not done, independently reviewed and integrated"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality",
+    "pnpm ci:local",
+    "pnpm test --filter m5-invariants",
+    "pnpm bench",
+    "pnpm sim:run -- --seed 5 --scenario m5-alpha-content-framework --ticks 100000"
+  ],
+  "branch": "task/WM-0109-m7-validation-readiness",
+  "createdAt": "2026-06-27T11:00:00.000Z",
+  "updatedAt": "2026-06-27T11:00:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-27T11:00:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0098 M7 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "milestone": "M7",
+  "objective": "Produce the M7 evidence matrix and readiness decision without launching or approving owner-gated public actions.",
+  "dependencies": [
+    "WM-0099",
+    "WM-0100",
+    "WM-0101",
+    "WM-0102",
+    "WM-0103",
+    "WM-0104",
+    "WM-0105",
+    "WM-0106",
+    "WM-0107",
+    "WM-0108"
+  ],
+  "allowedPaths": [
+    "coordination/reports/WM-0109.md",
+    "coordination/reports/WM-0109-plan.md",
+    "coordination/tasks/WM-0109.json",
+    "coordination/project-state.json",
+    "docs/07_roadmap/**"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/**",
+    "tools/** unless only validation artifact routing is adjusted with review",
+    "public release upload store submission signing installer or updater",
+    "telemetry accounts paid services crash upload or public feedback service",
+    "final privacy legal store or public save compatibility claims",
+    "M8 task creation, promotion, claim, implementation or review"
+  ],
+  "validationCommands": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality",
+    "pnpm ci:local",
+    "pnpm test --filter m5-invariants",
+    "pnpm bench",
+    "pnpm sim:run -- --seed 5 --scenario m5-alpha-content-framework --ticks 100000"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: readiness matrix can be mistaken for launch approval; separate readiness from owner-gated public actions.",
+    "Risk: upstream task state can be stale; verify taskctl status and every M7 review before deciding.",
+    "File ownership is limited to readiness matrix, project-state marker and roadmap status notes."
+  ],
+  "ownerGate": [
+    "Block if any M7 upstream task is not done, verified and integrated",
+    "Block on public release, EA launch, store submission, signing, telemetry, accounts, paid services or final public save promises",
+    "Block if M0-M6 regression gates or benchmark thresholds fail"
+  ],
+  "m0M6RegressionCoverage": [
+    "validate-handoff, taskctl validate/status, quality, ci:local, m5-invariants, isolated bench and M5 100000-tick headless must pass",
+    "Preserve M5 final hashes 0xfba70a5c / 0x9ba83cb7 unless reviewed migration exists",
+    "Preserve M6 Web demo-only and Windows controlled-external-test verdicts unless owner-approved reviewed evidence changes them"
+  ],
+  "benchmarkImpact": "No benchmark baseline change expected. Use isolated artifact root for bench and apply 10 percent warning / 20 percent blocking thresholds.",
+  "reviewRouting": "project-director completes to reviewer; reviewer verifies every upstream M7 task is done/verified/integrated and readiness language does not approve owner-gated launch actions.",
+  "rollbackModel": "Revert WM-0109 readiness matrix, roadmap/project-state markers and report; keep upstream verified M7 task artifacts intact.",
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Milestone readiness decision and regression consolidation require project-director ownership and independent review."
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "id": "WM-0110",
+  "title": "M7 closeout and future M8 entry prompt",
+  "summary": "Close M7 after all M7 tasks are independently reviewed and integrated, then write a non-executable future M8 entry prompt without starting M8.",
+  "state": "proposed",
+  "ownerRole": "project-director",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0109"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0097.md",
+    "coordination/reports/WM-0097-future-m7-entry-prompt.md",
+    "coordination/reports/WM-0098-m7-task-dag.md",
+    "coordination/reports/WM-0109.md",
+    "coordination/tasks/*.json",
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "docs/08_codex/05_human_approval_gates.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "Closes M7 only after all M7 tasks are done and independently reviewed",
+    "Records completed capabilities, validation matrix, technical debt, cultural review state, privacy/feedback state, save compatibility commitment state, owner gates and M8 readiness verdict",
+    "Writes coordination/reports/WM-0110-future-m8-entry-prompt.md as a non-executable future M8 prompt",
+    "Does not create, promote, claim, implement or review M8",
+    "Does not execute public release, EA launch, store submission, signing, telemetry, accounts, paid services or final public save compatibility commitments"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality",
+    "pnpm ci:local",
+    "pnpm test --filter m5-invariants",
+    "pnpm bench",
+    "pnpm sim:run -- --seed 5 --scenario m5-alpha-content-framework --ticks 100000"
+  ],
+  "branch": "task/WM-0110-m7-closeout-future-m8-entry",
+  "createdAt": "2026-06-27T11:00:00.000Z",
+  "updatedAt": "2026-06-27T11:00:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-27T11:00:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0098 M7 planning DAG; remains proposed until WM-0109 is done."
+    }
+  ],
+  "milestone": "M7",
+  "objective": "Close M7 and prepare the future M8 handoff artifact without starting M8.",
+  "dependencies": [
+    "WM-0109"
+  ],
+  "allowedPaths": [
+    "coordination/reports/WM-0110.md",
+    "coordination/reports/WM-0110-plan.md",
+    "coordination/reports/WM-0110-future-m8-entry-prompt.md",
+    "coordination/tasks/WM-0110.json",
+    "coordination/project-state.json",
+    "docs/07_roadmap/**"
+  ],
+  "forbiddenPaths": [
+    "M8 task creation, promotion, claim, implementation or review",
+    "apps/**",
+    "packages/**",
+    "tools/**",
+    "public release upload store submission signing installer or updater",
+    "telemetry accounts paid services crash upload or public feedback service",
+    "final privacy legal store or public save compatibility commitments unless owner-approved and reviewed before closeout"
+  ],
+  "validationCommands": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality",
+    "pnpm ci:local",
+    "pnpm test --filter m5-invariants",
+    "pnpm bench",
+    "pnpm sim:run -- --seed 5 --scenario m5-alpha-content-framework --ticks 100000"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: closeout can accidentally start M8; future prompt must be explicitly non-executable.",
+    "Risk: M7 closeout can overclaim release readiness; separate preparation verdicts from owner-approved launch decisions.",
+    "File ownership is limited to M7 closeout, future M8 prompt, roadmap/project-state markers and WM-0110 reports."
+  ],
+  "ownerGate": [
+    "Block if any M7 task remains not done, unverified or unintegrated",
+    "Block on M8 task creation, promotion, claim, implementation or review",
+    "Block on public release, EA launch, store submission, signing, telemetry, accounts, paid services or final public save promises without owner approval"
+  ],
+  "m0M6RegressionCoverage": [
+    "Full M0-M6 regression gate must pass before closeout",
+    "Preserve M5 final hashes and benchmark threshold policy",
+    "Preserve M6 verdicts unless a reviewed owner-approved M7 decision changes them"
+  ],
+  "benchmarkImpact": "No threshold weakening. Closeout must cite isolated bench evidence and explain any warning/blocking regression.",
+  "reviewRouting": "project-director completes to reviewer; reviewer verifies all M7 tasks are done/verified/integrated, future M8 prompt is non-executable and no M8 work started.",
+  "rollbackModel": "Revert M7 closeout, future M8 prompt and roadmap/project-state markers; leave verified M7 task artifacts intact and M8 unstarted.",
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Milestone closeout and future M8 handoff are project-director work requiring independent review."
+  }
+}

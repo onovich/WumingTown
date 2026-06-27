@@ -1,0 +1,107 @@
+{
+  "id": "WM-0101",
+  "title": "Cultural review package and terminology safety",
+  "summary": "Prepare the M7 cultural review package for folk-horror expression, fictionalization boundaries and Chinese/English terminology before public-facing materials are drafted.",
+  "state": "ready",
+  "ownerRole": "gameplay-designer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0098"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0097-future-m7-entry-prompt.md",
+    "coordination/reports/WM-0098-m7-task-dag.md",
+    "docs/01_design/00_product_brief.md",
+    "docs/03_world/00_world_bible.md",
+    "docs/03_world/05_supernatural_taxonomy.md",
+    "docs/04_content_balance/00_content_design_guide.md",
+    "docs/04_content_balance/04_anomaly_authoring_guide.md",
+    "docs/04_content_balance/05_incident_authoring_guide.md",
+    "docs/06_engineering/03_definition_of_done.md",
+    "docs/08_codex/05_human_approval_gates.md"
+  ],
+  "acceptance": [
+    "Reviews folk-horror and zhiguai expression, fictionalization, sensitive-topic handling and Chinese/English terminology used by M7-facing materials",
+    "Ensures public-facing material does not present fictional content as real folklore, historical fact, religious claim, medical claim or legal claim",
+    "Records unresolved cultural risks, terminology bans or owner gates for downstream material drafts",
+    "Adds or updates a citable cultural review document for WM-0106 and WM-0108",
+    "Does not approve store publication, public release or final legal/privacy/store claims"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0101-m7-cultural-review-terminology",
+  "createdAt": "2026-06-27T11:00:00.000Z",
+  "updatedAt": "2026-06-27T11:26:46.021Z",
+  "history": [
+    {
+      "at": "2026-06-27T11:00:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0098 M7 planning DAG; remains proposed until WM-0098 is verified, integrated and done."
+    },
+    {
+      "at": "2026-06-27T11:26:46.021Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
+    }
+  ],
+  "milestone": "M7",
+  "objective": "Create a reviewed cultural and terminology safety package before any M7 public-facing material draft is treated as ready.",
+  "dependencies": [
+    "WM-0098"
+  ],
+  "allowedPaths": [
+    "docs/01_design/**",
+    "docs/03_world/**",
+    "docs/04_content_balance/**",
+    "docs/07_roadmap/**",
+    "coordination/reports/WM-0101.md",
+    "coordination/reports/WM-0101-plan.md",
+    "coordination/tasks/WM-0101.json"
+  ],
+  "forbiddenPaths": [
+    "packages/** unless only generated content validation references are updated with review",
+    "apps/**",
+    "tools/**",
+    "store submission or public release upload",
+    "final legal privacy medical religious or historical claims",
+    "telemetry accounts paid services crash upload or public feedback system",
+    "M8 task creation, promotion, claim, implementation or review"
+  ],
+  "validationCommands": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: public copy can overstate cultural authenticity; require explicit fictionalization boundaries.",
+    "Risk: terminology work becomes final legal approval; keep unresolved items as owner-gated.",
+    "File ownership is limited to world, content-balance, design and M7 cultural-review reports."
+  ],
+  "ownerGate": [
+    "Block if external cultural/legal review is required and absent",
+    "Block if any material makes final legal, religious, historical or medical claims",
+    "Block on public release, store submission, signing, telemetry, accounts, paid services or M8 work"
+  ],
+  "m0M6RegressionCoverage": [
+    "No authoritative simulation change",
+    "No product-gate verdict change",
+    "No benchmark or save-format impact"
+  ],
+  "benchmarkImpact": "None expected; documentation and terminology review only.",
+  "reviewRouting": "gameplay-designer completes to reviewer; reviewer verifies cultural boundaries, terminology risk recording and downstream dependencies.",
+  "rollbackModel": "Revert WM-0101 docs and reports; block downstream public material tasks until replacement review exists.",
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Cultural review and terminology safety are product-risk decisions, not a narrow mechanical implementation."
+  }
+}

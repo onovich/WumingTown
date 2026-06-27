@@ -1,0 +1,112 @@
+{
+  "id": "WM-0107",
+  "title": "Known issues and release notes draft",
+  "summary": "Draft M7 known issues and external-test release notes from verified M6/M7 evidence without hiding blockers or overclaiming readiness.",
+  "state": "proposed",
+  "ownerRole": "qa-performance",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0099",
+    "WM-0100",
+    "WM-0102",
+    "WM-0103",
+    "WM-0104",
+    "WM-0105"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0097.md",
+    "coordination/reports/WM-0097-future-m7-entry-prompt.md",
+    "coordination/reports/WM-0098-m7-task-dag.md",
+    "coordination/reports/WM-0099.md",
+    "coordination/reports/WM-0100.md",
+    "coordination/reports/WM-0102.md",
+    "coordination/reports/WM-0103.md",
+    "coordination/reports/WM-0104.md",
+    "coordination/reports/WM-0105.md",
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "docs/08_codex/05_human_approval_gates.md"
+  ],
+  "acceptance": [
+    "Drafts known issues and external-test release notes from verified M6/M7 evidence",
+    "Records Web/Windows blockers, diagnostics limitations, save policy risks and player-support boundaries",
+    "Includes explicit non-goals for public release, store submission, signing, telemetry, accounts, paid services and M8",
+    "Does not hide failed gates, unresolved blockers or owner-gated decisions",
+    "Produces a release-notes package that WM-0108 and WM-0109 can cite"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0107-m7-known-issues-release-notes",
+  "createdAt": "2026-06-27T11:00:00.000Z",
+  "updatedAt": "2026-06-27T11:00:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-27T11:00:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0098 M7 planning DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "milestone": "M7",
+  "objective": "Create truthful known-issues and release-note drafts for controlled external testing and public playtest evaluation.",
+  "dependencies": [
+    "WM-0099",
+    "WM-0100",
+    "WM-0102",
+    "WM-0103",
+    "WM-0104",
+    "WM-0105"
+  ],
+  "allowedPaths": [
+    "docs/07_roadmap/**",
+    "docs/05_tech/**",
+    "docs/01_design/**",
+    "coordination/reports/WM-0107.md",
+    "coordination/reports/WM-0107-plan.md",
+    "coordination/tasks/WM-0107.json"
+  ],
+  "forbiddenPaths": [
+    "runtime implementation changes",
+    "test behavior changes to hide failures",
+    "benchmark baseline updates",
+    "public release upload store submission signing installer or updater",
+    "telemetry accounts paid services crash upload or public feedback system",
+    "final privacy legal store or public save compatibility claims",
+    "M8 task creation, promotion, claim, implementation or review"
+  ],
+  "validationCommands": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: known issues can soften blockers; preserve exact blocker language from dependency reports.",
+    "Risk: release notes can read as release approval; keep them draft/external-test notes.",
+    "File ownership is limited to known-issues/release-note docs and WM-0107 reports."
+  ],
+  "ownerGate": [
+    "Block if any unresolved blocker is omitted or downgraded without reviewed evidence",
+    "Block on release upload, store submission, signing, telemetry, accounts, paid services or final public claims",
+    "Block if dependency evidence is missing or unverified"
+  ],
+  "m0M6RegressionCoverage": [
+    "No runtime, save, platform verdict or benchmark threshold changes",
+    "Known issues must cite M6 Web demo-only and Windows controlled-test verdicts",
+    "M5 hashes and M0-M6 regression status remain protected"
+  ],
+  "benchmarkImpact": "None expected; documentation package only.",
+  "reviewRouting": "qa-performance completes to reviewer; reviewer verifies blocker fidelity, dependency evidence and no readiness overclaim.",
+  "rollbackModel": "Revert known-issues/release-note docs and WM-0107 reports; keep downstream protocol/readiness tasks blocked until replacement notes exist.",
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Known issues and release notes consolidate milestone risk and public-facing readiness language."
+  }
+}

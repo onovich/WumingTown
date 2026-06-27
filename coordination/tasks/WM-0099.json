@@ -1,0 +1,116 @@
+{
+  "id": "WM-0099",
+  "title": "Tutorial onboarding and first-run player path",
+  "summary": "Build the M7 first-run onboarding path for external players, covering the existing pillars, platform surfaces and structured explanations without making UI authoritative.",
+  "state": "ready",
+  "ownerRole": "client-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0098"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0097.md",
+    "coordination/reports/WM-0097-future-m7-entry-prompt.md",
+    "coordination/reports/WM-0098-m7-task-dag.md",
+    "docs/01_design/00_product_brief.md",
+    "docs/01_design/03_player_experience.md",
+    "docs/02_systems/07_chronicle_evidence_knowledge.md",
+    "docs/02_systems/08_anomalies_rules_investigation.md",
+    "docs/02_systems/09_obligations_pacts_factions.md",
+    "docs/02_systems/10_ordinances_governance_identity.md",
+    "docs/05_tech/01_technical_architecture.md",
+    "docs/06_engineering/03_definition_of_done.md",
+    "docs/07_roadmap/00_roadmap.md"
+  ],
+  "acceptance": [
+    "Provides an external-player first-run path covering launch, movement and input, time control, residents and work, hauling/building, saving, events, lamps, Chronicle, town rules, evidence and structured failure explanations",
+    "Adds or updates automated smoke coverage for the onboarding path on the relevant Web/Windows shell surfaces",
+    "Preserves Simulation Worker or Node headless as the only authoritative world writer; UI, Pixi, React and Electron remain read-model consumers",
+    "Does not add M8-scale tutorial content, public release flows, telemetry, accounts, paid services or public feedback systems",
+    "Records player-facing copy limits and unresolved onboarding risks in the task report"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test:e2e --filter web-shell",
+    "pnpm test:e2e --filter desktop-shell",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0099-m7-tutorial-onboarding",
+  "createdAt": "2026-06-27T11:00:00.000Z",
+  "updatedAt": "2026-06-27T11:26:46.021Z",
+  "history": [
+    {
+      "at": "2026-06-27T11:00:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0098 M7 planning DAG; remains proposed until WM-0098 is verified, integrated and done."
+    },
+    {
+      "at": "2026-06-27T11:26:46.021Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
+    }
+  ],
+  "milestone": "M7",
+  "objective": "Make the first external-player session understandable without changing simulation authority or M6 product-gate verdicts.",
+  "dependencies": [
+    "WM-0098"
+  ],
+  "allowedPaths": [
+    "apps/web/**",
+    "apps/desktop-electron/**",
+    "packages/ui-react/**",
+    "packages/renderer-pixi/**",
+    "docs/01_design/**",
+    "docs/07_roadmap/**",
+    "coordination/reports/WM-0099.md",
+    "coordination/reports/WM-0099-plan.md",
+    "coordination/tasks/WM-0099.json"
+  ],
+  "forbiddenPaths": [
+    "packages/sim-core/** unless separately approved",
+    "packages/sim-worker/** unless separately approved",
+    "public Worker protocol redesign",
+    "save schema changes",
+    "new runtime dependencies",
+    "telemetry accounts paid services crash upload or public feedback system",
+    "public release upload store submission signing installer or updater",
+    "M8 task creation, promotion, claim, implementation or review"
+  ],
+  "validationCommands": [
+    "pnpm typecheck",
+    "pnpm test:e2e --filter web-shell",
+    "pnpm test:e2e --filter desktop-shell",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: onboarding copy can overclaim Web or Windows readiness; preserve the M6 verdict language.",
+    "Risk: UI tutorial work can drift into authority changes; all commands must still flow through approved command surfaces.",
+    "File ownership is limited to onboarding UI/shell surfaces, player-facing design docs and WM-0099 reports."
+  ],
+  "ownerGate": [
+    "Block on any public release, store, signing, telemetry, account, paid service, crash upload or public feedback requirement",
+    "Block if onboarding requires UI or Electron to mutate authoritative world state directly",
+    "Block if the task needs new M8 content volume or changes M6 Web/Windows verdicts"
+  ],
+  "m0M6RegressionCoverage": [
+    "Preserve M5 final world/read-model hashes 0xfba70a5c / 0x9ba83cb7",
+    "Preserve M6 Web demo-only and Windows controlled-external-test verdicts",
+    "Run shell smoke coverage without weakening existing M0-M6 gates"
+  ],
+  "benchmarkImpact": "No benchmark baseline update expected. Any measurable shell performance regression over existing thresholds must be explained or fixed.",
+  "reviewRouting": "client-engineer completes to reviewer; reviewer verifies the first-run path, automated smoke evidence, authority boundaries and M7 non-goals.",
+  "rollbackModel": "Revert onboarding UI/shell/doc changes and WM-0099 reports; leave the M7 DAG and other proposed tasks intact.",
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Cross-surface onboarding touches product UX, platform verdict language and external-player readiness."
+  }
+}

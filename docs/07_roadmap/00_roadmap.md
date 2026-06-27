@@ -192,3 +192,27 @@ future handoff prompt at
 `coordination/reports/WM-0097-future-m7-entry-prompt.md`; a later owner-sent M7
 goal must create or follow a reviewed M7 task DAG before any M7 implementation
 task is claimed.
+
+## M7 Planning Addendum
+
+WM-0098 starts M7 planning from the verified WM-0097 future M7 entry prompt.
+The planning package defines M7 as Early Access / public playtest preparation
+and creates proposed WM-0099 through WM-0110 task packets covering tutorial
+onboarding, early-game balance/readability, cultural review, privacy/feedback/
+diagnostics, Windows controlled external test instructions, Web demo-only
+scope, save compatibility policy, draft store/playtest materials, known issues
+and release notes, playtest checklist, readiness decision, and M7 closeout with
+a future M8 prompt.
+
+M7 planning preserves current Roadmap authority: M6 is Web / Windows Product
+Gate, M7 is Early Access / public playtest preparation, and M8 is 1.0. Old
+M6/M7/M8/M9 inferences remain deprecated. M7 implementation does not start
+inside WM-0098, and downstream packets remain proposed until WM-0098 is
+independently reviewed, integrated and marked done.
+
+Web remains `demo-only`; Windows remains `ready-for-controlled-external-test`
+as an unsigned unpacked local directory build. Public release, Early Access
+launch, store submission, public Web launch, signing, installer/updater
+distribution, telemetry, accounts, hosted services, paid services, public
+feedback systems, final privacy/legal/store claims and public save
+compatibility commitments remain owner-gated. M8 remains unstarted.

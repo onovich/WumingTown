@@ -1,0 +1,110 @@
+{
+  "id": "WM-0103",
+  "title": "Windows controlled external test instructions",
+  "summary": "Produce controlled external test instructions for the unsigned Windows unpacked directory build without signing, installer, updater, store upload or public release.",
+  "state": "ready",
+  "ownerRole": "client-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0098"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0090.md",
+    "coordination/reports/WM-0092.md",
+    "coordination/reports/WM-0093.md",
+    "coordination/reports/WM-0097.md",
+    "coordination/reports/WM-0097-future-m7-entry-prompt.md",
+    "coordination/reports/WM-0098-m7-task-dag.md",
+    "docs/05_tech/01_technical_architecture.md",
+    "docs/05_tech/06_platform_matrix.md",
+    "docs/06_engineering/03_definition_of_done.md",
+    "docs/08_codex/05_human_approval_gates.md"
+  ],
+  "acceptance": [
+    "Produces tester installation and run instructions for the unsigned unpacked Windows directory build",
+    "Documents scope, warnings, diagnostics, support collection, sandbox/preload boundaries and known M6 limitations",
+    "States non-goals clearly: no signing, installer, updater, store upload, public release, telemetry, accounts, crash upload or paid services",
+    "Verifies current build and desktop-shell smoke commands still support the instructions",
+    "Records Windows verdict as controlled external test only and does not broaden it"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm build:desktop",
+    "pnpm test:e2e --filter desktop-shell",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0103-m7-windows-controlled-test-instructions",
+  "createdAt": "2026-06-27T11:00:00.000Z",
+  "updatedAt": "2026-06-27T11:26:46.022Z",
+  "history": [
+    {
+      "at": "2026-06-27T11:00:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0098 M7 planning DAG; remains proposed until WM-0098 is verified, integrated and done."
+    },
+    {
+      "at": "2026-06-27T11:26:46.022Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
+    }
+  ],
+  "milestone": "M7",
+  "objective": "Make Windows controlled external testing reproducible and bounded by the reviewed M6 verdict.",
+  "dependencies": [
+    "WM-0098"
+  ],
+  "allowedPaths": [
+    "apps/desktop-electron/**",
+    "packages/platform/**",
+    "docs/05_tech/**",
+    "docs/07_roadmap/**",
+    "coordination/reports/WM-0103.md",
+    "coordination/reports/WM-0103-plan.md",
+    "coordination/tasks/WM-0103.json"
+  ],
+  "forbiddenPaths": [
+    "signing credentials",
+    "signed installer, updater, Steam/store package or public release upload",
+    "telemetry accounts paid services crash upload or hosted support service",
+    "broad filesystem bridge or arbitrary IPC",
+    "save schema changes unless separately approved",
+    "M8 task creation, promotion, claim, implementation or review"
+  ],
+  "validationCommands": [
+    "pnpm typecheck",
+    "pnpm build:desktop",
+    "pnpm test:e2e --filter desktop-shell",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: tester instructions can be mistaken for public release readiness; all copy must say controlled external test only.",
+    "Risk: packaging changes can cross into signing or installer work; those remain owner-gated.",
+    "File ownership is limited to desktop shell docs/smoke support and Windows external-test instruction reports."
+  ],
+  "ownerGate": [
+    "Block on signing, installer, updater, store upload or public release",
+    "Block on new broad host bridge, arbitrary IPC or weakened Electron security boundaries",
+    "Block if instructions require final privacy, legal, telemetry, account, paid-service or save-compatibility commitments"
+  ],
+  "m0M6RegressionCoverage": [
+    "Preserve M6 Windows unsigned local-directory verdict",
+    "Run desktop build and desktop-shell smoke",
+    "Preserve M5 final hashes and benchmark thresholds"
+  ],
+  "benchmarkImpact": "No benchmark baseline change expected. Build/package size evidence may be recorded, but thresholds must not be weakened.",
+  "reviewRouting": "client-engineer completes to reviewer; reviewer verifies instructions match the unsigned controlled-test verdict and no release/signing work occurred.",
+  "rollbackModel": "Revert Windows instruction docs/shell support and WM-0103 reports; leave WM-0090/WM-0097 evidence intact.",
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Windows external-test instructions touch platform packaging, security boundaries and owner-gated release language."
+  }
+}

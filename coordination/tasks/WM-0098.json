@@ -1,0 +1,202 @@
+{
+  "id": "WM-0098",
+  "title": "Create M7 planning package and task DAG",
+  "summary": "Create the reviewed M7 Early Access / public playtest preparation planning package from the verified WM-0097 future M7 entry prompt, including startup audit evidence, M7 task DAG and concrete task packets without starting M7 implementation.",
+  "state": "done",
+  "ownerRole": "project-director",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0097"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "CODEX_START_HERE.md",
+    ".agents/skills/wuming-town-agent-workflow/SKILL.md",
+    ".agents/skills/wuming-town-agent-workflow/references/task-schema.md",
+    ".codex/config.toml",
+    ".codex/agents/*.toml",
+    "coordination/roles.json",
+    "coordination/project-state.json",
+    "coordination/thread-registry.json",
+    "coordination/tasks/*.json",
+    "coordination/reports/WM-0097.md",
+    "coordination/reports/WM-0097-future-m7-entry-prompt.md",
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "docs/07_roadmap/04_web_release_gate.md",
+    "docs/05_tech/06_platform_matrix.md",
+    "docs/00_project/05_decision_register.md",
+    "docs/05_tech/*",
+    "docs/06_engineering/*",
+    "docs/08_codex/*",
+    "coordination/decisions/*.md",
+    "PLANS.md"
+  ],
+  "acceptance": [
+    "Records startup audit evidence confirming M0-M6 are done, WM-0097 is done/verified, main and origin/main are synchronized, inbox is 0, worktree is clean, only the main worktree is present, no WM-0098+ task existed before this task and M7 was not already started",
+    "Adopts coordination/reports/WM-0097-future-m7-entry-prompt.md and current Roadmap authority without redefining M7 away from Early Access / public playtest preparation",
+    "Creates a reviewed M7 task DAG covering tutorial/onboarding, early-game balance/readability, explainability UX copy, cultural review, privacy/feedback/diagnostics, Windows controlled external test instructions, Web demo-only scope, store/public playtest material draft, save compatibility policy, known issues/release notes, playtest checklist, M7 closeout and future M8 prompt",
+    "Creates concrete M7 task JSON packets with milestone, ownerRole, reviewerRole, dependencies, allowed paths, forbidden paths, branch, acceptance, validation commands, risks, owner gates, M0-M6 regression scope, file ownership, benchmark impact, rollback model and Spark eligibility",
+    "Keeps downstream M7 packets proposed until WM-0098 is independently reviewed, integrated and marked done, then normal taskctl dependency promotion may unlock ready tasks",
+    "Does not implement product runtime behavior, create public release artifacts, submit stores, sign builds, enable telemetry/accounts/paid services, make final privacy/legal/store claims or start M8"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality",
+    "pnpm ci:local",
+    "pnpm test --filter m5-invariants",
+    "pnpm bench",
+    "pnpm sim:run -- --seed 5 --scenario m5-alpha-content-framework --ticks 100000"
+  ],
+  "branch": "task/WM-0098-create-m7-planning-dag",
+  "createdAt": "2026-06-27T10:59:44.029Z",
+  "updatedAt": "2026-06-27T11:26:46.014Z",
+  "history": [
+    {
+      "at": "2026-06-27T10:59:44.029Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created from the verified WM-0097 future M7 entry prompt after owner started the M7 Early Access / public playtest preparation goal."
+    },
+    {
+      "at": "2026-06-27T10:59:44.029Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "WM-0097 is done, reviewed, integrated and pushed; WM-0098 is the first planning-only M7 task."
+    },
+    {
+      "at": "2026-06-27T11:00:51.731Z",
+      "actor": "project-director",
+      "action": "claim",
+      "details": "thread=Beacon-root-project-director-WM-0098"
+    },
+    {
+      "at": "2026-06-27T11:17:29.764Z",
+      "actor": "project-director",
+      "action": "complete",
+      "details": "Created M7 planning-only package, DAG and proposed WM-0099 through WM-0110 task packets from verified WM-0097 future M7 prompt; updated roadmap/project-state planning markers; no M7 implementation, public release, owner-gated action or M8 work started; required gates passed with isolated bench rerun passing after one recorded non-acceptance slow-sample failure."
+    },
+    {
+      "at": "2026-06-27T11:24:24.014Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; Roadmap authority preserved; downstream M7 packets WM-0099 through WM-0110 are proposed/unclaimed, dependency-valid and acyclic; no product/release/M8 work started; required review checks passed."
+    },
+    {
+      "at": "2026-06-27T11:26:38.624Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integrated verified M7 planning package after reviewer Gate found no issues. Integration gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality; earlier full WM-0098 gates passed including ci:local, m5-invariants, M5 100000-tick headless and isolated bench rerun with nonblocking map-dirty warning."
+    },
+    {
+      "at": "2026-06-27T11:26:46.014Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
+    }
+  ],
+  "milestone": "M7",
+  "objective": "Create the formal M7 planning package and task DAG from the verified M7 entry prompt without starting M7 implementation.",
+  "dependencies": [
+    "WM-0097"
+  ],
+  "allowedPaths": [
+    "coordination/tasks/WM-0098.json",
+    "coordination/tasks/WM-0099.json",
+    "coordination/tasks/WM-0100.json",
+    "coordination/tasks/WM-0101.json",
+    "coordination/tasks/WM-0102.json",
+    "coordination/tasks/WM-0103.json",
+    "coordination/tasks/WM-0104.json",
+    "coordination/tasks/WM-0105.json",
+    "coordination/tasks/WM-0106.json",
+    "coordination/tasks/WM-0107.json",
+    "coordination/tasks/WM-0108.json",
+    "coordination/tasks/WM-0109.json",
+    "coordination/tasks/WM-0110.json",
+    "coordination/tasks/WM-0111.json",
+    "coordination/tasks/WM-0112.json",
+    "coordination/reports/WM-0098.md",
+    "coordination/reports/WM-0098-plan.md",
+    "coordination/reports/WM-0098-m7-task-dag.md",
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "coordination/project-state.json"
+  ],
+  "forbiddenPaths": [
+    "packages/**",
+    "apps/**",
+    "tools/**",
+    "content/**",
+    "schemas/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "coordination/artifacts/**",
+    "product runtime implementation",
+    "simulation implementation",
+    "test behavior changes",
+    "benchmark baseline updates",
+    "public release upload",
+    "store submission",
+    "signing credentials or signed installer",
+    "telemetry account paid service or crash upload implementation",
+    "final privacy legal or store claims",
+    "public save compatibility commitment",
+    "M8 task creation, promotion, claim, implementation or review"
+  ],
+  "validationCommands": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality",
+    "pnpm ci:local",
+    "pnpm test --filter m5-invariants",
+    "pnpm bench",
+    "pnpm sim:run -- --seed 5 --scenario m5-alpha-content-framework --ticks 100000"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: M7 planning becomes public release or M8 execution; owner must keep all downstream tasks scoped to preparation only.",
+    "Risk: task DAG under-covers privacy, cultural review, save compatibility, known issues or playtest materials; reviewer must compare against the M7 entry prompt and owner goal.",
+    "Risk: downstream packets are too broad or overlap file ownership; project-director must split tasks into independently reviewable slices with non-overlapping files.",
+    "File ownership is limited to M7 planning reports, concrete M7 task packets and narrow roadmap/project-state markers."
+  ],
+  "ownerGate": [
+    "Block if M7 scope cannot be uniquely planned from WM-0097 future M7 prompt and current Roadmap",
+    "Do not execute public release, Early Access release, store submission, Web public launch, signed Windows installer, telemetry, account system, paid service, crash upload or final privacy/legal/store/save-compatibility commitments",
+    "Do not change Web verdict away from demo-only or Windows verdict beyond controlled external test without owner approval",
+    "Do not create, promote, claim, implement or review M8",
+    "Preserve M0-M6 regression gates and benchmark thresholds"
+  ],
+  "m0M6RegressionCoverage": [
+    "Preserve all closed task states and review history through WM-0097",
+    "Preserve M5 final world/read-model hashes 0xfba70a5c / 0x9ba83cb7 unless a reviewed migration changes them",
+    "Preserve M6 Web demo-only verdict and Windows unsigned controlled-external-test verdict",
+    "Keep Simulation Worker or Node headless as the only authoritative world writer"
+  ],
+  "benchmarkImpact": "No product benchmark baseline or artifact changes. WM-0098 records M7 benchmark requirements only and preserves the 10 percent warning / 20 percent blocking thresholds.",
+  "reviewRouting": "Project-director completes to reviewer. Reviewer must verify that downstream M7 packets preserve the reviewed M7 entry prompt scope, dependencies, owner gates and non-goals before WM-0098 can be integrated.",
+  "rollbackModel": "Revert WM-0098 task/report files and the newly created downstream M7 task JSON packets; leave WM-0097 verified closeout and future M7 prompt intact and M7 implementation unstarted.",
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "M7 milestone planning, product gate scope, task DAG design, owner gates and final review cannot be assigned to Spark."
+  },
+  "claimedBy": "project-director",
+  "threadLabel": "Beacon-root-project-director-WM-0098",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0098.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; Roadmap authority preserved; downstream M7 packets WM-0099 through WM-0110 are proposed/unclaimed, dependency-valid and acyclic; no product/release/M8 work started; required review checks passed.",
+    "at": "2026-06-27T11:24:24.014Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integrated verified M7 planning package after reviewer Gate found no issues. Integration gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality; earlier full WM-0098 gates passed including ci:local, m5-invariants, M5 100000-tick headless and isolated bench rerun with nonblocking map-dirty warning.",
+    "at": "2026-06-27T11:26:38.623Z"
+  }
+}

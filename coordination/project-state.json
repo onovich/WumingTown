@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "project": "Wuming Town / Wuming Town",
-  "phase": "M6 closed; M7 not started",
-  "activeMilestone": "M6 Web / Windows Product Gate closed by WM-0097; future M7 Early Access / public playtest preparation remains unstarted until owner-sent goal and reviewed M7 DAG",
+  "phase": "M7 planning active; M7 implementation not started",
+  "activeMilestone": "M7 Early Access / public playtest preparation planning is active in WM-0098; WM-0099 through WM-0110 are proposed until WM-0098 is independently reviewed, integrated and done",
   "releaseTarget": "undated",
-  "updatedAt": "2026-06-27T08:40:00.000Z",
+  "updatedAt": "2026-06-27T11:15:00.000Z",
   "lockedDecisions": [
     "TypeScript-first authoritative simulation in a dedicated Worker",
     "PixiJS world rendering + React DOM UI + Electron Windows shell",
@@ -12,6 +12,12 @@
     "30 fixed simulation ticks per second",
     "Lantern / Chronicle / Obligation are the three product pillars"
   ],
-  "humanApprovalNeeded": [],
-  "notes": "Task JSON, reports and inbox files are the durable execution control plane. WM-0083 closed M5 with reviewed alpha content framework benchmark and invariant evidence. WM-0084 recovered the future M6 entry prompt and reviewed M6 Web / Windows Product Gate DAG without starting implementation. Owner started M6; WM-0085 instantiated WM-0086 through WM-0097 from the reviewed DAG. WM-0097 closes M6 after WM-0096 records Web verdict demo-only, not cancellation, and Windows verdict ready-for-controlled-external-test as an unsigned local directory build. Current roadmap authority: M6 = Web / Windows Product Gate, M7 = Early Access / public playtest preparation, M8 = 1.0; old M6/M7/M8/M9 inferences are deprecated. M7 remains unstarted. Owner approval remains required before Web cancellation, public release, store submission, signing, installer/updater distribution, telemetry, accounts, hosted services, paid services, public feedback systems or public save compatibility commitments."
+  "humanApprovalNeeded": [
+    "Public release, Early Access launch, public Web launch or store submission",
+    "Signing, installer, updater or distribution beyond unsigned controlled external test",
+    "Telemetry, accounts, hosted services, paid services, crash upload or public feedback system",
+    "Final privacy, legal, store or public save compatibility commitments",
+    "Any M8 start before M7 closeout and an owner-sent M8 goal"
+  ],
+  "notes": "Task JSON, reports and inbox files are the durable execution control plane. WM-0083 closed M5 with reviewed alpha content framework benchmark and invariant evidence. WM-0084 recovered the future M6 entry prompt and reviewed M6 Web / Windows Product Gate DAG without starting implementation. Owner started M6; WM-0085 instantiated WM-0086 through WM-0097 from the reviewed DAG. WM-0097 closes M6 after WM-0096 records Web verdict demo-only, not cancellation, and Windows verdict ready-for-controlled-external-test as an unsigned local directory build. Current roadmap authority: M6 = Web / Windows Product Gate, M7 = Early Access / public playtest preparation, M8 = 1.0; old M6/M7/M8/M9 inferences are deprecated. Owner started M7 after WM-0097; WM-0098 creates the reviewed M7 planning package and proposed WM-0099 through WM-0110 task DAG. M7 implementation remains unstarted until WM-0098 is independently reviewed, integrated and done, then normal taskctl promotion may unlock eligible tasks. Owner approval remains required before Web cancellation, public release, Early Access launch, store submission, signing, installer/updater distribution, telemetry, accounts, hosted services, paid services, public feedback systems, final privacy/legal/store claims or public save compatibility commitments."
 }

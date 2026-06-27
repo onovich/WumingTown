@@ -1,0 +1,114 @@
+{
+  "id": "WM-0100",
+  "title": "Early-game balance and readability pass",
+  "summary": "Evaluate and tune M7 early-game pressure and readability using M5 alpha content evidence and M6 product-gate constraints without rewriting core systems.",
+  "state": "ready",
+  "ownerRole": "gameplay-designer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0098"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0083.md",
+    "coordination/reports/WM-0097.md",
+    "coordination/reports/WM-0097-future-m7-entry-prompt.md",
+    "coordination/reports/WM-0098-m7-task-dag.md",
+    "docs/01_design/03_player_experience.md",
+    "docs/02_systems/19_m5_alpha_content_framework_scenario.md",
+    "docs/04_content_balance/00_content_design_guide.md",
+    "docs/04_content_balance/08_sample_content_catalog.md",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/06_engineering/03_definition_of_done.md",
+    "docs/07_roadmap/00_roadmap.md"
+  ],
+  "acceptance": [
+    "Records early resource pressure, night-risk cadence, event frequency, failure recovery and player-understanding risks for M7 external testing",
+    "Uses existing M5 alpha content framework evidence and deterministic scenarios where possible",
+    "Updates balance/readability data or docs only inside reviewed scope and keeps structured reasons for failures visible",
+    "Does not weaken deterministic hashes, benchmark thresholds, save/replay gates or product-gate verdicts",
+    "Produces a verified balance/readability package that downstream public-material and known-issues tasks can cite"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter m5-invariants",
+    "pnpm sim:run -- --seed 5 --scenario m5-alpha-content-framework --ticks 100000",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0100-m7-early-game-balance-readability",
+  "createdAt": "2026-06-27T11:00:00.000Z",
+  "updatedAt": "2026-06-27T11:26:46.021Z",
+  "history": [
+    {
+      "at": "2026-06-27T11:00:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0098 M7 planning DAG; remains proposed until WM-0098 is verified, integrated and done."
+    },
+    {
+      "at": "2026-06-27T11:26:46.021Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
+    }
+  ],
+  "milestone": "M7",
+  "objective": "Make early M7 external-test play readable and recoverable while preserving deterministic M5 evidence.",
+  "dependencies": [
+    "WM-0098"
+  ],
+  "allowedPaths": [
+    "docs/01_design/**",
+    "docs/04_content_balance/**",
+    "content/**",
+    "packages/content-schema/**",
+    "packages/content-compiler/**",
+    "packages/sim-core/src/**m5**",
+    "coordination/reports/WM-0100.md",
+    "coordination/reports/WM-0100-plan.md",
+    "coordination/tasks/WM-0100.json"
+  ],
+  "forbiddenPaths": [
+    "apps/** unless documenting readability evidence only",
+    "platform save or Worker protocol changes",
+    "new runtime dependencies",
+    "benchmark baseline updates without reviewer-approved evidence",
+    "telemetry accounts paid services crash upload or public feedback system",
+    "public release upload store submission signing installer or updater",
+    "M8 task creation, promotion, claim, implementation or review"
+  ],
+  "validationCommands": [
+    "pnpm typecheck",
+    "pnpm test --filter m5-invariants",
+    "pnpm sim:run -- --seed 5 --scenario m5-alpha-content-framework --ticks 100000",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: balance edits can accidentally move protected M5 hashes; any change must be intentional, reviewed and documented.",
+    "Risk: readability work can become broad content expansion; stay focused on M7 external-test comprehension.",
+    "File ownership is limited to balance/readability docs, content data or focused tests explicitly needed for this pass."
+  ],
+  "ownerGate": [
+    "Block if M5 final hash migration is needed and no owner/reviewer-approved migration plan exists",
+    "Block if changes require core-system rewrites, public protocol changes or M8 content volume",
+    "Block on public release, store, signing, telemetry, accounts, paid services or final public save promises"
+  ],
+  "m0M6RegressionCoverage": [
+    "Run M5 invariants and 100000-tick M5 scenario",
+    "Preserve benchmark thresholds of 10 percent warning and 20 percent blocking regression",
+    "Preserve M6 Web demo-only and Windows controlled-external-test verdicts"
+  ],
+  "benchmarkImpact": "No threshold weakening. If balance work affects runtime cost, run pnpm bench and document any movement against the 10/20 percent policy.",
+  "reviewRouting": "gameplay-designer completes to reviewer; reviewer verifies deterministic evidence, scope and downstream-citable balance/readability conclusions.",
+  "rollbackModel": "Revert balance/readability docs, data and tests from WM-0100; leave M7 planning and other tasks intact.",
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Gameplay balance and readability decisions affect milestone readiness and protected regression evidence."
+  }
+}

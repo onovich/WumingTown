@@ -307,3 +307,24 @@ WM-0097 does not start M7, create M7 task packets, produce store/public release
 materials, add privacy commitments, add telemetry, sign/upload artifacts or
 make public save compatibility commitments. Future M7 starts only from an
 owner-sent goal and reviewed M7 task DAG.
+
+## M7 Planning Status
+
+WM-0098 starts M7 planning after the owner sent the M7 goal and the startup
+audit confirmed WM-0097 is done, independently reviewed, integrated and pushed.
+The WM-0098 package creates proposed WM-0099 through WM-0110 task packets for
+Early Access / public playtest preparation. These packets remain proposed until
+WM-0098 is independently reviewed, integrated and marked done, after which
+normal taskctl dependency promotion may unlock eligible M7 work.
+
+The M7 planning gate must preserve M0-M6 regression evidence, including the M5
+alpha content framework final world/read-model hashes `0xfba70a5c` /
+`0x9ba83cb7`, the unchanged 10 percent warning / 20 percent blocking benchmark
+threshold policy, the M6 Web `demo-only` verdict and the M6 Windows unsigned
+controlled-external-test verdict.
+
+M7 planning is not public release approval, Early Access launch approval,
+store submission, public Web launch, signing, installer/updater distribution,
+telemetry, accounts, hosted services, paid services, public feedback systems,
+final privacy/legal/store claims, public save compatibility commitment or M8
+startup.

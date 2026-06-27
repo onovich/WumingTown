@@ -1,0 +1,114 @@
+{
+  "id": "WM-0104",
+  "title": "Web demo-only scope statement",
+  "summary": "Write and verify the M7 Web demo-only scope statement from M6 evidence without claiming same-spec, lower-fast-forward or full release support.",
+  "state": "ready",
+  "ownerRole": "client-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0098"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0086.md",
+    "coordination/reports/WM-0087.md",
+    "coordination/reports/WM-0088.md",
+    "coordination/reports/WM-0089.md",
+    "coordination/reports/WM-0094.md",
+    "coordination/reports/WM-0096.md",
+    "coordination/reports/WM-0097.md",
+    "coordination/reports/WM-0097-future-m7-entry-prompt.md",
+    "coordination/reports/WM-0098-m7-task-dag.md",
+    "docs/07_roadmap/04_web_release_gate.md",
+    "docs/05_tech/06_platform_matrix.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "States Web demo scope, limitations, performance/storage expectations and player-facing boundaries from verified M6 evidence",
+    "Ensures Web is not described as same-spec, lower-fast-forward, lower-cap or full release support",
+    "Keeps Web OPFS/import/export, local diagnostics and SharedArrayBuffer fallback claims grounded in M6 evidence",
+    "Provides citable language for downstream store/playtest materials and known issues",
+    "Does not cancel Web, launch Web publicly or change the M6 Web verdict"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm build:web",
+    "pnpm test:e2e --filter web-shell",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0104-m7-web-demo-only-scope",
+  "createdAt": "2026-06-27T11:00:00.000Z",
+  "updatedAt": "2026-06-27T11:26:46.022Z",
+  "history": [
+    {
+      "at": "2026-06-27T11:00:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0098 M7 planning DAG; remains proposed until WM-0098 is verified, integrated and done."
+    },
+    {
+      "at": "2026-06-27T11:26:46.022Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
+    }
+  ],
+  "milestone": "M7",
+  "objective": "Make Web external-test messaging truthful and bounded by the M6 demo-only verdict.",
+  "dependencies": [
+    "WM-0098"
+  ],
+  "allowedPaths": [
+    "apps/web/**",
+    "packages/ui-react/**",
+    "packages/renderer-pixi/**",
+    "packages/platform/**",
+    "docs/05_tech/**",
+    "docs/07_roadmap/**",
+    "coordination/reports/WM-0104.md",
+    "coordination/reports/WM-0104-plan.md",
+    "coordination/tasks/WM-0104.json"
+  ],
+  "forbiddenPaths": [
+    "same-spec Web claim without new reviewed browser authority evidence",
+    "Web cancellation decision",
+    "public Web launch or release upload",
+    "telemetry accounts paid services crash upload or public feedback system",
+    "final privacy legal store or save-compatibility claims",
+    "M8 task creation, promotion, claim, implementation or review"
+  ],
+  "validationCommands": [
+    "pnpm typecheck",
+    "pnpm build:web",
+    "pnpm test:e2e --filter web-shell",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: Web copy can overclaim support tier; preserve exact demo-only language.",
+    "Risk: Web scope docs can become public launch approval; keep release actions owner-gated.",
+    "File ownership is limited to Web scope docs/shell surfaces and WM-0104 reports."
+  ],
+  "ownerGate": [
+    "Block if any work claims same-spec, lower-fast-forward or full Web support without new reviewed evidence",
+    "Block on public launch, store submission, telemetry, accounts, paid services or final public save promises",
+    "Block if Web verdict would be changed or Web cancelled without owner approval"
+  ],
+  "m0M6RegressionCoverage": [
+    "Preserve M6 Web demo-only verdict",
+    "Run Web build and web-shell smoke",
+    "Preserve M5 hashes and M6 Web storage/diagnostics evidence boundaries"
+  ],
+  "benchmarkImpact": "No benchmark baseline update. Any new Web performance measurement must cite existing M6 threshold policy and not weaken it.",
+  "reviewRouting": "client-engineer completes to reviewer; reviewer verifies scope statement accuracy, M6 evidence citations and no public Web launch work.",
+  "rollbackModel": "Revert Web scope docs/shell copy and WM-0104 reports; leave M6 verdicts intact.",
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Web demo-only scope is a product verdict and public-facing boundary task."
+  }
+}

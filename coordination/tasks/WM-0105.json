@@ -1,0 +1,113 @@
+{
+  "id": "WM-0105",
+  "title": "Save compatibility policy draft",
+  "summary": "Draft the M7 external-test save compatibility policy, import/export instructions and breakage boundaries without making a final public save promise.",
+  "state": "ready",
+  "ownerRole": "systems-architect",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0098"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0088.md",
+    "coordination/reports/WM-0095.md",
+    "coordination/reports/WM-0097.md",
+    "coordination/reports/WM-0097-future-m7-entry-prompt.md",
+    "coordination/reports/WM-0098-m7-task-dag.md",
+    "docs/02_systems/13_save_replay_migration.md",
+    "docs/05_tech/04_persistence_mods_security.md",
+    "docs/05_tech/06_platform_matrix.md",
+    "docs/06_engineering/03_definition_of_done.md",
+    "docs/08_codex/05_human_approval_gates.md"
+  ],
+  "acceptance": [
+    "Drafts external-test save compatibility policy, import/export instructions, breakage allowances and known risks",
+    "Carries Windows/Web save-container interoperability as a blocker until a reviewed desktop save bridge exists",
+    "Does not make a final public save compatibility commitment without owner approval",
+    "Records save/replay and M5 hash protection expectations for M7 validation",
+    "Provides citable save-policy boundaries for known issues, playtest protocol and M7 closeout"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter persistence",
+    "pnpm test --filter m5-save-replay",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0105-m7-save-compat-policy",
+  "createdAt": "2026-06-27T11:00:00.000Z",
+  "updatedAt": "2026-06-27T11:26:46.023Z",
+  "history": [
+    {
+      "at": "2026-06-27T11:00:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0098 M7 planning DAG; remains proposed until WM-0098 is verified, integrated and done."
+    },
+    {
+      "at": "2026-06-27T11:26:46.023Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
+    }
+  ],
+  "milestone": "M7",
+  "objective": "Make external-test save handling clear while preserving reviewed save/replay and product-gate blockers.",
+  "dependencies": [
+    "WM-0098"
+  ],
+  "allowedPaths": [
+    "packages/persistence/**",
+    "packages/platform/**",
+    "apps/web/**",
+    "apps/desktop-electron/**",
+    "docs/02_systems/**",
+    "docs/05_tech/**",
+    "docs/07_roadmap/**",
+    "coordination/reports/WM-0105.md",
+    "coordination/reports/WM-0105-plan.md",
+    "coordination/tasks/WM-0105.json"
+  ],
+  "forbiddenPaths": [
+    "public save compatibility commitment",
+    "save schema migration without reviewed plan",
+    "arbitrary filesystem bridge or broad IPC",
+    "telemetry accounts paid services crash upload or hosted save service",
+    "public release upload store submission signing installer or updater",
+    "M8 task creation, promotion, claim, implementation or review"
+  ],
+  "validationCommands": [
+    "pnpm typecheck",
+    "pnpm test --filter persistence",
+    "pnpm test --filter m5-save-replay",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: policy draft becomes a public save promise; keep language draft and owner-gated.",
+    "Risk: desktop save bridge work touches host security; require narrow reviewed bridge scope if needed.",
+    "File ownership is limited to persistence/platform save docs, focused tests and WM-0105 reports."
+  ],
+  "ownerGate": [
+    "Block on final public save compatibility promises",
+    "Block on save format migration, broad host filesystem access or arbitrary IPC without reviewed scope",
+    "Block on hosted save services, telemetry, accounts, paid services, release upload or M8 work"
+  ],
+  "m0M6RegressionCoverage": [
+    "Preserve M5 save/replay and final hashes",
+    "Preserve M6 Windows/Web interoperability blocker until resolved by reviewed task",
+    "No benchmark threshold weakening"
+  ],
+  "benchmarkImpact": "No benchmark baseline change expected. Save bridge or import/export changes must keep hot simulation paths unaffected.",
+  "reviewRouting": "systems-architect completes to reviewer; reviewer verifies draft status, save blocker handling and absence of public compatibility commitment.",
+  "rollbackModel": "Revert save policy docs, focused save-surface changes and WM-0105 reports; leave M6 blocker evidence intact.",
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "Save compatibility policy touches persistence commitments, security boundaries and owner-gated public promises."
+  }
+}

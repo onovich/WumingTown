@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQW9MTK5-D677DA",
+  "from": "project-director",
+  "to": "reviewer",
+  "taskId": "WM-0098",
+  "kind": "review-request",
+  "subject": "WM-0098 ready for review",
+  "body": "Created M7 planning-only package, DAG and proposed WM-0099 through WM-0110 task packets from verified WM-0097 future M7 prompt; updated roadmap/project-state planning markers; no M7 implementation, public release, owner-gated action or M8 work started; required gates passed with isolated bench rerun passing after one recorded non-acceptance slow-sample failure.",
+  "artifacts": [
+    "coordination/reports/WM-0098.md",
+    "task/WM-0098-create-m7-planning-dag"
+  ],
+  "createdAt": "2026-06-27T11:17:29.765Z",
+  "acknowledgedAt": "2026-06-27T11:25:42.595Z"
+}
