@@ -305,6 +305,21 @@ M6 readiness remains a stop-sign report only: the artifact records
 `m6StopSignVerdict: "stop_signs_only"` and `m6Created: false`; no M6 task is a
 testing or CI prerequisite for M5 closeout.
 
+## WM-0125 implementation note
+
+`pnpm test --filter m8-save-replay` covers the focused M8 long-save/migration
+gate for `m8.faction_endgame.owner_arcs.v1`. It validates save tick `72000`,
+load tick `72001`, final tick `100000`, scenario identity, content-scope hash,
+owner-gated migration policy, sorted faction arc rows, sorted endgame route
+rows, command-tail integrity, rebuilt read-only surfaces and structured
+first-divergent-tick diagnostics.
+
+`pnpm sim:replay-test -- --scenario m8-faction-endgame-owner-arcs` writes M8
+expected, actual, save, resumed and summary artifacts under
+`coordination/artifacts/WM-0125/m8-save-replay/`. This is M8 evidence only and
+does not alter the default command replay probe or public save compatibility
+policy.
+
 ## WM-0093 Local Diagnostic Package Gate
 
 `packages/platform` now exposes the M6 local diagnostic package builder used by

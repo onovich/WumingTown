@@ -148,3 +148,19 @@ commitments, cloud save readiness and Windows/Web interoperability readiness.
 
 WM-0110 must record whether these owner-gated save decisions remain open before
 M8 planning begins.
+
+## WM-0125 M8 Gate Extension
+
+M8 adds focused long-save/migration evidence for the accepted faction/endgame
+owner slice, but the M7 verdict still stands:
+
+- Public save compatibility remains owner-gated.
+- Cross-version migration claims remain owner-gated.
+- Windows/Web save-container interoperability remains owner-gated.
+- Desktop save bridge readiness remains owner-gated.
+
+The M8 evidence is a regression and migration-policy gate for
+`m8.faction_endgame.owner_arcs.v1`; it is not tester-facing compatibility copy
+and must not be reused as a public promise. If any future task wants to change
+one of the four owner-gated fields, it must bring an explicit owner decision,
+reviewed migration evidence, rollback plan and platform security audit.

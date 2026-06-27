@@ -241,3 +241,43 @@ compatibility:
 - Public save compatibility, cross-version migration claims, hosted save,
   cloud sync, broad desktop filesystem access and full-save support collection
   remain owner-gated.
+
+## WM-0125 M8 long-save and migration gate note
+
+`packages/sim-core/src/m8-save-replay.ts` implements a focused M8
+faction/endgame long-save gate for
+`m8.faction_endgame.owner_arcs.v1` / `m8-faction-endgame-owner-arcs`. It is
+scenario evidence only: no public Save Container v1, platform save UI, Worker
+protocol, codec dependency, cross-version migration promise or Windows/Web
+interoperability claim is introduced.
+
+The M8 envelope records scenario id, seed, content-scope hash, command-stream
+hash, save tick `72000`, next/load tick `72001`, owner-gated migration policy,
+M8 faction arc rows, endgame route rows, command-log tail, checkpoint hashes and
+read-only rebuilt surface hashes. Load validates unknown input in scratch before
+returning a loaded result, including magic, format versions, scenario identity,
+seed, content scope, policy gates, sorted owner rows, integer lanes, command
+continuity and projection integrity.
+
+The migration gate is intentionally negative: public save compatibility,
+cross-version migration, Windows/Web save interoperability and desktop save
+bridge readiness must remain `owner_gated`. Any change from that state requires
+a separate reviewed owner decision before implementation can proceed.
+
+Architecture decision:
+
+- Alternatives considered: extend the public save container now; add a desktop
+  save bridge; or add a focused M8 scenario harness. The focused harness was
+  chosen because WM-0125 needs M8 evidence without widening public compatibility
+  or platform filesystem scope.
+- Migration implication: M8 validates a current-envelope policy gate and
+  rejects unapproved compatibility/interoperability claims. It does not provide
+  N-to-N+1 public player-save migration.
+- Rollback: remove the M8 harness registration and tests; existing M1-M5
+  save/replay gates remain independent.
+- Test implication: `pnpm test --filter m8-save-replay` covers the focused M8
+  gate, while `pnpm test --filter m5-save-replay` and `pnpm sim:replay-test`
+  continue to protect existing save/replay and command replay evidence.
+- Performance implication: the gate records bounded owner-row counts, route
+  visits, faction-fact visits, cap hits and stale rejects; it does not add
+  per-tick runtime work or derived-cache persistence.

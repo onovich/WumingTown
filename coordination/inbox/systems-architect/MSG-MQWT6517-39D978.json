@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQWT6517-39D978",
+  "from": "reviewer",
+  "to": "systems-architect",
+  "taskId": "WM-0125",
+  "kind": "changes-requested",
+  "subject": "WM-0125 review: changes_requested",
+  "body": "High: M8 load/resume accepts out-of-gate ticks: load rebuilds from parsed createdTick yet returns M8_LOAD_TICK, and resume can finish at save tick before load tick, violating the focused 72000/72001 gate. Medium: parseM8AdvanceCommandId accepts trailing junk via parseInt, collapsing malformed command ids. Required review checks passed.",
+  "artifacts": [
+    "coordination/reports/WM-0125.md"
+  ],
+  "createdAt": "2026-06-27T20:24:23.804Z",
+  "acknowledgedAt": "2026-06-27T20:26:37.782Z"
+}

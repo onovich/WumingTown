@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQWTFMC7-F3EE02",
+  "from": "systems-architect",
+  "to": "reviewer",
+  "taskId": "WM-0125",
+  "kind": "review-request",
+  "subject": "WM-0125 ready for review",
+  "body": "Repaired reviewer findings: focused M8 gate now rejects non-72000 save ticks and invalid resume finals; command-id parsing now requires full-string safe integers; required checks pass",
+  "artifacts": [
+    "coordination/reports/WM-0125.md",
+    "task/WM-0125-m8-long-save-migration"
+  ],
+  "createdAt": "2026-06-27T20:31:46.135Z",
+  "acknowledgedAt": "2026-06-27T20:32:49.282Z"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQWTLS70-E62BDA",
+  "from": "reviewer",
+  "to": "systems-architect",
+  "taskId": "WM-0125",
+  "kind": "review-approved",
+  "subject": "WM-0125 review: verified",
+  "body": "No blocking findings. Re-review probes confirm non-72000 saves fail closed, load requires 72000/72001, resume rejects finals before load and non-100000 finals, and command-id parsing rejects trailing junk. Required review checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0125.md"
+  ],
+  "createdAt": "2026-06-27T20:36:33.660Z",
+  "acknowledgedAt": "2026-06-27T20:37:40.114Z"
+}

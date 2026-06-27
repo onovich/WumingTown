@@ -8,6 +8,7 @@ import {
   compareM3ReplayRuns,
   compareM4ReplayRuns,
   compareM5ReplayRuns,
+  compareM8ReplayRuns,
   compareReplayCheckpoints,
   createM1HaulingBuildingSaveEnvelope,
   createHeadlessReplayCheckpoint,
@@ -16,6 +17,7 @@ import {
   createM3OrdinaryLifeSaveEnvelope,
   createM4CoreVerticalSliceSaveEnvelope,
   createM5AlphaContentSaveEnvelope,
+  createM8FactionEndgameSaveEnvelope,
   M3_FINAL_TICK,
   M3_LOAD_TICK,
   M3_ORDINARY_LIFE_SCENARIO_ID,
@@ -30,20 +32,29 @@ import {
   M5_LOAD_TICK,
   M5_REPLAY_CHECKPOINT_SEQUENCE,
   M5_SAVE_TICK,
+  M8_FACTION_ENDGAME_SCENARIO_ID,
+  M8_FACTION_ENDGAME_SEED,
+  M8_FINAL_TICK,
+  M8_LOAD_TICK,
+  M8_REPLAY_CHECKPOINT_SEQUENCE,
+  M8_SAVE_TICK,
   M2_WORK_LOGISTICS_SCENARIO_ID,
   queueHeadlessCommand,
   loadM4CoreVerticalSliceSaveEnvelope,
   loadM5AlphaContentSaveEnvelope,
+  loadM8FactionEndgameSaveEnvelope,
   resumeM1HaulingBuildingFromSave,
   resumeM2WorkLogisticsFromSave,
   resumeM3OrdinaryLifeFromSave,
   resumeM4CoreVerticalSliceFromSave,
   resumeM5AlphaContentFromSave,
+  resumeM8FactionEndgameFromSave,
   runM1HaulingBuildingReplay,
   runM2WorkLogisticsReplay,
   runM3OrdinaryLifeReplay,
   runM4CoreVerticalSliceReplay,
   runM5AlphaContentReplay,
+  runM8FactionEndgameReplay,
   summarizeHeadlessRun,
 } from "../packages/sim-core/src/index.ts";
 
@@ -52,6 +63,7 @@ const M2_SCENARIO_FILTER = "m2-work-logistics";
 const M3_SCENARIO_FILTER = "m3-ordinary-life";
 const M4_SCENARIO_FILTER = "m4-core-vertical-slice";
 const M5_SCENARIO_FILTER = "m5-alpha-content-framework";
+const M8_SCENARIO_FILTER = "m8-faction-endgame-owner-arcs";
 
 const DEFAULT_SEED = "WM-0010-long-run";
 const DEFAULT_M2_SEED = "2";
@@ -62,6 +74,10 @@ const DEFAULT_SEGMENT_TICKS = 5_000;
 const DEFAULT_SEGMENT_COUNT = 24;
 
 export function runReplayDiagnostics(options = {}) {
+  if (options.scenario === M8_SCENARIO_FILTER) {
+    return runM8ReplayDiagnostics(options);
+  }
+
   if (options.scenario === M2_SCENARIO_FILTER) {
     return runM2ReplayDiagnostics(options);
   }
@@ -250,6 +266,7 @@ export function printReplayDiagnosticsResult(result) {
           m3Scenario: result.m3Scenario ?? null,
           m4Scenario: result.m4Scenario ?? null,
           m5Scenario: result.m5Scenario ?? null,
+          m8Scenario: result.m8Scenario ?? null,
         },
         null,
         2,
@@ -342,7 +359,9 @@ function createReplayFailure(failureKind, message, failureContext, details = {})
     firstDivergentTick: details.firstDivergentTick ?? null,
     failureKind,
     message,
-    artifactPaths: toRelativeArtifactPaths(failureContext.artifactPaths),
+    artifactPaths: toRelativeArtifactPaths(failureContext.artifactPaths, {
+      includeM8: details.includeM8Artifacts === true,
+    }),
     divergence: details.divergence ?? null,
     error: details.error === undefined ? null : serializeError(details.error),
   };
@@ -374,6 +393,7 @@ function createArtifactPaths(customArtifactRoot) {
   const m3Dir = path.join(resolveArtifactRoot(customArtifactRoot), "m3-save-replay");
   const m4Dir = path.join(resolveArtifactRoot(customArtifactRoot), "m4-save-replay");
   const m5Dir = path.join(resolveArtifactRoot(customArtifactRoot), "m5-save-replay");
+  const m8Dir = path.join(resolveArtifactRoot(customArtifactRoot), "m8-save-replay");
 
   return {
     expected: path.join(artifactDir, "expected-checkpoints.json"),
@@ -415,6 +435,13 @@ function createArtifactPaths(customArtifactRoot) {
       save: path.join(m5Dir, "save.json"),
       summary: path.join(m5Dir, "summary.json"),
     },
+    m8: {
+      expected: path.join(m8Dir, "expected.json"),
+      actual: path.join(m8Dir, "actual.json"),
+      resumed: path.join(m8Dir, "resumed.json"),
+      save: path.join(m8Dir, "save.json"),
+      summary: path.join(m8Dir, "summary.json"),
+    },
   };
 }
 
@@ -432,8 +459,8 @@ function resolveArtifactRoot(customArtifactRoot) {
   return path.resolve(process.cwd(), "coordination", "artifacts", "WM-0010");
 }
 
-function toRelativeArtifactPaths(artifactPaths) {
-  return {
+function toRelativeArtifactPaths(artifactPaths, options = {}) {
+  const paths = {
     expected: toRelativePath(artifactPaths.expected),
     actual: toRelativePath(artifactPaths.actual),
     perturbed: toRelativePath(artifactPaths.perturbed),
@@ -472,6 +499,21 @@ function toRelativeArtifactPaths(artifactPaths) {
       resumed: toRelativePath(artifactPaths.m5.resumed),
       save: toRelativePath(artifactPaths.m5.save),
       summary: toRelativePath(artifactPaths.m5.summary),
+    },
+  };
+
+  if (options.includeM8 !== true) {
+    return paths;
+  }
+
+  return {
+    ...paths,
+    m8: {
+      expected: toRelativePath(artifactPaths.m8.expected),
+      actual: toRelativePath(artifactPaths.m8.actual),
+      resumed: toRelativePath(artifactPaths.m8.resumed),
+      save: toRelativePath(artifactPaths.m8.save),
+      summary: toRelativePath(artifactPaths.m8.summary),
     },
   };
 }
@@ -938,6 +980,131 @@ function runM5ReplayDiagnostics(options) {
   }
 }
 
+function runM8ReplayDiagnostics(options) {
+  const seed = options.seed ?? M8_FACTION_ENDGAME_SEED;
+  const artifactPaths = createArtifactPaths(
+    options.artifactRoot ?? path.join("coordination", "artifacts", "WM-0125"),
+  );
+  const failureContext = {
+    seed,
+    firstDivergentTick: null,
+    artifactPaths,
+  };
+
+  mkdirSync(path.dirname(artifactPaths.m8.summary), { recursive: true });
+  mkdirSync(path.dirname(artifactPaths.summary), { recursive: true });
+
+  try {
+    const checkpointTicks = M8_REPLAY_CHECKPOINT_SEQUENCE;
+    const resumeCheckpointTicks = [M8_SAVE_TICK, M8_FINAL_TICK];
+    const expected = readM8Replay(runM8FactionEndgameReplay({ seed, checkpointTicks }));
+    const actual = readM8Replay(runM8FactionEndgameReplay({ seed, checkpointTicks }));
+    const expectedResume = filterReplayRunToTicks(expected, resumeCheckpointTicks);
+    const save = createM8FactionEndgameSaveEnvelope(seed, M8_SAVE_TICK);
+    const loaded = readM8Load(loadM8FactionEndgameSaveEnvelope(save));
+    const resumed = readM8Replay(
+      resumeM8FactionEndgameFromSave({
+        save,
+        loadTick: M8_LOAD_TICK,
+        finalTick: M8_FINAL_TICK,
+        checkpointTicks: resumeCheckpointTicks,
+      }),
+    );
+
+    writeJson(artifactPaths.m8.expected, expected);
+    writeJson(artifactPaths.m8.actual, actual);
+    writeJson(artifactPaths.m8.save, save);
+    writeJson(artifactPaths.m8.resumed, resumed);
+
+    const relativeArtifacts = {
+      expected: toRelativePath(artifactPaths.m8.expected),
+      actual: toRelativePath(artifactPaths.m8.actual),
+      resumed: toRelativePath(artifactPaths.m8.resumed),
+      save: toRelativePath(artifactPaths.m8.save),
+      summary: toRelativePath(artifactPaths.m8.summary),
+    };
+    const comparison = compareM8ReplayRuns(expected, actual, relativeArtifacts);
+    const resumedComparison = compareM8ReplayRuns(expectedResume, resumed, relativeArtifacts);
+
+    if (!comparison.ok || !resumedComparison.ok) {
+      const divergence = comparison.ok ? resumedComparison : comparison;
+      return createReplayFailure(
+        "m8_faction_endgame_divergence",
+        "M8 faction/endgame save/replay diagnostics diverged.",
+        failureContext,
+        {
+          scenarioId: M8_FACTION_ENDGAME_SCENARIO_ID,
+          firstDivergentTick: divergence.firstDivergentTick,
+          divergence,
+          includeM8Artifacts: true,
+        },
+      );
+    }
+
+    const m8Scenario = {
+      ok: true,
+      scenarioId: M8_FACTION_ENDGAME_SCENARIO_ID,
+      seed: save.seed,
+      requestedSeed: seed,
+      contentScopeHash: save.contentScopeHash,
+      commandStreamHash: save.commandStreamHash,
+      finalWorldHash: expected.finalWorldHash,
+      finalReadModelHash: expected.finalReadModelHash,
+      resumedFinalWorldHash: resumed.finalWorldHash,
+      resumedFinalReadModelHash: resumed.finalReadModelHash,
+      resumedSource: resumed.source,
+      loadedStateHash: resumed.loadedStateHash,
+      checkpointCount: expected.checkpoints.length,
+      checkpointHashes: expected.checkpoints.map((checkpoint) => ({
+        tick: checkpoint.tick,
+        worldHash: checkpoint.worldHash,
+        readModelHash: checkpoint.readModelHash,
+        checkpointHash: checkpoint.checkpointHash,
+      })),
+      saveTick: save.createdTick,
+      loadTick: M8_LOAD_TICK,
+      finalTick: M8_FINAL_TICK,
+      saveBytes: JSON.stringify(save).length,
+      migrationPolicy: save.migrationPolicy,
+      loadValidationTimeTicks: loaded.validationTimeTicks,
+      rebuildTimeTicks: loaded.rebuildTimeTicks,
+      rebuiltSurfaceNames: loaded.rebuiltSurfaceNames,
+      rebuiltSurfaces: loaded.projection.rebuiltIndexes.surfaces,
+      ownerHandles: save.sections.ownerStores.ownerHandles,
+      commandTail: save.sections.commandLogTail.commandTail,
+      saveCheckpointHashes: save.sections.reasonMetrics.checkpointHashes,
+      firstDivergentTick: null,
+      artifactPaths: relativeArtifacts,
+    };
+
+    const summary = {
+      ok: true,
+      scenarioId: M8_FACTION_ENDGAME_SCENARIO_ID,
+      seed: save.seed,
+      requestedSeed: seed,
+      contentScopeHash: save.contentScopeHash,
+      firstDivergentTick: null,
+      m8Scenario,
+      artifactPaths: toRelativeArtifactPaths(artifactPaths, { includeM8: true }),
+    };
+
+    writeJson(artifactPaths.m8.summary, m8Scenario);
+    writeJson(artifactPaths.summary, summary);
+    return summary;
+  } catch (error) {
+    return createReplayFailure(
+      "unexpected_error",
+      "M8 replay diagnostics crashed before completing structured checks.",
+      failureContext,
+      {
+        scenarioId: M8_FACTION_ENDGAME_SCENARIO_ID,
+        error,
+        includeM8Artifacts: true,
+      },
+    );
+  }
+}
+
 function runM1ReplayDiagnostics(seed, artifactPaths) {
   mkdirSync(path.dirname(artifactPaths.summary), { recursive: true });
 
@@ -1077,6 +1244,22 @@ function readM5Replay(result) {
 }
 
 function readM5Load(result) {
+  if (!result.ok) {
+    throw new Error(result.reason);
+  }
+
+  return result;
+}
+
+function readM8Replay(result) {
+  if (!result.ok) {
+    throw new Error(result.reason);
+  }
+
+  return result.replay;
+}
+
+function readM8Load(result) {
   if (!result.ok) {
     throw new Error(result.reason);
   }

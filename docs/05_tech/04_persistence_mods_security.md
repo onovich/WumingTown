@@ -54,6 +54,20 @@ Web 使用 OPFS；Electron 通过安全 Preload 调用主进程。模拟 Worker 
   native-image, dialog and open-external surfaces remain forbidden in renderer
   or preload bridge scope.
 
+### WM-0125 M8 save/migration gate security note
+
+- The M8 long-save gate is implemented in `packages/sim-core` as headless
+  scenario evidence and in `tools/sim-replay-diagnostics-lib.mjs` as an
+  artifact writer. It does not add renderer, preload, Electron main-process or
+  platform SaveStore APIs.
+- The focused M8 envelope is not a public save compatibility promise. Its
+  migration policy section must keep public save compatibility, cross-version
+  migration, Windows/Web interoperability and desktop save bridge readiness as
+  `owner_gated` until a separate owner-approved task changes that decision.
+- No broad filesystem, shell, dialog or arbitrary IPC surface is introduced.
+  Future desktop save work must still use a narrow typed bridge and preserve
+  `nodeIntegration=false`, `contextIsolation=true` and `sandbox=true`.
+
 ## 模组
 
 ZIP/目录 → Manifest → 文件大小/路径安全检查 → Schema → 依赖 → Patch → 编译。防 Zip Slip、递归压缩炸弹和超大纹理。禁止代码、网络和平台 API。
