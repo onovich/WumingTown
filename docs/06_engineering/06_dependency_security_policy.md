@@ -1,22 +1,39 @@
-# 依赖与安全政策
+# Dependency And Security Policy
 
-## 新依赖门槛
+## New Dependency Gate
 
-提交 ADR 或依赖说明：功能、替代、维护者活跃度、许可证、浏览器/Electron 兼容、包体、安全历史、是否运行安装脚本。
+New dependencies require an ADR or dependency note covering function,
+alternatives, maintainer activity, license, browser/Electron compatibility,
+package size, security history and install-script behavior.
 
-## 版本
+## Version Policy
 
-精确锁定，lockfile 入库。常规升级按月批次，安全升级优先。主框架升级一次一个，运行全套基准和 E2E。
+Versions must be pinned and lockfile-backed. Routine upgrades are batched.
+Security upgrades take priority. Major framework upgrades move one at a time
+and must run the full regression and E2E gate.
 
-## 禁止
+## Forbidden
 
-- 未审查的 postinstall
-- 运行时 CDN 代码
-- 模组远程网络
-- Electron 渲染 Node 权限
-- 在日志中写入本地路径、个人数据或完整存档内容
-- 动态 `eval`/`new Function`
+- Unaudited `postinstall` behavior.
+- Runtime CDN code.
+- Remote network access from mods.
+- Electron renderer Node authority.
+- Local paths, personal data or full save contents in logs.
+- Dynamic `eval` or `new Function`.
 
-## 秘密
+## WM-0091 Electron Security Gate
 
-仓库不保存密钥。Steam、签名与发布凭证只在 CI Secret。代理不得输出、复制或提交凭证。
+- WM-0091 adds no dependency, lockfile change, installer, signing, updater,
+  store or public release upload path.
+- Electron remains pinned by `apps/desktop-electron/package.json` and packaged
+  through the reviewed WM-0090 unpacked-directory path.
+- Preload bridge expansion must update the typed allowlist in
+  `apps/desktop-electron/src/preload-contract.ts` and the desktop-shell e2e
+  audit before review.
+- Generic `fs`, `shell`, arbitrary IPC, renderer Node authority, local path
+  leakage, secrets and full save dumps remain forbidden.
+
+## Secrets
+
+The repository must not store secrets. Steam, signing and release credentials
+belong only in CI secrets. Agents must not print, copy or commit credentials.

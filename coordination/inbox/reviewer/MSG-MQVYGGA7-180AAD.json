@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQVYGGA7-180AAD",
+  "from": "systems-architect",
+  "to": "reviewer",
+  "taskId": "WM-0091",
+  "kind": "review-request",
+  "subject": "WM-0091 ready for review",
+  "body": "Audited and locked Electron security/preload surface: typed allowlist, runtime e2e bridge audit, docs updated; no new host API, IPC, dependency or release scope; required WM-0091 checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0091.md",
+    "task/WM-0091-electron-security-preload-audit"
+  ],
+  "createdAt": "2026-06-27T06:04:36.847Z",
+  "acknowledgedAt": "2026-06-27T06:05:17.931Z"
+}

@@ -2,7 +2,7 @@
   "id": "WM-0091",
   "title": "Electron security and preload audit",
   "summary": "Audit and lock Electron security, preload and platform API surfaces for the Windows M6 product gate.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,7 +32,7 @@
   ],
   "branch": "task/WM-0091-electron-security-preload-audit",
   "createdAt": "2026-06-26T20:20:00.000Z",
-  "updatedAt": "2026-06-27T05:53:23.932Z",
+  "updatedAt": "2026-06-27T06:10:23.884Z",
   "history": [
     {
       "at": "2026-06-26T20:20:00.000Z",
@@ -45,6 +45,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-27T05:55:51.558Z",
+      "actor": "systems-architect",
+      "action": "claim",
+      "details": "thread=Beacon-root-architect-WM-0091"
+    },
+    {
+      "at": "2026-06-27T06:04:36.846Z",
+      "actor": "systems-architect",
+      "action": "complete",
+      "details": "Audited and locked Electron security/preload surface: typed allowlist, runtime e2e bridge audit, docs updated; no new host API, IPC, dependency or release scope; required WM-0091 checks pass."
+    },
+    {
+      "at": "2026-06-27T06:08:36.506Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Verified Electron settings remain nodeIntegration=false/contextIsolation=true/sandbox=true; preload surface is typed by preload-contract and runtime-checked by desktop-shell e2e; diagnostics remain absent and storage methods remain placeholder allowlist only; no generic fs/shell/ipcRenderer/arbitrary IPC, process/require, local path/secret/full-save leakage, dependency, installer/signing/updater/store/M7 scope, or save-interoperability overclaim. Required checks pass."
+    },
+    {
+      "at": "2026-06-27T06:10:16.227Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "WM-0091 verified by independent reviewer; integration gates passed: validate-handoff, taskctl validate/status, git diff --check, pnpm quality."
+    },
+    {
+      "at": "2026-06-27T06:10:23.883Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M6",
@@ -95,5 +125,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Electron preload and sandbox security are explicit non-Spark boundaries."
+  },
+  "claimedBy": "systems-architect",
+  "threadLabel": "Beacon-root-architect-WM-0091",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0091.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Verified Electron settings remain nodeIntegration=false/contextIsolation=true/sandbox=true; preload surface is typed by preload-contract and runtime-checked by desktop-shell e2e; diagnostics remain absent and storage methods remain placeholder allowlist only; no generic fs/shell/ipcRenderer/arbitrary IPC, process/require, local path/secret/full-save leakage, dependency, installer/signing/updater/store/M7 scope, or save-interoperability overclaim. Required checks pass.",
+    "at": "2026-06-27T06:08:36.505Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "WM-0091 verified by independent reviewer; integration gates passed: validate-handoff, taskctl validate/status, git diff --check, pnpm quality.",
+    "at": "2026-06-27T06:10:16.227Z"
   }
 }

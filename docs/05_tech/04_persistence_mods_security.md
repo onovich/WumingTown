@@ -39,6 +39,21 @@ Web 使用 OPFS；Electron 通过安全 Preload 调用主进程。模拟 Worker 
 - Quota failure must fail closed with a structured recoverable reason and leave
   the previous active slot readable/exportable for recovery.
 
+### WM-0091 Electron preload audit note
+
+- Electron `BrowserWindow` security settings are locked for M6:
+  `nodeIntegration=false`, `contextIsolation=true` and `sandbox=true`.
+- The preload bridge exposes only `host`, `mods` and `saveStore` through
+  `wumingTownPlatform`. `mods` is limited to `importArchive` and
+  `listPackages`; `saveStore` is limited to `list`, `read`, `remove` and
+  `writeAtomic`.
+- WM-0091 does not expose diagnostics yet. Any future diagnostics bridge must
+  update the typed preload allowlist and desktop-shell e2e audit before it can
+  be accepted.
+- Generic `fs`, `shell`, `ipcRenderer`, `process`, `require`, clipboard,
+  native-image, dialog and open-external surfaces remain forbidden in renderer
+  or preload bridge scope.
+
 ## 模组
 
 ZIP/目录 → Manifest → 文件大小/路径安全检查 → Schema → 依赖 → Patch → 编译。防 Zip Slip、递归压缩炸弹和超大纹理。禁止代码、网络和平台 API。

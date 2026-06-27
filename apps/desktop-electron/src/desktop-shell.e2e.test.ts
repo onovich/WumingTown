@@ -8,6 +8,16 @@ import { _electron as electron, type Page } from "playwright";
 import { describe, expect, it } from "vitest";
 import { createServer, type ViteDevServer } from "vite";
 
+import {
+  ELECTRON_PRELOAD_DIAGNOSTIC_KEYS,
+  ELECTRON_PRELOAD_FORBIDDEN_KEYS,
+  ELECTRON_PRELOAD_HOST,
+  ELECTRON_PRELOAD_MOD_KEYS,
+  ELECTRON_PRELOAD_SAVE_STORE_KEYS,
+  ELECTRON_PRELOAD_TOP_LEVEL_KEYS,
+  ELECTRON_PRELOAD_UNAVAILABLE_ERROR,
+} from "./preload-contract";
+
 const DESKTOP_DIST_ROOT = path.join(process.cwd(), "dist", "desktop");
 const DESKTOP_PACKAGE_REPORT_PATH = path.join(DESKTOP_DIST_ROOT, "wm-desktop-package-report.json");
 const MAIN_ENTRY_PATH = path.join(
@@ -33,6 +43,15 @@ const PACKAGED_STALE_OUTPUT_PATH = path.join(PACKAGED_MAIN_DIR, "desktop-shell.e
 
 let mainBuildPromise: Promise<void> | undefined;
 let packagedBuildPromise: Promise<void> | undefined;
+
+interface PreloadBridgeAudit {
+  readonly diagnosticKeys: readonly string[];
+  readonly forbiddenBridgeKeys: readonly string[];
+  readonly host: unknown;
+  readonly modKeys: readonly string[];
+  readonly saveStoreKeys: readonly string[];
+  readonly topLevelKeys: readonly string[];
+}
 
 describe("desktop Electron shell smoke", () => {
   it("launches the sandboxed shell against a Vite dev server", async () => {
@@ -149,12 +168,43 @@ async function assertRendererSandbox(page: Page): Promise<void> {
     return listMethod();
   });
   expect(saveListResult).toStrictEqual({
-    error: {
-      code: "unavailable",
-      message: "Electron placeholder ports are not implemented yet.",
-    },
+    error: ELECTRON_PRELOAD_UNAVAILABLE_ERROR,
     ok: false,
   });
+  await assertPreloadBridgeAllowlist(page);
+}
+
+async function assertPreloadBridgeAllowlist(page: Page): Promise<void> {
+  const rawAudit: unknown = await page.evaluate((forbiddenKeys: readonly string[]): unknown => {
+    const isRecord = (value: unknown): value is Record<string, unknown> =>
+      typeof value === "object" && value !== null;
+    const readKeys = (value: unknown): readonly string[] =>
+      isRecord(value) ? Object.keys(value).sort() : [];
+    const descriptor = Object.getOwnPropertyDescriptor(window, "wumingTownPlatform");
+    const bridge: unknown = descriptor?.value;
+    if (!isRecord(bridge)) {
+      return undefined;
+    }
+
+    return {
+      diagnosticKeys: readKeys(bridge["diagnostics"]),
+      forbiddenBridgeKeys: Object.keys(bridge)
+        .filter((key) => forbiddenKeys.includes(key))
+        .sort(),
+      host: bridge["host"],
+      modKeys: readKeys(bridge["mods"]),
+      saveStoreKeys: readKeys(bridge["saveStore"]),
+      topLevelKeys: Object.keys(bridge).sort(),
+    };
+  }, ELECTRON_PRELOAD_FORBIDDEN_KEYS);
+  const audit = readPreloadBridgeAudit(rawAudit);
+
+  expect(audit.topLevelKeys).toStrictEqual(sortStrings(ELECTRON_PRELOAD_TOP_LEVEL_KEYS));
+  expect(audit.modKeys).toStrictEqual(sortStrings(ELECTRON_PRELOAD_MOD_KEYS));
+  expect(audit.saveStoreKeys).toStrictEqual(sortStrings(ELECTRON_PRELOAD_SAVE_STORE_KEYS));
+  expect(audit.diagnosticKeys).toStrictEqual(sortStrings(ELECTRON_PRELOAD_DIAGNOSTIC_KEYS));
+  expect(audit.forbiddenBridgeKeys).toStrictEqual([]);
+  expect(audit.host).toStrictEqual(ELECTRON_PRELOAD_HOST);
 }
 
 async function assertShellReady(page: Page, expectedHostKind: string): Promise<void> {
@@ -279,6 +329,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
+function isStringArray(value: unknown): value is readonly string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === "string");
+}
+
 function parseDebugPayload(text: string): Record<string, unknown> {
   const parsed: unknown = JSON.parse(text);
   if (!isRecord(parsed)) {
@@ -286,6 +340,32 @@ function parseDebugPayload(text: string): Record<string, unknown> {
   }
 
   return parsed;
+}
+
+function readPreloadBridgeAudit(value: unknown): PreloadBridgeAudit {
+  if (
+    !isRecord(value) ||
+    !isStringArray(value["diagnosticKeys"]) ||
+    !isStringArray(value["forbiddenBridgeKeys"]) ||
+    !isStringArray(value["modKeys"]) ||
+    !isStringArray(value["saveStoreKeys"]) ||
+    !isStringArray(value["topLevelKeys"])
+  ) {
+    throw new Error("Unexpected preload bridge audit payload.");
+  }
+
+  return {
+    diagnosticKeys: value["diagnosticKeys"],
+    forbiddenBridgeKeys: value["forbiddenBridgeKeys"],
+    host: value["host"],
+    modKeys: value["modKeys"],
+    saveStoreKeys: value["saveStoreKeys"],
+    topLevelKeys: value["topLevelKeys"],
+  };
+}
+
+function sortStrings(values: readonly string[]): readonly string[] {
+  return [...values].sort();
 }
 
 function readServerUrl(server: ViteDevServer): string {
