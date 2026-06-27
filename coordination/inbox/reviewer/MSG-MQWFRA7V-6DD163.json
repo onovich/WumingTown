@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQWFRA7V-6DD163",
+  "from": "project-director",
+  "to": "reviewer",
+  "taskId": "WM-0109",
+  "kind": "review-request",
+  "subject": "WM-0109 ready for review",
+  "body": "Consolidated M7 validation matrix/readiness decision; all upstream M7 tasks are done/verified/integrated; required regression gates passed with one non-blocking bench warning.",
+  "artifacts": [
+    "coordination/reports/WM-0109.md",
+    "task/WM-0109-m7-validation-readiness"
+  ],
+  "createdAt": "2026-06-27T14:08:55.675Z",
+  "acknowledgedAt": "2026-06-27T14:09:29.583Z"
+}

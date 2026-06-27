@@ -2,7 +2,7 @@
   "id": "WM-0109",
   "title": "M7 validation matrix and readiness decision",
   "summary": "Consolidate all verified M7 evidence into a readiness decision matrix for Early Access preparation, public playtest preparation, Web demo and Windows controlled external test.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -57,7 +57,7 @@
   ],
   "branch": "task/WM-0109-m7-validation-readiness",
   "createdAt": "2026-06-27T11:00:00.000Z",
-  "updatedAt": "2026-06-27T13:59:49.973Z",
+  "updatedAt": "2026-06-27T14:23:54.686Z",
   "history": [
     {
       "at": "2026-06-27T11:00:00.000Z",
@@ -70,6 +70,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-27T14:02:18.001Z",
+      "actor": "project-director",
+      "action": "claim",
+      "details": "thread=Beacon-root-project-director-WM-0109"
+    },
+    {
+      "at": "2026-06-27T14:08:55.673Z",
+      "actor": "project-director",
+      "action": "complete",
+      "details": "Consolidated M7 validation matrix/readiness decision; all upstream M7 tasks are done/verified/integrated; required regression gates passed with one non-blocking bench warning."
+    },
+    {
+      "at": "2026-06-27T14:19:08.691Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; upstream WM-0099-WM-0108 are done, verified and integrated; matrix preserves M5 hashes, M6 Web/Windows verdicts, bench policy and owner-gated release/M8 boundaries; focused review gates passed."
+    },
+    {
+      "at": "2026-06-27T14:23:46.904Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified WM-0109 integrated after validate-handoff, taskctl validate/status, git diff --check, pnpm quality, and M7 regression gates passed; independent reviewer verified with full gate rerun."
+    },
+    {
+      "at": "2026-06-27T14:23:54.686Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M7",
@@ -134,5 +164,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Milestone readiness decision and regression consolidation require project-director ownership and independent review."
+  },
+  "claimedBy": "project-director",
+  "threadLabel": "Beacon-root-project-director-WM-0109",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0109.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; upstream WM-0099-WM-0108 are done, verified and integrated; matrix preserves M5 hashes, M6 Web/Windows verdicts, bench policy and owner-gated release/M8 boundaries; focused review gates passed.",
+    "at": "2026-06-27T14:19:08.691Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified WM-0109 integrated after validate-handoff, taskctl validate/status, git diff --check, pnpm quality, and M7 regression gates passed; independent reviewer verified with full gate rerun.",
+    "at": "2026-06-27T14:23:46.904Z"
   }
 }
