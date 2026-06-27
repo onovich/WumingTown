@@ -2,7 +2,7 @@
   "id": "WM-0100",
   "title": "Early-game balance and readability pass",
   "summary": "Evaluate and tune M7 early-game pressure and readability using M5 alpha content evidence and M6 product-gate constraints without rewriting core systems.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "gameplay-designer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -40,7 +40,7 @@
   ],
   "branch": "task/WM-0100-m7-early-game-balance-readability",
   "createdAt": "2026-06-27T11:00:00.000Z",
-  "updatedAt": "2026-06-27T11:26:46.021Z",
+  "updatedAt": "2026-06-27T12:45:44.928Z",
   "history": [
     {
       "at": "2026-06-27T11:00:00.000Z",
@@ -53,6 +53,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-27T12:33:19.334Z",
+      "actor": "gameplay-designer",
+      "action": "claim",
+      "details": "thread=Beacon-root-gameplay-designer-WM-0100"
+    },
+    {
+      "at": "2026-06-27T12:37:52.662Z",
+      "actor": "gameplay-designer",
+      "action": "complete",
+      "details": "Added M7 early-game balance/readability package; recorded resource pressure, night cadence, event frequency, recovery windows, structured failure readability, player-understanding risks, missing source-doc path note and downstream citation guidance; no runtime/content/hash/baseline/save/product-gate/release/M8 changes; required checks passed."
+    },
+    {
+      "at": "2026-06-27T12:43:30.651Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Verified docs-only balance/readability package cites M5 evidence and current M5 rerun hashes 0xfba70a5c/0x9ba83cb7; records missing docs/01_design/03_player_experience.md honestly; preserves Web demo-only, Windows controlled-test, save/replay, benchmark, product-gate, release and M8 boundaries. Checks: taskctl validate/status, git diff --check, corepack pnpm test --filter m5-invariants, corepack pnpm sim:run seed 5 100000 ticks."
+    },
+    {
+      "at": "2026-06-27T12:45:44.869Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integrated verified M7 early-game balance/readability package after independent reviewer confirmed docs-only scope, M5 evidence/hashes, missing source-path disclosure, downstream citations and no runtime/content/hash/baseline/save/product-gate/release/M8 work. Integration gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality."
+    },
+    {
+      "at": "2026-06-27T12:45:44.928Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M7",
@@ -110,5 +140,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Gameplay balance and readability decisions affect milestone readiness and protected regression evidence."
+  },
+  "claimedBy": "gameplay-designer",
+  "threadLabel": "Beacon-root-gameplay-designer-WM-0100",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0100.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Verified docs-only balance/readability package cites M5 evidence and current M5 rerun hashes 0xfba70a5c/0x9ba83cb7; records missing docs/01_design/03_player_experience.md honestly; preserves Web demo-only, Windows controlled-test, save/replay, benchmark, product-gate, release and M8 boundaries. Checks: taskctl validate/status, git diff --check, corepack pnpm test --filter m5-invariants, corepack pnpm sim:run seed 5 100000 ticks.",
+    "at": "2026-06-27T12:43:30.650Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integrated verified M7 early-game balance/readability package after independent reviewer confirmed docs-only scope, M5 evidence/hashes, missing source-path disclosure, downstream citations and no runtime/content/hash/baseline/save/product-gate/release/M8 work. Integration gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality.",
+    "at": "2026-06-27T12:45:44.868Z"
   }
 }

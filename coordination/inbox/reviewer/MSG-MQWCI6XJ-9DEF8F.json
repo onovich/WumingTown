@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQWCI6XJ-9DEF8F",
+  "from": "gameplay-designer",
+  "to": "reviewer",
+  "taskId": "WM-0100",
+  "kind": "review-request",
+  "subject": "WM-0100 ready for review",
+  "body": "Added M7 early-game balance/readability package; recorded resource pressure, night cadence, event frequency, recovery windows, structured failure readability, player-understanding risks, missing source-doc path note and downstream citation guidance; no runtime/content/hash/baseline/save/product-gate/release/M8 changes; required checks passed.",
+  "artifacts": [
+    "coordination/reports/WM-0100.md",
+    "task/WM-0100-m7-early-game-balance-readability"
+  ],
+  "createdAt": "2026-06-27T12:37:52.663Z",
+  "acknowledgedAt": "2026-06-27T12:44:42.807Z"
+}

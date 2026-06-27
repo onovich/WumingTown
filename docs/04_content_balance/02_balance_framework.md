@@ -29,3 +29,20 @@
 ## 变更记录
 
 平衡改动必须记录假设、指标、场景、前后结果和副作用。不可只写“感觉太强，削弱 20%”。
+
+## WM-0100 M7 Balance/Readability Note
+
+WM-0100 records the M7 early-game balance and readability package in
+`docs/04_content_balance/10_m7_early_game_balance_readability.md`.
+
+The package freezes current M5 evidence for M7 downstream use instead of
+changing values:
+
+- M5 final world/read-model hashes remain `0xfba70a5c` / `0x9ba83cb7`.
+- The first-season event pool evidence is used for controlled-test readability
+  guidance, not final event-frequency promises.
+- Early pressure, night cadence and recovery windows must expose structured
+  reasons before player-facing copy can claim they are understandable.
+- Web remains `demo-only`; Windows remains controlled-external-test only.
+- Any future tuning that moves hashes or runtime cost requires a focused task,
+  before/after evidence and reviewer acceptance.
