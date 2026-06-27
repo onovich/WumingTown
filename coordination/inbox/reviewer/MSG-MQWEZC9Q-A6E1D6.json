@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQWEZC9Q-A6E1D6",
+  "from": "qa-performance",
+  "to": "reviewer",
+  "taskId": "WM-0108",
+  "kind": "review-request",
+  "subject": "WM-0108 ready for review",
+  "body": "Created M7 playtest checklist/tester protocol and automated checklist validation wired into quality; required checks including ci:local pass.",
+  "artifacts": [
+    "coordination/reports/WM-0108.md",
+    "task/WM-0108-m7-playtest-checklist-protocol"
+  ],
+  "createdAt": "2026-06-27T13:47:11.966Z",
+  "acknowledgedAt": "2026-06-27T13:49:12.392Z"
+}

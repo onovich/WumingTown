@@ -2,7 +2,7 @@
   "id": "WM-0108",
   "title": "Playtest checklist and tester protocol",
   "summary": "Create the M7 tester protocol and checklist for Windows controlled external test and Web demo-only evaluation after all prerequisite readiness packages are verified.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -46,7 +46,7 @@
   ],
   "branch": "task/WM-0108-m7-playtest-checklist-protocol",
   "createdAt": "2026-06-27T11:00:00.000Z",
-  "updatedAt": "2026-06-27T13:38:26.207Z",
+  "updatedAt": "2026-06-27T13:59:49.965Z",
   "history": [
     {
       "at": "2026-06-27T11:00:00.000Z",
@@ -59,6 +59,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-27T13:39:32.684Z",
+      "actor": "qa-performance",
+      "action": "claim",
+      "details": "thread=Beacon-root-qa-performance-WM-0108"
+    },
+    {
+      "at": "2026-06-27T13:47:11.965Z",
+      "actor": "qa-performance",
+      "action": "complete",
+      "details": "Created M7 playtest checklist/tester protocol and automated checklist validation wired into quality; required checks including ci:local pass."
+    },
+    {
+      "at": "2026-06-27T13:56:47.603Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; controlled-test/Web-demo checklist coverage and quality/ci evidence verified."
+    },
+    {
+      "at": "2026-06-27T13:59:49.919Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified WM-0108 integrated after validate-handoff, taskctl validate/status, git diff --check, pnpm quality and pnpm ci:local passed."
+    },
+    {
+      "at": "2026-06-27T13:59:49.965Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M7",
@@ -117,5 +147,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Playtest protocol consolidates multiple owner-gated readiness areas and public-facing boundaries."
+  },
+  "claimedBy": "qa-performance",
+  "threadLabel": "Beacon-root-qa-performance-WM-0108",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0108.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; controlled-test/Web-demo checklist coverage and quality/ci evidence verified.",
+    "at": "2026-06-27T13:56:47.602Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified WM-0108 integrated after validate-handoff, taskctl validate/status, git diff --check, pnpm quality and pnpm ci:local passed.",
+    "at": "2026-06-27T13:59:49.919Z"
   }
 }

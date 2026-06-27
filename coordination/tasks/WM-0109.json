@@ -2,7 +2,7 @@
   "id": "WM-0109",
   "title": "M7 validation matrix and readiness decision",
   "summary": "Consolidate all verified M7 evidence into a readiness decision matrix for Early Access preparation, public playtest preparation, Web demo and Windows controlled external test.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -57,13 +57,19 @@
   ],
   "branch": "task/WM-0109-m7-validation-readiness",
   "createdAt": "2026-06-27T11:00:00.000Z",
-  "updatedAt": "2026-06-27T11:00:00.000Z",
+  "updatedAt": "2026-06-27T13:59:49.973Z",
   "history": [
     {
       "at": "2026-06-27T11:00:00.000Z",
       "actor": "project-director",
       "action": "create",
       "details": "Created by WM-0098 M7 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-27T13:59:49.973Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "M7",
