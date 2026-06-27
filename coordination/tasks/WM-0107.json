@@ -2,7 +2,7 @@
   "id": "WM-0107",
   "title": "Known issues and release notes draft",
   "summary": "Draft M7 known issues and external-test release notes from verified M6/M7 evidence without hiding blockers or overclaiming readiness.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -44,13 +44,19 @@
   ],
   "branch": "task/WM-0107-m7-known-issues-release-notes",
   "createdAt": "2026-06-27T11:00:00.000Z",
-  "updatedAt": "2026-06-27T11:00:00.000Z",
+  "updatedAt": "2026-06-27T13:10:30.422Z",
   "history": [
     {
       "at": "2026-06-27T11:00:00.000Z",
       "actor": "project-director",
       "action": "create",
       "details": "Created by WM-0098 M7 planning DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-27T13:10:30.422Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "M7",

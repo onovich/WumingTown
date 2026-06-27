@@ -8,6 +8,7 @@ export interface ShellState {
   readonly readModel: WorldReadModel;
   readonly releaseGate: ShellReleaseGateInfo;
   readonly storageGate: ShellStorageGateState;
+  readonly onboarding: ShellOnboardingState;
   readonly canvasWidth: number;
   readonly canvasHeight: number;
   readonly zoom: number;
@@ -29,6 +30,22 @@ export interface ShellReleaseGateInfo {
   readonly runtimeBrowser: string;
   readonly runtimeCrossOriginIsolated: boolean;
   readonly sections: readonly ShellReleaseGateLine[];
+}
+
+export interface ShellOnboardingStep {
+  readonly id: string;
+  readonly title: string;
+  readonly body: string;
+}
+
+export interface ShellOnboardingState {
+  readonly title: string;
+  readonly scopeLabel: string;
+  readonly summary: string;
+  readonly authorityBoundary: "read-model-only";
+  readonly releaseBoundary: "web-demo-windows-controlled-test";
+  readonly steps: readonly ShellOnboardingStep[];
+  readonly copyLimits: readonly string[];
 }
 
 export interface ShellStorageDiagnosticState {

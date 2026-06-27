@@ -111,6 +111,21 @@ describe("shell-hud", () => {
         usageBytes: 256 * 1024,
         userMessage: "Web storage ready for gate evidence.",
       },
+      onboarding: {
+        authorityBoundary: "read-model-only",
+        copyLimits: ["Web remains demo-only."],
+        releaseBoundary: "web-demo-windows-controlled-test",
+        scopeLabel: "External test briefing",
+        steps: [
+          {
+            body: "Read the fixture before changing plans.",
+            id: "launch-input-time",
+            title: "Launch, movement, input, time control",
+          },
+        ],
+        summary: "Follow the first-run path through existing read-model surfaces.",
+        title: "M7 first-run path",
+      },
       canvasWidth: 1280,
       canvasHeight: 720,
       zoom: 1.25,
@@ -143,6 +158,7 @@ describe("shell-hud", () => {
     expect(markup).toContain("Chrome Stable, Edge Stable");
     expect(markup).toContain("Map 192 x 192");
     expect(markup).toContain("Storage Gate");
+    expect(markup).toContain("M7 first-run path");
     expect(markup).toContain("Web storage ready for gate evidence.");
     expect(markup).toContain(
       "Blocked until the Electron preload exposes a reviewed save-store bridge.",

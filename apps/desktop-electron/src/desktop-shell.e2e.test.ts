@@ -287,6 +287,7 @@ async function assertDesktopAccessibilityBaseline(
 
   const interoperabilityText = await page.getByTestId("storage-interoperability").textContent();
   expect(interoperabilityText ?? "").toContain("BLOCKED");
+  await assertDesktopOnboardingBaseline(page);
 
   const mediaCueCount = await page.locator("audio, video").count();
   expect(mediaCueCount).toBe(0);
@@ -308,6 +309,25 @@ async function assertDesktopAccessibilityBaseline(
   await waitForHudText(page, "Keyboard Equal");
   await page.keyboard.press("ArrowLeft");
   await waitForHudText(page, "Keyboard ArrowLeft");
+}
+
+async function assertDesktopOnboardingBaseline(page: Page): Promise<void> {
+  const panel = page.getByTestId("onboarding-panel");
+  const panelText = await panel.textContent();
+  expect(panelText ?? "").toContain("M7 first-run path");
+  expect(panelText ?? "").toContain("Launch, movement, input, time control");
+  expect(panelText ?? "").toContain("Residents, work, hauling and building");
+  expect(panelText ?? "").toContain("Saving and diagnostics");
+  expect(panelText ?? "").toContain("Events and lamps");
+  expect(panelText ?? "").toContain("Chronicle, town rules and evidence");
+  expect(panelText ?? "").toContain("Structured failure explanations");
+  expect(panelText ?? "").toContain("Web remains demo-only");
+  expect(panelText ?? "").toContain("Windows remains unsigned controlled external test");
+  expect(await panel.getAttribute("data-authority-boundary")).toBe("read-model-only");
+  expect(await panel.getAttribute("data-release-boundary")).toBe(
+    "web-demo-windows-controlled-test",
+  );
+  expect(await page.getByTestId("onboarding-step").count()).toBe(6);
 }
 
 async function ensureDesktopMainBuild(): Promise<void> {

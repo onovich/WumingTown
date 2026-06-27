@@ -450,6 +450,7 @@ async function assertAccessibilityBaseline(page: import("playwright").Page): Pro
   const interoperabilityText = await page.getByTestId("storage-interoperability").textContent();
   expect(storageStatusText ?? "").toContain("Web storage");
   expect(interoperabilityText ?? "").toContain("BLOCKED");
+  await assertOnboardingBaseline(page);
 
   const mediaCueCount = await page.locator("audio, video").count();
   expect(mediaCueCount).toBe(0);
@@ -465,6 +466,7 @@ async function assertAccessibilityBaseline(page: import("playwright").Page): Pro
       "[aria-label='Town status']",
       "[aria-label='Viewport and alerts']",
       "[aria-label='Web product gate harness']",
+      "[aria-label='M7 first-run onboarding']",
       "[aria-label='Selected entity inspector']",
       "[data-testid='storage-status']",
       "[data-testid='storage-interoperability']",
@@ -492,6 +494,26 @@ async function assertAccessibilityBaseline(page: import("playwright").Page): Pro
   });
   expect(overflow.documentOverflowX).toBeLessThanOrEqual(1);
   expect(overflow.offenders).toStrictEqual([]);
+}
+
+async function assertOnboardingBaseline(page: import("playwright").Page): Promise<void> {
+  const panel = page.getByTestId("onboarding-panel");
+  const panelText = await panel.textContent();
+  expect(panelText ?? "").toContain("M7 first-run path");
+  expect(panelText ?? "").toContain("Launch, movement, input, time control");
+  expect(panelText ?? "").toContain("Residents, work, hauling and building");
+  expect(panelText ?? "").toContain("Saving and diagnostics");
+  expect(panelText ?? "").toContain("Events and lamps");
+  expect(panelText ?? "").toContain("Chronicle, town rules and evidence");
+  expect(panelText ?? "").toContain("Structured failure explanations");
+  expect(panelText ?? "").toContain("Web remains demo-only");
+  expect(panelText ?? "").toContain("Windows remains unsigned controlled external test");
+  expect(panelText ?? "").toContain("no telemetry, accounts, paid service");
+  expect(await panel.getAttribute("data-authority-boundary")).toBe("read-model-only");
+  expect(await panel.getAttribute("data-release-boundary")).toBe(
+    "web-demo-windows-controlled-test",
+  );
+  expect(await page.getByTestId("onboarding-step").count()).toBe(6);
 }
 
 async function clickCanvasPoint(

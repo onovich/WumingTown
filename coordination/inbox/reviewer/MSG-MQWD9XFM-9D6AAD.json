@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQWD9XFM-9D6AAD",
+  "from": "client-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0099",
+  "kind": "review-request",
+  "subject": "WM-0099 ready for review",
+  "body": "Implemented read-model-only M7 first-run onboarding for Web/Windows shell HUD; added Web and desktop smoke coverage; recorded copy limits/risks; required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0099.md",
+    "task/WM-0099-m7-tutorial-onboarding"
+  ],
+  "createdAt": "2026-06-27T12:59:26.722Z",
+  "acknowledgedAt": "2026-06-27T13:00:29.096Z"
+}

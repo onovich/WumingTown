@@ -1,5 +1,6 @@
 import { createElement, useSyncExternalStore, type CSSProperties, type ReactElement } from "react";
 
+import { ShellOnboardingPanel } from "./shell-onboarding-panel";
 import { ShellStoragePanel } from "./shell-storage-panel";
 import { getSelectedEntity, type ShellState, type ShellStore } from "./shell-store";
 import type { ShellStorageActions } from "./shell-store";
@@ -234,6 +235,10 @@ export function ShellHudRoot({ store, storageActions }: ShellHudRootProps): Reac
             ),
           ),
         ),
+        createElement(ShellOnboardingPanel, {
+          compact: compactLayout,
+          state: state.onboarding,
+        }),
         createElement(ShellStoragePanel, {
           actions: storageActions,
           state: state.storageGate,
@@ -645,7 +650,9 @@ const releaseGateCardStyle: CSSProperties = {
   flex: "0 0 340px",
   flexDirection: "column",
   gap: "8px",
+  maxHeight: "min(660px, calc(100vh - 48px))",
   maxWidth: "360px",
+  overflowY: "auto",
   padding: "12px 14px",
 };
 

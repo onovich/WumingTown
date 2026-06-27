@@ -2,7 +2,7 @@
   "id": "WM-0099",
   "title": "Tutorial onboarding and first-run player path",
   "summary": "Build the M7 first-run onboarding path for external players, covering the existing pillars, platform surfaces and structured explanations without making UI authoritative.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -41,7 +41,7 @@
   ],
   "branch": "task/WM-0099-m7-tutorial-onboarding",
   "createdAt": "2026-06-27T11:00:00.000Z",
-  "updatedAt": "2026-06-27T11:26:46.021Z",
+  "updatedAt": "2026-06-27T13:10:30.413Z",
   "history": [
     {
       "at": "2026-06-27T11:00:00.000Z",
@@ -54,6 +54,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-27T12:46:46.873Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": "thread=Beacon-root-client-engineer-WM-0099"
+    },
+    {
+      "at": "2026-06-27T12:59:26.720Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Implemented read-model-only M7 first-run onboarding for Web/Windows shell HUD; added Web and desktop smoke coverage; recorded copy limits/risks; required checks pass."
+    },
+    {
+      "at": "2026-06-27T13:07:03.548Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; acceptance evidence confirmed for read-model-only Web/Windows first-run onboarding, smoke coverage, roadmap guardrails and M7 non-goals."
+    },
+    {
+      "at": "2026-06-27T13:10:30.363Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified WM-0099 integrated after handoff validation, taskctl validate/status, git diff --check, pnpm typecheck, Web/desktop shell e2e and pnpm quality passed."
+    },
+    {
+      "at": "2026-06-27T13:10:30.412Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M7",
@@ -112,5 +142,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Cross-surface onboarding touches product UX, platform verdict language and external-player readiness."
+  },
+  "claimedBy": "client-engineer",
+  "threadLabel": "Beacon-root-client-engineer-WM-0099",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0099.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; acceptance evidence confirmed for read-model-only Web/Windows first-run onboarding, smoke coverage, roadmap guardrails and M7 non-goals.",
+    "at": "2026-06-27T13:07:03.548Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified WM-0099 integrated after handoff validation, taskctl validate/status, git diff --check, pnpm typecheck, Web/desktop shell e2e and pnpm quality passed.",
+    "at": "2026-06-27T13:10:30.362Z"
   }
 }

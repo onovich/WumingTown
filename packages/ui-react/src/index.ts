@@ -2,10 +2,13 @@ import { defineWorkspaceSmoke, type WorkspaceSmoke } from "@wuming-town/foundati
 import { SIM_PROTOCOL_SMOKE } from "@wuming-town/sim-protocol";
 
 export { createShellHudElement, ShellHudRoot, type ShellHudRootProps } from "./shell-hud";
+export { ShellOnboardingPanel, type ShellOnboardingPanelProps } from "./shell-onboarding-panel";
 export { ShellStoragePanel, type ShellStoragePanelProps } from "./shell-storage-panel";
 export {
   createShellStore,
   getSelectedEntity,
+  type ShellOnboardingState,
+  type ShellOnboardingStep,
   type ShellReleaseGateInfo,
   type ShellReleaseGateLine,
   type ShellStorageActions,
