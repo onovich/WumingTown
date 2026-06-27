@@ -2,7 +2,7 @@
   "id": "WM-0094",
   "title": "External test build smoke",
   "summary": "Smoke Web and Windows external-test build artifacts across launch, load, save/export/import, input and diagnostics after prerequisite M6 product-gate slices land.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -38,7 +38,7 @@
   ],
   "branch": "task/WM-0094-external-test-build-smoke",
   "createdAt": "2026-06-26T20:20:00.000Z",
-  "updatedAt": "2026-06-27T07:13:13.804Z",
+  "updatedAt": "2026-06-27T07:32:19.527Z",
   "history": [
     {
       "at": "2026-06-26T20:20:00.000Z",
@@ -51,6 +51,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-27T07:16:52.324Z",
+      "actor": "qa-performance",
+      "action": "claim",
+      "details": "thread=Beacon-root-qa-WM-0094"
+    },
+    {
+      "at": "2026-06-27T07:23:37.749Z",
+      "actor": "qa-performance",
+      "action": "complete",
+      "details": "External-test smoke now asserts clean Windows unpacked artifact output and Web product-gate release report; pnpm test:e2e, validate-handoff, taskctl validate, git diff --check and pnpm quality passed."
+    },
+    {
+      "at": "2026-06-27T07:31:55.031Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: Independent reviewer Mirror verified WM-0094 acceptance: clean Windows artifact path assertion, Web product-gate release report evidence, Web save/export/import/input/diagnostics coverage, Desktop launch/sandbox/input/diagnostics coverage, M5 fixture coverage, and no release/upload/signing/telemetry/M7 boundary crossing."
+    },
+    {
+      "at": "2026-06-27T07:32:03.951Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integrated verified WM-0094 external-test build smoke evidence for clean Windows artifact output and Web product-gate release report."
+    },
+    {
+      "at": "2026-06-27T07:32:19.527Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M6",
@@ -106,5 +136,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "External-test smoke spans product build validation and is not a small Spark slice."
+  },
+  "claimedBy": "qa-performance",
+  "threadLabel": "Beacon-root-qa-WM-0094",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0094.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "Independent reviewer Mirror verified WM-0094 acceptance: clean Windows artifact path assertion, Web product-gate release report evidence, Web save/export/import/input/diagnostics coverage, Desktop launch/sandbox/input/diagnostics coverage, M5 fixture coverage, and no release/upload/signing/telemetry/M7 boundary crossing.",
+    "at": "2026-06-27T07:31:55.031Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integrated verified WM-0094 external-test build smoke evidence for clean Windows artifact output and Web product-gate release report.",
+    "at": "2026-06-27T07:32:03.950Z"
   }
 }

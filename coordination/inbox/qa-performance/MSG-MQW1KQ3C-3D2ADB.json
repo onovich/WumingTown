@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQW1KQ3C-3D2ADB",
+  "from": "reviewer",
+  "to": "qa-performance",
+  "taskId": "WM-0094",
+  "kind": "review-approved",
+  "subject": "WM-0094 review: verified",
+  "body": "Independent reviewer Mirror verified WM-0094 acceptance: clean Windows artifact path assertion, Web product-gate release report evidence, Web save/export/import/input/diagnostics coverage, Desktop launch/sandbox/input/diagnostics coverage, M5 fixture coverage, and no release/upload/signing/telemetry/M7 boundary crossing.",
+  "artifacts": [
+    "coordination/reports/WM-0094.md"
+  ],
+  "createdAt": "2026-06-27T07:31:55.032Z",
+  "acknowledgedAt": "2026-06-27T07:32:28.802Z"
+}

@@ -20,6 +20,14 @@ import {
 
 const DESKTOP_DIST_ROOT = path.join(process.cwd(), "dist", "desktop");
 const DESKTOP_PACKAGE_REPORT_PATH = path.join(DESKTOP_DIST_ROOT, "wm-desktop-package-report.json");
+const WEB_RELEASE_GATE_REPORT_PATH = path.join(
+  process.cwd(),
+  "apps",
+  "desktop-electron",
+  "dist",
+  "renderer",
+  "wm-release-gate-report.json",
+);
 const MAIN_ENTRY_PATH = path.join(
   process.cwd(),
   "apps",
@@ -40,6 +48,11 @@ const PACKAGED_MAIN_DIR = path.join(
   "main",
 );
 const PACKAGED_STALE_OUTPUT_PATH = path.join(PACKAGED_MAIN_DIR, "desktop-shell.e2e.test.js");
+const PACKAGED_STALE_ARTIFACT_PATH = path.join(
+  DESKTOP_DIST_ROOT,
+  "win-unpacked",
+  "wm-external-smoke-stale.txt",
+);
 
 let mainBuildPromise: Promise<void> | undefined;
 let packagedBuildPromise: Promise<void> | undefined;
@@ -123,6 +136,7 @@ describe("desktop Electron shell smoke", () => {
       assertPackagedRendererLoadedFromFile(page);
       await assertPackagedMainBundleSanitized();
       await assertDesktopPackageReport();
+      await assertWebReleaseGateReport();
     } finally {
       await electronApp.close();
       await server.close();
@@ -311,6 +325,7 @@ async function ensureDesktopPackagedBuild(): Promise<void> {
       recursive: true,
     });
     await seedStaleMainOutput();
+    await seedStalePackageOutput();
     await runCommand("pnpm", ["build:desktop"]);
   })();
   await packagedBuildPromise;
@@ -327,11 +342,19 @@ async function seedStaleMainOutput(): Promise<void> {
   await writeFile(STALE_MAIN_OUTPUT_PATH, "export const stale = true;\n", "utf8");
 }
 
+async function seedStalePackageOutput(): Promise<void> {
+  await mkdir(path.dirname(PACKAGED_STALE_ARTIFACT_PATH), {
+    recursive: true,
+  });
+  await writeFile(PACKAGED_STALE_ARTIFACT_PATH, "stale external smoke artifact\n", "utf8");
+}
+
 async function assertPackagedMainBundleSanitized(): Promise<void> {
   expect(await pathExists(path.join(MAIN_DIST_DIR, "main.js"))).toBe(true);
   expect(await pathExists(STALE_MAIN_OUTPUT_PATH)).toBe(false);
   expect(await pathExists(path.join(PACKAGED_MAIN_DIR, "main.js"))).toBe(true);
   expect(await pathExists(PACKAGED_STALE_OUTPUT_PATH)).toBe(false);
+  expect(await pathExists(PACKAGED_STALE_ARTIFACT_PATH)).toBe(false);
 }
 
 async function assertDesktopPackageReport(): Promise<void> {
@@ -376,6 +399,44 @@ async function assertDesktopPackageReport(): Promise<void> {
   });
 }
 
+async function assertWebReleaseGateReport(): Promise<void> {
+  const parsed: unknown = JSON.parse(await readFile(WEB_RELEASE_GATE_REPORT_PATH, "utf8"));
+  if (!isRecord(parsed)) {
+    throw new Error("Unexpected Web release-gate report.");
+  }
+
+  const fixture = readRecord(parsed["fixture"], "Web release-gate fixture");
+  const output = readRecord(parsed["output"], "Web release-gate output");
+  const buildAssumptions = readRecord(
+    parsed["buildAssumptions"],
+    "Web release-gate build assumptions",
+  );
+  const browserNames = readBrowserTargetNames(parsed["browserTargets"]);
+  const runtimeDeliverableEstimatedGzipBytes = output["runtimeDeliverableEstimatedGzipBytes"];
+  const bundleBudgetMb = buildAssumptions["bundleBudgetMb"];
+
+  if (
+    typeof runtimeDeliverableEstimatedGzipBytes !== "number" ||
+    typeof bundleBudgetMb !== "number"
+  ) {
+    throw new Error("Web release-gate report has invalid size metadata.");
+  }
+
+  expect(parsed["harnessId"]).toBe("wm-0086-web-product-gate");
+  expect(fixture["label"]).toBe("M5 first-season Web product-gate fixture");
+  expect(output["distDir"]).toBe("apps/desktop-electron/dist/renderer");
+  expect(runtimeDeliverableEstimatedGzipBytes).toBeGreaterThan(0);
+  expect(runtimeDeliverableEstimatedGzipBytes).toBeLessThanOrEqual(bundleBudgetMb * 1024 * 1024);
+  expect(browserNames).toContain("Chrome Stable");
+  expect(browserNames).toContain("Edge Stable");
+  expect(buildAssumptions["authorityBoundary"]).toBe(
+    "Simulation Worker or headless remains the only world authority. Web UI, Pixi and React consume read-only fixture and projection data only.",
+  );
+  expect(buildAssumptions["fallbackWithoutIsolation"]).toContain(
+    "SharedArrayBuffer remains optional.",
+  );
+}
+
 function assertPackagedRendererLoadedFromFile(page: Page): void {
   expect(page.url().startsWith("file:///")).toBe(true);
 }
@@ -405,6 +466,20 @@ function readRecord(value: unknown, label: string): Record<string, unknown> {
   }
 
   return value;
+}
+
+function readBrowserTargetNames(value: unknown): readonly string[] {
+  if (!Array.isArray(value)) {
+    throw new Error("Expected browser targets to be an array.");
+  }
+
+  return value.map((target: unknown): string => {
+    if (!isRecord(target) || typeof target["browser"] !== "string") {
+      throw new Error("Expected browser target to include a browser name.");
+    }
+
+    return target["browser"];
+  });
 }
 
 function isStringArray(value: unknown): value is readonly string[] {

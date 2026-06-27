@@ -331,3 +331,29 @@ Focused validation:
 - Web e2e downloads and inspects the local diagnostic package.
 - Desktop Electron e2e verifies the sanitized diagnostics debug payload and the
   Windows host-package blocker in both dev and packaged launches.
+
+## WM-0094 External Test Build Smoke
+
+`pnpm test:e2e` is the consolidated M6 external-test smoke gate after the Web,
+Windows package, preload, storage, input and diagnostics slices have landed.
+The Web shell smoke launches the M5 product-gate fixture, covers browser
+save/export/import, pointer and keyboard input, and downloads the local
+diagnostic package. The Desktop Electron smoke launches both the dev main bundle
+and the unpacked Windows directory build, verifies sandbox/preload boundaries,
+checks the Windows diagnostics blocker and exercises the same M5 product-gate
+surface.
+
+Additional WM-0094 package checks:
+
+- Before `pnpm build:desktop`, e2e seeds stale files in the Desktop main output
+  and `dist/desktop/win-unpacked`.
+- After packaging, e2e asserts those stale files are absent, proving the
+  external-test artifact path starts from a clean output.
+- The packaged smoke reads
+  `apps/desktop-electron/dist/renderer/wm-release-gate-report.json` and asserts
+  the `wm-0086-web-product-gate` harness, Chrome/Edge targets, renderer output
+  path, bundle budget evidence, Simulation Worker/headless authority boundary
+  and SharedArrayBuffer fallback assumption.
+- This smoke remains an unsigned local external-test artifact. It does not
+  upload public builds, use signing credentials, add telemetry or create a store
+  release.

@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQW1A2DY-F9C041",
+  "from": "qa-performance",
+  "to": "reviewer",
+  "taskId": "WM-0094",
+  "kind": "review-request",
+  "subject": "WM-0094 ready for review",
+  "body": "External-test smoke now asserts clean Windows unpacked artifact output and Web product-gate release report; pnpm test:e2e, validate-handoff, taskctl validate, git diff --check and pnpm quality passed.",
+  "artifacts": [
+    "coordination/reports/WM-0094.md",
+    "task/WM-0094-external-test-build-smoke"
+  ],
+  "createdAt": "2026-06-27T07:23:37.750Z",
+  "acknowledgedAt": "2026-06-27T07:31:55.031Z"
+}
