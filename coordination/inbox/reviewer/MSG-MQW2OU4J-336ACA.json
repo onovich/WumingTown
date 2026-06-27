@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQW2OU4J-336ACA",
+  "from": "project-director",
+  "to": "reviewer",
+  "taskId": "WM-0096",
+  "kind": "review-request",
+  "subject": "WM-0096 ready for review",
+  "body": "Product gate decision recorded: Web verdict demo-only without canceling Web; Windows verdict ready-for-controlled-external-test as unsigned local directory build; blockers, owner gates, residual risks and WM-0087 through WM-0095 evidence cited; required checks passed.",
+  "artifacts": [
+    "coordination/reports/WM-0096.md",
+    "task/WM-0096-product-gate-decision-report"
+  ],
+  "createdAt": "2026-06-27T08:03:06.499Z",
+  "acknowledgedAt": "2026-06-27T08:09:18.316Z"
+}

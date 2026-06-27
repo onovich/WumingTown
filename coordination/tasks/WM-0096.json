@@ -2,7 +2,7 @@
   "id": "WM-0096",
   "title": "Product gate decision report",
   "summary": "Record the M6 Web tier verdict, Windows external-test build verdict, blockers and residual risks from WM-0087 through WM-0095 evidence.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -34,7 +34,7 @@
   ],
   "branch": "task/WM-0096-product-gate-decision-report",
   "createdAt": "2026-06-26T20:20:00.000Z",
-  "updatedAt": "2026-06-27T07:56:07.387Z",
+  "updatedAt": "2026-06-27T08:09:39.540Z",
   "history": [
     {
       "at": "2026-06-26T20:20:00.000Z",
@@ -47,6 +47,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-27T08:00:27.025Z",
+      "actor": "project-director",
+      "action": "claim",
+      "details": "thread=Beacon-root-project-director-WM-0096"
+    },
+    {
+      "at": "2026-06-27T08:03:06.497Z",
+      "actor": "project-director",
+      "action": "complete",
+      "details": "Product gate decision recorded: Web verdict demo-only without canceling Web; Windows verdict ready-for-controlled-external-test as unsigned local directory build; blockers, owner gates, residual risks and WM-0087 through WM-0095 evidence cited; required checks passed."
+    },
+    {
+      "at": "2026-06-27T08:09:18.317Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: Independent reviewer Gate the 2nd verified WM-0096: Web verdict demo-only and not cancel, Windows external-test verdict bounded to unsigned local directory build, blockers/owner gates recorded, WM-0087 through WM-0095 evidence cited, no regression waiver and no M7/release/signing/telemetry scope crossing."
+    },
+    {
+      "at": "2026-06-27T08:09:28.178Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integrated verified WM-0096 product-gate decision report."
+    },
+    {
+      "at": "2026-06-27T08:09:39.539Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M6",
@@ -95,5 +125,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Product gate decision is project-director work and not Spark-eligible."
+  },
+  "claimedBy": "project-director",
+  "threadLabel": "Beacon-root-project-director-WM-0096",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0096.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "Independent reviewer Gate the 2nd verified WM-0096: Web verdict demo-only and not cancel, Windows external-test verdict bounded to unsigned local directory build, blockers/owner gates recorded, WM-0087 through WM-0095 evidence cited, no regression waiver and no M7/release/signing/telemetry scope crossing.",
+    "at": "2026-06-27T08:09:18.316Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integrated verified WM-0096 product-gate decision report.",
+    "at": "2026-06-27T08:09:28.178Z"
   }
 }

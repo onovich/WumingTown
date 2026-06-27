@@ -54,3 +54,16 @@ rewritten to force Web parity.
 - Scope boundary: this is not an installer, signing, updater, Steam/store or
   public release upload. Electron remains a platform shell; simulation
   authority remains Worker/headless only.
+
+## WM-0096 Product-Gate Verdicts
+
+- Chrome/Edge Web: verdict `demo-only`. The current product-gate shell can load,
+  accept input, use Web save/export/import and export local diagnostics, but it
+  is not a measured 30 TPS / 20k-entity browser authority runtime. Same-spec,
+  lower fast-forward and lower-cap support remain unproven.
+- Windows Electron: verdict `ready-for-controlled-external-test` as an unsigned
+  unpacked local directory build. The verdict covers launch, packaged smoke,
+  input, security boundaries and product-gate surface visibility only.
+- Remaining blockers: Windows/Web save-container interoperability and Windows
+  host-side diagnostic package writing require reviewed narrow bridges before
+  stronger release or Early Access claims.

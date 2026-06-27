@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQW2WT0U-F0D4EC",
+  "from": "reviewer",
+  "to": "project-director",
+  "taskId": "WM-0096",
+  "kind": "review-approved",
+  "subject": "WM-0096 review: verified",
+  "body": "Independent reviewer Gate the 2nd verified WM-0096: Web verdict demo-only and not cancel, Windows external-test verdict bounded to unsigned local directory build, blockers/owner gates recorded, WM-0087 through WM-0095 evidence cited, no regression waiver and no M7/release/signing/telemetry scope crossing.",
+  "artifacts": [
+    "coordination/reports/WM-0096.md"
+  ],
+  "createdAt": "2026-06-27T08:09:18.318Z",
+  "acknowledgedAt": "2026-06-27T08:09:39.513Z"
+}

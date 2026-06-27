@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "project": "Wuming Town / Wuming Town",
   "phase": "M6",
-  "activeMilestone": "M6 Web / Windows Product Gate active; WM-0085 is instantiating the reviewed M6 task DAG before any product implementation task is claimed",
+  "activeMilestone": "M6 Web / Windows Product Gate active; WM-0096 records the product-gate decision from reviewed Web/Windows evidence before WM-0097 closeout",
   "releaseTarget": "undated",
-  "updatedAt": "2026-06-26T20:20:00.000Z",
+  "updatedAt": "2026-06-27T08:05:00.000Z",
   "lockedDecisions": [
     "TypeScript-first authoritative simulation in a dedicated Worker",
     "PixiJS world rendering + React DOM UI + Electron Windows shell",
@@ -13,5 +13,5 @@
     "Lantern / Chronicle / Obligation are the three product pillars"
   ],
   "humanApprovalNeeded": [],
-  "notes": "Task JSON, reports and inbox files are the durable execution control plane. WM-0083 closed M5 with reviewed alpha content framework benchmark and invariant evidence. WM-0084 recovered the future M6 entry prompt and reviewed M6 Web / Windows Product Gate DAG without starting implementation. Owner has now started M6; WM-0085 instantiates WM-0086 through WM-0097 from the reviewed DAG. Current roadmap authority: M6 = Web / Windows Product Gate, M7 = Early Access / public playtest preparation, M8 = 1.0; old M6/M7/M8/M9 inferences are deprecated. M7 remains unstarted."
+  "notes": "Task JSON, reports and inbox files are the durable execution control plane. WM-0083 closed M5 with reviewed alpha content framework benchmark and invariant evidence. WM-0084 recovered the future M6 entry prompt and reviewed M6 Web / Windows Product Gate DAG without starting implementation. Owner started M6; WM-0085 instantiated WM-0086 through WM-0097 from the reviewed DAG. WM-0096 records Web verdict demo-only, not cancellation, and Windows verdict ready-for-controlled-external-test as an unsigned local directory build. Current roadmap authority: M6 = Web / Windows Product Gate, M7 = Early Access / public playtest preparation, M8 = 1.0; old M6/M7/M8/M9 inferences are deprecated. M7 remains unstarted."
 }
