@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQWBMMZ1-C02A4C",
+  "from": "systems-architect",
+  "to": "reviewer",
+  "taskId": "WM-0102",
+  "kind": "review-request",
+  "subject": "WM-0102 ready for review",
+  "body": "Added M7 privacy, manual feedback and diagnostics readiness package; documented local-only diagnostic export, manual support collection, draft privacy boundaries, Windows diagnostics and save-interoperability blockers; no telemetry, upload, accounts, hosted services, crash upload, paid services, final privacy/legal claims or release work; required checks passed.",
+  "artifacts": [
+    "coordination/reports/WM-0102.md",
+    "task/WM-0102-m7-privacy-feedback-diagnostics"
+  ],
+  "createdAt": "2026-06-27T12:13:20.462Z",
+  "acknowledgedAt": "2026-06-27T12:20:05.764Z"
+}

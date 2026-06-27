@@ -386,3 +386,25 @@ unchanged while reviewed WM-0083 artifacts are not rewritten. The task records
 current Web/Windows evidence for product verdict input; it does not claim a Web
 same-spec pass, start M7, upload a release, add signing, add telemetry or weaken
 benchmark thresholds.
+
+## WM-0102 M7 Privacy, Feedback And Diagnostics Readiness
+
+WM-0102 records the M7 privacy, manual feedback and diagnostics readiness
+boundary in `docs/05_tech/10_m7_privacy_feedback_diagnostics.md`.
+
+The M7 boundary remains local and manual:
+
+- Web diagnostic export is a user-initiated local download.
+- Windows host-side diagnostic package writing remains blocked until a reviewed
+  narrow diagnostics bridge exists.
+- Windows/Web save-container interoperability remains blocked until a reviewed
+  desktop save bridge exists.
+- The diagnostic package must continue to report `telemetry=false` and
+  `networkUpload=false`.
+- Tester support collection is limited to manually provided reproduction notes,
+  screenshots, local diagnostic JSON and coarse environment facts through an
+  owner-approved controlled-test channel.
+
+WM-0102 does not add telemetry, crash upload, accounts, hosted feedback,
+network services, broad filesystem access, final privacy/legal claims, public
+release, store submission or public save compatibility commitments.

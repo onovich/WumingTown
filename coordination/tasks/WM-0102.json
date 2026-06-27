@@ -2,7 +2,7 @@
   "id": "WM-0102",
   "title": "Privacy, feedback and diagnostics readiness package",
   "summary": "Define M7 privacy, local feedback and diagnostic package readiness without enabling telemetry, accounts, uploads or external services.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -39,7 +39,7 @@
   ],
   "branch": "task/WM-0102-m7-privacy-feedback-diagnostics",
   "createdAt": "2026-06-27T11:00:00.000Z",
-  "updatedAt": "2026-06-27T11:26:46.022Z",
+  "updatedAt": "2026-06-27T12:20:56.814Z",
   "history": [
     {
       "at": "2026-06-27T11:00:00.000Z",
@@ -52,6 +52,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-27T12:09:19.686Z",
+      "actor": "systems-architect",
+      "action": "claim",
+      "details": "thread=Beacon-root-systems-architect-WM-0102"
+    },
+    {
+      "at": "2026-06-27T12:13:20.460Z",
+      "actor": "systems-architect",
+      "action": "complete",
+      "details": "Added M7 privacy, manual feedback and diagnostics readiness package; documented local-only diagnostic export, manual support collection, draft privacy boundaries, Windows diagnostics and save-interoperability blockers; no telemetry, upload, accounts, hosted services, crash upload, paid services, final privacy/legal claims or release work; required checks passed."
+    },
+    {
+      "at": "2026-06-27T12:19:16.222Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; WM-0102 stays docs/coordination-only, preserves Web local diagnostics plus Windows host diagnostics and save-container blockers, marks privacy copy internal/non-final, and adds no telemetry/upload/accounts/hosted/crash/paid/final-release/M8 work. Review checks: taskctl validate/status and git diff --check passed; quality components passed via corepack pnpm 11.8.0 after bare pnpm was blocked by local pnpm 11.7.0 engine mismatch."
+    },
+    {
+      "at": "2026-06-27T12:20:56.772Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integrated verified M7 privacy, manual feedback and diagnostics readiness package after independent reviewer confirmed docs-only scope, local/manual diagnostics, preserved blockers and no telemetry/upload/accounts/hosted/crash/paid/final-release/M8 work. Integration gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality."
+    },
+    {
+      "at": "2026-06-27T12:20:56.814Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M7",
@@ -108,5 +138,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Privacy, diagnostics and feedback boundaries touch security and owner-gated public commitments."
+  },
+  "claimedBy": "systems-architect",
+  "threadLabel": "Beacon-root-systems-architect-WM-0102",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0102.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; WM-0102 stays docs/coordination-only, preserves Web local diagnostics plus Windows host diagnostics and save-container blockers, marks privacy copy internal/non-final, and adds no telemetry/upload/accounts/hosted/crash/paid/final-release/M8 work. Review checks: taskctl validate/status and git diff --check passed; quality components passed via corepack pnpm 11.8.0 after bare pnpm was blocked by local pnpm 11.7.0 engine mismatch.",
+    "at": "2026-06-27T12:19:16.221Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integrated verified M7 privacy, manual feedback and diagnostics readiness package after independent reviewer confirmed docs-only scope, local/manual diagnostics, preserved blockers and no telemetry/upload/accounts/hosted/crash/paid/final-release/M8 work. Integration gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality.",
+    "at": "2026-06-27T12:20:56.772Z"
   }
 }
