@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQWDW5HV-7A7DCC",
+  "from": "gameplay-designer",
+  "to": "reviewer",
+  "taskId": "WM-0106",
+  "kind": "review-request",
+  "subject": "WM-0106 ready for review",
+  "body": "Drafted non-final M7 store/playtest material package with descriptions, key claims, screenshot needs, shot list, scope limits and owner gates; required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0106.md",
+    "task/WM-0106-m7-store-playtest-material-draft"
+  ],
+  "createdAt": "2026-06-27T13:16:43.604Z",
+  "acknowledgedAt": "2026-06-27T13:17:18.941Z"
+}

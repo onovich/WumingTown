@@ -2,7 +2,7 @@
   "id": "WM-0106",
   "title": "Store and public playtest material draft",
   "summary": "Draft non-final M7 store and public playtest materials only after onboarding, balance, cultural review, Windows and Web boundaries are verified.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "gameplay-designer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -43,7 +43,7 @@
   ],
   "branch": "task/WM-0106-m7-store-playtest-material-draft",
   "createdAt": "2026-06-27T11:00:00.000Z",
-  "updatedAt": "2026-06-27T13:10:30.421Z",
+  "updatedAt": "2026-06-27T13:25:07.192Z",
   "history": [
     {
       "at": "2026-06-27T11:00:00.000Z",
@@ -56,6 +56,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-27T13:12:53.642Z",
+      "actor": "gameplay-designer",
+      "action": "claim",
+      "details": "thread=Beacon-root-gameplay-designer-WM-0106"
+    },
+    {
+      "at": "2026-06-27T13:16:43.602Z",
+      "actor": "gameplay-designer",
+      "action": "complete",
+      "details": "Drafted non-final M7 store/playtest material package with descriptions, key claims, screenshot needs, shot list, scope limits and owner gates; required checks pass."
+    },
+    {
+      "at": "2026-06-27T13:23:15.371Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; draft package satisfies WM-0106 acceptance, preserves Web demo-only and Windows controlled-test boundaries, keeps all material non-final/not approved for publication, and focused checks passed."
+    },
+    {
+      "at": "2026-06-27T13:25:07.147Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified WM-0106 integrated after validate-handoff, taskctl validate/status, git diff --check and pnpm quality passed."
+    },
+    {
+      "at": "2026-06-27T13:25:07.192Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M7",
@@ -111,5 +141,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Public-facing material claims require product, cultural and platform judgment and are owner-gated."
+  },
+  "claimedBy": "gameplay-designer",
+  "threadLabel": "Beacon-root-gameplay-designer-WM-0106",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0106.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; draft package satisfies WM-0106 acceptance, preserves Web demo-only and Windows controlled-test boundaries, keeps all material non-final/not approved for publication, and focused checks passed.",
+    "at": "2026-06-27T13:23:15.371Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified WM-0106 integrated after validate-handoff, taskctl validate/status, git diff --check and pnpm quality passed.",
+    "at": "2026-06-27T13:25:07.147Z"
   }
 }
