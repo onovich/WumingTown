@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQW3JAGA-7C1AAB",
+  "from": "reviewer",
+  "to": "project-director",
+  "taskId": "WM-0097",
+  "kind": "review-approved",
+  "subject": "WM-0097 review: verified",
+  "body": "No blocking findings; verified WM-0085 through WM-0096 are done/reviewed/integrated, WM-0097 keeps M7 unstarted, records Roadmap-authoritative M6/M7/M8 scope, preserves Web demo-only and bounded unsigned Windows controlled-external-test verdicts, records required evidence/checks including isolated bench rerun and earlier concurrent bench failure, and keeps later owner gates intact.",
+  "artifacts": [
+    "coordination/reports/WM-0097.md"
+  ],
+  "createdAt": "2026-06-27T08:26:47.338Z",
+  "acknowledgedAt": "2026-06-27T08:28:23.215Z"
+}

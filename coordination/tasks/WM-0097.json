@@ -2,7 +2,7 @@
   "id": "WM-0097",
   "title": "M6 closeout and future M7 entry prompt",
   "summary": "Close M6 after all product-gate tasks are independently reviewed and integrated, then write a non-executable future M7 entry prompt without starting M7.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -36,7 +36,7 @@
   ],
   "branch": "task/WM-0097-m6-closeout-future-m7-entry",
   "createdAt": "2026-06-26T20:20:00.000Z",
-  "updatedAt": "2026-06-27T08:09:39.546Z",
+  "updatedAt": "2026-06-27T08:30:04.731Z",
   "history": [
     {
       "at": "2026-06-26T20:20:00.000Z",
@@ -49,6 +49,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-27T08:16:08.561Z",
+      "actor": "project-director",
+      "action": "claim",
+      "details": "thread=Beacon-root-project-director-WM-0097"
+    },
+    {
+      "at": "2026-06-27T08:22:48.238Z",
+      "actor": "project-director",
+      "action": "complete",
+      "details": "Drafted M6 closeout report, future M7 entry prompt and roadmap/project-state closeout markers; WM-0085 through WM-0096 are done; required checks pass including quality, m5-invariants, isolated pnpm bench and 100000-tick M5 headless."
+    },
+    {
+      "at": "2026-06-27T08:26:47.337Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; verified WM-0085 through WM-0096 are done/reviewed/integrated, WM-0097 keeps M7 unstarted, records Roadmap-authoritative M6/M7/M8 scope, preserves Web demo-only and bounded unsigned Windows controlled-external-test verdicts, records required evidence/checks including isolated bench rerun and earlier concurrent bench failure, and keeps later owner gates intact."
+    },
+    {
+      "at": "2026-06-27T08:29:58.749Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integrated verified M6 closeout after final gate: validate-handoff, taskctl validate/status, git diff --check, pnpm quality, m5-invariants, isolated pnpm bench and 100000-tick M5 headless all passed."
+    },
+    {
+      "at": "2026-06-27T08:30:04.731Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M6",
@@ -101,5 +131,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Milestone closeout, product verdict and future M7 prompt are project-director work and not Spark-eligible."
+  },
+  "claimedBy": "project-director",
+  "threadLabel": "Beacon-root-project-director-WM-0097",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0097.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; verified WM-0085 through WM-0096 are done/reviewed/integrated, WM-0097 keeps M7 unstarted, records Roadmap-authoritative M6/M7/M8 scope, preserves Web demo-only and bounded unsigned Windows controlled-external-test verdicts, records required evidence/checks including isolated bench rerun and earlier concurrent bench failure, and keeps later owner gates intact.",
+    "at": "2026-06-27T08:26:47.336Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integrated verified M6 closeout after final gate: validate-handoff, taskctl validate/status, git diff --check, pnpm quality, m5-invariants, isolated pnpm bench and 100000-tick M5 headless all passed.",
+    "at": "2026-06-27T08:29:58.748Z"
   }
 }

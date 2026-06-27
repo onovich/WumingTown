@@ -272,3 +272,38 @@ Current consolidation evidence:
 WM-0095 does not start M7, create a public release, upload artifacts, add
 signing credentials, add telemetry, weaken thresholds or rewrite verified M5
 benchmark artifacts.
+
+## M6 Closeout Status
+
+WM-0097 closes M6 as the Web / Windows Product Gate after the reviewed task
+chain WM-0085 through WM-0096 records the build, Web performance, storage,
+SharedArrayBuffer fallback, Windows package, Electron security, input,
+diagnostics, smoke, benchmark and product decision evidence.
+
+Closeout evidence:
+
+- Web tier verdict: `demo-only`. Web remains a gated target, but same-spec,
+  lower-fast-forward and lower-cap claims remain unproven until a future
+  reviewed task measures a real product-scale browser authority runtime.
+- Windows external-test verdict: `ready-for-controlled-external-test` as an
+  unsigned unpacked local directory build, not installer/signing/updater/store
+  or public release readiness.
+- M5 alpha content framework regression remains protected at final
+  world/read-model hashes `0xfba70a5c` / `0x9ba83cb7`.
+- WM-0095 benchmark evidence records 15 comparisons, zero warnings, zero
+  failures and unchanged 10 percent warning / 20 percent blocking thresholds.
+- Chrome Stable and Edge Stable Web shell evidence records shell-ready
+  `480 ms` / `456 ms`, interaction P95 `17.1 ms` / `17.4 ms`, frame P95
+  `18.3 ms` / `18.3 ms`, JS heap delta `0.684 MB` / `0.691 MB`, and runtime
+  estimated gzip bytes `273561`.
+- Windows package evidence records `376084065` bytes, `91` files and digest
+  `79e7f734fc6741f09070921dcdbc992db3b612619537271faae2774dc4cbeb60`.
+- Web OPFS save/export/import, local diagnostic download, input baseline and
+  SharedArrayBuffer-unavailable fallback are covered. Windows/Web
+  save-container interoperability and Windows host-side diagnostic package
+  writing remain blockers until reviewed narrow desktop bridges exist.
+
+WM-0097 does not start M7, create M7 task packets, produce store/public release
+materials, add privacy commitments, add telemetry, sign/upload artifacts or
+make public save compatibility commitments. Future M7 starts only from an
+owner-sent goal and reviewed M7 task DAG.

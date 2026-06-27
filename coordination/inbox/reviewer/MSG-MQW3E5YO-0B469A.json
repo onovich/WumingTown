@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQW3E5YO-0B469A",
+  "from": "project-director",
+  "to": "reviewer",
+  "taskId": "WM-0097",
+  "kind": "review-request",
+  "subject": "WM-0097 ready for review",
+  "body": "Drafted M6 closeout report, future M7 entry prompt and roadmap/project-state closeout markers; WM-0085 through WM-0096 are done; required checks pass including quality, m5-invariants, isolated pnpm bench and 100000-tick M5 headless.",
+  "artifacts": [
+    "coordination/reports/WM-0097.md",
+    "task/WM-0097-m6-closeout-future-m7-entry"
+  ],
+  "createdAt": "2026-06-27T08:22:48.240Z",
+  "acknowledgedAt": "2026-06-27T08:28:23.225Z"
+}

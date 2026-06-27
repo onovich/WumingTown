@@ -162,3 +162,33 @@ Benchmark warning/blocking thresholds remain 10 percent and 20 percent.
 
 WM-0072 does not create, promote, claim, implement or review any M6 task. M6
 readiness is represented only as stop signs inside the M5 plan.
+
+## M6 Closeout Addendum
+
+WM-0097 closes M6 as the Web / Windows Product Gate after reviewed integration
+of WM-0085 through WM-0096 and independent review of the final closeout. The
+M6 Web verdict is `demo-only`: Web remains a formal gated target, but the
+current evidence does not prove same-spec, lower-fast-forward or lower-cap
+browser support because the browser path is a product-gate shell plus Worker
+projection path rather than a measured 30 TPS / 20k-entity browser authority
+runtime.
+
+The M6 Windows verdict is `ready-for-controlled-external-test` as an unsigned
+unpacked local directory build. This covers controlled testing of launch,
+rendering, input, sandbox/preload boundaries, product-gate surfaces and
+diagnostic-blocker behavior. It does not approve installer, signing, updater,
+store submission, public release, telemetry, account services, crash upload or
+paid services.
+
+M6 closeout preserves the M5 alpha content final world/read-model hashes
+`0xfba70a5c` / `0x9ba83cb7` and the benchmark threshold policy of 10 percent
+warning and 20 percent blocking regression. Web OPFS save/export/import and
+safe local diagnostics are covered; Windows/Web save-container
+interoperability and Windows host-side diagnostic package writing remain
+explicit blockers until reviewed narrow desktop bridges exist.
+
+M7 remains unstarted by this closeout. WM-0097 writes only the non-executable
+future handoff prompt at
+`coordination/reports/WM-0097-future-m7-entry-prompt.md`; a later owner-sent M7
+goal must create or follow a reviewed M7 task DAG before any M7 implementation
+task is claimed.
