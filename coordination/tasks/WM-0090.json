@@ -2,7 +2,7 @@
   "id": "WM-0090",
   "title": "Windows Electron package gate",
   "summary": "Produce and validate a reproducible Windows Electron external-testable package or unpacked build for the M6 product gate.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,7 +32,7 @@
   ],
   "branch": "task/WM-0090-windows-electron-package-gate",
   "createdAt": "2026-06-26T20:20:00.000Z",
-  "updatedAt": "2026-06-26T20:32:09.114Z",
+  "updatedAt": "2026-06-27T05:53:23.927Z",
   "history": [
     {
       "at": "2026-06-26T20:20:00.000Z",
@@ -45,6 +45,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-27T05:37:42.842Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": "thread=Beacon-root-client-WM-0090"
+    },
+    {
+      "at": "2026-06-27T05:46:15.782Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Implemented Windows Electron package gate evidence: unpacked build report with stable digest/size metadata, packaged shell e2e verifies M5 product-gate surface and sandbox boundary; required WM-0090 checks pass."
+    },
+    {
+      "at": "2026-06-27T05:51:25.440Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Verified pnpm build:desktop creates ignored unsigned win-unpacked package plus machine-readable report with stable digest/size/Electron metadata; desktop-shell e2e covers packaged file:// launch, M5 product-gate fixture, sandbox and placeholder ports; no new deps, package manifest/lockfile, sim authority, installer/signing/updater/store/M7 scope changes. Required checks pass."
+    },
+    {
+      "at": "2026-06-27T05:53:13.699Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "WM-0090 verified by independent reviewer; integration gates passed: validate-handoff, taskctl validate/status, git diff --check, pnpm quality."
+    },
+    {
+      "at": "2026-06-27T05:53:23.926Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M6",
@@ -95,5 +125,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Windows packaging and Electron product gate work touches platform/security boundaries."
+  },
+  "claimedBy": "client-engineer",
+  "threadLabel": "Beacon-root-client-WM-0090",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0090.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Verified pnpm build:desktop creates ignored unsigned win-unpacked package plus machine-readable report with stable digest/size/Electron metadata; desktop-shell e2e covers packaged file:// launch, M5 product-gate fixture, sandbox and placeholder ports; no new deps, package manifest/lockfile, sim authority, installer/signing/updater/store/M7 scope changes. Required checks pass.",
+    "at": "2026-06-27T05:51:25.439Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "WM-0090 verified by independent reviewer; integration gates passed: validate-handoff, taskctl validate/status, git diff --check, pnpm quality.",
+    "at": "2026-06-27T05:53:13.698Z"
   }
 }

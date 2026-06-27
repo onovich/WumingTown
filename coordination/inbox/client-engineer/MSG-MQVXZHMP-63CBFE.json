@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQVXZHMP-63CBFE",
+  "from": "reviewer",
+  "to": "client-engineer",
+  "taskId": "WM-0090",
+  "kind": "review-approved",
+  "subject": "WM-0090 review: verified",
+  "body": "No blocking findings. Verified pnpm build:desktop creates ignored unsigned win-unpacked package plus machine-readable report with stable digest/size/Electron metadata; desktop-shell e2e covers packaged file:// launch, M5 product-gate fixture, sandbox and placeholder ports; no new deps, package manifest/lockfile, sim authority, installer/signing/updater/store/M7 scope changes. Required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0090.md"
+  ],
+  "createdAt": "2026-06-27T05:51:25.441Z",
+  "acknowledgedAt": "2026-06-27T05:52:12.340Z"
+}

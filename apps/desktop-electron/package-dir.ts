@@ -1,20 +1,42 @@
+import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
-import { access, cp, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import {
+  access,
+  cp,
+  mkdir,
+  readFile,
+  readdir,
+  rename,
+  rm,
+  stat,
+  writeFile,
+} from "node:fs/promises";
 import { createRequire } from "node:module";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const APP_ROOT = fileURLToPath(new URL(".", import.meta.url));
-const DIST_ROOT = path.join(APP_ROOT, "..", "..", "dist", "desktop");
+const REPO_ROOT = path.join(APP_ROOT, "..", "..");
+const DIST_ROOT = path.join(REPO_ROOT, "dist", "desktop");
 const OUTPUT_DIR = path.join(DIST_ROOT, "win-unpacked");
 const APP_BUNDLE_DIR = path.join(OUTPUT_DIR, "resources", "app");
 const MAIN_DIST_DIR = path.join(APP_ROOT, "dist", "main");
 const MAIN_ENTRY_PATH = path.join(MAIN_DIST_DIR, "main.js");
 const RENDERER_DIST_DIR = path.join(APP_ROOT, "dist", "renderer");
+const RENDERER_REPORT_PATH = path.join(RENDERER_DIST_DIR, "wm-release-gate-report.json");
 const PRELOAD_ENTRY_PATH = path.join(APP_ROOT, "src", "preload.cjs");
 const EXE_NAME = "WumingTown.exe";
 const CACHE_ROOT = path.join(DIST_ROOT, ".cache");
+const PACKAGE_REPORT_PATH = path.join(DIST_ROOT, "wm-desktop-package-report.json");
 const require = createRequire(import.meta.url);
+const PACKAGE_MANIFEST = Object.freeze({
+  main: "dist/main/main.js",
+  name: "@wuming-town/desktop-electron",
+  private: true,
+  productName: "WumingTown",
+  type: "module",
+  version: "0.0.0",
+});
 
 if (process.platform !== "win32") {
   throw new Error("desktop package-dir currently supports only win32 packaging.");
@@ -30,6 +52,7 @@ const ELECTRON_DIST_DIR = await resolveElectronDistDir();
 await access(ELECTRON_DIST_DIR);
 await access(MAIN_ENTRY_PATH);
 await access(path.join(RENDERER_DIST_DIR, "index.html"));
+await access(RENDERER_REPORT_PATH);
 await access(PRELOAD_ENTRY_PATH);
 
 await rm(OUTPUT_DIR, {
@@ -58,20 +81,124 @@ await cp(PRELOAD_ENTRY_PATH, path.join(APP_BUNDLE_DIR, "src", "preload.cjs"));
 
 await writeFile(
   path.join(APP_BUNDLE_DIR, "package.json"),
-  `${JSON.stringify(
-    {
-      main: "dist/main/main.js",
-      name: "@wuming-town/desktop-electron",
-      private: true,
-      productName: "WumingTown",
-      type: "module",
-      version: "0.0.0",
-    },
-    null,
-    2,
-  )}\n`,
+  `${JSON.stringify(PACKAGE_MANIFEST, null, 2)}\n`,
   "utf8",
 );
+await writePackageReport();
+
+interface DesktopPackageReportFile {
+  readonly relativePath: string;
+  readonly sizeBytes: number;
+}
+
+async function writePackageReport(): Promise<void> {
+  const files = await collectPackageFiles(OUTPUT_DIR);
+  const report = {
+    artifactPath: toRepoRelativePath(OUTPUT_DIR),
+    buildCommand: "pnpm build:desktop",
+    contentSha256Hex: await hashPackageContents(OUTPUT_DIR, files),
+    electronVersion: ELECTRON_VERSION,
+    executablePath: toRepoRelativePath(path.join(OUTPUT_DIR, EXE_NAME)),
+    fileCount: files.length,
+    files,
+    knownWarnings: [
+      {
+        code: "unsigned-unpacked-directory",
+        message:
+          "WM-0090 produces an unsigned unpacked external-test directory only; installer, signing, updater and store work are out of scope.",
+      },
+      {
+        code: "renderer-chunk-size-warning",
+        message:
+          "The renderer build may emit Vite chunk-size warnings for the current product shell; WM-0090 records them as package evidence instead of changing loading thresholds.",
+      },
+    ],
+    packageKind: "windows-unpacked-directory",
+    packageMetadata: PACKAGE_MANIFEST,
+    platform: "win32-x64",
+    productName: "WumingTown",
+    rendererReportPath: toRepoRelativePath(RENDERER_REPORT_PATH),
+    securityBoundary: {
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+      simulationAuthority: "simulation-worker-or-headless",
+    },
+    taskId: "WM-0090",
+    totalBytes: sumPackageBytes(files),
+  };
+
+  await writeFile(PACKAGE_REPORT_PATH, `${JSON.stringify(report, null, 2)}\n`, "utf8");
+}
+
+async function collectPackageFiles(root: string): Promise<readonly DesktopPackageReportFile[]> {
+  const files = await collectPackageFilesRecursive(root, "");
+  files.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
+  return files;
+}
+
+async function collectPackageFilesRecursive(
+  root: string,
+  relativeDir: string,
+): Promise<DesktopPackageReportFile[]> {
+  const dirPath = path.join(root, relativeDir);
+  const entries = await readdir(dirPath, {
+    withFileTypes: true,
+  });
+  entries.sort((left, right) => left.name.localeCompare(right.name));
+
+  const files: DesktopPackageReportFile[] = [];
+  for (const entry of entries) {
+    const nativeRelativePath = path.join(relativeDir, entry.name);
+    const absolutePath = path.join(root, nativeRelativePath);
+    if (entry.isDirectory()) {
+      files.push(...(await collectPackageFilesRecursive(root, nativeRelativePath)));
+      continue;
+    }
+
+    if (entry.isFile()) {
+      const stats = await stat(absolutePath);
+      files.push({
+        relativePath: toPortablePath(nativeRelativePath),
+        sizeBytes: stats.size,
+      });
+    }
+  }
+
+  return files;
+}
+
+async function hashPackageContents(
+  root: string,
+  files: readonly DesktopPackageReportFile[],
+): Promise<string> {
+  const hash = createHash("sha256");
+  for (const file of files) {
+    hash.update(file.relativePath);
+    hash.update("\0");
+    hash.update(await readFile(path.join(root, ...file.relativePath.split("/"))));
+    hash.update("\0");
+  }
+
+  return hash.digest("hex");
+}
+
+function sumPackageBytes(files: readonly DesktopPackageReportFile[]): number {
+  let totalBytes = 0;
+  for (const file of files) {
+    totalBytes += file.sizeBytes;
+  }
+
+  return totalBytes;
+}
+
+function toRepoRelativePath(targetPath: string): string {
+  return toPortablePath(path.relative(REPO_ROOT, targetPath));
+}
+
+function toPortablePath(targetPath: string): string {
+  return targetPath.split(path.sep).join("/");
+}
 
 async function readPinnedElectronVersion(): Promise<string> {
   const manifestText = await readFile(path.join(APP_ROOT, "package.json"), "utf8");

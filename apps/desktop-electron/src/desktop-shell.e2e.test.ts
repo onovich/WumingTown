@@ -1,7 +1,7 @@
 /// <reference lib="dom" />
 
 import { spawn } from "node:child_process";
-import { access, mkdir, rm, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import * as path from "node:path";
 
 import { _electron as electron, type Page } from "playwright";
@@ -9,6 +9,7 @@ import { describe, expect, it } from "vitest";
 import { createServer, type ViteDevServer } from "vite";
 
 const DESKTOP_DIST_ROOT = path.join(process.cwd(), "dist", "desktop");
+const DESKTOP_PACKAGE_REPORT_PATH = path.join(DESKTOP_DIST_ROOT, "wm-desktop-package-report.json");
 const MAIN_ENTRY_PATH = path.join(
   process.cwd(),
   "apps",
@@ -102,6 +103,7 @@ describe("desktop Electron shell smoke", () => {
       await assertRendererSandbox(page);
       assertPackagedRendererLoadedFromFile(page);
       await assertPackagedMainBundleSanitized();
+      await assertDesktopPackageReport();
     } finally {
       await electronApp.close();
       await server.close();
@@ -159,12 +161,19 @@ async function assertShellReady(page: Page, expectedHostKind: string): Promise<v
   await page.waitForSelector("[data-shell-ready='true']");
 
   const debugPayload = await readDebugPayload(page);
+  expect(debugPayload["fixtureId"]).toBe("wm-0086-web-product-gate");
   expect(debugPayload["platformHost"]).toMatchObject({
     contextIsolation: true,
     kind: expectedHostKind,
     nodeIntegration: false,
     sandboxedRenderer: true,
   });
+
+  const releaseGateText = await page
+    .locator("[data-release-gate-fixture='wm-0086-web-product-gate']")
+    .textContent();
+  expect(releaseGateText ?? "").toContain("M5 first-season Web product-gate fixture");
+  expect(releaseGateText ?? "").toContain("m5.alpha_content_framework.first_season.v1");
 }
 
 async function ensureDesktopMainBuild(): Promise<void> {
@@ -203,6 +212,48 @@ async function assertPackagedMainBundleSanitized(): Promise<void> {
   expect(await pathExists(STALE_MAIN_OUTPUT_PATH)).toBe(false);
   expect(await pathExists(path.join(PACKAGED_MAIN_DIR, "main.js"))).toBe(true);
   expect(await pathExists(PACKAGED_STALE_OUTPUT_PATH)).toBe(false);
+}
+
+async function assertDesktopPackageReport(): Promise<void> {
+  const parsed: unknown = JSON.parse(await readFile(DESKTOP_PACKAGE_REPORT_PATH, "utf8"));
+  if (!isRecord(parsed)) {
+    throw new Error("Unexpected desktop package report.");
+  }
+
+  const totalBytes = parsed["totalBytes"];
+  const fileCount = parsed["fileCount"];
+  const contentSha256Hex = parsed["contentSha256Hex"];
+  const knownWarnings = parsed["knownWarnings"];
+  const securityBoundary = parsed["securityBoundary"];
+
+  if (
+    typeof totalBytes !== "number" ||
+    typeof fileCount !== "number" ||
+    typeof contentSha256Hex !== "string" ||
+    !Array.isArray(knownWarnings) ||
+    !isRecord(securityBoundary)
+  ) {
+    throw new Error("Desktop package report has invalid metadata.");
+  }
+
+  expect(parsed["taskId"]).toBe("WM-0090");
+  expect(parsed["packageKind"]).toBe("windows-unpacked-directory");
+  expect(parsed["buildCommand"]).toBe("pnpm build:desktop");
+  expect(parsed["artifactPath"]).toBe("dist/desktop/win-unpacked");
+  expect(parsed["executablePath"]).toBe("dist/desktop/win-unpacked/WumingTown.exe");
+  expect(parsed["rendererReportPath"]).toBe(
+    "apps/desktop-electron/dist/renderer/wm-release-gate-report.json",
+  );
+  expect(totalBytes).toBeGreaterThan(0);
+  expect(fileCount).toBeGreaterThan(0);
+  expect(contentSha256Hex).toMatch(/^[0-9a-f]{64}$/u);
+  expect(knownWarnings.length).toBeGreaterThanOrEqual(1);
+  expect(securityBoundary).toMatchObject({
+    contextIsolation: true,
+    nodeIntegration: false,
+    sandbox: true,
+    simulationAuthority: "simulation-worker-or-headless",
+  });
 }
 
 function assertPackagedRendererLoadedFromFile(page: Page): void {

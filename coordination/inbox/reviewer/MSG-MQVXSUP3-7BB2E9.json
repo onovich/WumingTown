@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQVXSUP3-7BB2E9",
+  "from": "client-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0090",
+  "kind": "review-request",
+  "subject": "WM-0090 ready for review",
+  "body": "Implemented Windows Electron package gate evidence: unpacked build report with stable digest/size metadata, packaged shell e2e verifies M5 product-gate surface and sandbox boundary; required WM-0090 checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0090.md",
+    "task/WM-0090-windows-electron-package-gate"
+  ],
+  "createdAt": "2026-06-27T05:46:15.784Z",
+  "acknowledgedAt": "2026-06-27T05:46:48.895Z"
+}

@@ -1,13 +1,13 @@
 # Platform Compatibility Matrix
 
-| Capability | Windows Electron | Chrome/Edge Web | macOS Browser | Native macOS |
-|---|---|---|---|---|
-| Launch target | Complete | Complete after gate, scaled if needed | Best effort | Later |
-| Save data | Local files | OPFS plus import/export | OPFS plus import/export | Future files |
-| Data mods | Mods directory or ZIP | ZIP import | ZIP import | Future |
-| SharedArrayBuffer | Controllable | Requires cross-origin isolation | Browser-dependent | Controllable |
-| Steam/achievements | Optional | No | No | Future |
-| Max fast-forward | Target 6x | Target 3x, raise only after evidence | Browser-dependent | Not promised |
+| Capability         | Windows Electron      | Chrome/Edge Web                       | macOS Browser           | Native macOS |
+| ------------------ | --------------------- | ------------------------------------- | ----------------------- | ------------ |
+| Launch target      | Complete              | Complete after gate, scaled if needed | Best effort             | Later        |
+| Save data          | Local files           | OPFS plus import/export               | OPFS plus import/export | Future files |
+| Data mods          | Mods directory or ZIP | ZIP import                            | ZIP import              | Future       |
+| SharedArrayBuffer  | Controllable          | Requires cross-origin isolation       | Browser-dependent       | Controllable |
+| Steam/achievements | Optional              | No                                    | No                      | Future       |
+| Max fast-forward   | Target 6x             | Target 3x, raise only after evidence  | Browser-dependent       | Not promised |
 
 ## Web Decision Gate
 
@@ -41,3 +41,16 @@ rewritten to force Web parity.
   fast-forward, or a 20k-entity continuous browser authority runtime. Until
   product-scale evidence exists, Web stays on the conservative 3x/lower-cap or
   demo-only decision path recorded by the M6 Web gate.
+
+## WM-0090 Windows Electron Package Status
+
+- Windows Electron: WM-0090 produces an external-testable unsigned unpacked
+  directory at `dist/desktop/win-unpacked` with executable
+  `dist/desktop/win-unpacked/WumingTown.exe`.
+- Package evidence: `pnpm build:desktop` writes
+  `dist/desktop/wm-desktop-package-report.json` with package kind, artifact
+  paths, pinned Electron version, file count, total bytes, content digest,
+  security-boundary facts and known warnings.
+- Scope boundary: this is not an installer, signing, updater, Steam/store or
+  public release upload. Electron remains a platform shell; simulation
+  authority remains Worker/headless only.
