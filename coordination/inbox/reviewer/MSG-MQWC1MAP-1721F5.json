@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQWC1MAP-1721F5",
+  "from": "systems-architect",
+  "to": "reviewer",
+  "taskId": "WM-0105",
+  "kind": "review-request",
+  "subject": "WM-0105 ready for review",
+  "body": "Added M7 external-test save compatibility policy draft; documented Web import/export instructions, breakage allowances, Windows/Web interoperability blocker, M5 save/replay hash protection and owner gates; no public save promise, save schema migration, desktop bridge, cloud/hosted save, telemetry, release, store, signing, installer, updater or M8 work; required checks passed.",
+  "artifacts": [
+    "coordination/reports/WM-0105.md",
+    "task/WM-0105-m7-save-compat-policy"
+  ],
+  "createdAt": "2026-06-27T12:24:59.425Z",
+  "acknowledgedAt": "2026-06-27T12:31:27.481Z"
+}

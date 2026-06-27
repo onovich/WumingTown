@@ -2,7 +2,7 @@
   "id": "WM-0105",
   "title": "Save compatibility policy draft",
   "summary": "Draft the M7 external-test save compatibility policy, import/export instructions and breakage boundaries without making a final public save promise.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -39,7 +39,7 @@
   ],
   "branch": "task/WM-0105-m7-save-compat-policy",
   "createdAt": "2026-06-27T11:00:00.000Z",
-  "updatedAt": "2026-06-27T11:26:46.023Z",
+  "updatedAt": "2026-06-27T12:32:23.859Z",
   "history": [
     {
       "at": "2026-06-27T11:00:00.000Z",
@@ -52,6 +52,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-27T12:21:44.294Z",
+      "actor": "systems-architect",
+      "action": "claim",
+      "details": "thread=Beacon-root-systems-architect-WM-0105"
+    },
+    {
+      "at": "2026-06-27T12:24:59.423Z",
+      "actor": "systems-architect",
+      "action": "complete",
+      "details": "Added M7 external-test save compatibility policy draft; documented Web import/export instructions, breakage allowances, Windows/Web interoperability blocker, M5 save/replay hash protection and owner gates; no public save promise, save schema migration, desktop bridge, cloud/hosted save, telemetry, release, store, signing, installer, updater or M8 work; required checks passed."
+    },
+    {
+      "at": "2026-06-27T12:30:30.864Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Verified docs-only WM-0105 save policy preserves controlled-test draft status, Web import/export instructions, Windows/Web interoperability blocker, owner gates, M5 hash expectations and downstream citation boundaries; no runtime save schema migration, desktop bridge, broad IPC/filesystem, cloud/hosted save, telemetry, release/store/signing/installer/updater or M8 work found. Re-ran taskctl validate/status, git diff --check, corepack pnpm test --filter persistence, and corepack pnpm test --filter m5-save-replay."
+    },
+    {
+      "at": "2026-06-27T12:32:23.809Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integrated verified M7 external-test save compatibility policy after independent reviewer confirmed draft-only status, Web import/export instructions, Windows/Web interoperability blocker, M5 hash expectations and no public save/schema/bridge/cloud/hosted/release/M8 work. Integration gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality."
+    },
+    {
+      "at": "2026-06-27T12:32:23.858Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M7",
@@ -109,5 +139,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Save compatibility policy touches persistence commitments, security boundaries and owner-gated public promises."
+  },
+  "claimedBy": "systems-architect",
+  "threadLabel": "Beacon-root-systems-architect-WM-0105",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0105.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Verified docs-only WM-0105 save policy preserves controlled-test draft status, Web import/export instructions, Windows/Web interoperability blocker, owner gates, M5 hash expectations and downstream citation boundaries; no runtime save schema migration, desktop bridge, broad IPC/filesystem, cloud/hosted save, telemetry, release/store/signing/installer/updater or M8 work found. Re-ran taskctl validate/status, git diff --check, corepack pnpm test --filter persistence, and corepack pnpm test --filter m5-save-replay.",
+    "at": "2026-06-27T12:30:30.864Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integrated verified M7 external-test save compatibility policy after independent reviewer confirmed draft-only status, Web import/export instructions, Windows/Web interoperability blocker, M5 hash expectations and no public save/schema/bridge/cloud/hosted/release/M8 work. Integration gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality.",
+    "at": "2026-06-27T12:32:23.808Z"
   }
 }

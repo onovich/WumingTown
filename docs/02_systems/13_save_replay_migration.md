@@ -221,3 +221,23 @@ third-knock, old-bridge, faction/governance, season events, content
 validation, WorkOffer, path, read-model, review and metrics before tick
 `12001`. These rebuilt surfaces are diagnostic hashes and are not persisted
 authority or derived-cache save payloads.
+
+## WM-0105 M7 external-test save policy note
+
+WM-0105 records the M7 external-test save compatibility policy draft in
+`docs/05_tech/11_m7_save_compatibility_policy.md`.
+
+The policy preserves the distinction between regression evidence and public
+compatibility:
+
+- M5 save/replay remains a focused deterministic harness and hash-protection
+  gate, not a public cross-version player-save promise.
+- Web OPFS save/export/import remains M6/M7 gate evidence for the current test
+  envelope.
+- Windows/Web save-container interoperability remains blocked until a reviewed
+  desktop save bridge exists.
+- M7 controlled tests may reject or reset test saves between builds with
+  structured errors and clear tester instructions.
+- Public save compatibility, cross-version migration claims, hosted save,
+  cloud sync, broad desktop filesystem access and full-save support collection
+  remain owner-gated.
