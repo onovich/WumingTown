@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQWJA5AF-D13D28",
+  "from": "project-director",
+  "to": "reviewer",
+  "taskId": "WM-0111",
+  "kind": "review-request",
+  "subject": "WM-0111 ready for review",
+  "body": "M8 UI/i18n/responsive scope amendment and proposed M8 task DAG drafted; downstream M8 tasks remain proposed pending independent review and integration.",
+  "artifacts": [
+    "coordination/reports/WM-0111.md",
+    "task/WM-0111-m8-ui-i18n-scope-amendment"
+  ],
+  "createdAt": "2026-06-27T15:47:34.600Z",
+  "acknowledgedAt": "2026-06-27T15:54:54.509Z"
+}

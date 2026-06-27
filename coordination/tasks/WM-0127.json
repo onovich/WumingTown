@@ -1,0 +1,65 @@
+{
+  "id": "WM-0127",
+  "title": "M8 closeout and future handoff",
+  "summary": "Close M8 after all M8 tasks are independently reviewed and integrated, then write a future non-release handoff without executing public release actions.",
+  "state": "proposed",
+  "ownerRole": "project-director",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0126"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0111-m8-scope-amendment.md",
+    "coordination/reports/WM-0126.md",
+    "coordination/tasks/*.json",
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "docs/08_codex/05_human_approval_gates.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "Closes M8 only after all M8 tasks are done, independently reviewed as verified and integrated",
+    "Records 1.0 readiness, UI readiness, localization readiness, Web demo verdict, Windows build verdict, completed capabilities, validation matrix, technical debt, cultural review state, privacy/feedback state, save compatibility state and owner gates",
+    "Does not execute public release, 1.0 release, store submission, signing, telemetry, accounts, paid services, public feedback or final public save compatibility commitments",
+    "Writes future handoff artifact if appropriate without starting post-M8 work",
+    "Runs full closeout gates and pushes verified result to origin/main"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality",
+    "pnpm ci:local",
+    "pnpm test --filter m5-invariants",
+    "pnpm bench",
+    "pnpm sim:run -- --seed 5 --scenario m5-alpha-content-framework --ticks 100000"
+  ],
+  "branch": "task/WM-0127-m8-closeout-future-handoff",
+  "createdAt": "2026-06-27T15:46:00.000Z",
+  "updatedAt": "2026-06-27T15:46:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-27T15:46:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0111 M8 UI/i18n scope amendment DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "milestone": "M8",
+  "allowedPaths": [
+    "coordination/reports/WM-0127*.md",
+    "coordination/tasks/WM-0127.json",
+    "coordination/project-state.json",
+    "docs/07_roadmap/**"
+  ],
+  "forbiddenPaths": [
+    "public release upload",
+    "store submission",
+    "signing credentials or signed installer",
+    "telemetry account paid service or crash upload implementation",
+    "final privacy legal or store claims without owner approval",
+    "post-M8 task creation, promotion, claim, implementation or review"
+  ]
+}

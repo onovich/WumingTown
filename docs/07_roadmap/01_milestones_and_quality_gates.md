@@ -365,3 +365,31 @@ WM-0110 does not start M8. It writes only the non-executable future M8 prompt
 at `coordination/reports/WM-0110-future-m8-entry-prompt.md`; a later
 owner-sent M8 goal and reviewed M8 task DAG are required before any M8
 implementation task can be claimed.
+
+## M8 UI / I18n Planning Gate
+
+WM-0111 incorporates
+`OWNER-AMENDMENT-2026-06-27-UI-I18N-PRODUCTIZATION` into the M8 task DAG before
+implementation begins.
+
+M8 closeout must prove:
+
+- Product UI Gate: the default experience is a player-facing game interface,
+  not a diagnostics harness.
+- Responsive Layout Gate: at least `1280x720`, `1366x768`, `1424x861`,
+  `1600x900`, `1920x1080`, `2560x1369` and `2560x1440` are validated.
+- Localization Gate: `zh-CN` and `en` are supported, locale defaults and
+  manual override work, player-visible strings use localization keys and
+  missing translations fail tests.
+- Visual Identity Gate: Wuming Town theme tokens and HUD language carry
+  lantern, Chronicle, ordinance, resident, explanation and night-risk cues.
+- First Playability Gate: the default flow explains the current phase, possible
+  actions, next goal and game-versus-diagnostics boundary.
+- Accessibility Gate: text readability, non-color-only state, UI scale,
+  keyboard/mouse basics, contrast, long-text containment, scroll usability and
+  bilingual layout behavior are covered.
+
+These gates are mandatory M8 productization requirements, not optional polish.
+They do not approve public release, 1.0 release, store submission, public Web
+launch, signing, telemetry, accounts, paid services, final public claims or
+public save compatibility.

@@ -1,0 +1,59 @@
+{
+  "id": "WM-0120",
+  "title": "Accessibility readability and UI-scale pass",
+  "summary": "Validate and improve text readability, non-color-only state, UI scale, contrast, scroll usability and bilingual layout.",
+  "state": "proposed",
+  "ownerRole": "client-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0118",
+    "WM-0119"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0111-m8-scope-amendment.md",
+    "docs/06_engineering/03_definition_of_done.md",
+    "docs/06_engineering/05_testing_policy.md"
+  ],
+  "acceptance": [
+    "Text remains readable in zh-CN and en at required viewports",
+    "Important state is not color-only",
+    "UI scale or font-scale behavior is available and tested",
+    "Keyboard/mouse basics, contrast, long text and scroll regions are validated",
+    "Does not degrade simulation authority or existing E2E"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test:e2e --filter web-shell",
+    "pnpm test:e2e --filter desktop-shell",
+    "pnpm quality",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0120-m8-accessibility-readability",
+  "createdAt": "2026-06-27T15:46:00.000Z",
+  "updatedAt": "2026-06-27T15:46:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-27T15:46:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0111 M8 UI/i18n scope amendment DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "milestone": "M8",
+  "allowedPaths": [
+    "apps/web/**",
+    "apps/desktop-electron/**",
+    "packages/ui-react/**",
+    "tools/**",
+    "coordination/reports/WM-0120*.md",
+    "coordination/tasks/WM-0120.json"
+  ],
+  "forbiddenPaths": [
+    "packages/sim-core/**",
+    "packages/sim-worker/**",
+    "release/store/signing/telemetry/account/paid-service work"
+  ]
+}

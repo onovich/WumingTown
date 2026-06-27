@@ -1,0 +1,59 @@
+{
+  "id": "WM-0122",
+  "title": "12-15 anomaly roster and content expansion",
+  "summary": "Expand the validated content roster toward 12-15 anomalies and required localized content resources through data-driven definitions.",
+  "state": "proposed",
+  "ownerRole": "content-worker",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0121"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/decisions/ADR-0010.md",
+    "docs/04_content_balance/*",
+    "docs/03_world/*"
+  ],
+  "acceptance": [
+    "Adds schema-compliant data-driven anomaly/content definitions toward 12-15 roster target",
+    "Includes zh-CN/en localization coverage for added player-facing content",
+    "Preserves data-only mod policy and blocks code/network/platform mods",
+    "Adds validation evidence and scenario fixtures where required",
+    "Does not add bespoke runtime code outside approved follow-up tasks"
+  ],
+  "requiredChecks": [
+    "pnpm content:validate",
+    "pnpm test --filter m5-invariants",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0122-m8-anomaly-roster-content",
+  "createdAt": "2026-06-27T15:46:00.000Z",
+  "updatedAt": "2026-06-27T15:46:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-27T15:46:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0111 M8 UI/i18n scope amendment DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "milestone": "M8",
+  "allowedPaths": [
+    "docs/03_world/**",
+    "docs/04_content_balance/**",
+    "packages/content-schema/**",
+    "packages/content-compiler/**",
+    "packages/sim-core/**",
+    "coordination/reports/WM-0122*.md",
+    "coordination/tasks/WM-0122.json"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/platform/**",
+    "code mods or executable mod support",
+    "release/store/signing/telemetry/account/paid-service work"
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "id": "WM-0118",
+  "title": "Responsive viewport and screenshot validation",
+  "summary": "Add automated responsive layout evidence for required windowed/fullscreen viewport sizes and bilingual UI states.",
+  "state": "proposed",
+  "ownerRole": "qa-performance",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0116",
+    "WM-0117"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0111-m8-scope-amendment.md",
+    "docs/06_engineering/05_testing_policy.md"
+  ],
+  "acceptance": [
+    "Validates 1280x720, 1366x768, 1424x861, 1600x900, 1920x1080, 2560x1369 and 2560x1440",
+    "Checks no core UI clipping, incoherent overlap, missing key information or unreachable scroll regions",
+    "Runs checks in zh-CN and en or records a verified limitation with mitigation",
+    "Produces screenshot or DOM-layout artifacts suitable for reviewer inspection",
+    "Does not weaken existing E2E or benchmark gates"
+  ],
+  "requiredChecks": [
+    "pnpm test:e2e --filter web-shell",
+    "pnpm test:e2e --filter desktop-shell",
+    "pnpm quality",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0118-m8-responsive-viewport-validation",
+  "createdAt": "2026-06-27T15:46:00.000Z",
+  "updatedAt": "2026-06-27T15:46:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-27T15:46:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0111 M8 UI/i18n scope amendment DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "milestone": "M8",
+  "allowedPaths": [
+    "apps/web/**",
+    "apps/desktop-electron/**",
+    "packages/ui-react/**",
+    "tools/**",
+    "package.json",
+    "coordination/reports/WM-0118*.md",
+    "coordination/tasks/WM-0118.json"
+  ],
+  "forbiddenPaths": [
+    "packages/sim-core/**",
+    "packages/sim-worker/**",
+    "benchmark baseline weakening",
+    "release/store/signing/telemetry/account/paid-service work"
+  ]
+}

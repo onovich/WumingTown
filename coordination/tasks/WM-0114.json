@@ -1,0 +1,62 @@
+{
+  "id": "WM-0114",
+  "title": "Localization infrastructure and missing-key gate",
+  "summary": "Implement the zh-CN/en localization runtime, locale detection, settings persistence and missing-key validation gate.",
+  "state": "proposed",
+  "ownerRole": "client-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0113"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0111-m8-scope-amendment.md",
+    "docs/05_tech/01_technical_architecture.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "Adds a localization layer for zh-CN and en with typed keys or equivalent validation",
+    "Defaults Chinese browser/system language to zh-CN and non-Chinese to en",
+    "Adds manual language override persistence without broad Electron authority",
+    "Adds missing-key and translation completeness validation that fails tests",
+    "Keeps developer diagnostics isolated from default player UI"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test",
+    "pnpm test:e2e --filter web-shell",
+    "pnpm test:e2e --filter desktop-shell",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0114-m8-localization-infrastructure",
+  "createdAt": "2026-06-27T15:46:00.000Z",
+  "updatedAt": "2026-06-27T15:46:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-27T15:46:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0111 M8 UI/i18n scope amendment DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "milestone": "M8",
+  "allowedPaths": [
+    "apps/web/**",
+    "apps/desktop-electron/**",
+    "packages/ui-react/**",
+    "tools/**",
+    "package.json",
+    "coordination/reports/WM-0114*.md",
+    "coordination/tasks/WM-0114.json"
+  ],
+  "forbiddenPaths": [
+    "packages/sim-core/**",
+    "packages/sim-worker/**",
+    "packages/sim-protocol/**",
+    "save schema changes",
+    "release/store/signing/telemetry/account/paid-service work"
+  ]
+}

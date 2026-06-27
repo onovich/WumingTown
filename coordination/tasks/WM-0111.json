@@ -1,0 +1,210 @@
+{
+  "id": "WM-0111",
+  "title": "Add M8 UI, responsive layout, and zh-CN/en localization gates",
+  "summary": "Amend the reviewed future M8 entry prompt and create a reviewed M8 task DAG so Owner UI, responsive layout and zh-CN/en localization gates become mandatory M8 productization work before implementation starts.",
+  "state": "done",
+  "ownerRole": "project-director",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0110"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "CODEX_START_HERE.md",
+    ".agents/skills/wuming-town-agent-workflow/SKILL.md",
+    ".agents/skills/wuming-town-agent-workflow/references/task-schema.md",
+    ".codex/config.toml",
+    ".codex/agents/*.toml",
+    "coordination/roles.json",
+    "coordination/project-state.json",
+    "coordination/thread-registry.json",
+    "coordination/tasks/*.json",
+    "coordination/reports/WM-0110.md",
+    "coordination/reports/WM-0110-future-m8-entry-prompt.md",
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "docs/07_roadmap/04_web_release_gate.md",
+    "docs/05_tech/06_platform_matrix.md",
+    "docs/00_project/05_decision_register.md",
+    "docs/05_tech/*",
+    "docs/06_engineering/*",
+    "docs/08_codex/*",
+    "coordination/decisions/*.md",
+    "PLANS.md"
+  ],
+  "acceptance": [
+    "Records startup audit evidence confirming M0-M7 are done, WM-0110 is done/verified/integrated/pushed, main and origin/main are synchronized, inbox is 0, worktree was clean before this task, only the main worktree was present and M8 was not already started",
+    "Audits the reviewed future M8 entry prompt against OWNER-AMENDMENT-2026-06-27-UI-I18N-PRODUCTIZATION and records whether Product UI, Responsive Layout, Localization, Visual Identity, First Playability and Accessibility gates were missing or insufficient",
+    "Amends the M8 entry prompt or records a reviewed addendum so UI productization, required viewport coverage, zh-CN/en localization, language selection, default player HUD versus debug overlay separation, first-play guidance and accessibility are mandatory M8 gates",
+    "Creates a reviewed M8 task DAG with concrete task packets covering M8 planning/scope verification, UI productization design system, responsive layout and screenshot tests, localization infrastructure and string extraction, system language detection and manual override, main menu/settings/language selection, default player HUD versus debug overlay separation, first-play guidance, accessibility/readability, content/localization completeness, M8 content/1.0 closure work, validation matrix, closeout and future handoff",
+    "Keeps downstream M8 packets proposed until WM-0111 is independently reviewed, integrated and marked done; no M8 implementation task is claimed before that",
+    "Does not implement product UI/runtime behavior, create public release artifacts, submit stores, sign builds, enable telemetry/accounts/paid services, make final privacy/legal/store/save claims or start post-M8 work"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality",
+    "pnpm ci:local",
+    "pnpm test --filter m5-invariants",
+    "pnpm bench",
+    "pnpm sim:run -- --seed 5 --scenario m5-alpha-content-framework --ticks 100000"
+  ],
+  "branch": "task/WM-0111-m8-ui-i18n-scope-amendment",
+  "createdAt": "2026-06-27T15:32:00.000Z",
+  "updatedAt": "2026-06-27T15:59:47.162Z",
+  "history": [
+    {
+      "at": "2026-06-27T15:32:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created after Owner started M8 and supplied OWNER-AMENDMENT-2026-06-27-UI-I18N-PRODUCTIZATION; WM-0110 is done and M8 has not started."
+    },
+    {
+      "at": "2026-06-27T15:32:00.000Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "WM-0110 is done, verified, integrated and pushed; WM-0111 is the M8 scope amendment/planning gate required before implementation."
+    },
+    {
+      "at": "2026-06-27T15:34:10.245Z",
+      "actor": "project-director",
+      "action": "claim",
+      "details": "thread=Beacon-root-project-director-WM-0111"
+    },
+    {
+      "at": "2026-06-27T15:47:34.598Z",
+      "actor": "project-director",
+      "action": "complete",
+      "details": "M8 UI/i18n/responsive scope amendment and proposed M8 task DAG drafted; downstream M8 tasks remain proposed pending independent review and integration."
+    },
+    {
+      "at": "2026-06-27T15:54:14.581Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Owner UI/i18n/responsive amendment is incorporated as mandatory M8 gates; current Roadmap authority and owner-gated release boundaries are preserved; downstream WM-0112..WM-0127 packets are proposed, dependency-valid and acyclic; validation evidence confirmed."
+    },
+    {
+      "at": "2026-06-27T15:59:40.030Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Independent reviewer verified WM-0111; post-review integration gate passed including handoff, taskctl validate/status, git diff --check, pnpm quality, pnpm ci:local, m5-invariants, bench isolated rerun and 100k M5 sim."
+    },
+    {
+      "at": "2026-06-27T15:59:47.162Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
+    }
+  ],
+  "milestone": "M8",
+  "objective": "Make the Owner UI/i18n/responsive amendment a reviewed M8 product gate and create the M8 task DAG without starting implementation.",
+  "dependencies": [
+    "WM-0110"
+  ],
+  "allowedPaths": [
+    "coordination/tasks/WM-0111.json",
+    "coordination/tasks/WM-0112.json",
+    "coordination/tasks/WM-0113.json",
+    "coordination/tasks/WM-0114.json",
+    "coordination/tasks/WM-0115.json",
+    "coordination/tasks/WM-0116.json",
+    "coordination/tasks/WM-0117.json",
+    "coordination/tasks/WM-0118.json",
+    "coordination/tasks/WM-0119.json",
+    "coordination/tasks/WM-0120.json",
+    "coordination/tasks/WM-0121.json",
+    "coordination/tasks/WM-0122.json",
+    "coordination/tasks/WM-0123.json",
+    "coordination/tasks/WM-0124.json",
+    "coordination/tasks/WM-0125.json",
+    "coordination/tasks/WM-0126.json",
+    "coordination/tasks/WM-0127.json",
+    "coordination/reports/WM-0110-future-m8-entry-prompt.md",
+    "coordination/reports/WM-0111.md",
+    "coordination/reports/WM-0111-plan.md",
+    "coordination/reports/WM-0111-m8-scope-amendment.md",
+    "coordination/reports/WM-0111-m8-task-dag.md",
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "coordination/project-state.json"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/**",
+    "tools/**",
+    "content/**",
+    "schemas/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "coordination/artifacts/**",
+    "product runtime implementation",
+    "UI implementation",
+    "localization infrastructure implementation",
+    "screenshot test implementation",
+    "simulation implementation",
+    "save schema implementation",
+    "benchmark baseline updates",
+    "public release upload",
+    "store submission",
+    "signing credentials or signed installer",
+    "telemetry account paid service or crash upload implementation",
+    "final privacy legal or store claims",
+    "public save compatibility commitment",
+    "post-M8 task creation, promotion, claim, implementation or review"
+  ],
+  "validationCommands": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality",
+    "pnpm ci:local",
+    "pnpm test --filter m5-invariants",
+    "pnpm bench",
+    "pnpm sim:run -- --seed 5 --scenario m5-alpha-content-framework --ticks 100000"
+  ],
+  "risksAndFileOwnership": [
+    "Risk: M8 UI/i18n amendment could be treated as optional polish; task must make it a required M8 closeout gate.",
+    "Risk: planning could accidentally start UI implementation; file ownership forbids apps/packages/tools changes in WM-0111.",
+    "Risk: task DAG could overclaim 1.0 release readiness; owner-gated public release, store, signing, telemetry, accounts, paid services and final claims must remain blocked.",
+    "File ownership is limited to M8 prompt/amendment reports, M8 task packets and narrow roadmap/project-state markers."
+  ],
+  "ownerGate": [
+    "Block only if Owner amendment conflicts with locked decisions; otherwise incorporate it through reviewed M8 planning.",
+    "Do not execute public release, 1.0 release, Early Access launch, store submission, Web public launch, signed Windows installer, telemetry, account system, paid service, crash upload or final privacy/legal/store/save-compatibility commitments.",
+    "Do not change Web verdict away from demo-only or Windows verdict beyond controlled external test without owner approval.",
+    "Do not implement M8 UI/runtime work until WM-0111 is independently verified, integrated and done.",
+    "Preserve M0-M7 regression gates and benchmark thresholds."
+  ],
+  "m0M7RegressionCoverage": [
+    "Preserve all closed task states and review history through WM-0110.",
+    "Preserve M5 final world/read-model hashes 0xfba70a5c / 0x9ba83cb7 unless a reviewed migration changes them.",
+    "Preserve M6 Web demo-only verdict and Windows unsigned controlled-external-test verdict.",
+    "Preserve M7 EA/public playtest preparation artifacts and owner-gated decisions.",
+    "Keep Simulation Worker or Node headless as the only authoritative world writer."
+  ],
+  "benchmarkImpact": "No product benchmark baseline or artifact changes. WM-0111 records M8 benchmark and UI/i18n validation requirements only and preserves the 10 percent warning / 20 percent blocking thresholds.",
+  "reviewRouting": "Project-director completes to reviewer. Reviewer must verify that Owner UI/i18n/responsive gates are mandatory in the M8 DAG, downstream packets are proposed/unclaimed, no implementation started and owner gates are preserved.",
+  "rollbackModel": "Revert WM-0111 task/report files and newly created downstream M8 task JSON packets; leave WM-0110 verified closeout and future M8 prompt intact and M8 implementation unstarted.",
+  "sparkEligibility": {
+    "eligible": false,
+    "reason": "M8 scope amendment, product gate design, task DAG design, owner gates and final review cannot be assigned to Spark."
+  },
+  "claimedBy": "project-director",
+  "threadLabel": "Beacon-root-project-director-WM-0111",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0111.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Owner UI/i18n/responsive amendment is incorporated as mandatory M8 gates; current Roadmap authority and owner-gated release boundaries are preserved; downstream WM-0112..WM-0127 packets are proposed, dependency-valid and acyclic; validation evidence confirmed.",
+    "at": "2026-06-27T15:54:14.580Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Independent reviewer verified WM-0111; post-review integration gate passed including handoff, taskctl validate/status, git diff --check, pnpm quality, pnpm ci:local, m5-invariants, bench isolated rerun and 100k M5 sim.",
+    "at": "2026-06-27T15:59:40.029Z"
+  }
+}

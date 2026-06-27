@@ -1,0 +1,64 @@
+{
+  "id": "WM-0113",
+  "title": "I18n architecture and locale settings contract",
+  "summary": "Define locale ownership, browser/system detection, manual override, persistence and missing-key behavior before localization implementation.",
+  "state": "ready",
+  "ownerRole": "systems-architect",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0111"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0111-m8-scope-amendment.md",
+    "docs/05_tech/01_technical_architecture.md",
+    "docs/05_tech/06_platform_matrix.md",
+    "docs/06_engineering/*",
+    "coordination/decisions/*.md"
+  ],
+  "acceptance": [
+    "Defines the i18n architecture for zh-CN and en without making UI authoritative",
+    "Defines browser/system language detection where Chinese defaults to zh-CN and non-Chinese defaults to en",
+    "Defines manual language override and persistence scope for Web and Windows without broad Electron APIs",
+    "Defines missing-key, fallback, pseudo-localization or completeness checks",
+    "Does not implement runtime code, save schema, telemetry, accounts or final public claims"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0113-m8-i18n-architecture",
+  "createdAt": "2026-06-27T15:46:00.000Z",
+  "updatedAt": "2026-06-27T15:59:47.169Z",
+  "history": [
+    {
+      "at": "2026-06-27T15:46:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0111 M8 UI/i18n scope amendment DAG; remains proposed until WM-0111 is done."
+    },
+    {
+      "at": "2026-06-27T15:59:47.169Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
+    }
+  ],
+  "milestone": "M8",
+  "allowedPaths": [
+    "docs/05_tech/**",
+    "docs/06_engineering/**",
+    "coordination/decisions/**",
+    "coordination/reports/WM-0113*.md",
+    "coordination/tasks/WM-0113.json"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/**",
+    "tools/**",
+    "release/store/signing/telemetry/account/paid-service work"
+  ]
+}

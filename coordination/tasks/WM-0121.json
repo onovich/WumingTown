@@ -1,0 +1,65 @@
+{
+  "id": "WM-0121",
+  "title": "M8 1.0 content and endgame scope contract",
+  "summary": "Define the 1.0 content, anomaly, faction, endgame, mod, long-save and localization scope before content implementation.",
+  "state": "ready",
+  "ownerRole": "gameplay-designer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0111"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0110-future-m8-entry-prompt.md",
+    "docs/01_design/*",
+    "docs/02_systems/*",
+    "docs/03_world/*",
+    "docs/04_content_balance/*"
+  ],
+  "acceptance": [
+    "Defines M8 1.0 content scope including 12-15 anomalies, faction/endgame arcs, stable data-mod workflow, long-save and localization targets",
+    "Separates 1.0 readiness from public release or store submission approval",
+    "Defines scenario/contracts and validation expectations for downstream content tasks",
+    "Preserves M0-M7 baselines and owner gates",
+    "Does not implement runtime content or change schemas"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0121-m8-content-endgame-scope",
+  "createdAt": "2026-06-27T15:46:00.000Z",
+  "updatedAt": "2026-06-27T15:59:47.169Z",
+  "history": [
+    {
+      "at": "2026-06-27T15:46:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0111 M8 UI/i18n scope amendment DAG; remains proposed until WM-0111 is done."
+    },
+    {
+      "at": "2026-06-27T15:59:47.169Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
+    }
+  ],
+  "milestone": "M8",
+  "allowedPaths": [
+    "docs/01_design/**",
+    "docs/02_systems/**",
+    "docs/03_world/**",
+    "docs/04_content_balance/**",
+    "coordination/reports/WM-0121*.md",
+    "coordination/tasks/WM-0121.json"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/**",
+    "tools/**",
+    "release/store/signing/telemetry/account/paid-service work"
+  ]
+}

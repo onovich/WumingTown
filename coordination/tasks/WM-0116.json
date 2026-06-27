@@ -1,0 +1,60 @@
+{
+  "id": "WM-0116",
+  "title": "Main menu settings and language selection",
+  "summary": "Add the default player start/settings surface with New/Continue/Settings and language selection.",
+  "state": "proposed",
+  "ownerRole": "client-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0112",
+    "WM-0114",
+    "WM-0115"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0111-m8-scope-amendment.md",
+    "docs/01_design/*",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "Default launch includes player-facing main/start surface rather than diagnostics harness",
+    "Provides New Game, Continue, Settings and language selection affordances",
+    "Manual language selection updates visible UI and persists in the intended scope",
+    "Does not execute release/store/signing or change simulation authority",
+    "Covered by Web and desktop E2E"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test:e2e --filter web-shell",
+    "pnpm test:e2e --filter desktop-shell",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0116-m8-main-menu-settings-language",
+  "createdAt": "2026-06-27T15:46:00.000Z",
+  "updatedAt": "2026-06-27T15:46:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-27T15:46:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0111 M8 UI/i18n scope amendment DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "milestone": "M8",
+  "allowedPaths": [
+    "apps/web/**",
+    "apps/desktop-electron/**",
+    "packages/ui-react/**",
+    "coordination/reports/WM-0116*.md",
+    "coordination/tasks/WM-0116.json"
+  ],
+  "forbiddenPaths": [
+    "packages/sim-core/**",
+    "packages/sim-worker/**",
+    "save schema changes unless explicitly scoped by existing persistence APIs",
+    "release/store/signing/telemetry/account/paid-service work"
+  ]
+}

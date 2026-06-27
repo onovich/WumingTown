@@ -1,0 +1,61 @@
+{
+  "id": "WM-0124",
+  "title": "Stable data-mod workflow and localization completeness",
+  "summary": "Harden data-mod validation, non-code-mod restrictions, content localization and completeness reports for 1.0.",
+  "state": "proposed",
+  "ownerRole": "content-worker",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0115",
+    "WM-0122",
+    "WM-0123"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/decisions/ADR-0010.md",
+    "docs/01_design/06_content_and_modding_overview.md",
+    "docs/05_tech/04_persistence_mods_security.md"
+  ],
+  "acceptance": [
+    "Produces content and localization completeness report for M8",
+    "Validates data-mod workflow and keeps code mods forbidden",
+    "Rejects unsafe paths, oversized assets, unknown references and missing localization",
+    "Covers zh-CN/en content labels and public-facing text",
+    "Does not permit executable mods, networking, platform APIs or final public claims"
+  ],
+  "requiredChecks": [
+    "pnpm content:validate",
+    "pnpm test",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0124-m8-data-mod-localization-completeness",
+  "createdAt": "2026-06-27T15:46:00.000Z",
+  "updatedAt": "2026-06-27T15:46:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-27T15:46:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0111 M8 UI/i18n scope amendment DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "milestone": "M8",
+  "allowedPaths": [
+    "packages/content-schema/**",
+    "packages/content-compiler/**",
+    "tools/**",
+    "docs/01_design/**",
+    "docs/04_content_balance/**",
+    "docs/05_tech/**",
+    "coordination/reports/WM-0124*.md",
+    "coordination/tasks/WM-0124.json"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "executable mod support",
+    "release/store/signing/telemetry/account/paid-service work"
+  ]
+}

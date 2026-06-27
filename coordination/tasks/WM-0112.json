@@ -1,0 +1,65 @@
+{
+  "id": "WM-0112",
+  "title": "Product UI design system and visual identity",
+  "summary": "Define the M8 player-facing UI design system, visual identity and HUD hierarchy so the default interface no longer reads as a diagnostics harness.",
+  "state": "ready",
+  "ownerRole": "gameplay-designer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0111"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0111-m8-scope-amendment.md",
+    "coordination/reports/WM-0111-m8-task-dag.md",
+    "docs/01_design/*",
+    "docs/03_world/*",
+    "docs/04_content_balance/09_m7_public_facing_terminology.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "Defines M8 theme tokens for color, typography, spacing, panels, buttons, alerts, resource cards, resident cards and debug overlays",
+    "Defines the default player HUD information hierarchy for current phase, next goal, resources, resident state, tasks/events and night risk",
+    "Defines how Wuming Town visual identity expresses lanterns, Chronicle, ordinances, residents, explanation and folk-horror settlement fantasy without requiring final art assets",
+    "Defines debug/diagnostics surfaces as explicit dev/debug overlays, not default player UI",
+    "Does not implement UI runtime or create final store/release claims"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0112-m8-product-ui-design-system",
+  "createdAt": "2026-06-27T15:46:00.000Z",
+  "updatedAt": "2026-06-27T15:59:47.169Z",
+  "history": [
+    {
+      "at": "2026-06-27T15:46:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0111 M8 UI/i18n scope amendment DAG; remains proposed until WM-0111 is done."
+    },
+    {
+      "at": "2026-06-27T15:59:47.169Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
+    }
+  ],
+  "milestone": "M8",
+  "allowedPaths": [
+    "docs/01_design/**",
+    "docs/03_world/**",
+    "docs/07_roadmap/**",
+    "coordination/reports/WM-0112*.md",
+    "coordination/tasks/WM-0112.json"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/**",
+    "tools/**",
+    "release/store/signing/telemetry/account/paid-service work"
+  ]
+}

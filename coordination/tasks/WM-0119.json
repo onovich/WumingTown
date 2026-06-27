@@ -1,0 +1,58 @@
+{
+  "id": "WM-0119",
+  "title": "First-play onboarding and next-action guidance",
+  "summary": "Make first play legible with phase, possible actions, next goal and game-versus-diagnostics separation.",
+  "state": "proposed",
+  "ownerRole": "gameplay-designer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0116",
+    "WM-0117"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0111-m8-scope-amendment.md",
+    "docs/01_design/08_m7_first_run_onboarding.md",
+    "docs/04_content_balance/10_m7_early_game_balance_readability.md"
+  ],
+  "acceptance": [
+    "Default UI explains current phase, available actions and next goal in zh-CN/en",
+    "Separates gameplay guidance from developer diagnostics",
+    "Extends M7 onboarding into M8 first-play guidance without claiming final release",
+    "Records copy limits and cultural terminology boundaries",
+    "Covered by tests or reviewer-verifiable UI evidence"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0119-m8-first-play-guidance",
+  "createdAt": "2026-06-27T15:46:00.000Z",
+  "updatedAt": "2026-06-27T15:46:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-27T15:46:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0111 M8 UI/i18n scope amendment DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "milestone": "M8",
+  "allowedPaths": [
+    "docs/01_design/**",
+    "docs/04_content_balance/**",
+    "packages/ui-react/**",
+    "apps/web/**",
+    "apps/desktop-electron/**",
+    "coordination/reports/WM-0119*.md",
+    "coordination/tasks/WM-0119.json"
+  ],
+  "forbiddenPaths": [
+    "packages/sim-core/**",
+    "packages/sim-worker/**",
+    "release/store/signing/telemetry/account/paid-service work"
+  ]
+}

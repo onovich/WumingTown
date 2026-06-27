@@ -1,0 +1,62 @@
+{
+  "id": "WM-0126",
+  "title": "M8 performance regression and readiness matrix",
+  "summary": "Consolidate M8 UI, i18n, accessibility, content, save, performance and M0-M7 regression evidence into a readiness matrix.",
+  "state": "proposed",
+  "ownerRole": "qa-performance",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0118",
+    "WM-0120",
+    "WM-0124",
+    "WM-0125"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0111-m8-scope-amendment.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "docs/06_engineering/05_testing_policy.md"
+  ],
+  "acceptance": [
+    "Consolidates M8 Product UI, Responsive Layout, Localization, Visual Identity, First Playability and Accessibility gate evidence",
+    "Consolidates content, mod, long-save, localization and performance evidence",
+    "Runs M0-M7 regression gates including quality, ci:local, m5-invariants, bench and 100000-tick M5 scenario",
+    "Records Web demo-only and Windows controlled external test verdict preservation",
+    "Separates 1.0 readiness evidence from owner-gated public release actions"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "pnpm quality",
+    "pnpm ci:local",
+    "pnpm test --filter m5-invariants",
+    "pnpm bench",
+    "pnpm sim:run -- --seed 5 --scenario m5-alpha-content-framework --ticks 100000"
+  ],
+  "branch": "task/WM-0126-m8-readiness-matrix",
+  "createdAt": "2026-06-27T15:46:00.000Z",
+  "updatedAt": "2026-06-27T15:46:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-27T15:46:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0111 M8 UI/i18n scope amendment DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "milestone": "M8",
+  "allowedPaths": [
+    "docs/07_roadmap/**",
+    "docs/06_engineering/**",
+    "coordination/reports/WM-0126*.md",
+    "coordination/tasks/WM-0126.json"
+  ],
+  "forbiddenPaths": [
+    "apps/** except test-only evidence updates explicitly required by acceptance",
+    "packages/** except test-only evidence updates explicitly required by acceptance",
+    "benchmark baseline weakening",
+    "release/store/signing/telemetry/account/paid-service work"
+  ]
+}

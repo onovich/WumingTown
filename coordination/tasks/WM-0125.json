@@ -1,0 +1,62 @@
+{
+  "id": "WM-0125",
+  "title": "Long-save stability and migration gate",
+  "summary": "Validate long-save stability, migration policy and save/replay evidence for 1.0 without making owner-gated public save commitments.",
+  "state": "proposed",
+  "ownerRole": "systems-architect",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0123",
+    "WM-0124"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "docs/02_systems/13_save_replay_migration.md",
+    "docs/05_tech/04_persistence_mods_security.md",
+    "docs/05_tech/11_m7_save_compatibility_policy.md"
+  ],
+  "acceptance": [
+    "Defines and validates M8 long-save/migration gate",
+    "Adds focused save/replay or migration evidence for M8 scenarios",
+    "Keeps public save compatibility and Windows/Web interoperability owner-gated unless separately approved",
+    "Protects existing save/replay and command replay evidence",
+    "Does not add broad Electron filesystem APIs"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test --filter persistence",
+    "pnpm test --filter m5-save-replay",
+    "pnpm sim:replay-test",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0125-m8-long-save-migration",
+  "createdAt": "2026-06-27T15:46:00.000Z",
+  "updatedAt": "2026-06-27T15:46:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-27T15:46:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0111 M8 UI/i18n scope amendment DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "milestone": "M8",
+  "allowedPaths": [
+    "packages/persistence/**",
+    "packages/sim-core/**",
+    "packages/testkit/**",
+    "tools/**",
+    "docs/02_systems/**",
+    "docs/05_tech/**",
+    "coordination/reports/WM-0125*.md",
+    "coordination/tasks/WM-0125.json"
+  ],
+  "forbiddenPaths": [
+    "broad Electron filesystem or shell APIs",
+    "public save compatibility promises",
+    "release/store/signing/telemetry/account/paid-service work"
+  ]
+}

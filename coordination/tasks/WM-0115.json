@@ -1,0 +1,58 @@
+{
+  "id": "WM-0115",
+  "title": "zh-CN/en translation resources and hardcoded string inventory",
+  "summary": "Move player-visible strings into zh-CN/en translation resources and produce a hardcoded player-string inventory.",
+  "state": "proposed",
+  "ownerRole": "content-worker",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0114"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0111-m8-scope-amendment.md",
+    "docs/04_content_balance/09_m7_public_facing_terminology.md",
+    "docs/03_world/08_m7_cultural_review_package.md"
+  ],
+  "acceptance": [
+    "Adds or completes zh-CN and en translations for current player-facing UI",
+    "Produces a hardcoded-string inventory separating player UI from dev/debug diagnostics",
+    "Missing translations fail validation",
+    "Chinese default UI no longer exposes English player text for covered surfaces",
+    "Does not create final legal/store/privacy claims"
+  ],
+  "requiredChecks": [
+    "pnpm content:validate",
+    "pnpm test",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0115-m8-translation-resources",
+  "createdAt": "2026-06-27T15:46:00.000Z",
+  "updatedAt": "2026-06-27T15:46:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-27T15:46:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0111 M8 UI/i18n scope amendment DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "milestone": "M8",
+  "allowedPaths": [
+    "packages/ui-react/**",
+    "apps/web/**",
+    "apps/desktop-electron/**",
+    "docs/04_content_balance/**",
+    "coordination/reports/WM-0115*.md",
+    "coordination/tasks/WM-0115.json"
+  ],
+  "forbiddenPaths": [
+    "packages/sim-core/**",
+    "packages/sim-worker/**",
+    "save schema changes",
+    "release/store/signing/telemetry/account/paid-service work"
+  ]
+}

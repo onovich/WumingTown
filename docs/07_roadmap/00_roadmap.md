@@ -246,3 +246,23 @@ future handoff prompt at
 `coordination/reports/WM-0110-future-m8-entry-prompt.md`; a later owner-sent M8
 goal must create or follow a reviewed M8 task DAG before any M8 implementation
 task is claimed.
+
+## M8 UI / I18n Scope Amendment Addendum
+
+WM-0111 starts M8 planning from the verified WM-0110 future M8 prompt and the
+Owner amendment `OWNER-AMENDMENT-2026-06-27-UI-I18N-PRODUCTIZATION`. The
+amendment does not change the Roadmap's M8 = 1.0 definition, but makes product
+UI, responsive layout, zh-CN/en localization, visual identity, first-play
+guidance and accessibility mandatory M8 gates.
+
+The M8 planning package must preserve current platform verdicts: Web remains
+`demo-only`, and Windows remains `ready-for-controlled-external-test` as an
+unsigned unpacked local directory build. Public release, 1.0 release, store
+submission, public Web launch, signing, installer/updater distribution,
+telemetry, accounts, hosted services, paid services, public feedback systems,
+final privacy/legal/store claims and public save compatibility commitments
+remain owner-gated.
+
+M8 implementation remains unstarted until WM-0111 is independently reviewed,
+integrated and marked done, and downstream packets are promoted through
+taskctl.

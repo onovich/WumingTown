@@ -1,0 +1,63 @@
+{
+  "id": "WM-0123",
+  "title": "Full faction and endgame arc integration",
+  "summary": "Integrate faction and endgame arcs through authoritative owner stores, deterministic state machines and scenario evidence.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0122"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/decisions/ADR-0010.md",
+    "docs/02_systems/*",
+    "docs/03_world/*",
+    "docs/04_content_balance/*"
+  ],
+  "acceptance": [
+    "Implements or completes faction/endgame state through Simulation Worker or headless authority only",
+    "Uses bounded indexes, explicit serializable state machines and structured reasons",
+    "Adds headless scenario and invariant coverage for endgame/faction outcomes",
+    "Preserves M5 hashes unless reviewed migration evidence accepts a changed M8 baseline",
+    "Does not introduce UI authority, telemetry, account, paid-service or release behavior"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test",
+    "pnpm test --filter m5-invariants",
+    "pnpm sim:run -- --seed 5 --scenario m5-alpha-content-framework --ticks 100000",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0123-m8-faction-endgame-integration",
+  "createdAt": "2026-06-27T15:46:00.000Z",
+  "updatedAt": "2026-06-27T15:46:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-27T15:46:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0111 M8 UI/i18n scope amendment DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "milestone": "M8",
+  "allowedPaths": [
+    "packages/sim-core/**",
+    "packages/sim-worker/**",
+    "packages/testkit/**",
+    "tools/headless-runner/**",
+    "docs/02_systems/**",
+    "docs/04_content_balance/**",
+    "coordination/reports/WM-0123*.md",
+    "coordination/tasks/WM-0123.json"
+  ],
+  "forbiddenPaths": [
+    "apps/**",
+    "packages/ui-react/**",
+    "packages/renderer-pixi/**",
+    "release/store/signing/telemetry/account/paid-service work"
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "id": "WM-0117",
+  "title": "Player HUD and debug overlay separation",
+  "summary": "Replace the default diagnostics harness surface with a player HUD and move diagnostics into explicit dev/debug mode.",
+  "state": "proposed",
+  "ownerRole": "client-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0112",
+    "WM-0114",
+    "WM-0115"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0111-m8-scope-amendment.md",
+    "docs/01_design/*",
+    "docs/07_roadmap/05_m7_web_demo_scope.md"
+  ],
+  "acceptance": [
+    "Default HUD shows current state, next goal, resources, resident state, events/tasks and night risk",
+    "Diagnostics/Product Gate information is hidden or clearly gated behind dev/debug mode by default",
+    "HUD uses localized strings and M8 visual identity tokens",
+    "UI remains read-model-only and does not mutate authoritative simulation state",
+    "Covered by Web/desktop E2E asserting default player UI versus debug overlay"
+  ],
+  "requiredChecks": [
+    "pnpm typecheck",
+    "pnpm test:e2e --filter web-shell",
+    "pnpm test:e2e --filter desktop-shell",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "pnpm quality"
+  ],
+  "branch": "task/WM-0117-m8-player-hud-debug-overlay",
+  "createdAt": "2026-06-27T15:46:00.000Z",
+  "updatedAt": "2026-06-27T15:46:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-27T15:46:00.000Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0111 M8 UI/i18n scope amendment DAG; remains proposed until dependencies are done."
+    }
+  ],
+  "milestone": "M8",
+  "allowedPaths": [
+    "apps/web/**",
+    "apps/desktop-electron/**",
+    "packages/ui-react/**",
+    "packages/renderer-pixi/**",
+    "coordination/reports/WM-0117*.md",
+    "coordination/tasks/WM-0117.json"
+  ],
+  "forbiddenPaths": [
+    "packages/sim-core/**",
+    "packages/sim-worker/**",
+    "Worker protocol changes unless separately reviewed",
+    "release/store/signing/telemetry/account/paid-service work"
+  ]
+}
