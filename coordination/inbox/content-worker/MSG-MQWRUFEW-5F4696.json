@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQWRUFEW-5F4696",
+  "from": "reviewer",
+  "to": "content-worker",
+  "taskId": "WM-0124",
+  "kind": "review-approved",
+  "subject": "WM-0124 review: verified",
+  "body": "No blocking findings. Targeted probes confirmed declared zh-CN now requires locales/zh-CN.*, en-only and missing-en packs fail closed, and legacy zh compatibility only passes when manifest declares zh; required review gates passed with corepack pnpm 11.8.0.",
+  "artifacts": [
+    "coordination/reports/WM-0124.md"
+  ],
+  "createdAt": "2026-06-27T19:47:17.768Z",
+  "acknowledgedAt": "2026-06-27T19:48:24.225Z"
+}

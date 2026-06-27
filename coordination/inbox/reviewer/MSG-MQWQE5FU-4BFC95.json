@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQWQE5FU-4BFC95",
+  "from": "content-worker",
+  "to": "reviewer",
+  "taskId": "WM-0124",
+  "kind": "review-request",
+  "subject": "WM-0124 ready for review",
+  "body": "Added M8 content/localization completeness inventory and a focused missing-reference regression; unsafe-path, oversized-asset, missing-localization and code-mod restrictions remain fail-closed; required checks passed using corepack pnpm 11.8.0 after the local pnpm 11.7.0 shim mismatch.",
+  "artifacts": [
+    "coordination/reports/WM-0124.md",
+    "task/WM-0124-m8-data-mod-localization-completeness"
+  ],
+  "createdAt": "2026-06-27T19:06:38.730Z",
+  "acknowledgedAt": "2026-06-27T19:08:02.330Z"
+}

@@ -24,6 +24,8 @@ export const M5_SUPPORTED_CAPABILITIES = [
   "content:m5-alpha",
 ] as const;
 
+export const M5_REQUIRED_LOCALES = ["en", "zh-CN"] as const;
+
 export type M5ContentKind = (typeof M5_SUPPORTED_CONTENT_KINDS)[number];
 export type M5ContentCapability = (typeof M5_SUPPORTED_CAPABILITIES)[number];
 

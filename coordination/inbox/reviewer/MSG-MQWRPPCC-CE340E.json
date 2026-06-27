@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQWRPPCC-CE340E",
+  "from": "content-worker",
+  "to": "reviewer",
+  "taskId": "WM-0124",
+  "kind": "review-request",
+  "subject": "WM-0124 ready for review",
+  "body": "Closed the zh-CN bypass, kept legacy zh only for packs that explicitly declare zh, and reran content, test, handoff, taskctl, diff, and quality gates.",
+  "artifacts": [
+    "coordination/reports/WM-0124.md",
+    "task/WM-0124-m8-data-mod-localization-completeness"
+  ],
+  "createdAt": "2026-06-27T19:43:37.356Z",
+  "acknowledgedAt": "2026-06-27T19:45:08.176Z"
+}

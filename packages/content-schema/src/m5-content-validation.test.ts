@@ -36,6 +36,85 @@ describe("M5 content validation", () => {
     ]);
   });
 
+  it("rejects packs missing required en and zh-CN locale coverage", () => {
+    const missingZhCn = createValidM5Pack({
+      manifestPatch: {
+        locales: ["en"],
+      },
+    });
+    const missingZhCnFile: M5ContentPack = {
+      rootDir: missingZhCn.rootDir,
+      files: missingZhCn.files.filter(
+        (fileEntry) => fileEntry.relativePath !== "locales/zh-CN.json",
+      ),
+    };
+
+    const missingEn = createValidM5Pack({
+      manifestPatch: {
+        locales: ["zh-CN"],
+      },
+    });
+    const missingEnFile: M5ContentPack = {
+      rootDir: missingEn.rootDir,
+      files: missingEn.files.filter((fileEntry) => fileEntry.relativePath !== "locales/en.json"),
+    };
+
+    const missingZhCnResult = validateM5ContentPack(missingZhCnFile);
+    const missingEnResult = validateM5ContentPack(missingEnFile);
+
+    expect(missingZhCnResult.ok).toBe(false);
+    expect(missingEnResult.ok).toBe(false);
+    expect(missingZhCnResult.diagnostics.map((diagnostic) => diagnostic.code)).toContain(
+      "m5_manifest_missing_required_locale",
+    );
+    expect(missingZhCnResult.diagnostics.map((diagnostic) => diagnostic.code)).toContain(
+      "m5_manifest_missing_locale_file",
+    );
+    expect(missingEnResult.diagnostics.map((diagnostic) => diagnostic.code)).toContain(
+      "m5_manifest_missing_required_locale",
+    );
+    expect(missingEnResult.diagnostics.map((diagnostic) => diagnostic.code)).toContain(
+      "m5_manifest_missing_locale_file",
+    );
+  });
+
+  it("rejects zh.json as a bypass for declared zh-CN coverage", () => {
+    const pack = createValidM5Pack({
+      manifestPatch: {
+        locales: ["en", "zh-CN"],
+      },
+    });
+    const zhCnFile = pack.files.find(
+      (fileEntry) => fileEntry.relativePath === "locales/zh-CN.json",
+    );
+    if (zhCnFile === undefined) {
+      throw new Error("expected zh-CN locale file in valid pack");
+    }
+    const zhBypassPack: M5ContentPack = {
+      rootDir: pack.rootDir,
+      files: [
+        ...pack.files.filter((fileEntry) => fileEntry.relativePath !== "locales/zh-CN.json"),
+        {
+          ...zhCnFile,
+          relativePath: "locales/zh.json",
+        },
+      ],
+    };
+
+    const result = validateM5ContentPack(zhBypassPack);
+
+    expect(result.ok).toBe(false);
+    const codes = result.diagnostics.map((diagnostic) => diagnostic.code);
+    expect(codes).toContain("m5_manifest_missing_locale_file");
+    expect(
+      result.diagnostics.some(
+        (diagnostic) =>
+          diagnostic.code === "m5_manifest_missing_locale_file" &&
+          diagnostic.message.includes("zh-CN"),
+      ),
+    ).toBe(true);
+  });
+
   it("accepts the WM-0079 alpha content catalog fixture with review notes", () => {
     const pack = createM5AlphaContentCatalogPack();
     const result = validateM5ContentPack(pack);
@@ -243,6 +322,22 @@ describe("M5 content validation", () => {
     expect(codes).toContain("m5_bespoke_runtime_forbidden");
     expect(codes).toContain("missing_localization_key");
   });
+
+  it("rejects missing references in the M5 content workflow", () => {
+    const result = validateM5ContentPack(
+      createValidM5Pack({
+        definitionPatch: {
+          "core.anomaly.third_knock.v1": {
+            references: ["core.anomaly.missing"],
+          },
+        },
+      }),
+    );
+
+    expect(result.ok).toBe(false);
+    const codes = result.diagnostics.map((diagnostic) => diagnostic.code);
+    expect(codes).toContain("missing_def_reference");
+  });
 });
 
 interface ValidPackOptions {
@@ -270,7 +365,7 @@ function createValidM5Pack(options: ValidPackOptions = {}): M5ContentPack {
       "m5.faction_hook",
       "m5.anomaly",
     ],
-    locales: ["en", "zh"],
+    locales: ["en", "zh-CN"],
     dependencies: [],
     maxFileBytes: 65536,
     maxTotalBytes: 524288,
@@ -294,7 +389,7 @@ function createValidM5Pack(options: ValidPackOptions = {}): M5ContentPack {
       file("manifest.json", manifest),
       ...definitions.map((definition) => file(`defs/${definition.id}.json`, definition)),
       file("locales/en.json", localeEntries.en),
-      file("locales/zh.json", localeEntries.zh),
+      file("locales/zh-CN.json", localeEntries["zh-CN"]),
       ...(options.extraFiles ?? []),
     ],
   };
@@ -405,9 +500,9 @@ function zeroBespokeBudget(): Readonly<Record<string, number>> {
 function buildLocaleEntries(
   definitions: readonly M5FixtureDefinition[],
   localePatch: ValidPackOptions["localePatch"],
-): Readonly<Record<"en" | "zh", Readonly<Record<string, string>>>> {
+): Readonly<Record<"en" | "zh-CN", Readonly<Record<string, string>>>> {
   const en: Record<string, string> = {};
-  const zh: Record<string, string> = {};
+  const zhCn: Record<string, string> = {};
   for (const definition of definitions) {
     const id = definition.id;
     const labelKey = definition["labelKey"];
@@ -419,14 +514,14 @@ function buildLocaleEntries(
     ) {
       en[labelKey] = `Label ${id}`;
       en[descriptionKey] = `Description ${id}`;
-      zh[labelKey] = `名称 ${id}`;
-      zh[descriptionKey] = `说明 ${id}`;
+      zhCn[labelKey] = `名称 ${id}`;
+      zhCn[descriptionKey] = `说明 ${id}`;
     }
   }
 
   applyLocalePatch(en, localePatch?.["en"]);
-  applyLocalePatch(zh, localePatch?.["zh"]);
-  return { en, zh };
+  applyLocalePatch(zhCn, localePatch?.["zh-CN"]);
+  return { en, "zh-CN": zhCn };
 }
 
 function applyLocalePatch(

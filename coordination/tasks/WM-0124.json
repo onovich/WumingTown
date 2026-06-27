@@ -2,7 +2,7 @@
   "id": "WM-0124",
   "title": "Stable data-mod workflow and localization completeness",
   "summary": "Harden data-mod validation, non-code-mod restrictions, content localization and completeness reports for 1.0.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "content-worker",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -33,7 +33,7 @@
   ],
   "branch": "task/WM-0124-m8-data-mod-localization-completeness",
   "createdAt": "2026-06-27T15:46:00.000Z",
-  "updatedAt": "2026-06-27T18:53:01.841Z",
+  "updatedAt": "2026-06-27T19:49:53.293Z",
   "history": [
     {
       "at": "2026-06-27T15:46:00.000Z",
@@ -46,6 +46,60 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-27T19:01:08.678Z",
+      "actor": "content-worker",
+      "action": "claim",
+      "details": "thread=codex-content-worker-wm0124"
+    },
+    {
+      "at": "2026-06-27T19:06:38.728Z",
+      "actor": "content-worker",
+      "action": "complete",
+      "details": "Added M8 content/localization completeness inventory and a focused missing-reference regression; unsafe-path, oversized-asset, missing-localization and code-mod restrictions remain fail-closed; required checks passed using corepack pnpm 11.8.0 after the local pnpm 11.7.0 shim mismatch."
+    },
+    {
+      "at": "2026-06-27T19:14:29.338Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: zh-CN/en content localization is documented but not gated; validateM5ContentPack accepts a complete pack with manifest.locales=[en] and no zh/zh-CN locale file, so missing required Chinese content coverage can pass. Required checks otherwise passed."
+    },
+    {
+      "at": "2026-06-27T19:28:31.617Z",
+      "actor": "content-worker",
+      "action": "complete",
+      "details": "Added fail-closed required-locale validation for English plus Chinese locale resources, kept the protected M5 baseline intact, and added focused regressions for missing references and missing locale coverage; pnpm shim mismatch noted, corepack pnpm gates passed."
+    },
+    {
+      "at": "2026-06-27T19:32:58.676Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: required-locale probes for missing Chinese and missing en now fail closed, but legacy zh compatibility is not scoped to protected M5 fixtures; validateM5ContentPack still accepts manifest.locales=[en,zh-CN] with only locales/zh.json and no zh-CN file, allowing new M8 packs to bypass canonical zh-CN resources. Required gates passed."
+    },
+    {
+      "at": "2026-06-27T19:43:37.354Z",
+      "actor": "content-worker",
+      "action": "complete",
+      "details": "Closed the zh-CN bypass, kept legacy zh only for packs that explicitly declare zh, and reran content, test, handoff, taskctl, diff, and quality gates."
+    },
+    {
+      "at": "2026-06-27T19:47:17.767Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Targeted probes confirmed declared zh-CN now requires locales/zh-CN.*, en-only and missing-en packs fail closed, and legacy zh compatibility only passes when manifest declares zh; required review gates passed with corepack pnpm 11.8.0."
+    },
+    {
+      "at": "2026-06-27T19:49:46.081Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified by independent reviewer; integration gates passed: content:validate, test, validate-handoff, taskctl validate/status, git diff --check, quality."
+    },
+    {
+      "at": "2026-06-27T19:49:53.293Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M8",
@@ -63,5 +117,20 @@
     "apps/**",
     "executable mod support",
     "release/store/signing/telemetry/account/paid-service work"
-  ]
+  ],
+  "claimedBy": "content-worker",
+  "threadLabel": "codex-content-worker-wm0124",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0124.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Targeted probes confirmed declared zh-CN now requires locales/zh-CN.*, en-only and missing-en packs fail closed, and legacy zh compatibility only passes when manifest declares zh; required review gates passed with corepack pnpm 11.8.0.",
+    "at": "2026-06-27T19:47:17.766Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified by independent reviewer; integration gates passed: content:validate, test, validate-handoff, taskctl validate/status, git diff --check, quality.",
+    "at": "2026-06-27T19:49:46.081Z"
+  }
 }

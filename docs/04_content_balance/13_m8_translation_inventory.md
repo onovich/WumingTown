@@ -131,3 +131,40 @@ Current hardcoded runtime strings:
   keys or missing zh-CN/en coverage.
 - Dev/debug diagnostics remain isolated behind explicit `wmDiagnostics=1`
   launch gating and the default player launch does not show them.
+
+## M8 Content And Public Text Inventory
+
+WM-0124 treats M8 content text as a separate completeness surface from shell
+chrome. The required player-facing M8 families are:
+
+- anomaly labels, descriptions, review rows, counterevidence and scenario text;
+- faction event, faction review and faction management text;
+- endgame route availability, blocked-path and contested-path text;
+- validation, rejection and recovery messages that explain why content failed
+  closed.
+
+The accepted M8 roster and endgame scope now define the content families that
+must be localized in both `en` and `zh-CN`:
+
+- `docs/04_content_balance/12_m8_anomaly_roster_spec.md`
+- `docs/04_content_balance/11_m8_1_0_content_endgame_scope.md`
+
+Current workflow evidence:
+
+- content validation rejects unsafe paths, oversized assets, unsupported
+  capabilities, missing references and missing localization before runtime
+  consumption;
+- M5/M8 content packs must declare and ship both `en` and a Chinese locale
+  resource; `zh-CN` is the canonical target and must resolve to
+  `locales/zh-CN.json` or `locales/zh-CN.json5` when it is declared, while
+  legacy `zh` compatibility is only accepted when a protected pack explicitly
+  declares `zh` rather than `zh-CN`;
+- compiler validation keeps deterministic compile order and immutable
+  catalogs;
+- localization completeness for player-visible shell chrome remains gated by
+  `validateLocalizationCatalogs()`, while content packs carry their own
+  content-localization checks.
+
+This inventory does not claim final public content strings. It records the
+player-facing text families that must remain complete for M8 and the gates
+that fail closed when coverage is incomplete.

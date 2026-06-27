@@ -2,7 +2,7 @@
   "id": "WM-0125",
   "title": "Long-save stability and migration gate",
   "summary": "Validate long-save stability, migration policy and save/replay evidence for 1.0 without making owner-gated public save commitments.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -34,13 +34,19 @@
   ],
   "branch": "task/WM-0125-m8-long-save-migration",
   "createdAt": "2026-06-27T15:46:00.000Z",
-  "updatedAt": "2026-06-27T15:46:00.000Z",
+  "updatedAt": "2026-06-27T19:49:53.319Z",
   "history": [
     {
       "at": "2026-06-27T15:46:00.000Z",
       "actor": "project-director",
       "action": "create",
       "details": "Created by WM-0111 M8 UI/i18n scope amendment DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-27T19:49:53.319Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "M8",

@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQWRC0JA-B025D8",
+  "from": "reviewer",
+  "to": "content-worker",
+  "taskId": "WM-0124",
+  "kind": "changes-requested",
+  "subject": "WM-0124 review: changes_requested",
+  "body": "High: required-locale probes for missing Chinese and missing en now fail closed, but legacy zh compatibility is not scoped to protected M5 fixtures; validateM5ContentPack still accepts manifest.locales=[en,zh-CN] with only locales/zh.json and no zh-CN file, allowing new M8 packs to bypass canonical zh-CN resources. Required gates passed.",
+  "artifacts": [
+    "coordination/reports/WM-0124.md"
+  ],
+  "createdAt": "2026-06-27T19:32:58.679Z",
+  "acknowledgedAt": "2026-06-27T19:34:10.265Z"
+}

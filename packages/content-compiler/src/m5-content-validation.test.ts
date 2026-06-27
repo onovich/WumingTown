@@ -190,14 +190,14 @@ function createValidM5Pack(): M5ContentPack {
           "m5.faction_hook",
           "m5.anomaly",
         ],
-        locales: ["en", "zh"],
+        locales: ["en", "zh-CN"],
         dependencies: [],
         maxFileBytes: 65536,
         maxTotalBytes: 524288,
       }),
       ...definitions.map((definition) => file(`defs/${definition.id}.json`, definition)),
       file("locales/en.json", locale.en),
-      file("locales/zh.json", locale.zh),
+      file("locales/zh-CN.json", locale["zh-CN"]),
     ],
   };
 }
@@ -211,9 +211,9 @@ function zeroBespokeBudget(): Readonly<Record<string, number>> {
 
 function buildLocaleEntries(
   definitions: readonly Readonly<Record<string, unknown>>[],
-): Readonly<Record<"en" | "zh", Readonly<Record<string, string>>>> {
+): Readonly<Record<"en" | "zh-CN", Readonly<Record<string, string>>>> {
   const en: Record<string, string> = {};
-  const zh: Record<string, string> = {};
+  const zhCn: Record<string, string> = {};
   for (const definition of definitions) {
     const id = definition["id"];
     const labelKey = definition["labelKey"];
@@ -225,11 +225,11 @@ function buildLocaleEntries(
     ) {
       en[labelKey] = `Label ${id}`;
       en[descriptionKey] = `Description ${id}`;
-      zh[labelKey] = `名称 ${id}`;
-      zh[descriptionKey] = `说明 ${id}`;
+      zhCn[labelKey] = `名称 ${id}`;
+      zhCn[descriptionKey] = `说明 ${id}`;
     }
   }
-  return { en, zh };
+  return { en, "zh-CN": zhCn };
 }
 
 function file(relativePath: string, value: unknown): M5ContentPack["files"][number] {

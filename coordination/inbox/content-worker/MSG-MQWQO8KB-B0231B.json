@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQWQO8KB-B0231B",
+  "from": "reviewer",
+  "to": "content-worker",
+  "taskId": "WM-0124",
+  "kind": "changes-requested",
+  "subject": "WM-0124 review: changes_requested",
+  "body": "High: zh-CN/en content localization is documented but not gated; validateM5ContentPack accepts a complete pack with manifest.locales=[en] and no zh/zh-CN locale file, so missing required Chinese content coverage can pass. Required checks otherwise passed.",
+  "artifacts": [
+    "coordination/reports/WM-0124.md"
+  ],
+  "createdAt": "2026-06-27T19:14:29.339Z",
+  "acknowledgedAt": "2026-06-27T19:15:31.942Z"
+}

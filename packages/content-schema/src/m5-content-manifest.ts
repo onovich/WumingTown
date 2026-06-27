@@ -10,6 +10,7 @@ import {
 import { isLocalePath, isManifestPath } from "./m5-content-pack-files";
 import {
   M5_CONTENT_SCHEMA_VERSION,
+  M5_REQUIRED_LOCALES,
   type M5ContentCapability,
   type M5ContentKind,
   type M5ContentManifest,
@@ -258,6 +259,12 @@ function validateManifestLocales(
   filePath: string,
   diagnostics: ContentDiagnostic[],
 ): void {
+  const localeFiles = new Set(
+    parsedFiles
+      .filter((entry) => isLocalePath(entry.file.relativePath))
+      .map((entry) => entry.file.relativePath),
+  );
+
   if (locales.length === 0) {
     diagnostics.push({
       code: "m5_manifest_invalid_shape",
@@ -267,11 +274,41 @@ function validateManifestLocales(
     });
   }
 
-  const localeFiles = new Set(
-    parsedFiles
-      .filter((entry) => isLocalePath(entry.file.relativePath))
-      .map((entry) => entry.file.relativePath),
-  );
+  for (const requiredLocale of M5_REQUIRED_LOCALES) {
+    const hasRequiredLocale =
+      requiredLocale === "zh-CN"
+        ? locales.includes("zh-CN") || locales.includes("zh")
+        : locales.includes(requiredLocale);
+
+    if (!hasRequiredLocale) {
+      diagnostics.push({
+        code: "m5_manifest_missing_required_locale",
+        message: `M5 manifest must declare required locale ${requiredLocale}`,
+        location: fieldLocation(filePath),
+        relatedLocations: [],
+      });
+    }
+
+    const hasRequiredLocaleFile =
+      requiredLocale === "zh-CN"
+        ? locales.includes("zh-CN")
+          ? localeFiles.has("locales/zh-CN.json") || localeFiles.has("locales/zh-CN.json5")
+          : locales.includes("zh")
+            ? localeFiles.has("locales/zh.json") || localeFiles.has("locales/zh.json5")
+            : false
+        : localeFiles.has(`locales/${requiredLocale}.json`) ||
+          localeFiles.has(`locales/${requiredLocale}.json5`);
+
+    if (!hasRequiredLocaleFile) {
+      diagnostics.push({
+        code: "m5_manifest_missing_locale_file",
+        message: `Missing locale file for required locale ${requiredLocale}`,
+        location: fieldLocation(filePath),
+        relatedLocations: [],
+      });
+    }
+  }
+
   for (const locale of locales) {
     if (!/^[a-z]{2}(?:-[A-Z]{2})?$/.test(locale)) {
       diagnostics.push({
