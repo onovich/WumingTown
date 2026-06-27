@@ -33,6 +33,20 @@ deterministic no-op command ids such as
 world hash, read-model hash and read-only flags. Existing M0 protocol messages
 remain valid.
 
+## WM-0089 SharedArrayBuffer fallback note
+
+The M6 Web product gate does not require SharedArrayBuffer for correctness.
+When the browser is not cross-origin isolated, or when `SharedArrayBuffer` is
+otherwise unavailable, the Worker transport remains the existing
+structured-clone / Transferable snapshot path. Authority stays inside the
+Simulation Worker or headless runtime; `RenderSnapshot` and `UiDelta` remain
+read-only projection payloads for UI and renderer consumers.
+
+WM-0089 adds a local Worker transport gate helper and browser Worker smoke
+evidence for the non-isolated Chromium path. It does not add a new message
+family, protocol version, schema version or compatibility mode. SAB may be used
+by a future optimized transport only after separate evidence and review.
+
 ### Simulation → Main
 
 - `Ready`

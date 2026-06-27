@@ -356,6 +356,14 @@ function selectVitestTargets(selectedMode, selectedFilter) {
       };
     }
 
+    if (selectedFilter === "worker-smoke") {
+      return {
+        ok: true,
+        extraArgs: ["--exclude=**/*.e2e.test.ts"],
+        targets: ["packages/sim-worker/src/sharedarraybuffer-fallback.test.ts"],
+      };
+    }
+
     if (selectedFilter === "m5-content-validation") {
       return {
         ok: true,

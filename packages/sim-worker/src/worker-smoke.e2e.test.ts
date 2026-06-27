@@ -51,11 +51,25 @@ import {
   type SimulationWorkerMessageEvent,
   type SimulationWorkerPort,
 } from "./index";
+import { chooseSimulationWorkerTransport } from "./sharedarraybuffer-fallback";
 
 interface BrowserWorkerRunInput {
   readonly expectedCount: number;
   readonly inputMessages: readonly MainToSimulationMessage[];
   readonly workerPath: string;
+}
+
+interface BrowserWorkerRuntimeFacts {
+  readonly pageCrossOriginIsolated: boolean;
+  readonly pageSharedArrayBufferType: string;
+  readonly workerCrossOriginIsolated: boolean;
+  readonly workerSharedArrayBufferType: string;
+}
+
+interface BrowserWorkerRunResult {
+  readonly elapsedMs: number;
+  readonly messages: readonly SimulationToMainMessage[];
+  readonly runtimeFacts: BrowserWorkerRuntimeFacts;
 }
 
 describe("worker-smoke simulation Worker protocol", () => {
@@ -379,6 +393,60 @@ describe("worker-smoke simulation Worker protocol", () => {
       scenarioId: M5_ALPHA_CONTENT_SCENARIO_ID,
       worldHash: expected.finalWorldHash,
       checkpointCount: M5_REPLAY_CHECKPOINT_SEQUENCE.length,
+    });
+  }, 120000);
+
+  it("keeps M5 read-only projections on the SAB-unavailable browser fallback", async () => {
+    const expected = readM5Replay(
+      runM5AlphaContentReplay({
+        seed: "5",
+        checkpointTicks: M5_REPLAY_CHECKPOINT_SEQUENCE,
+      }),
+    );
+    const result = await runBrowserWorkerWithRuntime([
+      makeM5InitSession(1),
+      makeM5AdvanceBatch(2, 3_600, 1),
+      makeM5AdvanceBatch(3, 7_200, 2),
+      makeM5AdvanceBatch(4, 12_000, 3),
+      makeM5AdvanceBatch(5, 18_000, 4),
+      makeM5AdvanceBatch(6, 36_000, 5),
+    ]);
+    const gate = chooseSimulationWorkerTransport({
+      crossOriginIsolated:
+        result.runtimeFacts.pageCrossOriginIsolated &&
+        result.runtimeFacts.workerCrossOriginIsolated,
+      sharedArrayBufferAvailable:
+        result.runtimeFacts.pageSharedArrayBufferType === "function" &&
+        result.runtimeFacts.workerSharedArrayBufferType === "function",
+    });
+    const snapshots = renderSnapshots(result.messages);
+    const finalUiDelta = lastUiDelta(result.messages);
+
+    expect(result.runtimeFacts).toMatchObject({
+      pageCrossOriginIsolated: false,
+      pageSharedArrayBufferType: "undefined",
+      workerCrossOriginIsolated: false,
+      workerSharedArrayBufferType: "undefined",
+    });
+    expect(gate).toMatchObject({
+      authorityOwner: "simulation-worker",
+      projectionPolicy: "read-only",
+      reason: "cross_origin_isolation_unavailable",
+      snapshotTransport: "transferable-snapshot",
+    });
+    expect(result.elapsedMs).toBeGreaterThan(0);
+    expect(snapshots).toHaveLength(M5_REPLAY_CHECKPOINT_SEQUENCE.length);
+    expect(snapshots[snapshots.length - 1]?.payload).toMatchObject({
+      scenarioId: M5_ALPHA_CONTENT_SCENARIO_ID,
+      tick: expected.finalTick,
+      worldHash: expected.finalWorldHash,
+      readModelHash: expected.finalReadModelHash,
+      readOnly: true,
+    });
+    expect(finalUiDelta.payload).toMatchObject({
+      scenarioId: M5_ALPHA_CONTENT_SCENARIO_ID,
+      readModelHash: expected.finalReadModelHash,
+      readOnly: true,
     });
   }, 120000);
 
@@ -807,6 +875,12 @@ function failMissingCheckpoint(): never {
 async function runBrowserWorker(
   inputMessages: readonly MainToSimulationMessage[],
 ): Promise<readonly SimulationToMainMessage[]> {
+  return (await runBrowserWorkerWithRuntime(inputMessages)).messages;
+}
+
+async function runBrowserWorkerWithRuntime(
+  inputMessages: readonly MainToSimulationMessage[],
+): Promise<BrowserWorkerRunResult> {
   const server = await createServer({
     configFile: false,
     logLevel: "error",
@@ -824,13 +898,60 @@ async function runBrowserWorker(
   try {
     const page = await browser.newPage();
     await page.goto(readServerUrl(server), { waitUntil: "domcontentloaded" });
-    const rawMessages: unknown = await page.evaluate(
+    const rawResult: unknown = await page.evaluate(
       ({
         expectedCount,
         inputMessages: browserInputMessages,
         workerPath,
-      }: BrowserWorkerRunInput): Promise<unknown[]> =>
-        new Promise<unknown[]>((resolve, reject) => {
+      }: BrowserWorkerRunInput): Promise<{
+        readonly elapsedMs: number;
+        readonly messages: readonly unknown[];
+        readonly runtimeFacts: BrowserWorkerRuntimeFacts;
+      }> => {
+        const readDedicatedWorkerRuntimeFacts = (): Promise<DedicatedWorkerRuntimeFacts> =>
+          new Promise((resolve, reject) => {
+            const source =
+              "self.postMessage({crossOriginIsolated:self.crossOriginIsolated===true,sharedArrayBufferType:typeof self.SharedArrayBuffer});";
+            const url = URL.createObjectURL(new Blob([source], { type: "text/javascript" }));
+            const capabilityWorker = new Worker(url);
+            const timeout = window.setTimeout((): void => {
+              capabilityWorker.terminate();
+              URL.revokeObjectURL(url);
+              reject(new Error("Timed out waiting for Worker runtime facts."));
+            }, 5_000);
+
+            capabilityWorker.onerror = (event: ErrorEvent): void => {
+              window.clearTimeout(timeout);
+              capabilityWorker.terminate();
+              URL.revokeObjectURL(url);
+              reject(new Error(`Worker runtime facts error: ${event.message}`));
+            };
+            capabilityWorker.onmessage = (event: MessageEvent<unknown>): void => {
+              window.clearTimeout(timeout);
+              capabilityWorker.terminate();
+              URL.revokeObjectURL(url);
+              const rawData = event.data;
+              if (
+                typeof rawData === "object" &&
+                rawData !== null &&
+                "crossOriginIsolated" in rawData &&
+                "sharedArrayBufferType" in rawData
+              ) {
+                resolve({
+                  crossOriginIsolated: rawData.crossOriginIsolated === true,
+                  sharedArrayBufferType:
+                    typeof rawData.sharedArrayBufferType === "string"
+                      ? rawData.sharedArrayBufferType
+                      : "unknown",
+                });
+                return;
+              }
+              reject(new Error("Worker runtime facts payload was invalid."));
+            };
+          });
+
+        return new Promise((resolve, reject) => {
+          const startedAtMs = performance.now();
           const worker = new Worker(new URL(workerPath, window.location.href), {
             type: "module",
           });
@@ -850,14 +971,32 @@ async function runBrowserWorker(
             if (received.length >= expectedCount) {
               window.clearTimeout(timeout);
               worker.terminate();
-              resolve(received);
+              readDedicatedWorkerRuntimeFacts()
+                .then((workerRuntimeFacts) => {
+                  resolve({
+                    elapsedMs: performance.now() - startedAtMs,
+                    messages: received,
+                    runtimeFacts: {
+                      pageCrossOriginIsolated: window.crossOriginIsolated,
+                      pageSharedArrayBufferType: typeof SharedArrayBuffer,
+                      workerCrossOriginIsolated: workerRuntimeFacts.crossOriginIsolated,
+                      workerSharedArrayBufferType: workerRuntimeFacts.sharedArrayBufferType,
+                    },
+                  });
+                })
+                .catch((error: unknown) => {
+                  reject(
+                    error instanceof Error ? error : new Error("Worker runtime facts failed."),
+                  );
+                });
             }
           };
 
           for (const message of browserInputMessages) {
             worker.postMessage(message);
           }
-        }),
+        });
+      },
       {
         expectedCount: inputMessages.length * 4,
         inputMessages,
@@ -865,11 +1004,52 @@ async function runBrowserWorker(
       },
     );
 
-    return readSimulationMessages(rawMessages);
+    return readBrowserWorkerRunResult(rawResult);
   } finally {
     await browser.close();
     await server.close();
   }
+}
+
+interface DedicatedWorkerRuntimeFacts {
+  readonly crossOriginIsolated: boolean;
+  readonly sharedArrayBufferType: string;
+}
+
+function readBrowserWorkerRunResult(value: unknown): BrowserWorkerRunResult {
+  if (!isRecord(value) || !Array.isArray(value["messages"]) || !isRecord(value["runtimeFacts"])) {
+    throw new Error("Browser Worker returned an unexpected run result.");
+  }
+
+  const runtimeFacts = readBrowserWorkerRuntimeFacts(value["runtimeFacts"]);
+  const elapsedMs = value["elapsedMs"];
+  if (typeof elapsedMs !== "number" || elapsedMs <= 0) {
+    throw new Error("Browser Worker returned an invalid elapsed time.");
+  }
+
+  return {
+    elapsedMs,
+    messages: readSimulationMessages(value["messages"]),
+    runtimeFacts,
+  };
+}
+
+function readBrowserWorkerRuntimeFacts(value: Record<string, unknown>): BrowserWorkerRuntimeFacts {
+  if (
+    typeof value["pageCrossOriginIsolated"] !== "boolean" ||
+    typeof value["pageSharedArrayBufferType"] !== "string" ||
+    typeof value["workerCrossOriginIsolated"] !== "boolean" ||
+    typeof value["workerSharedArrayBufferType"] !== "string"
+  ) {
+    throw new Error("Browser Worker returned invalid runtime facts.");
+  }
+
+  return {
+    pageCrossOriginIsolated: value["pageCrossOriginIsolated"],
+    pageSharedArrayBufferType: value["pageSharedArrayBufferType"],
+    workerCrossOriginIsolated: value["workerCrossOriginIsolated"],
+    workerSharedArrayBufferType: value["workerSharedArrayBufferType"],
+  };
 }
 
 function readServerUrl(server: ViteDevServer): string {

@@ -2,7 +2,7 @@
   "id": "WM-0089",
   "title": "SharedArrayBuffer unavailable fallback gate",
   "summary": "Validate Web runtime behavior when SharedArrayBuffer is unavailable while preserving Worker authority and read-only projections.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -33,7 +33,7 @@
   ],
   "branch": "task/WM-0089-sharedarraybuffer-fallback",
   "createdAt": "2026-06-26T20:20:00.000Z",
-  "updatedAt": "2026-06-26T21:23:43.091Z",
+  "updatedAt": "2026-06-27T05:35:03.784Z",
   "history": [
     {
       "at": "2026-06-26T20:20:00.000Z",
@@ -46,6 +46,42 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-26T23:32:54.591Z",
+      "actor": "systems-architect",
+      "action": "claim",
+      "details": "thread=Codex-systems-architect-WM-0089"
+    },
+    {
+      "at": "2026-06-27T00:15:00.000Z",
+      "actor": "project-director",
+      "action": "narrow-scope-exception",
+      "details": "Allowed tools/test-runner.mjs only to route the required pnpm test --filter worker-smoke command to the WM-0089 worker-smoke unit test; no other tools or test-runner behavior changes are approved."
+    },
+    {
+      "at": "2026-06-27T05:27:34.335Z",
+      "actor": "systems-architect",
+      "action": "complete",
+      "details": "Implemented SAB-unavailable Web Worker fallback gate evidence; authority remains Simulation Worker, projections stay read-only, docs record cross-origin and cap impact; required WM-0089 checks pass."
+    },
+    {
+      "at": "2026-06-27T05:33:16.422Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Verified no public Worker protocol/schema/save/dependency/UI-authority/M7 hosting surface; browser Worker e2e covers non-COI SAB-unavailable path with read-only M5 projections; docs record COOP/COEP and conservative cap impact; typecheck, worker-smoke unit/e2e, quality, taskctl validate, and git diff --check pass."
+    },
+    {
+      "at": "2026-06-27T05:34:56.451Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "WM-0089 verified by independent reviewer; integration gates passed: validate-handoff, taskctl validate/status, git diff --check, pnpm quality."
+    },
+    {
+      "at": "2026-06-27T05:35:03.783Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M6",
@@ -58,6 +94,7 @@
     "packages/sim-protocol/**",
     "packages/platform/**",
     "apps/web/**",
+    "tools/test-runner.mjs",
     "docs/05_tech/02_worker_protocol.md",
     "docs/05_tech/06_platform_matrix.md",
     "coordination/reports/WM-0089.md",
@@ -81,6 +118,7 @@
   "risksAndFileOwnership": [
     "Risk: fallback lowers fast-forward or entity caps.",
     "Risk: protocol drift is smuggled in as a fallback convenience.",
+    "Narrow scope exception: tools/test-runner.mjs may change only to route pnpm test --filter worker-smoke to the WM-0089 worker-smoke unit test; it must not alter other filters or test semantics.",
     "File ownership is limited to Worker/protocol/platform fallback surfaces."
   ],
   "ownerGate": [
@@ -98,5 +136,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "SharedArrayBuffer fallback touches Worker protocol, authority and product gate architecture."
+  },
+  "claimedBy": "systems-architect",
+  "threadLabel": "Codex-systems-architect-WM-0089",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0089.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Verified no public Worker protocol/schema/save/dependency/UI-authority/M7 hosting surface; browser Worker e2e covers non-COI SAB-unavailable path with read-only M5 projections; docs record COOP/COEP and conservative cap impact; typecheck, worker-smoke unit/e2e, quality, taskctl validate, and git diff --check pass.",
+    "at": "2026-06-27T05:33:16.422Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "WM-0089 verified by independent reviewer; integration gates passed: validate-handoff, taskctl validate/status, git diff --check, pnpm quality.",
+    "at": "2026-06-27T05:34:56.451Z"
   }
 }

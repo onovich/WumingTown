@@ -1,21 +1,43 @@
-# 平台兼容矩阵
+# Platform Compatibility Matrix
 
-| 能力 | Windows Electron | Chrome/Edge Web | macOS Browser | Native macOS |
+| Capability | Windows Electron | Chrome/Edge Web | macOS Browser | Native macOS |
 |---|---|---|---|---|
-| 首发目标 | 完整 | 门禁后完整/缩放 | 尽力 | 延后 |
-| 存档 | 本地文件 | OPFS + 导入导出 | OPFS + 导入导出 | 未来文件 |
-| 数据模组 | Mods 目录/ZIP | ZIP 导入 | ZIP 导入 | 未来 |
-| SharedArrayBuffer | 可控 | 需跨源隔离 | 浏览器条件 | 可控 |
-| Steam/成就 | 可选 | 无 | 无 | 未来 |
-| 最大快进 | 目标 6× | 目标 3×，通过后提高 | 视浏览器 | 未承诺 |
+| Launch target | Complete | Complete after gate, scaled if needed | Best effort | Later |
+| Save data | Local files | OPFS plus import/export | OPFS plus import/export | Future files |
+| Data mods | Mods directory or ZIP | ZIP import | ZIP import | Future |
+| SharedArrayBuffer | Controllable | Requires cross-origin isolation | Browser-dependent | Controllable |
+| Steam/achievements | Optional | No | No | Future |
+| Max fast-forward | Target 6x | Target 3x, raise only after evidence | Browser-dependent | Not promised |
 
-## Web 决策门
+## Web Decision Gate
 
-真实垂直切片运行 192×192、40 活动角色、20k 实体，在目标浏览器中达到 30 TPS、可接受内存和加载体积。失败时按顺序：降低快进 → 降上限 → Web 作为试玩 → 取消正式 Web，不重写核心。
+The real vertical-slice target is a 192 x 192 map, 40 active actors and a
+20k-entity product-scale runtime that reaches 30 TPS with acceptable memory and
+loading behavior in the target browsers.
 
-## WM-0088 存档互通状态
+If the Web tier fails, decisions proceed in order: lower fast-forward, lower
+cap, Web as demo-only, then cancel formal Web support. Core simulation is not
+rewritten to force Web parity.
 
-- Chrome/Edge Web：WM-0088 证明了 OPFS 本地写入、读取、导出、导入与配额失败恢复的 gate evidence 路径。
-- Windows Electron：截至 WM-0088，桌面 preload 仍只暴露 placeholder
-  unavailable save ports，因此 Windows/Web save container interoperability
-  尚未证明，必须作为 M6 product-gate blocker 记录，待后续桌面安全存档桥接完成后复核。
+## WM-0088 Storage Interoperability Status
+
+- Chrome/Edge Web: WM-0088 proves OPFS local write, read, export, import and
+  quota-failure recovery for the M6 gate evidence path.
+- Windows Electron: as of WM-0088, desktop preload still exposes placeholder
+  unavailable save ports. Windows/Web save-container interoperability is not
+  proven and must stay recorded as an M6 product-gate blocker until a reviewed
+  desktop save bridge exists.
+
+## WM-0089 SharedArrayBuffer Fallback Status
+
+- Chrome/Edge Web: WM-0089 verifies the non-cross-origin-isolated browser
+  Worker path with `SharedArrayBuffer` unavailable. The runtime selects the
+  existing structured-clone / Transferable snapshot fallback, and M5 read-only
+  Worker projections still match headless hashes.
+- Cross-origin isolation: COOP/COEP remains the deployment requirement before
+  a future SAB transport can be considered. Lack of isolation is no longer a
+  correctness blocker for the current M6 Worker smoke path.
+- Product-gate impact: fallback evidence does not prove same-spec Web, higher
+  fast-forward, or a 20k-entity continuous browser authority runtime. Until
+  product-scale evidence exists, Web stays on the conservative 3x/lower-cap or
+  demo-only decision path recorded by the M6 Web gate.
