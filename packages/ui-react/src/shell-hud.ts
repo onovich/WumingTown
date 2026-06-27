@@ -123,9 +123,18 @@ export function ShellHudRoot({ store, storageActions }: ShellHudRootProps): Reac
           createElement(
             "div",
             {
+              "aria-label": `${alert.severity} alert: ${alert.label}`,
+              "data-alert-severity": alert.severity,
               key: alert.label,
               style: alertChipStyle(alert.severity),
             },
+            createElement(
+              "div",
+              {
+                style: chipLabelStyle,
+              },
+              alert.severity.toUpperCase(),
+            ),
             createElement(
               "div",
               {

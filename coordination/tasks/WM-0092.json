@@ -2,7 +2,7 @@
   "id": "WM-0092",
   "title": "Input and accessibility baseline",
   "summary": "Validate baseline keyboard/mouse input, UI scaling, bilingual text fit, reduced flashing and non-color cues for M6 product-gate surfaces.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,7 +31,7 @@
   ],
   "branch": "task/WM-0092-input-accessibility-baseline",
   "createdAt": "2026-06-26T20:20:00.000Z",
-  "updatedAt": "2026-06-26T20:32:09.114Z",
+  "updatedAt": "2026-06-27T06:39:02.330Z",
   "history": [
     {
       "at": "2026-06-26T20:20:00.000Z",
@@ -44,6 +44,48 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-27T06:13:18.599Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": "thread=Beacon-root-client-WM-0092"
+    },
+    {
+      "at": "2026-06-27T06:22:32.384Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Implemented M6 input/a11y baseline evidence: visible non-color alert cues, real bilingual title, Web/Desktop e2e for pointer/keyboard, scaling, text fit, reduced flashing and no audio-only cues; required checks pass."
+    },
+    {
+      "at": "2026-06-27T06:26:42.068Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: Desktop Electron product surface lacks automated pointer selection and keyboard pan/zoom evidence required by WM-0092 Web/Windows input baseline. Web e2e covers canvas pointer plus Equal/ArrowLeft, but desktop-shell e2e only checks launch, bilingual text, non-color cues, media/animation absence and overflow. Add Electron dev/packaged surface input assertions before verification. Other required checks passed."
+    },
+    {
+      "at": "2026-06-27T06:33:28.231Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Addressed reviewer request by adding Desktop Electron pointer selection and keyboard pan/zoom evidence in dev and packaged shells; updated report/design notes; pnpm typecheck, desktop e2e, full e2e, taskctl validate, git diff --check and pnpm quality pass."
+    },
+    {
+      "at": "2026-06-27T06:37:09.221Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Verified prior desktop input gap is fixed: desktop-shell e2e calls the repaired baseline from both dev and packaged Electron launches and now dispatches canvas pointer selection plus Equal/ArrowLeft keyboard checks while only reading debug/UI state. Web/Desktop a11y coverage, bilingual title, non-color cues, no audio/video cues, reduced flashing/overflow checks, and read-model boundaries are intact. Required checks pass."
+    },
+    {
+      "at": "2026-06-27T06:38:56.319Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Reviewer verified WM-0092 after changes-requested fix; integration gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality. Branch is ready for main merge."
+    },
+    {
+      "at": "2026-06-27T06:39:02.329Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M6",
@@ -93,5 +135,20 @@
   "sparkEligibility": {
     "eligible": false,
     "reason": "Accessibility baseline requires product-surface judgment and Playwright evidence, not Spark."
+  },
+  "claimedBy": "client-engineer",
+  "threadLabel": "Beacon-root-client-WM-0092",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0092.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Verified prior desktop input gap is fixed: desktop-shell e2e calls the repaired baseline from both dev and packaged Electron launches and now dispatches canvas pointer selection plus Equal/ArrowLeft keyboard checks while only reading debug/UI state. Web/Desktop a11y coverage, bilingual title, non-color cues, no audio/video cues, reduced flashing/overflow checks, and read-model boundaries are intact. Required checks pass.",
+    "at": "2026-06-27T06:37:09.221Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Reviewer verified WM-0092 after changes-requested fix; integration gates passed: validate-handoff, taskctl validate/status, git diff --check and pnpm quality. Branch is ready for main merge.",
+    "at": "2026-06-27T06:38:56.318Z"
   }
 }

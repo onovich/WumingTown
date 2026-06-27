@@ -248,7 +248,173 @@ describe("web shell smoke", () => {
       await server.close();
     }
   }, 120000);
+
+  it("validates M6 input and accessibility baseline cues", async () => {
+    const appRoot = path.join(process.cwd(), "apps", "web");
+    const server = await createServer({
+      configFile: false,
+      logLevel: "error",
+      root: appRoot,
+      server: {
+        host: "127.0.0.1",
+        port: 0,
+        strictPort: false,
+      },
+    });
+    await server.listen();
+
+    const serverUrl = readServerUrl(server);
+    const browser = await chromium.launch();
+
+    try {
+      const context = await browser.newContext({
+        deviceScaleFactor: 1,
+        viewport: {
+          width: 1440,
+          height: 900,
+        },
+      });
+      const page = await context.newPage();
+
+      await page.goto(serverUrl, {
+        waitUntil: "networkidle",
+      });
+      await page.waitForSelector("[data-shell-ready='true']");
+      await waitForHudText(page, "Canvas 1440 x 900");
+      await assertAccessibilityBaseline(page);
+
+      const debugPayload = await readDebugPayload(page);
+      const targetEntity = findRequiredEntity(debugPayload, "lantern-keeper-shen");
+      await clickCanvasPoint(page, targetEntity);
+      await waitForSelectedEntity(page, "lantern-keeper-shen");
+
+      await page.keyboard.press("Equal");
+      await waitForHudText(page, "Keyboard Equal");
+      await page.keyboard.press("ArrowLeft");
+      await waitForHudText(page, "Keyboard ArrowLeft");
+
+      await page.setViewportSize({
+        width: 390,
+        height: 720,
+      });
+      await waitForHudText(page, "Canvas 390 x 720");
+      await assertAccessibilityBaseline(page);
+
+      await context.close();
+    } finally {
+      await browser.close();
+      await server.close();
+    }
+  }, 120000);
 });
+
+async function assertAccessibilityBaseline(page: import("playwright").Page): Promise<void> {
+  const shellText = await page.locator("[data-shell-ready='true']").textContent();
+  expect(shellText ?? "").toContain("M5 first-season Web product-gate fixture");
+  expect(shellText ?? "").toContain("m5.alpha_content_framework.first_season.v1");
+  expect(shellText ?? "").toContain("Wuming Town");
+  expect(shellText ?? "").toContain("无明镇");
+
+  const warningAlertText = await page
+    .locator("[data-alert-severity='warning']")
+    .first()
+    .textContent();
+  const stableAlertText = await page
+    .locator("[data-alert-severity='stable']")
+    .first()
+    .textContent();
+  expect(warningAlertText ?? "").toContain("WARNING");
+  expect(warningAlertText ?? "").toContain("Lantern corridor gap");
+  expect(stableAlertText ?? "").toContain("STABLE");
+
+  const storageStatusText = await page.getByTestId("storage-status").textContent();
+  const interoperabilityText = await page.getByTestId("storage-interoperability").textContent();
+  expect(storageStatusText ?? "").toContain("Web storage");
+  expect(interoperabilityText ?? "").toContain("BLOCKED");
+
+  const mediaCueCount = await page.locator("audio, video").count();
+  expect(mediaCueCount).toBe(0);
+
+  const activeAnimationCount = await page.evaluate(
+    () => document.getAnimations().filter((animation) => animation.playState !== "finished").length,
+  );
+  expect(activeAnimationCount).toBe(0);
+
+  const overflow = await page.evaluate(() => {
+    const selectors = [
+      "button",
+      "[aria-label='Town status']",
+      "[aria-label='Viewport and alerts']",
+      "[aria-label='Web product gate harness']",
+      "[aria-label='Selected entity inspector']",
+      "[data-testid='storage-status']",
+      "[data-testid='storage-interoperability']",
+    ];
+    const offenders: string[] = [];
+    for (const selector of selectors) {
+      for (const element of Array.from(document.querySelectorAll<HTMLElement>(selector))) {
+        const rect = element.getBoundingClientRect();
+        const style = window.getComputedStyle(element);
+        if (rect.width <= 0 || rect.height <= 0 || style.visibility === "hidden") {
+          continue;
+        }
+
+        if (element.scrollWidth - element.clientWidth > 8) {
+          offenders.push(selector);
+        }
+      }
+    }
+
+    return {
+      documentOverflowX:
+        document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      offenders,
+    };
+  });
+  expect(overflow.documentOverflowX).toBeLessThanOrEqual(1);
+  expect(overflow.offenders).toStrictEqual([]);
+}
+
+async function clickCanvasPoint(
+  page: import("playwright").Page,
+  point: { readonly x: number; readonly y: number },
+): Promise<void> {
+  await page
+    .locator("[data-testid='world-canvas']")
+    .evaluate((canvas: HTMLCanvasElement, target: { readonly x: number; readonly y: number }) => {
+      const rect = canvas.getBoundingClientRect();
+      canvas.dispatchEvent(
+        new PointerEvent("pointerdown", {
+          bubbles: true,
+          clientX: rect.left + target.x,
+          clientY: rect.top + target.y,
+          pointerId: 1,
+          pointerType: "mouse",
+        }),
+      );
+      canvas.dispatchEvent(
+        new PointerEvent("pointerup", {
+          bubbles: true,
+          clientX: rect.left + target.x,
+          clientY: rect.top + target.y,
+          pointerId: 1,
+          pointerType: "mouse",
+        }),
+      );
+    }, point);
+}
+
+function findRequiredEntity(
+  payload: WebShellDebugPayload,
+  entityId: string,
+): { readonly x: number; readonly y: number } {
+  const entity = payload.entityScreenPositions.find((candidate) => candidate.entityId === entityId);
+  if (entity === undefined) {
+    throw new Error(`Expected entity screen position for ${entityId}.`);
+  }
+
+  return entity;
+}
 
 async function readDebugPayload(page: import("playwright").Page): Promise<WebShellDebugPayload> {
   const debugText = await page.locator("#wm-shell-debug").textContent();

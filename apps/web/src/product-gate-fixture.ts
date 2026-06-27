@@ -382,7 +382,7 @@ export const WEB_PRODUCT_GATE_READ_MODEL: WorldReadModel = {
   mapWidth: MAP_WIDTH,
   mapHeight: MAP_HEIGHT,
   town: {
-    settlementName: "Wuming Town",
+    settlementName: "Wuming Town / 无明镇",
     phaseLabel: "M6 Web product gate harness",
     cycleLabel: "First season, curfew approach",
     speedLabel: "Read-only fixture fed from reviewed M5 evidence",

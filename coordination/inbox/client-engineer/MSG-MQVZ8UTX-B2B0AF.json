@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQVZ8UTX-B2B0AF",
+  "from": "reviewer",
+  "to": "client-engineer",
+  "taskId": "WM-0092",
+  "kind": "changes-requested",
+  "subject": "WM-0092 review: changes_requested",
+  "body": "High: Desktop Electron product surface lacks automated pointer selection and keyboard pan/zoom evidence required by WM-0092 Web/Windows input baseline. Web e2e covers canvas pointer plus Equal/ArrowLeft, but desktop-shell e2e only checks launch, bilingual text, non-color cues, media/animation absence and overflow. Add Electron dev/packaged surface input assertions before verification. Other required checks passed.",
+  "artifacts": [
+    "coordination/reports/WM-0092.md"
+  ],
+  "createdAt": "2026-06-27T06:26:42.069Z",
+  "acknowledgedAt": "2026-06-27T06:27:39.827Z"
+}

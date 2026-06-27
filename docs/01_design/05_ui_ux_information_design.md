@@ -1,43 +1,78 @@
-# UI、UX 与信息设计
+# UI, UX And Information Design
 
-## 层级
+## Layers
 
-### 世界层
+### World Layer
 
-Pixi Canvas：地图、角色、建筑、灯火范围、危险覆盖层、路径和痕迹。
+Pixi canvas renders the map, actors, buildings, lamp coverage, danger overlays,
+paths and traces.
 
-### 操作层
+### Operation Layer
 
-React HUD：时间、速度、警报、资源摘要、当前选中对象、建造与命令。
+React HUD renders time, speed, warnings, resource summary, selected object,
+construction and command surfaces.
 
-### 管理层
+### Management Layer
 
-角色、工作、镇规、镇志、债务、派系、生产和统计面板。
+Management panels cover residents, jobs, town rules, town records, debts,
+factions, production and statistics.
 
-### 解释层
+### Explanation Layer
 
-任何关键状态可展开“原因”：工作拒绝、情绪、能力、灯火失效、证据可信度、事件压力。
+Every critical state must expose a reason path: job rejection, mood, capability,
+lamp failure, evidence credibility and event pressure.
 
-## 关键界面
+## Key Screens
 
-1. **黄昏总览**：最重要的日常决策界面，汇总人员、灯、风险、来客和债务。
-2. **镇志案卷**：证据图、假设、矛盾、确认规则、适用条件、居民已知范围。
-3. **旧债账簿**：债权人、义务、触发条件、截止、违约后果、知情者。
-4. **角色检查器**：当前 Job/步骤、需求、伤病、思想、关系、信念和最近决策。
-5. **工作解释器**：回答为什么没有做某项工作，并按过滤阶段显示原因。
-6. **灯网覆盖层**：灯强、燃料时间、守灯路径、边界漏洞、异类规则叠加。
-7. **黎明复盘**：时间线、证据、伤亡、违反镇规、因果链和待决事项。
+1. Dawn overview: the daily decision screen for people, lamps, risk, guests and
+   debts.
+2. Town chronicle dossier: evidence graph, hypotheses, contradictions,
+   confirmed rules, applicability and known resident scope.
+3. Old debt ledger: creditors, obligations, trigger conditions, deadlines,
+   breach consequences and witnesses.
+4. Character inspector: current job, step, needs, wounds, thoughts,
+   relationships, beliefs and recent decision.
+5. Work explainer: why a job was not done, grouped by filter phase.
+6. Lamp network overlay: lamp strength, fuel time, keeper route, boundary leaks
+   and anomaly rule modifiers.
+7. Dawn review: timeline, evidence, injuries, violated town rules, causality
+   and pending decisions.
 
-## 信息公平
+## Information Fairness
 
-- 不确定信息使用明确视觉语言，不能和已确认事实同样呈现。
-- 数值精度与角色知识一致；角色只知道“可能”“高度可信”时，不显示伪精确 83.47%。
-- 隐藏规则造成后果后，复盘必须展示可用线索和被忽略的预警。
-- 玩家可以查看系统真实原因，但“开发者真值”只在开发模式显示。
+- Uncertain information must use clear visual language and must not be shown as
+  confirmed fact.
+- Numeric precision must match character knowledge. When a resident knows only
+  "possible" or "high confidence", the UI must not show fake precision such as
+  `83.47%`.
+- If hidden rules cause consequences, the review screen must show available
+  clues and ignored warnings.
+- Players can inspect true system reasons, but developer truth is shown only in
+  development mode.
 
-## 可访问性
+## Accessibility
 
-- 灯火/危险不能只靠颜色，使用纹理、轮廓和图标。
-- 支持 UI 缩放、字号、减少闪烁、暂停时完整操作。
-- 关键音效必须有视觉替代；夜间事件不能只通过声音提示。
-- 中文、英文文本布局从原型期同时验证。
+- Lamp and danger states must not rely on color alone; use text, icon, texture,
+  outline or shape cues.
+- UI scaling, text size, reduced flashing and complete paused operation must be
+  supported by the product-gate surfaces.
+- Critical audio cues must have visual alternatives; night events cannot be
+  signaled only through sound.
+- Simplified Chinese and English layout must be validated from the prototype
+  stage onward.
+
+## WM-0092 Input And Accessibility Baseline
+
+- Product-gate HUD alerts expose visible `WARNING` / `STABLE` severity text and
+  `data-alert-severity` attributes in addition to color.
+- Web e2e validates pointer selection, keyboard pan/zoom, desktop and compact
+  viewport resize, representative text fit, reduced flashing, no audio-only
+  cues and non-color storage/interoperability status cues.
+- Desktop Electron e2e validates the same shell surface for M5 product-gate
+  content, pointer selection, keyboard pan/zoom, non-color status cues, no
+  audio/video cues, no active document animations and no horizontal document
+  overflow in both dev and packaged Windows launches.
+- Current M6 shell has no audio cues. Future audio cues must add visual
+  alternatives before acceptance.
+- React and Pixi remain read-model consumers; UI tests do not repair or mutate
+  authoritative simulation state.

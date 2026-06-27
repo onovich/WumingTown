@@ -224,6 +224,52 @@ async function assertShellReady(page: Page, expectedHostKind: string): Promise<v
     .textContent();
   expect(releaseGateText ?? "").toContain("M5 first-season Web product-gate fixture");
   expect(releaseGateText ?? "").toContain("m5.alpha_content_framework.first_season.v1");
+  await assertDesktopAccessibilityBaseline(page, debugPayload);
+}
+
+async function assertDesktopAccessibilityBaseline(
+  page: Page,
+  debugPayload: Record<string, unknown>,
+): Promise<void> {
+  const shellText = await page.locator("[data-shell-ready='true']").textContent();
+  expect(shellText ?? "").toContain("Wuming Town");
+  expect(shellText ?? "").toContain("无明镇");
+
+  const warningAlertText = await page
+    .locator("[data-alert-severity='warning']")
+    .first()
+    .textContent();
+  const stableAlertText = await page
+    .locator("[data-alert-severity='stable']")
+    .first()
+    .textContent();
+  expect(warningAlertText ?? "").toContain("WARNING");
+  expect(warningAlertText ?? "").toContain("Lantern corridor gap");
+  expect(stableAlertText ?? "").toContain("STABLE");
+
+  const interoperabilityText = await page.getByTestId("storage-interoperability").textContent();
+  expect(interoperabilityText ?? "").toContain("BLOCKED");
+
+  const mediaCueCount = await page.locator("audio, video").count();
+  expect(mediaCueCount).toBe(0);
+
+  const activeAnimationCount = await page.evaluate(
+    () => document.getAnimations().filter((animation) => animation.playState !== "finished").length,
+  );
+  expect(activeAnimationCount).toBe(0);
+
+  const documentOverflowX = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
+  expect(documentOverflowX).toBeLessThanOrEqual(1);
+
+  const targetEntity = findRequiredEntity(debugPayload, "lantern-keeper-shen");
+  await clickCanvasPoint(page, targetEntity);
+  await waitForSelectedEntity(page, "lantern-keeper-shen");
+  await page.keyboard.press("Equal");
+  await waitForHudText(page, "Keyboard Equal");
+  await page.keyboard.press("ArrowLeft");
+  await waitForHudText(page, "Keyboard ArrowLeft");
 }
 
 async function ensureDesktopMainBuild(): Promise<void> {
@@ -375,6 +421,89 @@ function readServerUrl(server: ViteDevServer): string {
   }
 
   return localUrl;
+}
+
+async function clickCanvasPoint(
+  page: Page,
+  point: { readonly x: number; readonly y: number },
+): Promise<void> {
+  await page
+    .locator("[data-testid='world-canvas']")
+    .evaluate((canvas: HTMLCanvasElement, target: { readonly x: number; readonly y: number }) => {
+      const rect = canvas.getBoundingClientRect();
+      canvas.dispatchEvent(
+        new PointerEvent("pointerdown", {
+          bubbles: true,
+          clientX: rect.left + target.x,
+          clientY: rect.top + target.y,
+          pointerId: 1,
+          pointerType: "mouse",
+        }),
+      );
+      canvas.dispatchEvent(
+        new PointerEvent("pointerup", {
+          bubbles: true,
+          clientX: rect.left + target.x,
+          clientY: rect.top + target.y,
+          pointerId: 1,
+          pointerType: "mouse",
+        }),
+      );
+    }, point);
+}
+
+function findRequiredEntity(
+  payload: Record<string, unknown>,
+  entityId: string,
+): { readonly x: number; readonly y: number } {
+  const positions = payload["entityScreenPositions"];
+  if (!Array.isArray(positions)) {
+    throw new Error("Desktop debug payload did not include entity screen positions.");
+  }
+
+  for (const candidate of positions) {
+    if (
+      isRecord(candidate) &&
+      candidate["entityId"] === entityId &&
+      typeof candidate["x"] === "number" &&
+      typeof candidate["y"] === "number"
+    ) {
+      return {
+        x: candidate["x"],
+        y: candidate["y"],
+      };
+    }
+  }
+
+  throw new Error(`Expected entity screen position for ${entityId}.`);
+}
+
+async function waitForHudText(page: Page, expectedText: string): Promise<void> {
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    const hudText = await page.locator("[data-shell-ready='true']").textContent();
+    if (hudText?.includes(expectedText) === true) {
+      return;
+    }
+
+    await page.waitForTimeout(100);
+  }
+
+  throw new Error(`Timed out waiting for HUD text: ${expectedText}`);
+}
+
+async function waitForSelectedEntity(page: Page, expectedEntityId: string): Promise<void> {
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    const selectedEntity = await page
+      .locator("[data-selected-entity]")
+      .getAttribute("data-selected-entity");
+    if (selectedEntity === expectedEntityId) {
+      return;
+    }
+
+    await page.waitForTimeout(100);
+  }
+
+  throw new Error(`Timed out waiting for selected entity ${expectedEntityId}`);
 }
 
 async function runCommand(command: string, args: readonly string[]): Promise<void> {

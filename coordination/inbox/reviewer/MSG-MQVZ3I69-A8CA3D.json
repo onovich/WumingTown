@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQVZ3I69-A8CA3D",
+  "from": "client-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0092",
+  "kind": "review-request",
+  "subject": "WM-0092 ready for review",
+  "body": "Implemented M6 input/a11y baseline evidence: visible non-color alert cues, real bilingual title, Web/Desktop e2e for pointer/keyboard, scaling, text fit, reduced flashing and no audio-only cues; required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0092.md",
+    "task/WM-0092-input-accessibility-baseline"
+  ],
+  "createdAt": "2026-06-27T06:22:32.385Z",
+  "acknowledgedAt": "2026-06-27T06:23:06.566Z"
+}
