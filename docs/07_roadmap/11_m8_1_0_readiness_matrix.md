@@ -1,11 +1,12 @@
 # M8 1.0 Readiness Matrix
 
-Status: WM-0126 M8 readiness decision artifact. This document consolidates
-verified M8 evidence for internal 1.0 readiness review. It is not public
-release approval, public Web launch approval, Windows public release approval,
-store submission approval, signing approval, telemetry approval, account
-approval, paid-service approval, hosted-service approval, final privacy/legal
-approval or public save-compatibility approval.
+Status: WM-0127 M8 closeout readiness artifact. This document consolidates
+verified M8 evidence for internal 1.0 readiness review, including WM-0128's
+benchmark stop-sign clearance. It is not public release approval, public Web
+launch approval, Windows public release approval, store submission approval,
+signing approval, telemetry approval, account approval, paid-service approval,
+hosted-service approval, final privacy/legal approval or public
+save-compatibility approval.
 
 ## Roadmap Authority
 
@@ -39,6 +40,8 @@ hosted feedback, crash upload, paid services or public save guarantees.
 | WM-0123 | Faction/endgame owner slice | Adds authoritative faction/endgame state, structured reasons, deterministic scenario evidence and preserved M5 hashes. |
 | WM-0124 | Data-mod workflow and localization completeness | Hardens fail-closed content validation, required locale coverage and diagnostics-vs-player text inventory. |
 | WM-0125 | Focused long-save/migration gate | Proves deterministic save/load/resume evidence for the accepted M8 slice while keeping public compatibility owner-gated. |
+| WM-0126 | Readiness matrix stop-sign evidence | Consolidates M8 UI, localization, accessibility, content, data-mod, long-save and regression evidence while recording the initial benchmark stop sign. |
+| WM-0128 | Benchmark stop-sign repair/explanation | Clears the WM-0126 benchmark stop sign with current-HEAD full-suite benchmark evidence under unchanged 10 percent warning / 20 percent blocking policy. |
 
 All upstream tasks above are `done`, independently reviewed as `verified` and
 integrated before this matrix.
@@ -55,7 +58,7 @@ integrated before this matrix.
 | Content, anomaly, faction and endgame evidence | Ready as a scoped 1.0 evidence package | WM-0121 defines the contract; WM-0122 records the roster target; WM-0123 provides authoritative faction/endgame owner evidence with structured reasons and preserved M5 baselines. | Stretch anomalies may be cut without weakening accepted rows; final shipped lore/public claims remain owner-gated. |
 | Data-mod workflow and localization completeness | Ready as a fail-closed data-only workflow | WM-0124 rejects unsafe paths, missing references, missing required locales and canonical `zh-CN` bypasses while preserving data-only mods and forbidden code/runtime surfaces. | New schema kinds, executable mods, network mods, platform API mods and any public mod-support promise remain forbidden or owner-gated. |
 | Long-save and migration evidence | Ready for focused internal gate only | WM-0125 proves deterministic save/load/resume evidence for the `m8.faction_endgame.owner_arcs.v1` slice at save tick `72000`, load tick `72001` and final tick `100000`, with owner-gated migration policy validation. | Public save compatibility, cross-version migration guarantees, Windows/Web interop and desktop save bridge readiness remain owner-gated. |
-| Performance and M0-M7 regression protection | Stop sign: current WM-0126 benchmark gate fails | WM-0126 reruns `quality`, `ci:local`, `m5-invariants`, `bench` and the 100000-tick M5 headless scenario while preserving the 10 percent warning / 20 percent blocking benchmark policy and protected M0-M7 baselines. `quality`, `ci:local`, `m5-invariants` and the 100000-tick M5 headless scenario pass, but `bench` fails twice. The first run fails `entity-store`, `m3-ordinary-life-long-run`, `m4-core-vertical-slice-long-run`, `m5-alpha-content-long-run`, `map-dirty` and `spatial-index`; the confirmation rerun still fails `entity-store`, `m4-core-vertical-slice-long-run`, `map-dirty` and `spatial-index`. | WM-0126 can be integrated as stop-sign evidence, but M8 closeout and WM-0127 readiness remain blocked until WM-0128 explains or repairs the regressions. |
+| Performance and M0-M7 regression protection | Ready for internal M8 closeout evidence | WM-0126 records the initial repeated benchmark stop sign without weakening thresholds. WM-0128 then diagnoses that stop sign as stale/measurement-only evidence and verifies current HEAD `aa611cafc2e2060d689e077fa2cfdf9168bec46d` with two full `corepack pnpm bench` passes under the unchanged 10 percent warning / 20 percent blocking policy; the reviewer also reruns a full benchmark pass. Required M5 regression facts remain `0xfba70a5c` / `0x9ba83cb7`. | Benchmark measurements remain machine-sensitive and must be rerun for future release-candidate gates; no baseline or threshold weakening is approved. |
 | Platform verdict preservation | Preserved without expansion | WM-0097 and WM-0110 already lock Web to `demo-only` and Windows to unsigned controlled external test only; WM-0126 repeats those verdicts unchanged in the M8 matrix. | Public Web launch, Windows public release, signing, installer, updater and store distribution remain owner-gated. |
 
 ## Protected Regression Facts
@@ -91,7 +94,7 @@ integrated before this matrix.
 
 ## Owner-Gated Residual Decisions
 
-The following remain open and are not approved by WM-0126:
+The following remain open and are not approved by WM-0127:
 
 - Public release or 1.0 launch.
 - Early Access launch or public playtest recruitment.
@@ -108,25 +111,16 @@ The following remain open and are not approved by WM-0126:
 - Executable mods, platform API mods, network mods or unreviewed schema kinds.
 - Any change to locked decisions without owner approval.
 
-## WM-0126 Decision
+## WM-0127 Closeout Decision
 
-WM-0126 is suitable for independent review and integration as a stop-sign
-evidence artifact. The matrix consolidates the reviewed UI, localization,
-accessibility, content, data-mod and long-save evidence, and it records the
-required benchmark stop signs without weakening thresholds or changing product
-verdicts.
+WM-0127 closes M8 as internal 1.0 readiness evidence after WM-0111 through
+WM-0126 and WM-0128 are `done`, independently reviewed as `verified` and
+integrated. The matrix consolidates the reviewed UI, localization,
+accessibility, content, data-mod, long-save and benchmark evidence, and records
+that the WM-0126 benchmark stop sign was cleared by WM-0128 without weakening
+thresholds or changing product verdicts.
 
-M8 evidence is not sufficient to proceed to closeout. Until a dedicated
-performance repair/explanation task explains or repairs the repeated blocking
-regressions in `entity-store`, `m4-core-vertical-slice-long-run`,
-`map-dirty` and `spatial-index`, M8 closeout and WM-0127 readiness remain
-blocked by performance stop signs.
-
-Next step: WM-0128 investigates the repeated blocking regressions, preserves
-the 10 percent warning / 20 percent blocking policy, reruns
-`corepack pnpm bench`, and reports whether the issue is environmental variance,
-accepted benchmark movement, or product regression.
-
-This decision does not approve public release, public Web launch, Windows
-public release, store submission, signing, telemetry, accounts, paid services,
-final public copy or public save compatibility.
+M8 closeout is sufficient for owner review as a 1.0 readiness artifact. It is
+not a public 1.0 release action and does not approve public release, public Web
+launch, Windows public release, store submission, signing, telemetry, accounts,
+paid services, final public copy or public save compatibility.

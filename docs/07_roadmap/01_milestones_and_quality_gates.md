@@ -417,15 +417,34 @@ Current consolidation evidence:
 - WM-0126 reruns the required regression and performance gates before
   integration, including `quality`, `ci:local`, `m5-invariants`, `bench` and
   the 100000-tick M5 headless scenario.
-- Current WM-0126 stop sign: `quality`, `ci:local`, `m5-invariants` and the
-  100000-tick M5 headless scenario pass, but repeated `bench` reruns still
-  exceed the 20 percent blocking threshold in `entity-store`,
-  `m4-core-vertical-slice-long-run`, `map-dirty` and `spatial-index`, so M8
-  is not yet a closeout-ready milestone.
-- WM-0126 itself remains integrable as the readiness-matrix stop-sign artifact.
-  The blocked step is M8 closeout and any WM-0127 readiness follow-up until a
-  dedicated performance repair/explanation task is reviewed.
+- WM-0126 records the initial benchmark stop sign: `quality`, `ci:local`,
+  `m5-invariants` and the 100000-tick M5 headless scenario passed, but repeated
+  `bench` reruns exceeded the 20 percent blocking threshold in `entity-store`,
+  `m4-core-vertical-slice-long-run`, `map-dirty` and `spatial-index`.
+- WM-0128 clears that stop sign after independent review: two current-HEAD
+  full `corepack pnpm bench` reruns and a reviewer rerun pass under the
+  unchanged 10 percent warning / 20 percent blocking policy without changing
+  benchmark baselines, thresholds or product code.
 
 WM-0126 does not approve public release, public Web launch, Windows public
 release, store submission, signing, telemetry, accounts, hosted services, paid
 services or public save compatibility.
+
+## M8 Closeout Status
+
+WM-0127 closes M8 as internal 1.0 readiness evidence after reviewed integration
+of WM-0111 through WM-0126 and WM-0128. Product UI, responsive layout,
+zh-CN/en localization, visual identity, first-play guidance, accessibility,
+content/endgame scope, anomaly roster, faction/endgame evidence, data-mod
+workflow, focused long-save evidence and benchmark regression protection are
+recorded in `docs/07_roadmap/11_m8_1_0_readiness_matrix.md`.
+
+Closeout preserves the M5 alpha content framework final world/read-model hashes
+`0xfba70a5c` / `0x9ba83cb7`, the Web `demo-only` verdict, the Windows unsigned
+`ready-for-controlled-external-test` verdict and the unchanged 10 percent
+warning / 20 percent blocking benchmark policy.
+
+M8 closeout does not approve public release, public 1.0 launch, public Web
+launch, Windows public release, store submission, signing, telemetry, accounts,
+hosted services, paid services, final privacy/legal/store claims, public
+feedback systems or public save compatibility.

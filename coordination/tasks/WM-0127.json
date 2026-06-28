@@ -2,7 +2,7 @@
   "id": "WM-0127",
   "title": "M8 closeout and future handoff",
   "summary": "Close M8 after all M8 tasks are independently reviewed and integrated, then write a future non-release handoff without executing public release actions.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -39,7 +39,7 @@
   ],
   "branch": "task/WM-0127-m8-closeout-future-handoff",
   "createdAt": "2026-06-27T15:46:00.000Z",
-  "updatedAt": "2026-06-28T12:20:12.077Z",
+  "updatedAt": "2026-06-28T12:46:39.858Z",
   "history": [
     {
       "at": "2026-06-27T15:46:00.000Z",
@@ -64,6 +64,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-28T12:24:14.397Z",
+      "actor": "project-director",
+      "action": "claim",
+      "details": "thread=Beacon WM-0127 M8 closeout"
+    },
+    {
+      "at": "2026-06-28T12:39:24.581Z",
+      "actor": "project-director",
+      "action": "complete",
+      "details": "Closed M8 as internal 1.0 readiness evidence; all non-closeout M8 tasks are done/verified/integrated, WM-0128 cleared the benchmark stop sign, roadmap/project-state/future owner handoff updated, and full closeout gates passed."
+    },
+    {
+      "at": "2026-06-28T12:45:11.431Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; confirmed WM-0111..WM-0126 and WM-0128 are done/verified/integrated, WM-0128 clears the WM-0126 benchmark stop sign under unchanged 10/20 policy, platform and owner gates remain preserved, future handoff is non-executable with no post-M8 tasks, and required closeout check evidence is present."
+    },
+    {
+      "at": "2026-06-28T12:46:30.698Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Independent reviewer verified M8 closeout; full closeout checks passed; no public release/platform owner gate changed; future handoff is non-executable."
+    },
+    {
+      "at": "2026-06-28T12:46:39.858Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M8",
@@ -80,5 +110,20 @@
     "telemetry account paid service or crash upload implementation",
     "final privacy legal or store claims without owner approval",
     "post-M8 task creation, promotion, claim, implementation or review"
-  ]
+  ],
+  "claimedBy": "project-director",
+  "threadLabel": "Beacon WM-0127 M8 closeout",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0127.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; confirmed WM-0111..WM-0126 and WM-0128 are done/verified/integrated, WM-0128 clears the WM-0126 benchmark stop sign under unchanged 10/20 policy, platform and owner gates remain preserved, future handoff is non-executable with no post-M8 tasks, and required closeout check evidence is present.",
+    "at": "2026-06-28T12:45:11.430Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Independent reviewer verified M8 closeout; full closeout checks passed; no public release/platform owner gate changed; future handoff is non-executable.",
+    "at": "2026-06-28T12:46:30.698Z"
+  }
 }
