@@ -7,6 +7,20 @@ import type {
 import type { LocaleId, ShellLocaleState } from "./localization";
 import type { ShellUiScaleState, UiScaleId } from "./shell-ui-scale";
 
+export interface ShellPlayableActionState {
+  readonly actionId: "prioritize-lamp-work";
+  readonly adapterId: "wm0138-web-local-playable-adapter";
+  readonly authority: "shell-local-adapter";
+  readonly commandId: string;
+  readonly consequenceClass: "lamp-boundary-preparation";
+  readonly followUp: string;
+  readonly reasonCode: "wm0138.local_adapter.lamp_priority";
+  readonly reasonDetail: string;
+  readonly status: "queued";
+  readonly targetEntityId: string;
+  readonly targetLabel: string;
+}
+
 export interface ShellState {
   readonly readModel: WorldReadModel;
   readonly releaseGate: ShellReleaseGateInfo;
@@ -22,6 +36,7 @@ export interface ShellState {
   readonly selectedEntityId: string | undefined;
   readonly inspectedTile: TileCoordinate | undefined;
   readonly hoverTile: TileCoordinate | undefined;
+  readonly playableAction?: ShellPlayableActionState;
 }
 
 export interface ShellReleaseGateLine {
@@ -101,6 +116,10 @@ export interface ShellUiScaleActions {
 }
 
 export interface ShellSettingsActions extends ShellLocaleActions, ShellUiScaleActions {}
+
+export interface ShellCommandActions {
+  readonly onPrioritizeLampWork: (targetEntityId: string) => Promise<void>;
+}
 
 export interface ShellStore {
   getSnapshot(): ShellState;

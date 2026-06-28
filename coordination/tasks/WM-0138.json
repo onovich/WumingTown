@@ -2,7 +2,7 @@
   "id": "WM-0138",
   "title": "Minimum playable interaction command chain",
   "summary": "Implement at least one real player interaction chain, such as selecting a lantern and prioritizing lamp work, with traceable command or documented adapter state and UI feedback.",
-  "state": "ready",
+  "state": "verified",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -36,7 +36,7 @@
   ],
   "branch": "task/WM-0138-minimum-playable-interaction-chain",
   "createdAt": "2026-06-28T13:36:56.432Z",
-  "updatedAt": "2026-06-28T21:46:03.743Z",
+  "updatedAt": "2026-06-28T22:39:05.555Z",
   "history": [
     {
       "at": "2026-06-28T13:36:56.432Z",
@@ -49,6 +49,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-28T21:49:23.449Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": "thread=Codex WM-0138 playable command chain"
+    },
+    {
+      "at": "2026-06-28T22:20:03.603Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Implemented select-to-HUD local lamp-priority action chain with shell-local adapter evidence, en/zh-CN feedback, debug payload, unit coverage, web-shell E2E 12/12, and quality gate passing"
+    },
+    {
+      "at": "2026-06-28T22:27:22.008Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: Medium: queued shell-local playableAction survives Load Save even though the M6 gate save envelope does not serialize it, leaving stale action feedback/debug after restore; clear it on load and cover save-load after queued action"
+    },
+    {
+      "at": "2026-06-28T22:37:23.771Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Addressed reviewer change request by clearing session-local playableAction on save load, added queue->save/load E2E coverage, reran web-shell E2E 12/12, quality, handoff, validate, and diff check"
+    },
+    {
+      "at": "2026-06-28T22:39:05.555Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; reviewer-requested save/load local-action clearing confirmed"
     }
   ],
   "milestone": "M8",
@@ -65,5 +95,15 @@
     "UI-owned authoritative world mutation",
     "unreviewed public Worker protocol or save schema changes",
     "claiming public save compatibility or final release readiness"
-  ]
+  ],
+  "claimedBy": "client-engineer",
+  "threadLabel": "Codex WM-0138 playable command chain",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0138.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; reviewer-requested save/load local-action clearing confirmed",
+    "at": "2026-06-28T22:39:05.554Z"
+  }
 }

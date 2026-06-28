@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQYD04RD-6C412D",
+  "from": "reviewer",
+  "to": "client-engineer",
+  "taskId": "WM-0138",
+  "kind": "changes-requested",
+  "subject": "WM-0138 review: changes_requested",
+  "body": "Medium: queued shell-local playableAction survives Load Save even though the M6 gate save envelope does not serialize it, leaving stale action feedback/debug after restore; clear it on load and cover save-load after queued action",
+  "artifacts": [
+    "coordination/reports/WM-0138.md"
+  ],
+  "createdAt": "2026-06-28T22:27:22.009Z",
+  "acknowledgedAt": "2026-06-28T22:39:59.020Z"
+}

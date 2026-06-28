@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQYCQQHH-AF4D53",
+  "from": "client-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0138",
+  "kind": "review-request",
+  "subject": "WM-0138 ready for review",
+  "body": "Implemented select-to-HUD local lamp-priority action chain with shell-local adapter evidence, en/zh-CN feedback, debug payload, unit coverage, web-shell E2E 12/12, and quality gate passing",
+  "artifacts": [
+    "coordination/reports/WM-0138.md",
+    "task/WM-0138-minimum-playable-interaction-chain"
+  ],
+  "createdAt": "2026-06-28T22:20:03.605Z",
+  "acknowledgedAt": "2026-06-28T22:39:58.929Z"
+}

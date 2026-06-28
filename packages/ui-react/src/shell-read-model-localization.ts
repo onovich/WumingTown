@@ -953,6 +953,12 @@ export function localizeShellLastInputLabel(locale: LocaleId, source: string): s
     });
   }
 
+  if (source.startsWith("Action queued ")) {
+    return formatMessage(locale, "ui.input.actionQueued", {
+      commandId: source.slice("Action queued ".length).trim(),
+    });
+  }
+
   if (source.startsWith("Wheel zoom ")) {
     return formatMessage(locale, "ui.input.zoom", {
       zoom: source.slice("Wheel zoom ".length).trim(),

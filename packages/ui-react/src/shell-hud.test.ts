@@ -244,9 +244,9 @@ describe("shell-hud", () => {
     expect(markup).toContain("\u65e0\u4f24");
     expect(markup).toContain("\u5c31\u7eea");
     expect(markup).toContain("\u547d\u4ee4\u5e26");
-    expect(markup).toContain("\u706f\u8def\u69fd\u4f4d");
+    expect(markup).toContain("\u4f18\u5148\u8865\u706f");
     expect(markup).not.toContain("Command bar");
-    expect(markup).not.toContain("Lamp routes");
+    expect(markup).not.toContain("Prioritize lamp work");
     expect(markup).not.toContain("Lantern corridor gap");
     expect(markup).not.toContain("Bridge parcels staged");
     expect(markup).not.toContain("Chronicle office");
@@ -255,6 +255,41 @@ describe("shell-hud", () => {
 
     expect(localizeShellLastInputLabel("zh-CN", "Camera drag")).toBe("\u62d6\u62fd\u5e73\u79fb");
     expect(localizeShellLastInputLabel("zh-CN", "Camera reset")).toBe("\u76f8\u673a\u590d\u4f4d");
+    expect(localizeShellLastInputLabel("zh-CN", "Action queued wm0138-lamp-priority-001")).toBe(
+      "\u5df2\u6392\u5165\uff1awm0138-lamp-priority-001",
+    );
+  });
+
+  it("renders a traceable queued local lamp action without world authority claims", () => {
+    const state = {
+      ...createShellState(createDefaultShellLocaleState(["en-US"]), createLampPriorityReadModel()),
+      diagnosticsVisible: true,
+      lastInputLabel: "Action queued wm0138-lamp-priority-001",
+      playableAction: {
+        actionId: "prioritize-lamp-work",
+        adapterId: "wm0138-web-local-playable-adapter",
+        authority: "shell-local-adapter",
+        commandId: "wm0138-lamp-priority-001",
+        consequenceClass: "lamp-boundary-preparation",
+        followUp: "Simulation Worker command protocol remains unchanged.",
+        reasonCode: "wm0138.local_adapter.lamp_priority",
+        reasonDetail: "Selected lamp-relevant target requested priority lamp work.",
+        status: "queued",
+        targetEntityId: "lamp-keeper-test",
+        targetLabel: "Lantern Keeper Shen",
+      },
+    } satisfies ShellState;
+    const markup = renderShell(state);
+
+    expect(markup).toContain('data-testid="player-action-feedback"');
+    expect(markup).toContain('data-action-authority="shell-local-adapter"');
+    expect(markup).toContain('data-command-state="queued"');
+    expect(markup).toContain('data-reason-code="wm0138.local_adapter.lamp_priority"');
+    expect(markup).toContain('data-target-entity="lamp-keeper-test"');
+    expect(markup).toContain('data-ui-slot="button.primary.active"');
+    expect(markup).toContain("Local action queued");
+    expect(markup).toContain("Command id: wm0138-lamp-priority-001");
+    expect(markup).not.toContain("world authority has changed");
   });
 
   it("renders localized empty-tile inspection feedback when no entity is selected", () => {
@@ -376,6 +411,44 @@ function createShellState(
   };
 }
 
+function createLampPriorityReadModel(): WorldReadModel {
+  return {
+    ...READ_MODEL,
+    entities: [
+      ...READ_MODEL.entities,
+      {
+        entityId: "lamp-keeper-test",
+        displayName: "Lantern Keeper Shen",
+        kind: "lantern-keeper",
+        tile: {
+          x: 98,
+          y: 82,
+        },
+        colorHex: 0xe8b957,
+        summary: "Checking lantern oil boundaries before curfew.",
+        inspector: {
+          roleLabel: "Lantern patrol",
+          currentJob: "Lamp route review",
+          currentStep: "Verify east-market lantern gap",
+          moodLabel: "Ready",
+          healthLabel: "Unhurt",
+          lastDecision: "Walk the dim lane before the watch bell.",
+          explainers: ["The east market lane is still the weakest glow path."],
+          thoughts: ["Keep the lamp count separate from bridge parcels."],
+          needs: [
+            {
+              label: "Oil",
+              value: 64,
+              state: "low",
+            },
+          ],
+        },
+      },
+    ],
+    selectedEntityId: "lamp-keeper-test",
+  };
+}
+
 function renderShell(state: ShellState): string {
   const store = createShellStore(state);
   const noopAsync = (): Promise<void> => Promise.resolve();
@@ -383,6 +456,7 @@ function renderShell(state: ShellState): string {
   const noopSetUiScale: (scale: "standard" | "large" | "extra-large") => Promise<void> = () =>
     Promise.resolve();
   const noopImport: (file: File) => Promise<void> = () => Promise.resolve();
+  const noopCommand: (targetEntityId: string) => Promise<void> = () => Promise.resolve();
 
   return renderToStaticMarkup(
     createShellHudElement(
@@ -399,6 +473,9 @@ function renderShell(state: ShellState): string {
         onUseManualLocale: noopSetLocale,
         onUseSystemLocale: noopAsync,
         onUseUiScale: noopSetUiScale,
+      },
+      {
+        onPrioritizeLampWork: noopCommand,
       },
     ),
   );

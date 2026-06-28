@@ -260,8 +260,9 @@ async function runLoadSave(
   }
 
   const currentState = store.getSnapshot();
+  const loadBaseState = withoutPlayableAction(currentState);
   store.setState({
-    ...currentState,
+    ...loadBaseState,
     inspectedTile: getEntityTile(
       currentState.readModel,
       decoded.data.selectedEntityId ?? undefined,
@@ -277,6 +278,12 @@ async function runLoadSave(
     }),
   });
   onStorageGateStateChange?.();
+}
+
+function withoutPlayableAction(state: ShellState): Omit<ShellState, "playableAction"> {
+  const { playableAction, ...baseState } = state;
+  void playableAction;
+  return baseState;
 }
 
 async function runSaveFixture(

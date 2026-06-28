@@ -28,7 +28,7 @@ import { ShellMainMenuSurface } from "./shell-main-menu-surface";
 import { ShellSettingsPanel } from "./shell-settings-panel";
 import { ShellStoragePanel } from "./shell-storage-panel";
 import { getSelectedEntity, type ShellState, type ShellStore } from "./shell-store";
-import type { ShellSettingsActions, ShellStorageActions } from "./shell-store";
+import type { ShellCommandActions, ShellSettingsActions, ShellStorageActions } from "./shell-store";
 
 type AlertSeverity = ShellState["readModel"]["town"]["alerts"][number]["severity"];
 type HudLayoutMode = "compact" | "desktop" | "medium";
@@ -36,6 +36,7 @@ type NeedState = WorldEntityReadModel["inspector"]["needs"][number]["state"];
 type NightRiskTier = ShellNightRiskTier;
 
 export interface ShellHudRootProps {
+  readonly commandActions: ShellCommandActions;
   readonly settingsActions: ShellSettingsActions;
   readonly store: ShellStore;
   readonly storageActions: ShellStorageActions;
@@ -63,8 +64,10 @@ export function createShellHudElement(
   store: ShellStore,
   storageActions: ShellStorageActions,
   settingsActions: ShellSettingsActions,
+  commandActions: ShellCommandActions,
 ): ReactElement {
   return createElement(ShellHudRoot, {
+    commandActions,
     settingsActions,
     store,
     storageActions,
@@ -72,6 +75,7 @@ export function createShellHudElement(
 }
 
 export function ShellHudRoot({
+  commandActions,
   settingsActions,
   store,
   storageActions,
@@ -159,10 +163,31 @@ export function ShellHudRoot({
         createTopBar(state, playerHud, uiLocale, hudLayoutMode),
         createAlertStrip(state, uiLocale, hudLayoutMode),
         hudLayoutMode === "desktop"
-          ? createDesktopHudBody(state, playerHud, selectedEntity, uiLocale, settingsActions)
+          ? createDesktopHudBody(
+              state,
+              playerHud,
+              selectedEntity,
+              uiLocale,
+              settingsActions,
+              commandActions,
+            )
           : hudLayoutMode === "medium"
-            ? createMediumHudBody(state, playerHud, selectedEntity, uiLocale, settingsActions)
-            : createCompactHudBody(state, playerHud, selectedEntity, uiLocale, settingsActions),
+            ? createMediumHudBody(
+                state,
+                playerHud,
+                selectedEntity,
+                uiLocale,
+                settingsActions,
+                commandActions,
+              )
+            : createCompactHudBody(
+                state,
+                playerHud,
+                selectedEntity,
+                uiLocale,
+                settingsActions,
+                commandActions,
+              ),
         state.diagnosticsVisible ? createDebugOverlay(state, storageActions, hudLayoutMode) : null,
       ),
     ),
@@ -289,6 +314,7 @@ function createDesktopHudBody(
   selectedEntity: ReturnType<typeof getSelectedEntity>,
   locale: LocaleId,
   settingsActions: ShellSettingsActions,
+  commandActions: ShellCommandActions,
 ): ReactElement {
   return createElement(
     "div",
@@ -302,7 +328,7 @@ function createDesktopHudBody(
       },
       createCurrentStateCard(state, playerHud.phaseMeaning, locale),
       createNextGoalCard(playerHud, locale),
-      createCommandBarPlaceholder(locale),
+      createCommandBar(state, selectedEntity, locale, commandActions),
       createTaskCard(playerHud.taskEntities, locale),
       createEventCard(state, locale),
     ),
@@ -335,6 +361,7 @@ function createMediumHudBody(
   selectedEntity: ReturnType<typeof getSelectedEntity>,
   locale: LocaleId,
   settingsActions: ShellSettingsActions,
+  commandActions: ShellCommandActions,
 ): ReactElement {
   return createElement(
     "div",
@@ -369,7 +396,7 @@ function createMediumHudBody(
       },
       createCurrentStateCard(state, playerHud.phaseMeaning, locale),
       createNextGoalCard(playerHud, locale),
-      createCommandBarPlaceholder(locale),
+      createCommandBar(state, selectedEntity, locale, commandActions),
       createTaskCard(playerHud.taskEntities, locale),
       createEventCard(state, locale),
       createResidentAttentionCard(playerHud.residentItems, locale),
@@ -383,6 +410,7 @@ function createCompactHudBody(
   selectedEntity: ReturnType<typeof getSelectedEntity>,
   locale: LocaleId,
   settingsActions: ShellSettingsActions,
+  commandActions: ShellCommandActions,
 ): ReactElement {
   return createElement(
     "div",
@@ -393,7 +421,7 @@ function createCompactHudBody(
     createCurrentStateCard(state, playerHud.phaseMeaning, locale),
     createResourceSummaryCard(state, locale),
     createNextGoalCard(playerHud, locale),
-    createCommandBarPlaceholder(locale),
+    createCommandBar(state, selectedEntity, locale, commandActions),
     createTaskCard(playerHud.taskEntities, locale),
     createEventCard(state, locale),
     createResidentAttentionCard(playerHud.residentItems, locale),
@@ -1326,7 +1354,13 @@ function createSectionHeader(
   );
 }
 
-function createCommandBarPlaceholder(locale: LocaleId): ReactElement {
+function createCommandBar(
+  state: ShellState,
+  selectedEntity: ReturnType<typeof getSelectedEntity>,
+  locale: LocaleId,
+  commandActions: ShellCommandActions,
+): ReactElement {
+  const commandSpecs = readCommandSpecs(state, selectedEntity, locale);
   return createElement(
     "section",
     {
@@ -1360,23 +1394,24 @@ function createCommandBarPlaceholder(locale: LocaleId): ReactElement {
       {
         style: commandBarGroupStyle,
       },
-      ...readCommandSpecs(locale).map((spec) =>
+      ...commandSpecs.map((spec) =>
         createElement(
           "button",
           {
             "aria-describedby": `${spec.testId}-detail`,
-            "aria-disabled": true,
-            "data-command-state": "placeholder",
+            "aria-disabled": spec.disabled ? "true" : "false",
+            "data-command-state": spec.commandState,
             "data-testid": spec.testId,
-            "data-ui-slot":
-              spec.tone === "primary"
-                ? SHELL_DESIGN_TOKENS.slot.buttonPrimaryDisabled
-                : SHELL_DESIGN_TOKENS.slot.buttonSecondaryDisabled,
+            "data-ui-slot": readCommandButtonSlot(spec.tone, spec.visualState),
+            disabled: spec.disabled,
             key: spec.testId,
             onClick: (event): void => {
               event.preventDefault();
+              if (!spec.disabled && spec.targetEntityId !== undefined) {
+                void commandActions.onPrioritizeLampWork(spec.targetEntityId);
+              }
             },
-            style: commandButtonStyle(spec.tone),
+            style: commandButtonStyle(spec.tone, spec.visualState),
             type: "button",
           },
           createElement(
@@ -1397,35 +1432,169 @@ function createCommandBarPlaceholder(locale: LocaleId): ReactElement {
         ),
       ),
     ),
+    state.playableAction === undefined ? null : createPlayableActionFeedback(state, locale),
   );
 }
 
-function readCommandSpecs(locale: LocaleId): readonly {
+function readCommandSpecs(
+  state: ShellState,
+  selectedEntity: ReturnType<typeof getSelectedEntity>,
+  locale: LocaleId,
+): readonly {
+  readonly commandState: "needs-selection" | "placeholder" | "queued" | "ready";
   readonly description: string;
+  readonly disabled: boolean;
+  readonly targetEntityId?: string;
   readonly testId: string;
   readonly title: string;
   readonly tone: "primary" | "secondary";
+  readonly visualState: "active" | "default" | "disabled";
 }[] {
+  const selectedTargetLabel =
+    selectedEntity === undefined
+      ? ""
+      : localizeShellFixtureText(locale, selectedEntity.displayName);
+  const lampTargetReady = isLampPriorityTarget(selectedEntity);
+  const queuedForSelectedTarget =
+    lampTargetReady &&
+    state.playableAction?.actionId === "prioritize-lamp-work" &&
+    state.playableAction.targetEntityId === selectedEntity?.entityId;
+  const lampCommandState = queuedForSelectedTarget
+    ? "queued"
+    : lampTargetReady
+      ? "ready"
+      : "needs-selection";
+  const lampDescription =
+    lampCommandState === "queued"
+      ? formatMessage(locale, "ui.hud.command.playable.lamp.queued", {
+          target: selectedTargetLabel,
+        })
+      : lampCommandState === "ready"
+        ? formatMessage(locale, "ui.hud.command.playable.lamp.ready", {
+            target: selectedTargetLabel,
+          })
+        : formatMessage(locale, "ui.hud.command.playable.lamp.needsSelection");
+
   return [
     {
-      description: formatMessage(locale, "ui.hud.command.placeholder.lamp"),
+      commandState: lampCommandState,
+      description: lampDescription,
+      disabled: !lampTargetReady,
+      ...(lampTargetReady && selectedEntity !== undefined
+        ? { targetEntityId: selectedEntity.entityId }
+        : {}),
       testId: "player-command-lamp",
       title: formatMessage(locale, "ui.hud.command.lamp"),
       tone: "primary",
+      visualState: queuedForSelectedTarget ? "active" : lampTargetReady ? "default" : "disabled",
     },
     {
+      commandState: "placeholder",
       description: formatMessage(locale, "ui.hud.command.placeholder.chronicle"),
+      disabled: true,
       testId: "player-command-chronicle",
       title: formatMessage(locale, "ui.hud.command.chronicle"),
       tone: "secondary",
+      visualState: "disabled",
     },
     {
+      commandState: "placeholder",
       description: formatMessage(locale, "ui.hud.command.placeholder.inspect"),
+      disabled: true,
       testId: "player-command-inspect",
       title: formatMessage(locale, "ui.hud.command.inspect"),
       tone: "secondary",
+      visualState: "disabled",
     },
   ];
+}
+
+function createPlayableActionFeedback(state: ShellState, locale: LocaleId): ReactElement | null {
+  const action = state.playableAction;
+  if (action === undefined) {
+    return null;
+  }
+
+  const target = localizeShellFixtureText(locale, action.targetLabel);
+  return createElement(
+    "div",
+    {
+      "data-action-authority": action.authority,
+      "data-action-status": action.status,
+      "data-adapter-id": action.adapterId,
+      "data-reason-code": action.reasonCode,
+      "data-target-entity": action.targetEntityId,
+      "data-testid": "player-action-feedback",
+      style: actionFeedbackStyle,
+    },
+    createElement(
+      "div",
+      {
+        style: rowTitleStyle,
+      },
+      formatMessage(locale, "ui.hud.actionFeedback.title"),
+    ),
+    createElement(
+      "div",
+      {
+        style: commandDetailStyle,
+      },
+      formatMessage(locale, "ui.hud.actionFeedback.body", {
+        target,
+      }),
+    ),
+    createElement(
+      "div",
+      {
+        style: actionFeedbackMetaStyle,
+      },
+      formatMessage(locale, "ui.hud.actionFeedback.reason", {
+        reasonCode: action.reasonCode,
+      }),
+    ),
+    createElement(
+      "div",
+      {
+        style: actionFeedbackMetaStyle,
+      },
+      formatMessage(locale, "ui.hud.actionFeedback.commandId", {
+        commandId: action.commandId,
+      }),
+    ),
+  );
+}
+
+function isLampPriorityTarget(entity: WorldEntityReadModel | undefined): boolean {
+  if (entity === undefined) {
+    return false;
+  }
+
+  if (entity.kind === "lantern-keeper") {
+    return true;
+  }
+
+  const searchText =
+    `${entity.entityId} ${entity.displayName} ${entity.inspector.roleLabel} ${entity.inspector.currentJob}`.toLowerCase();
+  return searchText.includes("lamp") || searchText.includes("lantern");
+}
+
+function readCommandButtonSlot(
+  tone: "primary" | "secondary",
+  state: "active" | "default" | "disabled",
+): string {
+  if (tone === "primary") {
+    return state === "active"
+      ? SHELL_DESIGN_TOKENS.slot.buttonPrimaryActive
+      : state === "default"
+        ? SHELL_DESIGN_TOKENS.slot.buttonPrimaryDefault
+        : SHELL_DESIGN_TOKENS.slot.buttonPrimaryDisabled;
+  }
+
+  return state === "active"
+    ? SHELL_DESIGN_TOKENS.slot.buttonSecondaryActive
+    : state === "default"
+      ? SHELL_DESIGN_TOKENS.slot.buttonSecondaryDefault
+      : SHELL_DESIGN_TOKENS.slot.buttonSecondaryDisabled;
 }
 
 function createDefinitionStack(
@@ -2390,12 +2559,33 @@ const commandDetailStyle: CSSProperties = {
   overflowWrap: "anywhere",
 };
 
-function commandButtonStyle(tone: "primary" | "secondary"): CSSProperties {
+function commandButtonStyle(
+  tone: "primary" | "secondary",
+  state: "active" | "default" | "disabled",
+): CSSProperties {
   return {
-    ...createCommandButtonStyle(tone, "disabled"),
+    ...createCommandButtonStyle(tone, state),
     minWidth: 0,
   };
 }
+
+const actionFeedbackStyle: CSSProperties = {
+  background: "rgba(18, 15, 11, 0.32)",
+  border: "1px solid rgba(217, 150, 58, 0.42)",
+  borderRadius: SHELL_DESIGN_TOKENS.radius.control,
+  display: "flex",
+  flexDirection: "column",
+  gap: SHELL_DESIGN_TOKENS.space.xs,
+  padding: `${SHELL_DESIGN_TOKENS.space.sm} ${SHELL_DESIGN_TOKENS.space.md}`,
+};
+
+const actionFeedbackMetaStyle: CSSProperties = {
+  color: "rgba(245, 234, 210, 0.68)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
+  fontSize: "11px",
+  lineHeight: "15px",
+  overflowWrap: "anywhere",
+};
 
 function trendBadgeStyle(
   trend: ShellState["readModel"]["town"]["resources"][number]["trend"],

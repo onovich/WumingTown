@@ -25,6 +25,16 @@ interface WebShellDebugPayload {
     readonly source: string;
     readonly systemLocale: string;
   };
+  readonly playableAction?: {
+    readonly actionId: string;
+    readonly adapterId: string;
+    readonly authority: "shell-local-adapter";
+    readonly commandId: string;
+    readonly reasonCode: string;
+    readonly status: "queued";
+    readonly targetEntityId: string;
+    readonly targetLabel: string;
+  };
   readonly zoom: number;
   readonly runtimeBrowser: string;
   readonly runtimeCrossOriginIsolated: boolean;
@@ -212,6 +222,17 @@ describe("web shell smoke", () => {
 
       const afterSavePayload = await readDebugPayload(page);
       expect(afterSavePayload.storageGate.saveSlotCount).toBe(1);
+      expect(afterSavePayload.playableAction).toBeUndefined();
+
+      const lampButton = page.getByTestId("player-command-lamp");
+      expect(await lampButton.getAttribute("data-command-state")).toBe("ready");
+      await lampButton.click();
+      await waitForActionFeedback(page, "wm0138.local_adapter.lamp_priority");
+      const afterQueuedPayload = await readDebugPayload(page);
+      expect(afterQueuedPayload.playableAction?.adapterId).toBe(
+        "wm0138-web-local-playable-adapter",
+      );
+      expect(afterQueuedPayload.playableAction?.targetEntityId).toBe("lantern-keeper-shen");
 
       const downloadPromise = page.waitForEvent("download");
       await page.getByTestId("storage-export-button").click();
@@ -237,6 +258,9 @@ describe("web shell smoke", () => {
       await page.getByTestId("storage-load-button").click();
       await waitForStorageStatus(page, "Loaded the gate save and restored the shell selection.");
       await waitForSelectedEntity(page, "lantern-keeper-shen");
+      expect(await page.getByTestId("player-action-feedback").count()).toBe(0);
+      const afterLoadPayload = await readDebugPayload(page);
+      expect(afterLoadPayload.playableAction).toBeUndefined();
 
       await mkdir(path.dirname(SCREENSHOT_PATH), { recursive: true });
       await page.screenshot({
@@ -460,6 +484,99 @@ describe("web shell smoke", () => {
       );
 
       await context.close();
+    } finally {
+      await browser.close();
+      await server.close();
+    }
+  }, 120000);
+
+  it("queues a traceable local lamp-priority action in en and zh-CN", async () => {
+    const appRoot = path.join(process.cwd(), "apps", "web");
+    const server = await createServer({
+      configFile: false,
+      logLevel: "error",
+      root: appRoot,
+      server: {
+        host: "127.0.0.1",
+        port: 0,
+        strictPort: false,
+      },
+    });
+    await server.listen();
+
+    const serverUrl = readServerUrl(server);
+    const browser = await chromium.launch();
+
+    try {
+      for (const localeCase of [
+        {
+          expectedInputText: "Queued wm0138-lamp-priority-001",
+          expectedLocale: "en",
+          expectedTitle: "Local action queued",
+          playwrightLocale: "en-US",
+        },
+        {
+          expectedInputText: "\u5df2\u6392\u5165\uff1awm0138-lamp-priority-001",
+          expectedLocale: "zh-CN",
+          expectedTitle: "\u672c\u5730\u884c\u52a8\u5df2\u6392\u5165",
+          playwrightLocale: "zh-CN",
+        },
+      ] as const) {
+        const context = await browser.newContext({
+          deviceScaleFactor: 1,
+          locale: localeCase.playwrightLocale,
+          viewport: {
+            width: 1424,
+            height: 861,
+          },
+        });
+
+        try {
+          const page = await context.newPage();
+          await page.goto(serverUrl, {
+            waitUntil: "networkidle",
+          });
+          await page.waitForSelector("[data-shell-ready='true']");
+          await waitForLocale(page, localeCase.expectedLocale, "system");
+          await page.getByTestId("main-menu-new-game").click();
+          await waitForStartSurfaceClosed(page);
+
+          const debugPayload = await readDebugPayload(page);
+          await clickCanvasPoint(page, findRequiredEntity(debugPayload, "lantern-keeper-shen"));
+          await waitForSelectedEntity(page, "lantern-keeper-shen");
+
+          const lampButton = page.getByTestId("player-command-lamp");
+          expect(await lampButton.getAttribute("aria-disabled")).toBe("false");
+          expect(await lampButton.getAttribute("data-command-state")).toBe("ready");
+          await lampButton.click();
+          await waitForActionFeedback(page, "wm0138.local_adapter.lamp_priority");
+          await waitForHudText(page, localeCase.expectedInputText);
+
+          const feedback = page.getByTestId("player-action-feedback");
+          expect(await feedback.getAttribute("data-action-authority")).toBe("shell-local-adapter");
+          expect(await feedback.getAttribute("data-action-status")).toBe("queued");
+          expect(await feedback.getAttribute("data-adapter-id")).toBe(
+            "wm0138-web-local-playable-adapter",
+          );
+          expect(await feedback.getAttribute("data-target-entity")).toBe("lantern-keeper-shen");
+          expect((await feedback.textContent()) ?? "").toContain(localeCase.expectedTitle);
+          expect(await lampButton.getAttribute("data-command-state")).toBe("queued");
+
+          const afterActionPayload = await readDebugPayload(page);
+          expect(afterActionPayload.playableAction?.adapterId).toBe(
+            "wm0138-web-local-playable-adapter",
+          );
+          expect(afterActionPayload.playableAction?.authority).toBe("shell-local-adapter");
+          expect(afterActionPayload.playableAction?.commandId).toBe("wm0138-lamp-priority-001");
+          expect(afterActionPayload.playableAction?.reasonCode).toBe(
+            "wm0138.local_adapter.lamp_priority",
+          );
+          expect(afterActionPayload.playableAction?.status).toBe("queued");
+          expect(afterActionPayload.playableAction?.targetEntityId).toBe("lantern-keeper-shen");
+        } finally {
+          await context.close();
+        }
+      }
     } finally {
       await browser.close();
       await server.close();
@@ -984,7 +1101,7 @@ async function assertAccessibilityBaseline(page: import("playwright").Page): Pro
 async function assertPlayerHudBaseline(page: import("playwright").Page): Promise<void> {
   await assertPlayerHudStructure(page);
   expect(await page.getByTestId("debug-overlay").count()).toBe(0);
-  await assertCommandPlaceholderAccessibility(page);
+  await assertCommandAccessibility(page);
 
   const hudText = await page.getByTestId("player-hud").textContent();
   const goalText = await page.getByTestId("player-next-goal").textContent();
@@ -1038,12 +1155,12 @@ async function assertPlayerHudLocaleState(
   expect(hudText ?? "").toContain("桥路包裹已备妥");
   expect(hudText ?? "").toContain("编志所");
   expect(hudText ?? "").toContain("命令带");
-  expect(hudText ?? "").toContain("灯路槽位");
+  expect(hudText ?? "").toContain("优先补灯");
   expect(hudText ?? "").toContain("米粮");
   expect(hudText ?? "").toContain("稳定");
   expect(hudText ?? "").toContain("无伤");
   expect(hudText ?? "").not.toContain("Command bar");
-  expect(hudText ?? "").not.toContain("Lamp routes");
+  expect(hudText ?? "").not.toContain("Prioritize lamp work");
   expect(hudText ?? "").not.toContain("Lantern corridor gap");
   expect(hudText ?? "").not.toContain("Bridge parcels staged");
   expect(hudText ?? "").not.toContain("Chronicle office");
@@ -1052,23 +1169,41 @@ async function assertPlayerHudLocaleState(
   expect(hudText ?? "").not.toContain("Unhurt");
 }
 
-async function assertCommandPlaceholderAccessibility(
-  page: import("playwright").Page,
-): Promise<void> {
+async function assertCommandAccessibility(page: import("playwright").Page): Promise<void> {
   const commandBarSlot = await page.getByTestId("player-command-bar").getAttribute("data-ui-slot");
   expect(commandBarSlot).toBe("panel.wood.toolbar");
+  const selectedEntityId = await page
+    .locator("[data-selected-entity]")
+    .first()
+    .getAttribute("data-selected-entity");
+  const lampCommandReady = selectedEntityId === "lantern-keeper-shen";
 
-  for (const testId of [
-    "player-command-lamp",
-    "player-command-chronicle",
-    "player-command-inspect",
+  for (const spec of [
+    {
+      expectedAriaDisabled: lampCommandReady ? "false" : "true",
+      expectedState: lampCommandReady ? "ready" : "needs-selection",
+      expectedSlot: lampCommandReady ? "button.primary.default" : "button.primary.disabled",
+      testId: "player-command-lamp",
+    },
+    {
+      expectedAriaDisabled: "true",
+      expectedState: "placeholder",
+      expectedSlot: "button.secondary.disabled",
+      testId: "player-command-chronicle",
+    },
+    {
+      expectedAriaDisabled: "true",
+      expectedState: "placeholder",
+      expectedSlot: "button.secondary.disabled",
+      testId: "player-command-inspect",
+    },
   ] as const) {
-    const button = page.getByTestId(testId);
-    expect(await button.getAttribute("aria-disabled")).toBe("true");
+    const button = page.getByTestId(spec.testId);
+    expect(await button.getAttribute("aria-disabled")).toBe(spec.expectedAriaDisabled);
+    expect(await button.getAttribute("data-command-state")).toBe(spec.expectedState);
+    expect(await button.getAttribute("data-ui-slot")).toBe(spec.expectedSlot);
     const describedBy = await button.getAttribute("aria-describedby");
     expect(describedBy).toMatch(/-detail$/u);
-    const slot = await button.getAttribute("data-ui-slot");
-    expect(slot === "button.primary.disabled" || slot === "button.secondary.disabled").toBe(true);
     const detailId = describedBy ?? "";
     const detailText = await page.locator(`#${detailId}`).textContent();
     expect((detailText ?? "").length).toBeGreaterThan(10);
@@ -2190,6 +2325,25 @@ async function waitForSelectedEntity(
   throw new Error(`Timed out waiting for selected entity ${expectedEntityId}`);
 }
 
+async function waitForActionFeedback(
+  page: import("playwright").Page,
+  expectedReasonCode: string,
+): Promise<void> {
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    const feedback = page.getByTestId("player-action-feedback");
+    if (
+      (await feedback.count()) === 1 &&
+      (await feedback.getAttribute("data-reason-code")) === expectedReasonCode
+    ) {
+      return;
+    }
+
+    await page.waitForTimeout(100);
+  }
+
+  throw new Error(`Timed out waiting for action feedback ${expectedReasonCode}.`);
+}
+
 async function waitForInspectedTile(page: import("playwright").Page): Promise<string> {
   for (let attempt = 0; attempt < 60; attempt += 1) {
     const inspector = page.locator("[data-inspected-tile]").first();
@@ -2398,6 +2552,7 @@ function parseDebugPayload(text: string): WebShellDebugPayload {
     throw new Error("Unexpected diagnostic debug payload.");
   }
 
+  const playableAction = readPlayableActionPayload(parsed["playableAction"]);
   const positions = parsed["entityScreenPositions"].map((entry) => {
     if (
       !isRecord(entry) ||
@@ -2447,6 +2602,7 @@ function parseDebugPayload(text: string): WebShellDebugPayload {
       windowsHostPackageStatus: readDiagnosticAvailability(diagnostics["windowsHostPackageStatus"]),
     },
     fixtureId: parsed["fixtureId"],
+    ...(playableAction === undefined ? {} : { playableAction }),
     zoom: parsed["zoom"],
     runtimeBrowser: parsed["runtimeBrowser"],
     runtimeCrossOriginIsolated: parsed["runtimeCrossOriginIsolated"],
@@ -2480,6 +2636,42 @@ function parseDebugPayload(text: string): WebShellDebugPayload {
       usageBytes: typeof storageGate["usageBytes"] === "number" ? storageGate["usageBytes"] : null,
     },
     entityScreenPositions: positions,
+  };
+}
+
+function readPlayableActionPayload(
+  value: unknown,
+): WebShellDebugPayload["playableAction"] | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (!isRecord(value)) {
+    throw new Error("Unexpected playable action debug payload.");
+  }
+
+  if (
+    typeof value["actionId"] !== "string" ||
+    typeof value["adapterId"] !== "string" ||
+    value["authority"] !== "shell-local-adapter" ||
+    typeof value["commandId"] !== "string" ||
+    typeof value["reasonCode"] !== "string" ||
+    value["status"] !== "queued" ||
+    typeof value["targetEntityId"] !== "string" ||
+    typeof value["targetLabel"] !== "string"
+  ) {
+    throw new Error("Unexpected playable action debug payload.");
+  }
+
+  return {
+    actionId: value["actionId"],
+    adapterId: value["adapterId"],
+    authority: "shell-local-adapter",
+    commandId: value["commandId"],
+    reasonCode: value["reasonCode"],
+    status: "queued",
+    targetEntityId: value["targetEntityId"],
+    targetLabel: value["targetLabel"],
   };
 }
 

@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQYDD131-D66233",
+  "from": "client-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0138",
+  "kind": "review-request",
+  "subject": "WM-0138 ready for review",
+  "body": "Addressed reviewer change request by clearing session-local playableAction on save load, added queue->save/load E2E coverage, reran web-shell E2E 12/12, quality, handoff, validate, and diff check",
+  "artifacts": [
+    "coordination/reports/WM-0138.md",
+    "task/WM-0138-minimum-playable-interaction-chain"
+  ],
+  "createdAt": "2026-06-28T22:37:23.773Z",
+  "acknowledgedAt": "2026-06-28T22:39:59.013Z"
+}

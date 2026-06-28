@@ -17,8 +17,10 @@ import {
   getEntityTile,
   type ShellOnboardingState,
   type ShellLocaleState,
+  type ShellPlayableActionState,
   type ShellState,
 } from "@wuming-town/ui-react";
+import type { WorldEntityReadModel } from "@wuming-town/sim-protocol";
 
 import {
   buildShellDiagnosticPackage,
@@ -53,6 +55,7 @@ export interface WebShellDebugPayload extends PixiWorldRendererDebugState {
     readonly systemLocale: string;
   };
   readonly platformHost: PlatformHostInfo;
+  readonly playableAction?: ShellPlayableActionState;
   readonly runtimeBrowser: string;
   readonly runtimeCrossOriginIsolated: boolean;
   readonly storageGate: WebStorageDebugState;
@@ -148,22 +151,33 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
   if (diagnosticsVisible) {
     shellFrame.append(diagnosticDock.element);
   }
+  let localPlayableCommandSequence = 0;
   const reactRoot = createRoot(hudHost);
   reactRoot.render(
-    createShellHudElement(store, storageController.actions, {
-      async onUseManualLocale(locale): Promise<void> {
-        await settingsController.actions.onUseManualLocale(locale);
-        syncSettingsState();
+    createShellHudElement(
+      store,
+      storageController.actions,
+      {
+        async onUseManualLocale(locale): Promise<void> {
+          await settingsController.actions.onUseManualLocale(locale);
+          syncSettingsState();
+        },
+        async onUseSystemLocale(): Promise<void> {
+          await settingsController.actions.onUseSystemLocale();
+          syncSettingsState();
+        },
+        async onUseUiScale(scale): Promise<void> {
+          await settingsController.actions.onUseUiScale(scale);
+          syncSettingsState();
+        },
       },
-      async onUseSystemLocale(): Promise<void> {
-        await settingsController.actions.onUseSystemLocale();
-        syncSettingsState();
+      {
+        onPrioritizeLampWork(targetEntityId): Promise<void> {
+          queueLocalLampPriority(targetEntityId);
+          return Promise.resolve();
+        },
       },
-      async onUseUiScale(scale): Promise<void> {
-        await settingsController.actions.onUseUiScale(scale);
-        syncSettingsState();
-      },
-    }),
+    ),
   );
   const windowErrorListener = (event: ErrorEvent): void => {
     recordStructuredError(recentStructuredErrors, "window_error", {
@@ -310,6 +324,52 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
     }
   }
 
+  function queueLocalLampPriority(targetEntityId: string): void {
+    const currentState = store.getSnapshot();
+    const targetEntity = readWorldEntity(currentState, targetEntityId);
+    if (!isLampPriorityCommandTarget(targetEntity)) {
+      return;
+    }
+
+    localPlayableCommandSequence += 1;
+    const commandId = `wm0138-lamp-priority-${String(localPlayableCommandSequence).padStart(
+      3,
+      "0",
+    )}`;
+    const playableAction: ShellPlayableActionState = {
+      actionId: "prioritize-lamp-work",
+      adapterId: "wm0138-web-local-playable-adapter",
+      authority: "shell-local-adapter",
+      commandId,
+      consequenceClass: "lamp-boundary-preparation",
+      followUp:
+        "Simulation Worker command protocol remains unchanged until a reviewed authoritative command lands.",
+      reasonCode: "wm0138.local_adapter.lamp_priority",
+      reasonDetail: "Selected lamp-relevant target requested priority lamp work.",
+      status: "queued",
+      targetEntityId: targetEntity.entityId,
+      targetLabel: targetEntity.displayName,
+    };
+    const nextState: ShellState = {
+      ...currentState,
+      inspectedTile: targetEntity.tile,
+      lastInputLabel: `Action queued ${commandId}`,
+      playableAction,
+      selectedEntityId: targetEntity.entityId,
+    };
+    store.setState(nextState);
+    const activeRenderer = rendererRef.current;
+    if (activeRenderer !== undefined) {
+      syncDebug(
+        activeRenderer.readDebugState(),
+        nextState,
+        platformPorts.host,
+        storageController.readDebugState(),
+        diagnosticState,
+      );
+    }
+  }
+
   return {
     async destroy(): Promise<void> {
       window.removeEventListener("error", windowErrorListener);
@@ -371,9 +431,38 @@ function shouldIgnoreCameraInputTarget(target: EventTarget | null, hudHost: HTML
   return false;
 }
 
+function readWorldEntity(
+  state: Pick<ShellState, "readModel">,
+  entityId: string,
+): WorldEntityReadModel | undefined {
+  for (const entity of state.readModel.entities) {
+    if (entity.entityId === entityId) {
+      return entity;
+    }
+  }
+
+  return undefined;
+}
+
+function isLampPriorityCommandTarget(
+  entity: WorldEntityReadModel | undefined,
+): entity is WorldEntityReadModel {
+  if (entity === undefined) {
+    return false;
+  }
+
+  if (entity.kind === "lantern-keeper") {
+    return true;
+  }
+
+  const searchText =
+    `${entity.entityId} ${entity.displayName} ${entity.inspector.roleLabel} ${entity.inspector.currentJob}`.toLowerCase();
+  return searchText.includes("lamp") || searchText.includes("lantern");
+}
+
 function syncDebug(
   debugState: PixiWorldRendererDebugState,
-  shellState: Pick<ShellState, "diagnosticsVisible" | "locale" | "uiScale">,
+  shellState: Pick<ShellState, "diagnosticsVisible" | "locale" | "playableAction" | "uiScale">,
   platformHost: PlatformHostInfo,
   storageGate: WebStorageDebugState,
   diagnostics: WebDiagnosticDebugState,
@@ -403,6 +492,9 @@ function syncDebug(
       preference: shellState.uiScale.preference,
     },
     platformHost,
+    ...(shellState.playableAction === undefined
+      ? {}
+      : { playableAction: shellState.playableAction }),
     runtimeBrowser: releaseGate.runtimeBrowser,
     runtimeCrossOriginIsolated: releaseGate.runtimeCrossOriginIsolated,
     storageGate,
