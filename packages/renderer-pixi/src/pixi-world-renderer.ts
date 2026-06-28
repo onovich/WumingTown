@@ -36,6 +36,8 @@ export interface RendererStateSnapshot {
 export interface PixiWorldRendererDebugState {
   readonly canvasWidth: number;
   readonly canvasHeight: number;
+  readonly centerWorldX: number;
+  readonly centerWorldY: number;
   readonly zoom: number;
   readonly selectedEntityId: string | undefined;
   readonly entityScreenPositions: readonly ScreenEntityPosition[];
@@ -43,6 +45,7 @@ export interface PixiWorldRendererDebugState {
 
 export interface CreatePixiWorldRendererOptions {
   readonly container: HTMLElement;
+  readonly inputTarget?: HTMLElement;
   readonly readModel: WorldReadModel;
   readonly selectedEntityId?: string;
   readonly onSelectionChange?: (
@@ -51,6 +54,7 @@ export interface CreatePixiWorldRendererOptions {
     inspectedTile: TileCoordinate | undefined,
   ) => void;
   readonly onStateChange?: (state: RendererStateSnapshot) => void;
+  readonly shouldIgnoreInputTarget?: (target: EventTarget | null) => boolean;
 }
 
 export interface PixiWorldRenderer {
@@ -71,6 +75,14 @@ const TERRAIN_COLORS: Record<TerrainKind, number> = {
 
 const ENTITY_RADIUS_PX = 9;
 const PAN_STEP_TILES = 2;
+const DRAG_START_THRESHOLD_PX = 6;
+
+interface CameraDragState {
+  readonly pointerId: number;
+  readonly startPoint: ScreenPoint;
+  readonly previousPoint: ScreenPoint;
+  readonly moved: boolean;
+}
 
 export async function createPixiWorldRenderer(
   options: CreatePixiWorldRendererOptions,
@@ -87,6 +99,9 @@ export async function createPixiWorldRenderer(
   });
 
   const canvas = app.canvas;
+  const inputTarget = options.inputTarget ?? options.container;
+  inputTarget.style.touchAction = "none";
+  options.container.style.touchAction = "none";
   canvas.setAttribute("data-testid", "world-canvas");
   canvas.style.display = "block";
   canvas.style.height = "100%";
@@ -120,6 +135,7 @@ export async function createPixiWorldRenderer(
   );
   let lastInputLabel = "Ready";
   let userAdjustedViewport = false;
+  let dragState: CameraDragState | undefined;
 
   buildTerrainGraphics(terrainLayer, options.readModel);
   buildEntityGraphics(entityLayer, options.readModel);
@@ -130,7 +146,55 @@ export async function createPixiWorldRenderer(
   overlayLayer.addChild(hoverGraphic);
 
   const onPointerMove = (event: PointerEvent): void => {
-    const tile = screenToTile(viewport, options.readModel, readRelativePoint(event, canvas));
+    if (dragState === undefined && shouldIgnoreInputEvent(event)) {
+      return;
+    }
+
+    const point = readRelativePoint(event, canvas);
+    if (dragState?.pointerId === event.pointerId) {
+      const deltaX = point.x - dragState.previousPoint.x;
+      const deltaY = point.y - dragState.previousPoint.y;
+      const totalDeltaX = point.x - dragState.startPoint.x;
+      const totalDeltaY = point.y - dragState.startPoint.y;
+      const shouldDrag =
+        dragState.moved ||
+        totalDeltaX * totalDeltaX + totalDeltaY * totalDeltaY >=
+          DRAG_START_THRESHOLD_PX * DRAG_START_THRESHOLD_PX;
+
+      if (shouldDrag) {
+        event.preventDefault();
+        dragState = {
+          pointerId: dragState.pointerId,
+          previousPoint: point,
+          startPoint: dragState.startPoint,
+          moved: true,
+        };
+        if (deltaX !== 0 || deltaY !== 0) {
+          userAdjustedViewport = true;
+          viewport = panViewport(
+            viewport,
+            options.readModel,
+            -deltaX / viewport.zoom,
+            -deltaY / viewport.zoom,
+          );
+          lastInputLabel = "Camera drag";
+          applyViewport(app, worldRoot, viewport, devicePixelRatio);
+          drawSelectionGraphic(
+            selectionGraphic,
+            selectedEntityId,
+            inspectedTile,
+            options.readModel,
+          );
+        }
+
+        hoverTile = screenToTile(viewport, options.readModel, point);
+        drawHoverGraphic(hoverGraphic, hoverTile, options.readModel);
+        emitStateChange();
+        return;
+      }
+    }
+
+    const tile = screenToTile(viewport, options.readModel, point);
     if (
       tile?.x === hoverTile?.x &&
       tile?.y === hoverTile?.y &&
@@ -146,33 +210,63 @@ export async function createPixiWorldRenderer(
   };
 
   const onPointerLeave = (): void => {
+    if (dragState !== undefined) {
+      return;
+    }
+
     hoverTile = undefined;
     drawHoverGraphic(hoverGraphic, hoverTile, options.readModel);
     emitStateChange();
   };
 
-  const onPointerDown = (event: PointerEvent): void => {
-    canvas.focus();
-    const point = readRelativePoint(event, canvas);
-    const entityId = findEntityAtScreenPoint(viewport, options.readModel, point);
-    if (entityId !== selectedEntityId) {
-      selectedEntityId = entityId;
+  const onPointerUp = (event: PointerEvent): void => {
+    if (dragState?.pointerId !== event.pointerId) {
+      return;
     }
 
-    const tile = screenToTile(viewport, options.readModel, point);
-    inspectedTile = tile;
-    lastInputLabel =
-      entityId !== undefined
-        ? `Canvas select ${entityId}`
-        : tile !== undefined
-          ? `Canvas inspect ${String(tile.x)},${String(tile.y)}`
-          : "Canvas pointer";
-    drawSelectionGraphic(selectionGraphic, selectedEntityId, inspectedTile, options.readModel);
-    options.onSelectionChange?.(entityId, lastInputLabel, inspectedTile);
+    const wasDrag = dragState.moved;
+    dragState = undefined;
+    releaseCanvasPointerCapture(options.container, event.pointerId);
+    if (wasDrag) {
+      event.preventDefault();
+      emitStateChange();
+      return;
+    }
+
+    selectCanvasPoint(readRelativePoint(event, canvas));
+  };
+
+  const onPointerCancel = (event: PointerEvent): void => {
+    if (dragState?.pointerId !== event.pointerId) {
+      return;
+    }
+
+    dragState = undefined;
+    releaseCanvasPointerCapture(options.container, event.pointerId);
     emitStateChange();
   };
 
+  const onPointerDown = (event: PointerEvent): void => {
+    if (shouldIgnoreInputEvent(event)) {
+      return;
+    }
+
+    canvas.focus();
+    const point = readRelativePoint(event, canvas);
+    dragState = {
+      moved: false,
+      pointerId: event.pointerId,
+      previousPoint: point,
+      startPoint: point,
+    };
+    captureCanvasPointer(options.container, event.pointerId);
+  };
+
   const onWheel = (event: WheelEvent): void => {
+    if (shouldIgnoreInputEvent(event)) {
+      return;
+    }
+
     event.preventDefault();
     userAdjustedViewport = true;
     const zoomFactor = event.deltaY < 0 ? 1.12 : 0.9;
@@ -234,6 +328,12 @@ export async function createPixiWorldRenderer(
           viewport.zoom * 0.9,
         );
         break;
+      case "Digit0":
+      case "Home":
+      case "Numpad0":
+        event.preventDefault();
+        resetCamera();
+        return;
       default:
         return;
     }
@@ -248,10 +348,12 @@ export async function createPixiWorldRenderer(
     emitStateChange();
   };
 
-  canvas.addEventListener("pointermove", onPointerMove);
-  canvas.addEventListener("pointerleave", onPointerLeave);
-  canvas.addEventListener("pointerdown", onPointerDown);
-  canvas.addEventListener("wheel", onWheel, { passive: false });
+  inputTarget.addEventListener("pointermove", onPointerMove);
+  inputTarget.addEventListener("pointerleave", onPointerLeave);
+  inputTarget.addEventListener("pointerdown", onPointerDown);
+  inputTarget.addEventListener("pointerup", onPointerUp);
+  inputTarget.addEventListener("pointercancel", onPointerCancel);
+  inputTarget.addEventListener("wheel", onWheel, { passive: false });
   canvas.addEventListener("keydown", onKeyDown);
 
   applyViewport(app, worldRoot, viewport, devicePixelRatio);
@@ -284,16 +386,20 @@ export async function createPixiWorldRenderer(
       return {
         canvasWidth: viewport.canvasWidth,
         canvasHeight: viewport.canvasHeight,
+        centerWorldX: viewport.centerWorldX,
+        centerWorldY: viewport.centerWorldY,
         zoom: viewport.zoom,
         selectedEntityId,
         entityScreenPositions: readEntityScreenPositions(viewport, options.readModel),
       };
     },
     destroy(): Promise<void> {
-      canvas.removeEventListener("pointermove", onPointerMove);
-      canvas.removeEventListener("pointerleave", onPointerLeave);
-      canvas.removeEventListener("pointerdown", onPointerDown);
-      canvas.removeEventListener("wheel", onWheel);
+      inputTarget.removeEventListener("pointermove", onPointerMove);
+      inputTarget.removeEventListener("pointerleave", onPointerLeave);
+      inputTarget.removeEventListener("pointerdown", onPointerDown);
+      inputTarget.removeEventListener("pointerup", onPointerUp);
+      inputTarget.removeEventListener("pointercancel", onPointerCancel);
+      inputTarget.removeEventListener("wheel", onWheel);
       canvas.removeEventListener("keydown", onKeyDown);
       app.destroy(true);
       return Promise.resolve();
@@ -311,6 +417,39 @@ export async function createPixiWorldRenderer(
       hoverTile,
     };
     options.onStateChange?.(nextState);
+  }
+
+  function selectCanvasPoint(point: ScreenPoint): void {
+    const entityId = findEntityAtScreenPoint(viewport, options.readModel, point);
+    if (entityId !== selectedEntityId) {
+      selectedEntityId = entityId;
+    }
+
+    const tile = screenToTile(viewport, options.readModel, point);
+    inspectedTile = tile;
+    lastInputLabel =
+      entityId !== undefined
+        ? `Canvas select ${entityId}`
+        : tile !== undefined
+          ? `Canvas inspect ${String(tile.x)},${String(tile.y)}`
+          : "Canvas pointer";
+    drawSelectionGraphic(selectionGraphic, selectedEntityId, inspectedTile, options.readModel);
+    options.onSelectionChange?.(entityId, lastInputLabel, inspectedTile);
+    emitStateChange();
+  }
+
+  function resetCamera(): void {
+    userAdjustedViewport = false;
+    viewport = createFittedViewport(options.readModel, viewport.canvasWidth, viewport.canvasHeight);
+    lastInputLabel = "Camera reset";
+    applyViewport(app, worldRoot, viewport, devicePixelRatio);
+    drawSelectionGraphic(selectionGraphic, selectedEntityId, inspectedTile, options.readModel);
+    drawHoverGraphic(hoverGraphic, hoverTile, options.readModel);
+    emitStateChange();
+  }
+
+  function shouldIgnoreInputEvent(event: Event): boolean {
+    return options.shouldIgnoreInputTarget?.(event.target) === true;
   }
 }
 
@@ -444,6 +583,22 @@ function readRelativePoint(event: MouseEvent, canvas: HTMLCanvasElement): Screen
     x: event.clientX - canvasRect.left,
     y: event.clientY - canvasRect.top,
   };
+}
+
+function releaseCanvasPointerCapture(element: HTMLElement, pointerId: number): void {
+  if (!element.hasPointerCapture(pointerId)) {
+    return;
+  }
+
+  element.releasePointerCapture(pointerId);
+}
+
+function captureCanvasPointer(element: HTMLElement, pointerId: number): void {
+  try {
+    element.setPointerCapture(pointerId);
+  } catch {
+    // Synthetic PointerEvents in tests do not always create an active browser pointer.
+  }
 }
 
 function drawEntityMarker(graphic: Graphics, entity: WorldEntityReadModel): void {

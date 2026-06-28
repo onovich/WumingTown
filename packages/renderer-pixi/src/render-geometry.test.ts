@@ -5,6 +5,7 @@ import type { WorldReadModel } from "@wuming-town/sim-protocol";
 import {
   createFittedViewport,
   findEntityAtScreenPoint,
+  panViewport,
   readEntityScreenPositions,
   screenToTile,
   tileToScreenCenter,
@@ -94,5 +95,24 @@ describe("render-geometry", () => {
       x: 6,
       y: 4,
     });
+  });
+
+  it("keeps camera panning bounded by the read-model map", () => {
+    const viewport = createFittedViewport(READ_MODEL, 320, 240);
+    const farLeft = panViewport(viewport, READ_MODEL, -100000, 0);
+    const farRight = panViewport(viewport, READ_MODEL, 100000, 0);
+
+    expect(farLeft.centerWorldX).toBeGreaterThanOrEqual(0);
+    expect(farLeft.centerWorldX).toBeLessThan(viewport.centerWorldX);
+    expect(farRight.centerWorldX).toBeGreaterThan(viewport.centerWorldX);
+    expect(farLeft.centerWorldY).toBe(viewport.centerWorldY);
+  });
+
+  it("returns to fitted camera geometry when refit with the same canvas", () => {
+    const viewport = createFittedViewport(READ_MODEL, 320, 240);
+    const panned = panViewport(viewport, READ_MODEL, 100000, 100000);
+    const reset = createFittedViewport(READ_MODEL, panned.canvasWidth, panned.canvasHeight);
+
+    expect(reset).toStrictEqual(viewport);
   });
 });

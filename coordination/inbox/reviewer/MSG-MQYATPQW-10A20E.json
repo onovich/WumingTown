@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQYATPQW-10A20E",
+  "from": "client-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0137",
+  "kind": "review-request",
+  "subject": "WM-0137 ready for review",
+  "body": "Implemented camera drag pan, wheel zoom, keyboard movement, Home/0 reset, HUD input routing fixes and localized camera feedback; focused unit/E2E, full web-shell E2E and quality gates passed; web-shell unit filter limitation recorded.",
+  "artifacts": [
+    "coordination/reports/WM-0137.md",
+    "task/WM-0137-camera-drag-zoom-reset"
+  ],
+  "createdAt": "2026-06-28T21:26:23.385Z",
+  "acknowledgedAt": "2026-06-28T21:27:00.560Z"
+}

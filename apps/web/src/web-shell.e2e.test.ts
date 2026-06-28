@@ -12,6 +12,8 @@ interface WebShellDebugPayload {
   readonly browserTargets: readonly string[];
   readonly canvasWidth: number;
   readonly canvasHeight: number;
+  readonly centerWorldX: number;
+  readonly centerWorldY: number;
   readonly diagnostics: WebDiagnosticDebugState;
   readonly fixtureId: string;
   readonly locale?: {
@@ -456,6 +458,84 @@ describe("web shell smoke", () => {
       expect(await page.getByTestId("player-selected-detail").textContent()).toContain(
         "Bridge Ledger Kiosk 4",
       );
+
+      await context.close();
+    } finally {
+      await browser.close();
+      await server.close();
+    }
+  }, 120000);
+
+  it("supports camera drag, wheel zoom, keyboard movement, reset, and click selection", async () => {
+    const appRoot = path.join(process.cwd(), "apps", "web");
+    const server = await createServer({
+      configFile: false,
+      logLevel: "error",
+      root: appRoot,
+      server: {
+        host: "127.0.0.1",
+        port: 0,
+        strictPort: false,
+      },
+    });
+    await server.listen();
+
+    const serverUrl = readServerUrl(server);
+    const browser = await chromium.launch();
+
+    try {
+      const context = await browser.newContext({
+        locale: "en-US",
+        viewport: {
+          width: 1424,
+          height: 861,
+        },
+      });
+      const page = await context.newPage();
+
+      await page.goto(serverUrl, {
+        waitUntil: "networkidle",
+      });
+      await page.waitForSelector("[data-shell-ready='true']");
+      await waitForLocale(page, "en", "system");
+      await page.getByTestId("main-menu-new-game").click();
+      await waitForStartSurfaceClosed(page);
+      await assertTownHudViewportLayout(page, 1424, 861);
+
+      const baseline = await readDebugPayload(page);
+      const dragStart = await readMapFocusViewportPoint(page, 0.48, 0.48);
+      await assertViewportPointHitsCanvas(page, dragStart);
+      await dragCanvasViewportPoint(page, dragStart, {
+        x: dragStart.x + 180,
+        y: dragStart.y + 72,
+      });
+      await waitForHudText(page, "Drag pan");
+      const dragged = await readDebugPayload(page);
+      expect(Math.abs(dragged.centerWorldX - baseline.centerWorldX)).toBeGreaterThan(20);
+      expect(Math.abs(dragged.centerWorldY - baseline.centerWorldY)).toBeGreaterThan(8);
+
+      const wheelPoint = await readMapFocusViewportPoint(page, 0.55, 0.46);
+      await page.mouse.move(wheelPoint.x, wheelPoint.y);
+      await page.mouse.wheel(0, -360);
+      await waitForHudText(page, "Zoom");
+      const zoomed = await readDebugPayload(page);
+      expect(zoomed.zoom).toBeGreaterThan(dragged.zoom);
+
+      await page.keyboard.press("ArrowRight");
+      await waitForHudText(page, "Keyboard ArrowRight");
+      const keyboardMoved = await readDebugPayload(page);
+      expect(keyboardMoved.centerWorldX).toBeGreaterThan(zoomed.centerWorldX);
+
+      await page.keyboard.press("Home");
+      await waitForHudText(page, "Camera reset");
+      const reset = await readDebugPayload(page);
+      expect(reset.zoom).toBeCloseTo(baseline.zoom, 5);
+      expect(reset.centerWorldX).toBeCloseTo(baseline.centerWorldX, 5);
+      expect(reset.centerWorldY).toBeCloseTo(baseline.centerWorldY, 5);
+
+      const clickableEntity = await findReachableEntityPoint(page, reset);
+      await clickCanvasViewportPoint(page, clickableEntity);
+      await waitForSelectedEntity(page, clickableEntity.entityId);
 
       await context.close();
     } finally {
@@ -1842,6 +1922,169 @@ async function clickCanvasPoint(
     }, point);
 }
 
+async function clickCanvasViewportPoint(
+  page: import("playwright").Page,
+  point: { readonly x: number; readonly y: number },
+): Promise<void> {
+  await page
+    .locator("[data-testid='world-canvas']")
+    .evaluate((canvas: HTMLCanvasElement, target: { readonly x: number; readonly y: number }) => {
+      canvas.dispatchEvent(
+        new PointerEvent("pointerdown", {
+          bubbles: true,
+          clientX: target.x,
+          clientY: target.y,
+          pointerId: 11,
+          pointerType: "mouse",
+        }),
+      );
+      canvas.dispatchEvent(
+        new PointerEvent("pointerup", {
+          bubbles: true,
+          clientX: target.x,
+          clientY: target.y,
+          pointerId: 11,
+          pointerType: "mouse",
+        }),
+      );
+    }, point);
+}
+
+async function dragCanvasViewportPoint(
+  page: import("playwright").Page,
+  start: { readonly x: number; readonly y: number },
+  end: { readonly x: number; readonly y: number },
+): Promise<void> {
+  await page.locator("[data-testid='world-canvas']").evaluate(
+    (
+      canvas: HTMLCanvasElement,
+      points: {
+        readonly end: { readonly x: number; readonly y: number };
+        readonly start: { readonly x: number; readonly y: number };
+      },
+    ) => {
+      canvas.dispatchEvent(
+        new PointerEvent("pointerdown", {
+          bubbles: true,
+          clientX: points.start.x,
+          clientY: points.start.y,
+          pointerId: 12,
+          pointerType: "mouse",
+        }),
+      );
+      canvas.dispatchEvent(
+        new PointerEvent("pointermove", {
+          bubbles: true,
+          clientX: points.start.x + (points.end.x - points.start.x) / 2,
+          clientY: points.start.y + (points.end.y - points.start.y) / 2,
+          pointerId: 12,
+          pointerType: "mouse",
+        }),
+      );
+      canvas.dispatchEvent(
+        new PointerEvent("pointermove", {
+          bubbles: true,
+          clientX: points.end.x,
+          clientY: points.end.y,
+          pointerId: 12,
+          pointerType: "mouse",
+        }),
+      );
+      canvas.dispatchEvent(
+        new PointerEvent("pointerup", {
+          bubbles: true,
+          clientX: points.end.x,
+          clientY: points.end.y,
+          pointerId: 12,
+          pointerType: "mouse",
+        }),
+      );
+    },
+    { end, start },
+  );
+}
+
+async function readMapFocusViewportPoint(
+  page: import("playwright").Page,
+  widthRatio: number,
+  heightRatio: number,
+): Promise<{ readonly x: number; readonly y: number }> {
+  const box = await page.getByTestId("player-map-focus").boundingBox();
+  if (box === null) {
+    throw new Error("Expected a player map focus region.");
+  }
+
+  return {
+    x: box.x + box.width * widthRatio,
+    y: box.y + box.height * heightRatio,
+  };
+}
+
+async function assertViewportPointHitsCanvas(
+  page: import("playwright").Page,
+  point: { readonly x: number; readonly y: number },
+): Promise<void> {
+  const hitInfo = await page.evaluate((target) => {
+    const hit = document.elementFromPoint(target.x, target.y);
+    const interactiveHudAncestor =
+      hit instanceof HTMLElement
+        ? hit.closest(
+            "button,input,select,textarea,a,[role='button'],[data-ui-slot],[data-testid='main-menu-panel'],[data-testid='locale-settings'],[data-testid='ui-scale-settings'],[data-testid='storage-panel']",
+          )
+        : null;
+    return {
+      interactiveHudAncestorTestId:
+        interactiveHudAncestor instanceof HTMLElement
+          ? interactiveHudAncestor.getAttribute("data-testid")
+          : null,
+      pointerEvents: hit instanceof HTMLElement ? window.getComputedStyle(hit).pointerEvents : null,
+      tagName: hit instanceof HTMLElement ? hit.tagName : null,
+      testId: hit instanceof HTMLElement ? hit.getAttribute("data-testid") : null,
+    };
+  }, point);
+  expect(hitInfo.interactiveHudAncestorTestId, `camera hit-test ${JSON.stringify(hitInfo)}`).toBe(
+    null,
+  );
+}
+
+async function findReachableEntityPoint(
+  page: import("playwright").Page,
+  payload: WebShellDebugPayload,
+): Promise<{ readonly entityId: string; readonly x: number; readonly y: number }> {
+  return page.evaluate((entityScreenPositions) => {
+    const canvas = document.querySelector("[data-testid='world-canvas']");
+    if (!(canvas instanceof HTMLCanvasElement)) {
+      throw new Error("Expected world canvas.");
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    for (const entity of entityScreenPositions) {
+      const x = rect.left + entity.x;
+      const y = rect.top + entity.y;
+      if (x < rect.left + 18 || y < rect.top + 18 || x > rect.right - 18 || y > rect.bottom - 18) {
+        continue;
+      }
+
+      const hit = document.elementFromPoint(x, y);
+      const interactiveHudAncestor =
+        hit instanceof HTMLElement
+          ? hit.closest(
+              "button,input,select,textarea,a,[role='button'],[data-ui-slot],[data-testid='main-menu-panel'],[data-testid='locale-settings'],[data-testid='ui-scale-settings'],[data-testid='storage-panel']",
+            )
+          : null;
+      if (interactiveHudAncestor === null) {
+        return {
+          entityId: entity.entityId,
+          x,
+          y,
+        };
+      }
+    }
+
+    throw new Error("Unable to find an entity reachable by real mouse hit-testing.");
+  }, payload.entityScreenPositions);
+}
+
 async function findInspectableCanvasPoint(
   page: import("playwright").Page,
   payload: WebShellDebugPayload,
@@ -2115,6 +2358,8 @@ function parseDebugPayload(text: string): WebShellDebugPayload {
     !Array.isArray(parsed["browserTargets"]) ||
     typeof parsed["canvasWidth"] !== "number" ||
     typeof parsed["canvasHeight"] !== "number" ||
+    typeof parsed["centerWorldX"] !== "number" ||
+    typeof parsed["centerWorldY"] !== "number" ||
     !isRecord(parsed["diagnostics"]) ||
     typeof parsed["fixtureId"] !== "string" ||
     typeof parsed["runtimeBrowser"] !== "string" ||
@@ -2180,6 +2425,8 @@ function parseDebugPayload(text: string): WebShellDebugPayload {
     }),
     canvasWidth: parsed["canvasWidth"],
     canvasHeight: parsed["canvasHeight"],
+    centerWorldX: parsed["centerWorldX"],
+    centerWorldY: parsed["centerWorldY"],
     diagnostics: {
       blockerCodes: diagnostics["blockerCodes"].map((entry) => {
         if (typeof entry !== "string") {

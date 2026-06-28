@@ -180,8 +180,10 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
 
   const renderer = await createPixiWorldRenderer({
     container: canvasHost,
+    inputTarget: shellFrame,
     readModel: WEB_SHELL_SMOKE_READ_MODEL,
     selectedEntityId: WEB_SHELL_SMOKE_READ_MODEL.selectedEntityId,
+    shouldIgnoreInputTarget: (target) => shouldIgnoreCameraInputTarget(target, hudHost),
     onSelectionChange(entityId: string | undefined, inputLabel: string, inspectedTile): void {
       const currentState = store.getSnapshot();
       store.setState({
@@ -343,6 +345,30 @@ function prepareDocumentChrome(): void {
 
 function readDevicePixelRatio(): number {
   return Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
+}
+
+function shouldIgnoreCameraInputTarget(target: EventTarget | null, hudHost: HTMLElement): boolean {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+
+  if (target === hudHost) {
+    return false;
+  }
+
+  if (target.closest("[data-testid='world-canvas']") !== null) {
+    return false;
+  }
+
+  if (
+    target.closest(
+      "button,input,select,textarea,a,[role='button'],[data-ui-slot],[data-testid='main-menu-panel'],[data-testid='locale-settings'],[data-testid='ui-scale-settings'],[data-testid='storage-panel']",
+    ) !== null
+  ) {
+    return true;
+  }
+
+  return false;
 }
 
 function syncDebug(

@@ -119,6 +119,8 @@ const EN_MESSAGES = {
   "ui.mainMenu.summary":
     "Read the current phase and next pressure, then start a new session or continue the latest local record.",
   "ui.input.booting": "Shell starting",
+  "ui.input.cameraDrag": "Drag pan",
+  "ui.input.cameraReset": "Camera reset",
   "ui.input.inspect": "Inspect tile {x},{y}",
   "ui.input.keyboard": "Keyboard {code}",
   "ui.input.loaded": "Loaded {label}",
@@ -330,6 +332,8 @@ const ZH_CN_MESSAGES = {
   "ui.mainMenu.settings.title": "显示设置",
   "ui.mainMenu.summary": "先阅读当前阶段与下一处压力，再开始新局或继续最近一次本地记录。",
   "ui.input.booting": "外壳启动中",
+  "ui.input.cameraDrag": "拖拽平移",
+  "ui.input.cameraReset": "相机复位",
   "ui.input.inspect": "查看地块 {x},{y}",
   "ui.input.keyboard": "键盘 {code}",
   "ui.input.loaded": "已载入：{label}",

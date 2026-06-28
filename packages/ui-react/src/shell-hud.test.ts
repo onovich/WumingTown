@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import type { WorldReadModel } from "@wuming-town/sim-protocol";
 
 import { createShellHudElement } from "./shell-hud";
+import { localizeShellLastInputLabel } from "./shell-read-model-localization";
 import { createDefaultShellLocaleState } from "./localization";
 import { createDefaultShellUiScaleState } from "./shell-ui-scale";
 import { createShellStore, type ShellState } from "./shell-store";
@@ -251,6 +252,9 @@ describe("shell-hud", () => {
     expect(markup).not.toContain("Chronicle office");
     expect(markup).not.toContain("Rice");
     expect(markup).not.toContain("Unhurt");
+
+    expect(localizeShellLastInputLabel("zh-CN", "Camera drag")).toBe("\u62d6\u62fd\u5e73\u79fb");
+    expect(localizeShellLastInputLabel("zh-CN", "Camera reset")).toBe("\u76f8\u673a\u590d\u4f4d");
   });
 
   it("renders localized empty-tile inspection feedback when no entity is selected", () => {

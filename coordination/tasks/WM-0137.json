@@ -2,7 +2,7 @@
   "id": "WM-0137",
   "title": "Camera drag pan zoom and reset controls",
   "summary": "Add camera drag panning, wheel zoom, keyboard movement, reset and bounds behavior that works in windowed and fullscreen-equivalent layouts.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,7 +32,7 @@
   ],
   "branch": "task/WM-0137-camera-drag-zoom-reset",
   "createdAt": "2026-06-28T13:36:56.432Z",
-  "updatedAt": "2026-06-28T18:47:44.229Z",
+  "updatedAt": "2026-06-28T21:46:03.719Z",
   "history": [
     {
       "at": "2026-06-28T13:36:56.432Z",
@@ -45,6 +45,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-28T20:55:13.535Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": "thread=Codex WM-0137 camera controls"
+    },
+    {
+      "at": "2026-06-28T21:26:23.383Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Implemented camera drag pan, wheel zoom, keyboard movement, Home/0 reset, HUD input routing fixes and localized camera feedback; focused unit/E2E, full web-shell E2E and quality gates passed; web-shell unit filter limitation recorded."
+    },
+    {
+      "at": "2026-06-28T21:44:22.963Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; diff stays renderer/UI/Web only, camera drag/wheel/keyboard/reset behavior is covered by supplied and focused check evidence, and scoped quality gates passed except the recorded unsupported web-shell unit-filter shape."
+    },
+    {
+      "at": "2026-06-28T21:45:56.497Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified camera controls integrated after handoff/task validation, diff check and full quality gate passed; reviewer confirmed no blocking findings."
+    },
+    {
+      "at": "2026-06-28T21:46:03.718Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M8",
@@ -59,5 +89,20 @@
   "forbiddenPaths": [
     "simulation authority changes",
     "public release or platform verdict changes"
-  ]
+  ],
+  "claimedBy": "client-engineer",
+  "threadLabel": "Codex WM-0137 camera controls",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0137.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; diff stays renderer/UI/Web only, camera drag/wheel/keyboard/reset behavior is covered by supplied and focused check evidence, and scoped quality gates passed except the recorded unsupported web-shell unit-filter shape.",
+    "at": "2026-06-28T21:44:22.963Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified camera controls integrated after handoff/task validation, diff check and full quality gate passed; reviewer confirmed no blocking findings.",
+    "at": "2026-06-28T21:45:56.497Z"
+  }
 }

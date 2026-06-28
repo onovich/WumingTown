@@ -927,6 +927,14 @@ export function localizeShellLastInputLabel(locale: LocaleId, source: string): s
     return formatMessage(locale, "ui.input.pointer");
   }
 
+  if (source === "Camera drag") {
+    return formatMessage(locale, "ui.input.cameraDrag");
+  }
+
+  if (source === "Camera reset") {
+    return formatMessage(locale, "ui.input.cameraReset");
+  }
+
   if (source.startsWith("Canvas inspect ")) {
     const coordinates = source.slice("Canvas inspect ".length);
     const [x, y] = coordinates.split(",");

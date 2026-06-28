@@ -2,7 +2,7 @@
   "id": "WM-0138",
   "title": "Minimum playable interaction command chain",
   "summary": "Implement at least one real player interaction chain, such as selecting a lantern and prioritizing lamp work, with traceable command or documented adapter state and UI feedback.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -36,13 +36,19 @@
   ],
   "branch": "task/WM-0138-minimum-playable-interaction-chain",
   "createdAt": "2026-06-28T13:36:56.432Z",
-  "updatedAt": "2026-06-28T13:36:56.432Z",
+  "updatedAt": "2026-06-28T21:46:03.743Z",
   "history": [
     {
       "at": "2026-06-28T13:36:56.432Z",
       "actor": "project-director",
       "action": "create",
       "details": "Created by WM-0129 remediation DAG."
+    },
+    {
+      "at": "2026-06-28T21:46:03.743Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "M8",
