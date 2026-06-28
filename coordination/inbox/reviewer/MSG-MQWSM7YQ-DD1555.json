@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQWSM7YQ-DD1555",
+  "from": "client-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0117",
+  "kind": "review-request",
+  "subject": "WM-0117 ready for review",
+  "body": "Replaced the default post-start diagnostics-dominant shell with a player HUD, gated Product Gate/storage evidence behind wmDiagnostics=1, added localized HUD chrome and M8 token styling, and covered default-vs-debug behavior in Web/Desktop E2E; required checks passed.",
+  "artifacts": [
+    "coordination/reports/WM-0117.md",
+    "task/WM-0117-m8-player-hud-debug-overlay"
+  ],
+  "createdAt": "2026-06-27T20:08:54.482Z",
+  "acknowledgedAt": "2026-06-27T20:11:02.935Z"
+}

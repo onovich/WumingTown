@@ -2,7 +2,7 @@
   "id": "WM-0117",
   "title": "Player HUD and debug overlay separation",
   "summary": "Replace the default diagnostics harness surface with a player HUD and move diagnostics into explicit dev/debug mode.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -34,7 +34,7 @@
   ],
   "branch": "task/WM-0117-m8-player-hud-debug-overlay",
   "createdAt": "2026-06-27T15:46:00.000Z",
-  "updatedAt": "2026-06-27T18:46:55.610Z",
+  "updatedAt": "2026-06-28T05:11:52.819Z",
   "history": [
     {
       "at": "2026-06-27T15:46:00.000Z",
@@ -47,6 +47,54 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-27T19:44:27.259Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": "thread=codex-client-engineer-wm0117"
+    },
+    {
+      "at": "2026-06-27T20:08:54.481Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Replaced the default post-start diagnostics-dominant shell with a player HUD, gated Product Gate/storage evidence behind wmDiagnostics=1, added localized HUD chrome and M8 token styling, and covered default-vs-debug behavior in Web/Desktop E2E; required checks passed."
+    },
+    {
+      "at": "2026-06-27T20:20:55.216Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: default HUD is not viewport-bounded. At 1424x861 the task card extends below the viewport and events/resident-watch are clipped; at 390x720 the compact inspector starts offscreen and overlaps the HUD, so required events/tasks/resident state are not reliably visible/reachable despite diagnostics being gated."
+    },
+    {
+      "at": "2026-06-27T20:22:32.004Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": "thread=codex-client-engineer-wm0117"
+    },
+    {
+      "at": "2026-06-28T04:55:46.266Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Repaired WM-0117 viewport issues by replacing the post-start HUD's overlap-prone rails with viewport-bounded desktop columns and a compact stacked layout, added focused Web E2E reachability coverage at 1424x861 and 390x720, preserved diagnostics gating/read-model-only behavior, and all required validation commands passed."
+    },
+    {
+      "at": "2026-06-28T05:07:14.986Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; verified viewport-bounded default HUD at 1424x861 and compact 390x720 via Web E2E, default/debug gating via Web/Desktop E2E, and read-model-only UI diff with no sim/worker changes; required gates rerun pass."
+    },
+    {
+      "at": "2026-06-28T05:11:52.775Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Rebased on origin/main at 5cc00c8; integrated verified player HUD/debug overlay separation commit 3acdb4a; full integration gate passed: typecheck, Web/Desktop E2E, handoff validate, taskctl validate/status, diff check, quality."
+    },
+    {
+      "at": "2026-06-28T05:11:52.819Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M8",
@@ -63,5 +111,20 @@
     "packages/sim-worker/**",
     "Worker protocol changes unless separately reviewed",
     "release/store/signing/telemetry/account/paid-service work"
-  ]
+  ],
+  "claimedBy": "client-engineer",
+  "threadLabel": "codex-client-engineer-wm0117",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0117.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; verified viewport-bounded default HUD at 1424x861 and compact 390x720 via Web E2E, default/debug gating via Web/Desktop E2E, and read-model-only UI diff with no sim/worker changes; required gates rerun pass.",
+    "at": "2026-06-28T05:07:14.986Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Rebased on origin/main at 5cc00c8; integrated verified player HUD/debug overlay separation commit 3acdb4a; full integration gate passed: typecheck, Web/Desktop E2E, handoff validate, taskctl validate/status, diff check, quality.",
+    "at": "2026-06-28T05:11:52.774Z"
+  }
 }

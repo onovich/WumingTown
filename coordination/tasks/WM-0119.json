@@ -2,7 +2,7 @@
   "id": "WM-0119",
   "title": "First-play onboarding and next-action guidance",
   "summary": "Make first play legible with phase, possible actions, next goal and game-versus-diagnostics separation.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "gameplay-designer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,13 +31,19 @@
   ],
   "branch": "task/WM-0119-m8-first-play-guidance",
   "createdAt": "2026-06-27T15:46:00.000Z",
-  "updatedAt": "2026-06-27T15:46:00.000Z",
+  "updatedAt": "2026-06-28T05:11:52.842Z",
   "history": [
     {
       "at": "2026-06-27T15:46:00.000Z",
       "actor": "project-director",
       "action": "create",
       "details": "Created by WM-0111 M8 UI/i18n scope amendment DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-28T05:11:52.842Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "M8",

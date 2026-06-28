@@ -98,6 +98,7 @@ describe("web shell smoke", () => {
         waitUntil: "networkidle",
       });
       await page.waitForSelector("[data-shell-ready='true']");
+      await assertDebugOverlayBaseline(page);
 
       await page.setViewportSize({
         width: 1180,
@@ -227,6 +228,7 @@ describe("web shell smoke", () => {
         waitUntil: "networkidle",
       });
       await page.waitForSelector("[data-shell-ready='true']");
+      await assertDebugOverlayBaseline(page);
       await waitForStorageStatus(page, "Web storage evidence is current.");
 
       await page.getByTestId("storage-save-button").click();
@@ -367,6 +369,7 @@ describe("web shell smoke", () => {
         waitUntil: "networkidle",
       });
       await page.waitForSelector("[data-shell-ready='true']");
+      await assertDebugOverlayBaseline(page);
       await page.evaluate(() => {
         window.dispatchEvent(
           new ErrorEvent("error", {
@@ -478,6 +481,51 @@ describe("web shell smoke", () => {
     }
   }, 120000);
 
+  it("keeps the default player HUD viewport-bounded and panels reachable at 1424x861 and 390x720", async () => {
+    const appRoot = path.join(process.cwd(), "apps", "web");
+    const server = await createServer({
+      configFile: false,
+      logLevel: "error",
+      root: appRoot,
+      server: {
+        host: "127.0.0.1",
+        port: 0,
+        strictPort: false,
+      },
+    });
+    await server.listen();
+
+    const serverUrl = readServerUrl(server);
+    const browser = await chromium.launch();
+
+    try {
+      const context = await browser.newContext({
+        locale: "en-US",
+        viewport: {
+          width: 1424,
+          height: 861,
+        },
+      });
+      const page = await context.newPage();
+
+      await page.goto(serverUrl, {
+        waitUntil: "networkidle",
+      });
+      await page.waitForSelector("[data-shell-ready='true']");
+      await waitForLocale(page, "en", "system");
+      await page.getByTestId("main-menu-new-game").click();
+      await waitForStartSurfaceClosed(page);
+
+      await assertTownHudViewportLayout(page, 1424, 861);
+      await assertTownHudViewportLayout(page, 390, 720);
+
+      await context.close();
+    } finally {
+      await browser.close();
+      await server.close();
+    }
+  }, 120000);
+
   it("defaults locale by browser language and persists a manual override across reload", async () => {
     const appRoot = path.join(process.cwd(), "apps", "web");
     const server = await createServer({
@@ -555,6 +603,7 @@ async function assertAccessibilityBaseline(page: import("playwright").Page): Pro
     await page.getByTestId("main-menu-new-game").click();
     await waitForStartSurfaceClosed(page);
   }
+  await assertPlayerHudBaseline(page);
   await waitForHudText(page, "Language settings");
 
   const warningAlertText = await page
@@ -613,6 +662,73 @@ async function assertAccessibilityBaseline(page: import("playwright").Page): Pro
   });
   expect(overflow.documentOverflowX).toBeLessThanOrEqual(1);
   expect(overflow.offenders).toStrictEqual([]);
+}
+
+async function assertPlayerHudBaseline(page: import("playwright").Page): Promise<void> {
+  expect(await page.getByTestId("player-hud").count()).toBe(1);
+  expect(await page.getByTestId("player-next-goal").count()).toBe(1);
+  expect(await page.getByTestId("player-night-risk").count()).toBe(1);
+  expect(await page.getByTestId("player-task-list").count()).toBe(1);
+  expect(await page.getByTestId("player-event-list").count()).toBe(1);
+  expect(await page.getByTestId("player-resident-watch").count()).toBe(1);
+  expect(await page.getByTestId("debug-overlay").count()).toBe(0);
+
+  const goalText = await page.getByTestId("player-next-goal").textContent();
+  expect(goalText ?? "").toContain("Lantern corridor gap");
+  const nightRiskTier = await page
+    .getByTestId("player-night-risk")
+    .getAttribute("data-night-risk-tier");
+  expect(nightRiskTier).toBe("strained");
+}
+
+async function assertTownHudViewportLayout(
+  page: import("playwright").Page,
+  width: number,
+  height: number,
+): Promise<void> {
+  await page.setViewportSize({
+    width,
+    height,
+  });
+  await page.waitForTimeout(200);
+  await assertPlayerHudBaseline(page);
+
+  const topBarMetrics = await readElementViewportMetrics(page, "[aria-label='Town status']");
+  expect(topBarMetrics.top).toBeGreaterThanOrEqual(0);
+  expect(topBarMetrics.left).toBeGreaterThanOrEqual(0);
+  expect(topBarMetrics.right).toBeLessThanOrEqual(width + 1);
+  expect(topBarMetrics.bottom).toBeLessThanOrEqual(height + 1);
+
+  for (const testId of [
+    "player-next-goal",
+    "player-task-list",
+    "player-event-list",
+    "player-resident-watch",
+  ]) {
+    await assertTestIdReachableWithoutCover(page, testId, width, height);
+  }
+
+  await assertSelectorReachableWithoutCover(
+    page,
+    "[data-testid='player-selected-detail']",
+    width,
+    height,
+  );
+}
+
+async function assertDebugOverlayBaseline(page: import("playwright").Page): Promise<void> {
+  await waitForHudText(page, "Debug overlay");
+  expect(await page.getByTestId("player-hud").count()).toBe(1);
+  expect(await page.getByTestId("debug-overlay").count()).toBe(1);
+  expect(await page.getByTestId("storage-panel").count()).toBe(1);
+  expect(await page.locator("[data-release-gate-fixture='wm-0086-web-product-gate']").count()).toBe(
+    1,
+  );
+
+  const overlayText = await page.getByTestId("debug-overlay").textContent();
+  expect(overlayText ?? "").toContain("wmDiagnostics=1");
+  expect(overlayText ?? "").toContain("Web Product Gate");
+  expect(overlayText ?? "").toContain("M5 first-season Web product-gate fixture");
 }
 
 async function assertOnboardingBaseline(page: import("playwright").Page): Promise<void> {
@@ -717,6 +833,45 @@ async function assertTestIdWithinViewport(
   expect(metrics.right).toBeLessThanOrEqual(width + 1);
   expect(metrics.bottom).toBeLessThanOrEqual(height + 1);
   expect(metrics.overflowX).toBeLessThanOrEqual(1);
+}
+
+async function assertTestIdReachableWithoutCover(
+  page: import("playwright").Page,
+  testId: string,
+  width: number,
+  height: number,
+): Promise<void> {
+  await assertSelectorReachableWithoutCover(page, `[data-testid='${testId}']`, width, height);
+}
+
+async function assertSelectorReachableWithoutCover(
+  page: import("playwright").Page,
+  selector: string,
+  width: number,
+  height: number,
+): Promise<void> {
+  await page.locator(selector).evaluate((element: HTMLElement) => {
+    element.scrollIntoView({
+      block: "nearest",
+      inline: "nearest",
+    });
+  });
+  await page.waitForTimeout(80);
+
+  const metrics = await readElementViewportMetrics(page, selector);
+  expect(metrics.top).toBeGreaterThanOrEqual(0);
+  expect(metrics.left).toBeGreaterThanOrEqual(0);
+  expect(metrics.right).toBeLessThanOrEqual(width + 1);
+  expect(metrics.bottom).toBeLessThanOrEqual(height + 1);
+
+  const isUncovered = await page.locator(selector).evaluate((element: HTMLElement) => {
+    const rect = element.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const hit = document.elementFromPoint(centerX, centerY);
+    return hit instanceof HTMLElement && (hit === element || element.contains(hit));
+  });
+  expect(isUncovered).toBe(true);
 }
 
 async function readElementViewportMetrics(

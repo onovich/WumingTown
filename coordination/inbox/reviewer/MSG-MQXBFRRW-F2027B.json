@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQXBFRRW-F2027B",
+  "from": "client-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0117",
+  "kind": "review-request",
+  "subject": "WM-0117 ready for review",
+  "body": "Repaired WM-0117 viewport issues by replacing the post-start HUD's overlap-prone rails with viewport-bounded desktop columns and a compact stacked layout, added focused Web E2E reachability coverage at 1424x861 and 390x720, preserved diagnostics gating/read-model-only behavior, and all required validation commands passed.",
+  "artifacts": [
+    "coordination/reports/WM-0117.md",
+    "task/WM-0117-m8-player-hud-debug-overlay"
+  ],
+  "createdAt": "2026-06-28T04:55:46.268Z",
+  "acknowledgedAt": "2026-06-28T04:57:29.044Z"
+}

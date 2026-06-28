@@ -98,6 +98,24 @@ describe("shell-hud", () => {
     expect(markup).not.toContain("New Game");
     expect(markup).not.toContain("Settings");
   });
+
+  it("renders the player HUD and gated debug overlay only when diagnostics are enabled", () => {
+    const state = {
+      ...createShellState(createDefaultShellLocaleState(["en-US"])),
+      diagnosticsVisible: true,
+    } satisfies ShellState;
+    const markup = renderShell(state);
+
+    expect(markup).toContain("Player HUD");
+    expect(markup).toContain("Current state");
+    expect(markup).toContain("Next goal");
+    expect(markup).toContain("Night risk");
+    expect(markup).toContain("Current tasks");
+    expect(markup).toContain("Residents to watch");
+    expect(markup).toContain("Debug overlay");
+    expect(markup).toContain("Web Product Gate");
+    expect(markup).not.toContain("Main menu");
+  });
 });
 
 function createShellState(locale: ReturnType<typeof createDefaultShellLocaleState>): ShellState {

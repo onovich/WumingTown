@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQXBUJ70-4ADC4F",
+  "from": "reviewer",
+  "to": "client-engineer",
+  "taskId": "WM-0117",
+  "kind": "review-approved",
+  "subject": "WM-0117 review: verified",
+  "body": "No blocking findings; verified viewport-bounded default HUD at 1424x861 and compact 390x720 via Web E2E, default/debug gating via Web/Desktop E2E, and read-model-only UI diff with no sim/worker changes; required gates rerun pass.",
+  "artifacts": [
+    "coordination/reports/WM-0117.md"
+  ],
+  "createdAt": "2026-06-28T05:07:14.988Z",
+  "acknowledgedAt": "2026-06-28T05:08:13.084Z"
+}

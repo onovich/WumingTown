@@ -180,6 +180,9 @@ describe("desktop Electron shell smoke", () => {
         await englishPage.waitForSelector("[data-shell-ready='true']");
         await waitForLocale(englishPage, "en", "system");
         await assertDesktopStartSurfaceBaseline(englishPage, "en");
+        await englishPage.getByTestId("main-menu-new-game").click();
+        await waitForDesktopStartSurfaceClosed(englishPage);
+        await assertDesktopPlayerHudBaseline(englishPage);
         expect(
           await englishPage
             .locator("[data-release-gate-fixture='wm-0086-web-product-gate']")
@@ -207,6 +210,9 @@ describe("desktop Electron shell smoke", () => {
         await chinesePage.getByTestId("main-menu-locale-en").click();
         await waitForLocale(chinesePage, "en", "manual");
         await waitForHudText(chinesePage, "New Game");
+        await chinesePage.getByTestId("main-menu-new-game").click();
+        await waitForDesktopStartSurfaceClosed(chinesePage);
+        await assertDesktopPlayerHudBaseline(chinesePage);
       } finally {
         await chineseApp.close();
       }
@@ -327,6 +333,7 @@ async function assertShellReady(page: Page, expectedHostKind: string): Promise<v
     sandboxedRenderer: true,
   });
 
+  await assertDesktopDebugOverlayBaseline(page);
   const releaseGateText = await page
     .locator("[data-release-gate-fixture='wm-0086-web-product-gate']")
     .textContent();
@@ -370,6 +377,7 @@ async function assertDesktopAccessibilityBaseline(
     await page.getByTestId("main-menu-new-game").click();
     await waitForDesktopStartSurfaceClosed(page);
   }
+  await assertDesktopPlayerHudStructure(page);
   await waitForHudText(page, "Language settings");
   expect(shellText ?? "").toContain("无明镇");
 
@@ -408,6 +416,29 @@ async function assertDesktopAccessibilityBaseline(
   await waitForHudText(page, "Keyboard Equal");
   await page.keyboard.press("ArrowLeft");
   await waitForHudText(page, "Keyboard ArrowLeft");
+}
+
+async function assertDesktopPlayerHudBaseline(page: Page): Promise<void> {
+  await assertDesktopPlayerHudStructure(page);
+  expect(await page.getByTestId("debug-overlay").count()).toBe(0);
+}
+
+async function assertDesktopPlayerHudStructure(page: Page): Promise<void> {
+  expect(await page.getByTestId("player-hud").count()).toBe(1);
+  expect(await page.getByTestId("player-next-goal").count()).toBe(1);
+  expect(await page.getByTestId("player-night-risk").count()).toBe(1);
+  expect(await page.getByTestId("player-task-list").count()).toBe(1);
+  expect(await page.getByTestId("player-event-list").count()).toBe(1);
+  expect(await page.getByTestId("player-resident-watch").count()).toBe(1);
+}
+
+async function assertDesktopDebugOverlayBaseline(page: Page): Promise<void> {
+  expect(await page.getByTestId("player-hud").count()).toBe(1);
+  expect(await page.getByTestId("debug-overlay").count()).toBe(1);
+  expect(await page.getByTestId("storage-panel").count()).toBe(1);
+  const overlayText = await page.getByTestId("debug-overlay").textContent();
+  expect(overlayText ?? "").toContain("wmDiagnostics=1");
+  expect(overlayText ?? "").toContain("Web Product Gate");
 }
 
 async function assertDesktopOnboardingBaseline(page: Page): Promise<void> {

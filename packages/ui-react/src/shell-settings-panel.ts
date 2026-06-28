@@ -185,13 +185,15 @@ const panelStyle: CSSProperties = {
   background: "rgba(18, 15, 11, 0.88)",
   border: "1px solid rgba(232, 206, 151, 0.18)",
   borderRadius: "8px",
+  boxSizing: "border-box",
   boxShadow: "0 10px 24px rgba(0, 0, 0, 0.24)",
   display: "flex",
   flexDirection: "column",
   gap: "10px",
-  maxWidth: "320px",
-  minWidth: "260px",
+  maxWidth: "100%",
+  minWidth: 0,
   padding: "14px 16px",
+  width: "min(320px, 100%)",
 };
 
 const headerStyle: CSSProperties = {
@@ -239,7 +241,9 @@ const selectStyle: CSSProperties = {
   fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
   fontSize: "13px",
   fontWeight: 600,
+  minWidth: 0,
   padding: "8px 10px",
+  width: "100%",
 };
 
 const metaStyle: CSSProperties = {

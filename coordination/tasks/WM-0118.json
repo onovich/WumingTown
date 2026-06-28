@@ -2,7 +2,7 @@
   "id": "WM-0118",
   "title": "Responsive viewport and screenshot validation",
   "summary": "Add automated responsive layout evidence for required windowed/fullscreen viewport sizes and bilingual UI states.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,13 +31,19 @@
   ],
   "branch": "task/WM-0118-m8-responsive-viewport-validation",
   "createdAt": "2026-06-27T15:46:00.000Z",
-  "updatedAt": "2026-06-27T15:46:00.000Z",
+  "updatedAt": "2026-06-28T05:11:52.841Z",
   "history": [
     {
       "at": "2026-06-27T15:46:00.000Z",
       "actor": "project-director",
       "action": "create",
       "details": "Created by WM-0111 M8 UI/i18n scope amendment DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-28T05:11:52.841Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "M8",

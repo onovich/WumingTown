@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQWT1O35-0CEC71",
+  "from": "reviewer",
+  "to": "client-engineer",
+  "taskId": "WM-0117",
+  "kind": "changes-requested",
+  "subject": "WM-0117 review: changes_requested",
+  "body": "High: default HUD is not viewport-bounded. At 1424x861 the task card extends below the viewport and events/resident-watch are clipped; at 390x720 the compact inspector starts offscreen and overlaps the HUD, so required events/tasks/resident state are not reliably visible/reachable despite diagnostics being gated.",
+  "artifacts": [
+    "coordination/reports/WM-0117.md"
+  ],
+  "createdAt": "2026-06-27T20:20:55.217Z",
+  "acknowledgedAt": "2026-06-27T20:22:05.465Z"
+}

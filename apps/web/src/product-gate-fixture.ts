@@ -376,36 +376,36 @@ const SUPPORT_ROLES = [
 
 export const WEB_PRODUCT_GATE_READ_MODEL: WorldReadModel = {
   sessionId: "wm-0086-web-product-gate",
-  mapName: "First Season Product Gate",
+  mapName: "East market and bridge road",
   tileSize: TILE_SIZE,
   chunkSize: CHUNK_SIZE,
   mapWidth: MAP_WIDTH,
   mapHeight: MAP_HEIGHT,
   town: {
     settlementName: "Wuming Town / 无明镇",
-    phaseLabel: "M6 Web product gate harness",
+    phaseLabel: "Dusk watch",
     cycleLabel: "First season, curfew approach",
-    speedLabel: "Read-only fixture fed from reviewed M5 evidence",
+    speedLabel: "Paused",
     alerts: [
       {
         severity: "warning",
         label: "Lantern corridor gap",
-        detail: "Market east lane remains the weakest M4-derived glow path.",
+        detail: "The east market lane may lose light before curfew.",
       },
       {
         severity: "warning",
         label: "Threshold review open",
-        detail: "Third-knock host list still needs council-safe confirmation.",
+        detail: "Guesthouse threshold records still need council confirmation.",
       },
       {
         severity: "stable",
         label: "Bridge parcels staged",
-        detail: "Prepared goods remain visible for the old-bridge route check.",
+        detail: "Prepared goods are ready beside the old bridge route.",
       },
       {
         severity: "stable",
         label: "Faction pressure bounded",
-        detail: "Negotiation, archive and patrol lanes remain in balance.",
+        detail: "Guild, archive, and patrol demands remain in balance.",
       },
     ],
     resources: [
