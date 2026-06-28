@@ -7,6 +7,11 @@ import {
   type MessageKey,
   type ShellLocaleState,
 } from "./localization";
+import {
+  SHELL_DESIGN_TOKENS,
+  createSelectStyle,
+  createShellSurfaceStyle,
+} from "./shell-design-tokens";
 import type { ShellSettingsActions } from "./shell-store";
 import type { ShellUiScaleState, UiScaleId } from "./shell-ui-scale";
 
@@ -37,6 +42,7 @@ export function ShellSettingsPanel({
     {
       "aria-label": formatMessage(uiLocale, "ui.settings.aria"),
       "data-locale-source": localeState.source,
+      "data-ui-slot": SHELL_DESIGN_TOKENS.slot.inspector,
       "data-testid": "locale-settings",
       style: panelStyle,
     },
@@ -183,13 +189,6 @@ export function ShellSettingsPanel({
               style: eyebrowStyle,
             },
             formatMessage(uiLocale, "ui.settings.scale"),
-          ),
-          createElement(
-            "span",
-            {
-              style: bodyStyle,
-            },
-            formatMessage(uiLocale, "ui.settings.scale.description"),
           ),
           createElement(
             "select",
@@ -352,34 +351,35 @@ function formatUiScaleLabel(locale: LocaleId, uiScale: UiScaleId): string {
 }
 
 const panelStyle: CSSProperties = {
-  background: "rgba(18, 15, 11, 0.88)",
-  border: "1px solid rgba(232, 206, 151, 0.18)",
-  borderRadius: "8px",
+  ...createShellSurfaceStyle("ink", {
+    gap: "8px",
+    padding: "10px 12px",
+    radius: SHELL_DESIGN_TOKENS.radius.slip,
+  }),
   boxSizing: "border-box",
-  boxShadow: "0 10px 24px rgba(0, 0, 0, 0.24)",
-  display: "flex",
-  flexDirection: "column",
-  gap: "10px",
   maxWidth: "100%",
   minWidth: 0,
-  padding: "14px 16px",
+  pointerEvents: "auto",
+  position: "relative",
   width: "min(320px, 100%)",
+  zIndex: 2,
 };
 
 const settingsGridStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  gap: "10px",
+  gap: "8px",
 };
 
 const settingCardStyle: CSSProperties = {
-  background: "rgba(255, 255, 255, 0.03)",
-  border: "1px solid rgba(232, 206, 151, 0.12)",
-  borderRadius: "8px",
-  display: "flex",
-  flexDirection: "column",
-  gap: "8px",
-  padding: "10px",
+  ...createShellSurfaceStyle("paper", {
+    gap: "4px",
+    padding: "6px",
+    radius: SHELL_DESIGN_TOKENS.radius.panel,
+  }),
+  pointerEvents: "auto",
+  position: "relative",
+  zIndex: 1,
 };
 
 const headerStyle: CSSProperties = {
@@ -389,16 +389,16 @@ const headerStyle: CSSProperties = {
 };
 
 const titleStyle: CSSProperties = {
-  color: "#f7eed7",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  color: "var(--shell-color-text-inverse)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
   fontSize: "15px",
   fontWeight: 700,
   lineHeight: "20px",
 };
 
 const eyebrowStyle: CSSProperties = {
-  color: "#d3cab6",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  color: "var(--shell-color-text-muted)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
   fontSize: "11px",
   fontWeight: 700,
   lineHeight: "15px",
@@ -406,8 +406,8 @@ const eyebrowStyle: CSSProperties = {
 };
 
 const bodyStyle: CSSProperties = {
-  color: "#c8c0af",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  color: "var(--shell-color-text-warm)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
   fontSize: "12px",
   lineHeight: "17px",
   margin: 0,
@@ -417,37 +417,31 @@ const bodyStyle: CSSProperties = {
 const labelStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  gap: "6px",
+  gap: "4px",
 };
 
 const selectStyle: CSSProperties = {
-  background: "#f1e6cc",
-  border: "1px solid rgba(232, 206, 151, 0.18)",
-  borderRadius: "6px",
-  color: "#241e18",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
-  fontSize: "13px",
-  fontWeight: 600,
-  minWidth: 0,
-  padding: "8px 10px",
-  width: "100%",
+  ...createSelectStyle(),
+  minHeight: "32px",
+  padding: "6px 8px",
 };
 
 const metaStyle: CSSProperties = {
-  background: "rgba(255, 255, 255, 0.03)",
+  background: "rgba(37, 33, 27, 0.94)",
+  backgroundColor: "rgb(37, 33, 27)",
   border: "1px solid rgba(232, 206, 151, 0.12)",
-  borderRadius: "6px",
-  color: "#d8cfbc",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  borderRadius: SHELL_DESIGN_TOKENS.radius.panel,
+  color: "rgb(245, 234, 210)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
   fontSize: "12px",
   lineHeight: "17px",
   overflowWrap: "anywhere",
-  padding: "8px 10px",
+  padding: "4px 8px",
 };
 
 const boundaryStyle: CSSProperties = {
-  color: "#b9aa92",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  color: "rgba(245, 234, 210, 0.68)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
   fontSize: "12px",
   lineHeight: "17px",
   margin: 0,

@@ -199,6 +199,11 @@ describe("shell-hud", () => {
     expect(markup).toContain("Night risk");
     expect(markup).toContain("Current tasks");
     expect(markup).toContain("Residents to watch");
+    expect(markup).toContain("Command bar");
+    expect(markup).toContain('data-testid="player-command-bar"');
+    expect(markup).toContain('data-ui-slot="panel.paper.primary"');
+    expect(markup).toContain('data-ui-slot="button.primary.disabled"');
+    expect(markup).toContain('aria-disabled="true"');
     expect(markup).toContain("Debug overlay");
     expect(markup).toContain("Web Product Gate");
     expect(markup).not.toContain("Main menu");
@@ -219,6 +224,10 @@ describe("shell-hud", () => {
     expect(markup).toContain("\u7a33\u5b9a");
     expect(markup).toContain("\u65e0\u4f24");
     expect(markup).toContain("\u5c31\u7eea");
+    expect(markup).toContain("\u547d\u4ee4\u5e26");
+    expect(markup).toContain("\u706f\u8def\u69fd\u4f4d");
+    expect(markup).not.toContain("Command bar");
+    expect(markup).not.toContain("Lamp routes");
     expect(markup).not.toContain("Lantern corridor gap");
     expect(markup).not.toContain("Bridge parcels staged");
     expect(markup).not.toContain("Chronicle office");

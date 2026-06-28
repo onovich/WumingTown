@@ -10,6 +10,17 @@ import type { WorldEntityReadModel } from "@wuming-town/sim-protocol";
 
 import { formatMessage, type LocaleId } from "./localization";
 import {
+  SHELL_DESIGN_TOKENS,
+  createCommandButtonStyle,
+  createHairlineRuleStyle,
+  createNightRiskSurfaceStyle,
+  createShellSurfaceStyle,
+  createStatusBadgeStyle,
+  createTrendBadgeStyle,
+  shellTokenLayerStyle,
+  type ShellNightRiskTier,
+} from "./shell-design-tokens";
+import {
   localizeShellFixtureText,
   localizeShellLastInputLabel,
 } from "./shell-read-model-localization";
@@ -21,7 +32,7 @@ import type { ShellSettingsActions, ShellStorageActions } from "./shell-store";
 
 type AlertSeverity = ShellState["readModel"]["town"]["alerts"][number]["severity"];
 type NeedState = WorldEntityReadModel["inspector"]["needs"][number]["state"];
-type NightRiskTier = "stable" | "watch" | "strained" | "breach";
+type NightRiskTier = ShellNightRiskTier;
 
 export interface ShellHudRootProps {
   readonly settingsActions: ShellSettingsActions;
@@ -138,11 +149,13 @@ export function ShellHudRoot({
         "section",
         {
           "aria-label": formatMessage(uiLocale, "ui.hud.aria"),
+          "data-ui-slot": "hud.shell",
           "data-testid": "player-hud",
           key: "player-hud",
           style: hudLayerStyle,
         },
         createTopBar(state, playerHud, uiLocale, compactLayout),
+        createAlertStrip(state, uiLocale, compactLayout),
         compactLayout
           ? createCompactHudBody(state, playerHud, selectedEntity, uiLocale, settingsActions)
           : createDesktopHudBody(state, playerHud, selectedEntity, uiLocale, settingsActions),
@@ -163,6 +176,7 @@ function createTopBar(
       "section",
       {
         "aria-label": formatMessage(locale, "ui.surface.topBar"),
+        "data-ui-slot": SHELL_DESIGN_TOKENS.slot.panelToolbar,
         "data-testid": "player-top-bar",
         style: compactTopBarStyle,
       },
@@ -174,6 +188,7 @@ function createTopBar(
     "section",
     {
       "aria-label": formatMessage(locale, "ui.surface.topBar"),
+      "data-ui-slot": SHELL_DESIGN_TOKENS.slot.panelToolbar,
       "data-testid": "player-top-bar",
       style: topBarStyle,
     },
@@ -185,6 +200,53 @@ function createTopBar(
       },
       createNightRiskBadge(playerHud.nightRisk.tier, locale, false),
       createResourceStrip(state, locale),
+    ),
+  );
+}
+
+function createAlertStrip(
+  state: ShellState,
+  locale: LocaleId,
+  compactLayout: boolean,
+): ReactElement {
+  return createElement(
+    "section",
+    {
+      "aria-label": formatMessage(locale, "ui.surface.alerts"),
+      "data-testid": "player-alert-strip",
+      style: compactLayout ? compactAlertStripStyle : alertStripStyle,
+    },
+    ...state.readModel.town.alerts.slice(0, compactLayout ? 1 : 3).map((alert) =>
+      createElement(
+        "article",
+        {
+          "aria-label": `${formatAlertSeverity(alert.severity, locale)}: ${localizeShellFixtureText(locale, alert.label)}. ${localizeShellFixtureText(locale, alert.detail)}`,
+          "data-alert-severity": alert.severity,
+          "data-ui-slot": SHELL_DESIGN_TOKENS.slot.panelAlert,
+          key: `${alert.severity}:${alert.label}:strip`,
+          style: alertSlipStyle(alert.severity),
+        },
+        createElement(
+          "div",
+          {
+            style: rowHeaderStyle,
+          },
+          createElement(
+            "div",
+            {
+              style: rowTitleStyle,
+            },
+            localizeShellFixtureText(locale, alert.label),
+          ),
+          createElement(
+            "div",
+            {
+              style: severityBadgeStyle(alert.severity),
+            },
+            formatAlertSeverity(alert.severity, locale).toUpperCase(),
+          ),
+        ),
+      ),
     ),
   );
 }
@@ -208,6 +270,7 @@ function createDesktopHudBody(
       },
       createCurrentStateCard(state, playerHud.phaseMeaning, locale),
       createNextGoalCard(playerHud, locale),
+      createCommandBarPlaceholder(locale),
       createTaskCard(playerHud.taskEntities, locale),
       createEventCard(state, locale),
     ),
@@ -248,14 +311,10 @@ function createCompactHudBody(
     createCurrentStateCard(state, playerHud.phaseMeaning, locale),
     createResourceSummaryCard(state, locale),
     createNextGoalCard(playerHud, locale),
+    createCommandBarPlaceholder(locale),
     createTaskCard(playerHud.taskEntities, locale),
     createEventCard(state, locale),
     createResidentAttentionCard(playerHud.residentItems, locale),
-    createElement(ShellSettingsPanel, {
-      actions: settingsActions,
-      localeState: state.locale,
-      uiScaleState: state.uiScale,
-    }),
     createElement(
       "aside",
       {
@@ -265,6 +324,11 @@ function createCompactHudBody(
       },
       createInspectorCard(state, selectedEntity, locale, true),
     ),
+    createElement(ShellSettingsPanel, {
+      actions: settingsActions,
+      localeState: state.locale,
+      uiScaleState: state.uiScale,
+    }),
   );
 }
 
@@ -279,6 +343,7 @@ function createResourceStrip(state: ShellState, locale: LocaleId): ReactElement 
         "div",
         {
           key: resource.label,
+          "data-ui-slot": SHELL_DESIGN_TOKENS.slot.panelPaper,
           style: resourceCardStyle,
         },
         createElement(
@@ -317,11 +382,14 @@ function createResourceSummaryCard(state: ShellState, locale: LocaleId): ReactEl
   return createElement(
     "section",
     {
-      style: paperCardStyle,
+      "data-ui-slot": SHELL_DESIGN_TOKENS.slot.panelToolbar,
+      style: resourceBandStyle,
     },
     createSectionHeader(
       formatMessage(locale, "ui.surface.topBar"),
       formatMessage(locale, "ui.hud.map"),
+      "neutral",
+      true,
     ),
     createResourceStrip(state, locale),
   );
@@ -335,6 +403,7 @@ function createCurrentStateCard(
   return createElement(
     "section",
     {
+      "data-ui-slot": SHELL_DESIGN_TOKENS.slot.panelPaper,
       style: paperCardStyle,
     },
     createSectionHeader(formatMessage(locale, "ui.hud.currentState"), phaseMeaning),
@@ -374,6 +443,7 @@ function createNextGoalCard(model: PlayerHudModel, locale: LocaleId): ReactEleme
   return createElement(
     "section",
     {
+      "data-ui-slot": SHELL_DESIGN_TOKENS.slot.panelPaper,
       "data-testid": "player-next-goal",
       style: paperCardStyle,
     },
@@ -422,12 +492,15 @@ function createTaskCard(
   return createElement(
     "section",
     {
+      "data-ui-slot": SHELL_DESIGN_TOKENS.slot.panelToolbar,
       "data-testid": "player-task-list",
       style: inkCardStyle,
     },
     createSectionHeader(
       formatMessage(locale, "ui.hud.tasks"),
       formatMessage(locale, "ui.hud.tasksHint"),
+      "neutral",
+      true,
     ),
     createElement(
       "div",
@@ -485,12 +558,15 @@ function createEventCard(state: ShellState, locale: LocaleId): ReactElement {
   return createElement(
     "section",
     {
+      "data-ui-slot": SHELL_DESIGN_TOKENS.slot.panelToolbar,
       "data-testid": "player-event-list",
       style: inkCardStyle,
     },
     createSectionHeader(
       formatMessage(locale, "ui.hud.events"),
       formatMessage(locale, "ui.hud.eventsHint"),
+      "neutral",
+      true,
     ),
     createElement(
       "div",
@@ -503,6 +579,7 @@ function createEventCard(state: ShellState, locale: LocaleId): ReactElement {
           {
             "aria-label": `${formatAlertSeverity(alert.severity, locale)}: ${localizeShellFixtureText(locale, alert.label)}. ${localizeShellFixtureText(locale, alert.detail)}`,
             "data-alert-severity": alert.severity,
+            "data-ui-slot": SHELL_DESIGN_TOKENS.slot.panelAlert,
             key: `${alert.severity}:${alert.label}`,
             style: alertRowStyle(alert.severity),
           },
@@ -550,6 +627,7 @@ function createInspectorCard(
       "section",
       {
         "data-testid": "player-selected-detail",
+        "data-ui-slot": SHELL_DESIGN_TOKENS.slot.inspector,
         style: compact ? compactInspectorCardStyle : paperCardStyle,
       },
       createSectionHeader(
@@ -577,6 +655,7 @@ function createInspectorCard(
     "section",
     {
       "data-testid": "player-selected-detail",
+      "data-ui-slot": SHELL_DESIGN_TOKENS.slot.inspector,
       style: compact ? compactInspectorCardStyle : paperCardStyle,
     },
     createSectionHeader(
@@ -652,12 +731,15 @@ function createResidentAttentionCard(
   return createElement(
     "section",
     {
+      "data-ui-slot": SHELL_DESIGN_TOKENS.slot.panelToolbar,
       "data-testid": "player-resident-watch",
       style: inkCardStyle,
     },
     createSectionHeader(
       formatMessage(locale, "ui.hud.residents"),
       formatMessage(locale, "ui.hud.residentsHint"),
+      "neutral",
+      true,
     ),
     createElement(
       "div",
@@ -669,8 +751,9 @@ function createResidentAttentionCard(
           "div",
           {
             "aria-label": `${localizeShellFixtureText(locale, item.entity.displayName)}. ${item.stateLabel}. ${localizeShellFixtureText(locale, item.entity.inspector.currentStep)}`,
+            "data-ui-slot": SHELL_DESIGN_TOKENS.slot.panelAlert,
             key: item.entity.entityId,
-            style: infoRowStyle,
+            style: residentRowStyle(item.tone),
           },
           createElement(
             "div",
@@ -869,6 +952,7 @@ function createDebugOverlay(
       "data-cross-origin-isolated": state.releaseGate.runtimeCrossOriginIsolated ? "true" : "false",
       "data-release-gate-fixture": state.releaseGate.fixtureId,
       "data-testid": "debug-overlay",
+      "data-ui-slot": "panel.debug.overlay",
       style: compactLayout ? compactDebugOverlayStyle : debugOverlayStyle,
     },
     createElement(
@@ -988,6 +1072,7 @@ function createIdentityCard(
   return createElement(
     "div",
     {
+      "data-ui-slot": SHELL_DESIGN_TOKENS.slot.panelToolbar,
       style: compact ? compactIdentityCardStyle : identityCardStyle,
     },
     createElement(
@@ -1038,6 +1123,7 @@ function createNightRiskBadge(
       "aria-label": `${formatMessage(locale, "ui.hud.nightRisk")}: ${formatNightRisk(tier, locale)}`,
       "data-testid": "player-night-risk",
       "data-night-risk-tier": tier,
+      "data-ui-slot": SHELL_DESIGN_TOKENS.slot.panelToolbar,
       style: compact ? compactNightRiskBadgeStyle(tier) : nightRiskBadgeStyle(tier),
     },
     createElement(
@@ -1061,6 +1147,7 @@ function createSectionHeader(
   title: string,
   hint: string,
   tone: AlertSeverity | "neutral" = "neutral",
+  inverse = false,
 ): ReactElement {
   return createElement(
     "div",
@@ -1077,11 +1164,118 @@ function createSectionHeader(
     createElement(
       "div",
       {
-        style: tone === "neutral" ? sectionHintStyle : severityBadgeStyle(tone),
+        style:
+          tone === "neutral"
+            ? inverse
+              ? sectionHintInverseStyle
+              : sectionHintStyle
+            : severityBadgeStyle(tone),
       },
       hint,
     ),
   );
+}
+
+function createCommandBarPlaceholder(locale: LocaleId): ReactElement {
+  return createElement(
+    "section",
+    {
+      "aria-label": formatMessage(locale, "ui.hud.commandBar"),
+      "data-testid": "player-command-bar",
+      "data-ui-slot": SHELL_DESIGN_TOKENS.slot.commandBar,
+      style: commandBarStyle,
+    },
+    createElement(
+      "div",
+      {
+        style: sectionHeaderStyle,
+      },
+      createElement(
+        "div",
+        {
+          style: sectionTitleStyle,
+        },
+        formatMessage(locale, "ui.hud.commandBar"),
+      ),
+      createElement(
+        "div",
+        {
+          style: sectionHintInverseStyle,
+        },
+        formatMessage(locale, "ui.hud.commandBarHint"),
+      ),
+    ),
+    createElement(
+      "div",
+      {
+        style: commandBarGroupStyle,
+      },
+      ...readCommandSpecs(locale).map((spec) =>
+        createElement(
+          "button",
+          {
+            "aria-describedby": `${spec.testId}-detail`,
+            "aria-disabled": true,
+            "data-command-state": "placeholder",
+            "data-testid": spec.testId,
+            "data-ui-slot":
+              spec.tone === "primary"
+                ? SHELL_DESIGN_TOKENS.slot.buttonPrimaryDisabled
+                : SHELL_DESIGN_TOKENS.slot.buttonSecondaryDisabled,
+            key: spec.testId,
+            onClick: (event): void => {
+              event.preventDefault();
+            },
+            style: commandButtonStyle(spec.tone),
+            type: "button",
+          },
+          createElement(
+            "span",
+            {
+              style: rowTitleStyle,
+            },
+            spec.title,
+          ),
+          createElement(
+            "span",
+            {
+              id: `${spec.testId}-detail`,
+              style: commandDetailStyle,
+            },
+            spec.description,
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+function readCommandSpecs(locale: LocaleId): readonly {
+  readonly description: string;
+  readonly testId: string;
+  readonly title: string;
+  readonly tone: "primary" | "secondary";
+}[] {
+  return [
+    {
+      description: formatMessage(locale, "ui.hud.command.placeholder.lamp"),
+      testId: "player-command-lamp",
+      title: formatMessage(locale, "ui.hud.command.lamp"),
+      tone: "primary",
+    },
+    {
+      description: formatMessage(locale, "ui.hud.command.placeholder.chronicle"),
+      testId: "player-command-chronicle",
+      title: formatMessage(locale, "ui.hud.command.chronicle"),
+      tone: "secondary",
+    },
+    {
+      description: formatMessage(locale, "ui.hud.command.placeholder.inspect"),
+      testId: "player-command-inspect",
+      title: formatMessage(locale, "ui.hud.command.inspect"),
+      tone: "secondary",
+    },
+  ];
 }
 
 function createDefinitionStack(
@@ -1377,6 +1571,7 @@ function formatHoverTile(state: ShellState): string {
 }
 
 const overlayRootStyle: CSSProperties = {
+  ...shellTokenLayerStyle,
   inset: 0,
   pointerEvents: "none",
   position: "absolute",
@@ -1398,19 +1593,22 @@ function scaleLayerStyle(factor: number): CSSProperties {
 const hudLayerStyle: CSSProperties = {
   boxSizing: "border-box",
   display: "grid",
-  gap: "16px",
-  gridTemplateRows: "auto minmax(0, 1fr)",
+  gap: SHELL_DESIGN_TOKENS.space.md,
+  gridTemplateRows: "auto auto minmax(0, 1fr)",
   height: "100%",
   inset: 0,
-  padding: "16px",
+  minHeight: 0,
+  overflow: "hidden",
+  padding: SHELL_DESIGN_TOKENS.space.lg,
   pointerEvents: "none",
   position: "absolute",
+  zIndex: 2,
 };
 
 const topBarStyle: CSSProperties = {
   alignItems: "flex-start",
   display: "flex",
-  gap: "16px",
+  gap: SHELL_DESIGN_TOKENS.space.lg,
   justifyContent: "space-between",
   minWidth: 0,
   overflowX: "hidden",
@@ -1422,7 +1620,6 @@ const compactTopBarStyle: CSSProperties = {
   ...topBarStyle,
   alignItems: "stretch",
   flexDirection: "column",
-  right: "16px",
 };
 
 const topBarAsideStyle: CSSProperties = {
@@ -1430,38 +1627,59 @@ const topBarAsideStyle: CSSProperties = {
   display: "flex",
   flex: "1 1 auto",
   flexDirection: "column",
-  gap: "12px",
+  gap: SHELL_DESIGN_TOKENS.space.md,
   maxWidth: "680px",
   minWidth: 0,
 };
 
+const alertStripStyle: CSSProperties = {
+  display: "grid",
+  gap: SHELL_DESIGN_TOKENS.space.sm,
+  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+  minWidth: 0,
+  pointerEvents: "auto",
+};
+
+const compactAlertStripStyle: CSSProperties = {
+  ...alertStripStyle,
+  gridTemplateColumns: "1fr",
+};
+
 const desktopHudBodyStyle: CSSProperties = {
   display: "grid",
-  gap: "16px",
+  gap: SHELL_DESIGN_TOKENS.space.lg,
   gridTemplateColumns: "minmax(280px, 320px) minmax(0, 1fr) minmax(280px, 320px)",
+  height: "100%",
   minHeight: 0,
+  overflow: "hidden",
   pointerEvents: "none",
 };
 
 const desktopHudColumnStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  gap: "12px",
+  gap: SHELL_DESIGN_TOKENS.space.md,
   minHeight: 0,
   overflowY: "auto",
-  paddingRight: "4px",
+  paddingRight: SHELL_DESIGN_TOKENS.space.xs,
   pointerEvents: "auto",
+  position: "relative",
   scrollbarGutter: "stable",
 };
 
 const compactHudBodyStyle: CSSProperties = {
+  boxSizing: "border-box",
   display: "flex",
   flexDirection: "column",
-  gap: "12px",
+  gap: SHELL_DESIGN_TOKENS.space.md,
+  height: "calc(100vh - 380px)",
+  maxHeight: "calc(100vh - 380px)",
   minHeight: 0,
+  overflowX: "hidden",
   overflowY: "auto",
-  paddingRight: "4px",
+  paddingRight: SHELL_DESIGN_TOKENS.space.xs,
   pointerEvents: "auto",
+  position: "relative",
   scrollbarGutter: "stable",
 };
 
@@ -1473,22 +1691,17 @@ const desktopMapLaneStyle: CSSProperties = {
 const compactInspectorPanelStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  gap: "12px",
+  gap: SHELL_DESIGN_TOKENS.space.md,
 };
 
 const identityCardStyle: CSSProperties = {
-  background: "rgba(37, 33, 27, 0.94)",
-  border: "1px solid rgba(217, 150, 58, 0.35)",
-  borderRadius: "8px",
+  ...createShellSurfaceStyle("wood", {
+    gap: SHELL_DESIGN_TOKENS.space.sm,
+    padding: `${SHELL_DESIGN_TOKENS.space.md} ${SHELL_DESIGN_TOKENS.space.lg}`,
+    radius: SHELL_DESIGN_TOKENS.radius.slip,
+  }),
   boxSizing: "border-box",
-  boxShadow: "0 10px 24px rgba(0, 0, 0, 0.24)",
-  display: "flex",
   flex: "0 1 420px",
-  flexDirection: "column",
-  gap: "8px",
-  maxWidth: "100%",
-  minWidth: 0,
-  padding: "16px",
   width: "min(420px, 100%)",
 };
 
@@ -1499,140 +1712,144 @@ const compactIdentityCardStyle: CSSProperties = {
 };
 
 const identityTitleStyle: CSSProperties = {
-  color: "#f5ead2",
-  fontFamily: '"Noto Serif SC", "Noto Sans SC", serif',
+  color: "var(--shell-color-text-inverse)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyRecord,
   fontSize: "28px",
-  fontWeight: 700,
+  fontWeight: SHELL_DESIGN_TOKENS.font.strong,
   lineHeight: "32px",
   margin: 0,
 };
 
 const identityMetaStyle: CSSProperties = {
-  color: "#d8c9aa",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  color: "rgba(245, 234, 210, 0.86)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
   fontSize: "13px",
   lineHeight: "18px",
+  overflowWrap: "anywhere",
 };
 
 const summaryGroupStyle: CSSProperties = {
   display: "grid",
-  gap: "10px",
+  gap: SHELL_DESIGN_TOKENS.space.sm,
   gridTemplateColumns: "repeat(auto-fit, minmax(112px, 1fr))",
   minWidth: 0,
   width: "100%",
 };
 
-const paperCardStyle: CSSProperties = {
-  background: "rgba(241, 230, 204, 0.94)",
-  border: "1px solid rgba(126, 111, 85, 0.4)",
-  borderRadius: "8px",
-  boxShadow: "0 10px 24px rgba(0, 0, 0, 0.18)",
-  color: "#241e18",
-  display: "flex",
-  flexDirection: "column",
-  gap: "10px",
-  padding: "14px 16px",
-};
+const paperCardStyle: CSSProperties = createShellSurfaceStyle("paper", {
+  gap: SHELL_DESIGN_TOKENS.space.sm,
+  padding: `${SHELL_DESIGN_TOKENS.space.md} ${SHELL_DESIGN_TOKENS.space.lg}`,
+});
 
 const compactInspectorCardStyle: CSSProperties = {
   ...paperCardStyle,
   maxHeight: "60%",
   overflowY: "auto",
-  paddingRight: "12px",
+  paddingRight: SHELL_DESIGN_TOKENS.space.md,
   scrollbarGutter: "stable",
 };
 
-const inkCardStyle: CSSProperties = {
-  background: "rgba(37, 33, 27, 0.94)",
-  border: "1px solid rgba(126, 111, 85, 0.42)",
-  borderRadius: "8px",
-  boxShadow: "0 10px 24px rgba(0, 0, 0, 0.24)",
-  color: "#f5ead2",
-  display: "flex",
-  flexDirection: "column",
-  gap: "10px",
-  padding: "14px 16px",
-};
+const inkCardStyle: CSSProperties = createShellSurfaceStyle("ink", {
+  gap: SHELL_DESIGN_TOKENS.space.sm,
+  padding: `${SHELL_DESIGN_TOKENS.space.md} ${SHELL_DESIGN_TOKENS.space.lg}`,
+});
+
+const resourceBandStyle: CSSProperties = createShellSurfaceStyle("wood", {
+  gap: SHELL_DESIGN_TOKENS.space.sm,
+  padding: `${SHELL_DESIGN_TOKENS.space.md} ${SHELL_DESIGN_TOKENS.space.md}`,
+});
 
 const resourceCardStyle: CSSProperties = {
-  background: "rgba(241, 230, 204, 0.94)",
-  border: "1px solid rgba(126, 111, 85, 0.36)",
-  borderRadius: "8px",
-  display: "flex",
-  flexDirection: "column",
-  gap: "6px",
-  minHeight: "74px",
-  padding: "12px 14px",
+  ...createShellSurfaceStyle("agedPaper", {
+    gap: "6px",
+    minHeight: "74px",
+    padding: `${SHELL_DESIGN_TOKENS.space.md} ${SHELL_DESIGN_TOKENS.space.md}`,
+    radius: SHELL_DESIGN_TOKENS.radius.slip,
+  }),
+  boxShadow:
+    "inset 0 1px 0 rgba(255, 249, 235, 0.42), inset 3px 0 0 rgba(217, 150, 58, 0.56), 0 6px 12px rgba(0, 0, 0, 0.12)",
 };
 
 const resourceHeaderStyle: CSSProperties = {
   alignItems: "flex-start",
   display: "flex",
-  gap: "8px",
+  gap: SHELL_DESIGN_TOKENS.space.sm,
   justifyContent: "space-between",
 };
 
 const resourceValueStyle: CSSProperties = {
-  color: "#241e18",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
-  fontSize: "18px",
-  fontWeight: 700,
+  color: "var(--shell-color-text-primary)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
+  fontSize: SHELL_DESIGN_TOKENS.font.panelTitle,
+  fontWeight: SHELL_DESIGN_TOKENS.font.strong,
   lineHeight: "22px",
 };
 
 const sectionHeaderStyle: CSSProperties = {
   alignItems: "flex-start",
   display: "flex",
-  gap: "8px",
+  gap: SHELL_DESIGN_TOKENS.space.sm,
   justifyContent: "space-between",
 };
 
 const sectionTitleStyle: CSSProperties = {
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
-  fontSize: "16px",
-  fontWeight: 700,
+  color: "inherit",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
+  fontSize: SHELL_DESIGN_TOKENS.font.bodyLarge,
+  fontWeight: SHELL_DESIGN_TOKENS.font.strong,
   lineHeight: "20px",
 };
 
 const sectionHintStyle: CSSProperties = {
-  color: "#6e6254",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
-  fontSize: "12px",
+  color: "var(--shell-color-text-muted)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
+  fontSize: SHELL_DESIGN_TOKENS.font.caption,
+  fontWeight: 600,
+  lineHeight: "16px",
+  overflowWrap: "anywhere",
+};
+
+const sectionHintInverseStyle: CSSProperties = {
+  color: "rgba(245, 234, 210, 0.78)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
+  fontSize: SHELL_DESIGN_TOKENS.font.caption,
   fontWeight: 600,
   lineHeight: "16px",
   overflowWrap: "anywhere",
 };
 
 const sectionEyebrowStyle: CSSProperties = {
-  color: "#6e6254",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  color: "var(--shell-color-text-muted)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
   fontSize: "11px",
-  fontWeight: 700,
+  fontWeight: SHELL_DESIGN_TOKENS.font.strong,
+  letterSpacing: 0,
   lineHeight: "15px",
   textTransform: "uppercase",
 };
 
 const sectionEyebrowInverseStyle: CSSProperties = {
-  color: "#d8c9aa",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  color: "rgba(245, 234, 210, 0.82)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
   fontSize: "11px",
-  fontWeight: 700,
+  fontWeight: SHELL_DESIGN_TOKENS.font.strong,
+  letterSpacing: 0,
   lineHeight: "15px",
   textTransform: "uppercase",
 };
 
 const keyOutcomeStyle: CSSProperties = {
-  color: "#241e18",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  color: "var(--shell-color-text-primary)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyRecord,
   fontSize: "20px",
-  fontWeight: 700,
+  fontWeight: SHELL_DESIGN_TOKENS.font.strong,
   lineHeight: "24px",
   overflowWrap: "anywhere",
 };
 
 const bodyTextStyle: CSSProperties = {
-  color: "#40372c",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  color: "var(--shell-color-text-warm)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
   fontSize: "13px",
   lineHeight: "18px",
   margin: 0,
@@ -1640,16 +1857,16 @@ const bodyTextStyle: CSSProperties = {
 };
 
 const mutedTextStyle: CSSProperties = {
-  color: "#5e5245",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  color: "var(--shell-color-text-muted)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
   fontSize: "13px",
   lineHeight: "18px",
   overflowWrap: "anywhere",
 };
 
 const mutedInverseTextStyle: CSSProperties = {
-  color: "#d8c9aa",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  color: "rgba(245, 234, 210, 0.78)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
   fontSize: "13px",
   lineHeight: "18px",
   overflowWrap: "anywhere",
@@ -1658,35 +1875,30 @@ const mutedInverseTextStyle: CSSProperties = {
 const rowStackStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  gap: "10px",
+  gap: SHELL_DESIGN_TOKENS.space.sm,
 };
 
-const infoRowStyle: CSSProperties = {
-  borderTop: "1px solid rgba(255, 255, 255, 0.08)",
-  display: "flex",
-  flexDirection: "column",
-  gap: "4px",
-  paddingTop: "10px",
-};
+const infoRowStyle: CSSProperties = createHairlineRuleStyle("rgba(245, 234, 210, 0.12)");
 
 const rowHeaderStyle: CSSProperties = {
   alignItems: "center",
   display: "flex",
-  gap: "8px",
+  gap: SHELL_DESIGN_TOKENS.space.sm,
   justifyContent: "space-between",
 };
 
 const rowTitleStyle: CSSProperties = {
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
   fontSize: "15px",
-  fontWeight: 700,
+  fontWeight: SHELL_DESIGN_TOKENS.font.strong,
   lineHeight: "20px",
+  overflowWrap: "anywhere",
 };
 
 const rowValueStyle: CSSProperties = {
-  color: "#f5ead2",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
-  fontSize: "14px",
+  color: "var(--shell-color-text-inverse)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
+  fontSize: SHELL_DESIGN_TOKENS.font.body,
   fontWeight: 600,
   lineHeight: "18px",
   overflowWrap: "anywhere",
@@ -1695,16 +1907,16 @@ const rowValueStyle: CSSProperties = {
 const reasonListStyle: CSSProperties = {
   display: "flex",
   flexWrap: "wrap",
-  gap: "8px",
+  gap: SHELL_DESIGN_TOKENS.space.sm,
 };
 
 const inlineReasonStyle: CSSProperties = {
-  background: "rgba(106, 74, 47, 0.12)",
+  background: "rgba(106, 74, 47, 0.1)",
   border: "1px solid rgba(126, 111, 85, 0.24)",
-  borderRadius: "999px",
-  color: "#40372c",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
-  fontSize: "12px",
+  borderRadius: SHELL_DESIGN_TOKENS.radius.control,
+  color: "var(--shell-color-text-warm)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
+  fontSize: SHELL_DESIGN_TOKENS.font.caption,
   lineHeight: "16px",
   overflowWrap: "anywhere",
   padding: "6px 10px",
@@ -1713,21 +1925,15 @@ const inlineReasonStyle: CSSProperties = {
 const definitionStackStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  gap: "8px",
+  gap: SHELL_DESIGN_TOKENS.space.sm,
 };
 
-const definitionRowStyle: CSSProperties = {
-  borderTop: "1px solid rgba(126, 111, 85, 0.18)",
-  display: "flex",
-  flexDirection: "column",
-  gap: "4px",
-  paddingTop: "8px",
-};
+const definitionRowStyle: CSSProperties = createHairlineRuleStyle("rgba(126, 111, 85, 0.2)");
 
 const definitionValueStyle: CSSProperties = {
-  color: "#241e18",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
-  fontSize: "14px",
+  color: "var(--shell-color-text-primary)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
+  fontSize: SHELL_DESIGN_TOKENS.font.body,
   fontWeight: 600,
   lineHeight: "18px",
   overflowWrap: "anywhere",
@@ -1735,24 +1941,24 @@ const definitionValueStyle: CSSProperties = {
 
 const pairGridStyle: CSSProperties = {
   display: "grid",
-  gap: "10px",
+  gap: SHELL_DESIGN_TOKENS.space.sm,
   gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
 };
 
 const pairCellStyle: CSSProperties = {
-  background: "rgba(255, 255, 255, 0.42)",
-  border: "1px solid rgba(126, 111, 85, 0.18)",
-  borderRadius: "6px",
-  display: "flex",
-  flexDirection: "column",
-  gap: "4px",
-  minHeight: "72px",
-  padding: "10px 12px",
+  ...createShellSurfaceStyle("agedPaper", {
+    gap: SHELL_DESIGN_TOKENS.space.xs,
+    minHeight: "72px",
+    padding: `${SHELL_DESIGN_TOKENS.space.sm} ${SHELL_DESIGN_TOKENS.space.md}`,
+    radius: SHELL_DESIGN_TOKENS.radius.panel,
+  }),
+  boxShadow:
+    "inset 0 1px 0 rgba(255, 249, 235, 0.38), inset 2px 0 0 rgba(126, 111, 85, 0.3), 0 4px 10px rgba(0, 0, 0, 0.08)",
 };
 
 const pairValueStyle: CSSProperties = {
-  color: "#241e18",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  color: "var(--shell-color-text-primary)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
   fontSize: "13px",
   fontWeight: 600,
   lineHeight: "18px",
@@ -1767,13 +1973,13 @@ const pairValueZhStyle: CSSProperties = {
 const stackSectionStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  gap: "8px",
+  gap: SHELL_DESIGN_TOKENS.space.sm,
 };
 
 const needStackStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  gap: "10px",
+  gap: SHELL_DESIGN_TOKENS.space.sm,
 };
 
 const needRowStyle: CSSProperties = {
@@ -1783,8 +1989,8 @@ const needRowStyle: CSSProperties = {
 };
 
 const meterTrackStyle: CSSProperties = {
-  background: "rgba(36, 30, 24, 0.1)",
-  borderRadius: "999px",
+  background: "rgba(36, 30, 24, 0.12)",
+  borderRadius: SHELL_DESIGN_TOKENS.radius.control,
   height: "8px",
   overflow: "hidden",
 };
@@ -1795,53 +2001,49 @@ const bulletListStyle: CSSProperties = {
 };
 
 const bulletItemStyle: CSSProperties = {
-  color: "#40372c",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  color: "var(--shell-color-text-warm)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
   fontSize: "13px",
   lineHeight: "18px",
   overflowWrap: "anywhere",
 };
 
 const bulletItemInverseStyle: CSSProperties = {
-  color: "#f5ead2",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  color: "var(--shell-color-text-inverse)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
   fontSize: "13px",
   lineHeight: "18px",
   overflowWrap: "anywhere",
 };
 
 const cardTitleStyle: CSSProperties = {
-  color: "#241e18",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
-  fontSize: "22px",
-  fontWeight: 700,
+  color: "var(--shell-color-text-primary)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyRecord,
+  fontSize: SHELL_DESIGN_TOKENS.font.phase,
+  fontWeight: SHELL_DESIGN_TOKENS.font.strong,
   lineHeight: "26px",
   overflowWrap: "anywhere",
 };
 
 const emptyStateTitleStyle: CSSProperties = {
-  color: "#241e18",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
-  fontSize: "18px",
-  fontWeight: 700,
+  color: "var(--shell-color-text-primary)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyRecord,
+  fontSize: SHELL_DESIGN_TOKENS.font.panelTitle,
+  fontWeight: SHELL_DESIGN_TOKENS.font.strong,
   lineHeight: "22px",
   overflowWrap: "anywhere",
 };
 
 const debugOverlayStyle: CSSProperties = {
-  background: "rgba(16, 21, 28, 0.96)",
-  border: "1px solid rgba(169, 214, 255, 0.18)",
-  borderRadius: "8px",
+  ...createShellSurfaceStyle("debug", {
+    gap: SHELL_DESIGN_TOKENS.space.md,
+    padding: `${SHELL_DESIGN_TOKENS.space.md} ${SHELL_DESIGN_TOKENS.space.lg}`,
+    radius: SHELL_DESIGN_TOKENS.radius.slip,
+  }),
   bottom: "16px",
-  boxShadow: "0 10px 24px rgba(0, 0, 0, 0.28)",
-  color: "#a9d6ff",
-  display: "flex",
-  flexDirection: "column",
-  gap: "12px",
   left: "352px",
   maxHeight: "min(360px, calc(100% - 32px))",
   overflowY: "auto",
-  padding: "14px 16px",
   pointerEvents: "auto",
   position: "absolute",
   right: "352px",
@@ -1862,122 +2064,112 @@ const debugHeaderStyle: CSSProperties = {
 };
 
 const debugTitleStyle: CSSProperties = {
-  color: "#f5ead2",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
-  fontSize: "18px",
-  fontWeight: 700,
+  color: "var(--shell-color-text-inverse)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
+  fontSize: SHELL_DESIGN_TOKENS.font.panelTitle,
+  fontWeight: SHELL_DESIGN_TOKENS.font.strong,
   lineHeight: "22px",
 };
 
 const debugHintStyle: CSSProperties = {
-  color: "#a9d6ff",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
-  fontSize: "12px",
+  color: "#A9D6FF",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
+  fontSize: SHELL_DESIGN_TOKENS.font.caption,
   lineHeight: "16px",
+  overflowWrap: "anywhere",
 };
 
 const debugViewportStyle: CSSProperties = {
   background: "rgba(255, 255, 255, 0.03)",
   border: "1px solid rgba(169, 214, 255, 0.12)",
-  borderRadius: "6px",
+  borderRadius: SHELL_DESIGN_TOKENS.radius.panel,
   display: "flex",
   flexDirection: "column",
   gap: "4px",
-  padding: "10px 12px",
+  padding: `${SHELL_DESIGN_TOKENS.space.sm} ${SHELL_DESIGN_TOKENS.space.md}`,
 };
 
-const debugRowStyle: CSSProperties = {
-  borderTop: "1px solid rgba(169, 214, 255, 0.12)",
-  display: "flex",
-  flexDirection: "column",
-  gap: "4px",
-  paddingTop: "10px",
+const debugRowStyle: CSSProperties = createHairlineRuleStyle("rgba(169, 214, 255, 0.12)");
+
+const commandBarStyle: CSSProperties = {
+  ...createShellSurfaceStyle("wood", {
+    gap: SHELL_DESIGN_TOKENS.space.sm,
+    padding: `${SHELL_DESIGN_TOKENS.space.md} ${SHELL_DESIGN_TOKENS.space.lg}`,
+    radius: SHELL_DESIGN_TOKENS.radius.slip,
+  }),
+  pointerEvents: "auto",
 };
+
+const commandBarGroupStyle: CSSProperties = {
+  display: "grid",
+  gap: SHELL_DESIGN_TOKENS.space.sm,
+  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+};
+
+const commandDetailStyle: CSSProperties = {
+  color: "rgba(245, 234, 210, 0.72)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
+  fontSize: SHELL_DESIGN_TOKENS.font.caption,
+  fontWeight: 400,
+  lineHeight: "16px",
+  overflowWrap: "anywhere",
+};
+
+function commandButtonStyle(tone: "primary" | "secondary"): CSSProperties {
+  return {
+    ...createCommandButtonStyle(tone, "disabled"),
+    minWidth: 0,
+  };
+}
 
 function trendBadgeStyle(
   trend: ShellState["readModel"]["town"]["resources"][number]["trend"],
 ): CSSProperties {
-  const color = trend === "falling" ? "#A33B32" : trend === "rising" ? "#2F6F4E" : "#7E6F55";
-  return {
-    background: "rgba(255, 255, 255, 0.5)",
-    border: `1px solid ${color}`,
-    borderRadius: "999px",
-    color,
-    fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
-    fontSize: "11px",
-    fontWeight: 700,
-    lineHeight: "15px",
-    padding: "3px 8px",
-    textTransform: "uppercase",
-  };
+  return createTrendBadgeStyle(trend);
 }
 
 function severityBadgeStyle(severity: AlertSeverity): CSSProperties {
-  const config =
-    severity === "danger"
-      ? {
-          background: "rgba(163, 59, 50, 0.16)",
-          borderColor: "rgba(163, 59, 50, 0.52)",
-          color: "#f5d4d0",
-        }
-      : severity === "warning"
-        ? {
-            background: "rgba(181, 122, 34, 0.16)",
-            borderColor: "rgba(217, 150, 58, 0.46)",
-            color: "#f2dfbc",
-          }
-        : {
-            background: "rgba(47, 111, 78, 0.16)",
-            borderColor: "rgba(47, 111, 78, 0.46)",
-            color: "#d6eedf",
-          };
+  return createStatusBadgeStyle(severity);
+}
 
+function alertSlipStyle(severity: AlertSeverity): CSSProperties {
+  const accent =
+    severity === "danger"
+      ? "var(--shell-color-status-danger)"
+      : severity === "warning"
+        ? "var(--shell-color-border-lamp)"
+        : "var(--shell-color-status-stable)";
   return {
-    background: config.background,
-    border: `1px solid ${config.borderColor}`,
-    borderRadius: "999px",
-    color: config.color,
-    fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
-    fontSize: "11px",
-    fontWeight: 700,
-    lineHeight: "15px",
-    padding: "3px 8px",
-    textTransform: "uppercase",
+    ...createShellSurfaceStyle("agedPaper", {
+      gap: SHELL_DESIGN_TOKENS.space.xs,
+      padding: `${SHELL_DESIGN_TOKENS.space.sm} ${SHELL_DESIGN_TOKENS.space.md}`,
+      radius: SHELL_DESIGN_TOKENS.radius.slip,
+    }),
+    boxShadow: `inset 3px 0 0 ${accent}, inset 0 1px 0 rgba(255, 249, 235, 0.42), 0 6px 12px rgba(0, 0, 0, 0.1)`,
   };
 }
 
 function alertRowStyle(severity: AlertSeverity): CSSProperties {
   return {
-    ...infoRowStyle,
-    borderTop:
+    ...alertSlipStyle(severity),
+    gap: SHELL_DESIGN_TOKENS.space.xs,
+  };
+}
+
+function residentRowStyle(severity: AlertSeverity): CSSProperties {
+  return {
+    ...alertSlipStyle(severity),
+    background:
       severity === "danger"
-        ? "1px solid rgba(163, 59, 50, 0.4)"
-        : severity === "warning"
-          ? "1px solid rgba(217, 150, 58, 0.32)"
-          : "1px solid rgba(47, 111, 78, 0.28)",
+        ? "linear-gradient(180deg, rgba(237, 219, 196, 0.98) 0%, rgba(221, 199, 170, 0.98) 100%)"
+        : "linear-gradient(180deg, rgba(228, 208, 164, 0.98) 0%, rgba(214, 188, 146, 0.98) 100%)",
   };
 }
 
 function nightRiskBadgeStyle(tier: NightRiskTier): CSSProperties {
-  const borderColor =
-    tier === "breach"
-      ? "rgba(163, 59, 50, 0.56)"
-      : tier === "strained"
-        ? "rgba(181, 122, 34, 0.52)"
-        : tier === "watch"
-          ? "rgba(217, 150, 58, 0.42)"
-          : "rgba(47, 111, 78, 0.42)";
   return {
-    background: "rgba(37, 33, 27, 0.94)",
-    border: `1px solid ${borderColor}`,
-    borderRadius: "8px",
-    boxSizing: "border-box",
-    boxShadow: "0 10px 24px rgba(0, 0, 0, 0.24)",
-    display: "flex",
-    flexDirection: "column",
-    gap: "4px",
+    ...createNightRiskSurfaceStyle(tier),
     minWidth: "160px",
-    padding: "12px 14px",
   };
 }
 
@@ -1990,16 +2182,20 @@ function compactNightRiskBadgeStyle(tier: NightRiskTier): CSSProperties {
 }
 
 const nightRiskValueStyle: CSSProperties = {
-  color: "#f5ead2",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
-  fontSize: "18px",
-  fontWeight: 700,
+  color: "var(--shell-color-text-inverse)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyRecord,
+  fontSize: SHELL_DESIGN_TOKENS.font.panelTitle,
+  fontWeight: SHELL_DESIGN_TOKENS.font.strong,
   lineHeight: "22px",
 };
 
 function meterFillStyle(need: WorldEntityReadModel["inspector"]["needs"][number]): CSSProperties {
   const background =
-    need.state === "low" ? "#A33B32" : need.state === "high" ? "#B57A22" : "#2F6F4E";
+    need.state === "low"
+      ? "var(--shell-color-status-danger)"
+      : need.state === "high"
+        ? "var(--shell-color-status-watch)"
+        : "var(--shell-color-status-stable)";
   return {
     background,
     height: "100%",

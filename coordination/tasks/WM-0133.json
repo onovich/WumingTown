@@ -2,7 +2,7 @@
   "id": "WM-0133",
   "title": "Post-M8 design tokens and component system implementation",
   "summary": "Implement Wuming Town UI tokens and reusable HUD component styling for panels, buttons, alerts, resource cards, resident cards, inspector and command bar placeholders.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0133-design-tokens-component-system",
   "createdAt": "2026-06-28T13:36:56.432Z",
-  "updatedAt": "2026-06-28T14:36:46.305Z",
+  "updatedAt": "2026-06-28T18:15:23.841Z",
   "history": [
     {
       "at": "2026-06-28T13:36:56.432Z",
@@ -43,6 +43,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-28T16:10:57.579Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": "thread=Codex WM-0133 design tokens"
+    },
+    {
+      "at": "2026-06-28T18:02:03.125Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Implemented post-M8 design tokens/component surfaces; web-shell E2E and quality pass; WM-0118 artifacts restored out of diff."
+    },
+    {
+      "at": "2026-06-28T18:13:18.982Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Verified scoped UI token/component changes, command placeholders remain non-authoritative and localized, no forbidden dependency/art/release-verdict changes, WM-0118 artifacts are clean, reachability helper still rejects unrelated overlays; reproduced typecheck, expected unit-filter failure, handoff/task validation, diff check, quality, and targeted non-artifact web-shell E2E."
+    },
+    {
+      "at": "2026-06-28T18:15:15.709Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified by Gate the 3rd; full integration gates passed in WM-0133 worktree."
+    },
+    {
+      "at": "2026-06-28T18:15:23.840Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M8",
@@ -58,5 +88,20 @@
     "new runtime dependencies without ADR",
     "external art asset licensing commitments",
     "public release or platform verdict changes"
-  ]
+  ],
+  "claimedBy": "client-engineer",
+  "threadLabel": "Codex WM-0133 design tokens",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0133.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Verified scoped UI token/component changes, command placeholders remain non-authoritative and localized, no forbidden dependency/art/release-verdict changes, WM-0118 artifacts are clean, reachability helper still rejects unrelated overlays; reproduced typecheck, expected unit-filter failure, handoff/task validation, diff check, quality, and targeted non-artifact web-shell E2E.",
+    "at": "2026-06-28T18:13:18.981Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified by Gate the 3rd; full integration gates passed in WM-0133 worktree.",
+    "at": "2026-06-28T18:15:15.708Z"
+  }
 }

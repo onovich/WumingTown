@@ -147,6 +147,18 @@ const EN_MESSAGES = {
   "ui.entityKind.structure": "structure",
   "ui.entityKind.visitor": "visitor",
   "ui.hud.aria": "Player HUD",
+  "ui.hud.command.lamp": "Lamp routes",
+  "ui.hud.command.chronicle": "Chronicle slips",
+  "ui.hud.command.inspect": "Inspector notes",
+  "ui.hud.command.placeholder.chronicle":
+    "Placeholder slot only. Chronicle command wiring stays in a later gameplay task.",
+  "ui.hud.command.placeholder.inspect":
+    "Placeholder slot only. Selection actions remain read-model detail until later command work lands.",
+  "ui.hud.command.placeholder.lamp":
+    "Placeholder slot only. Lamp-path command wiring stays gated to later interaction work.",
+  "ui.hud.commandBar": "Command bar",
+  "ui.hud.commandBarHint":
+    "Prepared visual slots only. No gameplay command authority is introduced here.",
   "ui.hud.currentState": "Current state",
   "ui.hud.cycle": "Cycle",
   "ui.hud.events": "Events and watchpoints",
@@ -333,6 +345,15 @@ const ZH_CN_MESSAGES = {
   "ui.entityKind.structure": "设施",
   "ui.entityKind.visitor": "访客",
   "ui.hud.aria": "玩家 HUD",
+  "ui.hud.command.lamp": "灯路槽位",
+  "ui.hud.command.chronicle": "镇志槽位",
+  "ui.hud.command.inspect": "查看槽位",
+  "ui.hud.command.placeholder.chronicle": "这里只提供视觉槽位；镇志命令接线留待后续玩法任务实现。",
+  "ui.hud.command.placeholder.inspect":
+    "这里只提供视觉槽位；选中对象的行动仍保持只读详情，等待后续命令接线。",
+  "ui.hud.command.placeholder.lamp": "这里只提供视觉槽位；灯路相关命令仍由后续交互任务接线。",
+  "ui.hud.commandBar": "命令带",
+  "ui.hud.commandBarHint": "当前仅准备视觉槽位，不在这里引入任何真实可执行命令权威。",
   "ui.hud.currentState": "当前状态",
   "ui.hud.cycle": "时序",
   "ui.hud.events": "事件与观察点",

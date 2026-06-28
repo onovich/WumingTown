@@ -821,6 +821,7 @@ async function assertAccessibilityBaseline(page: import("playwright").Page): Pro
 async function assertPlayerHudBaseline(page: import("playwright").Page): Promise<void> {
   await assertPlayerHudStructure(page);
   expect(await page.getByTestId("debug-overlay").count()).toBe(0);
+  await assertCommandPlaceholderAccessibility(page);
 
   const goalText = await page.getByTestId("player-next-goal").textContent();
   expect(goalText ?? "").toContain("Lantern corridor gap");
@@ -832,6 +833,8 @@ async function assertPlayerHudBaseline(page: import("playwright").Page): Promise
 
 async function assertPlayerHudStructure(page: import("playwright").Page): Promise<void> {
   expect(await page.getByTestId("player-hud").count()).toBe(1);
+  expect(await page.getByTestId("player-alert-strip").count()).toBe(1);
+  expect(await page.getByTestId("player-command-bar").count()).toBe(1);
   expect(await page.getByTestId("player-top-bar").count()).toBe(1);
   expect(await page.getByTestId("player-next-goal").count()).toBe(1);
   expect(await page.getByTestId("player-night-risk").count()).toBe(1);
@@ -863,15 +866,42 @@ async function assertPlayerHudLocaleState(
   expect(hudText ?? "").toContain("灯廊缺口");
   expect(hudText ?? "").toContain("桥路包裹已备妥");
   expect(hudText ?? "").toContain("编志所");
+  expect(hudText ?? "").toContain("命令带");
+  expect(hudText ?? "").toContain("灯路槽位");
   expect(hudText ?? "").toContain("米粮");
   expect(hudText ?? "").toContain("稳定");
   expect(hudText ?? "").toContain("无伤");
+  expect(hudText ?? "").not.toContain("Command bar");
+  expect(hudText ?? "").not.toContain("Lamp routes");
   expect(hudText ?? "").not.toContain("Lantern corridor gap");
   expect(hudText ?? "").not.toContain("Bridge parcels staged");
   expect(hudText ?? "").not.toContain("Chronicle office");
   expect(hudText ?? "").not.toContain("Rice");
   expect(hudText ?? "").not.toContain("Stable");
   expect(hudText ?? "").not.toContain("Unhurt");
+}
+
+async function assertCommandPlaceholderAccessibility(
+  page: import("playwright").Page,
+): Promise<void> {
+  const commandBarSlot = await page.getByTestId("player-command-bar").getAttribute("data-ui-slot");
+  expect(commandBarSlot).toBe("panel.wood.toolbar");
+
+  for (const testId of [
+    "player-command-lamp",
+    "player-command-chronicle",
+    "player-command-inspect",
+  ] as const) {
+    const button = page.getByTestId(testId);
+    expect(await button.getAttribute("aria-disabled")).toBe("true");
+    const describedBy = await button.getAttribute("aria-describedby");
+    expect(describedBy).toMatch(/-detail$/u);
+    const slot = await button.getAttribute("data-ui-slot");
+    expect(slot === "button.primary.disabled" || slot === "button.secondary.disabled").toBe(true);
+    const detailId = describedBy ?? "";
+    const detailText = await page.locator(`#${detailId}`).textContent();
+    expect((detailText ?? "").length).toBeGreaterThan(10);
+  }
 }
 
 async function assertTownHudViewportLayout(
@@ -1420,19 +1450,51 @@ async function assertSelectorReachableWithoutCover(
   await page.waitForTimeout(80);
 
   const metrics = await readElementViewportMetrics(page, selector);
-  expect(metrics.top, `${selector} top`).toBeGreaterThanOrEqual(0);
-  expect(metrics.left, `${selector} left`).toBeGreaterThanOrEqual(0);
-  expect(metrics.right, `${selector} right`).toBeLessThanOrEqual(width + 1);
-  expect(metrics.bottom, `${selector} bottom`).toBeLessThanOrEqual(height + 1);
+  expect(metrics.top, `${selector} top ${JSON.stringify(metrics)}`).toBeGreaterThanOrEqual(0);
+  expect(metrics.left, `${selector} left ${JSON.stringify(metrics)}`).toBeGreaterThanOrEqual(0);
+  expect(metrics.right, `${selector} right ${JSON.stringify(metrics)}`).toBeLessThanOrEqual(
+    width + 1,
+  );
+  expect(metrics.bottom, `${selector} bottom ${JSON.stringify(metrics)}`).toBeLessThanOrEqual(
+    height + 1,
+  );
 
-  const isUncovered = await page.locator(selector).evaluate((element: HTMLElement) => {
+  const hitInfo = await page.locator(selector).evaluate((element: HTMLElement) => {
     const rect = element.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
     const hit = document.elementFromPoint(centerX, centerY);
-    return hit instanceof HTMLElement && (hit === element || element.contains(hit));
+    const hitElement = hit instanceof HTMLElement ? hit : null;
+    const sameTreeHit =
+      hitElement !== null &&
+      (hitElement === element || element.contains(hitElement) || hitElement.contains(element));
+    return {
+      contains: sameTreeHit,
+      hitTag: hitElement?.tagName ?? null,
+      hitContainsElement: hitElement?.contains(element) ?? false,
+      hitDataShellReady: hitElement?.getAttribute("data-shell-ready") ?? null,
+      hitClass: hitElement?.className ?? null,
+      hitStyle: hitElement?.getAttribute("style")?.slice(0, 220) ?? null,
+      hitTestId: hitElement?.getAttribute("data-testid") ?? null,
+      hitUiSlot: hitElement?.getAttribute("data-ui-slot") ?? null,
+      hitParentTestId: hitElement?.parentElement?.getAttribute("data-testid") ?? null,
+      hitParentStyle: hitElement?.parentElement?.getAttribute("style")?.slice(0, 220) ?? null,
+      parentTag: element.parentElement?.tagName ?? null,
+      parentTestId: element.parentElement?.getAttribute("data-testid") ?? null,
+      parentIsHit: hitElement === element.parentElement,
+      point: {
+        x: centerX,
+        y: centerY,
+      },
+      rect: {
+        bottom: rect.bottom,
+        left: rect.left,
+        right: rect.right,
+        top: rect.top,
+      },
+    };
   });
-  expect(isUncovered, `${selector} uncovered`).toBe(true);
+  expect(hitInfo.contains, `${selector} uncovered: ${JSON.stringify(hitInfo)}`).toBe(true);
 }
 
 async function assertTallSelectorReachableWithoutCover(

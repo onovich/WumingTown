@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQY3IXO7-991EA7",
+  "from": "client-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0133",
+  "kind": "review-request",
+  "subject": "WM-0133 ready for review",
+  "body": "Implemented post-M8 design tokens/component surfaces; web-shell E2E and quality pass; WM-0118 artifacts restored out of diff.",
+  "artifacts": [
+    "coordination/reports/WM-0133.md",
+    "task/WM-0133-design-tokens-component-system"
+  ],
+  "createdAt": "2026-06-28T18:02:03.127Z",
+  "acknowledgedAt": "2026-06-28T18:03:26.929Z"
+}

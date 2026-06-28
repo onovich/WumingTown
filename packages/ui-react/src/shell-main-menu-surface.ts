@@ -6,6 +6,12 @@ import {
   type LocaleId,
   type ShellLocaleState,
 } from "./localization";
+import {
+  SHELL_DESIGN_TOKENS,
+  createCommandButtonStyle,
+  createShellSurfaceStyle,
+  shellTokenLayerStyle,
+} from "./shell-design-tokens";
 import { localizeShellFixtureText } from "./shell-read-model-localization";
 import { ShellSettingsPanel } from "./shell-settings-panel";
 import type {
@@ -80,6 +86,7 @@ export function ShellMainMenuSurface({
     "section",
     {
       "aria-label": formatMessage(uiLocale, "ui.mainMenu.aria"),
+      "data-ui-slot": "hud.start-surface",
       "data-testid": "main-menu-surface",
       style: overlayStyle,
     },
@@ -88,6 +95,7 @@ export function ShellMainMenuSurface({
       {
         "data-view": view,
         "data-testid": "main-menu-panel",
+        "data-ui-slot": SHELL_DESIGN_TOKENS.slot.panelPaper,
         style: compact ? compactPanelStyle : panelStyle,
       },
       createElement(
@@ -606,6 +614,9 @@ function createLocaleButton(
     "button",
     {
       "data-active": active ? "true" : "false",
+      "data-ui-slot": active
+        ? SHELL_DESIGN_TOKENS.slot.buttonSecondaryActive
+        : SHELL_DESIGN_TOKENS.slot.buttonSecondaryDefault,
       "data-testid": `main-menu-locale-${selection}`,
       "aria-pressed": active,
       onClick: (): void => {
@@ -637,6 +648,13 @@ function createActionButton(
   return createElement(
     "button",
     {
+      "data-ui-slot": disabled
+        ? primary
+          ? SHELL_DESIGN_TOKENS.slot.buttonPrimaryDisabled
+          : SHELL_DESIGN_TOKENS.slot.buttonSecondaryDisabled
+        : primary
+          ? SHELL_DESIGN_TOKENS.slot.buttonPrimaryDefault
+          : SHELL_DESIGN_TOKENS.slot.buttonSecondaryDefault,
       "data-testid": testId,
       disabled,
       onClick,
@@ -656,44 +674,22 @@ function buttonGroupStyle(compact: boolean): CSSProperties {
 }
 
 function actionButtonStyle(primary: boolean, disabled: boolean): CSSProperties {
-  return {
-    background: disabled
-      ? "rgba(58, 48, 37, 0.6)"
-      : primary
-        ? "linear-gradient(180deg, #7e5832 0%, #5a3e25 100%)"
-        : "rgba(241, 230, 204, 0.12)",
-    border: `1px solid ${primary ? "rgba(241, 230, 204, 0.18)" : "rgba(126, 111, 85, 0.48)"}`,
-    borderRadius: "12px",
-    color: disabled ? "rgba(245, 234, 210, 0.48)" : "#f5ead2",
-    cursor: disabled ? "not-allowed" : "pointer",
-    fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
-    fontSize: "15px",
-    fontWeight: 700,
-    lineHeight: "20px",
-    minHeight: "52px",
-    padding: "14px 16px",
-    textAlign: "left",
-    transition: "background 120ms ease, border-color 120ms ease, transform 120ms ease",
-  };
+  return createCommandButtonStyle(
+    primary ? "primary" : "secondary",
+    disabled ? "disabled" : "default",
+  );
 }
 
 function localeButtonStyle(active: boolean): CSSProperties {
   return {
-    background: active ? "rgba(217, 150, 58, 0.18)" : "rgba(255, 255, 255, 0.04)",
-    border: `1px solid ${active ? "rgba(217, 150, 58, 0.72)" : "rgba(232, 206, 151, 0.18)"}`,
-    borderRadius: "999px",
-    color: "#f5ead2",
-    cursor: "pointer",
-    fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
-    fontSize: "13px",
-    fontWeight: 600,
-    lineHeight: "18px",
-    minHeight: "42px",
+    ...createCommandButtonStyle("secondary", active ? "active" : "default"),
+    minHeight: SHELL_DESIGN_TOKENS.button.minHeightCompact,
     padding: "10px 14px",
   };
 }
 
 const overlayStyle: CSSProperties = {
+  ...shellTokenLayerStyle,
   alignItems: "flex-start",
   display: "flex",
   inset: 0,
@@ -705,20 +701,17 @@ const overlayStyle: CSSProperties = {
 };
 
 const panelStyle: CSSProperties = {
+  ...createShellSurfaceStyle("ink", {
+    gap: "20px",
+    padding: "28px",
+    radius: SHELL_DESIGN_TOKENS.radius.slip,
+  }),
   alignSelf: "flex-start",
-  background: "linear-gradient(180deg, rgba(34, 27, 20, 0.96) 0%, rgba(18, 15, 11, 0.96) 100%)",
-  border: "1px solid rgba(217, 150, 58, 0.26)",
-  borderRadius: "24px",
   boxSizing: "border-box",
-  boxShadow: "0 24px 80px rgba(0, 0, 0, 0.36)",
-  display: "flex",
-  flexDirection: "column",
-  gap: "20px",
   maxHeight: "calc(100% - 32px)",
   maxWidth: "520px",
   minWidth: "320px",
   overflowY: "auto",
-  padding: "28px",
   pointerEvents: "auto",
   position: "relative",
   width: "min(520px, 100%)",
@@ -740,18 +733,18 @@ const headerStyle: CSSProperties = {
 };
 
 const eyebrowStyle: CSSProperties = {
-  color: "#d5b87a",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  color: "rgba(245, 234, 210, 0.8)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
   fontSize: "11px",
   fontWeight: 700,
-  letterSpacing: "0.08em",
+  letterSpacing: 0,
   lineHeight: "16px",
   textTransform: "uppercase",
 };
 
 const titleStyle: CSSProperties = {
-  color: "#f5ead2",
-  fontFamily: '"Noto Serif SC", "Noto Sans SC", serif',
+  color: "var(--shell-color-text-inverse)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyRecord,
   fontSize: "36px",
   fontWeight: 700,
   lineHeight: "40px",
@@ -759,8 +752,8 @@ const titleStyle: CSSProperties = {
 };
 
 const bodyStyle: CSSProperties = {
-  color: "#d6c8b2",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  color: "rgba(245, 234, 210, 0.78)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
   fontSize: "14px",
   lineHeight: "20px",
   margin: 0,
@@ -779,19 +772,16 @@ const compactMetaGridStyle: CSSProperties = {
 };
 
 const metaCardStyle: CSSProperties = {
-  background: "rgba(255, 255, 255, 0.04)",
-  border: "1px solid rgba(232, 206, 151, 0.12)",
-  borderRadius: "14px",
-  display: "flex",
-  flexDirection: "column",
-  gap: "4px",
-  minWidth: 0,
-  padding: "12px 14px",
+  ...createShellSurfaceStyle("agedPaper", {
+    gap: "4px",
+    padding: "12px 14px",
+    radius: SHELL_DESIGN_TOKENS.radius.panel,
+  }),
 };
 
 const metaLabelStyle: CSSProperties = {
-  color: "#d3cab6",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  color: "var(--shell-color-text-muted)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
   fontSize: "11px",
   fontWeight: 700,
   lineHeight: "15px",
@@ -799,16 +789,16 @@ const metaLabelStyle: CSSProperties = {
 };
 
 const metaValueStyle: CSSProperties = {
-  color: "#f5ead2",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  color: "var(--shell-color-text-primary)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
   fontSize: "15px",
   fontWeight: 700,
   lineHeight: "20px",
 };
 
 const metaDetailStyle: CSSProperties = {
-  color: "#b9aa92",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  color: "var(--shell-color-text-warm)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
   fontSize: "12px",
   lineHeight: "17px",
   overflowWrap: "anywhere",
@@ -821,8 +811,8 @@ const contentStackStyle: CSSProperties = {
 };
 
 const detailStyle: CSSProperties = {
-  color: "#c8baa2",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  color: "rgba(245, 234, 210, 0.74)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
   fontSize: "13px",
   lineHeight: "18px",
   margin: 0,
@@ -830,13 +820,11 @@ const detailStyle: CSSProperties = {
 };
 
 const localeSectionStyle: CSSProperties = {
-  background: "rgba(255, 255, 255, 0.035)",
-  border: "1px solid rgba(232, 206, 151, 0.12)",
-  borderRadius: "16px",
-  display: "flex",
-  flexDirection: "column",
-  gap: "12px",
-  padding: "14px",
+  ...createShellSurfaceStyle("wood", {
+    gap: "12px",
+    padding: "14px",
+    radius: SHELL_DESIGN_TOKENS.radius.slip,
+  }),
 };
 
 const firstPlayPanelStyle: CSSProperties = {
@@ -851,19 +839,16 @@ const firstPlayGridStyle: CSSProperties = {
 };
 
 const guidanceCardStyle: CSSProperties = {
-  background: "rgba(0, 0, 0, 0.14)",
-  border: "1px solid rgba(232, 206, 151, 0.1)",
-  borderRadius: "8px",
-  display: "flex",
-  flexDirection: "column",
-  gap: "6px",
-  minWidth: 0,
-  padding: "10px 12px",
+  ...createShellSurfaceStyle("paper", {
+    gap: "6px",
+    padding: "10px 12px",
+    radius: SHELL_DESIGN_TOKENS.radius.panel,
+  }),
 };
 
 const guidanceLabelStyle: CSSProperties = {
-  color: "#d3cab6",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  color: "var(--shell-color-text-muted)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
   fontSize: "11px",
   fontWeight: 700,
   lineHeight: "15px",
@@ -871,16 +856,16 @@ const guidanceLabelStyle: CSSProperties = {
 };
 
 const guidanceTitleStyle: CSSProperties = {
-  color: "#f5ead2",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  color: "var(--shell-color-text-primary)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
   fontSize: "14px",
   fontWeight: 700,
   lineHeight: "19px",
 };
 
 const guidanceDetailStyle: CSSProperties = {
-  color: "#c8baa2",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  color: "var(--shell-color-text-warm)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
   fontSize: "12px",
   lineHeight: "17px",
   margin: 0,
@@ -896,8 +881,8 @@ const guidanceListStyle: CSSProperties = {
 };
 
 const guidanceListItemStyle: CSSProperties = {
-  color: "#d6c8b2",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  color: "var(--shell-color-text-warm)",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
   fontSize: "12px",
   lineHeight: "17px",
   overflowWrap: "anywhere",
@@ -910,8 +895,8 @@ const localeHeaderStyle: CSSProperties = {
 };
 
 const sectionTitleStyle: CSSProperties = {
-  color: "#f5ead2",
-  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  color: "inherit",
+  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
   fontSize: "16px",
   fontWeight: 700,
   lineHeight: "22px",
