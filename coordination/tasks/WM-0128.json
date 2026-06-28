@@ -2,7 +2,7 @@
   "id": "WM-0128",
   "title": "Repair or explain M8 benchmark regressions blocking closeout",
   "summary": "Investigate the repeated WM-0126 benchmark stop signs, repair real regressions without weakening baselines, or produce a reviewed explanation that preserves the benchmark policy before M8 closeout can proceed.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -35,7 +35,7 @@
   ],
   "branch": "task/WM-0128-m8-benchmark-regression-repair",
   "createdAt": "2026-06-28T09:04:30.400Z",
-  "updatedAt": "2026-06-28T09:04:30.400Z",
+  "updatedAt": "2026-06-28T12:20:12.070Z",
   "history": [
     {
       "at": "2026-06-28T09:04:30.400Z",
@@ -48,6 +48,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "WM-0126 done; performance stop sign blocks closeout until repaired or reviewed as explained."
+    },
+    {
+      "at": "2026-06-28T09:08:36.369Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Tally WM-0128 benchmark regression repair"
+    },
+    {
+      "at": "2026-06-28T12:07:50.925Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Diagnosed WM-0126 benchmark stop sign as stale/measurement-only evidence; current HEAD aa611ca passes two full corepack pnpm bench reruns under unchanged 10/20 policy plus required typecheck, m5-invariants, sim run, handoff, taskctl, diff and quality gates."
+    },
+    {
+      "at": "2026-06-28T12:16:12.064Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; verified old WM-0126 bench artifacts record a0eaf0b while current HEAD is aa611ca, no package/benchmark diff exists across the range, WM-0128 bench artifacts and reviewer rerun pass unchanged 10/20 thresholds, and owner gates remain unchanged."
+    },
+    {
+      "at": "2026-06-28T12:20:04.353Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Independent reviewer verified WM-0128; branch evidence passes two implementation bench reruns, reviewer bench rerun, required WM-0128 checks, workflow validation and diff checks under unchanged 10/20 benchmark policy."
+    },
+    {
+      "at": "2026-06-28T12:20:12.070Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M8",
@@ -69,5 +99,20 @@
     "signing credentials or signed installer",
     "telemetry account paid service or crash upload implementation",
     "final privacy legal or store claims without owner approval"
-  ]
+  ],
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Tally WM-0128 benchmark regression repair",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0128.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; verified old WM-0126 bench artifacts record a0eaf0b while current HEAD is aa611ca, no package/benchmark diff exists across the range, WM-0128 bench artifacts and reviewer rerun pass unchanged 10/20 thresholds, and owner gates remain unchanged.",
+    "at": "2026-06-28T12:16:12.064Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Independent reviewer verified WM-0128; branch evidence passes two implementation bench reruns, reviewer bench rerun, required WM-0128 checks, workflow validation and diff checks under unchanged 10/20 benchmark policy.",
+    "at": "2026-06-28T12:20:04.353Z"
+  }
 }

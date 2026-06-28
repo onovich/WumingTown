@@ -2,7 +2,7 @@
   "id": "WM-0127",
   "title": "M8 closeout and future handoff",
   "summary": "Close M8 after all M8 tasks are independently reviewed and integrated, then write a future non-release handoff without executing public release actions.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -39,7 +39,7 @@
   ],
   "branch": "task/WM-0127-m8-closeout-future-handoff",
   "createdAt": "2026-06-27T15:46:00.000Z",
-  "updatedAt": "2026-06-28T09:04:30.400Z",
+  "updatedAt": "2026-06-28T12:20:12.077Z",
   "history": [
     {
       "at": "2026-06-27T15:46:00.000Z",
@@ -58,6 +58,12 @@
       "actor": "project-director",
       "action": "defer-ready",
       "details": "WM-0126 verified a benchmark stop sign; closeout readiness now depends on WM-0128 performance repair/explanation."
+    },
+    {
+      "at": "2026-06-28T12:20:12.077Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "M8",
