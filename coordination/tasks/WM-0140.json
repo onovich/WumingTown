@@ -2,7 +2,7 @@
   "id": "WM-0140",
   "title": "Visual regression screenshot and interaction evidence gate",
   "summary": "Capture reviewer-inspectable responsive screenshots and automated evidence for player HUD, selection, camera and minimum playable chain after remediation.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -37,13 +37,19 @@
   ],
   "branch": "task/WM-0140-visual-regression-interaction-evidence",
   "createdAt": "2026-06-28T13:36:56.432Z",
-  "updatedAt": "2026-06-28T13:36:56.432Z",
+  "updatedAt": "2026-06-28T23:07:48.425Z",
   "history": [
     {
       "at": "2026-06-28T13:36:56.432Z",
       "actor": "project-director",
       "action": "create",
       "details": "Created by WM-0129 remediation DAG."
+    },
+    {
+      "at": "2026-06-28T23:07:48.425Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "M8",

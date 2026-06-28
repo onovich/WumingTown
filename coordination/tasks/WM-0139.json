@@ -2,7 +2,7 @@
   "id": "WM-0139",
   "title": "First-play onboarding remediation",
   "summary": "Update first-play guidance so the player sees what can be selected, how to move the camera, and which first action chain is available in both supported locales.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "gameplay-designer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -33,7 +33,7 @@
   ],
   "branch": "task/WM-0139-first-play-onboarding-remediation",
   "createdAt": "2026-06-28T13:36:56.432Z",
-  "updatedAt": "2026-06-28T23:03:31.618Z",
+  "updatedAt": "2026-06-28T23:07:48.410Z",
   "history": [
     {
       "at": "2026-06-28T13:36:56.432Z",
@@ -64,6 +64,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings; first-play guidance acceptance evidence confirmed"
+    },
+    {
+      "at": "2026-06-28T23:07:38.025Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Merged acdf3cd into main; validate-handoff, taskctl validate/status, git diff --check, and pnpm quality passed on main"
+    },
+    {
+      "at": "2026-06-28T23:07:48.409Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M8",
@@ -88,5 +100,10 @@
     "verdict": "verified",
     "summary": "No blocking findings; first-play guidance acceptance evidence confirmed",
     "at": "2026-06-28T23:03:31.618Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Merged acdf3cd into main; validate-handoff, taskctl validate/status, git diff --check, and pnpm quality passed on main",
+    "at": "2026-06-28T23:07:38.025Z"
   }
 }
