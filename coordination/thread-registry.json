@@ -27,9 +27,9 @@
       "registeredAt": "2026-06-23T21:08:57.616Z"
     },
     "qa-performance": {
-      "threadId": "019efa73-1b5c-74d1-b84d-6234c2424c4c",
-      "label": "WM-0029-bench-invariants-active",
-      "registeredAt": "2026-06-24T16:27:44.151Z"
+      "threadId": "019f0ccb-7d5f-7550-811e-dfca965205af",
+      "label": "Gauge WM-0118 responsive validation",
+      "registeredAt": "2026-06-28T05:55:07.906Z"
     },
     "content-worker": {
       "threadId": "019ef650-24da-7c22-a896-40da4ce6f09f",
@@ -42,10 +42,10 @@
       "registeredAt": "2026-06-28T05:15:43.739Z"
     },
     "reviewer": {
-      "threadId": "019f0cb6-1acd-7fd3-aaa5-a92ec49193eb",
-      "label": "Mirror WM-0119 review",
-      "registeredAt": "2026-06-28T05:31:44.257Z"
+      "threadId": "019f0cf5-2213-7c50-aae3-9dd9a80a5db3",
+      "label": "Gate WM-0118 responsive review",
+      "registeredAt": "2026-06-28T06:40:39.056Z"
     }
   },
-  "updatedAt": "2026-06-28T05:31:44.257Z"
+  "updatedAt": "2026-06-28T06:40:39.056Z"
 }

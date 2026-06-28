@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQXF4IAO-F52163",
+  "from": "qa-performance",
+  "to": "reviewer",
+  "taskId": "WM-0118",
+  "kind": "review-request",
+  "subject": "WM-0118 ready for review",
+  "body": "Validated Web/Desktop M8 responsive viewport matrix across 1280x720, 1366x768, 1424x861, 1600x900, 1920x1080, 2560x1369 and 2560x1440; added bilingual DOM-layout artifacts and reviewer screenshots; required checks passed",
+  "artifacts": [
+    "coordination/reports/WM-0118.md",
+    "task/WM-0118-m8-responsive-viewport-validation"
+  ],
+  "createdAt": "2026-06-28T06:38:59.232Z",
+  "acknowledgedAt": "2026-06-28T06:40:39.253Z"
+}

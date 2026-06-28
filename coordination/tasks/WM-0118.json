@@ -2,7 +2,7 @@
   "id": "WM-0118",
   "title": "Responsive viewport and screenshot validation",
   "summary": "Add automated responsive layout evidence for required windowed/fullscreen viewport sizes and bilingual UI states.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,7 +31,7 @@
   ],
   "branch": "task/WM-0118-m8-responsive-viewport-validation",
   "createdAt": "2026-06-27T15:46:00.000Z",
-  "updatedAt": "2026-06-28T05:11:52.841Z",
+  "updatedAt": "2026-06-28T06:57:08.908Z",
   "history": [
     {
       "at": "2026-06-27T15:46:00.000Z",
@@ -44,6 +44,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-28T05:54:29.999Z",
+      "actor": "qa-performance",
+      "action": "claim",
+      "details": "thread=Sentinel WM-0118 responsive validation"
+    },
+    {
+      "at": "2026-06-28T06:38:59.231Z",
+      "actor": "qa-performance",
+      "action": "complete",
+      "details": "Validated Web/Desktop M8 responsive viewport matrix across 1280x720, 1366x768, 1424x861, 1600x900, 1920x1080, 2560x1369 and 2560x1440; added bilingual DOM-layout artifacts and reviewer screenshots; required checks passed"
+    },
+    {
+      "at": "2026-06-28T06:53:58.008Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; independently reran Web/Desktop responsive E2E, quality, handoff, workflow validate/status and diff checks. Full 7-viewport Web/Desktop bilingual start/HUD matrix plus explicit debug diagnostics path artifacts confirmed."
+    },
+    {
+      "at": "2026-06-28T06:57:08.848Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integrated verified responsive viewport matrix evidence; checks passed: handoff validate, taskctl validate/status, diff check, quality; reviewer independently reran Web/Desktop E2E."
+    },
+    {
+      "at": "2026-06-28T06:57:08.907Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M8",
@@ -53,6 +83,7 @@
     "packages/ui-react/**",
     "tools/**",
     "package.json",
+    "coordination/artifacts/WM-0118/**",
     "coordination/reports/WM-0118*.md",
     "coordination/tasks/WM-0118.json"
   ],
@@ -61,5 +92,20 @@
     "packages/sim-worker/**",
     "benchmark baseline weakening",
     "release/store/signing/telemetry/account/paid-service work"
-  ]
+  ],
+  "claimedBy": "qa-performance",
+  "threadLabel": "Sentinel WM-0118 responsive validation",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0118.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; independently reran Web/Desktop responsive E2E, quality, handoff, workflow validate/status and diff checks. Full 7-viewport Web/Desktop bilingual start/HUD matrix plus explicit debug diagnostics path artifacts confirmed.",
+    "at": "2026-06-28T06:53:58.008Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integrated verified responsive viewport matrix evidence; checks passed: handoff validate, taskctl validate/status, diff check, quality; reviewer independently reran Web/Desktop E2E.",
+    "at": "2026-06-28T06:57:08.848Z"
+  }
 }

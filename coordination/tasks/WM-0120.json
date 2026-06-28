@@ -2,7 +2,7 @@
   "id": "WM-0120",
   "title": "Accessibility readability and UI-scale pass",
   "summary": "Validate and improve text readability, non-color-only state, UI scale, contrast, scroll usability and bilingual layout.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -33,13 +33,19 @@
   ],
   "branch": "task/WM-0120-m8-accessibility-readability",
   "createdAt": "2026-06-27T15:46:00.000Z",
-  "updatedAt": "2026-06-27T15:46:00.000Z",
+  "updatedAt": "2026-06-28T06:57:08.942Z",
   "history": [
     {
       "at": "2026-06-27T15:46:00.000Z",
       "actor": "project-director",
       "action": "create",
       "details": "Created by WM-0111 M8 UI/i18n scope amendment DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-28T06:57:08.942Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "M8",

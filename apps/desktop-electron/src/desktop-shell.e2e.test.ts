@@ -5,7 +5,7 @@ import { access, mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promise
 import * as os from "node:os";
 import * as path from "node:path";
 
-import { _electron as electron, type Page } from "playwright";
+import { _electron as electron, type ElectronApplication, type Page } from "playwright";
 import { describe, expect, it } from "vitest";
 import { createServer, type ViteDevServer } from "vite";
 
@@ -66,6 +66,61 @@ interface PreloadBridgeAudit {
   readonly saveStoreKeys: readonly string[];
   readonly topLevelKeys: readonly string[];
 }
+
+interface ResponsiveViewport {
+  readonly width: number;
+  readonly height: number;
+}
+
+interface ResponsiveSelectorMetric {
+  readonly bottom: number;
+  readonly clientHeight: number;
+  readonly clientWidth: number;
+  readonly height: number;
+  readonly left: number;
+  readonly overflowX: number;
+  readonly overflowY: number;
+  readonly right: number;
+  readonly scrollHeight: number;
+  readonly scrollWidth: number;
+  readonly top: number;
+  readonly width: number;
+}
+
+interface ResponsiveLayoutArtifact {
+  readonly diagnosticsVisible: boolean;
+  readonly documentOverflowX: number;
+  readonly documentOverflowY: number;
+  readonly locale: "en" | "zh-CN";
+  readonly metrics: Record<string, ResponsiveSelectorMetric>;
+  readonly screenshotPath?: string;
+  readonly shell: "desktop";
+  readonly source: "system";
+  readonly surface: "debug-overlay" | "player-hud" | "start-surface";
+  readonly viewport: ResponsiveViewport;
+}
+
+const WM0118_RESPONSIVE_VIEWPORTS: readonly ResponsiveViewport[] = [
+  { width: 1280, height: 720 },
+  { width: 1366, height: 768 },
+  { width: 1424, height: 861 },
+  { width: 1600, height: 900 },
+  { width: 1920, height: 1080 },
+  { width: 2560, height: 1369 },
+  { width: 2560, height: 1440 },
+];
+
+const WM0118_DESKTOP_ARTIFACT_ROOT = path.join(
+  process.cwd(),
+  "coordination",
+  "artifacts",
+  "WM-0118",
+);
+const WM0118_DESKTOP_LAYOUT_PATH = path.join(
+  WM0118_DESKTOP_ARTIFACT_ROOT,
+  "desktop-responsive-layout.json",
+);
+const WM0118_DESKTOP_SCREENSHOT_ROOT = path.join(WM0118_DESKTOP_ARTIFACT_ROOT, "desktop");
 
 describe("desktop Electron shell smoke", () => {
   it("launches the sandboxed shell against a Vite dev server", async () => {
@@ -242,6 +297,55 @@ describe("desktop Electron shell smoke", () => {
       });
     }
   }, 180000);
+
+  it("validates the desktop M8 responsive viewport matrix and records reviewer artifacts", async () => {
+    await ensureDesktopMainBuild();
+
+    const appRoot = path.join(process.cwd(), "apps", "web");
+    const server = await createServer({
+      configFile: false,
+      logLevel: "error",
+      root: appRoot,
+      server: {
+        host: "127.0.0.1",
+        port: 0,
+        strictPort: false,
+      },
+    });
+    await server.listen();
+
+    const artifacts: ResponsiveLayoutArtifact[] = [];
+
+    try {
+      await collectDesktopResponsiveLocaleArtifacts(
+        readServerUrl(server),
+        {
+          expectedLocale: "en",
+          playwrightLocale: "en-US",
+        },
+        artifacts,
+      );
+      await collectDesktopResponsiveLocaleArtifacts(
+        readServerUrl(server),
+        {
+          expectedLocale: "zh-CN",
+          playwrightLocale: "zh-TW",
+        },
+        artifacts,
+      );
+      await collectDesktopResponsiveDebugArtifacts(readServerUrl(server), artifacts);
+      await mkdir(path.dirname(WM0118_DESKTOP_LAYOUT_PATH), {
+        recursive: true,
+      });
+      await writeFile(
+        WM0118_DESKTOP_LAYOUT_PATH,
+        `${JSON.stringify(artifacts, null, 2)}\n`,
+        "utf8",
+      );
+    } finally {
+      await server.close();
+    }
+  }, 300000);
 });
 
 async function assertRendererSandbox(page: Page): Promise<void> {
@@ -419,17 +523,36 @@ async function assertDesktopAccessibilityBaseline(
 }
 
 async function assertDesktopPlayerHudBaseline(page: Page): Promise<void> {
-  await assertDesktopPlayerHudStructure(page);
-  expect(await page.getByTestId("debug-overlay").count()).toBe(0);
+  await assertDesktopPlayerHudLocaleState(page, "en");
 }
 
 async function assertDesktopPlayerHudStructure(page: Page): Promise<void> {
   expect(await page.getByTestId("player-hud").count()).toBe(1);
+  expect(await page.getByTestId("player-top-bar").count()).toBe(1);
   expect(await page.getByTestId("player-next-goal").count()).toBe(1);
   expect(await page.getByTestId("player-night-risk").count()).toBe(1);
   expect(await page.getByTestId("player-task-list").count()).toBe(1);
   expect(await page.getByTestId("player-event-list").count()).toBe(1);
   expect(await page.getByTestId("player-resident-watch").count()).toBe(1);
+  expect(await page.locator("[data-testid='world-canvas']").count()).toBe(1);
+}
+
+async function assertDesktopPlayerHudLocaleState(
+  page: Page,
+  locale: "en" | "zh-CN",
+): Promise<void> {
+  await assertDesktopPlayerHudStructure(page);
+  expect(await page.getByTestId("debug-overlay").count()).toBe(0);
+  const activeLocale = await page.locator("[data-shell-ready='true']").getAttribute("data-locale");
+  expect(activeLocale).toBe(locale);
+  const nightRiskTier = await page
+    .getByTestId("player-night-risk")
+    .getAttribute("data-night-risk-tier");
+  expect(nightRiskTier).toBe("strained");
+  if (locale === "en") {
+    const goalText = await page.getByTestId("player-next-goal").textContent();
+    expect(goalText ?? "").toContain("Lantern corridor gap");
+  }
 }
 
 async function assertDesktopDebugOverlayBaseline(page: Page): Promise<void> {
@@ -501,6 +624,565 @@ async function waitForDesktopStartSurfaceClosed(page: Page): Promise<void> {
   }
 
   throw new Error("Timed out waiting for the desktop main menu surface to close.");
+}
+
+async function collectDesktopResponsiveLocaleArtifacts(
+  serverUrl: string,
+  localeCase: {
+    readonly expectedLocale: "en" | "zh-CN";
+    readonly playwrightLocale: string;
+  },
+  artifacts: ResponsiveLayoutArtifact[],
+): Promise<void> {
+  const userDataRoot = await mkdtemp(path.join(os.tmpdir(), "wuming-town-wm-0118-desktop-"));
+  const initialViewport = WM0118_RESPONSIVE_VIEWPORTS[0];
+  if (initialViewport === undefined) {
+    throw new Error("WM-0118 viewport matrix was empty.");
+  }
+
+  const electronApp = await electron.launch({
+    args: [`--lang=${localeCase.playwrightLocale}`, MAIN_ENTRY_PATH],
+    env: {
+      ...process.env,
+      WM_DESKTOP_DEV_SERVER_URL: serverUrl,
+      WM_DESKTOP_USER_DATA_DIR: userDataRoot,
+    },
+  });
+
+  try {
+    const page = await electronApp.firstWindow();
+    await resizeDesktopViewport(electronApp, page, initialViewport);
+    await page.waitForSelector("[data-shell-ready='true']");
+    await waitForLocale(page, localeCase.expectedLocale, "system");
+    await assertDesktopStartSurfaceBaseline(page, localeCase.expectedLocale);
+
+    for (const viewport of WM0118_RESPONSIVE_VIEWPORTS) {
+      await assertDesktopStartSurfaceViewportLayout(
+        electronApp,
+        page,
+        viewport.width,
+        viewport.height,
+      );
+      const screenshotPath = await maybeCaptureDesktopResponsiveScreenshot(
+        page,
+        "start-surface",
+        localeCase.expectedLocale,
+        viewport,
+      );
+      artifacts.push(
+        await captureDesktopResponsiveLayoutArtifact(page, {
+          locale: localeCase.expectedLocale,
+          selectors: {
+            availableActions: "[data-testid='main-menu-available-actions']",
+            firstPlayGuidance: "[data-testid='main-menu-first-play-guidance']",
+            guidanceBoundary: "[data-testid='main-menu-guidance-boundary']",
+            languageSection: "[data-testid='main-menu-language']",
+            nextGoal: "[data-testid='main-menu-next-goal']",
+            panel: "[data-testid='main-menu-panel']",
+          },
+          shell: "desktop",
+          source: "system",
+          surface: "start-surface",
+          viewport,
+          ...(screenshotPath === undefined ? {} : { screenshotPath }),
+        }),
+      );
+    }
+
+    await page.getByTestId("main-menu-new-game").click();
+    await waitForDesktopStartSurfaceClosed(page);
+
+    for (const viewport of WM0118_RESPONSIVE_VIEWPORTS) {
+      await assertDesktopTownHudViewportLayout(
+        electronApp,
+        page,
+        viewport.width,
+        viewport.height,
+        localeCase.expectedLocale,
+      );
+      const screenshotPath = await maybeCaptureDesktopResponsiveScreenshot(
+        page,
+        "player-hud",
+        localeCase.expectedLocale,
+        viewport,
+      );
+      artifacts.push(
+        await captureDesktopResponsiveLayoutArtifact(page, {
+          locale: localeCase.expectedLocale,
+          selectors: {
+            eventList: "[data-testid='player-event-list']",
+            localeSettings: "[data-testid='locale-settings']",
+            nextGoal: "[data-testid='player-next-goal']",
+            residentWatch: "[data-testid='player-resident-watch']",
+            selectedDetail: "[data-testid='player-selected-detail']",
+            taskList: "[data-testid='player-task-list']",
+            topBar: "[data-testid='player-top-bar']",
+            worldCanvas: "[data-testid='world-canvas']",
+          },
+          shell: "desktop",
+          source: "system",
+          surface: "player-hud",
+          viewport,
+          ...(screenshotPath === undefined ? {} : { screenshotPath }),
+        }),
+      );
+    }
+  } finally {
+    await electronApp.close();
+    await rm(userDataRoot, {
+      force: true,
+      recursive: true,
+    });
+  }
+}
+
+async function collectDesktopResponsiveDebugArtifacts(
+  serverUrl: string,
+  artifacts: ResponsiveLayoutArtifact[],
+): Promise<void> {
+  const userDataRoot = await mkdtemp(path.join(os.tmpdir(), "wuming-town-wm-0118-debug-"));
+  const initialViewport = WM0118_RESPONSIVE_VIEWPORTS[0];
+  if (initialViewport === undefined) {
+    throw new Error("WM-0118 viewport matrix was empty.");
+  }
+
+  const electronApp = await electron.launch({
+    args: ["--lang=en-US", MAIN_ENTRY_PATH],
+    env: {
+      ...process.env,
+      WM_DESKTOP_DEV_SERVER_URL: serverUrl,
+      WM_DESKTOP_QUERY: "wmDiagnostics=1",
+      WM_DESKTOP_USER_DATA_DIR: userDataRoot,
+    },
+  });
+
+  try {
+    const page = await electronApp.firstWindow();
+    await resizeDesktopViewport(electronApp, page, initialViewport);
+    await page.waitForSelector("[data-shell-ready='true']");
+    await waitForLocale(page, "en", "system");
+
+    for (const viewport of WM0118_RESPONSIVE_VIEWPORTS) {
+      await assertDesktopDebugOverlayViewportLayout(
+        electronApp,
+        page,
+        viewport.width,
+        viewport.height,
+      );
+      const screenshotPath = await maybeCaptureDesktopResponsiveScreenshot(
+        page,
+        "debug-overlay",
+        "en",
+        viewport,
+      );
+      artifacts.push(
+        await captureDesktopResponsiveLayoutArtifact(page, {
+          locale: "en",
+          selectors: {
+            debugOverlay: "[data-testid='debug-overlay']",
+            eventList: "[data-testid='player-event-list']",
+            nextGoal: "[data-testid='player-next-goal']",
+            residentWatch: "[data-testid='player-resident-watch']",
+            selectedDetail: "[data-testid='player-selected-detail']",
+            storagePanel: "[data-testid='storage-panel']",
+            taskList: "[data-testid='player-task-list']",
+            topBar: "[data-testid='player-top-bar']",
+          },
+          shell: "desktop",
+          source: "system",
+          surface: "debug-overlay",
+          viewport,
+          ...(screenshotPath === undefined ? {} : { screenshotPath }),
+        }),
+      );
+    }
+  } finally {
+    await electronApp.close();
+    await rm(userDataRoot, {
+      force: true,
+      recursive: true,
+    });
+  }
+}
+
+async function assertDesktopStartSurfaceViewportLayout(
+  electronApp: ElectronApplication,
+  page: Page,
+  width: number,
+  height: number,
+): Promise<void> {
+  await resizeDesktopViewport(electronApp, page, {
+    height,
+    width,
+  });
+  await page.getByTestId("main-menu-panel").waitFor();
+
+  const panelMetrics = await readElementViewportMetrics(page, "[data-testid='main-menu-panel']");
+  expect(panelMetrics.top).toBeGreaterThanOrEqual(0);
+  expect(panelMetrics.left).toBeGreaterThanOrEqual(0);
+  expect(panelMetrics.right).toBeLessThanOrEqual(width + 1);
+  expect(panelMetrics.bottom).toBeLessThanOrEqual(height + 1);
+  expect(panelMetrics.overflowX).toBeLessThanOrEqual(1);
+  await assertDocumentOverflowWithinViewport(page);
+
+  for (const testId of [
+    "main-menu-first-play-guidance",
+    "main-menu-next-goal",
+    "main-menu-available-actions",
+    "main-menu-guidance-boundary",
+    "main-menu-language",
+    "main-menu-locale-system",
+    "main-menu-locale-zh-CN",
+    "main-menu-locale-en",
+  ]) {
+    await assertTestIdWithinViewport(page, testId, width, height);
+  }
+
+  await page.getByTestId("main-menu-settings").click();
+  await page.getByTestId("locale-select").scrollIntoViewIfNeeded();
+  await assertTestIdWithinViewport(page, "main-menu-back", width, height);
+  await assertTestIdWithinViewport(page, "locale-select", width, height);
+  await assertTestIdWithinViewport(page, "locale-source", width, height);
+  await assertTestIdWithinViewport(page, "locale-current", width, height);
+  await assertTestIdWithinViewport(page, "locale-persistence", width, height);
+  await page.getByTestId("main-menu-back").click();
+  await page.getByTestId("main-menu-settings").waitFor();
+}
+
+async function assertDesktopTownHudViewportLayout(
+  electronApp: ElectronApplication,
+  page: Page,
+  width: number,
+  height: number,
+  locale: "en" | "zh-CN",
+): Promise<void> {
+  await resizeDesktopViewport(electronApp, page, {
+    height,
+    width,
+  });
+  await assertDesktopPlayerHudLocaleState(page, locale);
+  await assertDocumentOverflowWithinViewport(page);
+
+  for (const testId of [
+    "player-top-bar",
+    "player-next-goal",
+    "player-task-list",
+    "player-event-list",
+    "player-resident-watch",
+    "locale-settings",
+  ]) {
+    await assertTestIdReachableWithoutCover(page, testId, width, height);
+  }
+  await assertTallSelectorReachableWithoutCover(
+    page,
+    "[data-testid='player-selected-detail']",
+    width,
+    height,
+  );
+
+  const worldCanvasMetrics = await readElementViewportMetrics(page, "[data-testid='world-canvas']");
+  expect(worldCanvasMetrics.left).toBeLessThanOrEqual(1);
+  expect(worldCanvasMetrics.top).toBeLessThanOrEqual(1);
+  expect(worldCanvasMetrics.right).toBeGreaterThanOrEqual(width - 1);
+  expect(worldCanvasMetrics.bottom).toBeGreaterThanOrEqual(height - 1);
+}
+
+async function assertDesktopDebugOverlayViewportLayout(
+  electronApp: ElectronApplication,
+  page: Page,
+  width: number,
+  height: number,
+): Promise<void> {
+  await resizeDesktopViewport(electronApp, page, {
+    height,
+    width,
+  });
+  await assertDesktopDebugOverlayBaseline(page);
+  await assertDocumentOverflowWithinViewport(page);
+
+  for (const testId of [
+    "player-top-bar",
+    "player-next-goal",
+    "player-task-list",
+    "player-event-list",
+    "player-resident-watch",
+  ]) {
+    await assertTestIdReachableWithoutCover(page, testId, width, height);
+  }
+  await assertTallSelectorReachableWithoutCover(
+    page,
+    "[data-testid='storage-panel']",
+    width,
+    height,
+  );
+  await assertTallSelectorReachableWithoutCover(
+    page,
+    "[data-testid='player-selected-detail']",
+    width,
+    height,
+  );
+}
+
+async function captureDesktopResponsiveLayoutArtifact(
+  page: Page,
+  options: {
+    readonly locale: "en" | "zh-CN";
+    readonly screenshotPath?: string;
+    readonly selectors: Record<string, string>;
+    readonly shell: "desktop";
+    readonly source: "system";
+    readonly surface: "debug-overlay" | "player-hud" | "start-surface";
+    readonly viewport: ResponsiveViewport;
+  },
+): Promise<ResponsiveLayoutArtifact> {
+  const metrics: Record<string, ResponsiveSelectorMetric> = {};
+  for (const [label, selector] of Object.entries(options.selectors)) {
+    metrics[label] = await readElementViewportMetrics(page, selector);
+  }
+
+  const overflow = await readDocumentOverflow(page);
+  const diagnosticsVisible =
+    (await page.locator("[data-shell-ready='true']").getAttribute("data-diagnostics-visible")) ===
+    "true";
+
+  return {
+    diagnosticsVisible,
+    documentOverflowX: overflow.documentOverflowX,
+    documentOverflowY: overflow.documentOverflowY,
+    locale: options.locale,
+    metrics,
+    shell: options.shell,
+    source: options.source,
+    surface: options.surface,
+    viewport: options.viewport,
+    ...(options.screenshotPath === undefined ? {} : { screenshotPath: options.screenshotPath }),
+  };
+}
+
+async function maybeCaptureDesktopResponsiveScreenshot(
+  page: Page,
+  surface: "debug-overlay" | "player-hud" | "start-surface",
+  locale: "en" | "zh-CN",
+  viewport: ResponsiveViewport,
+): Promise<string | undefined> {
+  if (!shouldCaptureDesktopResponsiveScreenshot(surface, locale, viewport)) {
+    return undefined;
+  }
+
+  const screenshotPath = path.join(
+    WM0118_DESKTOP_SCREENSHOT_ROOT,
+    `${surface}-${locale}-${String(viewport.width)}x${String(viewport.height)}.png`,
+  );
+  await mkdir(path.dirname(screenshotPath), {
+    recursive: true,
+  });
+  await page.screenshot({
+    animations: "disabled",
+    path: screenshotPath,
+  });
+  return toRelativeArtifactPath(screenshotPath);
+}
+
+function shouldCaptureDesktopResponsiveScreenshot(
+  surface: "debug-overlay" | "player-hud" | "start-surface",
+  locale: "en" | "zh-CN",
+  viewport: ResponsiveViewport,
+): boolean {
+  return (
+    (surface === "start-surface" &&
+      locale === "zh-CN" &&
+      viewport.width === 1424 &&
+      viewport.height === 861) ||
+    (surface === "player-hud" &&
+      locale === "en" &&
+      viewport.width === 2560 &&
+      viewport.height === 1369) ||
+    (surface === "debug-overlay" &&
+      locale === "en" &&
+      viewport.width === 1424 &&
+      viewport.height === 861)
+  );
+}
+
+async function resizeDesktopViewport(
+  electronApp: ElectronApplication,
+  page: Page,
+  viewport: ResponsiveViewport,
+): Promise<void> {
+  const browserWindow = await electronApp.browserWindow(page);
+  await browserWindow.evaluate(
+    (
+      windowRef: {
+        readonly isDestroyed: () => boolean;
+        readonly setContentSize: (width: number, height: number) => void;
+      },
+      size: ResponsiveViewport,
+    ) => {
+      if (!windowRef.isDestroyed()) {
+        windowRef.setContentSize(size.width, size.height);
+      }
+    },
+    viewport,
+  );
+  await waitForViewportSize(page, viewport.width, viewport.height);
+}
+
+async function waitForViewportSize(page: Page, width: number, height: number): Promise<void> {
+  await page.waitForFunction(
+    (size: ResponsiveViewport) =>
+      Math.abs(window.innerWidth - size.width) <= 1 &&
+      Math.abs(window.innerHeight - size.height) <= 1,
+    {
+      height,
+      width,
+    },
+  );
+  await page.evaluate(() => {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  });
+  await page.waitForTimeout(100);
+}
+
+async function assertDocumentOverflowWithinViewport(page: Page): Promise<void> {
+  const overflow = await readDocumentOverflow(page);
+  expect(overflow.documentOverflowX).toBeLessThanOrEqual(1);
+  expect(overflow.documentOverflowY).toBeLessThanOrEqual(1);
+}
+
+async function readDocumentOverflow(page: Page): Promise<{
+  readonly documentOverflowX: number;
+  readonly documentOverflowY: number;
+}> {
+  return page.evaluate(() => ({
+    documentOverflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    documentOverflowY:
+      document.documentElement.scrollHeight - document.documentElement.clientHeight,
+  }));
+}
+
+async function assertTestIdWithinViewport(
+  page: Page,
+  testId: string,
+  width: number,
+  height: number,
+): Promise<void> {
+  await page.locator(`[data-testid='${testId}']`).evaluate((element: HTMLElement) => {
+    element.scrollIntoView({
+      block: "nearest",
+      inline: "nearest",
+    });
+  });
+  await page.waitForTimeout(50);
+  const metrics = await readElementViewportMetrics(page, `[data-testid='${testId}']`);
+  expect(metrics.top).toBeGreaterThanOrEqual(0);
+  expect(metrics.left).toBeGreaterThanOrEqual(0);
+  expect(metrics.right).toBeLessThanOrEqual(width + 1);
+  expect(metrics.bottom).toBeLessThanOrEqual(height + 1);
+  expect(metrics.overflowX).toBeLessThanOrEqual(1);
+}
+
+async function assertTestIdReachableWithoutCover(
+  page: Page,
+  testId: string,
+  width: number,
+  height: number,
+): Promise<void> {
+  await assertSelectorReachableWithoutCover(page, `[data-testid='${testId}']`, width, height);
+}
+
+async function assertSelectorReachableWithoutCover(
+  page: Page,
+  selector: string,
+  width: number,
+  height: number,
+): Promise<void> {
+  await page.locator(selector).evaluate((element: HTMLElement) => {
+    element.scrollIntoView({
+      block: "nearest",
+      inline: "nearest",
+    });
+  });
+  await page.waitForTimeout(80);
+
+  const metrics = await readElementViewportMetrics(page, selector);
+  expect(metrics.top, `${selector} top`).toBeGreaterThanOrEqual(0);
+  expect(metrics.left, `${selector} left`).toBeGreaterThanOrEqual(0);
+  expect(metrics.right, `${selector} right`).toBeLessThanOrEqual(width + 1);
+  expect(metrics.bottom, `${selector} bottom`).toBeLessThanOrEqual(height + 1);
+
+  const isUncovered = await page.locator(selector).evaluate((element: HTMLElement) => {
+    const rect = element.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const hit = document.elementFromPoint(centerX, centerY);
+    return hit instanceof HTMLElement && (hit === element || element.contains(hit));
+  });
+  expect(isUncovered, `${selector} uncovered`).toBe(true);
+}
+
+async function assertTallSelectorReachableWithoutCover(
+  page: Page,
+  selector: string,
+  width: number,
+  height: number,
+): Promise<void> {
+  await page.locator(selector).evaluate((element: HTMLElement) => {
+    element.scrollIntoView({
+      block: "nearest",
+      inline: "nearest",
+    });
+  });
+  await page.waitForTimeout(80);
+
+  const metrics = await readElementViewportMetrics(page, selector);
+  expect(metrics.left, `${selector} left`).toBeGreaterThanOrEqual(0);
+  expect(metrics.right, `${selector} right`).toBeLessThanOrEqual(width + 1);
+  expect(metrics.bottom, `${selector} bottom`).toBeGreaterThan(0);
+  expect(metrics.top, `${selector} top`).toBeLessThan(height);
+
+  const isUncovered = await page
+    .locator(selector)
+    .evaluate((element: HTMLElement, viewportHeight: number) => {
+      const rect = element.getBoundingClientRect();
+      const visibleTop = Math.max(rect.top, 1);
+      const visibleBottom = Math.min(rect.bottom, viewportHeight - 1);
+      const centerX = rect.left + rect.width / 2;
+      const sampleY = visibleTop + Math.max((visibleBottom - visibleTop) / 2, 1);
+      const hit = document.elementFromPoint(centerX, sampleY);
+      return hit instanceof HTMLElement && (hit === element || element.contains(hit));
+    }, height);
+  expect(isUncovered, `${selector} uncovered`).toBe(true);
+}
+
+async function readElementViewportMetrics(
+  page: Page,
+  selector: string,
+): Promise<ResponsiveSelectorMetric> {
+  const metrics = await page.locator(selector).evaluate((element: HTMLElement) => {
+    const rect = element.getBoundingClientRect();
+    return {
+      bottom: rect.bottom,
+      clientHeight: element.clientHeight,
+      clientWidth: element.clientWidth,
+      height: rect.height,
+      left: rect.left,
+      overflowX: element.scrollWidth - element.clientWidth,
+      overflowY: element.scrollHeight - element.clientHeight,
+      right: rect.right,
+      scrollHeight: element.scrollHeight,
+      scrollWidth: element.scrollWidth,
+      top: rect.top,
+      width: rect.width,
+    };
+  });
+
+  return metrics;
+}
+
+function toRelativeArtifactPath(targetPath: string): string {
+  return path.relative(process.cwd(), targetPath).replaceAll("\\", "/");
 }
 
 async function ensureDesktopMainBuild(): Promise<void> {

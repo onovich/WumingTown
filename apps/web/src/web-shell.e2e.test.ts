@@ -1,6 +1,6 @@
 /// <reference lib="dom" />
 
-import { mkdir, readFile, stat } from "node:fs/promises";
+import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
 
@@ -58,6 +58,53 @@ interface WebDiagnosticDebugState {
   readonly webDownloadStatus: "available" | "blocked";
   readonly windowsHostPackageStatus: "available" | "blocked";
 }
+
+interface ResponsiveViewport {
+  readonly width: number;
+  readonly height: number;
+}
+
+interface ResponsiveSelectorMetric {
+  readonly bottom: number;
+  readonly clientHeight: number;
+  readonly clientWidth: number;
+  readonly height: number;
+  readonly left: number;
+  readonly overflowX: number;
+  readonly overflowY: number;
+  readonly right: number;
+  readonly scrollHeight: number;
+  readonly scrollWidth: number;
+  readonly top: number;
+  readonly width: number;
+}
+
+interface ResponsiveLayoutArtifact {
+  readonly diagnosticsVisible: boolean;
+  readonly documentOverflowX: number;
+  readonly documentOverflowY: number;
+  readonly locale: "en" | "zh-CN";
+  readonly metrics: Record<string, ResponsiveSelectorMetric>;
+  readonly screenshotPath?: string;
+  readonly shell: "web";
+  readonly source: "system";
+  readonly surface: "debug-overlay" | "player-hud" | "start-surface";
+  readonly viewport: ResponsiveViewport;
+}
+
+const WM0118_RESPONSIVE_VIEWPORTS: readonly ResponsiveViewport[] = [
+  { width: 1280, height: 720 },
+  { width: 1366, height: 768 },
+  { width: 1424, height: 861 },
+  { width: 1600, height: 900 },
+  { width: 1920, height: 1080 },
+  { width: 2560, height: 1369 },
+  { width: 2560, height: 1440 },
+];
+
+const WM0118_WEB_ARTIFACT_ROOT = path.join(process.cwd(), "coordination", "artifacts", "WM-0118");
+const WM0118_WEB_LAYOUT_PATH = path.join(WM0118_WEB_ARTIFACT_ROOT, "web-responsive-layout.json");
+const WM0118_WEB_SCREENSHOT_ROOT = path.join(WM0118_WEB_ARTIFACT_ROOT, "web");
 
 const SCREENSHOT_PATH = readScreenshotPath();
 const EXPORTED_SAVE_PATH = path.join(path.dirname(SCREENSHOT_PATH), "m6-gate-slot.wtsave");
@@ -526,6 +573,54 @@ describe("web shell smoke", () => {
     }
   }, 120000);
 
+  it("validates the M8 responsive viewport matrix and records reviewer artifacts", async () => {
+    const appRoot = path.join(process.cwd(), "apps", "web");
+    const server = await createServer({
+      configFile: false,
+      logLevel: "error",
+      root: appRoot,
+      server: {
+        host: "127.0.0.1",
+        port: 0,
+        strictPort: false,
+      },
+    });
+    await server.listen();
+
+    const serverUrl = readServerUrl(server);
+    const browser = await chromium.launch();
+    const artifacts: ResponsiveLayoutArtifact[] = [];
+
+    try {
+      await collectResponsiveLocaleArtifacts(
+        browser,
+        serverUrl,
+        {
+          expectedLocale: "en",
+          playwrightLocale: "en-US",
+        },
+        artifacts,
+      );
+      await collectResponsiveLocaleArtifacts(
+        browser,
+        serverUrl,
+        {
+          expectedLocale: "zh-CN",
+          playwrightLocale: "zh-TW",
+        },
+        artifacts,
+      );
+      await collectResponsiveDebugArtifacts(browser, serverUrl, artifacts);
+      await mkdir(path.dirname(WM0118_WEB_LAYOUT_PATH), {
+        recursive: true,
+      });
+      await writeFile(WM0118_WEB_LAYOUT_PATH, `${JSON.stringify(artifacts, null, 2)}\n`, "utf8");
+    } finally {
+      await browser.close();
+      await server.close();
+    }
+  }, 240000);
+
   it("defaults locale by browser language and persists a manual override across reload", async () => {
     const appRoot = path.join(process.cwd(), "apps", "web");
     const server = await createServer({
@@ -665,12 +760,7 @@ async function assertAccessibilityBaseline(page: import("playwright").Page): Pro
 }
 
 async function assertPlayerHudBaseline(page: import("playwright").Page): Promise<void> {
-  expect(await page.getByTestId("player-hud").count()).toBe(1);
-  expect(await page.getByTestId("player-next-goal").count()).toBe(1);
-  expect(await page.getByTestId("player-night-risk").count()).toBe(1);
-  expect(await page.getByTestId("player-task-list").count()).toBe(1);
-  expect(await page.getByTestId("player-event-list").count()).toBe(1);
-  expect(await page.getByTestId("player-resident-watch").count()).toBe(1);
+  await assertPlayerHudStructure(page);
   expect(await page.getByTestId("debug-overlay").count()).toBe(0);
 
   const goalText = await page.getByTestId("player-next-goal").textContent();
@@ -681,39 +771,72 @@ async function assertPlayerHudBaseline(page: import("playwright").Page): Promise
   expect(nightRiskTier).toBe("strained");
 }
 
+async function assertPlayerHudStructure(page: import("playwright").Page): Promise<void> {
+  expect(await page.getByTestId("player-hud").count()).toBe(1);
+  expect(await page.getByTestId("player-top-bar").count()).toBe(1);
+  expect(await page.getByTestId("player-next-goal").count()).toBe(1);
+  expect(await page.getByTestId("player-night-risk").count()).toBe(1);
+  expect(await page.getByTestId("player-task-list").count()).toBe(1);
+  expect(await page.getByTestId("player-event-list").count()).toBe(1);
+  expect(await page.getByTestId("player-resident-watch").count()).toBe(1);
+  expect(await page.locator("[data-testid='world-canvas']").count()).toBe(1);
+}
+
+async function assertPlayerHudLocaleState(
+  page: import("playwright").Page,
+  locale: "en" | "zh-CN",
+): Promise<void> {
+  await assertPlayerHudStructure(page);
+  expect(await page.getByTestId("debug-overlay").count()).toBe(0);
+  const activeLocale = await page.locator("[data-shell-ready='true']").getAttribute("data-locale");
+  expect(activeLocale).toBe(locale);
+  const nightRiskTier = await page
+    .getByTestId("player-night-risk")
+    .getAttribute("data-night-risk-tier");
+  expect(nightRiskTier).toBe("strained");
+  if (locale === "en") {
+    const goalText = await page.getByTestId("player-next-goal").textContent();
+    expect(goalText ?? "").toContain("Lantern corridor gap");
+  }
+}
+
 async function assertTownHudViewportLayout(
   page: import("playwright").Page,
   width: number,
   height: number,
+  locale: "en" | "zh-CN" = "en",
 ): Promise<void> {
   await page.setViewportSize({
     width,
     height,
   });
-  await page.waitForTimeout(200);
-  await assertPlayerHudBaseline(page);
+  await waitForViewportSize(page, width, height);
+  await assertPlayerHudLocaleState(page, locale);
+  await assertDocumentOverflowWithinViewport(page);
 
-  const topBarMetrics = await readElementViewportMetrics(page, "[aria-label='Town status']");
-  expect(topBarMetrics.top).toBeGreaterThanOrEqual(0);
-  expect(topBarMetrics.left).toBeGreaterThanOrEqual(0);
-  expect(topBarMetrics.right).toBeLessThanOrEqual(width + 1);
-  expect(topBarMetrics.bottom).toBeLessThanOrEqual(height + 1);
+  await assertSelectorReachableWithoutCover(page, "[data-testid='player-top-bar']", width, height);
 
   for (const testId of [
     "player-next-goal",
     "player-task-list",
     "player-event-list",
     "player-resident-watch",
+    "locale-settings",
   ]) {
     await assertTestIdReachableWithoutCover(page, testId, width, height);
   }
 
-  await assertSelectorReachableWithoutCover(
+  await assertTallSelectorReachableWithoutCover(
     page,
     "[data-testid='player-selected-detail']",
     width,
     height,
   );
+  const worldCanvasMetrics = await readElementViewportMetrics(page, "[data-testid='world-canvas']");
+  expect(worldCanvasMetrics.left).toBeLessThanOrEqual(1);
+  expect(worldCanvasMetrics.top).toBeLessThanOrEqual(1);
+  expect(worldCanvasMetrics.right).toBeGreaterThanOrEqual(width - 1);
+  expect(worldCanvasMetrics.bottom).toBeGreaterThanOrEqual(height - 1);
 }
 
 async function assertDebugOverlayBaseline(page: import("playwright").Page): Promise<void> {
@@ -790,7 +913,7 @@ async function assertCompactStartSurfaceLayout(
     width,
     height,
   });
-  await page.waitForTimeout(150);
+  await waitForViewportSize(page, width, height);
   await page.getByTestId("main-menu-panel").waitFor();
 
   const panelMetrics = await readElementViewportMetrics(page, "[data-testid='main-menu-panel']");
@@ -800,13 +923,18 @@ async function assertCompactStartSurfaceLayout(
   expect(panelMetrics.bottom).toBeLessThanOrEqual(height + 1);
   expect(panelMetrics.overflowX).toBeLessThanOrEqual(1);
 
-  const documentOverflowX = await page.evaluate(
-    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
-  );
-  expect(documentOverflowX).toBeLessThanOrEqual(1);
+  await assertDocumentOverflowWithinViewport(page);
 
-  await page.getByTestId("main-menu-language").scrollIntoViewIfNeeded();
-  await assertTestIdWithinViewport(page, "main-menu-language", width, height);
+  for (const testId of [
+    "main-menu-first-play-guidance",
+    "main-menu-next-goal",
+    "main-menu-available-actions",
+    "main-menu-guidance-boundary",
+    "main-menu-language",
+  ]) {
+    await assertTestIdWithinViewport(page, testId, width, height);
+  }
+
   await assertTestIdWithinViewport(page, "main-menu-locale-system", width, height);
   await assertTestIdWithinViewport(page, "main-menu-locale-zh-CN", width, height);
   await assertTestIdWithinViewport(page, "main-menu-locale-en", width, height);
@@ -815,8 +943,330 @@ async function assertCompactStartSurfaceLayout(
   await page.getByTestId("locale-select").scrollIntoViewIfNeeded();
   await assertTestIdWithinViewport(page, "main-menu-back", width, height);
   await assertTestIdWithinViewport(page, "locale-select", width, height);
+  await assertTestIdWithinViewport(page, "locale-source", width, height);
+  await assertTestIdWithinViewport(page, "locale-current", width, height);
+  await assertTestIdWithinViewport(page, "locale-persistence", width, height);
   await page.getByTestId("main-menu-back").click();
   await page.getByTestId("main-menu-settings").waitFor();
+}
+
+async function collectResponsiveLocaleArtifacts(
+  browser: import("playwright").Browser,
+  serverUrl: string,
+  localeCase: {
+    readonly expectedLocale: "en" | "zh-CN";
+    readonly playwrightLocale: string;
+  },
+  artifacts: ResponsiveLayoutArtifact[],
+): Promise<void> {
+  const initialViewport = WM0118_RESPONSIVE_VIEWPORTS[0];
+  if (initialViewport === undefined) {
+    throw new Error("WM-0118 viewport matrix was empty.");
+  }
+
+  const context = await browser.newContext({
+    deviceScaleFactor: 1,
+    locale: localeCase.playwrightLocale,
+    viewport: initialViewport,
+  });
+
+  try {
+    const page = await context.newPage();
+    await page.goto(serverUrl, {
+      waitUntil: "networkidle",
+    });
+    await page.waitForSelector("[data-shell-ready='true']");
+    await waitForLocale(page, localeCase.expectedLocale, "system");
+    await assertStartSurfaceBaseline(page, localeCase.expectedLocale);
+
+    for (const viewport of WM0118_RESPONSIVE_VIEWPORTS) {
+      await assertCompactStartSurfaceLayout(page, viewport.width, viewport.height);
+      const screenshotPath = await maybeCaptureWebResponsiveScreenshot(
+        page,
+        "start-surface",
+        localeCase.expectedLocale,
+        viewport,
+      );
+      artifacts.push(
+        await captureResponsiveLayoutArtifact(page, {
+          locale: localeCase.expectedLocale,
+          selectors: {
+            availableActions: "[data-testid='main-menu-available-actions']",
+            firstPlayGuidance: "[data-testid='main-menu-first-play-guidance']",
+            guidanceBoundary: "[data-testid='main-menu-guidance-boundary']",
+            languageSection: "[data-testid='main-menu-language']",
+            nextGoal: "[data-testid='main-menu-next-goal']",
+            panel: "[data-testid='main-menu-panel']",
+          },
+          shell: "web",
+          source: "system",
+          surface: "start-surface",
+          viewport,
+          ...(screenshotPath === undefined ? {} : { screenshotPath }),
+        }),
+      );
+    }
+
+    await page.getByTestId("main-menu-new-game").click();
+    await waitForStartSurfaceClosed(page);
+
+    for (const viewport of WM0118_RESPONSIVE_VIEWPORTS) {
+      await assertTownHudViewportLayout(
+        page,
+        viewport.width,
+        viewport.height,
+        localeCase.expectedLocale,
+      );
+      const screenshotPath = await maybeCaptureWebResponsiveScreenshot(
+        page,
+        "player-hud",
+        localeCase.expectedLocale,
+        viewport,
+      );
+      artifacts.push(
+        await captureResponsiveLayoutArtifact(page, {
+          locale: localeCase.expectedLocale,
+          selectors: {
+            eventList: "[data-testid='player-event-list']",
+            localeSettings: "[data-testid='locale-settings']",
+            nextGoal: "[data-testid='player-next-goal']",
+            residentWatch: "[data-testid='player-resident-watch']",
+            selectedDetail: "[data-testid='player-selected-detail']",
+            taskList: "[data-testid='player-task-list']",
+            topBar: "[data-testid='player-top-bar']",
+            worldCanvas: "[data-testid='world-canvas']",
+          },
+          shell: "web",
+          source: "system",
+          surface: "player-hud",
+          viewport,
+          ...(screenshotPath === undefined ? {} : { screenshotPath }),
+        }),
+      );
+    }
+  } finally {
+    await context.close();
+  }
+}
+
+async function collectResponsiveDebugArtifacts(
+  browser: import("playwright").Browser,
+  serverUrl: string,
+  artifacts: ResponsiveLayoutArtifact[],
+): Promise<void> {
+  const initialViewport = WM0118_RESPONSIVE_VIEWPORTS[0];
+  if (initialViewport === undefined) {
+    throw new Error("WM-0118 viewport matrix was empty.");
+  }
+
+  const context = await browser.newContext({
+    deviceScaleFactor: 1,
+    locale: "en-US",
+    viewport: initialViewport,
+  });
+
+  try {
+    const page = await context.newPage();
+    await page.goto(withQuery(serverUrl, "wmDiagnostics=1"), {
+      waitUntil: "networkidle",
+    });
+    await page.waitForSelector("[data-shell-ready='true']");
+    await waitForLocale(page, "en", "system");
+
+    for (const viewport of WM0118_RESPONSIVE_VIEWPORTS) {
+      await assertDebugOverlayViewportLayout(page, viewport.width, viewport.height);
+      const screenshotPath = await maybeCaptureWebResponsiveScreenshot(
+        page,
+        "debug-overlay",
+        "en",
+        viewport,
+      );
+      artifacts.push(
+        await captureResponsiveLayoutArtifact(page, {
+          locale: "en",
+          selectors: {
+            debugOverlay: "[data-testid='debug-overlay']",
+            eventList: "[data-testid='player-event-list']",
+            nextGoal: "[data-testid='player-next-goal']",
+            residentWatch: "[data-testid='player-resident-watch']",
+            selectedDetail: "[data-testid='player-selected-detail']",
+            storagePanel: "[data-testid='storage-panel']",
+            taskList: "[data-testid='player-task-list']",
+            topBar: "[data-testid='player-top-bar']",
+          },
+          shell: "web",
+          source: "system",
+          surface: "debug-overlay",
+          viewport,
+          ...(screenshotPath === undefined ? {} : { screenshotPath }),
+        }),
+      );
+    }
+  } finally {
+    await context.close();
+  }
+}
+
+async function assertDebugOverlayViewportLayout(
+  page: import("playwright").Page,
+  width: number,
+  height: number,
+): Promise<void> {
+  await page.setViewportSize({
+    width,
+    height,
+  });
+  await waitForViewportSize(page, width, height);
+  await assertDebugOverlayBaseline(page);
+  await assertDocumentOverflowWithinViewport(page);
+
+  for (const testId of [
+    "player-top-bar",
+    "player-next-goal",
+    "player-task-list",
+    "player-event-list",
+    "player-resident-watch",
+  ]) {
+    await assertTestIdReachableWithoutCover(page, testId, width, height);
+  }
+  await assertTallSelectorReachableWithoutCover(
+    page,
+    "[data-testid='player-selected-detail']",
+    width,
+    height,
+  );
+  await assertTallSelectorReachableWithoutCover(
+    page,
+    "[data-testid='storage-panel']",
+    width,
+    height,
+  );
+}
+
+async function captureResponsiveLayoutArtifact(
+  page: import("playwright").Page,
+  options: {
+    readonly locale: "en" | "zh-CN";
+    readonly screenshotPath?: string;
+    readonly selectors: Record<string, string>;
+    readonly shell: "web";
+    readonly source: "system";
+    readonly surface: "debug-overlay" | "player-hud" | "start-surface";
+    readonly viewport: ResponsiveViewport;
+  },
+): Promise<ResponsiveLayoutArtifact> {
+  const metrics: Record<string, ResponsiveSelectorMetric> = {};
+  for (const [label, selector] of Object.entries(options.selectors)) {
+    metrics[label] = await readElementViewportMetrics(page, selector);
+  }
+
+  const overflow = await readDocumentOverflow(page);
+  const diagnosticsVisible =
+    (await page.locator("[data-shell-ready='true']").getAttribute("data-diagnostics-visible")) ===
+    "true";
+
+  return {
+    diagnosticsVisible,
+    documentOverflowX: overflow.documentOverflowX,
+    documentOverflowY: overflow.documentOverflowY,
+    locale: options.locale,
+    metrics,
+    shell: options.shell,
+    source: options.source,
+    surface: options.surface,
+    viewport: options.viewport,
+    ...(options.screenshotPath === undefined ? {} : { screenshotPath: options.screenshotPath }),
+  };
+}
+
+async function maybeCaptureWebResponsiveScreenshot(
+  page: import("playwright").Page,
+  surface: "debug-overlay" | "player-hud" | "start-surface",
+  locale: "en" | "zh-CN",
+  viewport: ResponsiveViewport,
+): Promise<string | undefined> {
+  if (!shouldCaptureWebResponsiveScreenshot(surface, locale, viewport)) {
+    return undefined;
+  }
+
+  const screenshotPath = path.join(
+    WM0118_WEB_SCREENSHOT_ROOT,
+    `${surface}-${locale}-${String(viewport.width)}x${String(viewport.height)}.png`,
+  );
+  await mkdir(path.dirname(screenshotPath), {
+    recursive: true,
+  });
+  await page.screenshot({
+    animations: "disabled",
+    path: screenshotPath,
+  });
+  return toRelativeArtifactPath(screenshotPath);
+}
+
+function shouldCaptureWebResponsiveScreenshot(
+  surface: "debug-overlay" | "player-hud" | "start-surface",
+  locale: "en" | "zh-CN",
+  viewport: ResponsiveViewport,
+): boolean {
+  return (
+    (surface === "start-surface" &&
+      locale === "zh-CN" &&
+      viewport.width === 1424 &&
+      viewport.height === 861) ||
+    (surface === "player-hud" &&
+      locale === "en" &&
+      viewport.width === 2560 &&
+      viewport.height === 1369) ||
+    (surface === "debug-overlay" &&
+      locale === "en" &&
+      viewport.width === 1424 &&
+      viewport.height === 861)
+  );
+}
+
+async function waitForViewportSize(
+  page: import("playwright").Page,
+  width: number,
+  height: number,
+): Promise<void> {
+  await page.waitForFunction(
+    (size: ResponsiveViewport) =>
+      Math.abs(window.innerWidth - size.width) <= 1 &&
+      Math.abs(window.innerHeight - size.height) <= 1,
+    {
+      height,
+      width,
+    },
+  );
+  await page.evaluate(() => {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  });
+  await page.waitForTimeout(100);
+}
+
+async function assertDocumentOverflowWithinViewport(
+  page: import("playwright").Page,
+): Promise<void> {
+  const overflow = await readDocumentOverflow(page);
+  expect(overflow.documentOverflowX).toBeLessThanOrEqual(1);
+  expect(overflow.documentOverflowY).toBeLessThanOrEqual(1);
+}
+
+async function readDocumentOverflow(page: import("playwright").Page): Promise<{
+  readonly documentOverflowX: number;
+  readonly documentOverflowY: number;
+}> {
+  return page.evaluate(() => ({
+    documentOverflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    documentOverflowY:
+      document.documentElement.scrollHeight - document.documentElement.clientHeight,
+  }));
+}
+
+function toRelativeArtifactPath(targetPath: string): string {
+  return path.relative(process.cwd(), targetPath).replaceAll("\\", "/");
 }
 
 async function waitForStartSurfaceClosed(page: import("playwright").Page): Promise<void> {
@@ -876,10 +1326,10 @@ async function assertSelectorReachableWithoutCover(
   await page.waitForTimeout(80);
 
   const metrics = await readElementViewportMetrics(page, selector);
-  expect(metrics.top).toBeGreaterThanOrEqual(0);
-  expect(metrics.left).toBeGreaterThanOrEqual(0);
-  expect(metrics.right).toBeLessThanOrEqual(width + 1);
-  expect(metrics.bottom).toBeLessThanOrEqual(height + 1);
+  expect(metrics.top, `${selector} top`).toBeGreaterThanOrEqual(0);
+  expect(metrics.left, `${selector} left`).toBeGreaterThanOrEqual(0);
+  expect(metrics.right, `${selector} right`).toBeLessThanOrEqual(width + 1);
+  expect(metrics.bottom, `${selector} bottom`).toBeLessThanOrEqual(height + 1);
 
   const isUncovered = await page.locator(selector).evaluate((element: HTMLElement) => {
     const rect = element.getBoundingClientRect();
@@ -888,27 +1338,62 @@ async function assertSelectorReachableWithoutCover(
     const hit = document.elementFromPoint(centerX, centerY);
     return hit instanceof HTMLElement && (hit === element || element.contains(hit));
   });
-  expect(isUncovered).toBe(true);
+  expect(isUncovered, `${selector} uncovered`).toBe(true);
+}
+
+async function assertTallSelectorReachableWithoutCover(
+  page: import("playwright").Page,
+  selector: string,
+  width: number,
+  height: number,
+): Promise<void> {
+  await page.locator(selector).evaluate((element: HTMLElement) => {
+    element.scrollIntoView({
+      block: "nearest",
+      inline: "nearest",
+    });
+  });
+  await page.waitForTimeout(80);
+
+  const metrics = await readElementViewportMetrics(page, selector);
+  expect(metrics.left, `${selector} left`).toBeGreaterThanOrEqual(0);
+  expect(metrics.right, `${selector} right`).toBeLessThanOrEqual(width + 1);
+  expect(metrics.bottom, `${selector} bottom`).toBeGreaterThan(0);
+  expect(metrics.top, `${selector} top`).toBeLessThan(height);
+
+  const isUncovered = await page
+    .locator(selector)
+    .evaluate((element: HTMLElement, viewportHeight: number) => {
+      const rect = element.getBoundingClientRect();
+      const visibleTop = Math.max(rect.top, 1);
+      const visibleBottom = Math.min(rect.bottom, viewportHeight - 1);
+      const centerX = rect.left + rect.width / 2;
+      const sampleY = visibleTop + Math.max((visibleBottom - visibleTop) / 2, 1);
+      const hit = document.elementFromPoint(centerX, sampleY);
+      return hit instanceof HTMLElement && (hit === element || element.contains(hit));
+    }, height);
+  expect(isUncovered, `${selector} uncovered`).toBe(true);
 }
 
 async function readElementViewportMetrics(
   page: import("playwright").Page,
   selector: string,
-): Promise<{
-  readonly bottom: number;
-  readonly left: number;
-  readonly overflowX: number;
-  readonly right: number;
-  readonly top: number;
-}> {
+): Promise<ResponsiveSelectorMetric> {
   const metrics = await page.locator(selector).evaluate((element: HTMLElement) => {
     const rect = element.getBoundingClientRect();
     return {
       bottom: rect.bottom,
+      clientHeight: element.clientHeight,
+      clientWidth: element.clientWidth,
+      height: rect.height,
       left: rect.left,
       overflowX: element.scrollWidth - element.clientWidth,
+      overflowY: element.scrollHeight - element.clientHeight,
       right: rect.right,
+      scrollHeight: element.scrollHeight,
+      scrollWidth: element.scrollWidth,
       top: rect.top,
+      width: rect.width,
     };
   });
 

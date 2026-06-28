@@ -140,6 +140,7 @@ function createTopBar(
       "section",
       {
         "aria-label": formatMessage(locale, "ui.surface.topBar"),
+        "data-testid": "player-top-bar",
         style: compactTopBarStyle,
       },
       createIdentityCard(state, locale, playerHud, true),
@@ -150,6 +151,7 @@ function createTopBar(
     "section",
     {
       "aria-label": formatMessage(locale, "ui.surface.topBar"),
+      "data-testid": "player-top-bar",
       style: topBarStyle,
     },
     createIdentityCard(state, locale, playerHud, false),
