@@ -2,7 +2,7 @@
   "id": "WM-0139",
   "title": "First-play onboarding remediation",
   "summary": "Update first-play guidance so the player sees what can be selected, how to move the camera, and which first action chain is available in both supported locales.",
-  "state": "ready",
+  "state": "verified",
   "ownerRole": "gameplay-designer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -33,7 +33,7 @@
   ],
   "branch": "task/WM-0139-first-play-onboarding-remediation",
   "createdAt": "2026-06-28T13:36:56.432Z",
-  "updatedAt": "2026-06-28T22:45:48.366Z",
+  "updatedAt": "2026-06-28T23:03:31.618Z",
   "history": [
     {
       "at": "2026-06-28T13:36:56.432Z",
@@ -46,6 +46,24 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-28T22:50:26.182Z",
+      "actor": "gameplay-designer",
+      "action": "claim",
+      "details": "thread=Codex WM-0139 first-play onboarding"
+    },
+    {
+      "at": "2026-06-28T22:58:02.593Z",
+      "actor": "gameplay-designer",
+      "action": "complete",
+      "details": "Updated en/zh-CN first-play selection, camera, and lamp-priority command guidance on the start surface and persistent player HUD; focused UI tests and quality pass; pnpm web-shell filter remains unsupported."
+    },
+    {
+      "at": "2026-06-28T23:03:31.618Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; first-play guidance acceptance evidence confirmed"
     }
   ],
   "milestone": "M8",
@@ -60,5 +78,15 @@
   "forbiddenPaths": [
     "public release, store, EA or final legal/privacy claims",
     "simulation authority changes"
-  ]
+  ],
+  "claimedBy": "gameplay-designer",
+  "threadLabel": "Codex WM-0139 first-play onboarding",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0139.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; first-play guidance acceptance evidence confirmed",
+    "at": "2026-06-28T23:03:31.618Z"
+  }
 }

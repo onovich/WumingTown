@@ -23,3 +23,20 @@
 ## 禁止
 
 在代码中拼接面向玩家的英文/中文；以颜色词作为唯一信息；为营造古风大量倒装和生僻字；让所有异类说谜语。
+
+## First-Play Guidance Templates
+
+Status: WM-0139 provisional copy contract until the M8 first-play guidance
+review accepts it.
+
+- Selection guidance must name visible targets only: residents, structures,
+  lantern posts, visitors and map tiles. It must point to inspector/read-model
+  state, not hidden truth.
+- Camera guidance must describe player navigation only: drag-pan and camera
+  reset. Do not mention developer diagnostics or internal tooling.
+- Minimum command guidance must stay testable: select a lantern keeper or
+  lamp-relevant object, use `Prioritize lamp work` / `优先补灯`, then read the
+  queued HUD feedback from the WM-0138 lamp-priority local action chain.
+- Boundary copy may say internal tools are separate and explicitly opened. It
+  must not make public release, final balance, legal/privacy, telemetry, store
+  or save-compatibility claims.

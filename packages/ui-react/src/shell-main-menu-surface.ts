@@ -331,6 +331,9 @@ function createFirstPlayGuidance(
         formatMessage(locale, "ui.mainMenu.firstPlay.actions"),
         [
           formatMessage(locale, "ui.mainMenu.firstPlay.action.newGame"),
+          formatMessage(locale, "ui.mainMenu.firstPlay.action.select"),
+          formatMessage(locale, "ui.mainMenu.firstPlay.action.camera"),
+          formatMessage(locale, "ui.mainMenu.firstPlay.action.lampCommand"),
           formatMessage(locale, "ui.mainMenu.firstPlay.action.continue"),
           formatMessage(locale, "ui.mainMenu.firstPlay.action.settings"),
         ],

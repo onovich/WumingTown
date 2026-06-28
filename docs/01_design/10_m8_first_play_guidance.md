@@ -25,14 +25,27 @@ The default player UI must show:
 - current phase interpretation;
 - `Available actions` / `可用行动` with New Game, Continue and Settings
   explained as shell actions;
+- selectable targets: residents, structures, lantern posts, visitors and map
+  tiles must be named as visible read-model inspection targets;
+- camera movement: drag-pan and camera reset must be described as player
+  navigation, not developer tooling;
+- minimum playable command chain: select a lantern keeper or lamp-relevant
+  object, use `Prioritize lamp work` / `优先补灯`, then read the queued HUD
+  feedback from the WM-0138 lamp-priority local action chain;
 - `Next goal` / `下一目标` from visible alerts, or a localized no-urgent-goal
   fallback;
 - a boundary note stating that gameplay guidance is separate from developer
-  diagnostics.
+  tools.
 
-Developer diagnostics remain opt-in. Internal diagnostic-gate details, storage
-gate details and diagnostic package evidence must not be the default first-play
+Developer tools remain opt-in. Internal diagnostic-gate details, storage gate
+details and diagnostic package evidence must not be the default first-play
 guide.
+
+After the start surface is dismissed, the player HUD must keep a reachable
+first-play guidance surface that repeats the minimum controls and command chain.
+This may be a persistent player HUD card or a dismiss/reopen path. The guidance
+must point to visible state: selected entity/tile inspector data, town alerts,
+the command bar and queued action feedback.
 
 ## Scenario Requirements
 

@@ -78,9 +78,15 @@ const EN_MESSAGES = {
     "New Game: enter the town view and inspect the current pressure before acting.",
   "ui.mainMenu.firstPlay.action.settings":
     "Settings: choose zh-CN or English presentation and adjust UI scale without changing simulation authority.",
+  "ui.mainMenu.firstPlay.action.select":
+    "Select: click a resident, structure, lantern post, visitor, or map tile; the inspector shows visible read-model state.",
+  "ui.mainMenu.firstPlay.action.camera":
+    "Camera: drag the map to pan, then use camera reset if the current town focus is lost.",
+  "ui.mainMenu.firstPlay.action.lampCommand":
+    "Minimum command chain: select a lantern keeper or lamp-relevant object, choose Prioritize lamp work, and confirm the queued feedback in the HUD.",
   "ui.mainMenu.firstPlay.actions": "Available actions",
   "ui.mainMenu.firstPlay.boundary":
-    "Player guidance is separate from developer diagnostics; debug information appears only when diagnostics mode is explicitly enabled.",
+    "Player guidance stays on the player surface; internal tools remain separate and must be opened explicitly.",
   "ui.mainMenu.firstPlay.boundaryTitle": "Boundary",
   "ui.mainMenu.firstPlay.nextGoal": "Next goal",
   "ui.mainMenu.firstPlay.nextGoal.dangerDetail":
@@ -188,6 +194,14 @@ const EN_MESSAGES = {
   "ui.hud.cycle": "Cycle",
   "ui.hud.events": "Events and watchpoints",
   "ui.hud.eventsHint": "What may demand attention before night closes.",
+  "ui.hud.firstPlay.camera":
+    "Camera: drag the map to pan; camera reset returns the current town focus.",
+  "ui.hud.firstPlay.command":
+    "Command chain: select a lantern keeper or lamp-relevant object, use Prioritize lamp work, then read the queued feedback.",
+  "ui.hud.firstPlay.hint": "Reachable player guidance",
+  "ui.hud.firstPlay.select":
+    "Select: residents, structures, lantern posts, visitors, and map tiles expose visible inspector state.",
+  "ui.hud.firstPlay.title": "First-play controls",
   "ui.hud.map": "Map",
   "ui.hud.nextGoal": "Next goal",
   "ui.hud.nextGoal.none": "No urgent goal is blocking the town right now.",
@@ -305,8 +319,14 @@ const ZH_CN_MESSAGES = {
   "ui.mainMenu.firstPlay.action.newGame": "新游戏：进入城镇视图，先观察当前压力，再决定如何行动。",
   "ui.mainMenu.firstPlay.action.settings":
     "设置：选择简体中文或英文界面，并调整界面缩放，不改变模拟权威。",
+  "ui.mainMenu.firstPlay.action.select":
+    "选择：点击居民、设施、灯柱、访客或地图地块；查看器只显示可见读模型状态。",
+  "ui.mainMenu.firstPlay.action.camera":
+    "镜头：拖拽地图进行平移；若丢失当前城镇焦点，可使用相机复位。",
+  "ui.mainMenu.firstPlay.action.lampCommand":
+    "最小命令链：选择守灯人或灯路相关对象，使用“优先补灯”，并在 HUD 中确认已排入反馈。",
   "ui.mainMenu.firstPlay.actions": "可用行动",
-  "ui.mainMenu.firstPlay.boundary": "玩家引导与开发诊断分离；调试信息仅在显式诊断模式中显示。",
+  "ui.mainMenu.firstPlay.boundary": "玩家指引保留在玩家界面；内部工具保持分离，且必须显式打开。",
   "ui.mainMenu.firstPlay.boundaryTitle": "边界",
   "ui.mainMenu.firstPlay.nextGoal": "下一目标",
   "ui.mainMenu.firstPlay.nextGoal.dangerDetail":
@@ -405,6 +425,12 @@ const ZH_CN_MESSAGES = {
   "ui.hud.cycle": "时序",
   "ui.hud.events": "事件与观察点",
   "ui.hud.eventsHint": "夜幕收紧前，哪些事项需要留意。",
+  "ui.hud.firstPlay.camera": "镜头：拖拽地图进行平移；相机复位会返回当前城镇焦点。",
+  "ui.hud.firstPlay.command":
+    "命令链：选择守灯人或灯路相关对象，使用“优先补灯”，再读取已排入反馈。",
+  "ui.hud.firstPlay.hint": "玩家界面可随时查看",
+  "ui.hud.firstPlay.select": "选择：居民、设施、灯柱、访客与地图地块会显示可见查看器状态。",
+  "ui.hud.firstPlay.title": "首次操作",
   "ui.hud.map": "地图",
   "ui.hud.nextGoal": "下一目标",
   "ui.hud.nextGoal.none": "当前没有紧急事项阻塞城镇。",

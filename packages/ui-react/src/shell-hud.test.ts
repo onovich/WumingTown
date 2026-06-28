@@ -165,11 +165,17 @@ describe("shell-hud", () => {
     expect(markup).toContain("Available actions");
     expect(markup).toContain("Next goal");
     expect(markup).toContain("Lantern gap");
+    expect(markup).toContain("resident, structure, lantern post, visitor, or map tile");
+    expect(markup).toContain("drag the map to pan");
+    expect(markup).toContain("Minimum command chain");
+    expect(markup).toContain("Prioritize lamp work");
     expect(markup).toContain(
-      "debug information appears only when diagnostics mode is explicitly enabled",
+      "Player guidance stays on the player surface; internal tools remain separate",
     );
     expect(markup).not.toContain("read-model fixture");
     expect(markup).not.toContain("fixture");
+    expect(markup).not.toContain("developer diagnostics");
+    expect(markup).not.toContain("debug information");
     expect(markup).not.toContain("wm-0086-web-product-gate");
     expect(markup).not.toContain("Web Product Gate");
     expect(markup).not.toContain("Storage Gate");
@@ -191,12 +197,18 @@ describe("shell-hud", () => {
     expect(markup).toContain("黄昏守望");
     expect(markup).toContain("补上灯火缺口");
     expect(markup).toContain("先确认灯火覆盖、路线证据与守夜义务");
-    expect(markup).toContain("玩家引导与开发诊断分离");
+    expect(markup).toContain("选择：点击居民");
+    expect(markup).toContain("镜头：拖拽地图进行平移");
+    expect(markup).toContain("最小命令链");
+    expect(markup).toContain("优先补灯");
+    expect(markup).toContain("玩家指引保留在玩家界面");
     expect(markup).not.toContain("Dusk watch");
     expect(markup).not.toContain("Lantern gap");
     expect(markup).not.toContain("East street fuel window");
     expect(markup).not.toContain("read-model fixture");
     expect(markup).not.toContain("fixture");
+    expect(markup).not.toContain("开发诊断");
+    expect(markup).not.toContain("调试信息");
     expect(markup).not.toContain("wm-0086-web-product-gate");
     expect(markup).not.toContain("Product Gate");
     expect(markup).not.toContain("Main menu");
@@ -218,6 +230,13 @@ describe("shell-hud", () => {
     expect(markup).toContain("Current tasks");
     expect(markup).toContain("Residents to watch");
     expect(markup).toContain("Command bar");
+    expect(markup).toContain('data-testid="player-first-play-guidance"');
+    expect(markup).toContain("First-play controls");
+    expect(markup).toContain("Reachable player guidance");
+    expect(markup).toContain("residents, structures, lantern posts, visitors, and map tiles");
+    expect(markup).toContain("Camera: drag the map to pan");
+    expect(markup).toContain("Command chain");
+    expect(markup).toContain("Prioritize lamp work");
     expect(markup).toContain('data-testid="player-command-bar"');
     expect(markup).toContain('data-ui-slot="panel.paper.primary"');
     expect(markup).toContain('data-ui-slot="button.primary.disabled"');
@@ -245,6 +264,11 @@ describe("shell-hud", () => {
     expect(markup).toContain("\u5c31\u7eea");
     expect(markup).toContain("\u547d\u4ee4\u5e26");
     expect(markup).toContain("\u4f18\u5148\u8865\u706f");
+    expect(markup).toContain("\u9996\u6b21\u64cd\u4f5c");
+    expect(markup).toContain("\u73a9\u5bb6\u754c\u9762\u53ef\u968f\u65f6\u67e5\u770b");
+    expect(markup).toContain("\u9009\u62e9\uff1a\u5c45\u6c11");
+    expect(markup).toContain("\u955c\u5934\uff1a\u62d6\u62fd\u5730\u56fe\u8fdb\u884c\u5e73\u79fb");
+    expect(markup).toContain("\u547d\u4ee4\u94fe");
     expect(markup).not.toContain("Command bar");
     expect(markup).not.toContain("Prioritize lamp work");
     expect(markup).not.toContain("Lantern corridor gap");
@@ -290,6 +314,38 @@ describe("shell-hud", () => {
     expect(markup).toContain("Local action queued");
     expect(markup).toContain("Command id: wm0138-lamp-priority-001");
     expect(markup).not.toContain("world authority has changed");
+  });
+
+  it("renders zh-CN first-play guidance with queued lamp-priority feedback", () => {
+    const state = {
+      ...createShellState(createDefaultShellLocaleState(["zh-CN"]), createLampPriorityReadModel()),
+      diagnosticsVisible: true,
+      lastInputLabel: "Action queued wm0138-lamp-priority-001",
+      playableAction: {
+        actionId: "prioritize-lamp-work",
+        adapterId: "wm0138-web-local-playable-adapter",
+        authority: "shell-local-adapter",
+        commandId: "wm0138-lamp-priority-001",
+        consequenceClass: "lamp-boundary-preparation",
+        followUp: "Simulation Worker command protocol remains unchanged.",
+        reasonCode: "wm0138.local_adapter.lamp_priority",
+        reasonDetail: "Selected lamp-relevant target requested priority lamp work.",
+        status: "queued",
+        targetEntityId: "lamp-keeper-test",
+        targetLabel: "Lantern Keeper Shen",
+      },
+    } satisfies ShellState;
+    const markup = renderShell(state);
+
+    expect(markup).toContain('data-testid="player-first-play-guidance"');
+    expect(markup).toContain("\u9996\u6b21\u64cd\u4f5c");
+    expect(markup).toContain("\u9009\u62e9\uff1a\u5c45\u6c11");
+    expect(markup).toContain("\u547d\u4ee4\u94fe");
+    expect(markup).toContain('data-testid="player-action-feedback"');
+    expect(markup).toContain('data-command-state="queued"');
+    expect(markup).toContain('data-reason-code="wm0138.local_adapter.lamp_priority"');
+    expect(markup).toContain("\u672c\u5730\u884c\u52a8\u5df2\u6392\u5165");
+    expect(markup).toContain("\u547d\u4ee4\u7f16\u53f7\uff1awm0138-lamp-priority-001");
   });
 
   it("renders localized empty-tile inspection feedback when no entity is selected", () => {

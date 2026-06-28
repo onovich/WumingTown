@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQYE3KYQ-D27D5D",
+  "from": "gameplay-designer",
+  "to": "reviewer",
+  "taskId": "WM-0139",
+  "kind": "review-request",
+  "subject": "WM-0139 ready for review",
+  "body": "Updated en/zh-CN first-play selection, camera, and lamp-priority command guidance on the start surface and persistent player HUD; focused UI tests and quality pass; pnpm web-shell filter remains unsupported.",
+  "artifacts": [
+    "coordination/reports/WM-0139.md",
+    "task/WM-0139-first-play-onboarding-remediation"
+  ],
+  "createdAt": "2026-06-28T22:58:02.594Z",
+  "acknowledgedAt": "2026-06-28T23:04:37.206Z"
+}

@@ -8,7 +8,7 @@ import {
 
 import type { TerrainKind, TileCoordinate, WorldEntityReadModel } from "@wuming-town/sim-protocol";
 
-import { formatMessage, type LocaleId } from "./localization";
+import { formatMessage, type LocaleId, type MessageKey } from "./localization";
 import {
   SHELL_DESIGN_TOKENS,
   createCommandButtonStyle,
@@ -34,6 +34,12 @@ type AlertSeverity = ShellState["readModel"]["town"]["alerts"][number]["severity
 type HudLayoutMode = "compact" | "desktop" | "medium";
 type NeedState = WorldEntityReadModel["inspector"]["needs"][number]["state"];
 type NightRiskTier = ShellNightRiskTier;
+
+const FIRST_PLAY_HUD_GUIDANCE_KEYS = [
+  "ui.hud.firstPlay.select",
+  "ui.hud.firstPlay.camera",
+  "ui.hud.firstPlay.command",
+] as const satisfies readonly MessageKey[];
 
 export interface ShellHudRootProps {
   readonly commandActions: ShellCommandActions;
@@ -328,6 +334,7 @@ function createDesktopHudBody(
       },
       createCurrentStateCard(state, playerHud.phaseMeaning, locale),
       createNextGoalCard(playerHud, locale),
+      createFirstPlayHudGuidance(locale),
       createCommandBar(state, selectedEntity, locale, commandActions),
       createTaskCard(playerHud.taskEntities, locale),
       createEventCard(state, locale),
@@ -396,6 +403,7 @@ function createMediumHudBody(
       },
       createCurrentStateCard(state, playerHud.phaseMeaning, locale),
       createNextGoalCard(playerHud, locale),
+      createFirstPlayHudGuidance(locale),
       createCommandBar(state, selectedEntity, locale, commandActions),
       createTaskCard(playerHud.taskEntities, locale),
       createEventCard(state, locale),
@@ -421,6 +429,7 @@ function createCompactHudBody(
     createCurrentStateCard(state, playerHud.phaseMeaning, locale),
     createResourceSummaryCard(state, locale),
     createNextGoalCard(playerHud, locale),
+    createFirstPlayHudGuidance(locale),
     createCommandBar(state, selectedEntity, locale, commandActions),
     createTaskCard(playerHud.taskEntities, locale),
     createEventCard(state, locale),
@@ -590,6 +599,37 @@ function createNextGoalCard(model: PlayerHudModel, locale: LocaleId): ReactEleme
             style: inlineReasonStyle,
           },
           reason,
+        ),
+      ),
+    ),
+  );
+}
+
+function createFirstPlayHudGuidance(locale: LocaleId): ReactElement {
+  return createElement(
+    "section",
+    {
+      "data-testid": "player-first-play-guidance",
+      "data-ui-slot": SHELL_DESIGN_TOKENS.slot.panelPaper,
+      style: paperCardStyle,
+    },
+    createSectionHeader(
+      formatMessage(locale, "ui.hud.firstPlay.title"),
+      formatMessage(locale, "ui.hud.firstPlay.hint"),
+    ),
+    createElement(
+      "ul",
+      {
+        style: bulletListStyle,
+      },
+      ...FIRST_PLAY_HUD_GUIDANCE_KEYS.map((key) =>
+        createElement(
+          "li",
+          {
+            key,
+            style: bulletItemStyle,
+          },
+          formatMessage(locale, key),
         ),
       ),
     ),
