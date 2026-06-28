@@ -1,0 +1,60 @@
+{
+  "id": "WM-0136",
+  "title": "World and resident mouse selection remediation",
+  "summary": "Make residents, structures, lanterns and relevant map objects selectable with visible feedback and inspector updates while fixing pointer-event layering.",
+  "state": "proposed",
+  "ownerRole": "client-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0132"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0130.md",
+    "docs/01_design/09_m8_product_ui_design_system.md",
+    "packages/renderer-pixi/src/*",
+    "packages/ui-react/src/*",
+    "packages/sim-protocol/src/web-read-model.ts"
+  ],
+  "acceptance": [
+    "Clicking visible residents and map objects updates selectedEntityId and player inspector state",
+    "Selection feedback is visible in Pixi and reflected in HUD without UI-owned world mutation",
+    "Clicking empty map tiles gives localized inspect/feedback state rather than silent failure",
+    "Overlay pointer-events do not block map selection except over real UI controls",
+    "E2E or renderer tests cover selection in both windowed and fullscreen-equivalent viewport sizes"
+  ],
+  "requiredChecks": [
+    "corepack pnpm test --filter web-shell",
+    "corepack pnpm typecheck",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0136-world-resident-selection",
+  "createdAt": "2026-06-28T13:36:56.432Z",
+  "updatedAt": "2026-06-28T13:36:56.432Z",
+  "history": [
+    {
+      "at": "2026-06-28T13:36:56.432Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0129 remediation DAG."
+    }
+  ],
+  "milestone": "M8",
+  "phase": "post-m8-owner-remediation",
+  "allowedPaths": [
+    "apps/web/src/**",
+    "packages/ui-react/src/**",
+    "packages/renderer-pixi/src/**",
+    "packages/sim-protocol/src/**",
+    "coordination/reports/WM-0136*.md",
+    "coordination/tasks/WM-0136.json"
+  ],
+  "forbiddenPaths": [
+    "UI-owned authoritative state",
+    "unreviewed Worker protocol expansion",
+    "public release or platform verdict changes"
+  ]
+}

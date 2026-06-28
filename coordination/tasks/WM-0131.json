@@ -1,0 +1,62 @@
+{
+  "id": "WM-0131",
+  "title": "Art direction consultation and asset replacement contract",
+  "summary": "Turn the owner-provided art direction and art-thread consultation into semantic UI tokens, component hierarchy, asset slots and future cut-in replacement rules.",
+  "state": "ready",
+  "ownerRole": "systems-architect",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0129"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0129.md",
+    "coordination/reports/WM-0129-art-consultation.md",
+    "docs/01_design/09_m8_product_ui_design_system.md",
+    "docs/05_tech/01_technical_architecture.md",
+    "docs/06_engineering/06_dependency_security_policy.md"
+  ],
+  "acceptance": [
+    "Records module sourcing: B layout, C visual mood, A plus C map lamp/path language, B resident list, C plus A inspector and B plus C command bar",
+    "Defines semantic design tokens and component slots that can be implemented with CSS/Pixi placeholders now",
+    "Defines asset manifest fields for future final art replacement without hardcoding final images into product logic",
+    "Separates art advisory decisions from code architecture and keeps all external licensing commitments owner-gated",
+    "Records high-cost art work that must not be done in this remediation pass"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0131-art-direction-asset-contract",
+  "createdAt": "2026-06-28T13:36:56.432Z",
+  "updatedAt": "2026-06-28T14:09:21.899Z",
+  "history": [
+    {
+      "at": "2026-06-28T13:36:56.432Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0129 remediation DAG."
+    },
+    {
+      "at": "2026-06-28T14:09:21.899Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
+    }
+  ],
+  "milestone": "M8",
+  "phase": "post-m8-owner-remediation",
+  "allowedPaths": [
+    "coordination/reports/WM-0131*.md",
+    "coordination/tasks/WM-0131.json",
+    "docs/01_design/**",
+    "docs/05_tech/**"
+  ],
+  "forbiddenPaths": [
+    "product code implementation",
+    "external art licensing commitments",
+    "public release or platform verdict changes"
+  ]
+}

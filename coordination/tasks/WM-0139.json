@@ -1,0 +1,58 @@
+{
+  "id": "WM-0139",
+  "title": "First-play onboarding remediation",
+  "summary": "Update first-play guidance so the player sees what can be selected, how to move the camera, and which first action chain is available in both supported locales.",
+  "state": "proposed",
+  "ownerRole": "gameplay-designer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0132",
+    "WM-0134",
+    "WM-0138"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0138.md",
+    "docs/01_design/10_m8_first_play_guidance.md",
+    "docs/04_content_balance/07_localization_text_templates.md"
+  ],
+  "acceptance": [
+    "Default first-play guidance explains selection, camera movement and the minimum playable command without exposing diagnostics",
+    "Guidance is localized in zh-CN and en and can be dismissed/reopened or remains reachable through a player surface",
+    "Copy stays within current controlled-test/demo boundaries and does not make public release or final balance claims",
+    "The guidance points to visible read-model state, not hidden omniscient lore or prose-only events",
+    "Tests or report evidence show onboarding in both locales after the command chain lands"
+  ],
+  "requiredChecks": [
+    "corepack pnpm localization:validate",
+    "corepack pnpm test --filter web-shell",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0139-first-play-onboarding-remediation",
+  "createdAt": "2026-06-28T13:36:56.432Z",
+  "updatedAt": "2026-06-28T13:36:56.432Z",
+  "history": [
+    {
+      "at": "2026-06-28T13:36:56.432Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0129 remediation DAG."
+    }
+  ],
+  "milestone": "M8",
+  "phase": "post-m8-owner-remediation",
+  "allowedPaths": [
+    "docs/01_design/**",
+    "docs/04_content_balance/**",
+    "packages/ui-react/src/**",
+    "coordination/reports/WM-0139*.md",
+    "coordination/tasks/WM-0139.json"
+  ],
+  "forbiddenPaths": [
+    "public release, store, EA or final legal/privacy claims",
+    "simulation authority changes"
+  ]
+}

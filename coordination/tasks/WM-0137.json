@@ -1,0 +1,57 @@
+{
+  "id": "WM-0137",
+  "title": "Camera drag pan zoom and reset controls",
+  "summary": "Add camera drag panning, wheel zoom, keyboard movement, reset and bounds behavior that works in windowed and fullscreen-equivalent layouts.",
+  "state": "proposed",
+  "ownerRole": "client-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0132"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0130.md",
+    "packages/renderer-pixi/src/render-geometry.ts",
+    "packages/renderer-pixi/src/pixi-world-renderer.ts"
+  ],
+  "acceptance": [
+    "Mouse drag pans the map without breaking click selection",
+    "Wheel zoom and keyboard movement remain bounded and deterministic from read-model geometry",
+    "A reset control or keyboard reset returns to fitted viewport",
+    "Camera interactions update localized input feedback visible in the HUD",
+    "Renderer/unit/E2E tests cover drag, zoom, keyboard and reset behavior"
+  ],
+  "requiredChecks": [
+    "corepack pnpm test --filter web-shell",
+    "corepack pnpm test --filter map-grid",
+    "corepack pnpm typecheck",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0137-camera-drag-zoom-reset",
+  "createdAt": "2026-06-28T13:36:56.432Z",
+  "updatedAt": "2026-06-28T13:36:56.432Z",
+  "history": [
+    {
+      "at": "2026-06-28T13:36:56.432Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0129 remediation DAG."
+    }
+  ],
+  "milestone": "M8",
+  "phase": "post-m8-owner-remediation",
+  "allowedPaths": [
+    "packages/renderer-pixi/src/**",
+    "packages/ui-react/src/**",
+    "apps/web/src/**",
+    "coordination/reports/WM-0137*.md",
+    "coordination/tasks/WM-0137.json"
+  ],
+  "forbiddenPaths": [
+    "simulation authority changes",
+    "public release or platform verdict changes"
+  ]
+}

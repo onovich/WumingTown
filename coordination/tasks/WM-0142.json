@@ -1,0 +1,63 @@
+{
+  "id": "WM-0142",
+  "title": "Post-M8 UI playability remediation closeout",
+  "summary": "Close the post-M8 UI remediation only after every remediation task is independently reviewed, integrated, validated, merged to main and pushed.",
+  "state": "proposed",
+  "ownerRole": "project-director",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0141"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0141.md",
+    "coordination/tasks/*.json",
+    "docs/06_engineering/03_definition_of_done.md",
+    "docs/07_roadmap/11_m8_1_0_readiness_matrix.md"
+  ],
+  "acceptance": [
+    "All post-M8 UI remediation tasks are done, independently reviewed as verified and integrated",
+    "Final closeout report records UI readiness, playability readiness, i18n readiness, responsive readiness, remaining art needs and release-candidate audit eligibility",
+    "Full required gates pass, including handoff validation, task validation/status, diff check, quality, focused E2E/selection/camera/language tests, M5 invariants, bench and M5 alpha scenario run where applicable",
+    "main and origin/main are synchronized after merge/push",
+    "No public release, EA, store, signing, telemetry, accounts, paid services or public save compatibility action is executed"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality",
+    "corepack pnpm ci:local",
+    "corepack pnpm test --filter m5-invariants",
+    "corepack pnpm bench",
+    "corepack pnpm sim:run -- --seed 5 --scenario m5-alpha-content-framework --ticks 100000"
+  ],
+  "branch": "task/WM-0142-ui-playability-remediation-closeout",
+  "createdAt": "2026-06-28T13:36:56.432Z",
+  "updatedAt": "2026-06-28T13:36:56.432Z",
+  "history": [
+    {
+      "at": "2026-06-28T13:36:56.432Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0129 remediation DAG."
+    }
+  ],
+  "milestone": "M8",
+  "phase": "post-m8-owner-remediation",
+  "allowedPaths": [
+    "coordination/reports/WM-0142*.md",
+    "coordination/tasks/WM-0142.json",
+    "coordination/project-state.json",
+    "docs/07_roadmap/**"
+  ],
+  "forbiddenPaths": [
+    "public release upload",
+    "store submission",
+    "signing credentials or signed installer",
+    "telemetry, accounts, hosted feedback or paid services",
+    "public save compatibility commitments",
+    "changing Web demo-only or Windows controlled-test verdicts without owner approval"
+  ]
+}

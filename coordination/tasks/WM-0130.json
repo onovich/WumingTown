@@ -1,0 +1,67 @@
+{
+  "id": "WM-0130",
+  "title": "Post-M8 UI interaction and i18n audit",
+  "summary": "Produce the current-code blocker matrix for default UI, mouse interaction, camera, commands, localization, responsive behavior, visual identity and minimum playable chain.",
+  "state": "ready",
+  "ownerRole": "client-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0129"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0129.md",
+    "docs/01_design/09_m8_product_ui_design_system.md",
+    "docs/01_design/10_m8_first_play_guidance.md",
+    "docs/05_tech/12_m8_i18n_locale_contract.md",
+    "apps/web/src/*",
+    "packages/ui-react/src/*",
+    "packages/renderer-pixi/src/*",
+    "packages/sim-protocol/src/*"
+  ],
+  "acceptance": [
+    "Audits whether the default launch still reads as diagnostics/product-gate harness versus player HUD",
+    "Audits selectable residents/objects, UI button clickability, pointer-event layering, camera drag/zoom/keyboard behavior and failure feedback",
+    "Audits zh-CN/en locale defaults, manual language switching, hardcoded player-visible strings, missing-key coverage and diagnostics isolation",
+    "Audits windowed/fullscreen responsive behavior for the required viewport set and records screenshot or DOM evidence needs",
+    "Records whether a minimum playable interaction chain is currently real, absent or blocked by protocol/adapter gaps"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0130-post-m8-ui-interaction-i18n-audit",
+  "createdAt": "2026-06-28T13:36:56.432Z",
+  "updatedAt": "2026-06-28T14:09:21.899Z",
+  "history": [
+    {
+      "at": "2026-06-28T13:36:56.432Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0129 remediation DAG."
+    },
+    {
+      "at": "2026-06-28T14:09:21.899Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
+    }
+  ],
+  "milestone": "M8",
+  "phase": "post-m8-owner-remediation",
+  "allowedPaths": [
+    "coordination/reports/WM-0130*.md",
+    "coordination/tasks/WM-0130.json",
+    "apps/web/src/**",
+    "packages/ui-react/src/**",
+    "packages/renderer-pixi/src/**",
+    "packages/sim-protocol/src/**"
+  ],
+  "forbiddenPaths": [
+    "authoritative simulation mutation from UI",
+    "public release or platform verdict changes",
+    "telemetry, accounts, paid services or public save compatibility"
+  ]
+}

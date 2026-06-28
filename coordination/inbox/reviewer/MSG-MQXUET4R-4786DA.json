@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQXUET4R-4786DA",
+  "from": "project-director",
+  "to": "reviewer",
+  "taskId": "WM-0129",
+  "kind": "review-request",
+  "subject": "WM-0129 ready for review",
+  "body": "Recorded owner post-M8 UI/playability blockers, sent art-thread consultation, audited current UI/interactions/i18n at planning depth, created WM-0130 through WM-0142 remediation DAG, and passed handoff/task/diff/quality gates without changing product code or owner-gated release verdicts.",
+  "artifacts": [
+    "coordination/reports/WM-0129.md",
+    "task/WM-0129-post-m8-ui-remediation-planning"
+  ],
+  "createdAt": "2026-06-28T13:46:54.075Z",
+  "acknowledgedAt": "2026-06-28T13:50:52.566Z"
+}

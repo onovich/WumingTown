@@ -1,0 +1,63 @@
+{
+  "id": "WM-0138",
+  "title": "Minimum playable interaction command chain",
+  "summary": "Implement at least one real player interaction chain, such as selecting a lantern and prioritizing lamp work, with traceable command or documented adapter state and UI feedback.",
+  "state": "proposed",
+  "ownerRole": "client-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0136",
+    "WM-0137"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0130.md",
+    "docs/02_systems/03_map_space_rooms_lanterns.md",
+    "docs/02_systems/12_combat_security_night_watch.md",
+    "docs/02_systems/14_explainability_debug_observability.md",
+    "packages/sim-protocol/src/*",
+    "packages/ui-react/src/*",
+    "apps/web/src/*"
+  ],
+  "acceptance": [
+    "Player can select a lantern/resident/object and issue one meaningful action from the HUD command surface",
+    "The action reaches an existing protocol/simulation command path or a reviewed, documented local adapter that is explicitly non-authoritative and traceable",
+    "Read-model or shell state changes visibly as a result, including queued/action feedback and a structured reason",
+    "The implementation does not fake world authority, bypass Simulation Worker ownership, or claim final game balance",
+    "E2E tests cover the full chain from selection to command/action feedback in zh-CN and en"
+  ],
+  "requiredChecks": [
+    "corepack pnpm test --filter web-shell",
+    "corepack pnpm typecheck",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0138-minimum-playable-interaction-chain",
+  "createdAt": "2026-06-28T13:36:56.432Z",
+  "updatedAt": "2026-06-28T13:36:56.432Z",
+  "history": [
+    {
+      "at": "2026-06-28T13:36:56.432Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0129 remediation DAG."
+    }
+  ],
+  "milestone": "M8",
+  "phase": "post-m8-owner-remediation",
+  "allowedPaths": [
+    "apps/web/src/**",
+    "packages/ui-react/src/**",
+    "packages/renderer-pixi/src/**",
+    "packages/sim-protocol/src/**",
+    "coordination/reports/WM-0138*.md",
+    "coordination/tasks/WM-0138.json"
+  ],
+  "forbiddenPaths": [
+    "UI-owned authoritative world mutation",
+    "unreviewed public Worker protocol or save schema changes",
+    "claiming public save compatibility or final release readiness"
+  ]
+}

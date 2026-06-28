@@ -1,0 +1,56 @@
+{
+  "id": "WM-0133",
+  "title": "Post-M8 design tokens and component system implementation",
+  "summary": "Implement Wuming Town UI tokens and reusable HUD component styling for panels, buttons, alerts, resource cards, resident cards, inspector and command bar placeholders.",
+  "state": "proposed",
+  "ownerRole": "client-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0131"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0131.md",
+    "docs/01_design/09_m8_product_ui_design_system.md"
+  ],
+  "acceptance": [
+    "Defines implementation-facing tokens for color, typography, spacing, panel, button, alert, resource card, resident card, inspector and command bar surfaces",
+    "Uses CSS/React/Pixi placeholders compatible with the asset replacement contract and avoids hardcoded final art images",
+    "Improves visual identity toward wood, paper, ink, lamp light and civic record language without one-note palette or marketing page layout",
+    "Keeps text contained at required viewport sizes and does not place cards inside cards",
+    "Adds focused tests or E2E assertions where style states affect interaction/accessibility"
+  ],
+  "requiredChecks": [
+    "corepack pnpm typecheck",
+    "corepack pnpm test --filter web-shell",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0133-design-tokens-component-system",
+  "createdAt": "2026-06-28T13:36:56.432Z",
+  "updatedAt": "2026-06-28T13:36:56.432Z",
+  "history": [
+    {
+      "at": "2026-06-28T13:36:56.432Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0129 remediation DAG."
+    }
+  ],
+  "milestone": "M8",
+  "phase": "post-m8-owner-remediation",
+  "allowedPaths": [
+    "packages/ui-react/src/**",
+    "packages/renderer-pixi/src/**",
+    "apps/web/src/**",
+    "coordination/reports/WM-0133*.md",
+    "coordination/tasks/WM-0133.json"
+  ],
+  "forbiddenPaths": [
+    "new runtime dependencies without ADR",
+    "external art asset licensing commitments",
+    "public release or platform verdict changes"
+  ]
+}

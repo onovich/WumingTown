@@ -1,0 +1,60 @@
+{
+  "id": "WM-0141",
+  "title": "Post-M8 UI remediation release-readiness verdict update",
+  "summary": "Update release-readiness evidence after UI/playability remediation while preserving public release, Web and Windows owner gates.",
+  "state": "proposed",
+  "ownerRole": "project-director",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0140"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0140.md",
+    "coordination/reports/WM-0127.md",
+    "coordination/reports/WM-0127-future-owner-release-handoff.md",
+    "docs/07_roadmap/11_m8_1_0_readiness_matrix.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md"
+  ],
+  "acceptance": [
+    "Records which owner UI/playability blockers are resolved, partially resolved or still blocking release readiness",
+    "Updates UI, playability, i18n and responsive verdicts without changing Web demo-only or Windows controlled-test verdicts",
+    "Keeps public release, EA, store, signing, telemetry, accounts, paid services and public save compatibility owner-gated",
+    "Includes remaining art production needs and whether a release-candidate audit can proceed",
+    "Does not create or execute public release tasks"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0141-ui-remediation-verdict-update",
+  "createdAt": "2026-06-28T13:36:56.432Z",
+  "updatedAt": "2026-06-28T13:36:56.432Z",
+  "history": [
+    {
+      "at": "2026-06-28T13:36:56.432Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0129 remediation DAG."
+    }
+  ],
+  "milestone": "M8",
+  "phase": "post-m8-owner-remediation",
+  "allowedPaths": [
+    "coordination/reports/WM-0141*.md",
+    "coordination/tasks/WM-0141.json",
+    "coordination/project-state.json",
+    "docs/07_roadmap/**"
+  ],
+  "forbiddenPaths": [
+    "public release upload",
+    "store submission",
+    "signing credentials or signed installer",
+    "telemetry, accounts, hosted feedback or paid services",
+    "public save compatibility commitments",
+    "changing Web demo-only or Windows controlled-test verdicts without owner approval"
+  ]
+}

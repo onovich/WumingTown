@@ -1,0 +1,60 @@
+{
+  "id": "WM-0135",
+  "title": "Post-M8 responsive windowed and fullscreen layout gate",
+  "summary": "Make the player HUD, map and panels responsive across the required viewport matrix in zh-CN and en with no critical clipping or overlap.",
+  "state": "proposed",
+  "ownerRole": "client-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0132",
+    "WM-0133",
+    "WM-0134"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0132.md",
+    "coordination/reports/WM-0133.md",
+    "coordination/reports/WM-0134.md",
+    "docs/01_design/09_m8_product_ui_design_system.md"
+  ],
+  "acceptance": [
+    "Covers 1280x720, 1366x768, 1424x861, 1600x900, 1920x1080, 2560x1369 and 2560x1440",
+    "Runs windowed/fullscreen-equivalent checks in zh-CN and en",
+    "Map remains inspectable; panels do not incoherently cover the play surface at required sizes",
+    "Long labels wrap or move into stable scroll regions without causing overlap",
+    "Stores screenshot or DOM-layout artifacts for reviewer inspection"
+  ],
+  "requiredChecks": [
+    "corepack pnpm test:e2e -- --grep responsive",
+    "corepack pnpm test --filter web-shell",
+    "corepack pnpm typecheck",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0135-responsive-window-fullscreen-layout",
+  "createdAt": "2026-06-28T13:36:56.432Z",
+  "updatedAt": "2026-06-28T13:36:56.432Z",
+  "history": [
+    {
+      "at": "2026-06-28T13:36:56.432Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created by WM-0129 remediation DAG."
+    }
+  ],
+  "milestone": "M8",
+  "phase": "post-m8-owner-remediation",
+  "allowedPaths": [
+    "apps/web/src/**",
+    "packages/ui-react/src/**",
+    "packages/renderer-pixi/src/**",
+    "coordination/reports/WM-0135*.md",
+    "coordination/tasks/WM-0135.json"
+  ],
+  "forbiddenPaths": [
+    "changing simulation authority",
+    "public release or platform verdict changes"
+  ]
+}

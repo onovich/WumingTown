@@ -1,0 +1,125 @@
+{
+  "id": "WM-0129",
+  "title": "Owner UI playability blocker audit and remediation planning",
+  "summary": "Record the post-M8 owner UI/playability/localization blockers, consult the art thread, audit the current UI and generate a reviewed remediation DAG without entering public release work.",
+  "state": "done",
+  "ownerRole": "project-director",
+  "reviewerRole": "reviewer",
+  "dependsOn": [],
+  "docs": [
+    "AGENTS.md",
+    "CODEX_START_HERE.md",
+    ".agents/skills/wuming-town-agent-workflow/SKILL.md",
+    ".codex/config.toml",
+    ".codex/agents/*.toml",
+    "coordination/roles.json",
+    "coordination/project-state.json",
+    "coordination/thread-registry.json",
+    "coordination/tasks/*.json",
+    "coordination/reports/WM-0127.md",
+    "coordination/reports/WM-0128.md",
+    "coordination/reports/WM-0127-future-owner-release-handoff.md",
+    "docs/01_design/*",
+    "docs/02_systems/*",
+    "docs/04_content_balance/*",
+    "docs/05_tech/*",
+    "docs/06_engineering/*",
+    "docs/07_roadmap/*",
+    "docs/08_codex/*",
+    "coordination/decisions/ADR-*.md",
+    "PLANS.md"
+  ],
+  "acceptance": [
+    "Records OWNER-AMENDMENT-2026-06-28-POST-M8-UI-PLAYABILITY-REMEDIATION as a hard release-readiness blocker, not a style suggestion",
+    "Confirms current Roadmap authority, Web demo-only verdict, Windows unsigned controlled external-test verdict and all public release owner gates remain unchanged",
+    "Contacts the owner-provided art thread or records exactly why consultation remains pending without blocking technical remediation",
+    "Audits the current UI, interaction, camera, localization and playability state against the owner screenshots and current code",
+    "Creates a reviewed Post-M8 UI / Playability Remediation DAG with non-public-release task packets for UI, i18n, responsive, world selection, camera control, minimum playable command, visual regression, verdict update and closeout",
+    "Does not implement product UI changes beyond control-plane reports and task packets in this planning task"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0129-post-m8-ui-remediation-planning",
+  "createdAt": "2026-06-28T13:36:56.432Z",
+  "updatedAt": "2026-06-28T14:09:21.889Z",
+  "history": [
+    {
+      "at": "2026-06-28T13:36:56.432Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created from owner post-M8 UI/playability remediation prompt."
+    },
+    {
+      "at": "2026-06-28T13:42:48.207Z",
+      "actor": "project-director",
+      "action": "claim",
+      "details": "thread=Beacon post-M8 UI remediation planning"
+    },
+    {
+      "at": "2026-06-28T13:46:54.073Z",
+      "actor": "project-director",
+      "action": "complete",
+      "details": "Recorded owner post-M8 UI/playability blockers, sent art-thread consultation, audited current UI/interactions/i18n at planning depth, created WM-0130 through WM-0142 remediation DAG, and passed handoff/task/diff/quality gates without changing product code or owner-gated release verdicts."
+    },
+    {
+      "at": "2026-06-28T14:06:30.157Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Verified owner post-M8 UI/playability blocker is recorded as a hard release-readiness blocker; M6/M7/M8, Web demo-only, Windows unsigned controlled-test, and owner-gated public release/store/signing/telemetry/accounts/paid-service/public-save boundaries are preserved; art consultation is advisory; WM-0130..WM-0142 cover required remediation lanes and remain unclaimed proposed tasks; code audit honestly records product-gate read-model and Noop/Echo command risks; required read-only checks passed."
+    },
+    {
+      "at": "2026-06-28T14:09:07.046Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integrated verified post-M8 UI/playability remediation planning DAG after handoff, taskctl, diff and corepack pnpm quality gates passed."
+    },
+    {
+      "at": "2026-06-28T14:09:21.889Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
+    }
+  ],
+  "milestone": "M8",
+  "phase": "post-m8-owner-remediation",
+  "allowedPaths": [
+    "coordination/tasks/WM-0129.json",
+    "coordination/tasks/WM-013*.json",
+    "coordination/tasks/WM-014*.json",
+    "coordination/reports/WM-0129*.md",
+    "coordination/reports/WM-013*.md",
+    "coordination/reports/WM-014*.md",
+    "coordination/project-state.json",
+    "docs/07_roadmap/**"
+  ],
+  "forbiddenPaths": [
+    "product UI implementation outside downstream remediation tasks",
+    "public release upload",
+    "Early Access launch",
+    "store submission",
+    "signing credentials or signed installer",
+    "telemetry, accounts, hosted feedback or paid services",
+    "public save compatibility commitments",
+    "changing Web demo-only or Windows controlled-test verdicts without owner approval"
+  ],
+  "claimedBy": "project-director",
+  "threadLabel": "Beacon post-M8 UI remediation planning",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0129.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Verified owner post-M8 UI/playability blocker is recorded as a hard release-readiness blocker; M6/M7/M8, Web demo-only, Windows unsigned controlled-test, and owner-gated public release/store/signing/telemetry/accounts/paid-service/public-save boundaries are preserved; art consultation is advisory; WM-0130..WM-0142 cover required remediation lanes and remain unclaimed proposed tasks; code audit honestly records product-gate read-model and Noop/Echo command risks; required read-only checks passed.",
+    "at": "2026-06-28T14:06:30.156Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integrated verified post-M8 UI/playability remediation planning DAG after handoff, taskctl, diff and corepack pnpm quality gates passed.",
+    "at": "2026-06-28T14:09:07.046Z"
+  }
+}

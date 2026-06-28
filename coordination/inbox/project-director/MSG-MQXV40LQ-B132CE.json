@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQXV40LQ-B132CE",
+  "from": "reviewer",
+  "to": "project-director",
+  "taskId": "WM-0129",
+  "kind": "review-approved",
+  "subject": "WM-0129 review: verified",
+  "body": "No blocking findings. Verified owner post-M8 UI/playability blocker is recorded as a hard release-readiness blocker; M6/M7/M8, Web demo-only, Windows unsigned controlled-test, and owner-gated public release/store/signing/telemetry/accounts/paid-service/public-save boundaries are preserved; art consultation is advisory; WM-0130..WM-0142 cover required remediation lanes and remain unclaimed proposed tasks; code audit honestly records product-gate read-model and Noop/Echo command risks; required read-only checks passed.",
+  "artifacts": [
+    "coordination/reports/WM-0129.md"
+  ],
+  "createdAt": "2026-06-28T14:06:30.158Z",
+  "acknowledgedAt": "2026-06-28T14:07:54.668Z"
+}
