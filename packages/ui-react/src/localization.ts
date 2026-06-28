@@ -68,13 +68,14 @@ const EN_MESSAGES = {
   "ui.mainMenu.aria": "Main menu",
   "ui.mainMenu.badge": "Main menu",
   "ui.mainMenu.continue.empty": "Continue becomes available after a local save exists.",
-  "ui.mainMenu.continue.ready": "Continue loads the latest local shell save.",
+  "ui.mainMenu.continue.ready": "Continue resumes the latest local town record on this device.",
   "ui.mainMenu.cycle": "Season",
-  "ui.mainMenu.cycleHint": "This start surface stays inside the current local shell profile.",
+  "ui.mainMenu.cycleHint":
+    "Use the current season and watchpoint to judge how much pressure is building.",
   "ui.mainMenu.firstPlay.action.continue":
     "Continue: available only when a local save exists; otherwise it stays disabled.",
   "ui.mainMenu.firstPlay.action.newGame":
-    "New Game: enter the current read-model fixture and inspect the town before acting.",
+    "New Game: enter the town view and inspect the current pressure before acting.",
   "ui.mainMenu.firstPlay.action.settings":
     "Settings: choose zh-CN or English presentation and adjust UI scale without changing simulation authority.",
   "ui.mainMenu.firstPlay.actions": "Available actions",
@@ -113,10 +114,10 @@ const EN_MESSAGES = {
   "ui.mainMenu.settings.hint":
     "Language and UI scale changes never change simulation authority and are stored in local app settings only.",
   "ui.mainMenu.settings.summary":
-    "Choose language, confirm shell display scale, and review how local preferences are stored before entering the town view.",
+    "Choose language and UI scale before entering the town view. These settings affect presentation only.",
   "ui.mainMenu.settings.title": "Display settings",
   "ui.mainMenu.summary":
-    "Read the current phase, then start a new session or continue the latest local save.",
+    "Read the current phase and next pressure, then start a new session or continue the latest local record.",
   "ui.input.booting": "Shell starting",
   "ui.input.inspect": "Inspect tile {x},{y}",
   "ui.input.keyboard": "Keyboard {code}",
@@ -273,11 +274,11 @@ const ZH_CN_MESSAGES = {
   "ui.mainMenu.aria": "主菜单",
   "ui.mainMenu.badge": "主菜单",
   "ui.mainMenu.continue.empty": "存在本地存档后即可使用继续。",
-  "ui.mainMenu.continue.ready": "继续会载入最近一次本地壳层存档。",
+  "ui.mainMenu.continue.ready": "继续会载入这台设备上最近一次本地城镇记录。",
   "ui.mainMenu.cycle": "时序",
-  "ui.mainMenu.cycleHint": "该起始界面只作用于当前本地壳层配置。",
+  "ui.mainMenu.cycleHint": "可结合当前时序与警戒态势，判断城镇压力正在如何积累。",
   "ui.mainMenu.firstPlay.action.continue": "继续：仅在存在本地存档时可用；否则会保持禁用。",
-  "ui.mainMenu.firstPlay.action.newGame": "新游戏：进入当前只读模型样例，先观察城镇再行动。",
+  "ui.mainMenu.firstPlay.action.newGame": "新游戏：进入城镇视图，先观察当前压力，再决定如何行动。",
   "ui.mainMenu.firstPlay.action.settings":
     "设置：选择简体中文或英文界面，并调整界面缩放，不改变模拟权威。",
   "ui.mainMenu.firstPlay.actions": "可用行动",
@@ -312,9 +313,10 @@ const ZH_CN_MESSAGES = {
   "ui.mainMenu.phaseLabel.dusk": "黄昏守望",
   "ui.mainMenu.phaseLabel.night": "夜间守望",
   "ui.mainMenu.settings.hint": "语言与界面缩放切换不会改变模拟权威，只会写入本地应用设置。",
-  "ui.mainMenu.settings.summary": "进入城镇视图前，可在这里确认语言、界面缩放与本地偏好保存方式。",
+  "ui.mainMenu.settings.summary":
+    "进入城镇视图前，可在这里确认语言与界面缩放；这些设置只影响呈现，不改变模拟。",
   "ui.mainMenu.settings.title": "显示设置",
-  "ui.mainMenu.summary": "先阅读当前阶段，再开始新局或继续最近一次本地存档。",
+  "ui.mainMenu.summary": "先阅读当前阶段与下一处压力，再开始新局或继续最近一次本地记录。",
   "ui.input.booting": "外壳启动中",
   "ui.input.inspect": "查看地块 {x},{y}",
   "ui.input.keyboard": "键盘 {code}",

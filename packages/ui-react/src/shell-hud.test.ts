@@ -156,6 +156,9 @@ describe("shell-hud", () => {
     expect(markup).toContain(
       "debug information appears only when diagnostics mode is explicitly enabled",
     );
+    expect(markup).not.toContain("read-model fixture");
+    expect(markup).not.toContain("fixture");
+    expect(markup).not.toContain("wm-0086-web-product-gate");
     expect(markup).not.toContain("Web Product Gate");
     expect(markup).not.toContain("Storage Gate");
   });
@@ -180,6 +183,9 @@ describe("shell-hud", () => {
     expect(markup).not.toContain("Dusk watch");
     expect(markup).not.toContain("Lantern gap");
     expect(markup).not.toContain("East street fuel window");
+    expect(markup).not.toContain("read-model fixture");
+    expect(markup).not.toContain("fixture");
+    expect(markup).not.toContain("wm-0086-web-product-gate");
     expect(markup).not.toContain("Product Gate");
     expect(markup).not.toContain("Main menu");
     expect(markup).not.toContain("New Game");
@@ -204,7 +210,8 @@ describe("shell-hud", () => {
     expect(markup).toContain('data-ui-slot="panel.paper.primary"');
     expect(markup).toContain('data-ui-slot="button.primary.disabled"');
     expect(markup).toContain('aria-disabled="true"');
-    expect(markup).toContain("Debug overlay");
+    expect(markup).toContain("Developer diagnostics");
+    expect(markup).toContain("Debug-only overlay");
     expect(markup).toContain("Web Product Gate");
     expect(markup).not.toContain("Main menu");
   });

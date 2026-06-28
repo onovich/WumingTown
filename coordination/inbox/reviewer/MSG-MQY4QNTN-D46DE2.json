@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQY4QNTN-D46DE2",
+  "from": "client-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0132",
+  "kind": "review-request",
+  "subject": "WM-0132 ready for review",
+  "body": "Separated default player HUD copy from fixture/product-gate framing, relabeled explicit debug overlay as developer diagnostics, added unit/E2E assertions for default vs wmDiagnostics=1 routes, restored WM-0118 artifact refreshes, and passed all required checks except the known unsupported pnpm test filter mismatch.",
+  "artifacts": [
+    "coordination/reports/WM-0132.md",
+    "task/WM-0132-product-hud-debug-separation"
+  ],
+  "createdAt": "2026-06-28T18:36:03.227Z",
+  "acknowledgedAt": "2026-06-28T18:38:44.648Z"
+}

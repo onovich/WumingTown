@@ -823,7 +823,11 @@ async function assertPlayerHudBaseline(page: import("playwright").Page): Promise
   expect(await page.getByTestId("debug-overlay").count()).toBe(0);
   await assertCommandPlaceholderAccessibility(page);
 
+  const hudText = await page.getByTestId("player-hud").textContent();
   const goalText = await page.getByTestId("player-next-goal").textContent();
+  expect(hudText ?? "").not.toContain("Web Product Gate");
+  expect(hudText ?? "").not.toContain("read-model fixture");
+  expect(hudText ?? "").not.toContain("wm-0086-web-product-gate");
   expect(goalText ?? "").toContain("Lantern corridor gap");
   const nightRiskTier = await page
     .getByTestId("player-night-risk")
@@ -858,6 +862,10 @@ async function assertPlayerHudLocaleState(
   expect(nightRiskTier).toBe("strained");
   if (locale === "en") {
     const goalText = await page.getByTestId("player-next-goal").textContent();
+    const hudText = await page.getByTestId("player-hud").textContent();
+    expect(hudText ?? "").not.toContain("Web Product Gate");
+    expect(hudText ?? "").not.toContain("read-model fixture");
+    expect(hudText ?? "").not.toContain("wm-0086-web-product-gate");
     expect(goalText ?? "").toContain("Lantern corridor gap");
     return;
   }
@@ -950,7 +958,7 @@ async function assertTownHudViewportLayout(
 }
 
 async function assertDebugOverlayBaseline(page: import("playwright").Page): Promise<void> {
-  await waitForHudText(page, "Debug overlay");
+  await waitForHudText(page, "Developer diagnostics");
   expect(await page.getByTestId("player-hud").count()).toBe(1);
   expect(await page.getByTestId("debug-overlay").count()).toBe(1);
   expect(await page.getByTestId("storage-panel").count()).toBe(1);
@@ -959,6 +967,7 @@ async function assertDebugOverlayBaseline(page: import("playwright").Page): Prom
   );
 
   const overlayText = await page.getByTestId("debug-overlay").textContent();
+  expect(overlayText ?? "").toContain("Debug-only overlay");
   expect(overlayText ?? "").toContain("wmDiagnostics=1");
   expect(overlayText ?? "").toContain("Web Product Gate");
   expect(overlayText ?? "").toContain("M5 first-season Web product-gate fixture");
@@ -1015,6 +1024,8 @@ async function assertStartSurfaceBaseline(
     expect(surfaceText ?? "").not.toContain("The east market lane may lose light before curfew.");
   }
   expect(surfaceText ?? "").not.toContain("Web Product Gate");
+  expect(surfaceText ?? "").not.toContain("read-model fixture");
+  expect(surfaceText ?? "").not.toContain("wm-0086-web-product-gate");
 
   await page.getByTestId("main-menu-settings").click();
   await page.getByTestId("locale-select").waitFor();

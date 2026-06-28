@@ -2,7 +2,7 @@
   "id": "WM-0132",
   "title": "Product HUD architecture and diagnostics overlay separation",
   "summary": "Make the default player route a playable HUD instead of a diagnostics harness while preserving diagnostics behind explicit dev/debug access.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -34,7 +34,7 @@
   ],
   "branch": "task/WM-0132-product-hud-debug-separation",
   "createdAt": "2026-06-28T13:36:56.432Z",
-  "updatedAt": "2026-06-28T14:55:13.518Z",
+  "updatedAt": "2026-06-28T18:47:44.192Z",
   "history": [
     {
       "at": "2026-06-28T13:36:56.432Z",
@@ -47,6 +47,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done after parallel WM-0130 and WM-0131 branch integration"
+    },
+    {
+      "at": "2026-06-28T18:21:03.870Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": "thread=Codex WM-0132 product HUD"
+    },
+    {
+      "at": "2026-06-28T18:36:03.225Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Separated default player HUD copy from fixture/product-gate framing, relabeled explicit debug overlay as developer diagnostics, added unit/E2E assertions for default vs wmDiagnostics=1 routes, restored WM-0118 artifact refreshes, and passed all required checks except the known unsupported pnpm test filter mismatch."
+    },
+    {
+      "at": "2026-06-28T18:45:16.713Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; default HUD/debug separation and test assertions confirmed. Reproduced typecheck, handoff validation, task validation, diff check, and quality; required pnpm test filter mismatch reproduced as unsupported."
+    },
+    {
+      "at": "2026-06-28T18:47:36.922Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified by Mirror the 4th; integration gates passed in WM-0132 worktree."
+    },
+    {
+      "at": "2026-06-28T18:47:44.192Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M8",
@@ -61,5 +91,20 @@
     "Simulation Worker authority changes",
     "save schema changes",
     "public release or platform verdict changes"
-  ]
+  ],
+  "claimedBy": "client-engineer",
+  "threadLabel": "Codex WM-0132 product HUD",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0132.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; default HUD/debug separation and test assertions confirmed. Reproduced typecheck, handoff validation, task validation, diff check, and quality; required pnpm test filter mismatch reproduced as unsupported.",
+    "at": "2026-06-28T18:45:16.713Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified by Mirror the 4th; integration gates passed in WM-0132 worktree.",
+    "at": "2026-06-28T18:47:36.921Z"
+  }
 }

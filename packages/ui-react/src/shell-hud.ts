@@ -965,14 +965,14 @@ function createDebugOverlay(
         {
           style: debugTitleStyle,
         },
-        "Debug overlay",
+        "Developer diagnostics",
       ),
       createElement(
         "div",
         {
           style: debugHintStyle,
         },
-        "Active because wmDiagnostics=1. Product Gate, storage, and diagnostic evidence stay out of the default player HUD.",
+        "Debug-only overlay. Active because wmDiagnostics=1. Product Gate, storage, and diagnostic evidence stay out of the default player HUD.",
       ),
     ),
     createElement(
