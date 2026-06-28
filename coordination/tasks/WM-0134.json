@@ -2,7 +2,7 @@
   "id": "WM-0134",
   "title": "Post-M8 localization hardening",
   "summary": "Harden zh-CN/en player localization defaults, manual settings, missing-key gates and hardcoded player-visible string coverage after the owner reports mixed language UI.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -33,13 +33,19 @@
   ],
   "branch": "task/WM-0134-post-m8-localization-hardening",
   "createdAt": "2026-06-28T13:36:56.432Z",
-  "updatedAt": "2026-06-28T13:36:56.432Z",
+  "updatedAt": "2026-06-28T14:52:34.027Z",
   "history": [
     {
       "at": "2026-06-28T13:36:56.432Z",
       "actor": "project-director",
       "action": "create",
       "details": "Created by WM-0129 remediation DAG."
+    },
+    {
+      "at": "2026-06-28T14:52:34.027Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "M8",

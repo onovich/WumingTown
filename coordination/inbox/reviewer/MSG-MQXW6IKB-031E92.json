@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQXW6IKB-031E92",
+  "from": "client-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0130",
+  "kind": "review-request",
+  "subject": "WM-0130 ready for review",
+  "body": "Audited post-M8 UI interaction/i18n state; default launch is player-facing but fixture-backed, zh-CN HUD still leaks English read-model prose, drag/reset camera controls are absent, small-viewport evidence is reachability-only, and minimum playable gameplay interaction remains blocked by protocol/UI adapter gaps. Required checks pass; WM-0118 artifact refreshes from verification were restored because they are outside WM-0130 allowedPaths.",
+  "artifacts": [
+    "coordination/reports/WM-0130.md",
+    "task/WM-0130-post-m8-ui-interaction-i18n-audit"
+  ],
+  "createdAt": "2026-06-28T14:36:26.363Z",
+  "acknowledgedAt": "2026-06-28T14:47:19.943Z"
+}

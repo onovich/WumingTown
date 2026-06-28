@@ -2,7 +2,7 @@
   "id": "WM-0130",
   "title": "Post-M8 UI interaction and i18n audit",
   "summary": "Produce the current-code blocker matrix for default UI, mouse interaction, camera, commands, localization, responsive behavior, visual identity and minimum playable chain.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -34,7 +34,7 @@
   ],
   "branch": "task/WM-0130-post-m8-ui-interaction-i18n-audit",
   "createdAt": "2026-06-28T13:36:56.432Z",
-  "updatedAt": "2026-06-28T14:09:21.899Z",
+  "updatedAt": "2026-06-28T14:52:34.002Z",
   "history": [
     {
       "at": "2026-06-28T13:36:56.432Z",
@@ -47,6 +47,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-28T14:15:31.451Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": "thread=Codex WM-0130 audit"
+    },
+    {
+      "at": "2026-06-28T14:36:26.361Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Audited post-M8 UI interaction/i18n state; default launch is player-facing but fixture-backed, zh-CN HUD still leaks English read-model prose, drag/reset camera controls are absent, small-viewport evidence is reachability-only, and minimum playable gameplay interaction remains blocked by protocol/UI adapter gaps. Required checks pass; WM-0118 artifact refreshes from verification were restored because they are outside WM-0130 allowedPaths."
+    },
+    {
+      "at": "2026-06-28T14:47:36.900Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; WM-0130 is audit-only, product code unchanged, required checks pass, and the blocker matrix honestly identifies default HUD, interaction, i18n, responsive evidence, and playable-chain gaps without claiming implementation completion."
+    },
+    {
+      "at": "2026-06-28T14:52:24.092Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integrated verified post-M8 UI interaction and i18n audit after handoff, taskctl, diff and corepack pnpm quality gates passed."
+    },
+    {
+      "at": "2026-06-28T14:52:34.001Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M8",
@@ -63,5 +93,20 @@
     "authoritative simulation mutation from UI",
     "public release or platform verdict changes",
     "telemetry, accounts, paid services or public save compatibility"
-  ]
+  ],
+  "claimedBy": "client-engineer",
+  "threadLabel": "Codex WM-0130 audit",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0130.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; WM-0130 is audit-only, product code unchanged, required checks pass, and the blocker matrix honestly identifies default HUD, interaction, i18n, responsive evidence, and playable-chain gaps without claiming implementation completion.",
+    "at": "2026-06-28T14:47:36.899Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integrated verified post-M8 UI interaction and i18n audit after handoff, taskctl, diff and corepack pnpm quality gates passed.",
+    "at": "2026-06-28T14:52:24.091Z"
+  }
 }
