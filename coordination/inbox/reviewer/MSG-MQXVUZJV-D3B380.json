@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQXVUZJV-D3B380",
+  "from": "systems-architect",
+  "to": "reviewer",
+  "taskId": "WM-0131",
+  "kind": "review-request",
+  "subject": "WM-0131 ready for review",
+  "body": "Authored post-M8 UI asset replacement contract, WM-0131 plan and report; required checks pass: validate-handoff, taskctl validate, git diff --check, corepack pnpm quality.",
+  "artifacts": [
+    "coordination/reports/WM-0131.md",
+    "task/WM-0131-art-direction-asset-contract"
+  ],
+  "createdAt": "2026-06-28T14:27:28.507Z",
+  "acknowledgedAt": "2026-06-28T14:34:35.606Z"
+}

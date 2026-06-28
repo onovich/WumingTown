@@ -2,7 +2,7 @@
   "id": "WM-0131",
   "title": "Art direction consultation and asset replacement contract",
   "summary": "Turn the owner-provided art direction and art-thread consultation into semantic UI tokens, component hierarchy, asset slots and future cut-in replacement rules.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,7 +31,7 @@
   ],
   "branch": "task/WM-0131-art-direction-asset-contract",
   "createdAt": "2026-06-28T13:36:56.432Z",
-  "updatedAt": "2026-06-28T14:09:21.899Z",
+  "updatedAt": "2026-06-28T14:36:46.276Z",
   "history": [
     {
       "at": "2026-06-28T13:36:56.432Z",
@@ -44,6 +44,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-28T14:15:56.231Z",
+      "actor": "systems-architect",
+      "action": "claim",
+      "details": "thread=Atlas WM-0131 asset contract"
+    },
+    {
+      "at": "2026-06-28T14:27:28.505Z",
+      "actor": "systems-architect",
+      "action": "complete",
+      "details": "Authored post-M8 UI asset replacement contract, WM-0131 plan and report; required checks pass: validate-handoff, taskctl validate, git diff --check, corepack pnpm quality."
+    },
+    {
+      "at": "2026-06-28T14:34:18.953Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Confirmed B/C/A module sourcing, semantic tokens and slots, manifest and cut-in replacement rules, owner-gated licensing, high-cost art exclusions and downstream guidance; required checks and quality pass."
+    },
+    {
+      "at": "2026-06-28T14:36:32.971Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integrated verified post-M8 UI asset replacement contract after handoff, taskctl, diff and corepack pnpm quality gates passed."
+    },
+    {
+      "at": "2026-06-28T14:36:46.276Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M8",
@@ -58,5 +88,20 @@
     "product code implementation",
     "external art licensing commitments",
     "public release or platform verdict changes"
-  ]
+  ],
+  "claimedBy": "systems-architect",
+  "threadLabel": "Atlas WM-0131 asset contract",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0131.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Confirmed B/C/A module sourcing, semantic tokens and slots, manifest and cut-in replacement rules, owner-gated licensing, high-cost art exclusions and downstream guidance; required checks and quality pass.",
+    "at": "2026-06-28T14:34:18.953Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integrated verified post-M8 UI asset replacement contract after handoff, taskctl, diff and corepack pnpm quality gates passed.",
+    "at": "2026-06-28T14:36:32.970Z"
+  }
 }
