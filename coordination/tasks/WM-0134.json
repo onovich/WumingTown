@@ -2,7 +2,7 @@
   "id": "WM-0134",
   "title": "Post-M8 localization hardening",
   "summary": "Harden zh-CN/en player localization defaults, manual settings, missing-key gates and hardcoded player-visible string coverage after the owner reports mixed language UI.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -33,7 +33,7 @@
   ],
   "branch": "task/WM-0134-post-m8-localization-hardening",
   "createdAt": "2026-06-28T13:36:56.432Z",
-  "updatedAt": "2026-06-28T14:52:34.027Z",
+  "updatedAt": "2026-06-28T16:05:15.228Z",
   "history": [
     {
       "at": "2026-06-28T13:36:56.432Z",
@@ -46,6 +46,48 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-28T15:02:28.145Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": "thread=Codex WM-0134 localization"
+    },
+    {
+      "at": "2026-06-28T15:35:44.702Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Localized current Web shell fixture-backed player HUD/start-surface strings via a narrow UI-side adapter, moved player input/connectors to localization keys, extended fixture localization validation, added zh-CN HUD leak tests, and restored refreshed WM-0118 artifacts because they are outside WM-0134 allowedPaths."
+    },
+    {
+      "at": "2026-06-28T15:45:55.456Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: Medium: packages/ui-react/src/shell-hud.test.ts imports apps/web/src/product-gate-fixture through a relative cross-workspace path, creating a reversed internal dependency from @wuming-town/ui-react to @wuming-town/web and violating AGENTS/ADR-0001 package-boundary contracts. Other reviewed localization behavior and gates pass; corepack pnpm test --filter web-shell remains a documented repo-script mismatch."
+    },
+    {
+      "at": "2026-06-28T15:49:28.360Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Review fix: removed the reverse ui-react test dependency on apps/web product-gate fixture, replaced it with a local minimal read-model slice in shell-hud.test.ts, reran quality/boundary checks, and kept the fixture-localization hardening plus WM-0118 artifact restores intact."
+    },
+    {
+      "at": "2026-06-28T16:02:18.874Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings in round 2; prior ui-react reverse dependency on apps/web/product-gate-fixture is removed, localization gates and supported web-shell e2e pass, WM-0118 artifacts are clean, and the pnpm test --filter web-shell runner mismatch remains documented as a non-blocking repo-script issue."
+    },
+    {
+      "at": "2026-06-28T16:05:04.956Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integrated verified post-M8 localization hardening after handoff, taskctl, diff and corepack pnpm quality gates passed."
+    },
+    {
+      "at": "2026-06-28T16:05:15.227Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M8",
@@ -61,5 +103,20 @@
     "locale state in sim-core, sim-worker, sim-protocol or save schema",
     "broad Electron filesystem or IPC APIs",
     "telemetry, accounts, hosted services or public privacy claims"
-  ]
+  ],
+  "claimedBy": "client-engineer",
+  "threadLabel": "Codex WM-0134 localization",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0134.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings in round 2; prior ui-react reverse dependency on apps/web/product-gate-fixture is removed, localization gates and supported web-shell e2e pass, WM-0118 artifacts are clean, and the pnpm test --filter web-shell runner mismatch remains documented as a non-blocking repo-script issue.",
+    "at": "2026-06-28T16:02:18.873Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integrated verified post-M8 localization hardening after handoff, taskctl, diff and corepack pnpm quality gates passed.",
+    "at": "2026-06-28T16:05:04.955Z"
+  }
 }

@@ -6,6 +6,7 @@ import {
   type LocaleId,
   type ShellLocaleState,
 } from "./localization";
+import { localizeShellFixtureText } from "./shell-read-model-localization";
 import { ShellSettingsPanel } from "./shell-settings-panel";
 import type {
   ShellSettingsActions,
@@ -59,7 +60,7 @@ export function ShellMainMenuSurface({
   const [view, setView] = useState<MainMenuView>("home");
   const uiLocale = localeState.resolvedLocale;
   const continueAvailable = storageState.saveSlots.length > 0;
-  const phaseDisplayLabel = localizePhaseLabel(uiLocale, phaseLabel);
+  const phaseDisplayLabel = localizeShellFixtureText(uiLocale, phaseLabel);
 
   async function handleContinue(): Promise<void> {
     if (!continueAvailable || continuePending) {
@@ -106,7 +107,7 @@ export function ShellMainMenuSurface({
           {
             style: titleStyle,
           },
-          settlementName,
+          localizeShellFixtureText(uiLocale, settlementName),
         ),
         createElement(
           "p",
@@ -130,7 +131,7 @@ export function ShellMainMenuSurface({
         createMetaCard(
           uiLocale,
           "ui.mainMenu.cycle",
-          cycleLabel,
+          localizeShellFixtureText(uiLocale, cycleLabel),
           formatMessage(uiLocale, "ui.mainMenu.cycleHint"),
         ),
         createMetaCard(
@@ -390,27 +391,6 @@ function localizeNextGoal(locale: LocaleId, nextGoal: NextGoal): LocalizedNextGo
 function isLanternPressure(nextGoal: NonNullable<NextGoal>): boolean {
   const source = `${nextGoal.label} ${nextGoal.detail}`.toLowerCase();
   return source.includes("lantern") || source.includes("lamp") || source.includes("light");
-}
-
-function localizePhaseLabel(locale: LocaleId, phaseLabel: string): string {
-  if (locale === "en") {
-    return phaseLabel;
-  }
-
-  const normalized = phaseLabel.trim().toLowerCase();
-  if (normalized.includes("dawn")) {
-    return formatMessage(locale, "ui.mainMenu.phaseLabel.dawn");
-  }
-  if (normalized.includes("day")) {
-    return formatMessage(locale, "ui.mainMenu.phaseLabel.day");
-  }
-  if (normalized.includes("dusk")) {
-    return formatMessage(locale, "ui.mainMenu.phaseLabel.dusk");
-  }
-  if (normalized.includes("night")) {
-    return formatMessage(locale, "ui.mainMenu.phaseLabel.night");
-  }
-  return formatMessage(locale, "ui.mainMenu.phaseLabel.default");
 }
 
 function createGuidanceCard(

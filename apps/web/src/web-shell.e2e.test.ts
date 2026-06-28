@@ -748,7 +748,6 @@ describe("web shell smoke", () => {
 async function assertAccessibilityBaseline(page: import("playwright").Page): Promise<void> {
   const shellText = await page.locator("[data-shell-ready='true']").textContent();
   expect(shellText ?? "").toContain("Wuming Town");
-  expect(shellText ?? "").toContain("无明镇");
   expect(shellText ?? "").not.toContain("Web Product Gate");
   await waitForUiScale(page, "standard");
   if ((await page.getByTestId("main-menu-surface").count()) > 0) {
@@ -857,7 +856,22 @@ async function assertPlayerHudLocaleState(
   if (locale === "en") {
     const goalText = await page.getByTestId("player-next-goal").textContent();
     expect(goalText ?? "").toContain("Lantern corridor gap");
+    return;
   }
+
+  const hudText = await page.getByTestId("player-hud").textContent();
+  expect(hudText ?? "").toContain("灯廊缺口");
+  expect(hudText ?? "").toContain("桥路包裹已备妥");
+  expect(hudText ?? "").toContain("编志所");
+  expect(hudText ?? "").toContain("米粮");
+  expect(hudText ?? "").toContain("稳定");
+  expect(hudText ?? "").toContain("无伤");
+  expect(hudText ?? "").not.toContain("Lantern corridor gap");
+  expect(hudText ?? "").not.toContain("Bridge parcels staged");
+  expect(hudText ?? "").not.toContain("Chronicle office");
+  expect(hudText ?? "").not.toContain("Rice");
+  expect(hudText ?? "").not.toContain("Stable");
+  expect(hudText ?? "").not.toContain("Unhurt");
 }
 
 async function assertTownHudViewportLayout(
@@ -920,11 +934,20 @@ async function assertDebugOverlayBaseline(page: import("playwright").Page): Prom
   expect(overlayText ?? "").toContain("M5 first-season Web product-gate fixture");
 }
 
-async function assertOnboardingBaseline(page: import("playwright").Page): Promise<void> {
+async function assertOnboardingBaseline(
+  page: import("playwright").Page,
+  locale: "en" | "zh-CN",
+): Promise<void> {
   const surface = page.getByTestId("main-menu-surface");
   expect(await surface.count()).toBe(1);
   const surfaceText = await surface.textContent();
-  expect(surfaceText ?? "").toContain("Wuming Town");
+  if (locale === "en") {
+    expect(surfaceText ?? "").toContain("Wuming Town");
+    expect(surfaceText ?? "").not.toContain("无明镇");
+  } else {
+    expect(surfaceText ?? "").toContain("无明镇");
+    expect(surfaceText ?? "").not.toContain("Wuming Town");
+  }
   expect(await page.getByTestId("main-menu-new-game").count()).toBe(1);
   expect(await page.getByTestId("main-menu-continue").count()).toBe(1);
   expect(await page.getByTestId("main-menu-settings").count()).toBe(1);
@@ -939,7 +962,7 @@ async function assertStartSurfaceBaseline(
   page: import("playwright").Page,
   locale: "en" | "zh-CN",
 ): Promise<void> {
-  await assertOnboardingBaseline(page);
+  await assertOnboardingBaseline(page, locale);
   const surfaceText = await page.getByTestId("main-menu-surface").textContent();
   if (locale === "en") {
     expect(surfaceText ?? "").toContain("New Game");

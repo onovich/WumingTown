@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQXYAS74-A3030A",
+  "from": "client-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0134",
+  "kind": "review-request",
+  "subject": "WM-0134 ready for review",
+  "body": "Localized current Web shell fixture-backed player HUD/start-surface strings via a narrow UI-side adapter, moved player input/connectors to localization keys, extended fixture localization validation, added zh-CN HUD leak tests, and restored refreshed WM-0118 artifacts because they are outside WM-0134 allowedPaths.",
+  "artifacts": [
+    "coordination/reports/WM-0134.md",
+    "task/WM-0134-post-m8-localization-hardening"
+  ],
+  "createdAt": "2026-06-28T15:35:44.704Z",
+  "acknowledgedAt": "2026-06-28T15:43:26.740Z"
+}

@@ -9,6 +9,10 @@ import {
 import type { WorldEntityReadModel } from "@wuming-town/sim-protocol";
 
 import { formatMessage, type LocaleId } from "./localization";
+import {
+  localizeShellFixtureText,
+  localizeShellLastInputLabel,
+} from "./shell-read-model-localization";
 import { ShellMainMenuSurface } from "./shell-main-menu-surface";
 import { ShellSettingsPanel } from "./shell-settings-panel";
 import { ShellStoragePanel } from "./shell-storage-panel";
@@ -287,7 +291,7 @@ function createResourceStrip(state: ShellState, locale: LocaleId): ReactElement 
             {
               style: sectionEyebrowStyle,
             },
-            resource.label,
+            localizeShellFixtureText(locale, resource.label),
           ),
           createElement(
             "span",
@@ -302,7 +306,7 @@ function createResourceStrip(state: ShellState, locale: LocaleId): ReactElement 
           {
             style: resourceValueStyle,
           },
-          `${String(resource.amount)}${resource.unit}`,
+          `${String(resource.amount)}${localizeShellFixtureText(locale, resource.unit)}`,
         ),
       ),
     ),
@@ -337,19 +341,19 @@ function createCurrentStateCard(
     createDefinitionStack([
       {
         label: formatMessage(locale, "ui.hud.phase"),
-        value: state.readModel.town.phaseLabel,
+        value: localizeShellFixtureText(locale, state.readModel.town.phaseLabel),
       },
       {
         label: formatMessage(locale, "ui.hud.cycle"),
-        value: state.readModel.town.cycleLabel,
+        value: localizeShellFixtureText(locale, state.readModel.town.cycleLabel),
       },
       {
         label: formatMessage(locale, "ui.hud.speed"),
-        value: state.readModel.town.speedLabel,
+        value: localizeShellFixtureText(locale, state.readModel.town.speedLabel),
       },
       {
         label: formatMessage(locale, "ui.hud.map"),
-        value: state.readModel.mapName,
+        value: localizeShellFixtureText(locale, state.readModel.mapName),
       },
     ]),
   );
@@ -358,9 +362,13 @@ function createCurrentStateCard(
 function createNextGoalCard(model: PlayerHudModel, locale: LocaleId): ReactElement {
   const nextGoal = model.nextGoal;
   const title =
-    nextGoal === undefined ? formatMessage(locale, "ui.hud.nextGoal.none") : nextGoal.label;
+    nextGoal === undefined
+      ? formatMessage(locale, "ui.hud.nextGoal.none")
+      : localizeShellFixtureText(locale, nextGoal.label);
   const detail =
-    nextGoal === undefined ? formatMessage(locale, "ui.hud.nextGoal.noneDetail") : nextGoal.detail;
+    nextGoal === undefined
+      ? formatMessage(locale, "ui.hud.nextGoal.noneDetail")
+      : localizeShellFixtureText(locale, nextGoal.detail);
   const severity = nextGoal?.severity ?? "stable";
 
   return createElement(
@@ -443,14 +451,14 @@ function createTaskCard(
               {
                 style: rowTitleStyle,
               },
-              entity.displayName,
+              localizeShellFixtureText(locale, entity.displayName),
             ),
             createElement(
               "div",
               {
                 style: mutedInverseTextStyle,
               },
-              entity.inspector.roleLabel,
+              localizeShellFixtureText(locale, entity.inspector.roleLabel),
             ),
           ),
           createElement(
@@ -458,14 +466,14 @@ function createTaskCard(
             {
               style: rowValueStyle,
             },
-            entity.inspector.currentJob,
+            localizeShellFixtureText(locale, entity.inspector.currentJob),
           ),
           createElement(
             "div",
             {
               style: mutedInverseTextStyle,
             },
-            entity.inspector.currentStep,
+            localizeShellFixtureText(locale, entity.inspector.currentStep),
           ),
         ),
       ),
@@ -493,7 +501,7 @@ function createEventCard(state: ShellState, locale: LocaleId): ReactElement {
         createElement(
           "div",
           {
-            "aria-label": `${formatAlertSeverity(alert.severity, locale)}: ${alert.label}. ${alert.detail}`,
+            "aria-label": `${formatAlertSeverity(alert.severity, locale)}: ${localizeShellFixtureText(locale, alert.label)}. ${localizeShellFixtureText(locale, alert.detail)}`,
             "data-alert-severity": alert.severity,
             key: `${alert.severity}:${alert.label}`,
             style: alertRowStyle(alert.severity),
@@ -508,7 +516,7 @@ function createEventCard(state: ShellState, locale: LocaleId): ReactElement {
               {
                 style: rowTitleStyle,
               },
-              alert.label,
+              localizeShellFixtureText(locale, alert.label),
             ),
             createElement(
               "div",
@@ -523,7 +531,7 @@ function createEventCard(state: ShellState, locale: LocaleId): ReactElement {
             {
               style: mutedInverseTextStyle,
             },
-            alert.detail,
+            localizeShellFixtureText(locale, alert.detail),
           ),
         ),
       ),
@@ -573,57 +581,65 @@ function createInspectorCard(
     },
     createSectionHeader(
       formatMessage(locale, "ui.hud.selected"),
-      `${formatEntityKind(selectedEntity.kind, locale)} · ${formatMessage(locale, "ui.inspector.tile")} ${String(selectedEntity.tile.x)},${String(selectedEntity.tile.y)}`,
+      formatMessage(locale, "ui.inspector.location", {
+        kind: formatEntityKind(selectedEntity.kind, locale),
+        tileLabel: formatMessage(locale, "ui.inspector.tile"),
+        x: String(selectedEntity.tile.x),
+        y: String(selectedEntity.tile.y),
+      }),
     ),
     createElement(
       "div",
       {
         style: cardTitleStyle,
       },
-      selectedEntity.displayName,
+      localizeShellFixtureText(locale, selectedEntity.displayName),
     ),
     createElement(
       "div",
       {
         style: mutedTextStyle,
       },
-      `${selectedEntity.inspector.roleLabel} · ${selectedEntity.summary}`,
+      formatMessage(locale, "ui.inspector.roleSummary", {
+        role: localizeShellFixtureText(locale, selectedEntity.inspector.roleLabel),
+        summary: localizeShellFixtureText(locale, selectedEntity.summary),
+      }),
     ),
     createPairGrid(locale, [
       {
         label: formatMessage(locale, "ui.inspector.currentJob"),
-        value: selectedEntity.inspector.currentJob,
+        value: localizeShellFixtureText(locale, selectedEntity.inspector.currentJob),
       },
       {
         label: formatMessage(locale, "ui.inspector.currentStep"),
-        value: selectedEntity.inspector.currentStep,
+        value: localizeShellFixtureText(locale, selectedEntity.inspector.currentStep),
       },
       {
         label: formatMessage(locale, "ui.inspector.mood"),
-        value: selectedEntity.inspector.moodLabel,
+        value: localizeShellFixtureText(locale, selectedEntity.inspector.moodLabel),
       },
       {
         label: formatMessage(locale, "ui.inspector.health"),
-        value: selectedEntity.inspector.healthLabel,
+        value: localizeShellFixtureText(locale, selectedEntity.inspector.healthLabel),
       },
       {
         label: formatMessage(locale, "ui.inspector.lastInput"),
-        value: state.lastInputLabel,
+        value: localizeShellLastInputLabel(locale, state.lastInputLabel),
       },
       {
         label: formatMessage(locale, "ui.inspector.decision"),
-        value: selectedEntity.inspector.lastDecision,
+        value: localizeShellFixtureText(locale, selectedEntity.inspector.lastDecision),
       },
     ]),
     createNeedSection(selectedEntity, locale),
     createBulletSection(
       formatMessage(locale, "ui.inspector.why"),
-      selectedEntity.inspector.explainers,
+      selectedEntity.inspector.explainers.map((item) => localizeShellFixtureText(locale, item)),
       false,
     ),
     createBulletSection(
       formatMessage(locale, "ui.inspector.thoughts"),
-      selectedEntity.inspector.thoughts,
+      selectedEntity.inspector.thoughts.map((item) => localizeShellFixtureText(locale, item)),
       false,
     ),
   );
@@ -652,7 +668,7 @@ function createResidentAttentionCard(
         createElement(
           "div",
           {
-            "aria-label": `${item.entity.displayName}. ${item.stateLabel}. ${item.entity.inspector.currentStep}`,
+            "aria-label": `${localizeShellFixtureText(locale, item.entity.displayName)}. ${item.stateLabel}. ${localizeShellFixtureText(locale, item.entity.inspector.currentStep)}`,
             key: item.entity.entityId,
             style: infoRowStyle,
           },
@@ -666,7 +682,7 @@ function createResidentAttentionCard(
               {
                 style: rowTitleStyle,
               },
-              item.entity.displayName,
+              localizeShellFixtureText(locale, item.entity.displayName),
             ),
             createElement(
               "div",
@@ -681,7 +697,10 @@ function createResidentAttentionCard(
             {
               style: mutedInverseTextStyle,
             },
-            `${item.entity.inspector.roleLabel} · ${item.entity.inspector.currentStep}`,
+            formatMessage(locale, "ui.hud.residentStep", {
+              role: localizeShellFixtureText(locale, item.entity.inspector.roleLabel),
+              step: localizeShellFixtureText(locale, item.entity.inspector.currentStep),
+            }),
           ),
           item.topNeed === undefined
             ? null
@@ -690,7 +709,11 @@ function createResidentAttentionCard(
                 {
                   style: mutedInverseTextStyle,
                 },
-                `${item.topNeed.label}: ${String(item.topNeed.value)}% · ${formatNeedState(item.topNeed.state, locale)}`,
+                formatMessage(locale, "ui.inspector.needSummary", {
+                  label: localizeShellFixtureText(locale, item.topNeed.label),
+                  value: String(item.topNeed.value),
+                  state: formatNeedState(item.topNeed.state, locale),
+                }),
               ),
         ),
       ),
@@ -733,14 +756,18 @@ function createNeedSection(entity: WorldEntityReadModel, locale: LocaleId): Reac
               {
                 style: sectionEyebrowStyle,
               },
-              need.label,
+              localizeShellFixtureText(locale, need.label),
             ),
             createElement(
               "span",
               {
                 style: mutedTextStyle,
               },
-              `${String(need.value)}% · ${formatNeedState(need.state, locale)}`,
+              formatMessage(locale, "ui.inspector.needSummary", {
+                label: localizeShellFixtureText(locale, need.label),
+                value: String(need.value),
+                state: formatNeedState(need.state, locale),
+              }),
             ),
           ),
           createElement("div", {
@@ -949,14 +976,14 @@ function createIdentityCard(
 ): ReactElement {
   const compactMeta = compact
     ? formatMessage(locale, "ui.surface.topBarMeta", {
-        cycle: state.readModel.town.cycleLabel,
-        map: state.readModel.town.speedLabel,
+        cycle: localizeShellFixtureText(locale, state.readModel.town.cycleLabel),
+        map: localizeShellFixtureText(locale, state.readModel.town.speedLabel),
         speed: formatNightRisk(model.nightRisk.tier, locale),
       })
     : formatMessage(locale, "ui.surface.topBarMeta", {
-        cycle: state.readModel.town.cycleLabel,
-        map: state.readModel.mapName,
-        speed: state.readModel.town.speedLabel,
+        cycle: localizeShellFixtureText(locale, state.readModel.town.cycleLabel),
+        map: localizeShellFixtureText(locale, state.readModel.mapName),
+        speed: localizeShellFixtureText(locale, state.readModel.town.speedLabel),
       });
   return createElement(
     "div",
@@ -968,14 +995,14 @@ function createIdentityCard(
       {
         style: sectionEyebrowInverseStyle,
       },
-      state.readModel.town.phaseLabel,
+      localizeShellFixtureText(locale, state.readModel.town.phaseLabel),
     ),
     createElement(
       "h1",
       {
         style: identityTitleStyle,
       },
-      state.readModel.town.settlementName,
+      localizeShellFixtureText(locale, state.readModel.town.settlementName),
     ),
     createElement(
       "div",
@@ -991,7 +1018,11 @@ function createIdentityCard(
           {
             style: identityMetaStyle,
           },
-          `${model.phaseMeaning} · ${formatMessage(locale, "ui.hud.nightRisk")}: ${formatNightRisk(model.nightRisk.tier, locale)}`,
+          formatMessage(locale, "ui.hud.phaseRiskSummary", {
+            phaseMeaning: model.phaseMeaning,
+            nightRisk: formatNightRisk(model.nightRisk.tier, locale),
+            nightRiskLabel: formatMessage(locale, "ui.hud.nightRisk"),
+          }),
         ),
   );
 }
@@ -1169,14 +1200,16 @@ function createNightRiskModel(state: ShellState, locale: LocaleId): PlayerHudMod
       warningCount += 1;
     }
     if (alert.severity !== "stable" && reasons.length < 2) {
-      reasons.push(alert.label);
+      reasons.push(localizeShellFixtureText(locale, alert.label));
     }
   }
 
   if (reasons.length < 2) {
     for (const resource of state.readModel.town.resources) {
       if (resource.trend === "falling") {
-        reasons.push(`${resource.label} ${formatResourceTrend(resource.trend, locale)}`);
+        reasons.push(
+          `${localizeShellFixtureText(locale, resource.label)} ${formatResourceTrend(resource.trend, locale)}`,
+        );
         if (reasons.length >= 2) {
           break;
         }
@@ -1220,7 +1253,7 @@ function readPhaseMeaning(phaseLabel: string, locale: LocaleId): string {
 function readEntityStateLabel(entity: WorldEntityReadModel, locale: LocaleId): string {
   const topNeed = selectTopNeed(entity);
   if (topNeed !== undefined) {
-    return `${topNeed.label} ${formatNeedState(topNeed.state, locale)}`;
+    return `${localizeShellFixtureText(locale, topNeed.label)} ${formatNeedState(topNeed.state, locale)}`;
   }
   return formatMessage(locale, "ui.hud.residentSteady");
 }

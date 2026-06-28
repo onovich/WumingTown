@@ -70,6 +70,73 @@ const READ_MODEL: WorldReadModel = {
   selectedEntityId: "entity-a",
 };
 
+const FIXTURE_SLICE_READ_MODEL: WorldReadModel = {
+  sessionId: "session-ui-fixture-slice",
+  mapName: "East market and bridge road",
+  tileSize: 32,
+  chunkSize: 8,
+  mapWidth: 192,
+  mapHeight: 192,
+  town: {
+    settlementName: "Wuming Town / 无明镇",
+    phaseLabel: "Dusk watch",
+    cycleLabel: "First season, curfew approach",
+    speedLabel: "Paused",
+    alerts: [
+      {
+        severity: "warning",
+        label: "Lantern corridor gap",
+        detail: "The east market lane may lose light before curfew.",
+      },
+      {
+        severity: "stable",
+        label: "Bridge parcels staged",
+        detail: "Prepared goods are ready beside the old bridge route.",
+      },
+    ],
+    resources: [
+      {
+        label: "Rice",
+        amount: 36,
+        unit: "d",
+        trend: "steady",
+      },
+    ],
+  },
+  chunks: [],
+  entities: [
+    {
+      entityId: "entity-fixture-a",
+      displayName: "Chronicler Lin",
+      kind: "resident",
+      tile: {
+        x: 96,
+        y: 80,
+      },
+      colorHex: 0xf4d35e,
+      summary: "Cross-checking debt ledgers and witness records before curfew.",
+      inspector: {
+        roleLabel: "Chronicle office",
+        currentJob: "Ledger review",
+        currentStep: "Verify north-gate witness order",
+        moodLabel: "Alert",
+        healthLabel: "Unhurt",
+        lastDecision: "Delay archive sealing until the last road guest is registered.",
+        explainers: ["Two pledge slips still disagree on creditor witness order."],
+        thoughts: ["Keep faction debt separate from shrine records."],
+        needs: [
+          {
+            label: "Clarity",
+            value: 58,
+            state: "steady",
+          },
+        ],
+      },
+    },
+  ],
+  selectedEntityId: "entity-fixture-a",
+};
+
 describe("shell-hud", () => {
   it("renders the default main menu surface without diagnostics harness copy", () => {
     const state = createShellState(createDefaultShellLocaleState(["en-US"]));
@@ -136,11 +203,36 @@ describe("shell-hud", () => {
     expect(markup).toContain("Web Product Gate");
     expect(markup).not.toContain("Main menu");
   });
+
+  it("localizes fixture-backed zh-CN player HUD text and input feedback", () => {
+    const state = {
+      ...createShellState(createDefaultShellLocaleState(["zh-TW"]), FIXTURE_SLICE_READ_MODEL),
+      diagnosticsVisible: true,
+      lastInputLabel: "Ready",
+    } satisfies ShellState;
+    const markup = renderShell(state);
+
+    expect(markup).toContain("\u706f\u5eca\u7f3a\u53e3");
+    expect(markup).toContain("\u6865\u8def\u5305\u88f9\u5df2\u5907\u59a5");
+    expect(markup).toContain("\u7f16\u5fd7\u6240");
+    expect(markup).toContain("\u7c73\u7cae");
+    expect(markup).toContain("\u7a33\u5b9a");
+    expect(markup).toContain("\u65e0\u4f24");
+    expect(markup).toContain("\u5c31\u7eea");
+    expect(markup).not.toContain("Lantern corridor gap");
+    expect(markup).not.toContain("Bridge parcels staged");
+    expect(markup).not.toContain("Chronicle office");
+    expect(markup).not.toContain("Rice");
+    expect(markup).not.toContain("Unhurt");
+  });
 });
 
-function createShellState(locale: ReturnType<typeof createDefaultShellLocaleState>): ShellState {
+function createShellState(
+  locale: ReturnType<typeof createDefaultShellLocaleState>,
+  readModel: WorldReadModel = READ_MODEL,
+): ShellState {
   return {
-    readModel: READ_MODEL,
+    readModel,
     releaseGate: {
       fixtureId: "wm-0086-web-product-gate",
       title: "Web Product Gate",
@@ -191,7 +283,7 @@ function createShellState(locale: ReturnType<typeof createDefaultShellLocaleStat
     canvasHeight: 720,
     zoom: 1.25,
     lastInputLabel: "Ready",
-    selectedEntityId: "entity-a",
+    selectedEntityId: readModel.selectedEntityId,
     hoverTile: {
       x: 96,
       y: 80,

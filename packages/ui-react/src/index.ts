@@ -3,6 +3,11 @@ import { SIM_PROTOCOL_SMOKE } from "@wuming-town/sim-protocol";
 
 export { createShellHudElement, ShellHudRoot, type ShellHudRootProps } from "./shell-hud";
 export { ShellOnboardingPanel, type ShellOnboardingPanelProps } from "./shell-onboarding-panel";
+export {
+  localizeShellFixtureText,
+  localizeShellLastInputLabel,
+  validateShellFixtureLocalization,
+} from "./shell-read-model-localization";
 export { ShellSettingsPanel, type ShellSettingsPanelProps } from "./shell-settings-panel";
 export { ShellStoragePanel, type ShellStoragePanelProps } from "./shell-storage-panel";
 export {

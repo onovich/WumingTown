@@ -1,8 +1,21 @@
 #!/usr/bin/env node
 
-import { validateLocalizationCatalogs } from "../packages/ui-react/src/localization.ts";
+await import("./register-ts-extension-loader.mjs");
 
-const issues = validateLocalizationCatalogs();
+const [
+  { WEB_PRODUCT_GATE_READ_MODEL },
+  { validateLocalizationCatalogs },
+  { validateShellFixtureLocalization },
+] = await Promise.all([
+  import("../apps/web/src/product-gate-fixture.ts"),
+  import("../packages/ui-react/src/localization.ts"),
+  import("../packages/ui-react/src/shell-read-model-localization.ts"),
+]);
+
+const issues = [
+  ...validateLocalizationCatalogs(),
+  ...validateShellFixtureLocalization(WEB_PRODUCT_GATE_READ_MODEL),
+];
 
 if (issues.length === 0) {
   console.log(

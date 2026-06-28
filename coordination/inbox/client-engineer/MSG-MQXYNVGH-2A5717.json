@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQXYNVGH-2A5717",
+  "from": "reviewer",
+  "to": "client-engineer",
+  "taskId": "WM-0134",
+  "kind": "changes-requested",
+  "subject": "WM-0134 review: changes_requested",
+  "body": "Medium: packages/ui-react/src/shell-hud.test.ts imports apps/web/src/product-gate-fixture through a relative cross-workspace path, creating a reversed internal dependency from @wuming-town/ui-react to @wuming-town/web and violating AGENTS/ADR-0001 package-boundary contracts. Other reviewed localization behavior and gates pass; corepack pnpm test --filter web-shell remains a documented repo-script mismatch.",
+  "artifacts": [
+    "coordination/reports/WM-0134.md"
+  ],
+  "createdAt": "2026-06-28T15:45:55.457Z",
+  "acknowledgedAt": "2026-06-28T15:46:42.990Z"
+}
