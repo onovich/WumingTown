@@ -71,12 +71,45 @@ const EN_MESSAGES = {
   "ui.mainMenu.continue.ready": "Continue loads the latest local shell save.",
   "ui.mainMenu.cycle": "Season",
   "ui.mainMenu.cycleHint": "This start surface stays inside the current local shell profile.",
+  "ui.mainMenu.firstPlay.action.continue":
+    "Continue: available only when a local save exists; otherwise it stays disabled.",
+  "ui.mainMenu.firstPlay.action.newGame":
+    "New Game: enter the current read-model fixture and inspect the town before acting.",
+  "ui.mainMenu.firstPlay.action.settings":
+    "Settings: choose zh-CN or English presentation without changing simulation authority.",
+  "ui.mainMenu.firstPlay.actions": "Available actions",
+  "ui.mainMenu.firstPlay.boundary":
+    "Player guidance is separate from developer diagnostics; debug information appears only when diagnostics mode is explicitly enabled.",
+  "ui.mainMenu.firstPlay.boundaryTitle": "Boundary",
+  "ui.mainMenu.firstPlay.nextGoal": "Next goal",
+  "ui.mainMenu.firstPlay.nextGoal.dangerDetail":
+    "Start from visible warnings, resident state, Chronicle evidence, and obligations before choosing a response.",
+  "ui.mainMenu.firstPlay.nextGoal.dangerTitle": "Resolve the visible danger",
+  "ui.mainMenu.firstPlay.nextGoal.lanternDetail":
+    "Check lamp coverage, route evidence, and night-watch obligations before assigning patrol or supply work.",
+  "ui.mainMenu.firstPlay.nextGoal.lanternTitle": "Close the lamp coverage gap",
+  "ui.mainMenu.firstPlay.nextGoal.none": "No urgent goal is blocking the town right now.",
+  "ui.mainMenu.firstPlay.nextGoal.noneDetail":
+    "Start by inspecting the phase, resident state, lamp pressure, Chronicle evidence, and obligations.",
+  "ui.mainMenu.firstPlay.nextGoal.stableDetail":
+    "Use the map, resident state, and watchpoints to choose the next safe action.",
+  "ui.mainMenu.firstPlay.nextGoal.stableTitle": "Choose the next safe action",
+  "ui.mainMenu.firstPlay.nextGoal.warningDetail":
+    "Review visible clues, counterevidence, lamp coverage, and social obligations before committing.",
+  "ui.mainMenu.firstPlay.nextGoal.warningTitle": "Review the visible warning",
+  "ui.mainMenu.firstPlay.phase": "How to read this phase",
+  "ui.mainMenu.firstPlay.title": "First-play guidance",
   "ui.mainMenu.language": "Presentation language",
   "ui.mainMenu.language.system": "Follow system",
   "ui.mainMenu.languageHint":
     "Language changes update shell UI immediately and stay local to this device profile.",
   "ui.mainMenu.phase": "Current phase",
   "ui.mainMenu.phaseHint": "Check the phase first, then decide whether to start fresh or continue.",
+  "ui.mainMenu.phaseLabel.dawn": "Dawn review",
+  "ui.mainMenu.phaseLabel.day": "Day work",
+  "ui.mainMenu.phaseLabel.default": "Current town phase",
+  "ui.mainMenu.phaseLabel.dusk": "Dusk watch",
+  "ui.mainMenu.phaseLabel.night": "Night watch",
   "ui.mainMenu.settings.hint":
     "Language changes never change simulation authority and are stored in local app settings only.",
   "ui.mainMenu.settings.summary":
@@ -202,11 +235,40 @@ const ZH_CN_MESSAGES = {
   "ui.mainMenu.continue.ready": "继续会载入最近一次本地壳层存档。",
   "ui.mainMenu.cycle": "时序",
   "ui.mainMenu.cycleHint": "该起始界面只作用于当前本地壳层配置。",
+  "ui.mainMenu.firstPlay.action.continue": "继续：仅在存在本地存档时可用；否则会保持禁用。",
+  "ui.mainMenu.firstPlay.action.newGame": "新游戏：进入当前只读模型样例，先观察城镇再行动。",
+  "ui.mainMenu.firstPlay.action.settings": "设置：选择简体中文或英文界面，不改变模拟权威。",
+  "ui.mainMenu.firstPlay.actions": "可用行动",
+  "ui.mainMenu.firstPlay.boundary": "玩家引导与开发诊断分离；调试信息仅在显式诊断模式中显示。",
+  "ui.mainMenu.firstPlay.boundaryTitle": "边界",
+  "ui.mainMenu.firstPlay.nextGoal": "下一目标",
+  "ui.mainMenu.firstPlay.nextGoal.dangerDetail":
+    "先依据可见警报、居民状态、镇志证据与义务关系，再选择应对方式。",
+  "ui.mainMenu.firstPlay.nextGoal.dangerTitle": "处理可见危险",
+  "ui.mainMenu.firstPlay.nextGoal.lanternDetail":
+    "先确认灯火覆盖、路线证据与守夜义务，再安排巡灯或补给。",
+  "ui.mainMenu.firstPlay.nextGoal.lanternTitle": "补上灯火缺口",
+  "ui.mainMenu.firstPlay.nextGoal.none": "当前没有紧急事项阻塞城镇。",
+  "ui.mainMenu.firstPlay.nextGoal.noneDetail":
+    "先查看阶段、居民状态、灯火压力、镇志证据与义务关系。",
+  "ui.mainMenu.firstPlay.nextGoal.stableDetail":
+    "可结合地图、居民状态与观察点，选择下一步稳妥行动。",
+  "ui.mainMenu.firstPlay.nextGoal.stableTitle": "选择下一步稳妥行动",
+  "ui.mainMenu.firstPlay.nextGoal.warningDetail":
+    "先复核可见线索、反证、灯火覆盖与社会义务，再决定是否行动。",
+  "ui.mainMenu.firstPlay.nextGoal.warningTitle": "复核可见警戒",
+  "ui.mainMenu.firstPlay.phase": "如何阅读当前阶段",
+  "ui.mainMenu.firstPlay.title": "首次游玩指引",
   "ui.mainMenu.language": "界面语言",
   "ui.mainMenu.language.system": "跟随系统",
   "ui.mainMenu.languageHint": "语言切换会立即更新壳层界面，并仅保存在当前设备配置中。",
   "ui.mainMenu.phase": "当前阶段",
   "ui.mainMenu.phaseHint": "先确认当前阶段，再决定开始新局还是继续本地进度。",
+  "ui.mainMenu.phaseLabel.dawn": "黎明复盘",
+  "ui.mainMenu.phaseLabel.day": "日间工作",
+  "ui.mainMenu.phaseLabel.default": "当前城镇阶段",
+  "ui.mainMenu.phaseLabel.dusk": "黄昏守望",
+  "ui.mainMenu.phaseLabel.night": "夜间守望",
   "ui.mainMenu.settings.hint": "语言切换不会改变模拟权威，只会写入本地应用设置。",
   "ui.mainMenu.settings.summary": "进入城镇视图前，可在这里确认语言与本地偏好保存方式。",
   "ui.mainMenu.settings.title": "设置",

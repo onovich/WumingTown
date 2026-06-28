@@ -2,7 +2,7 @@
   "id": "WM-0119",
   "title": "First-play onboarding and next-action guidance",
   "summary": "Make first play legible with phase, possible actions, next goal and game-versus-diagnostics separation.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "gameplay-designer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -31,7 +31,7 @@
   ],
   "branch": "task/WM-0119-m8-first-play-guidance",
   "createdAt": "2026-06-27T15:46:00.000Z",
-  "updatedAt": "2026-06-28T05:11:52.842Z",
+  "updatedAt": "2026-06-28T05:52:29.047Z",
   "history": [
     {
       "at": "2026-06-27T15:46:00.000Z",
@@ -44,6 +44,48 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-28T05:15:13.863Z",
+      "actor": "gameplay-designer",
+      "action": "claim",
+      "details": "thread=Chronicler WM-0119 first-play guidance"
+    },
+    {
+      "at": "2026-06-28T05:30:26.311Z",
+      "actor": "gameplay-designer",
+      "action": "complete",
+      "details": "Implemented M8 first-play guidance on the default player start surface with zh-CN/en copy, next-goal and available-action UI evidence, diagnostics separation, and copy/cultural boundary documentation; required checks pass."
+    },
+    {
+      "at": "2026-06-28T05:37:07.211Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: default first-play guidance still renders Product Gate terminology in the player start surface boundary copy, so developer diagnostics leak into onboarding; Medium: zh-CN first-play evidence only verifies localized headings while phase/next-goal values come from raw English read-model labels/details, leaving zh-CN next-action guidance unverified."
+    },
+    {
+      "at": "2026-06-28T05:45:07.010Z",
+      "actor": "gameplay-designer",
+      "action": "complete",
+      "details": "Repaired WM-0119 review findings: removed developer-gate terminology from default first-play copy, added localized zh-CN phase and next-goal display derivation, added UI/Web/Desktop assertions against raw English fixture leakage, and reran required checks plus Web/Desktop e2e."
+    },
+    {
+      "at": "2026-06-28T05:49:43.660Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Second-round repairs verified: default first-play copy no longer exposes Product Gate/developer-gate terminology, Product Gate remains only in explicit diagnostics/dev keys and assertions, zh-CN start-surface tests assert localized phase/next-goal/action details and reject raw English fixture leakage, and no sim-core/sim-worker/protocol or release-gated paths changed; required checks plus Web/Desktop e2e pass."
+    },
+    {
+      "at": "2026-06-28T05:52:28.991Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integrated verified M8 first-play guidance after second-round repair; checks passed: handoff validate, taskctl validate/status, diff check, Web/Desktop E2E, quality."
+    },
+    {
+      "at": "2026-06-28T05:52:29.047Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M8",
@@ -60,5 +102,20 @@
     "packages/sim-core/**",
     "packages/sim-worker/**",
     "release/store/signing/telemetry/account/paid-service work"
-  ]
+  ],
+  "claimedBy": "gameplay-designer",
+  "threadLabel": "Chronicler WM-0119 first-play guidance",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0119.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Second-round repairs verified: default first-play copy no longer exposes Product Gate/developer-gate terminology, Product Gate remains only in explicit diagnostics/dev keys and assertions, zh-CN start-surface tests assert localized phase/next-goal/action details and reject raw English fixture leakage, and no sim-core/sim-worker/protocol or release-gated paths changed; required checks plus Web/Desktop e2e pass.",
+    "at": "2026-06-28T05:49:43.660Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integrated verified M8 first-play guidance after second-round repair; checks passed: handoff validate, taskctl validate/status, diff check, Web/Desktop E2E, quality.",
+    "at": "2026-06-28T05:52:28.990Z"
+  }
 }

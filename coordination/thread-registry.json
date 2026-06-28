@@ -37,15 +37,15 @@
       "registeredAt": "2026-06-23T21:08:57.632Z"
     },
     "gameplay-designer": {
-      "threadId": "019efb8e-abb3-7821-9aa1-f9b720f3a844",
-      "label": "WM-0033-M2-scenario",
-      "registeredAt": "2026-06-24T21:35:05.679Z"
+      "threadId": "019f0ca7-76ae-70b2-9915-304ba8a9119d",
+      "label": "Lantern WM-0119 first-play guidance",
+      "registeredAt": "2026-06-28T05:15:43.739Z"
     },
     "reviewer": {
-      "threadId": "019f0c96-83ee-7b43-8f57-09954cc7b87e",
-      "label": "Gate WM-0117 review",
-      "registeredAt": "2026-06-28T04:57:20.524Z"
+      "threadId": "019f0cb6-1acd-7fd3-aaa5-a92ec49193eb",
+      "label": "Mirror WM-0119 review",
+      "registeredAt": "2026-06-28T05:31:44.257Z"
     }
   },
-  "updatedAt": "2026-06-28T04:57:20.525Z"
+  "updatedAt": "2026-06-28T05:31:44.257Z"
 }

@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQXD78AR-538740",
+  "from": "gameplay-designer",
+  "to": "reviewer",
+  "taskId": "WM-0119",
+  "kind": "review-request",
+  "subject": "WM-0119 ready for review",
+  "body": "Repaired WM-0119 review findings: removed developer-gate terminology from default first-play copy, added localized zh-CN phase and next-goal display derivation, added UI/Web/Desktop assertions against raw English fixture leakage, and reran required checks plus Web/Desktop e2e.",
+  "artifacts": [
+    "coordination/reports/WM-0119.md",
+    "task/WM-0119-m8-first-play-guidance"
+  ],
+  "createdAt": "2026-06-28T05:45:07.012Z",
+  "acknowledgedAt": "2026-06-28T05:46:07.417Z"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQXCWY30-95CD29",
+  "from": "reviewer",
+  "to": "gameplay-designer",
+  "taskId": "WM-0119",
+  "kind": "changes-requested",
+  "subject": "WM-0119 review: changes_requested",
+  "body": "High: default first-play guidance still renders Product Gate terminology in the player start surface boundary copy, so developer diagnostics leak into onboarding; Medium: zh-CN first-play evidence only verifies localized headings while phase/next-goal values come from raw English read-model labels/details, leaving zh-CN next-action guidance unverified.",
+  "artifacts": [
+    "coordination/reports/WM-0119.md"
+  ],
+  "createdAt": "2026-06-28T05:37:07.213Z",
+  "acknowledgedAt": "2026-06-28T05:38:08.618Z"
+}

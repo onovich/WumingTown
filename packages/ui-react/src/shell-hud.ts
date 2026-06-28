@@ -70,6 +70,8 @@ export function ShellHudRoot({
   const compactLayout = state.canvasWidth < 1040;
   const uiLocale = state.locale.resolvedLocale;
   const startSurfaceVisible = !state.diagnosticsVisible && !startSurfaceDismissed;
+  const startNextGoal = selectPriorityAlert(state.readModel.town.alerts);
+  const startPhaseMeaning = readPhaseMeaning(state.readModel.town.phaseLabel, uiLocale);
 
   if (startSurfaceVisible) {
     return createElement(
@@ -86,10 +88,12 @@ export function ShellHudRoot({
         cycleLabel: state.readModel.town.cycleLabel,
         localeActions,
         localeState: state.locale,
+        nextGoal: startNextGoal,
         onDismiss: () => {
           setStartSurfaceDismissed(true);
         },
         phaseLabel: state.readModel.town.phaseLabel,
+        phaseMeaning: startPhaseMeaning,
         settlementName: state.readModel.town.settlementName,
         storageActions,
         storageState: state.storageGate,

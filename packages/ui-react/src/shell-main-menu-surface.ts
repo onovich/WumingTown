@@ -7,30 +7,47 @@ import {
   type ShellLocaleState,
 } from "./localization";
 import { ShellSettingsPanel } from "./shell-settings-panel";
-import type { ShellLocaleActions, ShellStorageActions, ShellStorageGateState } from "./shell-store";
+import type {
+  ShellLocaleActions,
+  ShellState,
+  ShellStorageActions,
+  ShellStorageGateState,
+} from "./shell-store";
 
 export interface ShellMainMenuSurfaceProps {
   readonly compact: boolean;
   readonly cycleLabel: string;
   readonly localeActions: ShellLocaleActions;
   readonly localeState: ShellLocaleState;
+  readonly nextGoal: ShellState["readModel"]["town"]["alerts"][number] | undefined;
   readonly onDismiss: () => void;
   readonly phaseLabel: string;
+  readonly phaseMeaning: string;
   readonly settlementName: string;
   readonly storageActions: Pick<ShellStorageActions, "onLoadSave">;
   readonly storageState: Pick<ShellStorageGateState, "saveSlots">;
 }
 
+type AlertSeverity = ShellState["readModel"]["town"]["alerts"][number]["severity"];
 type MainMenuView = "home" | "settings";
 type LocaleSelection = LocaleId | "system";
+type NextGoal = ShellMainMenuSurfaceProps["nextGoal"];
+
+interface LocalizedNextGoalCopy {
+  readonly detail: string;
+  readonly severity: AlertSeverity;
+  readonly title: string;
+}
 
 export function ShellMainMenuSurface({
   compact,
   cycleLabel,
   localeActions,
   localeState,
+  nextGoal,
   onDismiss,
   phaseLabel,
+  phaseMeaning,
   settlementName,
   storageActions,
   storageState,
@@ -39,6 +56,7 @@ export function ShellMainMenuSurface({
   const [view, setView] = useState<MainMenuView>("home");
   const uiLocale = localeState.resolvedLocale;
   const continueAvailable = storageState.saveSlots.length > 0;
+  const phaseDisplayLabel = localizePhaseLabel(uiLocale, phaseLabel);
 
   async function handleContinue(): Promise<void> {
     if (!continueAvailable || continuePending) {
@@ -103,7 +121,7 @@ export function ShellMainMenuSurface({
         createMetaCard(
           uiLocale,
           "ui.mainMenu.phase",
-          phaseLabel,
+          phaseDisplayLabel,
           formatMessage(uiLocale, "ui.mainMenu.phaseHint"),
         ),
         createMetaCard(
@@ -124,6 +142,8 @@ export function ShellMainMenuSurface({
             compact,
             continueAvailable,
             continuePending,
+            nextGoal,
+            phaseMeaning,
             localeActions,
             localeState,
             onDismiss,
@@ -156,6 +176,8 @@ function createHomeView(
   compact: boolean,
   continueAvailable: boolean,
   continuePending: boolean,
+  nextGoal: NextGoal,
+  phaseMeaning: string,
   localeActions: ShellLocaleActions,
   localeState: ShellLocaleState,
   onDismiss: () => void,
@@ -194,6 +216,7 @@ function createHomeView(
         testId: "main-menu-settings",
       }),
     ),
+    createFirstPlayGuidance(uiLocale, phaseMeaning, nextGoal),
     createElement(
       "p",
       {
@@ -240,6 +263,222 @@ function createHomeView(
         createLocaleButton(localeActions, localeState, "system"),
         createLocaleButton(localeActions, localeState, "zh-CN"),
         createLocaleButton(localeActions, localeState, "en"),
+      ),
+    ),
+  );
+}
+
+function createFirstPlayGuidance(
+  locale: LocaleId,
+  phaseMeaning: string,
+  nextGoal: NextGoal,
+): ReactElement {
+  const nextGoalCopy = localizeNextGoal(locale, nextGoal);
+
+  return createElement(
+    "section",
+    {
+      "aria-label": formatMessage(locale, "ui.mainMenu.firstPlay.title"),
+      "data-testid": "main-menu-first-play-guidance",
+      style: firstPlayPanelStyle,
+    },
+    createElement(
+      "div",
+      {
+        style: localeHeaderStyle,
+      },
+      createElement(
+        "div",
+        {
+          style: sectionTitleStyle,
+        },
+        formatMessage(locale, "ui.mainMenu.firstPlay.title"),
+      ),
+      createElement(
+        "p",
+        {
+          style: bodyStyle,
+        },
+        phaseMeaning,
+      ),
+    ),
+    createElement(
+      "div",
+      {
+        style: firstPlayGridStyle,
+      },
+      createGuidanceCard(
+        formatMessage(locale, "ui.mainMenu.firstPlay.nextGoal"),
+        nextGoalCopy.title,
+        nextGoalCopy.detail,
+        nextGoalCopy.severity,
+        "main-menu-next-goal",
+      ),
+      createGuidanceListCard(
+        formatMessage(locale, "ui.mainMenu.firstPlay.actions"),
+        [
+          formatMessage(locale, "ui.mainMenu.firstPlay.action.newGame"),
+          formatMessage(locale, "ui.mainMenu.firstPlay.action.continue"),
+          formatMessage(locale, "ui.mainMenu.firstPlay.action.settings"),
+        ],
+        "main-menu-available-actions",
+      ),
+      createGuidanceCard(
+        formatMessage(locale, "ui.mainMenu.firstPlay.boundaryTitle"),
+        formatMessage(locale, "ui.mainMenu.firstPlay.boundaryTitle"),
+        formatMessage(locale, "ui.mainMenu.firstPlay.boundary"),
+        "stable",
+        "main-menu-guidance-boundary",
+      ),
+    ),
+  );
+}
+
+function localizeNextGoal(locale: LocaleId, nextGoal: NextGoal): LocalizedNextGoalCopy {
+  const severity = nextGoal?.severity ?? "stable";
+  if (nextGoal === undefined) {
+    return {
+      detail: formatMessage(locale, "ui.mainMenu.firstPlay.nextGoal.noneDetail"),
+      severity,
+      title: formatMessage(locale, "ui.mainMenu.firstPlay.nextGoal.none"),
+    };
+  }
+
+  if (locale === "en") {
+    return {
+      detail: nextGoal.detail,
+      severity,
+      title: nextGoal.label,
+    };
+  }
+
+  if (isLanternPressure(nextGoal)) {
+    return {
+      detail: formatMessage(locale, "ui.mainMenu.firstPlay.nextGoal.lanternDetail"),
+      severity,
+      title: formatMessage(locale, "ui.mainMenu.firstPlay.nextGoal.lanternTitle"),
+    };
+  }
+
+  if (severity === "danger") {
+    return {
+      detail: formatMessage(locale, "ui.mainMenu.firstPlay.nextGoal.dangerDetail"),
+      severity,
+      title: formatMessage(locale, "ui.mainMenu.firstPlay.nextGoal.dangerTitle"),
+    };
+  }
+
+  if (severity === "warning") {
+    return {
+      detail: formatMessage(locale, "ui.mainMenu.firstPlay.nextGoal.warningDetail"),
+      severity,
+      title: formatMessage(locale, "ui.mainMenu.firstPlay.nextGoal.warningTitle"),
+    };
+  }
+
+  return {
+    detail: formatMessage(locale, "ui.mainMenu.firstPlay.nextGoal.stableDetail"),
+    severity,
+    title: formatMessage(locale, "ui.mainMenu.firstPlay.nextGoal.stableTitle"),
+  };
+}
+
+function isLanternPressure(nextGoal: NonNullable<NextGoal>): boolean {
+  const source = `${nextGoal.label} ${nextGoal.detail}`.toLowerCase();
+  return source.includes("lantern") || source.includes("lamp") || source.includes("light");
+}
+
+function localizePhaseLabel(locale: LocaleId, phaseLabel: string): string {
+  if (locale === "en") {
+    return phaseLabel;
+  }
+
+  const normalized = phaseLabel.trim().toLowerCase();
+  if (normalized.includes("dawn")) {
+    return formatMessage(locale, "ui.mainMenu.phaseLabel.dawn");
+  }
+  if (normalized.includes("day")) {
+    return formatMessage(locale, "ui.mainMenu.phaseLabel.day");
+  }
+  if (normalized.includes("dusk")) {
+    return formatMessage(locale, "ui.mainMenu.phaseLabel.dusk");
+  }
+  if (normalized.includes("night")) {
+    return formatMessage(locale, "ui.mainMenu.phaseLabel.night");
+  }
+  return formatMessage(locale, "ui.mainMenu.phaseLabel.default");
+}
+
+function createGuidanceCard(
+  label: string,
+  title: string,
+  detail: string,
+  severity: AlertSeverity,
+  testId: string,
+): ReactElement {
+  return createElement(
+    "section",
+    {
+      "data-severity": severity,
+      "data-testid": testId,
+      style: guidanceCardStyle,
+    },
+    createElement(
+      "div",
+      {
+        style: guidanceLabelStyle,
+      },
+      label,
+    ),
+    createElement(
+      "div",
+      {
+        style: guidanceTitleStyle,
+      },
+      title,
+    ),
+    createElement(
+      "p",
+      {
+        style: guidanceDetailStyle,
+      },
+      detail,
+    ),
+  );
+}
+
+function createGuidanceListCard(
+  label: string,
+  items: readonly string[],
+  testId: string,
+): ReactElement {
+  return createElement(
+    "section",
+    {
+      "data-testid": testId,
+      style: guidanceCardStyle,
+    },
+    createElement(
+      "div",
+      {
+        style: guidanceLabelStyle,
+      },
+      label,
+    ),
+    createElement(
+      "ul",
+      {
+        style: guidanceListStyle,
+      },
+      ...items.map((item) =>
+        createElement(
+          "li",
+          {
+            key: item,
+            style: guidanceListItemStyle,
+          },
+          item,
+        ),
       ),
     ),
   );
@@ -608,6 +847,68 @@ const localeSectionStyle: CSSProperties = {
   flexDirection: "column",
   gap: "12px",
   padding: "14px",
+};
+
+const firstPlayPanelStyle: CSSProperties = {
+  ...localeSectionStyle,
+  gap: "14px",
+};
+
+const firstPlayGridStyle: CSSProperties = {
+  display: "grid",
+  gap: "10px",
+  gridTemplateColumns: "1fr",
+};
+
+const guidanceCardStyle: CSSProperties = {
+  background: "rgba(0, 0, 0, 0.14)",
+  border: "1px solid rgba(232, 206, 151, 0.1)",
+  borderRadius: "8px",
+  display: "flex",
+  flexDirection: "column",
+  gap: "6px",
+  minWidth: 0,
+  padding: "10px 12px",
+};
+
+const guidanceLabelStyle: CSSProperties = {
+  color: "#d3cab6",
+  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  fontSize: "11px",
+  fontWeight: 700,
+  lineHeight: "15px",
+  textTransform: "uppercase",
+};
+
+const guidanceTitleStyle: CSSProperties = {
+  color: "#f5ead2",
+  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  fontSize: "14px",
+  fontWeight: 700,
+  lineHeight: "19px",
+};
+
+const guidanceDetailStyle: CSSProperties = {
+  color: "#c8baa2",
+  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  fontSize: "12px",
+  lineHeight: "17px",
+  margin: 0,
+};
+
+const guidanceListStyle: CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "6px",
+  margin: 0,
+  paddingLeft: "18px",
+};
+
+const guidanceListItemStyle: CSSProperties = {
+  color: "#d6c8b2",
+  fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
+  fontSize: "12px",
+  lineHeight: "17px",
 };
 
 const localeHeaderStyle: CSSProperties = {

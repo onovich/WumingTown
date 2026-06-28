@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQXCOCQX-7D8611",
+  "from": "gameplay-designer",
+  "to": "reviewer",
+  "taskId": "WM-0119",
+  "kind": "review-request",
+  "subject": "WM-0119 ready for review",
+  "body": "Implemented M8 first-play guidance on the default player start surface with zh-CN/en copy, next-goal and available-action UI evidence, diagnostics separation, and copy/cultural boundary documentation; required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0119.md",
+    "task/WM-0119-m8-first-play-guidance"
+  ],
+  "createdAt": "2026-06-28T05:30:26.313Z",
+  "acknowledgedAt": "2026-06-28T05:31:44.504Z"
+}

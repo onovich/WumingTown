@@ -449,6 +449,10 @@ async function assertDesktopOnboardingBaseline(page: Page): Promise<void> {
   expect(await page.getByTestId("main-menu-new-game").count()).toBe(1);
   expect(await page.getByTestId("main-menu-continue").count()).toBe(1);
   expect(await page.getByTestId("main-menu-settings").count()).toBe(1);
+  expect(await page.getByTestId("main-menu-first-play-guidance").count()).toBe(1);
+  expect(await page.getByTestId("main-menu-next-goal").count()).toBe(1);
+  expect(await page.getByTestId("main-menu-available-actions").count()).toBe(1);
+  expect(await page.getByTestId("main-menu-guidance-boundary").count()).toBe(1);
   expect(await page.getByTestId("main-menu-language").count()).toBe(1);
 }
 
@@ -461,11 +465,24 @@ async function assertDesktopStartSurfaceBaseline(
   if (locale === "en") {
     expect(surfaceText ?? "").toContain("New Game");
     expect(surfaceText ?? "").toContain("Settings");
+    expect(surfaceText ?? "").toContain("First-play guidance");
+    expect(surfaceText ?? "").toContain("Available actions");
+    expect(surfaceText ?? "").toContain("Next goal");
   } else {
     expect(surfaceText ?? "").toContain("主菜单");
     expect(surfaceText ?? "").toContain("新游戏");
     expect(surfaceText ?? "").toContain("设置");
+    expect(surfaceText ?? "").toContain("首次游玩指引");
+    expect(surfaceText ?? "").toContain("可用行动");
+    expect(surfaceText ?? "").toContain("下一目标");
+    expect(surfaceText ?? "").toContain("黄昏守望");
+    expect(surfaceText ?? "").toContain("补上灯火缺口");
+    expect(surfaceText ?? "").toContain("先确认灯火覆盖、路线证据与守夜义务");
+    expect(surfaceText ?? "").not.toContain("Dusk watch");
+    expect(surfaceText ?? "").not.toContain("Lantern corridor gap");
+    expect(surfaceText ?? "").not.toContain("The east market lane may lose light before curfew.");
   }
+  expect(surfaceText ?? "").not.toContain("Web Product Gate");
 
   await page.getByTestId("main-menu-settings").click();
   await page.getByTestId("locale-select").waitFor();

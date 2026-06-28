@@ -80,9 +80,15 @@ describe("shell-hud", () => {
     expect(markup).toContain("Settings");
     expect(markup).toContain("Presentation language");
     expect(markup).toContain("Current phase");
+    expect(markup).toContain("First-play guidance");
+    expect(markup).toContain("Available actions");
+    expect(markup).toContain("Next goal");
+    expect(markup).toContain("Lantern gap");
+    expect(markup).toContain(
+      "debug information appears only when diagnostics mode is explicitly enabled",
+    );
     expect(markup).not.toContain("Web Product Gate");
     expect(markup).not.toContain("Storage Gate");
-    expect(markup).not.toContain("M8 first-run path");
   });
 
   it("renders zh-CN shell chrome for the default main menu surface", () => {
@@ -94,6 +100,17 @@ describe("shell-hud", () => {
     expect(markup).toContain("继续");
     expect(markup).toContain("设置");
     expect(markup).toContain("界面语言");
+    expect(markup).toContain("首次游玩指引");
+    expect(markup).toContain("可用行动");
+    expect(markup).toContain("下一目标");
+    expect(markup).toContain("黄昏守望");
+    expect(markup).toContain("补上灯火缺口");
+    expect(markup).toContain("先确认灯火覆盖、路线证据与守夜义务");
+    expect(markup).toContain("玩家引导与开发诊断分离");
+    expect(markup).not.toContain("Dusk watch");
+    expect(markup).not.toContain("Lantern gap");
+    expect(markup).not.toContain("East street fuel window");
+    expect(markup).not.toContain("Product Gate");
     expect(markup).not.toContain("Main menu");
     expect(markup).not.toContain("New Game");
     expect(markup).not.toContain("Settings");
