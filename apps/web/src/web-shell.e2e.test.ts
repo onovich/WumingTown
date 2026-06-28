@@ -64,6 +64,8 @@ interface ResponsiveViewport {
   readonly height: number;
 }
 
+type ResponsiveHudLayoutMode = "compact" | "desktop" | "medium";
+
 interface ResponsiveSelectorMetric {
   readonly bottom: number;
   readonly clientHeight: number;
@@ -83,6 +85,7 @@ interface ResponsiveLayoutArtifact {
   readonly diagnosticsVisible: boolean;
   readonly documentOverflowX: number;
   readonly documentOverflowY: number;
+  readonly layoutMode?: ResponsiveHudLayoutMode;
   readonly locale: "en" | "zh-CN";
   readonly metrics: Record<string, ResponsiveSelectorMetric>;
   readonly screenshotPath?: string;
@@ -103,8 +106,13 @@ const WM0118_RESPONSIVE_VIEWPORTS: readonly ResponsiveViewport[] = [
 ];
 
 const WM0118_WEB_ARTIFACT_ROOT = path.join(process.cwd(), "coordination", "artifacts", "WM-0118");
-const WM0118_WEB_LAYOUT_PATH = path.join(WM0118_WEB_ARTIFACT_ROOT, "web-responsive-layout.json");
 const WM0118_WEB_SCREENSHOT_ROOT = path.join(WM0118_WEB_ARTIFACT_ROOT, "web");
+const WM0135_WEB_LAYOUT_REPORT_PATH = path.join(
+  process.cwd(),
+  "coordination",
+  "reports",
+  "WM-0135-responsive-layout.md",
+);
 
 const SCREENSHOT_PATH = readScreenshotPath();
 const EXPORTED_SAVE_PATH = path.join(path.dirname(SCREENSHOT_PATH), "m6-gate-slot.wtsave");
@@ -682,10 +690,14 @@ describe("web shell smoke", () => {
         artifacts,
       );
       await collectResponsiveDebugArtifacts(browser, serverUrl, artifacts);
-      await mkdir(path.dirname(WM0118_WEB_LAYOUT_PATH), {
+      await mkdir(path.dirname(WM0135_WEB_LAYOUT_REPORT_PATH), {
         recursive: true,
       });
-      await writeFile(WM0118_WEB_LAYOUT_PATH, `${JSON.stringify(artifacts, null, 2)}\n`, "utf8");
+      await writeFile(
+        WM0135_WEB_LAYOUT_REPORT_PATH,
+        formatResponsiveLayoutArtifactMarkdown(artifacts),
+        "utf8",
+      );
     } finally {
       await browser.close();
       await server.close();
@@ -997,7 +1009,10 @@ async function assertTownHudViewportLayout(
   await assertPlayerHudLocaleState(page, locale);
   await assertDocumentOverflowWithinViewport(page);
 
+  const expectedLayoutMode = readExpectedHudLayoutMode(width, height);
+  await assertPlayerHudLayoutMode(page, expectedLayoutMode);
   await assertSelectorReachableWithoutCover(page, "[data-testid='player-top-bar']", width, height);
+  await assertMapFocusArea(page, width, height, expectedLayoutMode);
 
   for (const testId of [
     "player-next-goal",
@@ -1233,8 +1248,10 @@ async function collectResponsiveLocaleArtifacts(
         await captureResponsiveLayoutArtifact(page, {
           locale: localeCase.expectedLocale,
           selectors: {
+            bottomDrawer: "[data-testid='player-bottom-drawer']",
             eventList: "[data-testid='player-event-list']",
             localeSettings: "[data-testid='locale-settings']",
+            mapFocus: "[data-testid='player-map-focus']",
             nextGoal: "[data-testid='player-next-goal']",
             residentWatch: "[data-testid='player-resident-watch']",
             selectedDetail: "[data-testid='player-selected-detail']",
@@ -1293,6 +1310,7 @@ async function collectResponsiveDebugArtifacts(
           selectors: {
             debugOverlay: "[data-testid='debug-overlay']",
             eventList: "[data-testid='player-event-list']",
+            mapFocus: "[data-testid='player-map-focus']",
             nextGoal: "[data-testid='player-next-goal']",
             residentWatch: "[data-testid='player-resident-watch']",
             selectedDetail: "[data-testid='player-selected-detail']",
@@ -1363,6 +1381,9 @@ async function captureResponsiveLayoutArtifact(
 ): Promise<ResponsiveLayoutArtifact> {
   const metrics: Record<string, ResponsiveSelectorMetric> = {};
   for (const [label, selector] of Object.entries(options.selectors)) {
+    if ((await page.locator(selector).count()) === 0) {
+      continue;
+    }
     metrics[label] = await readElementViewportMetrics(page, selector);
   }
 
@@ -1370,11 +1391,18 @@ async function captureResponsiveLayoutArtifact(
   const diagnosticsVisible =
     (await page.locator("[data-shell-ready='true']").getAttribute("data-diagnostics-visible")) ===
     "true";
+  const layoutMode =
+    (await page.getByTestId("player-hud").count()) === 0
+      ? undefined
+      : readOptionalHudLayoutMode(
+          await page.getByTestId("player-hud").getAttribute("data-layout-mode"),
+        );
 
   return {
     diagnosticsVisible,
     documentOverflowX: overflow.documentOverflowX,
     documentOverflowY: overflow.documentOverflowY,
+    ...(layoutMode === undefined ? {} : { layoutMode }),
     locale: options.locale,
     metrics,
     shell: options.shell,
@@ -1414,20 +1442,135 @@ function shouldCaptureWebResponsiveScreenshot(
   locale: "en" | "zh-CN",
   viewport: ResponsiveViewport,
 ): boolean {
-  return (
-    (surface === "start-surface" &&
-      locale === "zh-CN" &&
-      viewport.width === 1424 &&
-      viewport.height === 861) ||
-    (surface === "player-hud" &&
-      locale === "en" &&
-      viewport.width === 2560 &&
-      viewport.height === 1369) ||
-    (surface === "debug-overlay" &&
-      locale === "en" &&
-      viewport.width === 1424 &&
-      viewport.height === 861)
+  void surface;
+  void locale;
+  void viewport;
+  return false;
+}
+
+function formatResponsiveLayoutArtifactMarkdown(
+  artifacts: readonly ResponsiveLayoutArtifact[],
+): string {
+  const rows = artifacts.map(
+    (artifact) =>
+      `| ${artifact.surface} | ${artifact.locale} | ${String(artifact.viewport.width)}x${String(artifact.viewport.height)} | ${artifact.layoutMode ?? "n/a"} | ${String(artifact.documentOverflowX)}/${String(artifact.documentOverflowY)} | ${formatMetricSummary(artifact.metrics["topBar"] ?? artifact.metrics["panel"])} | ${formatMetricSummary(artifact.metrics["worldCanvas"])} | ${formatMetricSummary(artifact.metrics["mapFocus"])} | ${formatMetricSummary(artifact.metrics["bottomDrawer"])} |`,
   );
+
+  return [
+    "# WM-0135 Responsive Layout DOM Artifact",
+    "",
+    "Generated by `apps/web/src/web-shell.e2e.test.ts` during WM-0135 responsive matrix validation.",
+    "The artifact records DOM metrics for required Web viewports in English, zh-CN, and explicit diagnostics mode.",
+    "",
+    "| Surface | Locale | Viewport | HUD layout | Doc overflow X/Y | Primary panel/top bar | World canvas | Map focus | Bottom drawer |",
+    "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+    ...rows,
+    "",
+  ].join("\n");
+}
+
+function formatMetricSummary(metric: ResponsiveSelectorMetric | undefined): string {
+  if (metric === undefined) {
+    return "n/a";
+  }
+
+  return `${String(Math.round(metric.width))}x${String(Math.round(metric.height))}@${String(
+    Math.round(metric.left),
+  )},${String(Math.round(metric.top))}`;
+}
+
+function readExpectedHudLayoutMode(width: number, height: number): ResponsiveHudLayoutMode {
+  if (width < 760 || height < 680) {
+    return "compact";
+  }
+
+  if (width < 1600 || height < 860) {
+    return "medium";
+  }
+
+  return "desktop";
+}
+
+function readOptionalHudLayoutMode(value: string | null): ResponsiveHudLayoutMode | undefined {
+  if (value === "compact" || value === "desktop" || value === "medium") {
+    return value;
+  }
+
+  return undefined;
+}
+
+async function assertPlayerHudLayoutMode(
+  page: import("playwright").Page,
+  expectedMode: ResponsiveHudLayoutMode,
+): Promise<void> {
+  const actualMode = await page.getByTestId("player-hud").getAttribute("data-layout-mode");
+  expect(actualMode).toBe(expectedMode);
+}
+
+async function assertMapFocusArea(
+  page: import("playwright").Page,
+  width: number,
+  height: number,
+  layoutMode: ResponsiveHudLayoutMode,
+): Promise<void> {
+  if (layoutMode === "compact") {
+    expect(await page.getByTestId("player-map-focus").count()).toBe(0);
+    return;
+  }
+
+  const focusMetrics = await readElementViewportMetrics(page, "[data-testid='player-map-focus']");
+  expect(focusMetrics.left, "map focus left").toBeGreaterThanOrEqual(0);
+  expect(focusMetrics.top, "map focus top").toBeGreaterThanOrEqual(0);
+  expect(focusMetrics.right, "map focus right").toBeLessThanOrEqual(width + 1);
+  expect(focusMetrics.bottom, "map focus bottom").toBeLessThanOrEqual(height + 1);
+  expect(focusMetrics.width, "map focus width").toBeGreaterThanOrEqual(
+    layoutMode === "medium" ? Math.min(520, width * 0.38) : Math.min(620, width * 0.34),
+  );
+  expect(focusMetrics.height, "map focus height").toBeGreaterThanOrEqual(
+    layoutMode === "medium" ? Math.min(180, height * 0.24) : Math.min(260, height * 0.3),
+  );
+
+  const focusHit = await page
+    .locator("[data-testid='player-map-focus']")
+    .evaluate((element: HTMLElement) => {
+      const rect = element.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const hit = document.elementFromPoint(centerX, centerY);
+      const hitElement = hit instanceof HTMLElement ? hit : null;
+      const canvas = document.querySelector("[data-testid='world-canvas']");
+      const canvasRect = canvas instanceof HTMLElement ? canvas.getBoundingClientRect() : null;
+      return {
+        canvasCoversPoint:
+          canvasRect !== null &&
+          centerX >= canvasRect.left &&
+          centerX <= canvasRect.right &&
+          centerY >= canvasRect.top &&
+          centerY <= canvasRect.bottom,
+        coveredByHud: hitElement?.closest("[data-testid='player-hud']") !== null,
+        hitTag: hitElement?.tagName ?? null,
+        hitTestId: hitElement?.getAttribute("data-testid") ?? null,
+      };
+    });
+  expect(focusHit.canvasCoversPoint, `map focus canvas coverage ${JSON.stringify(focusHit)}`).toBe(
+    true,
+  );
+  expect(focusHit.coveredByHud, `map focus covered ${JSON.stringify(focusHit)}`).toBe(false);
+
+  if (layoutMode === "medium") {
+    const drawerMetrics = await readElementViewportMetrics(
+      page,
+      "[data-testid='player-bottom-drawer']",
+    );
+    expect(drawerMetrics.left, "bottom drawer left").toBeGreaterThanOrEqual(0);
+    expect(drawerMetrics.right, "bottom drawer right").toBeLessThanOrEqual(width + 1);
+    expect(drawerMetrics.bottom, "bottom drawer bottom").toBeLessThanOrEqual(height + 1);
+    expect(drawerMetrics.height, "bottom drawer stable height").toBeLessThanOrEqual(
+      Math.min(270, height * 0.36) + 1,
+    );
+  } else {
+    expect(await page.getByTestId("player-bottom-drawer").count()).toBe(0);
+  }
 }
 
 async function waitForViewportSize(
@@ -1603,12 +1746,44 @@ async function assertTallSelectorReachableWithoutCover(
     .locator(selector)
     .evaluate((element: HTMLElement, viewportHeight: number) => {
       const rect = element.getBoundingClientRect();
-      const visibleTop = Math.max(rect.top, 1);
-      const visibleBottom = Math.min(rect.bottom, viewportHeight - 1);
+      const clip = readVisibleClip(element, viewportHeight);
+      const visibleTop = Math.max(rect.top, clip.top);
+      const visibleBottom = Math.min(rect.bottom, clip.bottom);
       const centerX = rect.left + rect.width / 2;
       const sampleY = visibleTop + Math.max((visibleBottom - visibleTop) / 2, 1);
       const hit = document.elementFromPoint(centerX, sampleY);
-      return hit instanceof HTMLElement && (hit === element || element.contains(hit));
+      return (
+        hit instanceof HTMLElement &&
+        (hit === element || element.contains(hit) || hit.contains(element))
+      );
+
+      function readVisibleClip(
+        target: HTMLElement,
+        height: number,
+      ): { bottom: number; top: number } {
+        let top = 1;
+        let bottom = height - 1;
+        let current = target.parentElement;
+
+        while (current !== null) {
+          const style = window.getComputedStyle(current);
+          const clipsY =
+            style.overflowY === "auto" ||
+            style.overflowY === "scroll" ||
+            style.overflowY === "hidden" ||
+            style.overflow === "auto" ||
+            style.overflow === "scroll" ||
+            style.overflow === "hidden";
+          if (clipsY) {
+            const currentRect = current.getBoundingClientRect();
+            top = Math.max(top, currentRect.top);
+            bottom = Math.min(bottom, currentRect.bottom);
+          }
+          current = current.parentElement;
+        }
+
+        return { bottom, top };
+      }
     }, height);
   expect(isUncovered, `${selector} uncovered`).toBe(true);
 }

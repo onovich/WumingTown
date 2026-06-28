@@ -2,7 +2,7 @@
   "id": "WM-0135",
   "title": "Post-M8 responsive windowed and fullscreen layout gate",
   "summary": "Make the player HUD, map and panels responsive across the required viewport matrix in zh-CN and en with no critical clipping or overlap.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -35,7 +35,7 @@
   ],
   "branch": "task/WM-0135-responsive-window-fullscreen-layout",
   "createdAt": "2026-06-28T13:36:56.432Z",
-  "updatedAt": "2026-06-28T18:47:44.227Z",
+  "updatedAt": "2026-06-28T20:50:53.242Z",
   "history": [
     {
       "at": "2026-06-28T13:36:56.432Z",
@@ -48,6 +48,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-28T20:01:03.487Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": "thread=Codex WM-0135 responsive layout"
+    },
+    {
+      "at": "2026-06-28T20:44:06.828Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Implemented medium responsive player HUD layout, map-focus assertions and WM-0135 DOM layout artifact; supported responsive/full web-shell E2E and quality gates passed; legacy task command shapes recorded as unsupported."
+    },
+    {
+      "at": "2026-06-28T20:48:45.761Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; required en/zh-CN viewport matrix and DOM artifact confirmed, medium/desktop layout modes preserve map-focus evidence with stable scroll regions, scope stays UI/E2E/report/task only, and unsupported command-shape deviations are accurately recorded with supported responsive E2E/full web-shell/typecheck/quality passes."
+    },
+    {
+      "at": "2026-06-28T20:50:45.861Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified responsive layout gate integrated after handoff/task validation, diff check and full quality gate passed; reviewer verdict confirmed no blocking findings."
+    },
+    {
+      "at": "2026-06-28T20:50:53.242Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M8",
@@ -62,5 +92,20 @@
   "forbiddenPaths": [
     "changing simulation authority",
     "public release or platform verdict changes"
-  ]
+  ],
+  "claimedBy": "client-engineer",
+  "threadLabel": "Codex WM-0135 responsive layout",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0135.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; required en/zh-CN viewport matrix and DOM artifact confirmed, medium/desktop layout modes preserve map-focus evidence with stable scroll regions, scope stays UI/E2E/report/task only, and unsupported command-shape deviations are accurately recorded with supported responsive E2E/full web-shell/typecheck/quality passes.",
+    "at": "2026-06-28T20:48:45.760Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified responsive layout gate integrated after handoff/task validation, diff check and full quality gate passed; reviewer verdict confirmed no blocking findings.",
+    "at": "2026-06-28T20:50:45.861Z"
+  }
 }

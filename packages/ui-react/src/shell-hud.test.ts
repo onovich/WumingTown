@@ -273,6 +273,35 @@ describe("shell-hud", () => {
     expect(markup).toContain("East market and bridge road");
     expect(markup).not.toContain("No selection");
   });
+
+  it("selects desktop, medium, and compact HUD layout modes from viewport size", () => {
+    const baseState = createShellState(createDefaultShellLocaleState(["en-US"]));
+
+    expect(
+      renderShell({
+        ...baseState,
+        canvasWidth: 1600,
+        canvasHeight: 900,
+        diagnosticsVisible: true,
+      }),
+    ).toContain('data-layout-mode="desktop"');
+    expect(
+      renderShell({
+        ...baseState,
+        canvasWidth: 1424,
+        canvasHeight: 861,
+        diagnosticsVisible: true,
+      }),
+    ).toContain('data-layout-mode="medium"');
+    expect(
+      renderShell({
+        ...baseState,
+        canvasWidth: 390,
+        canvasHeight: 720,
+        diagnosticsVisible: true,
+      }),
+    ).toContain('data-layout-mode="compact"');
+  });
 });
 
 function createShellState(

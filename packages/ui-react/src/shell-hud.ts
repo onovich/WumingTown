@@ -31,6 +31,7 @@ import { getSelectedEntity, type ShellState, type ShellStore } from "./shell-sto
 import type { ShellSettingsActions, ShellStorageActions } from "./shell-store";
 
 type AlertSeverity = ShellState["readModel"]["town"]["alerts"][number]["severity"];
+type HudLayoutMode = "compact" | "desktop" | "medium";
 type NeedState = WorldEntityReadModel["inspector"]["needs"][number]["state"];
 type NightRiskTier = ShellNightRiskTier;
 
@@ -82,7 +83,7 @@ export function ShellHudRoot({
     () => store.getSnapshot(),
   );
   const selectedEntity = getSelectedEntity(state);
-  const compactLayout = state.canvasWidth < 1040;
+  const hudLayoutMode = readHudLayoutMode(state.canvasWidth, state.canvasHeight);
   const uiLocale = state.locale.resolvedLocale;
   const uiScalePreference = state.uiScale.preference;
   const uiScaleFactor = state.uiScale.factor;
@@ -108,7 +109,7 @@ export function ShellHudRoot({
           style: scaleLayerStyle(uiScaleFactor),
         },
         createElement(ShellMainMenuSurface, {
-          compact: compactLayout,
+          compact: hudLayoutMode !== "desktop",
           cycleLabel: state.readModel.town.cycleLabel,
           settingsActions,
           localeState: state.locale,
@@ -149,17 +150,20 @@ export function ShellHudRoot({
         "section",
         {
           "aria-label": formatMessage(uiLocale, "ui.hud.aria"),
+          "data-layout-mode": hudLayoutMode,
           "data-ui-slot": "hud.shell",
           "data-testid": "player-hud",
           key: "player-hud",
           style: hudLayerStyle,
         },
-        createTopBar(state, playerHud, uiLocale, compactLayout),
-        createAlertStrip(state, uiLocale, compactLayout),
-        compactLayout
-          ? createCompactHudBody(state, playerHud, selectedEntity, uiLocale, settingsActions)
-          : createDesktopHudBody(state, playerHud, selectedEntity, uiLocale, settingsActions),
-        state.diagnosticsVisible ? createDebugOverlay(state, storageActions, compactLayout) : null,
+        createTopBar(state, playerHud, uiLocale, hudLayoutMode),
+        createAlertStrip(state, uiLocale, hudLayoutMode),
+        hudLayoutMode === "desktop"
+          ? createDesktopHudBody(state, playerHud, selectedEntity, uiLocale, settingsActions)
+          : hudLayoutMode === "medium"
+            ? createMediumHudBody(state, playerHud, selectedEntity, uiLocale, settingsActions)
+            : createCompactHudBody(state, playerHud, selectedEntity, uiLocale, settingsActions),
+        state.diagnosticsVisible ? createDebugOverlay(state, storageActions, hudLayoutMode) : null,
       ),
     ),
   );
@@ -169,9 +173,9 @@ function createTopBar(
   state: ShellState,
   playerHud: PlayerHudModel,
   locale: LocaleId,
-  compactLayout: boolean,
+  layoutMode: HudLayoutMode,
 ): ReactElement {
-  if (compactLayout) {
+  if (layoutMode === "compact") {
     return createElement(
       "section",
       {
@@ -181,6 +185,27 @@ function createTopBar(
         style: compactTopBarStyle,
       },
       createIdentityCard(state, locale, playerHud, true),
+    );
+  }
+
+  if (layoutMode === "medium") {
+    return createElement(
+      "section",
+      {
+        "aria-label": formatMessage(locale, "ui.surface.topBar"),
+        "data-ui-slot": SHELL_DESIGN_TOKENS.slot.panelToolbar,
+        "data-testid": "player-top-bar",
+        style: mediumTopBarStyle,
+      },
+      createIdentityCard(state, locale, playerHud, false),
+      createElement(
+        "div",
+        {
+          style: mediumTopBarAsideStyle,
+        },
+        createNightRiskBadge(playerHud.nightRisk.tier, locale, false),
+        createResourceStrip(state, locale),
+      ),
     );
   }
 
@@ -207,47 +232,54 @@ function createTopBar(
 function createAlertStrip(
   state: ShellState,
   locale: LocaleId,
-  compactLayout: boolean,
+  layoutMode: HudLayoutMode,
 ): ReactElement {
   return createElement(
     "section",
     {
       "aria-label": formatMessage(locale, "ui.surface.alerts"),
       "data-testid": "player-alert-strip",
-      style: compactLayout ? compactAlertStripStyle : alertStripStyle,
+      style:
+        layoutMode === "compact"
+          ? compactAlertStripStyle
+          : layoutMode === "medium"
+            ? mediumAlertStripStyle
+            : alertStripStyle,
     },
-    ...state.readModel.town.alerts.slice(0, compactLayout ? 1 : 3).map((alert) =>
-      createElement(
-        "article",
-        {
-          "aria-label": `${formatAlertSeverity(alert.severity, locale)}: ${localizeShellFixtureText(locale, alert.label)}. ${localizeShellFixtureText(locale, alert.detail)}`,
-          "data-alert-severity": alert.severity,
-          "data-ui-slot": SHELL_DESIGN_TOKENS.slot.panelAlert,
-          key: `${alert.severity}:${alert.label}:strip`,
-          style: alertSlipStyle(alert.severity),
-        },
+    ...state.readModel.town.alerts
+      .slice(0, layoutMode === "compact" ? 1 : layoutMode === "medium" ? 2 : 3)
+      .map((alert) =>
         createElement(
-          "div",
+          "article",
           {
-            style: rowHeaderStyle,
+            "aria-label": `${formatAlertSeverity(alert.severity, locale)}: ${localizeShellFixtureText(locale, alert.label)}. ${localizeShellFixtureText(locale, alert.detail)}`,
+            "data-alert-severity": alert.severity,
+            "data-ui-slot": SHELL_DESIGN_TOKENS.slot.panelAlert,
+            key: `${alert.severity}:${alert.label}:strip`,
+            style: alertSlipStyle(alert.severity),
           },
           createElement(
             "div",
             {
-              style: rowTitleStyle,
+              style: rowHeaderStyle,
             },
-            localizeShellFixtureText(locale, alert.label),
-          ),
-          createElement(
-            "div",
-            {
-              style: severityBadgeStyle(alert.severity),
-            },
-            formatAlertSeverity(alert.severity, locale).toUpperCase(),
+            createElement(
+              "div",
+              {
+                style: rowTitleStyle,
+              },
+              localizeShellFixtureText(locale, alert.label),
+            ),
+            createElement(
+              "div",
+              {
+                style: severityBadgeStyle(alert.severity),
+              },
+              formatAlertSeverity(alert.severity, locale).toUpperCase(),
+            ),
           ),
         ),
       ),
-    ),
   );
 }
 
@@ -275,6 +307,7 @@ function createDesktopHudBody(
       createEventCard(state, locale),
     ),
     createElement("div", {
+      "data-testid": "player-map-focus",
       style: desktopMapLaneStyle,
     }),
     createElement(
@@ -292,6 +325,54 @@ function createDesktopHudBody(
         localeState: state.locale,
         uiScaleState: state.uiScale,
       }),
+    ),
+  );
+}
+
+function createMediumHudBody(
+  state: ShellState,
+  playerHud: PlayerHudModel,
+  selectedEntity: ReturnType<typeof getSelectedEntity>,
+  locale: LocaleId,
+  settingsActions: ShellSettingsActions,
+): ReactElement {
+  return createElement(
+    "div",
+    {
+      "data-testid": "player-medium-layout",
+      style: mediumHudBodyStyle,
+    },
+    createElement("div", {
+      "data-testid": "player-map-focus",
+      style: mediumMapFocusStyle,
+    }),
+    createElement(
+      "aside",
+      {
+        "aria-label": formatMessage(locale, "ui.inspector.aria"),
+        "data-inspected-tile": formatTileCoordinate(state.inspectedTile),
+        "data-selected-entity": selectedEntity?.entityId ?? "",
+        style: mediumInspectorColumnStyle,
+      },
+      createInspectorCard(state, selectedEntity, locale, true),
+      createElement(ShellSettingsPanel, {
+        actions: settingsActions,
+        localeState: state.locale,
+        uiScaleState: state.uiScale,
+      }),
+    ),
+    createElement(
+      "div",
+      {
+        "data-testid": "player-bottom-drawer",
+        style: mediumHudDrawerStyle,
+      },
+      createCurrentStateCard(state, playerHud.phaseMeaning, locale),
+      createNextGoalCard(playerHud, locale),
+      createCommandBarPlaceholder(locale),
+      createTaskCard(playerHud.taskEntities, locale),
+      createEventCard(state, locale),
+      createResidentAttentionCard(playerHud.residentItems, locale),
     ),
   );
 }
@@ -1006,7 +1087,7 @@ function createPairGrid(
 function createDebugOverlay(
   state: ShellState,
   storageActions: ShellStorageActions,
-  compactLayout: boolean,
+  layoutMode: HudLayoutMode,
 ): ReactElement {
   return createElement(
     "section",
@@ -1017,7 +1098,12 @@ function createDebugOverlay(
       "data-release-gate-fixture": state.releaseGate.fixtureId,
       "data-testid": "debug-overlay",
       "data-ui-slot": "panel.debug.overlay",
-      style: compactLayout ? compactDebugOverlayStyle : debugOverlayStyle,
+      style:
+        layoutMode === "compact"
+          ? compactDebugOverlayStyle
+          : layoutMode === "medium"
+            ? mediumDebugOverlayStyle
+            : debugOverlayStyle,
     },
     createElement(
       "div",
@@ -1674,6 +1760,18 @@ function readTerrainKindAtTile(
   return undefined;
 }
 
+function readHudLayoutMode(width: number, height: number): HudLayoutMode {
+  if (width < 760 || height < 680) {
+    return "compact";
+  }
+
+  if (width < 1600 || height < 860) {
+    return "medium";
+  }
+
+  return "desktop";
+}
+
 const overlayRootStyle: CSSProperties = {
   ...shellTokenLayerStyle,
   inset: 0,
@@ -1726,6 +1824,11 @@ const compactTopBarStyle: CSSProperties = {
   flexDirection: "column",
 };
 
+const mediumTopBarStyle: CSSProperties = {
+  ...topBarStyle,
+  alignItems: "stretch",
+};
+
 const topBarAsideStyle: CSSProperties = {
   alignItems: "flex-start",
   display: "flex",
@@ -1733,6 +1836,15 @@ const topBarAsideStyle: CSSProperties = {
   flexDirection: "column",
   gap: SHELL_DESIGN_TOKENS.space.md,
   maxWidth: "680px",
+  minWidth: 0,
+};
+
+const mediumTopBarAsideStyle: CSSProperties = {
+  alignItems: "stretch",
+  display: "grid",
+  flex: "1 1 auto",
+  gap: SHELL_DESIGN_TOKENS.space.md,
+  gridTemplateColumns: "minmax(140px, 170px) minmax(0, 1fr)",
   minWidth: 0,
 };
 
@@ -1747,6 +1859,11 @@ const alertStripStyle: CSSProperties = {
 const compactAlertStripStyle: CSSProperties = {
   ...alertStripStyle,
   gridTemplateColumns: "1fr",
+};
+
+const mediumAlertStripStyle: CSSProperties = {
+  ...alertStripStyle,
+  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
 };
 
 const desktopHudBodyStyle: CSSProperties = {
@@ -1768,6 +1885,52 @@ const desktopHudColumnStyle: CSSProperties = {
   paddingRight: SHELL_DESIGN_TOKENS.space.xs,
   pointerEvents: "auto",
   position: "relative",
+  scrollbarGutter: "stable",
+};
+
+const mediumHudBodyStyle: CSSProperties = {
+  display: "grid",
+  gap: SHELL_DESIGN_TOKENS.space.md,
+  gridTemplateColumns: "minmax(0, 1fr) minmax(296px, 336px)",
+  gridTemplateRows: "minmax(160px, 1fr) minmax(176px, min(32vh, 260px))",
+  height: "100%",
+  minHeight: 0,
+  overflow: "hidden",
+  pointerEvents: "none",
+};
+
+const mediumMapFocusStyle: CSSProperties = {
+  gridColumn: "1",
+  gridRow: "1",
+  minHeight: 0,
+  minWidth: 0,
+  pointerEvents: "none",
+};
+
+const mediumInspectorColumnStyle: CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: SHELL_DESIGN_TOKENS.space.md,
+  gridColumn: "2",
+  gridRow: "1 / span 2",
+  minHeight: 0,
+  overflowY: "auto",
+  paddingRight: SHELL_DESIGN_TOKENS.space.xs,
+  pointerEvents: "auto",
+  scrollbarGutter: "stable",
+};
+
+const mediumHudDrawerStyle: CSSProperties = {
+  display: "grid",
+  gap: SHELL_DESIGN_TOKENS.space.md,
+  gridColumn: "1",
+  gridRow: "2",
+  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+  minHeight: 0,
+  overflowX: "hidden",
+  overflowY: "auto",
+  paddingRight: SHELL_DESIGN_TOKENS.space.xs,
+  pointerEvents: "auto",
   scrollbarGutter: "stable",
 };
 
@@ -2159,6 +2322,14 @@ const compactDebugOverlayStyle: CSSProperties = {
   left: "16px",
   maxHeight: "min(220px, calc(100% - 252px))",
   right: "16px",
+};
+
+const mediumDebugOverlayStyle: CSSProperties = {
+  ...debugOverlayStyle,
+  bottom: "292px",
+  left: "16px",
+  maxHeight: "min(220px, calc(100% - 324px))",
+  right: "368px",
 };
 
 const debugHeaderStyle: CSSProperties = {

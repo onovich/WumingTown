@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQY9BCJ2-E7BD69",
+  "from": "client-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0135",
+  "kind": "review-request",
+  "subject": "WM-0135 ready for review",
+  "body": "Implemented medium responsive player HUD layout, map-focus assertions and WM-0135 DOM layout artifact; supported responsive/full web-shell E2E and quality gates passed; legacy task command shapes recorded as unsupported.",
+  "artifacts": [
+    "coordination/reports/WM-0135.md",
+    "task/WM-0135-responsive-window-fullscreen-layout"
+  ],
+  "createdAt": "2026-06-28T20:44:06.830Z",
+  "acknowledgedAt": "2026-06-28T20:44:42.113Z"
+}
