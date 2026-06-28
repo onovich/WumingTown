@@ -619,9 +619,9 @@ describe("web shell smoke", () => {
       await browser.close();
       await server.close();
     }
-  }, 240000);
+  }, 420000);
 
-  it("defaults locale by browser language and persists a manual override across reload", async () => {
+  it("defaults locale by browser language and persists manual display overrides across reload", async () => {
     const appRoot = path.join(process.cwd(), "apps", "web");
     const server = await createServer({
       configFile: false,
@@ -652,6 +652,7 @@ describe("web shell smoke", () => {
       });
       await englishPage.waitForSelector("[data-shell-ready='true']");
       await waitForLocale(englishPage, "en", "system");
+      await waitForUiScale(englishPage, "standard");
       await assertStartSurfaceBaseline(englishPage, "en");
       await englishContext.close();
 
@@ -668,18 +669,75 @@ describe("web shell smoke", () => {
       });
       await chinesePage.waitForSelector("[data-shell-ready='true']");
       await waitForLocale(chinesePage, "zh-CN", "system");
+      await waitForUiScale(chinesePage, "standard");
       await assertStartSurfaceBaseline(chinesePage, "zh-CN");
       await chinesePage.getByTestId("main-menu-locale-en").click();
       await waitForLocale(chinesePage, "en", "manual");
       await waitForHudText(chinesePage, "New Game");
+      await chinesePage.getByTestId("main-menu-settings").click();
+      await chinesePage.getByTestId("ui-scale-select").selectOption("large");
+      await waitForUiScale(chinesePage, "large");
+      await chinesePage.getByTestId("main-menu-back").click();
+      await chinesePage.getByTestId("main-menu-settings").waitFor();
       await chinesePage.reload({
         waitUntil: "networkidle",
       });
       await chinesePage.waitForSelector("[data-shell-ready='true']");
       await waitForLocale(chinesePage, "en", "manual");
+      await waitForUiScale(chinesePage, "large");
       await waitForHudText(chinesePage, "New Game");
 
       await chineseContext.close();
+    } finally {
+      await browser.close();
+      await server.close();
+    }
+  }, 120000);
+
+  it("keeps the shell readable when large UI scale is selected at compact viewports", async () => {
+    const appRoot = path.join(process.cwd(), "apps", "web");
+    const server = await createServer({
+      configFile: false,
+      logLevel: "error",
+      root: appRoot,
+      server: {
+        host: "127.0.0.1",
+        port: 0,
+        strictPort: false,
+      },
+    });
+    await server.listen();
+
+    const serverUrl = readServerUrl(server);
+    const browser = await chromium.launch();
+
+    try {
+      const context = await browser.newContext({
+        locale: "zh-TW",
+        viewport: {
+          width: 390,
+          height: 720,
+        },
+      });
+      const page = await context.newPage();
+
+      await page.goto(serverUrl, {
+        waitUntil: "networkidle",
+      });
+      await page.waitForSelector("[data-shell-ready='true']");
+      await waitForLocale(page, "zh-CN", "system");
+      await page.getByTestId("main-menu-settings").click();
+      await page.getByTestId("ui-scale-select").selectOption("large");
+      await waitForUiScale(page, "large");
+      await page.getByTestId("main-menu-back").click();
+      await page.getByTestId("main-menu-settings").waitFor();
+
+      await assertCompactStartSurfaceLayout(page, 390, 720);
+      await page.getByTestId("main-menu-new-game").click();
+      await waitForStartSurfaceClosed(page);
+      await assertTownHudViewportLayout(page, 390, 720, "zh-CN");
+
+      await context.close();
     } finally {
       await browser.close();
       await server.close();
@@ -692,6 +750,7 @@ async function assertAccessibilityBaseline(page: import("playwright").Page): Pro
   expect(shellText ?? "").toContain("Wuming Town");
   expect(shellText ?? "").toContain("无明镇");
   expect(shellText ?? "").not.toContain("Web Product Gate");
+  await waitForUiScale(page, "standard");
   if ((await page.getByTestId("main-menu-surface").count()) > 0) {
     expect(shellText ?? "").toContain("Main menu");
     await assertStartSurfaceBaseline(page, "en");
@@ -699,7 +758,8 @@ async function assertAccessibilityBaseline(page: import("playwright").Page): Pro
     await waitForStartSurfaceClosed(page);
   }
   await assertPlayerHudBaseline(page);
-  await waitForHudText(page, "Language settings");
+  await waitForHudText(page, "Display settings");
+  await assertContrastBaseline(page);
 
   const warningAlertText = await page
     .locator("[data-alert-severity='warning']")
@@ -731,7 +791,7 @@ async function assertAccessibilityBaseline(page: import("playwright").Page): Pro
       "[aria-label='Main menu']",
       "[aria-label='Town status']",
       "[aria-label='Town alerts']",
-      "[aria-label='Language settings']",
+      "[aria-label='Display settings']",
       "[aria-label='Selected entity inspector']",
     ];
     const offenders: string[] = [];
@@ -821,7 +881,7 @@ async function assertTownHudViewportLayout(
     "player-task-list",
     "player-event-list",
     "player-resident-watch",
-    "locale-settings",
+    "ui-scale-settings",
   ]) {
     await assertTestIdReachableWithoutCover(page, testId, width, height);
   }
@@ -829,6 +889,12 @@ async function assertTownHudViewportLayout(
   await assertTallSelectorReachableWithoutCover(
     page,
     "[data-testid='player-selected-detail']",
+    width,
+    height,
+  );
+  await assertTallSelectorReachableWithoutCover(
+    page,
+    "[data-testid='locale-settings']",
     width,
     height,
   );
@@ -900,6 +966,7 @@ async function assertStartSurfaceBaseline(
   await page.getByTestId("main-menu-settings").click();
   await page.getByTestId("locale-select").waitFor();
   expect(await page.getByTestId("main-menu-back").count()).toBe(1);
+  expect(await page.getByTestId("ui-scale-select").count()).toBe(1);
   await page.getByTestId("main-menu-back").click();
   await page.getByTestId("main-menu-settings").waitFor();
 }
@@ -946,6 +1013,10 @@ async function assertCompactStartSurfaceLayout(
   await assertTestIdWithinViewport(page, "locale-source", width, height);
   await assertTestIdWithinViewport(page, "locale-current", width, height);
   await assertTestIdWithinViewport(page, "locale-persistence", width, height);
+  await assertTestIdWithinViewport(page, "ui-scale-select", width, height);
+  await assertTestIdWithinViewport(page, "ui-scale-current", width, height);
+  await assertTestIdWithinViewport(page, "ui-scale-persistence", width, height);
+  await assertTestIdWithinViewport(page, "display-boundary", width, height);
   await page.getByTestId("main-menu-back").click();
   await page.getByTestId("main-menu-settings").waitFor();
 }
@@ -1497,6 +1568,70 @@ async function waitForSelectedEntity(
   throw new Error(`Timed out waiting for selected entity ${expectedEntityId}`);
 }
 
+async function readContrastRatio(
+  page: import("playwright").Page,
+  selector: string,
+): Promise<number> {
+  return page.locator(selector).evaluate((element: HTMLElement) => {
+    const foreground = parseColor(window.getComputedStyle(element).color);
+    const background = readNearestOpaqueBackground(element);
+    return calculateContrastRatio(foreground, background);
+
+    function readNearestOpaqueBackground(target: HTMLElement): Color {
+      let current: HTMLElement | null = target;
+      while (current !== null) {
+        const candidate = parseColor(window.getComputedStyle(current).backgroundColor);
+        if (candidate.alpha >= 0.85) {
+          return candidate;
+        }
+        current = current.parentElement;
+      }
+
+      return {
+        alpha: 1,
+        blue: 255,
+        green: 255,
+        red: 255,
+      };
+    }
+
+    function calculateContrastRatio(foregroundColor: Color, backgroundColor: Color): number {
+      const foregroundLuminance = relativeLuminance(foregroundColor);
+      const backgroundLuminance = relativeLuminance(backgroundColor);
+      const lighter = Math.max(foregroundLuminance, backgroundLuminance);
+      const darker = Math.min(foregroundLuminance, backgroundLuminance);
+      return (lighter + 0.05) / (darker + 0.05);
+    }
+
+    function relativeLuminance(color: Color): number {
+      const red = linearize(color.red / 255);
+      const green = linearize(color.green / 255);
+      const blue = linearize(color.blue / 255);
+      return red * 0.2126 + green * 0.7152 + blue * 0.0722;
+    }
+
+    function linearize(channel: number): number {
+      return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+    }
+
+    function parseColor(value: string): Color {
+      const colorPattern =
+        /rgba?\((?<red>\d+),\s*(?<green>\d+),\s*(?<blue>\d+)(?:,\s*(?<alpha>[\d.]+))?\)/u;
+      const match = colorPattern.exec(value);
+      if (match?.groups === undefined) {
+        throw new Error(`Unsupported CSS color: ${value}`);
+      }
+
+      return {
+        alpha: match.groups["alpha"] === undefined ? 1 : Number(match.groups["alpha"]),
+        blue: Number(match.groups["blue"]),
+        green: Number(match.groups["green"]),
+        red: Number(match.groups["red"]),
+      };
+    }
+  });
+}
+
 function readServerUrl(server: ViteDevServer): string {
   const localUrl = server.resolvedUrls?.local[0];
   if (localUrl === undefined) {
@@ -1524,6 +1659,45 @@ async function waitForLocale(
   }
 
   throw new Error(`Timed out waiting for locale ${expectedLocale}/${expectedSource}.`);
+}
+
+async function waitForUiScale(
+  page: import("playwright").Page,
+  expectedScale: "standard" | "large" | "extra-large",
+): Promise<void> {
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    const scale = await page.locator("[data-shell-ready='true']").getAttribute("data-ui-scale");
+    if (scale === expectedScale) {
+      return;
+    }
+
+    await page.waitForTimeout(100);
+  }
+
+  throw new Error(`Timed out waiting for ui scale ${expectedScale}.`);
+}
+
+async function assertContrastBaseline(page: import("playwright").Page): Promise<void> {
+  for (const check of [
+    { selector: "[data-testid='player-next-goal']", minimumRatio: 7 },
+    { selector: "[data-testid='player-event-list']", minimumRatio: 7 },
+    { selector: "[data-testid='locale-current']", minimumRatio: 4.5 },
+    { selector: "[data-testid='ui-scale-current']", minimumRatio: 4.5 },
+    { selector: "[data-testid='main-menu-panel'] h1", minimumRatio: 7 },
+  ]) {
+    if ((await page.locator(check.selector).count()) === 0) {
+      continue;
+    }
+    const ratio = await readContrastRatio(page, check.selector);
+    expect(ratio, `${check.selector} contrast`).toBeGreaterThanOrEqual(check.minimumRatio);
+  }
+}
+
+interface Color {
+  readonly alpha: number;
+  readonly blue: number;
+  readonly green: number;
+  readonly red: number;
 }
 
 function withQuery(url: string, query: string): string {

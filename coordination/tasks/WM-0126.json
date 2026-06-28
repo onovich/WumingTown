@@ -2,7 +2,7 @@
   "id": "WM-0126",
   "title": "M8 performance regression and readiness matrix",
   "summary": "Consolidate M8 UI, i18n, accessibility, content, save, performance and M0-M7 regression evidence into a readiness matrix.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -37,13 +37,19 @@
   ],
   "branch": "task/WM-0126-m8-readiness-matrix",
   "createdAt": "2026-06-27T15:46:00.000Z",
-  "updatedAt": "2026-06-27T15:46:00.000Z",
+  "updatedAt": "2026-06-28T08:20:20.511Z",
   "history": [
     {
       "at": "2026-06-27T15:46:00.000Z",
       "actor": "project-director",
       "action": "create",
       "details": "Created by WM-0111 M8 UI/i18n scope amendment DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-28T08:20:20.511Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "M8",

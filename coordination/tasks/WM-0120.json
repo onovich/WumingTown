@@ -2,7 +2,7 @@
   "id": "WM-0120",
   "title": "Accessibility readability and UI-scale pass",
   "summary": "Validate and improve text readability, non-color-only state, UI scale, contrast, scroll usability and bilingual layout.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -33,7 +33,7 @@
   ],
   "branch": "task/WM-0120-m8-accessibility-readability",
   "createdAt": "2026-06-27T15:46:00.000Z",
-  "updatedAt": "2026-06-28T06:57:08.942Z",
+  "updatedAt": "2026-06-28T08:20:20.435Z",
   "history": [
     {
       "at": "2026-06-27T15:46:00.000Z",
@@ -46,6 +46,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-28T07:00:29.622Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": "thread=Canvas WM-0120 accessibility readability"
+    },
+    {
+      "at": "2026-06-28T07:58:12.177Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Implemented shell-local UI scale and accessibility readability pass for Web/Desktop; required checks pass; WM-0118 artifacts restored to HEAD."
+    },
+    {
+      "at": "2026-06-28T08:08:59.640Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; verified shell-local UI scale/readability path, no forbidden-path or WM-0118 artifact dirty diff, and reviewer checks passed: typecheck, quality, handoff, diff-check, workflow validate/status, focused ui scale unit/Web/Desktop E2E."
+    },
+    {
+      "at": "2026-06-28T08:20:20.357Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integrated verified shell-local UI scale/accessibility pass; full required gate passed: typecheck, Web/Desktop E2E, quality, handoff validate, taskctl validate/status, diff check; WM-0118 regenerated artifacts restored to HEAD."
+    },
+    {
+      "at": "2026-06-28T08:20:20.434Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M8",
@@ -61,5 +91,20 @@
     "packages/sim-core/**",
     "packages/sim-worker/**",
     "release/store/signing/telemetry/account/paid-service work"
-  ]
+  ],
+  "claimedBy": "client-engineer",
+  "threadLabel": "Canvas WM-0120 accessibility readability",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0120.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; verified shell-local UI scale/readability path, no forbidden-path or WM-0118 artifact dirty diff, and reviewer checks passed: typecheck, quality, handoff, diff-check, workflow validate/status, focused ui scale unit/Web/Desktop E2E.",
+    "at": "2026-06-28T08:08:59.640Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integrated verified shell-local UI scale/accessibility pass; full required gate passed: typecheck, Web/Desktop E2E, quality, handoff validate, taskctl validate/status, diff check; WM-0118 regenerated artifacts restored to HEAD.",
+    "at": "2026-06-28T08:20:20.356Z"
+  }
 }

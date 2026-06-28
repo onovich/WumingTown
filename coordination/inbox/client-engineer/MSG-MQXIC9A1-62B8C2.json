@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQXIC9A1-62B8C2",
+  "from": "reviewer",
+  "to": "client-engineer",
+  "taskId": "WM-0120",
+  "kind": "review-approved",
+  "subject": "WM-0120 review: verified",
+  "body": "No blocking findings; verified shell-local UI scale/readability path, no forbidden-path or WM-0118 artifact dirty diff, and reviewer checks passed: typecheck, quality, handoff, diff-check, workflow validate/status, focused ui scale unit/Web/Desktop E2E.",
+  "artifacts": [
+    "coordination/reports/WM-0120.md"
+  ],
+  "createdAt": "2026-06-28T08:08:59.641Z",
+  "acknowledgedAt": "2026-06-28T08:10:43.050Z"
+}

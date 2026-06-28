@@ -5,6 +5,7 @@ import type {
 } from "@wuming-town/sim-protocol";
 
 import type { LocaleId, ShellLocaleState } from "./localization";
+import type { ShellUiScaleState, UiScaleId } from "./shell-ui-scale";
 
 export interface ShellState {
   readonly readModel: WorldReadModel;
@@ -12,6 +13,7 @@ export interface ShellState {
   readonly storageGate: ShellStorageGateState;
   readonly onboarding: ShellOnboardingState;
   readonly locale: ShellLocaleState;
+  readonly uiScale: ShellUiScaleState;
   readonly diagnosticsVisible: boolean;
   readonly canvasWidth: number;
   readonly canvasHeight: number;
@@ -92,6 +94,12 @@ export interface ShellLocaleActions {
   readonly onUseManualLocale: (locale: LocaleId) => Promise<void>;
   readonly onUseSystemLocale: () => Promise<void>;
 }
+
+export interface ShellUiScaleActions {
+  readonly onUseUiScale: (scale: UiScaleId) => Promise<void>;
+}
+
+export interface ShellSettingsActions extends ShellLocaleActions, ShellUiScaleActions {}
 
 export interface ShellStore {
   getSnapshot(): ShellState;

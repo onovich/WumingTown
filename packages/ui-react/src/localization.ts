@@ -76,7 +76,7 @@ const EN_MESSAGES = {
   "ui.mainMenu.firstPlay.action.newGame":
     "New Game: enter the current read-model fixture and inspect the town before acting.",
   "ui.mainMenu.firstPlay.action.settings":
-    "Settings: choose zh-CN or English presentation without changing simulation authority.",
+    "Settings: choose zh-CN or English presentation and adjust UI scale without changing simulation authority.",
   "ui.mainMenu.firstPlay.actions": "Available actions",
   "ui.mainMenu.firstPlay.boundary":
     "Player guidance is separate from developer diagnostics; debug information appears only when diagnostics mode is explicitly enabled.",
@@ -111,10 +111,10 @@ const EN_MESSAGES = {
   "ui.mainMenu.phaseLabel.dusk": "Dusk watch",
   "ui.mainMenu.phaseLabel.night": "Night watch",
   "ui.mainMenu.settings.hint":
-    "Language changes never change simulation authority and are stored in local app settings only.",
+    "Language and UI scale changes never change simulation authority and are stored in local app settings only.",
   "ui.mainMenu.settings.summary":
-    "Choose language and confirm how the shell stores the preference before entering the town view.",
-  "ui.mainMenu.settings.title": "Settings",
+    "Choose language, confirm shell display scale, and review how local preferences are stored before entering the town view.",
+  "ui.mainMenu.settings.title": "Display settings",
   "ui.mainMenu.summary":
     "Read the current phase, then start a new session or continue the latest local save.",
   "ui.inspector.aria": "Selected entity inspector",
@@ -191,18 +191,20 @@ const EN_MESSAGES = {
     "Confirm the shell is ready, then inspect the current phase, goals, alerts, and selected resident details before changing plans.",
   "ui.onboarding.step1.title": "Read the town state first",
   "ui.onboarding.step2.body":
-    "Use language settings to choose zh-CN or English. This changes shell presentation only and never changes simulation authority or saves.",
-  "ui.onboarding.step2.title": "Choose presentation language",
+    "Use display settings to choose zh-CN or English and increase UI scale. This changes shell presentation only and never changes simulation authority or saves.",
+  "ui.onboarding.step2.title": "Choose language and shell scale",
   "ui.onboarding.step3.body":
     "Treat reasons, alerts, and evidence as structured explanations. Diagnostics stay outside the default player HUD unless explicitly opened.",
   "ui.onboarding.step3.title": "Follow evidence, not hidden truth",
   "ui.onboarding.summary":
     "Start from the current phase, next pressure, resident state, and structured reasons before using any debug-only tools.",
   "ui.onboarding.title": "M8 first-run path",
-  "ui.settings.aria": "Language settings",
+  "ui.settings.aria": "Display settings",
   "ui.settings.currentLocale": "Current locale: {locale}",
+  "ui.settings.displayBoundary":
+    "These shell display settings change text and HUD chrome only. They never change simulation authority, save schema, or Pixi world zoom.",
   "ui.settings.description":
-    "Choose how player-facing shell chrome is presented. This preference is local to the app shell.",
+    "Choose how player-facing shell chrome is presented, including language and display scale. These preferences stay local to the app shell.",
   "ui.settings.language": "Language",
   "ui.settings.option.system": "Follow system ({locale})",
   "ui.settings.persistence.preference_invalid":
@@ -212,9 +214,23 @@ const EN_MESSAGES = {
     "Local settings storage is unavailable. This choice will last for this session only.",
   "ui.settings.persistence.write_failed":
     "The language changed, but saving the preference failed. This choice will last for this session only.",
+  "ui.settings.scale": "UI scale",
+  "ui.settings.scale.current": "Current scale: {scale}",
+  "ui.settings.scale.description":
+    "Increase player-facing text and shell chrome size without changing the authoritative world view.",
+  "ui.settings.scale.option.extra-large": "Extra large (120%)",
+  "ui.settings.scale.option.large": "Large (110%)",
+  "ui.settings.scale.option.standard": "Standard (100%)",
+  "ui.settings.scale.persistence.preference_invalid":
+    "Saved UI scale settings were invalid and were reset to Standard.",
+  "ui.settings.scale.persistence.ready": "Saved in local app settings.",
+  "ui.settings.scale.persistence.storage_unavailable":
+    "Local settings storage is unavailable. This UI scale will last for this session only.",
+  "ui.settings.scale.persistence.write_failed":
+    "The UI scale changed, but saving the preference failed. This UI scale will last for this session only.",
   "ui.settings.source.manual": "Source: manual override",
   "ui.settings.source.system": "Source: system preference",
-  "ui.settings.title": "Language settings",
+  "ui.settings.title": "Display settings",
   "ui.surface.alerts": "Town alerts",
   "ui.surface.topBar": "Town status",
   "ui.surface.topBarMeta": "{cycle} | {map} | {speed}",
@@ -237,7 +253,8 @@ const ZH_CN_MESSAGES = {
   "ui.mainMenu.cycleHint": "该起始界面只作用于当前本地壳层配置。",
   "ui.mainMenu.firstPlay.action.continue": "继续：仅在存在本地存档时可用；否则会保持禁用。",
   "ui.mainMenu.firstPlay.action.newGame": "新游戏：进入当前只读模型样例，先观察城镇再行动。",
-  "ui.mainMenu.firstPlay.action.settings": "设置：选择简体中文或英文界面，不改变模拟权威。",
+  "ui.mainMenu.firstPlay.action.settings":
+    "设置：选择简体中文或英文界面，并调整界面缩放，不改变模拟权威。",
   "ui.mainMenu.firstPlay.actions": "可用行动",
   "ui.mainMenu.firstPlay.boundary": "玩家引导与开发诊断分离；调试信息仅在显式诊断模式中显示。",
   "ui.mainMenu.firstPlay.boundaryTitle": "边界",
@@ -269,9 +286,9 @@ const ZH_CN_MESSAGES = {
   "ui.mainMenu.phaseLabel.default": "当前城镇阶段",
   "ui.mainMenu.phaseLabel.dusk": "黄昏守望",
   "ui.mainMenu.phaseLabel.night": "夜间守望",
-  "ui.mainMenu.settings.hint": "语言切换不会改变模拟权威，只会写入本地应用设置。",
-  "ui.mainMenu.settings.summary": "进入城镇视图前，可在这里确认语言与本地偏好保存方式。",
-  "ui.mainMenu.settings.title": "设置",
+  "ui.mainMenu.settings.hint": "语言与界面缩放切换不会改变模拟权威，只会写入本地应用设置。",
+  "ui.mainMenu.settings.summary": "进入城镇视图前，可在这里确认语言、界面缩放与本地偏好保存方式。",
+  "ui.mainMenu.settings.title": "显示设置",
   "ui.mainMenu.summary": "先阅读当前阶段，再开始新局或继续最近一次本地存档。",
   "ui.inspector.aria": "已选对象信息",
   "ui.inspector.currentJob": "当前工作",
@@ -340,17 +357,20 @@ const ZH_CN_MESSAGES = {
     "先确认外壳已就绪，再查看当前时段、主要压力、警报与选中居民详情，然后再调整计划。",
   "ui.onboarding.step1.title": "先读懂城镇状态",
   "ui.onboarding.step2.body":
-    "可在此切换简体中文或英文。它只改变壳层呈现，不会改变模拟权威或存档。",
-  "ui.onboarding.step2.title": "选择界面语言",
+    "可在此切换简体中文或英文，并放大界面缩放。它只改变壳层呈现，不会改变模拟权威或存档。",
+  "ui.onboarding.step2.title": "选择语言与壳层缩放",
   "ui.onboarding.step3.body":
     "把原因、警报与证据视为结构化说明。诊断信息默认不会出现在玩家 HUD，除非显式开启。",
   "ui.onboarding.step3.title": "依据证据而非隐藏真相",
   "ui.onboarding.summary":
     "先从当前时段、主要压力、居民状态与结构化原因入手，再使用任何调试专用工具。",
   "ui.onboarding.title": "M8 首次游玩路径",
-  "ui.settings.aria": "语言设置",
+  "ui.settings.aria": "显示设置",
   "ui.settings.currentLocale": "当前语言：{locale}",
-  "ui.settings.description": "选择玩家可见壳层界面的显示语言。该偏好仅保存在应用壳层本地。",
+  "ui.settings.displayBoundary":
+    "这些壳层显示设置只会改变文字与 HUD 外观，不会改变模拟权威、存档格式或 Pixi 世界缩放。",
+  "ui.settings.description":
+    "选择玩家可见壳层界面的显示方式，包括语言与界面缩放。这些偏好仅保存在应用壳层本地。",
   "ui.settings.language": "语言",
   "ui.settings.option.system": "跟随系统（{locale}）",
   "ui.settings.persistence.preference_invalid": "已保存的语言设置无效，现已恢复为跟随系统。",
@@ -358,9 +378,21 @@ const ZH_CN_MESSAGES = {
   "ui.settings.persistence.storage_unavailable": "本地设置存储不可用。本次选择仅在当前会话内生效。",
   "ui.settings.persistence.write_failed":
     "语言已切换，但保存偏好失败。本次选择仅在当前会话内生效。",
+  "ui.settings.scale": "界面缩放",
+  "ui.settings.scale.current": "当前缩放：{scale}",
+  "ui.settings.scale.description": "放大玩家可见文字与壳层外观，但不会改变权威世界视图。",
+  "ui.settings.scale.option.extra-large": "特大（120%）",
+  "ui.settings.scale.option.large": "大（110%）",
+  "ui.settings.scale.option.standard": "标准（100%）",
+  "ui.settings.scale.persistence.preference_invalid": "已保存的界面缩放设置无效，现已恢复为标准。",
+  "ui.settings.scale.persistence.ready": "已保存在本地应用设置中。",
+  "ui.settings.scale.persistence.storage_unavailable":
+    "本地设置存储不可用。本次界面缩放仅在当前会话内生效。",
+  "ui.settings.scale.persistence.write_failed":
+    "界面缩放已变更，但保存偏好失败。本次界面缩放仅在当前会话内生效。",
   "ui.settings.source.manual": "来源：手动覆盖",
   "ui.settings.source.system": "来源：系统偏好",
-  "ui.settings.title": "语言设置",
+  "ui.settings.title": "显示设置",
   "ui.surface.alerts": "城镇警报",
   "ui.surface.topBar": "城镇状态",
   "ui.surface.topBarMeta": "{cycle} | {map} | {speed}",

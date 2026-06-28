@@ -5,6 +5,7 @@ import type { WorldReadModel } from "@wuming-town/sim-protocol";
 
 import { createShellHudElement } from "./shell-hud";
 import { createDefaultShellLocaleState } from "./localization";
+import { createDefaultShellUiScaleState } from "./shell-ui-scale";
 import { createShellStore, type ShellState } from "./shell-store";
 
 const READ_MODEL: WorldReadModel = {
@@ -79,6 +80,7 @@ describe("shell-hud", () => {
     expect(markup).toContain("Continue");
     expect(markup).toContain("Settings");
     expect(markup).toContain("Presentation language");
+    expect(markup).toContain("UI scale");
     expect(markup).toContain("Current phase");
     expect(markup).toContain("First-play guidance");
     expect(markup).toContain("Available actions");
@@ -100,6 +102,7 @@ describe("shell-hud", () => {
     expect(markup).toContain("继续");
     expect(markup).toContain("设置");
     expect(markup).toContain("界面语言");
+    expect(markup).toContain("界面缩放");
     expect(markup).toContain("首次游玩指引");
     expect(markup).toContain("可用行动");
     expect(markup).toContain("下一目标");
@@ -182,6 +185,7 @@ function createShellState(locale: ReturnType<typeof createDefaultShellLocaleStat
       releaseBoundary: "web-demo-windows-controlled-test",
     },
     locale,
+    uiScale: createDefaultShellUiScaleState(),
     diagnosticsVisible: false,
     canvasWidth: 1280,
     canvasHeight: 720,
@@ -199,6 +203,8 @@ function renderShell(state: ShellState): string {
   const store = createShellStore(state);
   const noopAsync = (): Promise<void> => Promise.resolve();
   const noopSetLocale: (locale: "en" | "zh-CN") => Promise<void> = () => Promise.resolve();
+  const noopSetUiScale: (scale: "standard" | "large" | "extra-large") => Promise<void> = () =>
+    Promise.resolve();
   const noopImport: (file: File) => Promise<void> = () => Promise.resolve();
 
   return renderToStaticMarkup(
@@ -215,6 +221,7 @@ function renderShell(state: ShellState): string {
       {
         onUseManualLocale: noopSetLocale,
         onUseSystemLocale: noopAsync,
+        onUseUiScale: noopSetUiScale,
       },
     ),
   );

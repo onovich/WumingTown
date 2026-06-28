@@ -13,14 +13,14 @@ import { ShellMainMenuSurface } from "./shell-main-menu-surface";
 import { ShellSettingsPanel } from "./shell-settings-panel";
 import { ShellStoragePanel } from "./shell-storage-panel";
 import { getSelectedEntity, type ShellState, type ShellStore } from "./shell-store";
-import type { ShellLocaleActions, ShellStorageActions } from "./shell-store";
+import type { ShellSettingsActions, ShellStorageActions } from "./shell-store";
 
 type AlertSeverity = ShellState["readModel"]["town"]["alerts"][number]["severity"];
 type NeedState = WorldEntityReadModel["inspector"]["needs"][number]["state"];
 type NightRiskTier = "stable" | "watch" | "strained" | "breach";
 
 export interface ShellHudRootProps {
-  readonly localeActions: ShellLocaleActions;
+  readonly settingsActions: ShellSettingsActions;
   readonly store: ShellStore;
   readonly storageActions: ShellStorageActions;
 }
@@ -46,17 +46,17 @@ interface PlayerHudModel {
 export function createShellHudElement(
   store: ShellStore,
   storageActions: ShellStorageActions,
-  localeActions: ShellLocaleActions,
+  settingsActions: ShellSettingsActions,
 ): ReactElement {
   return createElement(ShellHudRoot, {
-    localeActions,
+    settingsActions,
     store,
     storageActions,
   });
 }
 
 export function ShellHudRoot({
-  localeActions,
+  settingsActions,
   store,
   storageActions,
 }: ShellHudRootProps): ReactElement {
@@ -69,6 +69,8 @@ export function ShellHudRoot({
   const selectedEntity = getSelectedEntity(state);
   const compactLayout = state.canvasWidth < 1040;
   const uiLocale = state.locale.resolvedLocale;
+  const uiScalePreference = state.uiScale.preference;
+  const uiScaleFactor = state.uiScale.factor;
   const startSurfaceVisible = !state.diagnosticsVisible && !startSurfaceDismissed;
   const startNextGoal = selectPriorityAlert(state.readModel.town.alerts);
   const startPhaseMeaning = readPhaseMeaning(state.readModel.town.phaseLabel, uiLocale);
@@ -81,23 +83,32 @@ export function ShellHudRoot({
         "data-locale": uiLocale,
         "data-locale-source": state.locale.source,
         "data-shell-ready": "true",
+        "data-ui-scale": uiScalePreference,
+        "data-ui-scale-factor": String(uiScaleFactor),
         style: overlayRootStyle,
       },
-      createElement(ShellMainMenuSurface, {
-        compact: compactLayout,
-        cycleLabel: state.readModel.town.cycleLabel,
-        localeActions,
-        localeState: state.locale,
-        nextGoal: startNextGoal,
-        onDismiss: () => {
-          setStartSurfaceDismissed(true);
+      createElement(
+        "div",
+        {
+          style: scaleLayerStyle(uiScaleFactor),
         },
-        phaseLabel: state.readModel.town.phaseLabel,
-        phaseMeaning: startPhaseMeaning,
-        settlementName: state.readModel.town.settlementName,
-        storageActions,
-        storageState: state.storageGate,
-      }),
+        createElement(ShellMainMenuSurface, {
+          compact: compactLayout,
+          cycleLabel: state.readModel.town.cycleLabel,
+          settingsActions,
+          localeState: state.locale,
+          nextGoal: startNextGoal,
+          onDismiss: () => {
+            setStartSurfaceDismissed(true);
+          },
+          phaseLabel: state.readModel.town.phaseLabel,
+          phaseMeaning: startPhaseMeaning,
+          settlementName: state.readModel.town.settlementName,
+          storageActions,
+          storageState: state.storageGate,
+          uiScaleState: state.uiScale,
+        }),
+      ),
     );
   }
 
@@ -110,21 +121,29 @@ export function ShellHudRoot({
       "data-locale": uiLocale,
       "data-locale-source": state.locale.source,
       "data-shell-ready": "true",
+      "data-ui-scale": uiScalePreference,
+      "data-ui-scale-factor": String(uiScaleFactor),
       style: overlayRootStyle,
     },
     createElement(
-      "section",
+      "div",
       {
-        "aria-label": formatMessage(uiLocale, "ui.hud.aria"),
-        "data-testid": "player-hud",
-        key: "player-hud",
-        style: hudLayerStyle,
+        style: scaleLayerStyle(uiScaleFactor),
       },
-      createTopBar(state, playerHud, uiLocale, compactLayout),
-      compactLayout
-        ? createCompactHudBody(state, playerHud, selectedEntity, uiLocale, localeActions)
-        : createDesktopHudBody(state, playerHud, selectedEntity, uiLocale, localeActions),
-      state.diagnosticsVisible ? createDebugOverlay(state, storageActions, compactLayout) : null,
+      createElement(
+        "section",
+        {
+          "aria-label": formatMessage(uiLocale, "ui.hud.aria"),
+          "data-testid": "player-hud",
+          key: "player-hud",
+          style: hudLayerStyle,
+        },
+        createTopBar(state, playerHud, uiLocale, compactLayout),
+        compactLayout
+          ? createCompactHudBody(state, playerHud, selectedEntity, uiLocale, settingsActions)
+          : createDesktopHudBody(state, playerHud, selectedEntity, uiLocale, settingsActions),
+        state.diagnosticsVisible ? createDebugOverlay(state, storageActions, compactLayout) : null,
+      ),
     ),
   );
 }
@@ -171,7 +190,7 @@ function createDesktopHudBody(
   playerHud: PlayerHudModel,
   selectedEntity: ReturnType<typeof getSelectedEntity>,
   locale: LocaleId,
-  localeActions: ShellLocaleActions,
+  settingsActions: ShellSettingsActions,
 ): ReactElement {
   return createElement(
     "div",
@@ -201,8 +220,9 @@ function createDesktopHudBody(
       createInspectorCard(state, selectedEntity, locale, false),
       createResidentAttentionCard(playerHud.residentItems, locale),
       createElement(ShellSettingsPanel, {
-        actions: localeActions,
-        state: state.locale,
+        actions: settingsActions,
+        localeState: state.locale,
+        uiScaleState: state.uiScale,
       }),
     ),
   );
@@ -213,7 +233,7 @@ function createCompactHudBody(
   playerHud: PlayerHudModel,
   selectedEntity: ReturnType<typeof getSelectedEntity>,
   locale: LocaleId,
-  localeActions: ShellLocaleActions,
+  settingsActions: ShellSettingsActions,
 ): ReactElement {
   return createElement(
     "div",
@@ -228,8 +248,9 @@ function createCompactHudBody(
     createEventCard(state, locale),
     createResidentAttentionCard(playerHud.residentItems, locale),
     createElement(ShellSettingsPanel, {
-      actions: localeActions,
-      state: state.locale,
+      actions: settingsActions,
+      localeState: state.locale,
+      uiScaleState: state.uiScale,
     }),
     createElement(
       "aside",
@@ -472,6 +493,7 @@ function createEventCard(state: ShellState, locale: LocaleId): ReactElement {
         createElement(
           "div",
           {
+            "aria-label": `${formatAlertSeverity(alert.severity, locale)}: ${alert.label}. ${alert.detail}`,
             "data-alert-severity": alert.severity,
             key: `${alert.severity}:${alert.label}`,
             style: alertRowStyle(alert.severity),
@@ -630,6 +652,7 @@ function createResidentAttentionCard(
         createElement(
           "div",
           {
+            "aria-label": `${item.entity.displayName}. ${item.stateLabel}. ${item.entity.inspector.currentStep}`,
             key: item.entity.entityId,
             style: infoRowStyle,
           },
@@ -981,6 +1004,7 @@ function createNightRiskBadge(
   return createElement(
     "div",
     {
+      "aria-label": `${formatMessage(locale, "ui.hud.nightRisk")}: ${formatNightRisk(tier, locale)}`,
       "data-testid": "player-night-risk",
       "data-night-risk-tier": tier,
       style: compact ? compactNightRiskBadgeStyle(tier) : nightRiskBadgeStyle(tier),
@@ -1325,6 +1349,19 @@ const overlayRootStyle: CSSProperties = {
   position: "absolute",
 };
 
+function scaleLayerStyle(factor: number): CSSProperties {
+  return {
+    height: `${String(100 / factor)}%`,
+    inset: 0,
+    overflow: "hidden",
+    pointerEvents: "none",
+    position: "absolute",
+    transform: `scale(${String(factor)})`,
+    transformOrigin: "top left",
+    width: `${String(100 / factor)}%`,
+  };
+}
+
 const hudLayerStyle: CSSProperties = {
   boxSizing: "border-box",
   display: "grid",
@@ -1466,7 +1503,7 @@ const paperCardStyle: CSSProperties = {
 
 const compactInspectorCardStyle: CSSProperties = {
   ...paperCardStyle,
-  maxHeight: "60vh",
+  maxHeight: "60%",
   overflowY: "auto",
   paddingRight: "12px",
   scrollbarGutter: "stable",
@@ -1530,6 +1567,7 @@ const sectionHintStyle: CSSProperties = {
   fontSize: "12px",
   fontWeight: 600,
   lineHeight: "16px",
+  overflowWrap: "anywhere",
 };
 
 const sectionEyebrowStyle: CSSProperties = {
@@ -1556,6 +1594,7 @@ const keyOutcomeStyle: CSSProperties = {
   fontSize: "20px",
   fontWeight: 700,
   lineHeight: "24px",
+  overflowWrap: "anywhere",
 };
 
 const bodyTextStyle: CSSProperties = {
@@ -1564,6 +1603,7 @@ const bodyTextStyle: CSSProperties = {
   fontSize: "13px",
   lineHeight: "18px",
   margin: 0,
+  overflowWrap: "anywhere",
 };
 
 const mutedTextStyle: CSSProperties = {
@@ -1571,6 +1611,7 @@ const mutedTextStyle: CSSProperties = {
   fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
   fontSize: "13px",
   lineHeight: "18px",
+  overflowWrap: "anywhere",
 };
 
 const mutedInverseTextStyle: CSSProperties = {
@@ -1578,6 +1619,7 @@ const mutedInverseTextStyle: CSSProperties = {
   fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
   fontSize: "13px",
   lineHeight: "18px",
+  overflowWrap: "anywhere",
 };
 
 const rowStackStyle: CSSProperties = {
@@ -1614,6 +1656,7 @@ const rowValueStyle: CSSProperties = {
   fontSize: "14px",
   fontWeight: 600,
   lineHeight: "18px",
+  overflowWrap: "anywhere",
 };
 
 const reasonListStyle: CSSProperties = {
@@ -1630,6 +1673,7 @@ const inlineReasonStyle: CSSProperties = {
   fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
   fontSize: "12px",
   lineHeight: "16px",
+  overflowWrap: "anywhere",
   padding: "6px 10px",
 };
 
@@ -1653,6 +1697,7 @@ const definitionValueStyle: CSSProperties = {
   fontSize: "14px",
   fontWeight: 600,
   lineHeight: "18px",
+  overflowWrap: "anywhere",
 };
 
 const pairGridStyle: CSSProperties = {
@@ -1678,6 +1723,7 @@ const pairValueStyle: CSSProperties = {
   fontSize: "13px",
   fontWeight: 600,
   lineHeight: "18px",
+  overflowWrap: "anywhere",
 };
 
 const pairValueZhStyle: CSSProperties = {
@@ -1720,6 +1766,7 @@ const bulletItemStyle: CSSProperties = {
   fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
   fontSize: "13px",
   lineHeight: "18px",
+  overflowWrap: "anywhere",
 };
 
 const bulletItemInverseStyle: CSSProperties = {
@@ -1727,6 +1774,7 @@ const bulletItemInverseStyle: CSSProperties = {
   fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
   fontSize: "13px",
   lineHeight: "18px",
+  overflowWrap: "anywhere",
 };
 
 const cardTitleStyle: CSSProperties = {
@@ -1735,6 +1783,7 @@ const cardTitleStyle: CSSProperties = {
   fontSize: "22px",
   fontWeight: 700,
   lineHeight: "26px",
+  overflowWrap: "anywhere",
 };
 
 const emptyStateTitleStyle: CSSProperties = {
@@ -1743,6 +1792,7 @@ const emptyStateTitleStyle: CSSProperties = {
   fontSize: "18px",
   fontWeight: 700,
   lineHeight: "22px",
+  overflowWrap: "anywhere",
 };
 
 const debugOverlayStyle: CSSProperties = {
@@ -1756,7 +1806,7 @@ const debugOverlayStyle: CSSProperties = {
   flexDirection: "column",
   gap: "12px",
   left: "352px",
-  maxHeight: "min(360px, calc(100vh - 32px))",
+  maxHeight: "min(360px, calc(100% - 32px))",
   overflowY: "auto",
   padding: "14px 16px",
   pointerEvents: "auto",
@@ -1768,7 +1818,7 @@ const compactDebugOverlayStyle: CSSProperties = {
   ...debugOverlayStyle,
   bottom: "236px",
   left: "16px",
-  maxHeight: "220px",
+  maxHeight: "min(220px, calc(100% - 252px))",
   right: "16px",
 };
 

@@ -202,7 +202,7 @@ describe("desktop Electron shell smoke", () => {
     }
   }, 180000);
 
-  it("defaults locale by renderer language and persists manual override across restart", async () => {
+  it("defaults locale by renderer language and persists manual display overrides across restart", async () => {
     await ensureDesktopMainBuild();
 
     const appRoot = path.join(process.cwd(), "apps", "web");
@@ -234,6 +234,7 @@ describe("desktop Electron shell smoke", () => {
         const englishPage = await englishApp.firstWindow();
         await englishPage.waitForSelector("[data-shell-ready='true']");
         await waitForLocale(englishPage, "en", "system");
+        await waitForUiScale(englishPage, "standard");
         await assertDesktopStartSurfaceBaseline(englishPage, "en");
         await englishPage.getByTestId("main-menu-new-game").click();
         await waitForDesktopStartSurfaceClosed(englishPage);
@@ -261,12 +262,20 @@ describe("desktop Electron shell smoke", () => {
         const chinesePage = await chineseApp.firstWindow();
         await chinesePage.waitForSelector("[data-shell-ready='true']");
         await waitForLocale(chinesePage, "zh-CN", "system");
+        await waitForUiScale(chinesePage, "standard");
         await assertDesktopStartSurfaceBaseline(chinesePage, "zh-CN");
         await chinesePage.getByTestId("main-menu-locale-en").click();
         await waitForLocale(chinesePage, "en", "manual");
         await waitForHudText(chinesePage, "New Game");
+        await chinesePage.getByTestId("main-menu-settings").click();
+        await chinesePage.getByTestId("ui-scale-select").selectOption("large");
+        await waitForUiScale(chinesePage, "large");
+        await chinesePage.getByTestId("main-menu-back").click();
+        await chinesePage.getByTestId("main-menu-settings").waitFor();
+        await assertDesktopStartSurfaceViewportLayout(chineseApp, chinesePage, 390, 720);
         await chinesePage.getByTestId("main-menu-new-game").click();
         await waitForDesktopStartSurfaceClosed(chinesePage);
+        await assertDesktopTownHudViewportLayout(chineseApp, chinesePage, 390, 720, "en");
         await assertDesktopPlayerHudBaseline(chinesePage);
       } finally {
         await chineseApp.close();
@@ -285,6 +294,7 @@ describe("desktop Electron shell smoke", () => {
         const persistedPage = await persistedApp.firstWindow();
         await persistedPage.waitForSelector("[data-shell-ready='true']");
         await waitForLocale(persistedPage, "en", "manual");
+        await waitForUiScale(persistedPage, "large");
         await waitForHudText(persistedPage, "New Game");
       } finally {
         await persistedApp.close();
@@ -476,13 +486,15 @@ async function assertDesktopAccessibilityBaseline(
 ): Promise<void> {
   const shellText = await page.locator("[data-shell-ready='true']").textContent();
   expect(shellText ?? "").toContain("Wuming Town");
+  await waitForUiScale(page, "standard");
   if ((await page.getByTestId("main-menu-surface").count()) > 0) {
     await assertDesktopStartSurfaceBaseline(page, "en");
     await page.getByTestId("main-menu-new-game").click();
     await waitForDesktopStartSurfaceClosed(page);
   }
   await assertDesktopPlayerHudStructure(page);
-  await waitForHudText(page, "Language settings");
+  await waitForHudText(page, "Display settings");
+  await assertContrastBaseline(page);
   expect(shellText ?? "").toContain("无明镇");
 
   const warningAlertText = await page
@@ -610,6 +622,7 @@ async function assertDesktopStartSurfaceBaseline(
   await page.getByTestId("main-menu-settings").click();
   await page.getByTestId("locale-select").waitFor();
   expect(await page.getByTestId("main-menu-back").count()).toBe(1);
+  expect(await page.getByTestId("ui-scale-select").count()).toBe(1);
   await page.getByTestId("main-menu-back").click();
   await page.getByTestId("main-menu-settings").waitFor();
 }
@@ -845,6 +858,10 @@ async function assertDesktopStartSurfaceViewportLayout(
   await assertTestIdWithinViewport(page, "locale-source", width, height);
   await assertTestIdWithinViewport(page, "locale-current", width, height);
   await assertTestIdWithinViewport(page, "locale-persistence", width, height);
+  await assertTestIdWithinViewport(page, "ui-scale-select", width, height);
+  await assertTestIdWithinViewport(page, "ui-scale-current", width, height);
+  await assertTestIdWithinViewport(page, "ui-scale-persistence", width, height);
+  await assertTestIdWithinViewport(page, "display-boundary", width, height);
   await page.getByTestId("main-menu-back").click();
   await page.getByTestId("main-menu-settings").waitFor();
 }
@@ -869,13 +886,19 @@ async function assertDesktopTownHudViewportLayout(
     "player-task-list",
     "player-event-list",
     "player-resident-watch",
-    "locale-settings",
+    "ui-scale-settings",
   ]) {
     await assertTestIdReachableWithoutCover(page, testId, width, height);
   }
   await assertTallSelectorReachableWithoutCover(
     page,
     "[data-testid='player-selected-detail']",
+    width,
+    height,
+  );
+  await assertTallSelectorReachableWithoutCover(
+    page,
+    "[data-testid='locale-settings']",
     width,
     height,
   );
@@ -1488,6 +1511,67 @@ async function waitForSelectedEntity(page: Page, expectedEntityId: string): Prom
   throw new Error(`Timed out waiting for selected entity ${expectedEntityId}`);
 }
 
+async function readContrastRatio(page: Page, selector: string): Promise<number> {
+  return page.locator(selector).evaluate((element: HTMLElement) => {
+    const foreground = parseColor(window.getComputedStyle(element).color);
+    const background = readNearestOpaqueBackground(element);
+    return calculateContrastRatio(foreground, background);
+
+    function readNearestOpaqueBackground(target: HTMLElement): Color {
+      let current: HTMLElement | null = target;
+      while (current !== null) {
+        const candidate = parseColor(window.getComputedStyle(current).backgroundColor);
+        if (candidate.alpha >= 0.85) {
+          return candidate;
+        }
+        current = current.parentElement;
+      }
+
+      return {
+        alpha: 1,
+        blue: 255,
+        green: 255,
+        red: 255,
+      };
+    }
+
+    function calculateContrastRatio(foregroundColor: Color, backgroundColor: Color): number {
+      const foregroundLuminance = relativeLuminance(foregroundColor);
+      const backgroundLuminance = relativeLuminance(backgroundColor);
+      const lighter = Math.max(foregroundLuminance, backgroundLuminance);
+      const darker = Math.min(foregroundLuminance, backgroundLuminance);
+      return (lighter + 0.05) / (darker + 0.05);
+    }
+
+    function relativeLuminance(color: Color): number {
+      const red = linearize(color.red / 255);
+      const green = linearize(color.green / 255);
+      const blue = linearize(color.blue / 255);
+      return red * 0.2126 + green * 0.7152 + blue * 0.0722;
+    }
+
+    function linearize(channel: number): number {
+      return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+    }
+
+    function parseColor(value: string): Color {
+      const colorPattern =
+        /rgba?\((?<red>\d+),\s*(?<green>\d+),\s*(?<blue>\d+)(?:,\s*(?<alpha>[\d.]+))?\)/u;
+      const match = colorPattern.exec(value);
+      if (match?.groups === undefined) {
+        throw new Error(`Unsupported CSS color: ${value}`);
+      }
+
+      return {
+        alpha: match.groups["alpha"] === undefined ? 1 : Number(match.groups["alpha"]),
+        blue: Number(match.groups["blue"]),
+        green: Number(match.groups["green"]),
+        red: Number(match.groups["red"]),
+      };
+    }
+  });
+}
+
 async function waitForLocale(
   page: Page,
   expectedLocale: "en" | "zh-CN",
@@ -1506,6 +1590,45 @@ async function waitForLocale(
   }
 
   throw new Error(`Timed out waiting for locale ${expectedLocale}/${expectedSource}.`);
+}
+
+async function waitForUiScale(
+  page: Page,
+  expectedScale: "standard" | "large" | "extra-large",
+): Promise<void> {
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    const scale = await page.locator("[data-shell-ready='true']").getAttribute("data-ui-scale");
+    if (scale === expectedScale) {
+      return;
+    }
+
+    await page.waitForTimeout(100);
+  }
+
+  throw new Error(`Timed out waiting for ui scale ${expectedScale}.`);
+}
+
+async function assertContrastBaseline(page: Page): Promise<void> {
+  for (const check of [
+    { selector: "[data-testid='player-next-goal']", minimumRatio: 7 },
+    { selector: "[data-testid='player-event-list']", minimumRatio: 7 },
+    { selector: "[data-testid='locale-current']", minimumRatio: 4.5 },
+    { selector: "[data-testid='ui-scale-current']", minimumRatio: 4.5 },
+    { selector: "[data-testid='main-menu-panel'] h1", minimumRatio: 7 },
+  ]) {
+    if ((await page.locator(check.selector).count()) === 0) {
+      continue;
+    }
+    const ratio = await readContrastRatio(page, check.selector);
+    expect(ratio, `${check.selector} contrast`).toBeGreaterThanOrEqual(check.minimumRatio);
+  }
+}
+
+interface Color {
+  readonly alpha: number;
+  readonly blue: number;
+  readonly green: number;
+  readonly red: number;
 }
 
 async function runCommand(command: string, args: readonly string[]): Promise<void> {

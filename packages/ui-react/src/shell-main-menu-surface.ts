@@ -8,16 +8,17 @@ import {
 } from "./localization";
 import { ShellSettingsPanel } from "./shell-settings-panel";
 import type {
-  ShellLocaleActions,
+  ShellSettingsActions,
   ShellState,
   ShellStorageActions,
   ShellStorageGateState,
 } from "./shell-store";
+import type { ShellUiScaleState } from "./shell-ui-scale";
 
 export interface ShellMainMenuSurfaceProps {
   readonly compact: boolean;
   readonly cycleLabel: string;
-  readonly localeActions: ShellLocaleActions;
+  readonly settingsActions: ShellSettingsActions;
   readonly localeState: ShellLocaleState;
   readonly nextGoal: ShellState["readModel"]["town"]["alerts"][number] | undefined;
   readonly onDismiss: () => void;
@@ -26,6 +27,7 @@ export interface ShellMainMenuSurfaceProps {
   readonly settlementName: string;
   readonly storageActions: Pick<ShellStorageActions, "onLoadSave">;
   readonly storageState: Pick<ShellStorageGateState, "saveSlots">;
+  readonly uiScaleState: ShellUiScaleState;
 }
 
 type AlertSeverity = ShellState["readModel"]["town"]["alerts"][number]["severity"];
@@ -42,7 +44,7 @@ interface LocalizedNextGoalCopy {
 export function ShellMainMenuSurface({
   compact,
   cycleLabel,
-  localeActions,
+  settingsActions,
   localeState,
   nextGoal,
   onDismiss,
@@ -51,6 +53,7 @@ export function ShellMainMenuSurface({
   settlementName,
   storageActions,
   storageState,
+  uiScaleState,
 }: ShellMainMenuSurfaceProps): ReactElement {
   const [continuePending, setContinuePending] = useState(false);
   const [view, setView] = useState<MainMenuView>("home");
@@ -144,7 +147,7 @@ export function ShellMainMenuSurface({
             continuePending,
             nextGoal,
             phaseMeaning,
-            localeActions,
+            settingsActions,
             localeState,
             onDismiss,
             () => {
@@ -158,8 +161,9 @@ export function ShellMainMenuSurface({
             compact,
             continueAvailable,
             continuePending,
-            localeActions,
+            settingsActions,
             localeState,
+            uiScaleState,
             onDismiss,
             () => {
               void handleContinue();
@@ -178,7 +182,7 @@ function createHomeView(
   continuePending: boolean,
   nextGoal: NextGoal,
   phaseMeaning: string,
-  localeActions: ShellLocaleActions,
+  settingsActions: ShellSettingsActions,
   localeState: ShellLocaleState,
   onDismiss: () => void,
   onContinue: () => void,
@@ -260,9 +264,9 @@ function createHomeView(
         {
           style: segmentedRowStyle,
         },
-        createLocaleButton(localeActions, localeState, "system"),
-        createLocaleButton(localeActions, localeState, "zh-CN"),
-        createLocaleButton(localeActions, localeState, "en"),
+        createLocaleButton(settingsActions, localeState, "system"),
+        createLocaleButton(settingsActions, localeState, "zh-CN"),
+        createLocaleButton(settingsActions, localeState, "en"),
       ),
     ),
   );
@@ -488,8 +492,9 @@ function createSettingsView(
   compact: boolean,
   continueAvailable: boolean,
   continuePending: boolean,
-  localeActions: ShellLocaleActions,
+  settingsActions: ShellSettingsActions,
   localeState: ShellLocaleState,
+  uiScaleState: ShellUiScaleState,
   onDismiss: () => void,
   onContinue: () => void,
   onBack: () => void,
@@ -527,8 +532,9 @@ function createSettingsView(
         style: compact ? compactSettingsLayoutStyle : settingsLayoutStyle,
       },
       createElement(ShellSettingsPanel, {
-        actions: localeActions,
-        state: localeState,
+        actions: settingsActions,
+        localeState,
+        uiScaleState,
       }),
       createElement(
         "p",
@@ -602,7 +608,7 @@ function createMetaCard(
 }
 
 function createLocaleButton(
-  localeActions: ShellLocaleActions,
+  settingsActions: ShellSettingsActions,
   localeState: ShellLocaleState,
   selection: LocaleSelection,
 ): ReactElement {
@@ -621,13 +627,14 @@ function createLocaleButton(
     {
       "data-active": active ? "true" : "false",
       "data-testid": `main-menu-locale-${selection}`,
+      "aria-pressed": active,
       onClick: (): void => {
         if (selection === "system") {
-          void localeActions.onUseSystemLocale();
+          void settingsActions.onUseSystemLocale();
           return;
         }
 
-        void localeActions.onUseManualLocale(selection);
+        void settingsActions.onUseManualLocale(selection);
       },
       style: localeButtonStyle(active),
       type: "button",
@@ -727,14 +734,14 @@ const panelStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
   gap: "20px",
-  maxHeight: "calc(100dvh - 32px)",
+  maxHeight: "calc(100% - 32px)",
   maxWidth: "520px",
   minWidth: "320px",
   overflowY: "auto",
   padding: "28px",
   pointerEvents: "auto",
   position: "relative",
-  width: "min(520px, calc(100vw - 32px))",
+  width: "min(520px, 100%)",
 };
 
 const compactPanelStyle: CSSProperties = {
@@ -777,6 +784,7 @@ const bodyStyle: CSSProperties = {
   fontSize: "14px",
   lineHeight: "20px",
   margin: 0,
+  overflowWrap: "anywhere",
 };
 
 const metaGridStyle: CSSProperties = {
@@ -823,6 +831,7 @@ const metaDetailStyle: CSSProperties = {
   fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
   fontSize: "12px",
   lineHeight: "17px",
+  overflowWrap: "anywhere",
 };
 
 const contentStackStyle: CSSProperties = {
@@ -837,6 +846,7 @@ const detailStyle: CSSProperties = {
   fontSize: "13px",
   lineHeight: "18px",
   margin: 0,
+  overflowWrap: "anywhere",
 };
 
 const localeSectionStyle: CSSProperties = {
@@ -894,6 +904,7 @@ const guidanceDetailStyle: CSSProperties = {
   fontSize: "12px",
   lineHeight: "17px",
   margin: 0,
+  overflowWrap: "anywhere",
 };
 
 const guidanceListStyle: CSSProperties = {
@@ -909,6 +920,7 @@ const guidanceListItemStyle: CSSProperties = {
   fontFamily: '"Noto Sans SC", "Segoe UI", sans-serif',
   fontSize: "12px",
   lineHeight: "17px",
+  overflowWrap: "anywhere",
 };
 
 const localeHeaderStyle: CSSProperties = {

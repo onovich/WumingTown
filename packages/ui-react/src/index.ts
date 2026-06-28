@@ -8,15 +8,16 @@ export { ShellStoragePanel, type ShellStoragePanelProps } from "./shell-storage-
 export {
   createShellStore,
   getSelectedEntity,
-  type ShellLocaleActions,
   type ShellOnboardingState,
   type ShellOnboardingStep,
   type ShellReleaseGateInfo,
   type ShellReleaseGateLine,
+  type ShellSettingsActions,
   type ShellStorageActions,
   type ShellStorageDiagnosticState,
   type ShellStorageGateState,
   type ShellStorageSlotState,
+  type ShellUiScaleActions,
   type ShellState,
   type ShellStore,
 } from "./shell-store";
@@ -45,6 +46,17 @@ export {
   type NavigatorLanguageLike,
   type ShellLocaleState,
 } from "./localization";
+export {
+  createDefaultShellUiScaleState,
+  createShellUiScaleState,
+  loadUiScalePreference,
+  SUPPORTED_UI_SCALES,
+  UI_SCALE_STORAGE_KEY,
+  writeUiScalePreference,
+  type ShellUiScaleState,
+  type UiScaleId,
+  type UiScalePreferenceV1,
+} from "./shell-ui-scale";
 
 export const UI_REACT_SMOKE: WorkspaceSmoke = defineWorkspaceSmoke(
   "@wuming-town/ui-react",

@@ -22,9 +22,9 @@
       "registeredAt": "2026-06-25T23:05:24.716Z"
     },
     "client-engineer": {
-      "threadId": "019ef650-10ca-7e13-b072-9be37575c2be",
-      "label": "WM-0004 Electron shell",
-      "registeredAt": "2026-06-23T21:08:57.616Z"
+      "threadId": "019f0d07-f642-7731-885c-8fe6503087f7",
+      "label": "Canvas WM-0120 accessibility readability",
+      "registeredAt": "2026-06-28T07:01:16.769Z"
     },
     "qa-performance": {
       "threadId": "019f0ccb-7d5f-7550-811e-dfca965205af",
@@ -42,10 +42,10 @@
       "registeredAt": "2026-06-28T05:15:43.739Z"
     },
     "reviewer": {
-      "threadId": "019f0cf5-2213-7c50-aae3-9dd9a80a5db3",
-      "label": "Gate WM-0118 responsive review",
-      "registeredAt": "2026-06-28T06:40:39.056Z"
+      "threadId": "019f0d3d-d560-7da3-81f0-880b1ea77ef3",
+      "label": "Mirror WM-0120 accessibility review",
+      "registeredAt": "2026-06-28T08:00:07.044Z"
     }
   },
-  "updatedAt": "2026-06-28T06:40:39.056Z"
+  "updatedAt": "2026-06-28T08:00:07.045Z"
 }

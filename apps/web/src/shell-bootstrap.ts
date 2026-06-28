@@ -30,7 +30,7 @@ import {
   type WebDiagnosticDebugState,
 } from "./diagnostic-package-gate";
 import { createShellReleaseGateInfo, readShellBrowserLabel } from "./product-gate-harness";
-import { createShellLocaleController, readDiagnosticsVisibility } from "./shell-locale";
+import { createShellSettingsController, readDiagnosticsVisibility } from "./shell-locale";
 import { WEB_SHELL_SMOKE_READ_MODEL } from "./smoke-read-model";
 import {
   createInitialStorageGateState,
@@ -55,6 +55,12 @@ export interface WebShellDebugPayload extends PixiWorldRendererDebugState {
   readonly runtimeBrowser: string;
   readonly runtimeCrossOriginIsolated: boolean;
   readonly storageGate: WebStorageDebugState;
+  readonly uiScale: {
+    readonly factor: number;
+    readonly persistenceDiagnosticCode: string;
+    readonly persistenceMode: string;
+    readonly preference: string;
+  };
 }
 
 export interface MountedWebShell {
@@ -64,7 +70,7 @@ export interface MountedWebShell {
 export async function mountWebClientShell(rootElement: HTMLElement): Promise<MountedWebShell> {
   prepareDocumentChrome();
   const platformPorts = resolvePlatformPorts();
-  const localeController = createShellLocaleController();
+  const settingsController = createShellSettingsController();
   const diagnosticsVisible = readDiagnosticsVisibility(window.location.search);
   const releaseGate = createShellReleaseGateInfo({
     browserLabel: readShellBrowserLabel(navigator.userAgent),
@@ -92,13 +98,16 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
   shellFrame.append(canvasHost, hudHost);
   rootElement.replaceChildren(shellFrame);
 
-  applyDocumentLocale(localeController.readState());
+  const settingsState = settingsController.readState();
+  applyDocumentLocale(settingsState.locale);
+  document.body.dataset["uiScale"] = settingsState.uiScale.preference;
   const initialState: ShellState = {
     readModel: WEB_SHELL_SMOKE_READ_MODEL,
     releaseGate,
     storageGate: createInitialStorageGateState(),
     onboarding: createM8OnboardingState(),
-    locale: localeController.readState(),
+    locale: settingsState.locale,
+    uiScale: settingsState.uiScale,
     diagnosticsVisible,
     canvasWidth: Math.max(shellFrame.clientWidth, 1),
     canvasHeight: Math.max(shellFrame.clientHeight, 1),
@@ -138,12 +147,16 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
   reactRoot.render(
     createShellHudElement(store, storageController.actions, {
       async onUseManualLocale(locale): Promise<void> {
-        await localeController.actions.onUseManualLocale(locale);
-        syncLocaleState();
+        await settingsController.actions.onUseManualLocale(locale);
+        syncSettingsState();
       },
       async onUseSystemLocale(): Promise<void> {
-        await localeController.actions.onUseSystemLocale();
-        syncLocaleState();
+        await settingsController.actions.onUseSystemLocale();
+        syncSettingsState();
+      },
+      async onUseUiScale(scale): Promise<void> {
+        await settingsController.actions.onUseUiScale(scale);
+        syncSettingsState();
       },
     }),
   );
@@ -265,13 +278,15 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
     );
   }
 
-  function syncLocaleState(): void {
+  function syncSettingsState(): void {
     const currentState = store.getSnapshot();
-    const localeState = localeController.readState();
-    applyDocumentLocale(localeState);
+    const nextSettingsState = settingsController.readState();
+    applyDocumentLocale(nextSettingsState.locale);
+    document.body.dataset["uiScale"] = nextSettingsState.uiScale.preference;
     const nextState = {
       ...currentState,
-      locale: localeState,
+      locale: nextSettingsState.locale,
+      uiScale: nextSettingsState.uiScale,
     };
     store.setState(nextState);
     const activeRenderer = rendererRef.current;
@@ -325,7 +340,7 @@ function readDevicePixelRatio(): number {
 
 function syncDebug(
   debugState: PixiWorldRendererDebugState,
-  shellState: Pick<ShellState, "diagnosticsVisible" | "locale">,
+  shellState: Pick<ShellState, "diagnosticsVisible" | "locale" | "uiScale">,
   platformHost: PlatformHostInfo,
   storageGate: WebStorageDebugState,
   diagnostics: WebDiagnosticDebugState,
@@ -347,6 +362,12 @@ function syncDebug(
       resolvedLocale: shellState.locale.resolvedLocale,
       source: shellState.locale.source,
       systemLocale: shellState.locale.systemLocale,
+    },
+    uiScale: {
+      factor: shellState.uiScale.factor,
+      persistenceDiagnosticCode: shellState.uiScale.persistence.diagnosticCode,
+      persistenceMode: shellState.uiScale.persistence.mode,
+      preference: shellState.uiScale.preference,
     },
     platformHost,
     runtimeBrowser: releaseGate.runtimeBrowser,
