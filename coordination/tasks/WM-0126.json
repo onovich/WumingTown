@@ -2,7 +2,7 @@
   "id": "WM-0126",
   "title": "M8 performance regression and readiness matrix",
   "summary": "Consolidate M8 UI, i18n, accessibility, content, save, performance and M0-M7 regression evidence into a readiness matrix.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -37,7 +37,7 @@
   ],
   "branch": "task/WM-0126-m8-readiness-matrix",
   "createdAt": "2026-06-27T15:46:00.000Z",
-  "updatedAt": "2026-06-28T08:20:20.511Z",
+  "updatedAt": "2026-06-28T09:03:47.594Z",
   "history": [
     {
       "at": "2026-06-27T15:46:00.000Z",
@@ -50,6 +50,48 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-28T08:24:23.585Z",
+      "actor": "qa-performance",
+      "action": "claim",
+      "details": "thread=Sentinel WM-0126 readiness matrix"
+    },
+    {
+      "at": "2026-06-28T08:48:25.392Z",
+      "actor": "qa-performance",
+      "action": "complete",
+      "details": "Delivered M8 readiness matrix and roadmap updates; preserved Web demo-only and Windows controlled external test verdicts; quality, ci:local, m5-invariants, and 100000-tick M5 headless passed; bench failed twice with blocking regressions in entity-store, m4-core-vertical-slice-long-run, map-dirty, and spatial-index, so M8 remains a performance stop-sign candidate."
+    },
+    {
+      "at": "2026-06-28T08:56:03.872Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: WM-0126 cannot be verified/integrated as written because required bench evidence records repeated 20% blocking failures while the matrix says those failures block WM-0126 integration. Either revise the artifact/task semantics to make WM-0126 explicitly integrable only as stop-sign evidence that blocks M8 closeout, or complete a performance repair/explanation before verification. Evidence consolidation and platform verdict preservation otherwise checked."
+    },
+    {
+      "at": "2026-06-28T08:59:31.234Z",
+      "actor": "qa-performance",
+      "action": "complete",
+      "details": "Revised WM-0126 as a verified stop-sign evidence artifact: matrix/report preserve Web demo-only, Windows controlled external test, and owner-gated exclusions; quality, ci:local, m5-invariants, and 100000-tick M5 headless remain documented as pass; bench remains FAIL twice with repeated blocking regressions, which now explicitly block M8 closeout and WM-0127 readiness until a dedicated performance repair/explanation task is reviewed."
+    },
+    {
+      "at": "2026-06-28T09:02:06.075Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings in second review. Report and matrix now make WM-0126 integrable as a verified stop-sign evidence artifact while keeping M8 closeout and WM-0127 readiness blocked pending a dedicated performance repair/explanation task; bench remains recorded as two FAIL runs; Web demo-only, Windows unsigned controlled external test, owner gates, and forbidden-path boundaries preserved."
+    },
+    {
+      "at": "2026-06-28T09:03:47.524Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integrated verified M8 readiness matrix as stop-sign evidence; bench remains two-run FAIL and blocks M8 closeout/WM-0127 readiness pending a dedicated performance repair/explanation task; handoff/taskctl/diff checks passed."
+    },
+    {
+      "at": "2026-06-28T09:03:47.594Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M8",
@@ -64,5 +106,20 @@
     "packages/** except test-only evidence updates explicitly required by acceptance",
     "benchmark baseline weakening",
     "release/store/signing/telemetry/account/paid-service work"
-  ]
+  ],
+  "claimedBy": "qa-performance",
+  "threadLabel": "Sentinel WM-0126 readiness matrix",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0126.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings in second review. Report and matrix now make WM-0126 integrable as a verified stop-sign evidence artifact while keeping M8 closeout and WM-0127 readiness blocked pending a dedicated performance repair/explanation task; bench remains recorded as two FAIL runs; Web demo-only, Windows unsigned controlled external test, owner gates, and forbidden-path boundaries preserved.",
+    "at": "2026-06-28T09:02:06.074Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integrated verified M8 readiness matrix as stop-sign evidence; bench remains two-run FAIL and blocks M8 closeout/WM-0127 readiness pending a dedicated performance repair/explanation task; handoff/taskctl/diff checks passed.",
+    "at": "2026-06-28T09:03:47.522Z"
+  }
 }

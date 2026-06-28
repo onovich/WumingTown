@@ -6,7 +6,8 @@
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [
-    "WM-0126"
+    "WM-0126",
+    "WM-0128"
   ],
   "docs": [
     "AGENTS.md",
@@ -38,13 +39,25 @@
   ],
   "branch": "task/WM-0127-m8-closeout-future-handoff",
   "createdAt": "2026-06-27T15:46:00.000Z",
-  "updatedAt": "2026-06-27T15:46:00.000Z",
+  "updatedAt": "2026-06-28T09:04:30.400Z",
   "history": [
     {
       "at": "2026-06-27T15:46:00.000Z",
       "actor": "project-director",
       "action": "create",
       "details": "Created by WM-0111 M8 UI/i18n scope amendment DAG; remains proposed until dependencies are done."
+    },
+    {
+      "at": "2026-06-28T09:03:47.606Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-28T09:04:30.400Z",
+      "actor": "project-director",
+      "action": "defer-ready",
+      "details": "WM-0126 verified a benchmark stop sign; closeout readiness now depends on WM-0128 performance repair/explanation."
     }
   ],
   "milestone": "M8",

@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQXK8JY7-A75181",
+  "from": "reviewer",
+  "to": "qa-performance",
+  "taskId": "WM-0126",
+  "kind": "review-approved",
+  "subject": "WM-0126 review: verified",
+  "body": "No blocking findings in second review. Report and matrix now make WM-0126 integrable as a verified stop-sign evidence artifact while keeping M8 closeout and WM-0127 readiness blocked pending a dedicated performance repair/explanation task; bench remains recorded as two FAIL runs; Web demo-only, Windows unsigned controlled external test, owner gates, and forbidden-path boundaries preserved.",
+  "artifacts": [
+    "coordination/reports/WM-0126.md"
+  ],
+  "createdAt": "2026-06-28T09:02:06.079Z",
+  "acknowledgedAt": "2026-06-28T09:03:22.814Z"
+}

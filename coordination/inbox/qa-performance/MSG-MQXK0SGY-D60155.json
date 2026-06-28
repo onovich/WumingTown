@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MQXK0SGY-D60155",
+  "from": "reviewer",
+  "to": "qa-performance",
+  "taskId": "WM-0126",
+  "kind": "changes-requested",
+  "subject": "WM-0126 review: changes_requested",
+  "body": "High: WM-0126 cannot be verified/integrated as written because required bench evidence records repeated 20% blocking failures while the matrix says those failures block WM-0126 integration. Either revise the artifact/task semantics to make WM-0126 explicitly integrable only as stop-sign evidence that blocks M8 closeout, or complete a performance repair/explanation before verification. Evidence consolidation and platform verdict preservation otherwise checked.",
+  "artifacts": [
+    "coordination/reports/WM-0126.md"
+  ],
+  "createdAt": "2026-06-28T08:56:03.875Z",
+  "acknowledgedAt": "2026-06-28T08:58:14.912Z"
+}

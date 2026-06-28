@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQXK58H2-13C423",
+  "from": "qa-performance",
+  "to": "reviewer",
+  "taskId": "WM-0126",
+  "kind": "review-request",
+  "subject": "WM-0126 ready for review",
+  "body": "Revised WM-0126 as a verified stop-sign evidence artifact: matrix/report preserve Web demo-only, Windows controlled external test, and owner-gated exclusions; quality, ci:local, m5-invariants, and 100000-tick M5 headless remain documented as pass; bench remains FAIL twice with repeated blocking regressions, which now explicitly block M8 closeout and WM-0127 readiness until a dedicated performance repair/explanation task is reviewed.",
+  "artifacts": [
+    "coordination/reports/WM-0126.md",
+    "task/WM-0126-m8-readiness-matrix"
+  ],
+  "createdAt": "2026-06-28T08:59:31.238Z",
+  "acknowledgedAt": "2026-06-28T09:00:35.126Z"
+}

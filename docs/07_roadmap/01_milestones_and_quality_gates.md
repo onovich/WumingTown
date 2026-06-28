@@ -393,3 +393,39 @@ These gates are mandatory M8 productization requirements, not optional polish.
 They do not approve public release, 1.0 release, store submission, public Web
 launch, signing, telemetry, accounts, paid services, final public claims or
 public save compatibility.
+
+## M8 Readiness Matrix Status
+
+WM-0126 consolidates the reviewed M8 evidence into an internal 1.0 readiness
+matrix after WM-0112 through WM-0125 are done, independently reviewed and
+integrated.
+
+Current consolidation evidence:
+
+- `docs/07_roadmap/11_m8_1_0_readiness_matrix.md` records the gate-by-gate M8
+  readiness decision and repeats the owner-gated residuals.
+- Product UI, visual identity, responsive layout, first-play and accessibility
+  evidence are consolidated from WM-0112 through WM-0120.
+- Content/endgame scope, anomaly roster targets, faction/endgame owner slice,
+  data-mod/localization workflow and focused long-save evidence are
+  consolidated from WM-0121 through WM-0125.
+- M0-M7 regression protection remains anchored to the M5 alpha content
+  framework final world/read-model hashes `0xfba70a5c` / `0x9ba83cb7`, the
+  Web `demo-only` verdict, the Windows unsigned
+  `ready-for-controlled-external-test` verdict, and the unchanged 10 percent
+  warning / 20 percent blocking benchmark policy.
+- WM-0126 reruns the required regression and performance gates before
+  integration, including `quality`, `ci:local`, `m5-invariants`, `bench` and
+  the 100000-tick M5 headless scenario.
+- Current WM-0126 stop sign: `quality`, `ci:local`, `m5-invariants` and the
+  100000-tick M5 headless scenario pass, but repeated `bench` reruns still
+  exceed the 20 percent blocking threshold in `entity-store`,
+  `m4-core-vertical-slice-long-run`, `map-dirty` and `spatial-index`, so M8
+  is not yet a closeout-ready milestone.
+- WM-0126 itself remains integrable as the readiness-matrix stop-sign artifact.
+  The blocked step is M8 closeout and any WM-0127 readiness follow-up until a
+  dedicated performance repair/explanation task is reviewed.
+
+WM-0126 does not approve public release, public Web launch, Windows public
+release, store submission, signing, telemetry, accounts, hosted services, paid
+services or public save compatibility.

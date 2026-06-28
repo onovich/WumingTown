@@ -1,0 +1,73 @@
+{
+  "id": "WM-0128",
+  "title": "Repair or explain M8 benchmark regressions blocking closeout",
+  "summary": "Investigate the repeated WM-0126 benchmark stop signs, repair real regressions without weakening baselines, or produce a reviewed explanation that preserves the benchmark policy before M8 closeout can proceed.",
+  "state": "ready",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0126"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0126.md",
+    "docs/07_roadmap/11_m8_1_0_readiness_matrix.md",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "docs/06_engineering/05_testing_policy.md"
+  ],
+  "acceptance": [
+    "Diagnoses the repeated WM-0126 blocking benchmark regressions in entity-store, m4-core-vertical-slice-long-run, map-dirty and spatial-index",
+    "Repairs product or benchmark-harness regressions without weakening benchmark baselines, thresholds or protected M0-M7 facts",
+    "If a regression is environmental or measurement-only, records reproducible evidence and reviewer-verifiable rationale without changing product readiness claims",
+    "Reruns corepack pnpm bench under the unchanged 10 percent warning / 20 percent blocking policy and records the result; M8 closeout remains blocked unless the final reviewed verdict explicitly clears the stop sign",
+    "Does not change Web demo-only, Windows controlled external test, public release, store, signing, telemetry, account, paid-service or public save-compatibility owner gates"
+  ],
+  "requiredChecks": [
+    "corepack pnpm typecheck",
+    "corepack pnpm test --filter m5-invariants",
+    "corepack pnpm bench",
+    "corepack pnpm sim:run -- --seed 5 --scenario m5-alpha-content-framework --ticks 100000",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0128-m8-benchmark-regression-repair",
+  "createdAt": "2026-06-28T09:04:30.400Z",
+  "updatedAt": "2026-06-28T09:04:30.400Z",
+  "history": [
+    {
+      "at": "2026-06-28T09:04:30.400Z",
+      "actor": "project-director",
+      "action": "create",
+      "details": "Created after WM-0126 verified benchmark stop-sign evidence; required before WM-0127 M8 closeout readiness."
+    },
+    {
+      "at": "2026-06-28T09:04:30.400Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "WM-0126 done; performance stop sign blocks closeout until repaired or reviewed as explained."
+    }
+  ],
+  "milestone": "M8",
+  "allowedPaths": [
+    "packages/sim-core/**",
+    "packages/sim-worker/**",
+    "packages/sim-protocol/**",
+    "tools/**",
+    "docs/06_engineering/**",
+    "docs/07_roadmap/**",
+    "coordination/reports/WM-0128*.md",
+    "coordination/tasks/WM-0128.json"
+  ],
+  "forbiddenPaths": [
+    "benchmark baseline weakening",
+    "benchmark threshold weakening",
+    "public release upload",
+    "store submission",
+    "signing credentials or signed installer",
+    "telemetry account paid service or crash upload implementation",
+    "final privacy legal or store claims without owner approval"
+  ]
+}

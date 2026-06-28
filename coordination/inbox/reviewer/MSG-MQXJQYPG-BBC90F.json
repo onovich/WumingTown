@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQXJQYPG-BBC90F",
+  "from": "qa-performance",
+  "to": "reviewer",
+  "taskId": "WM-0126",
+  "kind": "review-request",
+  "subject": "WM-0126 ready for review",
+  "body": "Delivered M8 readiness matrix and roadmap updates; preserved Web demo-only and Windows controlled external test verdicts; quality, ci:local, m5-invariants, and 100000-tick M5 headless passed; bench failed twice with blocking regressions in entity-store, m4-core-vertical-slice-long-run, map-dirty, and spatial-index, so M8 remains a performance stop-sign candidate.",
+  "artifacts": [
+    "coordination/reports/WM-0126.md",
+    "task/WM-0126-m8-readiness-matrix"
+  ],
+  "createdAt": "2026-06-28T08:48:25.396Z",
+  "acknowledgedAt": "2026-06-28T08:50:14.117Z"
+}

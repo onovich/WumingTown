@@ -27,9 +27,9 @@
       "registeredAt": "2026-06-28T07:01:16.769Z"
     },
     "qa-performance": {
-      "threadId": "019f0ccb-7d5f-7550-811e-dfca965205af",
-      "label": "Gauge WM-0118 responsive validation",
-      "registeredAt": "2026-06-28T05:55:07.906Z"
+      "threadId": "019f0d54-d49d-7871-aa61-382a25723138",
+      "label": "Sentinel WM-0126 readiness matrix",
+      "registeredAt": "2026-06-28T08:25:13.765Z"
     },
     "content-worker": {
       "threadId": "019ef650-24da-7c22-a896-40da4ce6f09f",
@@ -42,10 +42,10 @@
       "registeredAt": "2026-06-28T05:15:43.739Z"
     },
     "reviewer": {
-      "threadId": "019f0d3d-d560-7da3-81f0-880b1ea77ef3",
-      "label": "Mirror WM-0120 accessibility review",
-      "registeredAt": "2026-06-28T08:00:07.044Z"
+      "threadId": "019f0d6b-d461-76a1-8bda-236d1c758760",
+      "label": "Mirror WM-0126 readiness review",
+      "registeredAt": "2026-06-28T08:50:14.007Z"
     }
   },
-  "updatedAt": "2026-06-28T08:00:07.045Z"
+  "updatedAt": "2026-06-28T08:50:14.008Z"
 }
