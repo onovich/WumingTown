@@ -107,6 +107,10 @@ const SHELL_FIXTURE_TEXT: FixtureTextCatalog = Object.freeze({
     en: "Lantern Keeper Shen",
     "zh-CN": "守灯人 沈",
   },
+  "East Market Lantern Post": {
+    en: "East Market Lantern Post",
+    "zh-CN": "东市灯柱",
+  },
   "Watch Lead Qiao": {
     en: "Watch Lead Qiao",
     "zh-CN": "守夜头目 乔",
@@ -118,6 +122,10 @@ const SHELL_FIXTURE_TEXT: FixtureTextCatalog = Object.freeze({
   "Bridge Runner Su": {
     en: "Bridge Runner Su",
     "zh-CN": "桥路脚夫 苏",
+  },
+  "Bridge Ledger Kiosk": {
+    en: "Bridge Ledger Kiosk",
+    "zh-CN": "桥路账亭",
   },
   "Registry Clerk Bo": {
     en: "Registry Clerk Bo",
@@ -155,8 +163,8 @@ const SHELL_FIXTURE_TEXT: FixtureTextCatalog = Object.freeze({
     en: "Ledger Aide 3",
     "zh-CN": "账册助手 3",
   },
-  "Bridge Handler 4": {
-    en: "Bridge Handler 4",
+  "Bridge Ledger Kiosk 4": {
+    en: "Bridge Ledger Kiosk 4",
     "zh-CN": "桥路搬运手 4",
   },
   "Lamp Aide 5": {
@@ -175,8 +183,8 @@ const SHELL_FIXTURE_TEXT: FixtureTextCatalog = Object.freeze({
     en: "Ledger Aide 8",
     "zh-CN": "账册助手 8",
   },
-  "Bridge Handler 9": {
-    en: "Bridge Handler 9",
+  "Bridge Ledger Kiosk 9": {
+    en: "Bridge Ledger Kiosk 9",
     "zh-CN": "桥路搬运手 9",
   },
   "Lamp Aide 10": {
@@ -195,8 +203,8 @@ const SHELL_FIXTURE_TEXT: FixtureTextCatalog = Object.freeze({
     en: "Ledger Aide 13",
     "zh-CN": "账册助手 13",
   },
-  "Bridge Handler 14": {
-    en: "Bridge Handler 14",
+  "Bridge Ledger Kiosk 14": {
+    en: "Bridge Ledger Kiosk 14",
     "zh-CN": "桥路搬运手 14",
   },
   "Lamp Aide 15": {
@@ -215,8 +223,8 @@ const SHELL_FIXTURE_TEXT: FixtureTextCatalog = Object.freeze({
     en: "Ledger Aide 18",
     "zh-CN": "账册助手 18",
   },
-  "Bridge Handler 19": {
-    en: "Bridge Handler 19",
+  "Bridge Ledger Kiosk 19": {
+    en: "Bridge Ledger Kiosk 19",
     "zh-CN": "桥路搬运手 19",
   },
   "Lamp Aide 20": {
@@ -235,8 +243,8 @@ const SHELL_FIXTURE_TEXT: FixtureTextCatalog = Object.freeze({
     en: "Ledger Aide 23",
     "zh-CN": "账册助手 23",
   },
-  "Bridge Handler 24": {
-    en: "Bridge Handler 24",
+  "Bridge Ledger Kiosk 24": {
+    en: "Bridge Ledger Kiosk 24",
     "zh-CN": "桥路搬运手 24",
   },
   "Lamp Aide 25": {
@@ -255,8 +263,8 @@ const SHELL_FIXTURE_TEXT: FixtureTextCatalog = Object.freeze({
     en: "Ledger Aide 28",
     "zh-CN": "账册助手 28",
   },
-  "Bridge Handler 29": {
-    en: "Bridge Handler 29",
+  "Bridge Ledger Kiosk 29": {
+    en: "Bridge Ledger Kiosk 29",
     "zh-CN": "桥路搬运手 29",
   },
   "Cross-checking debt ledgers and witness records before curfew.": {
@@ -1034,17 +1042,26 @@ export function validateShellFixtureLocalization(
 }
 
 function readEntityNameFromId(entityId: string): string {
+  if (entityId.startsWith("bridge-ledger-kiosk-")) {
+    const suffix = entityId.slice("bridge-ledger-kiosk-".length).replace(/^0+/u, "");
+    return `Bridge Ledger Kiosk ${suffix.length === 0 ? "0" : suffix}`;
+  }
+
   switch (entityId) {
     case "chronicler-lin":
       return "Chronicler Lin";
     case "lantern-keeper-shen":
       return "Lantern Keeper Shen";
+    case "east-market-lantern-post":
+      return "East Market Lantern Post";
     case "night-watch-qiao":
       return "Watch Lead Qiao";
     case "guesthouse-ren":
       return "Host Ren";
     case "bridge-runner-su":
       return "Bridge Runner Su";
+    case "bridge-ledger-kiosk":
+      return "Bridge Ledger Kiosk";
     case "registry-bo":
       return "Registry Clerk Bo";
     case "medic-fan":

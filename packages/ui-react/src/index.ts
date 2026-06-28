@@ -12,6 +12,7 @@ export { ShellSettingsPanel, type ShellSettingsPanelProps } from "./shell-settin
 export { ShellStoragePanel, type ShellStoragePanelProps } from "./shell-storage-panel";
 export {
   createShellStore,
+  getEntityTile,
   getSelectedEntity,
   type ShellOnboardingState,
   type ShellOnboardingStep,

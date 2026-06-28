@@ -20,6 +20,7 @@ export interface ShellState {
   readonly zoom: number;
   readonly lastInputLabel: string;
   readonly selectedEntityId: string | undefined;
+  readonly inspectedTile: TileCoordinate | undefined;
   readonly hoverTile: TileCoordinate | undefined;
 }
 
@@ -137,16 +138,29 @@ export function createShellStore(initialState: ShellState): ShellStore {
 export function getSelectedEntity(
   state: Pick<ShellState, "readModel" | "selectedEntityId">,
 ): WorldEntityReadModel | undefined {
-  const selectedEntityId = state.selectedEntityId;
-  if (selectedEntityId === undefined) {
+  return getEntityById(state.readModel, state.selectedEntityId);
+}
+
+export function getEntityById(
+  readModel: WorldReadModel,
+  entityId: string | undefined,
+): WorldEntityReadModel | undefined {
+  if (entityId === undefined) {
     return undefined;
   }
 
-  for (const entity of state.readModel.entities) {
-    if (entity.entityId === selectedEntityId) {
+  for (const entity of readModel.entities) {
+    if (entity.entityId === entityId) {
       return entity;
     }
   }
 
   return undefined;
+}
+
+export function getEntityTile(
+  readModel: WorldReadModel,
+  entityId: string | undefined,
+): TileCoordinate | undefined {
+  return getEntityById(readModel, entityId)?.tile;
 }

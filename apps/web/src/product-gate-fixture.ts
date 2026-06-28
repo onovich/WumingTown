@@ -353,9 +353,9 @@ const SUPPORT_ROLES = [
     currentStep: "Group witness slips by gate lane",
   },
   {
-    entityId: "bridge-handler",
-    displayName: "Bridge Handler",
-    kind: "visitor" as const,
+    entityId: "bridge-ledger-kiosk",
+    displayName: "Bridge Ledger Kiosk",
+    kind: "structure" as const,
     colorHex: 0x43aa8b,
     summary: "Tracking prepared bridge packs and month-end reciprocity checks.",
     roleLabel: "Bridge crew",

@@ -14,6 +14,7 @@ import {
 import {
   createShellHudElement,
   createShellStore,
+  getEntityTile,
   type ShellOnboardingState,
   type ShellLocaleState,
   type ShellState,
@@ -114,6 +115,10 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
     zoom: 1,
     lastInputLabel: "Booting shell",
     selectedEntityId: WEB_SHELL_SMOKE_READ_MODEL.selectedEntityId,
+    inspectedTile: getEntityTile(
+      WEB_SHELL_SMOKE_READ_MODEL,
+      WEB_SHELL_SMOKE_READ_MODEL.selectedEntityId,
+    ),
     hoverTile: undefined,
   };
   const store = createShellStore(initialState);
@@ -177,10 +182,11 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
     container: canvasHost,
     readModel: WEB_SHELL_SMOKE_READ_MODEL,
     selectedEntityId: WEB_SHELL_SMOKE_READ_MODEL.selectedEntityId,
-    onSelectionChange(entityId: string | undefined, inputLabel: string): void {
+    onSelectionChange(entityId: string | undefined, inputLabel: string, inspectedTile): void {
       const currentState = store.getSnapshot();
       store.setState({
         ...currentState,
+        inspectedTile,
         lastInputLabel: inputLabel,
         selectedEntityId: entityId,
       });
@@ -202,6 +208,7 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
         canvasWidth: nextRendererState.canvasWidth,
         canvasHeight: nextRendererState.canvasHeight,
         hoverTile: nextRendererState.hoverTile,
+        inspectedTile: nextRendererState.inspectedTile,
         lastInputLabel: nextRendererState.lastInputLabel,
         selectedEntityId: nextRendererState.selectedEntityId,
         zoom: nextRendererState.zoom,

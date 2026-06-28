@@ -20,6 +20,7 @@ import type {
   ShellStorageGateState,
   ShellStore,
 } from "@wuming-town/ui-react";
+import { getEntityTile } from "@wuming-town/ui-react";
 
 import { WEB_PRODUCT_GATE_HARNESS } from "./product-gate-harness";
 
@@ -261,6 +262,10 @@ async function runLoadSave(
   const currentState = store.getSnapshot();
   store.setState({
     ...currentState,
+    inspectedTile: getEntityTile(
+      currentState.readModel,
+      decoded.data.selectedEntityId ?? undefined,
+    ),
     lastInputLabel: `Loaded ${decoded.data.lastInputLabel}`,
     selectedEntityId: decoded.data.selectedEntityId ?? undefined,
     storageGate: withStorageGatePatch(currentState.storageGate, {

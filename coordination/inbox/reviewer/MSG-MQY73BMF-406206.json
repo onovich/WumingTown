@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQY73BMF-406206",
+  "from": "client-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0136",
+  "kind": "review-request",
+  "subject": "WM-0136 ready for review",
+  "body": "Implemented read-only resident, structure and empty-tile mouse selection with Pixi feedback, localized HUD inspection state, storage restore support and web-shell E2E coverage; pnpm quality, handoff validation, taskctl validate, git diff --check and web-shell E2E pass; pnpm test --filter web-shell remains an unsupported unit-runner command with equivalent E2E pass recorded.",
+  "artifacts": [
+    "coordination/reports/WM-0136.md",
+    "task/WM-0136-world-resident-selection"
+  ],
+  "createdAt": "2026-06-28T19:41:53.175Z",
+  "acknowledgedAt": "2026-06-28T19:55:26.450Z"
+}

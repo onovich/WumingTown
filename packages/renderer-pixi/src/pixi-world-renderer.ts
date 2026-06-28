@@ -3,7 +3,12 @@
 import "pixi.js/unsafe-eval";
 import { Application, Container, Graphics } from "pixi.js";
 
-import type { TileCoordinate, TerrainKind, WorldReadModel } from "@wuming-town/sim-protocol";
+import type {
+  TileCoordinate,
+  TerrainKind,
+  WorldEntityReadModel,
+  WorldReadModel,
+} from "@wuming-town/sim-protocol";
 
 import {
   createFittedViewport,
@@ -15,7 +20,6 @@ import {
   type RendererViewportState,
   type ScreenEntityPosition,
   type ScreenPoint,
-  tileToScreenCenter,
   zoomViewportAtPoint,
 } from "./render-geometry";
 
@@ -25,6 +29,7 @@ export interface RendererStateSnapshot {
   readonly zoom: number;
   readonly lastInputLabel: string;
   readonly selectedEntityId: string | undefined;
+  readonly inspectedTile: TileCoordinate | undefined;
   readonly hoverTile: TileCoordinate | undefined;
 }
 
@@ -40,7 +45,11 @@ export interface CreatePixiWorldRendererOptions {
   readonly container: HTMLElement;
   readonly readModel: WorldReadModel;
   readonly selectedEntityId?: string;
-  readonly onSelectionChange?: (entityId: string | undefined, inputLabel: string) => void;
+  readonly onSelectionChange?: (
+    entityId: string | undefined,
+    inputLabel: string,
+    inspectedTile: TileCoordinate | undefined,
+  ) => void;
   readonly onStateChange?: (state: RendererStateSnapshot) => void;
 }
 
@@ -105,6 +114,10 @@ export async function createPixiWorldRenderer(
   let hoverTile: TileCoordinate | undefined;
   let selectedEntityId: string | undefined =
     options.selectedEntityId ?? options.readModel.selectedEntityId;
+  let inspectedTile: TileCoordinate | undefined = readEntityTile(
+    options.readModel,
+    selectedEntityId,
+  );
   let lastInputLabel = "Ready";
   let userAdjustedViewport = false;
 
@@ -144,17 +157,18 @@ export async function createPixiWorldRenderer(
     const entityId = findEntityAtScreenPoint(viewport, options.readModel, point);
     if (entityId !== selectedEntityId) {
       selectedEntityId = entityId;
-      drawSelectionGraphic(selectionGraphic, selectedEntityId, viewport, options.readModel);
     }
 
     const tile = screenToTile(viewport, options.readModel, point);
+    inspectedTile = tile;
     lastInputLabel =
       entityId !== undefined
         ? `Canvas select ${entityId}`
         : tile !== undefined
           ? `Canvas inspect ${String(tile.x)},${String(tile.y)}`
           : "Canvas pointer";
-    options.onSelectionChange?.(entityId, lastInputLabel);
+    drawSelectionGraphic(selectionGraphic, selectedEntityId, inspectedTile, options.readModel);
+    options.onSelectionChange?.(entityId, lastInputLabel, inspectedTile);
     emitStateChange();
   };
 
@@ -170,7 +184,7 @@ export async function createPixiWorldRenderer(
     );
     lastInputLabel = `Wheel zoom ${String(Math.round(viewport.zoom * 100))}%`;
     applyViewport(app, worldRoot, viewport, devicePixelRatio);
-    drawSelectionGraphic(selectionGraphic, selectedEntityId, viewport, options.readModel);
+    drawSelectionGraphic(selectionGraphic, selectedEntityId, inspectedTile, options.readModel);
     drawHoverGraphic(hoverGraphic, hoverTile, options.readModel);
     emitStateChange();
   };
@@ -229,7 +243,7 @@ export async function createPixiWorldRenderer(
     viewport = nextViewport;
     lastInputLabel = `Keyboard ${event.code}`;
     applyViewport(app, worldRoot, viewport, devicePixelRatio);
-    drawSelectionGraphic(selectionGraphic, selectedEntityId, viewport, options.readModel);
+    drawSelectionGraphic(selectionGraphic, selectedEntityId, inspectedTile, options.readModel);
     drawHoverGraphic(hoverGraphic, hoverTile, options.readModel);
     emitStateChange();
   };
@@ -241,7 +255,7 @@ export async function createPixiWorldRenderer(
   canvas.addEventListener("keydown", onKeyDown);
 
   applyViewport(app, worldRoot, viewport, devicePixelRatio);
-  drawSelectionGraphic(selectionGraphic, selectedEntityId, viewport, options.readModel);
+  drawSelectionGraphic(selectionGraphic, selectedEntityId, inspectedTile, options.readModel);
   drawHoverGraphic(hoverGraphic, hoverTile, options.readModel);
   emitStateChange();
 
@@ -252,7 +266,7 @@ export async function createPixiWorldRenderer(
         ? resizeViewport(viewport, options.readModel, width, height)
         : createFittedViewport(options.readModel, width, height);
       applyViewport(app, worldRoot, viewport, nextDevicePixelRatio);
-      drawSelectionGraphic(selectionGraphic, selectedEntityId, viewport, options.readModel);
+      drawSelectionGraphic(selectionGraphic, selectedEntityId, inspectedTile, options.readModel);
       drawHoverGraphic(hoverGraphic, hoverTile, options.readModel);
       emitStateChange();
     },
@@ -262,7 +276,8 @@ export async function createPixiWorldRenderer(
       }
 
       selectedEntityId = entityId;
-      drawSelectionGraphic(selectionGraphic, selectedEntityId, viewport, options.readModel);
+      inspectedTile = readEntityTile(options.readModel, selectedEntityId);
+      drawSelectionGraphic(selectionGraphic, selectedEntityId, inspectedTile, options.readModel);
       emitStateChange();
     },
     readDebugState(): PixiWorldRendererDebugState {
@@ -292,6 +307,7 @@ export async function createPixiWorldRenderer(
       zoom: viewport.zoom,
       lastInputLabel,
       selectedEntityId,
+      inspectedTile,
       hoverTile,
     };
     options.onStateChange?.(nextState);
@@ -350,13 +366,7 @@ function buildTerrainGraphics(layer: Container, readModel: WorldReadModel): void
 function buildEntityGraphics(layer: Container, readModel: WorldReadModel): void {
   for (const entity of readModel.entities) {
     const marker = new Graphics();
-    marker.circle(0, 0, ENTITY_RADIUS_PX);
-    marker.fill(entity.colorHex);
-    marker.stroke({
-      color: 0x20160f,
-      pixelLine: true,
-      width: 3,
-    });
+    drawEntityMarker(marker, entity);
 
     marker.position.set(
       entity.tile.x * readModel.tileSize + readModel.tileSize / 2,
@@ -369,28 +379,40 @@ function buildEntityGraphics(layer: Container, readModel: WorldReadModel): void 
 function drawSelectionGraphic(
   graphic: Graphics,
   selectedEntityId: string | undefined,
-  viewport: RendererViewportState,
+  inspectedTile: TileCoordinate | undefined,
   readModel: WorldReadModel,
 ): void {
   graphic.clear();
+  if (inspectedTile !== undefined) {
+    graphic.rect(
+      inspectedTile.x * readModel.tileSize,
+      inspectedTile.y * readModel.tileSize,
+      readModel.tileSize,
+      readModel.tileSize,
+    );
+    graphic.fill({
+      alpha: 0.14,
+      color: 0xf7b538,
+    });
+    graphic.stroke({
+      color: 0xf7b538,
+      pixelLine: true,
+      width: 3,
+    });
+  }
+
   if (selectedEntityId === undefined) {
     return;
   }
 
-  const entity = readModel.entities.find((candidate) => candidate.entityId === selectedEntityId);
+  const entity = readEntity(readModel, selectedEntityId);
   if (entity === undefined) {
     return;
   }
 
-  const tilePoint = tileToScreenCenter(viewport, readModel, entity.tile);
-  const worldX = viewport.centerWorldX + (tilePoint.x - viewport.canvasWidth / 2) / viewport.zoom;
-  const worldY = viewport.centerWorldY + (tilePoint.y - viewport.canvasHeight / 2) / viewport.zoom;
-  graphic.circle(worldX, worldY, ENTITY_RADIUS_PX + 5);
-  graphic.stroke({
-    color: 0xf7b538,
-    pixelLine: true,
-    width: 3,
-  });
+  const worldX = entity.tile.x * readModel.tileSize + readModel.tileSize / 2;
+  const worldY = entity.tile.y * readModel.tileSize + readModel.tileSize / 2;
+  drawEntitySelectionOutline(graphic, entity, worldX, worldY);
 }
 
 function drawHoverGraphic(
@@ -422,4 +444,83 @@ function readRelativePoint(event: MouseEvent, canvas: HTMLCanvasElement): Screen
     x: event.clientX - canvasRect.left,
     y: event.clientY - canvasRect.top,
   };
+}
+
+function drawEntityMarker(graphic: Graphics, entity: WorldEntityReadModel): void {
+  switch (entity.kind) {
+    case "structure":
+      graphic.rect(-11, -11, 22, 22);
+      break;
+    case "visitor":
+      graphic.poly([0, -12, 10, 0, 0, 12, -10, 0]);
+      break;
+    case "lantern-keeper":
+      graphic.circle(0, 0, ENTITY_RADIUS_PX + 1);
+      graphic.circle(0, 0, ENTITY_RADIUS_PX - 4);
+      break;
+    case "resident":
+      graphic.circle(0, 0, ENTITY_RADIUS_PX);
+      break;
+  }
+
+  graphic.fill(entity.colorHex);
+  graphic.stroke({
+    color: 0x20160f,
+    pixelLine: true,
+    width: 3,
+  });
+}
+
+function drawEntitySelectionOutline(
+  graphic: Graphics,
+  entity: WorldEntityReadModel,
+  worldX: number,
+  worldY: number,
+): void {
+  switch (entity.kind) {
+    case "structure":
+      graphic.rect(worldX - 15, worldY - 15, 30, 30);
+      break;
+    case "visitor":
+      graphic.poly([
+        worldX,
+        worldY - 16,
+        worldX + 14,
+        worldY,
+        worldX,
+        worldY + 16,
+        worldX - 14,
+        worldY,
+      ]);
+      break;
+    case "lantern-keeper":
+      graphic.circle(worldX, worldY, ENTITY_RADIUS_PX + 8);
+      break;
+    case "resident":
+      graphic.circle(worldX, worldY, ENTITY_RADIUS_PX + 6);
+      break;
+  }
+
+  graphic.stroke({
+    color: 0xf7b538,
+    pixelLine: true,
+    width: 3,
+  });
+}
+
+function readEntity(readModel: WorldReadModel, entityId: string): WorldEntityReadModel | undefined {
+  for (const entity of readModel.entities) {
+    if (entity.entityId === entityId) {
+      return entity;
+    }
+  }
+
+  return undefined;
+}
+
+function readEntityTile(
+  readModel: WorldReadModel,
+  entityId: string | undefined,
+): TileCoordinate | undefined {
+  return entityId === undefined ? undefined : readEntity(readModel, entityId)?.tile;
 }

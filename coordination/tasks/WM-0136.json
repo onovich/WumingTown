@@ -2,7 +2,7 @@
   "id": "WM-0136",
   "title": "World and resident mouse selection remediation",
   "summary": "Make residents, structures, lanterns and relevant map objects selectable with visible feedback and inspector updates while fixing pointer-event layering.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -33,7 +33,7 @@
   ],
   "branch": "task/WM-0136-world-resident-selection",
   "createdAt": "2026-06-28T13:36:56.432Z",
-  "updatedAt": "2026-06-28T18:47:44.228Z",
+  "updatedAt": "2026-06-28T19:57:45.605Z",
   "history": [
     {
       "at": "2026-06-28T13:36:56.432Z",
@@ -46,6 +46,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-28T18:53:03.638Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": "thread=Codex WM-0136 selection"
+    },
+    {
+      "at": "2026-06-28T19:41:53.173Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Implemented read-only resident, structure and empty-tile mouse selection with Pixi feedback, localized HUD inspection state, storage restore support and web-shell E2E coverage; pnpm quality, handoff validation, taskctl validate, git diff --check and web-shell E2E pass; pnpm test --filter web-shell remains an unsupported unit-runner command with equivalent E2E pass recorded."
+    },
+    {
+      "at": "2026-06-28T19:54:20.955Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; resident, structure and empty-tile selection update presentation state only, HUD inspect feedback is localized, fixture count remains 40, and targeted HUD/fixture/geometry checks passed. Nonblocking note: E2E dispatches canvas pointer events directly and zh-CN numbered kiosk labels still read as handlers."
+    },
+    {
+      "at": "2026-06-28T19:57:40.258Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Task branch passed quality and web-shell E2E; independent reviewer Gate the 4th verified resident, structure and empty-tile selection with no blocking findings."
+    },
+    {
+      "at": "2026-06-28T19:57:45.604Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M8",
@@ -62,5 +92,20 @@
     "UI-owned authoritative state",
     "unreviewed Worker protocol expansion",
     "public release or platform verdict changes"
-  ]
+  ],
+  "claimedBy": "client-engineer",
+  "threadLabel": "Codex WM-0136 selection",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0136.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; resident, structure and empty-tile selection update presentation state only, HUD inspect feedback is localized, fixture count remains 40, and targeted HUD/fixture/geometry checks passed. Nonblocking note: E2E dispatches canvas pointer events directly and zh-CN numbered kiosk labels still read as handlers.",
+    "at": "2026-06-28T19:54:20.954Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Task branch passed quality and web-shell E2E; independent reviewer Gate the 4th verified resident, structure and empty-tile selection with no blocking findings.",
+    "at": "2026-06-28T19:57:40.257Z"
+  }
 }

@@ -6,7 +6,7 @@ import {
   type ReactElement,
 } from "react";
 
-import type { WorldEntityReadModel } from "@wuming-town/sim-protocol";
+import type { TerrainKind, TileCoordinate, WorldEntityReadModel } from "@wuming-town/sim-protocol";
 
 import { formatMessage, type LocaleId } from "./localization";
 import {
@@ -281,6 +281,7 @@ function createDesktopHudBody(
       "aside",
       {
         "aria-label": formatMessage(locale, "ui.inspector.aria"),
+        "data-inspected-tile": formatTileCoordinate(state.inspectedTile),
         "data-selected-entity": selectedEntity?.entityId ?? "",
         style: desktopHudColumnStyle,
       },
@@ -319,6 +320,7 @@ function createCompactHudBody(
       "aside",
       {
         "aria-label": formatMessage(locale, "ui.inspector.aria"),
+        "data-inspected-tile": formatTileCoordinate(state.inspectedTile),
         "data-selected-entity": selectedEntity?.entityId ?? "",
         style: compactInspectorPanelStyle,
       },
@@ -623,6 +625,10 @@ function createInspectorCard(
   compact: boolean,
 ): ReactElement {
   if (selectedEntity === undefined) {
+    if (state.inspectedTile !== undefined) {
+      return createTileInspectorCard(state, state.inspectedTile, locale, compact);
+    }
+
     return createElement(
       "section",
       {
@@ -721,6 +727,64 @@ function createInspectorCard(
       selectedEntity.inspector.thoughts.map((item) => localizeShellFixtureText(locale, item)),
       false,
     ),
+  );
+}
+
+function createTileInspectorCard(
+  state: ShellState,
+  inspectedTile: TileCoordinate,
+  locale: LocaleId,
+  compact: boolean,
+): ReactElement {
+  const terrain = readTerrainKindAtTile(state.readModel, inspectedTile);
+
+  return createElement(
+    "section",
+    {
+      "data-testid": "player-selected-detail",
+      "data-ui-slot": SHELL_DESIGN_TOKENS.slot.inspector,
+      style: compact ? compactInspectorCardStyle : paperCardStyle,
+    },
+    createSectionHeader(
+      formatMessage(locale, "ui.hud.selected"),
+      formatMessage(locale, "ui.inspector.location", {
+        kind: formatMessage(locale, "ui.inspector.tileFocus"),
+        tileLabel: formatMessage(locale, "ui.inspector.tile"),
+        x: String(inspectedTile.x),
+        y: String(inspectedTile.y),
+      }),
+    ),
+    createElement(
+      "div",
+      {
+        style: cardTitleStyle,
+      },
+      formatMessage(locale, "ui.inspector.tileInspection"),
+    ),
+    createElement(
+      "p",
+      {
+        style: bodyTextStyle,
+      },
+      formatMessage(locale, "ui.inspector.tileInspection.body"),
+    ),
+    createPairGrid(locale, [
+      {
+        label: formatMessage(locale, "ui.inspector.lastInput"),
+        value: localizeShellLastInputLabel(locale, state.lastInputLabel),
+      },
+      {
+        label: formatMessage(locale, "ui.hud.map"),
+        value: localizeShellFixtureText(locale, state.readModel.mapName),
+      },
+      {
+        label: formatMessage(locale, "ui.inspector.terrain"),
+        value:
+          terrain === undefined
+            ? formatMessage(locale, "ui.inspector.terrainUnknown")
+            : formatTerrainKind(terrain, locale),
+      },
+    ]),
   );
 }
 
@@ -1562,12 +1626,52 @@ function formatEntityKind(kind: WorldEntityReadModel["kind"], locale: LocaleId):
   }
 }
 
+function formatTerrainKind(kind: TerrainKind, locale: LocaleId): string {
+  switch (kind) {
+    case "brush":
+      return formatMessage(locale, "ui.terrain.brush");
+    case "earth":
+      return formatMessage(locale, "ui.terrain.earth");
+    case "lantern-glow":
+      return formatMessage(locale, "ui.terrain.lanternGlow");
+    case "path":
+      return formatMessage(locale, "ui.terrain.path");
+    case "water":
+      return formatMessage(locale, "ui.terrain.water");
+  }
+}
+
 function formatHoverTile(state: ShellState): string {
   if (state.hoverTile === undefined) {
     return "none";
   }
 
   return `${String(state.hoverTile.x)},${String(state.hoverTile.y)}`;
+}
+
+function formatTileCoordinate(tile: TileCoordinate | undefined): string {
+  if (tile === undefined) {
+    return "";
+  }
+
+  return `${String(tile.x)},${String(tile.y)}`;
+}
+
+function readTerrainKindAtTile(
+  readModel: ShellState["readModel"],
+  tile: TileCoordinate,
+): TerrainKind | undefined {
+  for (const chunk of readModel.chunks) {
+    const localX = tile.x - chunk.originTile.x;
+    const localY = tile.y - chunk.originTile.y;
+    if (localX < 0 || localY < 0 || localX >= chunk.width || localY >= chunk.height) {
+      continue;
+    }
+
+    return chunk.terrain[localY * chunk.width + localX];
+  }
+
+  return undefined;
 }
 
 const overlayRootStyle: CSSProperties = {

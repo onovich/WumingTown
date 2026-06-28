@@ -385,6 +385,77 @@ describe("web shell smoke", () => {
     }
   }, 120000);
 
+  it("selects residents, structures, and empty tiles through the live viewport in windowed and fullscreen-equivalent sizes", async () => {
+    const appRoot = path.join(process.cwd(), "apps", "web");
+    const server = await createServer({
+      configFile: false,
+      logLevel: "error",
+      root: appRoot,
+      server: {
+        host: "127.0.0.1",
+        port: 0,
+        strictPort: false,
+      },
+    });
+    await server.listen();
+
+    const serverUrl = readServerUrl(server);
+    const browser = await chromium.launch();
+
+    try {
+      const context = await browser.newContext({
+        locale: "en-US",
+        viewport: {
+          width: 1424,
+          height: 861,
+        },
+      });
+      const page = await context.newPage();
+
+      await page.goto(serverUrl, {
+        waitUntil: "networkidle",
+      });
+      await page.waitForSelector("[data-shell-ready='true']");
+      await waitForLocale(page, "en", "system");
+      await page.getByTestId("main-menu-new-game").click();
+      await waitForStartSurfaceClosed(page);
+
+      let debugPayload = await readDebugPayload(page);
+      await clickCanvasPoint(page, findRequiredEntity(debugPayload, "lantern-keeper-shen"));
+      await waitForSelectedEntity(page, "lantern-keeper-shen");
+      expect(await page.getByTestId("player-selected-detail").textContent()).toContain(
+        "Lantern Keeper Shen",
+      );
+
+      const emptyPoint = await findInspectableCanvasPoint(page, debugPayload);
+      await clickCanvasPoint(page, emptyPoint);
+      await waitForInspectedTile(page);
+      expect(await page.getByTestId("player-selected-detail").textContent()).toContain(
+        "Tile inspection",
+      );
+      expect(await page.getByTestId("player-selected-detail").textContent()).toContain("Terrain");
+
+      await page.setViewportSize({
+        width: 2560,
+        height: 1369,
+      });
+      await waitForTimeout(page, 150);
+      await assertTownHudViewportLayout(page, 2560, 1369);
+
+      debugPayload = await readDebugPayload(page);
+      await clickCanvasPoint(page, findRequiredEntity(debugPayload, "bridge-ledger-kiosk-04"));
+      await waitForSelectedEntity(page, "bridge-ledger-kiosk-04");
+      expect(await page.getByTestId("player-selected-detail").textContent()).toContain(
+        "Bridge Ledger Kiosk 4",
+      );
+
+      await context.close();
+    } finally {
+      await browser.close();
+      await server.close();
+    }
+  }, 120000);
+
   it("downloads a redacted local M6 diagnostic package", async () => {
     const appRoot = path.join(process.cwd(), "apps", "web");
     const server = await createServer({
@@ -1596,6 +1667,43 @@ async function clickCanvasPoint(
     }, point);
 }
 
+async function findInspectableCanvasPoint(
+  page: import("playwright").Page,
+  payload: WebShellDebugPayload,
+): Promise<{ readonly x: number; readonly y: number }> {
+  return page.evaluate((entityScreenPositions) => {
+    const canvas = document.querySelector("[data-testid='world-canvas']");
+    if (!(canvas instanceof HTMLCanvasElement)) {
+      throw new Error("Expected world canvas.");
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    const minimumDistanceSquared = 28 * 28;
+    for (let y = rect.top + rect.height * 0.32; y <= rect.bottom - 24; y += 24) {
+      for (let x = rect.left + rect.width * 0.36; x <= rect.right - 24; x += 24) {
+        let nearEntity = false;
+        for (const entity of entityScreenPositions) {
+          const deltaX = entity.x - x;
+          const deltaY = entity.y - y;
+          if (deltaX * deltaX + deltaY * deltaY <= minimumDistanceSquared) {
+            nearEntity = true;
+            break;
+          }
+        }
+
+        if (!nearEntity) {
+          return {
+            x: x - rect.left,
+            y: y - rect.top,
+          };
+        }
+      }
+    }
+
+    throw new Error("Unable to find an uncovered empty canvas point.");
+  }, payload.entityScreenPositions);
+}
+
 function findRequiredEntity(
   payload: WebShellDebugPayload,
   entityId: string,
@@ -1662,6 +1770,25 @@ async function waitForSelectedEntity(
   }
 
   throw new Error(`Timed out waiting for selected entity ${expectedEntityId}`);
+}
+
+async function waitForInspectedTile(page: import("playwright").Page): Promise<string> {
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    const inspector = page.locator("[data-inspected-tile]").first();
+    const selectedEntity = await inspector.getAttribute("data-selected-entity");
+    const inspectedTile = await inspector.getAttribute("data-inspected-tile");
+    if (selectedEntity === "" && typeof inspectedTile === "string" && inspectedTile.length > 0) {
+      return inspectedTile;
+    }
+
+    await page.waitForTimeout(100);
+  }
+
+  throw new Error("Timed out waiting for empty-tile inspection feedback.");
+}
+
+async function waitForTimeout(page: import("playwright").Page, durationMs: number): Promise<void> {
+  await page.waitForTimeout(durationMs);
 }
 
 async function readContrastRatio(

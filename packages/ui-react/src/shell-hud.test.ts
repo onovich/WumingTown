@@ -103,7 +103,18 @@ const FIXTURE_SLICE_READ_MODEL: WorldReadModel = {
       },
     ],
   },
-  chunks: [],
+  chunks: [
+    {
+      chunkId: "fixture-slice-inspected-tile",
+      originTile: {
+        x: 104,
+        y: 100,
+      },
+      width: 1,
+      height: 1,
+      terrain: ["lantern-glow"],
+    },
+  ],
   entities: [
     {
       entityId: "entity-fixture-a",
@@ -241,6 +252,27 @@ describe("shell-hud", () => {
     expect(markup).not.toContain("Rice");
     expect(markup).not.toContain("Unhurt");
   });
+
+  it("renders localized empty-tile inspection feedback when no entity is selected", () => {
+    const state = {
+      ...createShellState(createDefaultShellLocaleState(["en-US"]), FIXTURE_SLICE_READ_MODEL),
+      diagnosticsVisible: true,
+      inspectedTile: {
+        x: 104,
+        y: 100,
+      },
+      lastInputLabel: "Canvas inspect 104,100",
+      selectedEntityId: undefined,
+    } satisfies ShellState;
+    const markup = renderShell(state);
+
+    expect(markup).toContain("Tile inspection");
+    expect(markup).toContain("Inspect tile 104,100");
+    expect(markup).toContain("Terrain");
+    expect(markup).toContain("Lantern glow");
+    expect(markup).toContain("East market and bridge road");
+    expect(markup).not.toContain("No selection");
+  });
 });
 
 function createShellState(
@@ -300,6 +332,10 @@ function createShellState(
     zoom: 1.25,
     lastInputLabel: "Ready",
     selectedEntityId: readModel.selectedEntityId,
+    inspectedTile: {
+      x: 96,
+      y: 80,
+    },
     hoverTile: {
       x: 96,
       y: 80,
