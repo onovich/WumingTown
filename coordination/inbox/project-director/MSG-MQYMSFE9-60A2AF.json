@@ -1,0 +1,12 @@
+{
+  "id": "MSG-MQYMSFE9-60A2AF",
+  "from": "qa-performance",
+  "to": "project-director",
+  "taskId": "WM-0140",
+  "kind": "blocker",
+  "subject": "WM-0140 blocked",
+  "body": "WM-0140 visual gate found compact main-menu viewport clipping after first-play guidance: assertCompactStartSurfaceLayout reports bottom 730/728 > 721 at compact viewport. Fix requires packages/ui-react, outside WM-0140 allowed paths.",
+  "artifacts": [],
+  "createdAt": "2026-06-29T03:01:18.705Z",
+  "acknowledgedAt": "2026-06-29T03:04:54.640Z"
+}

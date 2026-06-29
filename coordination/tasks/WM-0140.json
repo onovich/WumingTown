@@ -2,7 +2,7 @@
   "id": "WM-0140",
   "title": "Visual regression screenshot and interaction evidence gate",
   "summary": "Capture reviewer-inspectable responsive screenshots and automated evidence for player HUD, selection, camera and minimum playable chain after remediation.",
-  "state": "ready",
+  "state": "blocked",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -10,7 +10,8 @@
     "WM-0136",
     "WM-0137",
     "WM-0138",
-    "WM-0139"
+    "WM-0139",
+    "WM-0143"
   ],
   "docs": [
     "AGENTS.md",
@@ -37,7 +38,7 @@
   ],
   "branch": "task/WM-0140-visual-regression-interaction-evidence",
   "createdAt": "2026-06-28T13:36:56.432Z",
-  "updatedAt": "2026-06-28T23:07:48.425Z",
+  "updatedAt": "2026-06-29T03:01:18.704Z",
   "history": [
     {
       "at": "2026-06-28T13:36:56.432Z",
@@ -50,6 +51,18 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-29T03:01:18.704Z",
+      "actor": "qa-performance",
+      "action": "block",
+      "details": "WM-0140 visual gate found compact main-menu viewport clipping after first-play guidance: assertCompactStartSurfaceLayout reports bottom 730/728 > 721 at compact viewport. Fix requires packages/ui-react, outside WM-0140 allowed paths."
+    },
+    {
+      "at": "2026-06-29T03:04:30.000Z",
+      "actor": "project-director",
+      "action": "add-repair-dependency",
+      "details": "Added WM-0143 to repair compact start-surface clipping before resuming visual evidence gate."
     }
   ],
   "milestone": "M8",
@@ -63,5 +76,12 @@
   "forbiddenPaths": [
     "lowering tests or thresholds to pass",
     "public release or platform verdict changes"
-  ]
+  ],
+  "blocker": {
+    "by": "qa-performance",
+    "to": "project-director",
+    "reason": "WM-0140 visual gate found compact main-menu viewport clipping after first-play guidance: assertCompactStartSurfaceLayout reports bottom 730/728 > 721 at compact viewport. Fix requires packages/ui-react, outside WM-0140 allowed paths.",
+    "previousState": "ready",
+    "at": "2026-06-29T03:01:18.703Z"
+  }
 }

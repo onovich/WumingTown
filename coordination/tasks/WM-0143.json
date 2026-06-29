@@ -1,0 +1,61 @@
+{
+  "id": "WM-0143",
+  "title": "Compact first-play start surface viewport repair",
+  "summary": "Repair compact viewport clipping in the first-play main menu/start surface exposed by WM-0140 visual regression gate.",
+  "state": "ready",
+  "ownerRole": "client-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0139"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0139.md",
+    "coordination/tasks/WM-0140.json",
+    "docs/06_engineering/05_testing_policy.md",
+    "docs/01_design/10_m8_first_play_guidance.md"
+  ],
+  "acceptance": [
+    "Compact 390x720 start surface keeps key content and controls viewport-bounded or scroll-reachable without clipping",
+    "Large UI scale compact start surface remains readable and scroll-reachable",
+    "Default player HUD and diagnostics overlay behavior are not regressed",
+    "WM-0140 visual gate can resume without changing QA thresholds"
+  ],
+  "requiredChecks": [
+    "node tools/test-runner.mjs e2e --filter web-shell",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0143-compact-first-play-start-surface-viewport-repair",
+  "createdAt": "2026-06-29T03:04:10.809Z",
+  "updatedAt": "2026-06-29T03:04:30.000Z",
+  "history": [
+    {
+      "at": "2026-06-29T03:04:10.809Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    },
+    {
+      "at": "2026-06-29T03:04:30.000Z",
+      "actor": "project-director",
+      "action": "scope",
+      "details": "Repair task created from WM-0140 blocker; keep thresholds intact and limit product edits to compact start-surface/readability fixes."
+    }
+  ],
+  "milestone": "M8",
+  "phase": "post-m8-owner-remediation",
+  "allowedPaths": [
+    "packages/ui-react/src/**",
+    "apps/web/src/web-shell.e2e.test.ts",
+    "coordination/reports/WM-0143*.md",
+    "coordination/tasks/WM-0143.json"
+  ],
+  "forbiddenPaths": [
+    "lowering E2E layout thresholds or deleting compact viewport coverage",
+    "public release or platform verdict changes",
+    "Simulation Worker authority, save schema or protocol changes"
+  ]
+}
