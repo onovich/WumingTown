@@ -2,7 +2,7 @@
   "id": "WM-0140",
   "title": "Visual regression screenshot and interaction evidence gate",
   "summary": "Capture reviewer-inspectable responsive screenshots and automated evidence for player HUD, selection, camera and minimum playable chain after remediation.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -39,7 +39,7 @@
   ],
   "branch": "task/WM-0140-visual-regression-interaction-evidence",
   "createdAt": "2026-06-28T13:36:56.432Z",
-  "updatedAt": "2026-06-29T05:18:03.951Z",
+  "updatedAt": "2026-06-29T05:21:32.758Z",
   "history": [
     {
       "at": "2026-06-28T13:36:56.432Z",
@@ -106,6 +106,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings; artifact matrix, default/diagnostics split, selection/camera/lamp assertions, gate plausibility, and no threshold weakening verified."
+    },
+    {
+      "at": "2026-06-29T05:21:27.068Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Merged commit e2bfecc into main; handoff, taskctl validate/status, git diff --check, and pnpm quality passed on main."
+    },
+    {
+      "at": "2026-06-29T05:21:32.758Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M8",
@@ -129,5 +141,10 @@
     "verdict": "verified",
     "summary": "No blocking findings; artifact matrix, default/diagnostics split, selection/camera/lamp assertions, gate plausibility, and no threshold weakening verified.",
     "at": "2026-06-29T05:18:03.951Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Merged commit e2bfecc into main; handoff, taskctl validate/status, git diff --check, and pnpm quality passed on main.",
+    "at": "2026-06-29T05:21:27.068Z"
   }
 }
