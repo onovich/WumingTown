@@ -2,7 +2,7 @@
   "id": "WM-0143",
   "title": "Compact first-play start surface viewport repair",
   "summary": "Repair compact viewport clipping in the first-play main menu/start surface exposed by WM-0140 visual regression gate.",
-  "state": "ready",
+  "state": "verified",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0143-compact-first-play-start-surface-viewport-repair",
   "createdAt": "2026-06-29T03:04:10.809Z",
-  "updatedAt": "2026-06-29T03:04:30.000Z",
+  "updatedAt": "2026-06-29T03:25:00.865Z",
   "history": [
     {
       "at": "2026-06-29T03:04:10.809Z",
@@ -43,6 +43,24 @@
       "actor": "project-director",
       "action": "scope",
       "details": "Repair task created from WM-0140 blocker; keep thresholds intact and limit product edits to compact start-surface/readability fixes."
+    },
+    {
+      "at": "2026-06-29T03:06:10.675Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": "thread=Codex WM-0143 compact start surface repair"
+    },
+    {
+      "at": "2026-06-29T03:18:03.316Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Compact first-play guidance now fits 390x720 and zh-CN large UI scale without lowering E2E thresholds; web-shell E2E 12/12 and quality passed."
+    },
+    {
+      "at": "2026-06-29T03:25:00.865Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; compact 390x720 and zh-CN large UI scale start-surface assertions pass; no E2E thresholds or forbidden paths changed."
     }
   ],
   "milestone": "M8",
@@ -57,5 +75,15 @@
     "lowering E2E layout thresholds or deleting compact viewport coverage",
     "public release or platform verdict changes",
     "Simulation Worker authority, save schema or protocol changes"
-  ]
+  ],
+  "claimedBy": "client-engineer",
+  "threadLabel": "Codex WM-0143 compact start surface repair",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0143.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; compact 390x720 and zh-CN large UI scale start-surface assertions pass; no E2E thresholds or forbidden paths changed.",
+    "at": "2026-06-29T03:25:00.864Z"
+  }
 }

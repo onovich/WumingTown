@@ -229,7 +229,7 @@ function createHomeView(
         testId: "main-menu-settings",
       }),
     ),
-    createFirstPlayGuidance(uiLocale, phaseMeaning, nextGoal),
+    createFirstPlayGuidance(uiLocale, phaseMeaning, nextGoal, compact),
     createElement(
       "p",
       {
@@ -285,6 +285,7 @@ function createFirstPlayGuidance(
   locale: LocaleId,
   phaseMeaning: string,
   nextGoal: NextGoal,
+  compact: boolean,
 ): ReactElement {
   const nextGoalCopy = localizeNextGoal(locale, nextGoal);
 
@@ -293,7 +294,7 @@ function createFirstPlayGuidance(
     {
       "aria-label": formatMessage(locale, "ui.mainMenu.firstPlay.title"),
       "data-testid": "main-menu-first-play-guidance",
-      style: firstPlayPanelStyle,
+      style: compact ? compactFirstPlayPanelStyle : firstPlayPanelStyle,
     },
     createElement(
       "div",
@@ -318,7 +319,7 @@ function createFirstPlayGuidance(
     createElement(
       "div",
       {
-        style: firstPlayGridStyle,
+        style: compact ? compactFirstPlayGridStyle : firstPlayGridStyle,
       },
       createGuidanceCard(
         formatMessage(locale, "ui.mainMenu.firstPlay.nextGoal"),
@@ -326,6 +327,7 @@ function createFirstPlayGuidance(
         nextGoalCopy.detail,
         nextGoalCopy.severity,
         "main-menu-next-goal",
+        compact,
       ),
       createGuidanceListCard(
         formatMessage(locale, "ui.mainMenu.firstPlay.actions"),
@@ -338,6 +340,7 @@ function createFirstPlayGuidance(
           formatMessage(locale, "ui.mainMenu.firstPlay.action.settings"),
         ],
         "main-menu-available-actions",
+        compact,
       ),
       createGuidanceCard(
         formatMessage(locale, "ui.mainMenu.firstPlay.boundaryTitle"),
@@ -345,6 +348,7 @@ function createFirstPlayGuidance(
         formatMessage(locale, "ui.mainMenu.firstPlay.boundary"),
         "stable",
         "main-menu-guidance-boundary",
+        compact,
       ),
     ),
   );
@@ -410,13 +414,14 @@ function createGuidanceCard(
   detail: string,
   severity: AlertSeverity,
   testId: string,
+  compact: boolean,
 ): ReactElement {
   return createElement(
     "section",
     {
       "data-severity": severity,
       "data-testid": testId,
-      style: guidanceCardStyle,
+      style: compact ? compactGuidanceCardStyle : guidanceCardStyle,
     },
     createElement(
       "div",
@@ -446,12 +451,13 @@ function createGuidanceListCard(
   label: string,
   items: readonly string[],
   testId: string,
+  compact: boolean,
 ): ReactElement {
   return createElement(
     "section",
     {
       "data-testid": testId,
-      style: guidanceCardStyle,
+      style: compact ? compactGuidanceCardStyle : guidanceCardStyle,
     },
     createElement(
       "div",
@@ -463,14 +469,14 @@ function createGuidanceListCard(
     createElement(
       "ul",
       {
-        style: guidanceListStyle,
+        style: compact ? compactGuidanceListStyle : guidanceListStyle,
       },
       ...items.map((item) =>
         createElement(
           "li",
           {
             key: item,
-            style: guidanceListItemStyle,
+            style: compact ? compactGuidanceListItemStyle : guidanceListItemStyle,
           },
           item,
         ),
@@ -835,10 +841,21 @@ const firstPlayPanelStyle: CSSProperties = {
   gap: "14px",
 };
 
+const compactFirstPlayPanelStyle: CSSProperties = {
+  ...firstPlayPanelStyle,
+  gap: "8px",
+  padding: "10px",
+};
+
 const firstPlayGridStyle: CSSProperties = {
   display: "grid",
   gap: "10px",
   gridTemplateColumns: "1fr",
+};
+
+const compactFirstPlayGridStyle: CSSProperties = {
+  ...firstPlayGridStyle,
+  gap: "6px",
 };
 
 const guidanceCardStyle: CSSProperties = {
@@ -847,6 +864,12 @@ const guidanceCardStyle: CSSProperties = {
     padding: "10px 12px",
     radius: SHELL_DESIGN_TOKENS.radius.panel,
   }),
+};
+
+const compactGuidanceCardStyle: CSSProperties = {
+  ...guidanceCardStyle,
+  gap: "4px",
+  padding: "8px 10px",
 };
 
 const guidanceLabelStyle: CSSProperties = {
@@ -883,12 +906,24 @@ const guidanceListStyle: CSSProperties = {
   paddingLeft: "18px",
 };
 
+const compactGuidanceListStyle: CSSProperties = {
+  ...guidanceListStyle,
+  gap: "3px",
+  paddingLeft: "16px",
+};
+
 const guidanceListItemStyle: CSSProperties = {
   color: "var(--shell-color-text-warm)",
   fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
   fontSize: "12px",
   lineHeight: "17px",
   overflowWrap: "anywhere",
+};
+
+const compactGuidanceListItemStyle: CSSProperties = {
+  ...guidanceListItemStyle,
+  fontSize: "11px",
+  lineHeight: "15px",
 };
 
 const localeHeaderStyle: CSSProperties = {

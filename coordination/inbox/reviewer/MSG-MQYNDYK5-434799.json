@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQYNDYK5-434799",
+  "from": "client-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0143",
+  "kind": "review-request",
+  "subject": "WM-0143 ready for review",
+  "body": "Compact first-play guidance now fits 390x720 and zh-CN large UI scale without lowering E2E thresholds; web-shell E2E 12/12 and quality passed.",
+  "artifacts": [
+    "coordination/reports/WM-0143.md",
+    "task/WM-0143-compact-first-play-start-surface-viewport-repair"
+  ],
+  "createdAt": "2026-06-29T03:18:03.318Z",
+  "acknowledgedAt": "2026-06-29T03:25:58.185Z"
+}
