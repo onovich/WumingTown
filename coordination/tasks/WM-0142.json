@@ -2,7 +2,7 @@
   "id": "WM-0142",
   "title": "Post-M8 UI playability remediation closeout",
   "summary": "Close the post-M8 UI remediation only after every remediation task is independently reviewed, integrated, validated, merged to main and pushed.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -35,7 +35,7 @@
   ],
   "branch": "task/WM-0142-ui-playability-remediation-closeout",
   "createdAt": "2026-06-28T13:36:56.432Z",
-  "updatedAt": "2026-06-29T06:15:43.334Z",
+  "updatedAt": "2026-06-29T06:19:11.317Z",
   "history": [
     {
       "at": "2026-06-28T13:36:56.432Z",
@@ -66,6 +66,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings; WM-0129..WM-0141 are done, independently verified and integrated by project-director; WM-0142 readiness/gate evidence is recorded accurately; cold benchmark failures are documented and two warmed confirmations pass without threshold/baseline changes; public gates and no-WM-0145 control-plane boundary preserved."
+    },
+    {
+      "at": "2026-06-29T06:19:04.384Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Merged commit c1bdd58 into main; handoff, taskctl validate/status, git diff --check, and pnpm quality passed on main. Closeout gates recorded in coordination/reports/WM-0142.md."
+    },
+    {
+      "at": "2026-06-29T06:19:11.317Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M8",
@@ -93,5 +105,10 @@
     "verdict": "verified",
     "summary": "No blocking findings; WM-0129..WM-0141 are done, independently verified and integrated by project-director; WM-0142 readiness/gate evidence is recorded accurately; cold benchmark failures are documented and two warmed confirmations pass without threshold/baseline changes; public gates and no-WM-0145 control-plane boundary preserved.",
     "at": "2026-06-29T06:15:43.334Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Merged commit c1bdd58 into main; handoff, taskctl validate/status, git diff --check, and pnpm quality passed on main. Closeout gates recorded in coordination/reports/WM-0142.md.",
+    "at": "2026-06-29T06:19:04.383Z"
   }
 }
