@@ -2,7 +2,7 @@
   "id": "WM-0140",
   "title": "Visual regression screenshot and interaction evidence gate",
   "summary": "Capture reviewer-inspectable responsive screenshots and automated evidence for player HUD, selection, camera and minimum playable chain after remediation.",
-  "state": "blocked",
+  "state": "verified",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -39,7 +39,7 @@
   ],
   "branch": "task/WM-0140-visual-regression-interaction-evidence",
   "createdAt": "2026-06-28T13:36:56.432Z",
-  "updatedAt": "2026-06-29T03:55:14.820Z",
+  "updatedAt": "2026-06-29T05:18:03.951Z",
   "history": [
     {
       "at": "2026-06-28T13:36:56.432Z",
@@ -54,7 +54,13 @@
       "details": "all dependencies done"
     },
     {
-      "at": "2026-06-29T03:01:18.704Z",
+      "at": "2026-06-28T23:12:05.975Z",
+      "actor": "qa-performance",
+      "action": "claim",
+      "details": "thread=Codex WM-0140 visual evidence gate"
+    },
+    {
+      "at": "2026-06-29T03:00:47.242Z",
       "actor": "qa-performance",
       "action": "block",
       "details": "WM-0140 visual gate found compact main-menu viewport clipping after first-play guidance: assertCompactStartSurfaceLayout reports bottom 730/728 > 721 at compact viewport. Fix requires packages/ui-react, outside WM-0140 allowed paths."
@@ -82,6 +88,24 @@
       "actor": "project-director",
       "action": "add-repair-dependency",
       "details": "Added WM-0144 to repair desktop Electron localized-title E2E assertions before resuming the full test:e2e gate."
+    },
+    {
+      "at": "2026-06-29T04:33:45.732Z",
+      "actor": "project-director",
+      "action": "unblock",
+      "details": "WM-0144 desktop E2E locale-title and reachability repair is done and pushed to main; resume full visual evidence gate."
+    },
+    {
+      "at": "2026-06-29T05:10:14.204Z",
+      "actor": "qa-performance",
+      "action": "complete",
+      "details": "Implemented WM-0140 visual screenshot and interaction evidence gate; focused Web E2E 13/13, full E2E 30/30, quality, handoff, taskctl validate/status, and diff check pass; required unit filter remains unsupported and documented."
+    },
+    {
+      "at": "2026-06-29T05:18:03.951Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; artifact matrix, default/diagnostics split, selection/camera/lamp assertions, gate plausibility, and no threshold weakening verified."
     }
   ],
   "milestone": "M8",
@@ -96,11 +120,14 @@
     "lowering tests or thresholds to pass",
     "public release or platform verdict changes"
   ],
-  "blocker": {
-    "by": "qa-performance",
-    "to": "project-director",
-    "reason": "WM-0140 full test:e2e now fails desktop Electron localized-title assertions: English desktop HUD expects zh-CN title text and zh-CN start surface expects Wuming Town. Repair requires apps/desktop-electron/src outside WM-0140 allowed paths; web-shell evidence gate itself passes 13/13.",
-    "previousState": "ready",
-    "at": "2026-06-29T03:55:14.819Z"
+  "claimedBy": "qa-performance",
+  "threadLabel": "Codex WM-0140 visual evidence gate",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0140.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; artifact matrix, default/diagnostics split, selection/camera/lamp assertions, gate plausibility, and no threshold weakening verified.",
+    "at": "2026-06-29T05:18:03.951Z"
   }
 }

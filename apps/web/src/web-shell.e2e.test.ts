@@ -107,6 +107,27 @@ interface ResponsiveLayoutArtifact {
   readonly viewport: ResponsiveViewport;
 }
 
+interface WM0140InteractionArtifact {
+  readonly centerWorldX?: number;
+  readonly centerWorldY?: number;
+  readonly commandState?: string;
+  readonly diagnosticsVisible: boolean;
+  readonly inspectedTile?: string;
+  readonly locale: "en" | "zh-CN";
+  readonly note: string;
+  readonly reasonCode?: string;
+  readonly scenario:
+    | "camera-pan-zoom"
+    | "empty-tile-inspection"
+    | "lamp-command"
+    | "resident-selection"
+    | "structure-selection";
+  readonly screenshotPath: string;
+  readonly selectedEntityId?: string;
+  readonly viewport: ResponsiveViewport;
+  readonly zoom?: number;
+}
+
 const WM0118_RESPONSIVE_VIEWPORTS: readonly ResponsiveViewport[] = [
   { width: 1280, height: 720 },
   { width: 1366, height: 768 },
@@ -124,6 +145,14 @@ const WM0135_WEB_LAYOUT_REPORT_PATH = path.join(
   "coordination",
   "reports",
   "WM-0135-responsive-layout.md",
+);
+const WM0140_VISUAL_ARTIFACT_ROOT = path.join(process.cwd(), "tools", "artifacts", "WM-0140");
+const WM0140_WEB_SCREENSHOT_ROOT = path.join(WM0140_VISUAL_ARTIFACT_ROOT, "screenshots");
+const WM0140_VISUAL_ARTIFACT_REPORT_PATH = path.join(
+  process.cwd(),
+  "coordination",
+  "reports",
+  "WM-0140-visual-artifacts.md",
 );
 
 const SCREENSHOT_PATH = readScreenshotPath();
@@ -901,6 +930,60 @@ describe("web shell smoke", () => {
     }
   }, 420000);
 
+  it("captures WM-0140 visual regression and interaction evidence artifacts", async () => {
+    const appRoot = path.join(process.cwd(), "apps", "web");
+    const server = await createServer({
+      configFile: false,
+      logLevel: "error",
+      root: appRoot,
+      server: {
+        host: "127.0.0.1",
+        port: 0,
+        strictPort: false,
+      },
+    });
+    await server.listen();
+
+    const serverUrl = readServerUrl(server);
+    const browser = await chromium.launch();
+    const responsiveArtifacts: ResponsiveLayoutArtifact[] = [];
+    const interactionArtifacts: WM0140InteractionArtifact[] = [];
+
+    try {
+      await collectWm0140ResponsiveHudArtifacts(
+        browser,
+        serverUrl,
+        {
+          expectedLocale: "en",
+          playwrightLocale: "en-US",
+        },
+        responsiveArtifacts,
+      );
+      await collectWm0140ResponsiveHudArtifacts(
+        browser,
+        serverUrl,
+        {
+          expectedLocale: "zh-CN",
+          playwrightLocale: "zh-TW",
+        },
+        responsiveArtifacts,
+      );
+      await collectWm0140DebugOverlayArtifacts(browser, serverUrl, responsiveArtifacts);
+      await collectWm0140InteractionArtifacts(browser, serverUrl, interactionArtifacts);
+      await mkdir(path.dirname(WM0140_VISUAL_ARTIFACT_REPORT_PATH), {
+        recursive: true,
+      });
+      await writeFile(
+        WM0140_VISUAL_ARTIFACT_REPORT_PATH,
+        formatWm0140VisualArtifactMarkdown(responsiveArtifacts, interactionArtifacts),
+        "utf8",
+      );
+    } finally {
+      await browser.close();
+      await server.close();
+    }
+  }, 420000);
+
   it("defaults locale by browser language and persists manual display overrides across reload", async () => {
     const appRoot = path.join(process.cwd(), "apps", "web");
     const server = await createServer({
@@ -1230,6 +1313,7 @@ async function assertTownHudViewportLayout(
   await assertMapFocusArea(page, width, height, expectedLayoutMode);
 
   for (const testId of [
+    "player-command-bar",
     "player-next-goal",
     "player-task-list",
     "player-event-list",
@@ -1238,6 +1322,9 @@ async function assertTownHudViewportLayout(
   ]) {
     await assertTestIdReachableWithoutCover(page, testId, width, height);
   }
+  await assertTestIdWithinViewport(page, "player-command-lamp", width, height);
+  await assertTestIdWithinViewport(page, "player-command-chronicle", width, height);
+  await assertTestIdWithinViewport(page, "player-command-inspect", width, height);
 
   await assertTallSelectorReachableWithoutCover(
     page,
@@ -1546,6 +1633,416 @@ async function collectResponsiveDebugArtifacts(
   }
 }
 
+async function collectWm0140ResponsiveHudArtifacts(
+  browser: import("playwright").Browser,
+  serverUrl: string,
+  localeCase: {
+    readonly expectedLocale: "en" | "zh-CN";
+    readonly playwrightLocale: string;
+  },
+  artifacts: ResponsiveLayoutArtifact[],
+): Promise<void> {
+  const initialViewport = WM0118_RESPONSIVE_VIEWPORTS[0];
+  if (initialViewport === undefined) {
+    throw new Error("WM-0140 viewport matrix was empty.");
+  }
+
+  const context = await browser.newContext({
+    deviceScaleFactor: 1,
+    locale: localeCase.playwrightLocale,
+    viewport: initialViewport,
+  });
+
+  try {
+    const page = await context.newPage();
+    await page.goto(serverUrl, {
+      waitUntil: "networkidle",
+    });
+    await page.waitForSelector("[data-shell-ready='true']");
+    await waitForLocale(page, localeCase.expectedLocale, "system");
+    await page.getByTestId("main-menu-new-game").click();
+    await waitForStartSurfaceClosed(page);
+
+    for (const viewport of WM0118_RESPONSIVE_VIEWPORTS) {
+      await assertTownHudViewportLayout(
+        page,
+        viewport.width,
+        viewport.height,
+        localeCase.expectedLocale,
+      );
+      const screenshotPath = await captureWm0140Screenshot(
+        page,
+        path.join(
+          "responsive",
+          localeCase.expectedLocale,
+          `player-hud-${String(viewport.width)}x${String(viewport.height)}.png`,
+        ),
+      );
+      artifacts.push(
+        await captureResponsiveLayoutArtifact(page, {
+          locale: localeCase.expectedLocale,
+          selectors: {
+            commandBar: "[data-testid='player-command-bar']",
+            commandChronicle: "[data-testid='player-command-chronicle']",
+            commandInspect: "[data-testid='player-command-inspect']",
+            commandLamp: "[data-testid='player-command-lamp']",
+            eventList: "[data-testid='player-event-list']",
+            localeSettings: "[data-testid='locale-settings']",
+            mapFocus: "[data-testid='player-map-focus']",
+            nextGoal: "[data-testid='player-next-goal']",
+            residentWatch: "[data-testid='player-resident-watch']",
+            selectedDetail: "[data-testid='player-selected-detail']",
+            taskList: "[data-testid='player-task-list']",
+            topBar: "[data-testid='player-top-bar']",
+            worldCanvas: "[data-testid='world-canvas']",
+          },
+          shell: "web",
+          source: "system",
+          surface: "player-hud",
+          viewport,
+          screenshotPath,
+        }),
+      );
+    }
+  } finally {
+    await context.close();
+  }
+}
+
+async function collectWm0140DebugOverlayArtifacts(
+  browser: import("playwright").Browser,
+  serverUrl: string,
+  artifacts: ResponsiveLayoutArtifact[],
+): Promise<void> {
+  const initialViewport = WM0118_RESPONSIVE_VIEWPORTS[0];
+  if (initialViewport === undefined) {
+    throw new Error("WM-0140 viewport matrix was empty.");
+  }
+
+  const context = await browser.newContext({
+    deviceScaleFactor: 1,
+    locale: "en-US",
+    viewport: initialViewport,
+  });
+
+  try {
+    const page = await context.newPage();
+    await page.goto(withQuery(serverUrl, "wmDiagnostics=1"), {
+      waitUntil: "networkidle",
+    });
+    await page.waitForSelector("[data-shell-ready='true']");
+    await waitForLocale(page, "en", "system");
+
+    for (const viewport of WM0118_RESPONSIVE_VIEWPORTS) {
+      await assertDebugOverlayViewportLayout(page, viewport.width, viewport.height);
+      const screenshotPath = await captureWm0140Screenshot(
+        page,
+        path.join(
+          "responsive",
+          "diagnostics",
+          `debug-overlay-en-${String(viewport.width)}x${String(viewport.height)}.png`,
+        ),
+      );
+      artifacts.push(
+        await captureResponsiveLayoutArtifact(page, {
+          locale: "en",
+          selectors: {
+            commandBar: "[data-testid='player-command-bar']",
+            commandLamp: "[data-testid='player-command-lamp']",
+            debugOverlay: "[data-testid='debug-overlay']",
+            eventList: "[data-testid='player-event-list']",
+            mapFocus: "[data-testid='player-map-focus']",
+            nextGoal: "[data-testid='player-next-goal']",
+            residentWatch: "[data-testid='player-resident-watch']",
+            selectedDetail: "[data-testid='player-selected-detail']",
+            storagePanel: "[data-testid='storage-panel']",
+            taskList: "[data-testid='player-task-list']",
+            topBar: "[data-testid='player-top-bar']",
+          },
+          shell: "web",
+          source: "system",
+          surface: "debug-overlay",
+          viewport,
+          screenshotPath,
+        }),
+      );
+    }
+  } finally {
+    await context.close();
+  }
+}
+
+async function collectWm0140InteractionArtifacts(
+  browser: import("playwright").Browser,
+  serverUrl: string,
+  artifacts: WM0140InteractionArtifact[],
+): Promise<void> {
+  await collectWm0140SelectionArtifacts(browser, serverUrl, artifacts);
+  await collectWm0140CameraArtifact(browser, serverUrl, artifacts);
+  for (const localeCase of [
+    {
+      expectedLocale: "en",
+      playwrightLocale: "en-US",
+    },
+    {
+      expectedLocale: "zh-CN",
+      playwrightLocale: "zh-CN",
+    },
+  ] as const) {
+    await collectWm0140LampCommandArtifact(browser, serverUrl, localeCase, artifacts);
+  }
+}
+
+async function collectWm0140SelectionArtifacts(
+  browser: import("playwright").Browser,
+  serverUrl: string,
+  artifacts: WM0140InteractionArtifact[],
+): Promise<void> {
+  const windowedViewport = {
+    width: 1424,
+    height: 861,
+  } satisfies ResponsiveViewport;
+  const fullscreenViewport = {
+    width: 2560,
+    height: 1369,
+  } satisfies ResponsiveViewport;
+  const context = await browser.newContext({
+    deviceScaleFactor: 1,
+    locale: "en-US",
+    viewport: windowedViewport,
+  });
+
+  try {
+    const page = await context.newPage();
+    await page.goto(serverUrl, {
+      waitUntil: "networkidle",
+    });
+    await page.waitForSelector("[data-shell-ready='true']");
+    await waitForLocale(page, "en", "system");
+    await page.getByTestId("main-menu-new-game").click();
+    await waitForStartSurfaceClosed(page);
+    await assertTownHudViewportLayout(page, windowedViewport.width, windowedViewport.height);
+
+    let debugPayload = await readDebugPayload(page);
+    await clickCanvasPoint(page, findRequiredEntity(debugPayload, "lantern-keeper-shen"));
+    await waitForSelectedEntity(page, "lantern-keeper-shen");
+    artifacts.push({
+      diagnosticsVisible: await readDiagnosticsVisible(page),
+      locale: "en",
+      note: "Resident selection through the live viewport.",
+      scenario: "resident-selection",
+      screenshotPath: await captureWm0140Screenshot(
+        page,
+        path.join(
+          "interactions",
+          "en",
+          `resident-selection-${String(windowedViewport.width)}x${String(windowedViewport.height)}.png`,
+        ),
+      ),
+      selectedEntityId: "lantern-keeper-shen",
+      viewport: windowedViewport,
+    });
+
+    debugPayload = await readDebugPayload(page);
+    await clickCanvasPoint(page, await findInspectableCanvasPoint(page, debugPayload));
+    const inspectedTile = await waitForInspectedTile(page);
+    artifacts.push({
+      diagnosticsVisible: await readDiagnosticsVisible(page),
+      inspectedTile,
+      locale: "en",
+      note: "Empty tile inspection from an uncovered map point.",
+      scenario: "empty-tile-inspection",
+      screenshotPath: await captureWm0140Screenshot(
+        page,
+        path.join(
+          "interactions",
+          "en",
+          `empty-tile-inspection-${String(windowedViewport.width)}x${String(windowedViewport.height)}.png`,
+        ),
+      ),
+      viewport: windowedViewport,
+    });
+
+    await assertTownHudViewportLayout(page, fullscreenViewport.width, fullscreenViewport.height);
+    debugPayload = await readDebugPayload(page);
+    await clickCanvasPoint(page, findRequiredEntity(debugPayload, "bridge-ledger-kiosk-04"));
+    await waitForSelectedEntity(page, "bridge-ledger-kiosk-04");
+    artifacts.push({
+      diagnosticsVisible: await readDiagnosticsVisible(page),
+      locale: "en",
+      note: "Structure selection at fullscreen-equivalent layout.",
+      scenario: "structure-selection",
+      screenshotPath: await captureWm0140Screenshot(
+        page,
+        path.join(
+          "interactions",
+          "en",
+          `structure-selection-${String(fullscreenViewport.width)}x${String(fullscreenViewport.height)}.png`,
+        ),
+      ),
+      selectedEntityId: "bridge-ledger-kiosk-04",
+      viewport: fullscreenViewport,
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+async function collectWm0140CameraArtifact(
+  browser: import("playwright").Browser,
+  serverUrl: string,
+  artifacts: WM0140InteractionArtifact[],
+): Promise<void> {
+  const viewport = {
+    width: 1424,
+    height: 861,
+  } satisfies ResponsiveViewport;
+  const context = await browser.newContext({
+    deviceScaleFactor: 1,
+    locale: "en-US",
+    viewport,
+  });
+
+  try {
+    const page = await context.newPage();
+    await page.goto(serverUrl, {
+      waitUntil: "networkidle",
+    });
+    await page.waitForSelector("[data-shell-ready='true']");
+    await waitForLocale(page, "en", "system");
+    await page.getByTestId("main-menu-new-game").click();
+    await waitForStartSurfaceClosed(page);
+    await assertTownHudViewportLayout(page, viewport.width, viewport.height);
+
+    const baseline = await readDebugPayload(page);
+    const dragStart = await readMapFocusViewportPoint(page, 0.48, 0.48);
+    await assertViewportPointHitsCanvas(page, dragStart);
+    await dragCanvasViewportPoint(page, dragStart, {
+      x: dragStart.x + 180,
+      y: dragStart.y + 72,
+    });
+    await waitForHudText(page, "Drag pan");
+    const dragged = await readDebugPayload(page);
+    expect(Math.abs(dragged.centerWorldX - baseline.centerWorldX)).toBeGreaterThan(20);
+    expect(Math.abs(dragged.centerWorldY - baseline.centerWorldY)).toBeGreaterThan(8);
+
+    const wheelPoint = await readMapFocusViewportPoint(page, 0.55, 0.46);
+    await page.mouse.move(wheelPoint.x, wheelPoint.y);
+    await page.mouse.wheel(0, -360);
+    await waitForHudText(page, "Zoom");
+    const zoomed = await readDebugPayload(page);
+    expect(zoomed.zoom).toBeGreaterThan(dragged.zoom);
+
+    await page.keyboard.press("ArrowRight");
+    await waitForHudText(page, "Keyboard ArrowRight");
+    const keyboardMoved = await readDebugPayload(page);
+    expect(keyboardMoved.centerWorldX).toBeGreaterThan(zoomed.centerWorldX);
+
+    artifacts.push({
+      centerWorldX: keyboardMoved.centerWorldX,
+      centerWorldY: keyboardMoved.centerWorldY,
+      diagnosticsVisible: await readDiagnosticsVisible(page),
+      locale: "en",
+      note: `Baseline ${formatNumericEvidence(baseline.centerWorldX)}/${formatNumericEvidence(
+        baseline.centerWorldY,
+      )} -> reset validated after capture.`,
+      scenario: "camera-pan-zoom",
+      screenshotPath: await captureWm0140Screenshot(
+        page,
+        path.join(
+          "interactions",
+          "en",
+          `camera-pan-zoom-${String(viewport.width)}x${String(viewport.height)}.png`,
+        ),
+      ),
+      viewport,
+      zoom: keyboardMoved.zoom,
+    });
+
+    await page.keyboard.press("Home");
+    await waitForHudText(page, "Camera reset");
+    const reset = await readDebugPayload(page);
+    expect(reset.zoom).toBeCloseTo(baseline.zoom, 5);
+    expect(reset.centerWorldX).toBeCloseTo(baseline.centerWorldX, 5);
+    expect(reset.centerWorldY).toBeCloseTo(baseline.centerWorldY, 5);
+  } finally {
+    await context.close();
+  }
+}
+
+async function collectWm0140LampCommandArtifact(
+  browser: import("playwright").Browser,
+  serverUrl: string,
+  localeCase: {
+    readonly expectedLocale: "en" | "zh-CN";
+    readonly playwrightLocale: string;
+  },
+  artifacts: WM0140InteractionArtifact[],
+): Promise<void> {
+  const viewport = {
+    width: 1424,
+    height: 861,
+  } satisfies ResponsiveViewport;
+  const context = await browser.newContext({
+    deviceScaleFactor: 1,
+    locale: localeCase.playwrightLocale,
+    viewport,
+  });
+
+  try {
+    const page = await context.newPage();
+    await page.goto(serverUrl, {
+      waitUntil: "networkidle",
+    });
+    await page.waitForSelector("[data-shell-ready='true']");
+    await waitForLocale(page, localeCase.expectedLocale, "system");
+    await page.getByTestId("main-menu-new-game").click();
+    await waitForStartSurfaceClosed(page);
+    await assertTownHudViewportLayout(
+      page,
+      viewport.width,
+      viewport.height,
+      localeCase.expectedLocale,
+    );
+
+    const debugPayload = await readDebugPayload(page);
+    await clickCanvasPoint(page, findRequiredEntity(debugPayload, "lantern-keeper-shen"));
+    await waitForSelectedEntity(page, "lantern-keeper-shen");
+
+    const lampButton = page.getByTestId("player-command-lamp");
+    expect(await lampButton.getAttribute("aria-disabled")).toBe("false");
+    expect(await lampButton.getAttribute("data-command-state")).toBe("ready");
+    await lampButton.click();
+    await waitForActionFeedback(page, "wm0138.local_adapter.lamp_priority");
+
+    const actionPayload = await readDebugPayload(page);
+    const commandState = await lampButton.getAttribute("data-command-state");
+    expect(commandState).toBe("queued");
+    const reasonCode = actionPayload.playableAction?.reasonCode;
+    const selectedEntityId = actionPayload.playableAction?.targetEntityId;
+    artifacts.push({
+      ...(commandState === null ? {} : { commandState }),
+      diagnosticsVisible: await readDiagnosticsVisible(page),
+      locale: localeCase.expectedLocale,
+      note: "Queued reviewed shell-local playable command evidence.",
+      ...(reasonCode === undefined ? {} : { reasonCode }),
+      scenario: "lamp-command",
+      screenshotPath: await captureWm0140Screenshot(
+        page,
+        path.join(
+          "interactions",
+          localeCase.expectedLocale,
+          `lamp-command-${String(viewport.width)}x${String(viewport.height)}.png`,
+        ),
+      ),
+      ...(selectedEntityId === undefined ? {} : { selectedEntityId }),
+      viewport,
+    });
+  } finally {
+    await context.close();
+  }
+}
+
 async function assertDebugOverlayViewportLayout(
   page: import("playwright").Page,
   width: number,
@@ -1560,6 +2057,7 @@ async function assertDebugOverlayViewportLayout(
   await assertDocumentOverflowWithinViewport(page);
 
   for (const testId of [
+    "player-command-bar",
     "player-top-bar",
     "player-next-goal",
     "player-task-list",
@@ -1568,6 +2066,9 @@ async function assertDebugOverlayViewportLayout(
   ]) {
     await assertTestIdReachableWithoutCover(page, testId, width, height);
   }
+  await assertTestIdWithinViewport(page, "player-command-lamp", width, height);
+  await assertTestIdWithinViewport(page, "player-command-chronicle", width, height);
+  await assertTestIdWithinViewport(page, "player-command-inspect", width, height);
   await assertTallSelectorReachableWithoutCover(
     page,
     "[data-testid='player-selected-detail']",
@@ -1684,6 +2185,56 @@ function formatResponsiveLayoutArtifactMarkdown(
   ].join("\n");
 }
 
+async function captureWm0140Screenshot(
+  page: import("playwright").Page,
+  relativePath: string,
+): Promise<string> {
+  const screenshotPath = path.join(WM0140_WEB_SCREENSHOT_ROOT, relativePath);
+  await mkdir(path.dirname(screenshotPath), {
+    recursive: true,
+  });
+  await page.screenshot({
+    animations: "disabled",
+    path: screenshotPath,
+  });
+  return toRelativeArtifactPath(screenshotPath);
+}
+
+function formatWm0140VisualArtifactMarkdown(
+  responsiveArtifacts: readonly ResponsiveLayoutArtifact[],
+  interactionArtifacts: readonly WM0140InteractionArtifact[],
+): string {
+  const responsiveRows = responsiveArtifacts.map(
+    (artifact) =>
+      `| ${artifact.surface} | ${artifact.locale} | ${String(artifact.viewport.width)}x${String(artifact.viewport.height)} | ${artifact.layoutMode ?? "n/a"} | ${artifact.diagnosticsVisible ? "yes" : "no"} | ${String(artifact.documentOverflowX)}/${String(artifact.documentOverflowY)} | ${formatMetricSummary(artifact.metrics["topBar"])} | ${formatMetricSummary(artifact.metrics["commandBar"])} | ${formatMetricSummary(artifact.metrics["commandLamp"])} | ${formatMetricSummary(artifact.metrics["mapFocus"])} | ${artifact.screenshotPath ?? "n/a"} |`,
+  );
+  const interactionRows = interactionArtifacts.map(
+    (artifact) =>
+      `| ${artifact.scenario} | ${artifact.locale} | ${String(artifact.viewport.width)}x${String(artifact.viewport.height)} | ${artifact.selectedEntityId ?? "n/a"} | ${artifact.inspectedTile ?? "n/a"} | ${artifact.commandState ?? "n/a"} | ${artifact.reasonCode ?? "n/a"} | ${formatOptionalNumber(artifact.centerWorldX)}/${formatOptionalNumber(artifact.centerWorldY)}/${formatOptionalNumber(artifact.zoom)} | ${artifact.diagnosticsVisible ? "yes" : "no"} | ${artifact.screenshotPath} | ${artifact.note} |`,
+  );
+
+  return [
+    "# WM-0140 Visual Artifact Evidence",
+    "",
+    "Generated by `apps/web/src/web-shell.e2e.test.ts` during the WM-0140 visual evidence gate.",
+    "Responsive screenshots cover default player HUD in `en` and `zh-CN`, plus explicit diagnostics overlay screenshots in `en`.",
+    "Interaction artifacts record reviewer-inspectable evidence for selection, camera, and the reviewed local command chain without changing authoritative simulation behavior.",
+    "",
+    "## Responsive Screenshots",
+    "",
+    "| Surface | Locale | Viewport | HUD layout | Diagnostics | Doc overflow X/Y | Top bar | Command bar | Lamp command | Map focus | Screenshot path |",
+    "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+    ...responsiveRows,
+    "",
+    "## Interaction Evidence",
+    "",
+    "| Scenario | Locale | Viewport | Selected entity | Inspected tile | Command state | Reason code | Camera X/Y/Zoom | Diagnostics | Screenshot path | Note |",
+    "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+    ...interactionRows,
+    "",
+  ].join("\n");
+}
+
 function formatMetricSummary(metric: ResponsiveSelectorMetric | undefined): string {
   if (metric === undefined) {
     return "n/a";
@@ -1692,6 +2243,14 @@ function formatMetricSummary(metric: ResponsiveSelectorMetric | undefined): stri
   return `${String(Math.round(metric.width))}x${String(Math.round(metric.height))}@${String(
     Math.round(metric.left),
   )},${String(Math.round(metric.top))}`;
+}
+
+function formatOptionalNumber(value: number | undefined): string {
+  return value === undefined ? "n/a" : formatNumericEvidence(value);
+}
+
+function formatNumericEvidence(value: number): string {
+  return value.toFixed(2);
 }
 
 function readExpectedHudLayoutMode(width: number, height: number): ResponsiveHudLayoutMode {
@@ -2273,6 +2832,13 @@ async function readDebugPayload(page: import("playwright").Page): Promise<WebShe
   const debugText = await page.locator("#wm-shell-debug").textContent();
   expect(debugText).not.toBeNull();
   return parseDebugPayload(debugText ?? "{}");
+}
+
+async function readDiagnosticsVisible(page: import("playwright").Page): Promise<boolean> {
+  return (
+    (await page.locator("[data-shell-ready='true']").getAttribute("data-diagnostics-visible")) ===
+    "true"
+  );
 }
 
 async function waitForHudText(
