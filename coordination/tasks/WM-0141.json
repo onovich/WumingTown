@@ -2,7 +2,7 @@
   "id": "WM-0141",
   "title": "Post-M8 UI remediation release-readiness verdict update",
   "summary": "Update release-readiness evidence after UI/playability remediation while preserving public release, Web and Windows owner gates.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,7 +32,7 @@
   ],
   "branch": "task/WM-0141-ui-remediation-verdict-update",
   "createdAt": "2026-06-28T13:36:56.432Z",
-  "updatedAt": "2026-06-29T05:38:03.555Z",
+  "updatedAt": "2026-06-29T05:41:03.984Z",
   "history": [
     {
       "at": "2026-06-28T13:36:56.432Z",
@@ -63,6 +63,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings; verified blocker-by-blocker UI/playability status, Web demo-only and Windows unsigned controlled-test verdict preservation, owner-gated public release/store/signing/telemetry/accounts/paid-services/public-save boundaries, remaining art/authoritative-gameplay residuals, and audit-only RC gap-assessment wording."
+    },
+    {
+      "at": "2026-06-29T05:40:58.390Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Merged commit b9d6797 into main; handoff, taskctl validate/status, git diff --check, and pnpm quality passed on main."
+    },
+    {
+      "at": "2026-06-29T05:41:03.983Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M8",
@@ -90,5 +102,10 @@
     "verdict": "verified",
     "summary": "No blocking findings; verified blocker-by-blocker UI/playability status, Web demo-only and Windows unsigned controlled-test verdict preservation, owner-gated public release/store/signing/telemetry/accounts/paid-services/public-save boundaries, remaining art/authoritative-gameplay residuals, and audit-only RC gap-assessment wording.",
     "at": "2026-06-29T05:38:03.555Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Merged commit b9d6797 into main; handoff, taskctl validate/status, git diff --check, and pnpm quality passed on main.",
+    "at": "2026-06-29T05:40:58.390Z"
   }
 }

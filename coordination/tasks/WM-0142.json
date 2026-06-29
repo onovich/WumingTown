@@ -2,7 +2,7 @@
   "id": "WM-0142",
   "title": "Post-M8 UI playability remediation closeout",
   "summary": "Close the post-M8 UI remediation only after every remediation task is independently reviewed, integrated, validated, merged to main and pushed.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -35,13 +35,19 @@
   ],
   "branch": "task/WM-0142-ui-playability-remediation-closeout",
   "createdAt": "2026-06-28T13:36:56.432Z",
-  "updatedAt": "2026-06-28T13:36:56.432Z",
+  "updatedAt": "2026-06-29T05:41:03.992Z",
   "history": [
     {
       "at": "2026-06-28T13:36:56.432Z",
       "actor": "project-director",
       "action": "create",
       "details": "Created by WM-0129 remediation DAG."
+    },
+    {
+      "at": "2026-06-29T05:41:03.992Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "M8",
