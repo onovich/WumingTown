@@ -448,3 +448,38 @@ M8 closeout does not approve public release, public 1.0 launch, public Web
 launch, Windows public release, store submission, signing, telemetry, accounts,
 hosted services, paid services, final privacy/legal/store claims, public
 feedback systems or public save compatibility.
+
+## Post-M8 UI / Playability Remediation Verdict
+
+WM-0129 through WM-0141 are a post-M8 owner remediation phase created after the
+owner reported that the M8 demo still looked too much like an internal harness,
+mixed languages, lacked reliable mouse selection and camera dragging, and had
+practical playability near zero. This phase is not M9 and is not public release
+work.
+
+WM-0141 updates the readiness verdict after verified remediation evidence:
+
+- Default player UI vs diagnostics: ready for release-candidate audit evidence;
+  diagnostics remain explicit debug surfaces.
+- UI visual direction and component system: ready for controlled/demo review
+  using the approved B-layout, C-mood and A/C map-light sourcing plus semantic
+  asset slots; final cut art and store-facing polish remain owner-gated.
+- Localization: ready for the current audited `zh-CN`/`en` player shell,
+  onboarding and command feedback; future player-visible content fields require
+  structured ids or adapter coverage before exposure.
+- Responsive layout: ready across the required Web windowed/fullscreen matrix,
+  with WM-0140 screenshot evidence and WM-0143/WM-0144 repair evidence.
+- Mouse interaction and camera: ready for current Web shell evidence, including
+  resident/object/tile selection, buttons, drag pan, wheel zoom, keyboard move
+  and reset.
+- Playability: minimum playable chain ready as reviewed shell-local evidence;
+  broader authoritative Simulation Worker command handling remains future
+  reviewed work.
+
+An audit-only release-candidate gap assessment may proceed after WM-0142 closes
+the remediation phase if the owner asks for that lane. This verdict does not
+approve release-candidate distribution, public release, Early Access launch,
+store submission, signing, telemetry, accounts, paid services, public feedback,
+public Web launch, Windows public release or public save compatibility. Web
+remains `demo-only`; Windows remains unsigned local-directory
+`ready-for-controlled-external-test`.

@@ -1,12 +1,13 @@
 # M8 1.0 Readiness Matrix
 
-Status: WM-0127 M8 closeout readiness artifact. This document consolidates
-verified M8 evidence for internal 1.0 readiness review, including WM-0128's
-benchmark stop-sign clearance. It is not public release approval, public Web
-launch approval, Windows public release approval, store submission approval,
-signing approval, telemetry approval, account approval, paid-service approval,
-hosted-service approval, final privacy/legal approval or public
-save-compatibility approval.
+Status: WM-0127 M8 closeout readiness artifact with WM-0141 post-M8 owner UI
+remediation verdict addendum. This document consolidates verified M8 evidence
+for internal 1.0 readiness review, including WM-0128's benchmark stop-sign
+clearance and WM-0129 through WM-0140 remediation evidence. It is not public
+release approval, public Web launch approval, Windows public release approval,
+store submission approval, signing approval, telemetry approval, account
+approval, paid-service approval, hosted-service approval, final privacy/legal
+approval or public save-compatibility approval.
 
 ## Roadmap Authority
 
@@ -46,14 +47,37 @@ hosted feedback, crash upload, paid services or public save guarantees.
 All upstream tasks above are `done`, independently reviewed as `verified` and
 integrated before this matrix.
 
+## Post-M8 Owner UI Remediation Evidence
+
+The owner amendment `OWNER-AMENDMENT-2026-06-28-POST-M8-UI-PLAYABILITY-REMEDIATION`
+recorded that the M8 demo still looked too much like an internal harness,
+mixed languages, lacked reliable mouse selection, lacked camera dragging and
+had practical playability near zero. WM-0129 through WM-0140 are a post-M8
+remediation phase, not M9 and not public release work.
+
+| Task | Evidence | Verdict contribution |
+| --- | --- | --- |
+| WM-0129 | Owner blocker record, art-thread consultation and remediation DAG. | The owner blockers are hard release-readiness stop signs until remediated; Web and Windows verdicts remain unchanged. |
+| WM-0130 | Current UI/interaction/i18n audit. | Establishes the baseline blockers: partial harness feel, mixed fixture prose, selection gaps, camera gaps and no minimum playable command chain. |
+| WM-0131 | Art direction consultation and asset replacement contract. | Provides B-layout, C-mood and A/C map-light sourcing plus semantic asset slots without requiring final cut art. |
+| WM-0132 | Default player HUD and explicit diagnostics separation. | Resolves the default diagnostics/product-gate harness blocker for the current shell. |
+| WM-0133 | Design tokens and component system. | Provides the interim Wuming Town visual token layer and future asset replacement hooks. |
+| WM-0134 | Localization hardening. | Resolves current audited player-shell `zh-CN`/`en` leakage while documenting future structured content-i18n needs. |
+| WM-0135 | Responsive matrix. | Covers the required Web windowed/fullscreen viewport matrix. |
+| WM-0136 | World selection. | Covers resident, structure/object and tile selection with player-visible inspector updates. |
+| WM-0137 | Camera controls. | Covers mouse drag pan, wheel zoom, keyboard movement and reset behavior. |
+| WM-0138 | Minimum playable command chain. | Adds one traceable shell-local lamp-priority command chain without pretending it is authoritative Worker gameplay. |
+| WM-0139 | First-play onboarding remediation. | Explains the real selection, camera and lamp-priority chain in `zh-CN` and `en`. |
+| WM-0140 | Visual regression screenshot and interaction evidence gate. | Captures 27 reviewer-inspectable screenshots and automated selection/camera/command evidence while preserving existing gates. |
+
 ## Readiness Decision Matrix
 
 | Area | Decision | Evidence | Residual gate |
 | --- | --- | --- | --- |
-| Product UI and visual identity | Ready for internal M8 1.0 evidence review | WM-0112 defines the design system; WM-0116, WM-0117 and WM-0119 implement the player-facing main menu, post-start HUD and first-play guidance. | Final release marketing copy, final art polish and any public claim about shipping quality remain owner-gated. |
-| Responsive layout | Ready across the required viewport matrix for the current player shell | WM-0118 validates `1280x720`, `1366x768`, `1424x861`, `1600x900`, `1920x1080`, `2560x1369` and `2560x1440` in `zh-CN` and `en` on Web and desktop; WM-0120 extends compact/tall display checks. | New player surfaces or additional viewport promises require fresh evidence; public platform verdicts do not change here. |
-| Localization | Ready for shell and content-workflow evidence, not public copy approval | WM-0113 through WM-0115 define and validate locale defaults, override persistence, completeness and inventory; WM-0118 and WM-0120 preserve bilingual matrix behavior; WM-0124 enforces required locale coverage for approved content workflow. | Diagnostics may remain English-only only when explicitly gated; final public terminology, cultural review and store/public copy remain owner-gated. |
-| First playability | Ready for controlled default player flow | WM-0116 establishes the localized main menu and launch path; WM-0117 and WM-0119 explain current phase, next goal, available actions and the diagnostics boundary. | Broader tutorial depth and future scenario-goal richness remain future work and do not become public-release promises. |
+| Product UI and visual identity | Ready for release-candidate audit as controlled/demo UI evidence, not public release approval | WM-0112 defines the design system; WM-0116, WM-0117 and WM-0119 implement the player-facing main menu, post-start HUD and first-play guidance. WM-0131 through WM-0133 and WM-0140 add the post-M8 art-direction contract, token layer, player-HUD separation and screenshot evidence requested by the owner amendment. | Final cut art, production polish, store-facing screenshots, trailer capture, marketing copy and any public claim about shipping quality remain owner-gated. |
+| Responsive layout | Ready across the required viewport matrix for the current player shell | WM-0118 validates `1280x720`, `1366x768`, `1424x861`, `1600x900`, `1920x1080`, `2560x1369` and `2560x1440` in `zh-CN` and `en` on Web and desktop; WM-0120 extends compact/tall display checks. WM-0135, WM-0140, WM-0143 and WM-0144 add post-M8 Web screenshot evidence and repair compact/desktop E2E reachability blockers. | New player surfaces, additional viewport promises or release-candidate capture packs require fresh evidence; public platform verdicts do not change here. |
+| Localization | Ready for the current audited player shell and content-workflow evidence, not public copy approval | WM-0113 through WM-0115 define and validate locale defaults, override persistence, completeness and inventory; WM-0118 and WM-0120 preserve bilingual matrix behavior; WM-0124 enforces required locale coverage for approved content workflow. WM-0134 and WM-0139 close the owner-reported mixed-language blocker for current player shell, onboarding and command feedback surfaces. | Future read-model/content fields need structured ids or adapter coverage before they become player-visible; final public terminology, cultural review and store/public copy remain owner-gated. |
+| First playability | Ready for controlled minimum playable flow and release-candidate audit evidence | WM-0116 establishes the localized main menu and launch path; WM-0117 and WM-0119 explain current phase, next goal, available actions and the diagnostics boundary. WM-0136, WM-0137, WM-0138, WM-0139 and WM-0140 verify selection, camera control, one shell-local lamp-priority command chain and visible feedback. | Broader tutorial depth, richer scenario goals and authoritative Simulation Worker command protocol remain future reviewed work and do not become public-release promises. |
 | Accessibility | Ready for the current M8 shell baseline | WM-0120 proves shell-local UI scale, explicit text/aria state, contrast, long-text containment, scroll reachability and persisted display preferences; WM-0118 covers bilingual responsive behavior in the required matrix. | World/canvas zoom accessibility, broader assistive-tech claims and any public accessibility certification remain future owner-reviewed work. |
 | Content, anomaly, faction and endgame evidence | Ready as a scoped 1.0 evidence package | WM-0121 defines the contract; WM-0122 records the roster target; WM-0123 provides authoritative faction/endgame owner evidence with structured reasons and preserved M5 baselines. | Stretch anomalies may be cut without weakening accepted rows; final shipped lore/public claims remain owner-gated. |
 | Data-mod workflow and localization completeness | Ready as a fail-closed data-only workflow | WM-0124 rejects unsafe paths, missing references, missing required locales and canonical `zh-CN` bypasses while preserving data-only mods and forbidden code/runtime surfaces. | New schema kinds, executable mods, network mods, platform API mods and any public mod-support promise remain forbidden or owner-gated. |
@@ -110,6 +134,29 @@ The following remain open and are not approved by WM-0127:
   interop claim, desktop save bridge claim, cloud save or hosted save support.
 - Executable mods, platform API mods, network mods or unreviewed schema kinds.
 - Any change to locked decisions without owner approval.
+
+## WM-0141 Post-M8 Owner Remediation Verdict
+
+WM-0141 updates release-readiness evidence after verified post-M8 UI
+remediation. It does not reopen M8 and does not approve public release.
+
+| Owner blocker | WM-0141 status | Evidence |
+| --- | --- | --- |
+| UI too rough for release-level quality | Resolved for release-candidate audit; still not public-release polish | WM-0131 through WM-0133 provide art direction, asset slots and tokenized UI; WM-0140 provides reviewer-inspectable screenshots. Final cut art and store-facing polish remain owner-gated. |
+| Interface reads as diagnostics/product-gate harness | Resolved for the default player route | WM-0132 and WM-0140 verify default player HUD surfaces are distinct from explicit diagnostics. |
+| Visible Chinese/English mixing | Resolved for the current audited player shell | WM-0134, WM-0139 and WM-0140 cover `zh-CN`/`en` player surfaces, command feedback and evidence screenshots; future content fields remain under the localization adapter/structured-id follow-up gate. |
+| Scene objects/buttons/characters not reliably mouse-selectable | Resolved for current Web shell evidence | WM-0136 and WM-0140 verify resident, structure/object, tile and command-button interaction. |
+| Scene/camera cannot be dragged | Resolved for current Web shell evidence | WM-0137 and WM-0140 verify mouse drag, wheel zoom, keyboard movement and reset. |
+| Practical playability near zero | Partially resolved: minimum playable chain exists; broader authoritative gameplay remains future work | WM-0138 adds the reviewed shell-local lamp-priority chain and WM-0139 explains it to players. It is intentionally not a public Worker command-protocol promise. |
+| M8 closeout could be misread as public release approval | Resolved in control-plane documentation | WM-0129, WM-0141 and this matrix repeat that M8/post-M8 remediation is readiness evidence only. |
+| No public release/store/signing/EA/1.0 commitment may begin | Preserved | Web remains `demo-only`; Windows remains unsigned controlled external test; public release actions remain owner-gated. |
+| UI productization, playable interaction, localization, responsive behavior and art direction must land first | Resolved for a release-candidate audit lane after WM-0142 closeout | WM-0131 through WM-0140 cover the requested remediation surfaces. WM-0142 must still close the phase before any new audit goal is started. |
+
+Release-candidate audit status: an audit-only gap assessment may proceed after
+WM-0142 closes the post-M8 remediation phase, provided the owner asks for that
+lane. No release-candidate distribution, public release, store submission,
+signing, telemetry, accounts, paid services or public save commitment is
+approved by this verdict.
 
 ## WM-0127 Closeout Decision
 

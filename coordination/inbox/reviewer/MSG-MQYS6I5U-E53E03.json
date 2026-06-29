@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQYS6I5U-E53E03",
+  "from": "project-director",
+  "to": "reviewer",
+  "taskId": "WM-0141",
+  "kind": "review-request",
+  "subject": "WM-0141 ready for review",
+  "body": "Updated post-M8 UI/playability readiness verdict; blocker matrix, roadmap/matrix/project-state updated; Web demo-only and Windows controlled-test verdicts preserved; no public release task created; required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0141.md",
+    "task/WM-0141-ui-remediation-verdict-update"
+  ],
+  "createdAt": "2026-06-29T05:32:13.554Z",
+  "acknowledgedAt": "2026-06-29T05:39:06.760Z"
+}

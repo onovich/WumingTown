@@ -2,7 +2,7 @@
   "id": "WM-0141",
   "title": "Post-M8 UI remediation release-readiness verdict update",
   "summary": "Update release-readiness evidence after UI/playability remediation while preserving public release, Web and Windows owner gates.",
-  "state": "ready",
+  "state": "verified",
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -32,7 +32,7 @@
   ],
   "branch": "task/WM-0141-ui-remediation-verdict-update",
   "createdAt": "2026-06-28T13:36:56.432Z",
-  "updatedAt": "2026-06-29T05:21:32.766Z",
+  "updatedAt": "2026-06-29T05:38:03.555Z",
   "history": [
     {
       "at": "2026-06-28T13:36:56.432Z",
@@ -45,6 +45,24 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-29T05:26:05.932Z",
+      "actor": "project-director",
+      "action": "claim",
+      "details": "thread=Beacon WM-0141 verdict update"
+    },
+    {
+      "at": "2026-06-29T05:32:13.553Z",
+      "actor": "project-director",
+      "action": "complete",
+      "details": "Updated post-M8 UI/playability readiness verdict; blocker matrix, roadmap/matrix/project-state updated; Web demo-only and Windows controlled-test verdicts preserved; no public release task created; required checks pass."
+    },
+    {
+      "at": "2026-06-29T05:38:03.555Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; verified blocker-by-blocker UI/playability status, Web demo-only and Windows unsigned controlled-test verdict preservation, owner-gated public release/store/signing/telemetry/accounts/paid-services/public-save boundaries, remaining art/authoritative-gameplay residuals, and audit-only RC gap-assessment wording."
     }
   ],
   "milestone": "M8",
@@ -62,5 +80,15 @@
     "telemetry, accounts, hosted feedback or paid services",
     "public save compatibility commitments",
     "changing Web demo-only or Windows controlled-test verdicts without owner approval"
-  ]
+  ],
+  "claimedBy": "project-director",
+  "threadLabel": "Beacon WM-0141 verdict update",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0141.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; verified blocker-by-blocker UI/playability status, Web demo-only and Windows unsigned controlled-test verdict preservation, owner-gated public release/store/signing/telemetry/accounts/paid-services/public-save boundaries, remaining art/authoritative-gameplay residuals, and audit-only RC gap-assessment wording.",
+    "at": "2026-06-29T05:38:03.555Z"
+  }
 }
