@@ -483,3 +483,28 @@ store submission, signing, telemetry, accounts, paid services, public feedback,
 public Web launch, Windows public release or public save compatibility. Web
 remains `demo-only`; Windows remains unsigned local-directory
 `ready-for-controlled-external-test`.
+
+## Post-M8 UI / Playability Remediation Closeout
+
+WM-0142 closes the post-M8 owner remediation phase after WM-0129 through
+WM-0141 are done, independently reviewed, integrated and validated. The phase
+records the owner UI/playability blockers, art-direction and asset replacement
+contract, current UI/i18n/interaction audit, player-HUD/default-diagnostics
+separation, design-token layer, localization hardening, responsive matrix,
+mouse selection, camera controls, one minimum playable chain, first-play
+guidance, visual screenshot evidence and the WM-0141 verdict update.
+
+Closeout keeps the same platform boundaries:
+
+- Web remains `demo-only`.
+- Windows remains unsigned local-directory
+  `ready-for-controlled-external-test`.
+- Public release, release-candidate distribution, Early Access launch, store
+  submission, signing, telemetry, accounts, paid services, public feedback,
+  public Web launch, Windows public release and public save compatibility remain
+  owner-gated.
+
+The next allowed owner-requested lane is an audit-only release-candidate gap
+assessment. That lane may create a reviewed gap-audit task packet, but it must
+not distribute a build or cross a public-release gate without explicit owner
+approval.

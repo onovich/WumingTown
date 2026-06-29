@@ -158,6 +158,30 @@ lane. No release-candidate distribution, public release, store submission,
 signing, telemetry, accounts, paid services or public save commitment is
 approved by this verdict.
 
+## WM-0142 Post-M8 Remediation Closeout
+
+WM-0142 closes the post-M8 UI/playability remediation phase after WM-0129
+through WM-0141 are `done`, independently reviewed as `verified` and integrated
+by `project-director`.
+
+Closeout verdict:
+
+- UI readiness: ready for controlled/demo review and owner-requested
+  release-candidate audit evidence, not final public-release polish.
+- Playability readiness: ready for one reviewed shell-local minimum playable
+  chain; broader authoritative Simulation Worker command handling remains
+  future reviewed work.
+- I18n readiness: ready for the current audited `zh-CN`/`en` player shell,
+  onboarding and command-feedback surfaces.
+- Responsive readiness: ready across the required Web/Desktop windowed and
+  fullscreen-equivalent matrix, with WM-0140 screenshot evidence.
+- Remaining art needs: final cut art, licensed external assets, store-facing
+  screenshots, trailer capture and public marketing polish remain owner-gated.
+- Release-candidate audit eligibility: an audit-only gap assessment may proceed
+  if the owner asks for that exact lane. Distribution, public release, store,
+  signing, telemetry, accounts, paid services and public save commitments remain
+  blocked until explicit owner-approved tasks exist.
+
 ## WM-0127 Closeout Decision
 
 WM-0127 closes M8 as internal 1.0 readiness evidence after WM-0111 through

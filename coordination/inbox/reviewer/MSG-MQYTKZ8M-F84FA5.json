@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQYTKZ8M-F84FA5",
+  "from": "project-director",
+  "to": "reviewer",
+  "taskId": "WM-0142",
+  "kind": "review-request",
+  "subject": "WM-0142 ready for review",
+  "body": "Closed post-M8 UI/playability remediation evidence; WM-0129..WM-0141 done/verified/integrated; focused Web E2E, quality, ci:local, M5 invariants, warmed benchmark confirmations, M5 100000-tick scenario, handoff/taskctl/status and diff check pass; public gates preserved.",
+  "artifacts": [
+    "coordination/reports/WM-0142.md",
+    "task/WM-0142-ui-playability-remediation-closeout"
+  ],
+  "createdAt": "2026-06-29T06:11:28.487Z",
+  "acknowledgedAt": "2026-06-29T06:16:53.585Z"
+}
