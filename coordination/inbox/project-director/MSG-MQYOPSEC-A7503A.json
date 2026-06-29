@@ -1,0 +1,12 @@
+{
+  "id": "MSG-MQYOPSEC-A7503A",
+  "from": "qa-performance",
+  "to": "project-director",
+  "taskId": "WM-0140",
+  "kind": "blocker",
+  "subject": "WM-0140 blocked",
+  "body": "WM-0140 full test:e2e now fails desktop Electron localized-title assertions: English desktop HUD expects zh-CN title text and zh-CN start surface expects Wuming Town. Repair requires apps/desktop-electron/src outside WM-0140 allowed paths; web-shell evidence gate itself passes 13/13.",
+  "artifacts": [],
+  "createdAt": "2026-06-29T03:55:14.821Z",
+  "acknowledgedAt": "2026-06-29T03:57:56.241Z"
+}

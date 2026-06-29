@@ -11,7 +11,8 @@
     "WM-0137",
     "WM-0138",
     "WM-0139",
-    "WM-0143"
+    "WM-0143",
+    "WM-0144"
   ],
   "docs": [
     "AGENTS.md",
@@ -38,7 +39,7 @@
   ],
   "branch": "task/WM-0140-visual-regression-interaction-evidence",
   "createdAt": "2026-06-28T13:36:56.432Z",
-  "updatedAt": "2026-06-29T03:01:18.704Z",
+  "updatedAt": "2026-06-29T03:55:14.820Z",
   "history": [
     {
       "at": "2026-06-28T13:36:56.432Z",
@@ -63,6 +64,24 @@
       "actor": "project-director",
       "action": "add-repair-dependency",
       "details": "Added WM-0143 to repair compact start-surface clipping before resuming visual evidence gate."
+    },
+    {
+      "at": "2026-06-29T03:54:47.989Z",
+      "actor": "project-director",
+      "action": "unblock",
+      "details": "WM-0143 compact start-surface repair is done and pushed; original compact clipping blocker is resolved."
+    },
+    {
+      "at": "2026-06-29T03:55:14.820Z",
+      "actor": "qa-performance",
+      "action": "block",
+      "details": "WM-0140 full test:e2e now fails desktop Electron localized-title assertions: English desktop HUD expects zh-CN title text and zh-CN start surface expects Wuming Town. Repair requires apps/desktop-electron/src outside WM-0140 allowed paths; web-shell evidence gate itself passes 13/13."
+    },
+    {
+      "at": "2026-06-29T03:55:50.000Z",
+      "actor": "project-director",
+      "action": "add-repair-dependency",
+      "details": "Added WM-0144 to repair desktop Electron localized-title E2E assertions before resuming the full test:e2e gate."
     }
   ],
   "milestone": "M8",
@@ -80,8 +99,8 @@
   "blocker": {
     "by": "qa-performance",
     "to": "project-director",
-    "reason": "WM-0140 visual gate found compact main-menu viewport clipping after first-play guidance: assertCompactStartSurfaceLayout reports bottom 730/728 > 721 at compact viewport. Fix requires packages/ui-react, outside WM-0140 allowed paths.",
+    "reason": "WM-0140 full test:e2e now fails desktop Electron localized-title assertions: English desktop HUD expects zh-CN title text and zh-CN start surface expects Wuming Town. Repair requires apps/desktop-electron/src outside WM-0140 allowed paths; web-shell evidence gate itself passes 13/13.",
     "previousState": "ready",
-    "at": "2026-06-29T03:01:18.703Z"
+    "at": "2026-06-29T03:55:14.819Z"
   }
 }

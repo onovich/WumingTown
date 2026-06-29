@@ -1,0 +1,59 @@
+{
+  "id": "WM-0144",
+  "title": "Desktop E2E localized title expectation repair",
+  "summary": "Repair desktop Electron E2E assertions so locale-specific Wuming Town titles are validated without requiring mixed zh-CN/en title text.",
+  "state": "ready",
+  "ownerRole": "qa-performance",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0143"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0143.md",
+    "docs/06_engineering/05_testing_policy.md",
+    "docs/01_design/10_m8_first_play_guidance.md"
+  ],
+  "acceptance": [
+    "Desktop Electron E2E start-surface and HUD assertions respect active locale-specific product title",
+    "No product UI text or locale fallback is weakened to satisfy stale tests",
+    "corepack pnpm test:e2e passes or any remaining failure is unrelated and recorded",
+    "WM-0140 can resume full visual evidence gate after repair"
+  ],
+  "requiredChecks": [
+    "corepack pnpm test:e2e",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0144-desktop-e2e-localized-title-expectation-repair",
+  "createdAt": "2026-06-29T03:55:43.664Z",
+  "updatedAt": "2026-06-29T03:55:50.000Z",
+  "history": [
+    {
+      "at": "2026-06-29T03:55:43.664Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    },
+    {
+      "at": "2026-06-29T03:55:50.000Z",
+      "actor": "project-director",
+      "action": "scope",
+      "details": "Repair task created from WM-0140 full test:e2e blocker; keep product localization behavior intact and update stale desktop E2E expectations only if inspection confirms no product bug."
+    }
+  ],
+  "milestone": "M8",
+  "phase": "post-m8-owner-remediation",
+  "allowedPaths": [
+    "apps/desktop-electron/src/**",
+    "coordination/reports/WM-0144*.md",
+    "coordination/tasks/WM-0144.json"
+  ],
+  "forbiddenPaths": [
+    "weakening locale detection, locale persistence, or player-facing localization behavior",
+    "public release or platform verdict changes",
+    "Simulation Worker authority, save schema or protocol changes"
+  ]
+}
