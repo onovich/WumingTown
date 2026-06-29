@@ -2,7 +2,7 @@
   "id": "WM-0144",
   "title": "Desktop E2E localized title expectation repair",
   "summary": "Repair desktop Electron E2E assertions so locale-specific Wuming Town titles are validated without requiring mixed zh-CN/en title text.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -29,7 +29,7 @@
   ],
   "branch": "task/WM-0144-desktop-e2e-localized-title-expectation-repair",
   "createdAt": "2026-06-29T03:55:43.664Z",
-  "updatedAt": "2026-06-29T04:28:22.551Z",
+  "updatedAt": "2026-06-29T04:31:45.079Z",
   "history": [
     {
       "at": "2026-06-29T03:55:43.664Z",
@@ -60,6 +60,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings; inspected active-locale title assertions, mixed-language negative checks, clip-aware reachability helpers, first-play tall parent handling, and 2px Electron rounding tolerance; focused desktop E2E passed 4/4."
+    },
+    {
+      "at": "2026-06-29T04:31:36.385Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Merged 505896c into main; handoff validation, taskctl validate/status, diff check and pnpm quality passed."
+    },
+    {
+      "at": "2026-06-29T04:31:45.079Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M8",
@@ -83,5 +95,10 @@
     "verdict": "verified",
     "summary": "No blocking findings; inspected active-locale title assertions, mixed-language negative checks, clip-aware reachability helpers, first-play tall parent handling, and 2px Electron rounding tolerance; focused desktop E2E passed 4/4.",
     "at": "2026-06-29T04:28:22.550Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Merged 505896c into main; handoff validation, taskctl validate/status, diff check and pnpm quality passed.",
+    "at": "2026-06-29T04:31:36.384Z"
   }
 }
