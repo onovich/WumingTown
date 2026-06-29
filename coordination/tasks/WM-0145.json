@@ -1,0 +1,118 @@
+{
+  "id": "WM-0145",
+  "title": "Reopen product UX and playable NPC action blocker",
+  "summary": "Record Owner post-closeout blocker that the current Web shell still fails product playability: information hierarchy is overwhelming, RimWorld-like player loop is absent, NPC action is not sufficiently player-perceptible, and building/job command loops are missing from the product surface. Produce a reviewed remediation DAG before further implementation.",
+  "state": "verified",
+  "ownerRole": "project-director",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0142"
+  ],
+  "docs": [
+    "AGENTS.md",
+    ".agents/skills/wuming-town-agent-workflow/SKILL.md",
+    "coordination/project-state.json",
+    "coordination/reports/WM-0129-art-consultation.md",
+    "coordination/reports/WM-0138.md",
+    "coordination/reports/WM-0142.md",
+    "coordination/tasks/*.json",
+    "docs/01_design/00_game_design_overview.md",
+    "docs/01_design/03_daily_loop_and_pacing.md",
+    "docs/01_design/05_ui_ux_information_design.md",
+    "docs/02_systems/03_map_space_rooms_lanterns.md",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "docs/02_systems/06_economy_logistics_production.md",
+    "docs/06_engineering/03_definition_of_done.md",
+    "docs/07_roadmap/11_m8_1_0_readiness_matrix.md"
+  ],
+  "acceptance": [
+    "Owner post-closeout blocker is recorded without minimizing the critique: current UI overwhelms information hierarchy, does not feel like a game, does not communicate player goals, and lacks a player-visible RimWorld-like order/work/build loop",
+    "Report explicitly corrects the acceptance standard: NPCs must move and act in a way the player can perceive and understand; idle, moving, working, blocked, completed and failed states must be visually legible before any future playable-product readiness claim",
+    "Current implementation facts are recorded honestly: Web shell is a static product-gate read-model surface; PlayerCommand currently supports only Noop/Echo; WM-0138 lamp priority is shell-local and non-authoritative; sim-core has job/build modules not yet exposed as a product loop",
+    "Art-thread consultation is requested and either incorporated if returned or recorded as pending with the exact thread id and request summary",
+    "A non-executed remediation DAG is drafted for the next phase, including product UX hierarchy, perceptible NPC autonomy, authoritative command/job integration, build/place/order loop, renderer motion feedback, first-five-minute guidance, E2E visual/playtest evidence and independent review",
+    "No product implementation, public release, EA, store, signing, telemetry, accounts, paid services, public save compatibility, platform verdict change or fake non-authoritative gameplay workaround is executed by this task"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0145-product-ux-blocker-reopen",
+  "createdAt": "2026-06-29T18:55:50.127Z",
+  "updatedAt": "2026-06-29T19:12:08.777Z",
+  "history": [
+    {
+      "at": "2026-06-29T18:55:50.127Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    },
+    {
+      "at": "2026-06-29T18:56:43.965Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "Owner blocker task created after WM-0142 was already done; task packet refined and promoted for project-director claim."
+    },
+    {
+      "at": "2026-06-29T18:57:21.070Z",
+      "actor": "project-director",
+      "action": "claim",
+      "details": "thread=Beacon WM-0145 product UX blocker reopen"
+    },
+    {
+      "at": "2026-06-29T19:07:31.723Z",
+      "actor": "project-director",
+      "action": "complete",
+      "details": "Recorded Owner product UX blocker and self-correction; incorporated art-thread feedback; reopened product UX remediation in project-state; created non-executed WM-0146..WM-0156 DAG centered on visible NPC action, authoritative lamp/build command-job flow, information hierarchy repair and visual evidence; handoff, taskctl validate/status and diff check pass; no product implementation or release/platform gate changes."
+    },
+    {
+      "at": "2026-06-29T19:12:08.777Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; Owner critique and visible NPC-action product gate are recorded honestly, current shell-local/static facts and art feedback are incorporated, WM-0146..WM-0156 remain proposed as a coherent remediation DAG, release/platform owner gates are preserved, and required control-plane checks pass."
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "owner-product-ux-blocker-reopen",
+  "allowedPaths": [
+    "coordination/reports/WM-0145*.md",
+    "coordination/tasks/WM-0145.json",
+    "coordination/tasks/WM-0146.json",
+    "coordination/tasks/WM-0147.json",
+    "coordination/tasks/WM-0148.json",
+    "coordination/tasks/WM-0149.json",
+    "coordination/tasks/WM-0150.json",
+    "coordination/tasks/WM-0151.json",
+    "coordination/tasks/WM-0152.json",
+    "coordination/tasks/WM-0153.json",
+    "coordination/tasks/WM-0154.json",
+    "coordination/tasks/WM-0155.json",
+    "coordination/tasks/WM-0156.json",
+    "coordination/project-state.json"
+  ],
+  "forbiddenPaths": [
+    "product implementation code",
+    "Simulation Worker protocol changes",
+    "sim-core runtime changes",
+    "React/Pixi/Electron product UI changes",
+    "public release upload",
+    "Early Access launch",
+    "store submission",
+    "signing credentials or signed installer",
+    "telemetry, accounts, hosted feedback or paid services",
+    "public save compatibility commitments",
+    "changing Web demo-only or Windows controlled-test verdicts without owner approval"
+  ],
+  "claimedBy": "project-director",
+  "threadLabel": "Beacon WM-0145 product UX blocker reopen",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0145.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; Owner critique and visible NPC-action product gate are recorded honestly, current shell-local/static facts and art feedback are incorporated, WM-0146..WM-0156 remain proposed as a coherent remediation DAG, release/platform owner gates are preserved, and required control-plane checks pass.",
+    "at": "2026-06-29T19:12:08.776Z"
+  }
+}

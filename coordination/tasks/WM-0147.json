@@ -1,0 +1,62 @@
+{
+  "id": "WM-0147",
+  "title": "Player HUD information hierarchy simplification",
+  "summary": "Rework the default HUD hierarchy so the map, current objective, available actions, and selected-object inspector are readable without diagnostics/status-board overload.",
+  "state": "proposed",
+  "ownerRole": "client-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0146"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0145.md",
+    "coordination/reports/WM-0146.md",
+    "packages/ui-react/src/*",
+    "apps/web/src/*",
+    "docs/01_design/05_ui_ux_information_design.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "Default HUD no longer presents as a status-board wall: current state, next goal, first-play guidance, tasks and events are collapsed into a concise objective/action hierarchy",
+    "First screen preserves map as the dominant visual subject and exposes one obvious player action path before secondary details",
+    "Settings, language/system preference, diagnostics, fixture/source/hash/verdict language and long explanatory copy are hidden behind explicit secondary surfaces",
+    "Bottom action bar and selected-object inspector clearly answer what the player can do now, including disabled-command reasons where commands are unavailable",
+    "1280x720, 1366x768, 1600x900 and 1920x1080 layouts avoid overlap and keep the primary action path visible in zh-CN and en"
+  ],
+  "requiredChecks": [
+    "corepack pnpm typecheck",
+    "corepack pnpm exec vitest run --exclude=**/*.e2e.test.ts packages/ui-react/src/shell-hud.test.ts",
+    "node tools/test-runner.mjs e2e --filter web-shell",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0147-player-hud-information-hierarchy-simplification",
+  "createdAt": "2026-06-29T18:59:47.335Z",
+  "updatedAt": "2026-06-29T18:59:47.335Z",
+  "history": [
+    {
+      "at": "2026-06-29T18:59:47.335Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "owner-product-ux-remediation",
+  "allowedPaths": [
+    "apps/web/src/**",
+    "packages/ui-react/src/**",
+    "coordination/reports/WM-0147*.md",
+    "coordination/tasks/WM-0147.json"
+  ],
+  "forbiddenPaths": [
+    "UI-owned authoritative world mutation",
+    "Simulation Worker protocol changes",
+    "sim-core runtime changes",
+    "public release/EA/store/signing/telemetry/accounts/paid-services/public-save actions"
+  ]
+}

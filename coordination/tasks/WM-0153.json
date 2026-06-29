@@ -1,0 +1,60 @@
+{
+  "id": "WM-0153",
+  "title": "First-play guidance localization and responsive repair",
+  "summary": "Update first-play guidance, zh-CN/en copy and window/fullscreen responsive behavior around the real lamp/build interaction chain rather than static tutorial text.",
+  "state": "proposed",
+  "ownerRole": "client-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0152"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0152.md",
+    "apps/web/src/*",
+    "packages/ui-react/src/*",
+    "docs/01_design/05_ui_ux_information_design.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "First-play guidance is rewritten around the real lamp/build interaction chain and does not describe unavailable controls",
+    "System-language default, zh-CN/en manual locale switching and visible command/job/status text remain consistent with no mixed-language player UI beyond the brand name",
+    "Windowed and fullscreen-equivalent layouts keep the map, active pawn feedback, action bar and inspector usable at 1280x720, 1366x768, 1600x900 and 1920x1080",
+    "Settings and diagnostics remain secondary surfaces and do not reintroduce first-screen information overload",
+    "Accessibility/readability checks cover state not relying on color alone, long text, button labels and hover/focus affordances"
+  ],
+  "requiredChecks": [
+    "corepack pnpm typecheck",
+    "node tools/test-runner.mjs e2e --filter web-shell",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0153-first-play-guidance-localization-and-responsive-",
+  "createdAt": "2026-06-29T18:59:47.613Z",
+  "updatedAt": "2026-06-29T18:59:47.613Z",
+  "history": [
+    {
+      "at": "2026-06-29T18:59:47.613Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "owner-product-ux-remediation",
+  "allowedPaths": [
+    "apps/web/src/**",
+    "packages/ui-react/src/**",
+    "packages/renderer-pixi/src/**",
+    "coordination/reports/WM-0153*.md",
+    "coordination/tasks/WM-0153.json"
+  ],
+  "forbiddenPaths": [
+    "Simulation Worker or sim-core logic changes",
+    "fake or unavailable command claims",
+    "public release/EA/store/signing/telemetry/accounts/paid-services/public-save actions"
+  ]
+}

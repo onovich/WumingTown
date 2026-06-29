@@ -1,0 +1,63 @@
+{
+  "id": "WM-0148",
+  "title": "Semantic map readability and visible pawn state layer",
+  "summary": "Make the world view read as a game map with semantic terrain/building/lamp/dark-area cues and visible idle, moving, working, blocked and completed pawn states.",
+  "state": "proposed",
+  "ownerRole": "client-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0146"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0145.md",
+    "coordination/reports/WM-0146.md",
+    "packages/renderer-pixi/src/*",
+    "packages/sim-protocol/src/web-read-model.ts",
+    "docs/02_systems/03_map_space_rooms_lanterns.md",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md"
+  ],
+  "acceptance": [
+    "Map reads as a game surface, not abstract wallpaper: roads, buildings/structures, lamp coverage, dark gaps, blocked areas and selectable objects have distinct semantic visuals",
+    "Pawn visuals expose at least idle, moving, working, blocked and completed states with status labels or icons suitable for low-fidelity placeholder art",
+    "Selected target, hover target, intent/path preview, job marker and progress affordances are visually distinct and accessible without relying on color alone",
+    "Renderer state remains a projection of read-model data and does not mutate authoritative world state",
+    "Render and geometry tests cover entity/pawn state projection, marker placement and viewport behavior"
+  ],
+  "requiredChecks": [
+    "corepack pnpm typecheck",
+    "corepack pnpm exec vitest run --exclude=**/*.e2e.test.ts packages/renderer-pixi/src/render-geometry.test.ts",
+    "node tools/test-runner.mjs e2e --filter web-shell",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0148-semantic-map-readability-and-visible-pawn-state-",
+  "createdAt": "2026-06-29T18:59:47.376Z",
+  "updatedAt": "2026-06-29T18:59:47.377Z",
+  "history": [
+    {
+      "at": "2026-06-29T18:59:47.377Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "owner-product-ux-remediation",
+  "allowedPaths": [
+    "packages/renderer-pixi/src/**",
+    "packages/sim-protocol/src/**",
+    "apps/web/src/**",
+    "coordination/reports/WM-0148*.md",
+    "coordination/tasks/WM-0148.json"
+  ],
+  "forbiddenPaths": [
+    "UI-owned authoritative world mutation",
+    "unreviewed command protocol semantics",
+    "sim-core runtime implementation",
+    "public release/EA/store/signing/telemetry/accounts/paid-services/public-save actions"
+  ]
+}

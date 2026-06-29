@@ -1,0 +1,65 @@
+{
+  "id": "WM-0151",
+  "title": "Renderer pawn motion intent path and job marker feedback",
+  "summary": "Render pawn movement, intent paths, job markers, working progress, completed feedback and blocked reason badges from reviewed read-model/projection data.",
+  "state": "proposed",
+  "ownerRole": "client-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0148",
+    "WM-0150"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0148.md",
+    "coordination/reports/WM-0150.md",
+    "packages/renderer-pixi/src/*",
+    "packages/sim-protocol/src/*",
+    "apps/web/src/*",
+    "docs/01_design/05_ui_ux_information_design.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "Pixi/Web renderer shows player-perceptible pawn movement based on reviewed read-model/projection data, with no UI-owned world mutation",
+    "Intent/path lines, target markers, job pending/claimed/working/blocked/completed states and progress rings/bars are visible and distinguishable",
+    "Selected pawn/object inspector can explain current job, current step, target, progress and blocked/completed/failure reason from structured data",
+    "At least one automated Web E2E path captures command-related motion/progress evidence rather than only static selection feedback",
+    "Performance remains bounded for the fixture scale and does not introduce unbounded per-frame/per-entity allocation patterns"
+  ],
+  "requiredChecks": [
+    "corepack pnpm typecheck",
+    "corepack pnpm exec vitest run --exclude=**/*.e2e.test.ts packages/renderer-pixi/src/render-geometry.test.ts",
+    "node tools/test-runner.mjs e2e --filter web-shell",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0151-renderer-pawn-motion-intent-path-and-job-marker-",
+  "createdAt": "2026-06-29T18:59:47.522Z",
+  "updatedAt": "2026-06-29T18:59:47.523Z",
+  "history": [
+    {
+      "at": "2026-06-29T18:59:47.523Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "owner-product-ux-remediation",
+  "allowedPaths": [
+    "packages/renderer-pixi/src/**",
+    "packages/sim-protocol/src/**",
+    "apps/web/src/**",
+    "packages/ui-react/src/**",
+    "coordination/reports/WM-0151*.md",
+    "coordination/tasks/WM-0151.json"
+  ],
+  "forbiddenPaths": [
+    "UI-owned authoritative world mutation",
+    "new unreviewed command semantics",
+    "public release/EA/store/signing/telemetry/accounts/paid-services/public-save actions"
+  ]
+}

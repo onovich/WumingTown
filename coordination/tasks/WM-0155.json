@@ -1,0 +1,61 @@
+{
+  "id": "WM-0155",
+  "title": "Product UX remediation verdict update after playable slice",
+  "summary": "Update readiness evidence after the new playable-product slice, explicitly distinguishing demo/control-test readiness from public release or EA readiness.",
+  "state": "proposed",
+  "ownerRole": "project-director",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0154"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0154.md",
+    "coordination/reports/WM-0142.md",
+    "coordination/project-state.json",
+    "docs/07_roadmap/01_milestones_and_quality_gates.md",
+    "docs/07_roadmap/11_m8_1_0_readiness_matrix.md"
+  ],
+  "acceptance": [
+    "Verdict update records which Owner product-UX blockers are resolved, partially resolved or still blocking",
+    "Readiness evidence explicitly distinguishes controlled internal/demo review from public release, EA, store or signed distribution readiness",
+    "Web demo-only and Windows unsigned controlled-test verdicts remain unchanged unless a separate Owner-approved task changes them",
+    "Report records whether a future public-readiness audit is possible and what still requires Owner approval",
+    "No public release, EA, store, signing, telemetry, accounts, paid services or public save compatibility action is created or executed"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0155-product-ux-remediation-verdict-update-after-play",
+  "createdAt": "2026-06-29T18:59:47.709Z",
+  "updatedAt": "2026-06-29T18:59:47.710Z",
+  "history": [
+    {
+      "at": "2026-06-29T18:59:47.710Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "owner-product-ux-remediation",
+  "allowedPaths": [
+    "coordination/reports/WM-0155*.md",
+    "coordination/tasks/WM-0155.json",
+    "coordination/project-state.json",
+    "docs/07_roadmap/**"
+  ],
+  "forbiddenPaths": [
+    "public release upload",
+    "Early Access launch",
+    "store submission",
+    "signing credentials or signed installer",
+    "telemetry, accounts, hosted feedback or paid services",
+    "public save compatibility commitments",
+    "changing Web demo-only or Windows controlled-test verdicts without owner approval"
+  ]
+}

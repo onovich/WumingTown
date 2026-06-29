@@ -1,0 +1,65 @@
+{
+  "id": "WM-0156",
+  "title": "Product UX remediation closeout",
+  "summary": "Close the reopened product UX remediation only after all tasks are independently reviewed, integrated, validated, merged and pushed with public gates preserved.",
+  "state": "proposed",
+  "ownerRole": "project-director",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0155"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0155.md",
+    "coordination/tasks/*.json",
+    "coordination/project-state.json",
+    "docs/06_engineering/03_definition_of_done.md",
+    "docs/07_roadmap/11_m8_1_0_readiness_matrix.md"
+  ],
+  "acceptance": [
+    "All reopened product-UX remediation tasks WM-0146 through WM-0155 are done, independently reviewed as verified and integrated",
+    "Closeout records the final state of visible NPC action, lamp/build command loop, UI hierarchy, i18n, responsive behavior, visual evidence and remaining release blockers",
+    "Full required gates pass and main/origin main are synchronized after merge and push",
+    "Closeout preserves public release, EA, store, signing, telemetry, accounts, paid services and public save compatibility owner gates",
+    "No task is marked complete unless reviewer verification and integration evidence exist"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality",
+    "corepack pnpm ci:local",
+    "corepack pnpm test --filter m5-invariants",
+    "corepack pnpm bench",
+    "corepack pnpm sim:run -- --seed 5 --scenario m5-alpha-content-framework --ticks 100000"
+  ],
+  "branch": "task/WM-0156-product-ux-remediation-closeout",
+  "createdAt": "2026-06-29T18:59:47.757Z",
+  "updatedAt": "2026-06-29T18:59:47.757Z",
+  "history": [
+    {
+      "at": "2026-06-29T18:59:47.757Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "owner-product-ux-remediation",
+  "allowedPaths": [
+    "coordination/reports/WM-0156*.md",
+    "coordination/tasks/WM-0156.json",
+    "coordination/project-state.json",
+    "docs/07_roadmap/**"
+  ],
+  "forbiddenPaths": [
+    "public release upload",
+    "Early Access launch",
+    "store submission",
+    "signing credentials or signed installer",
+    "telemetry, accounts, hosted feedback or paid services",
+    "public save compatibility commitments",
+    "changing Web demo-only or Windows controlled-test verdicts without owner approval"
+  ]
+}

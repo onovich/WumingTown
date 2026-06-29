@@ -1,0 +1,69 @@
+{
+  "id": "WM-0152",
+  "title": "Player lamp priority and build placement UI chain",
+  "summary": "Connect the player-facing HUD/action bar to the authoritative lamp/build vertical slice with selection, placement, command, job feedback and failure reasons.",
+  "state": "proposed",
+  "ownerRole": "client-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0147",
+    "WM-0150",
+    "WM-0151"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/reports/WM-0147.md",
+    "coordination/reports/WM-0150.md",
+    "coordination/reports/WM-0151.md",
+    "apps/web/src/*",
+    "packages/ui-react/src/*",
+    "packages/sim-protocol/src/*",
+    "docs/01_design/05_ui_ux_information_design.md",
+    "docs/02_systems/03_map_space_rooms_lanterns.md"
+  ],
+  "acceptance": [
+    "Player can select a lamp/build target or build mode, issue a real command through the HUD/action bar, and see authoritative command acceptance or structured rejection",
+    "Lamp chain visibly proceeds through job marker, pawn claim, pawn movement, work/progress, completion and alert/resource/status update or blocked reason",
+    "Build chain minimally supports selecting build mode, tile hover valid/invalid feedback, blueprint placement, job marker, pawn claim, construction progress and structure completion or blocked reason",
+    "Command surfaces are localized in zh-CN and en and never claim unsupported commands as available",
+    "Save/load behavior for in-progress or completed command state is explicitly handled or blocked with reviewed reasons"
+  ],
+  "requiredChecks": [
+    "corepack pnpm typecheck",
+    "corepack pnpm exec vitest run --exclude=**/*.e2e.test.ts packages/ui-react/src/shell-hud.test.ts",
+    "node tools/test-runner.mjs e2e --filter web-shell",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0152-player-lamp-priority-and-build-placement-ui-chai",
+  "createdAt": "2026-06-29T18:59:47.563Z",
+  "updatedAt": "2026-06-29T18:59:47.564Z",
+  "history": [
+    {
+      "at": "2026-06-29T18:59:47.564Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "owner-product-ux-remediation",
+  "allowedPaths": [
+    "apps/web/src/**",
+    "packages/ui-react/src/**",
+    "packages/renderer-pixi/src/**",
+    "packages/sim-protocol/src/**",
+    "packages/persistence/src/**",
+    "coordination/reports/WM-0152*.md",
+    "coordination/tasks/WM-0152.json"
+  ],
+  "forbiddenPaths": [
+    "UI-owned authoritative world mutation",
+    "fake shell-local gameplay claimed as authoritative",
+    "unreviewed public save compatibility promise",
+    "public release/EA/store/signing/telemetry/accounts/paid-services/public-save actions"
+  ]
+}

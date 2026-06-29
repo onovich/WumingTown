@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQZLAZNW-002548",
+  "from": "project-director",
+  "to": "reviewer",
+  "taskId": "WM-0145",
+  "kind": "review-request",
+  "subject": "WM-0145 ready for review",
+  "body": "Recorded Owner product UX blocker and self-correction; incorporated art-thread feedback; reopened product UX remediation in project-state; created non-executed WM-0146..WM-0156 DAG centered on visible NPC action, authoritative lamp/build command-job flow, information hierarchy repair and visual evidence; handoff, taskctl validate/status and diff check pass; no product implementation or release/platform gate changes.",
+  "artifacts": [
+    "coordination/reports/WM-0145.md",
+    "task/WM-0145-product-ux-blocker-reopen"
+  ],
+  "createdAt": "2026-06-29T19:07:31.724Z",
+  "acknowledgedAt": "2026-06-29T19:08:08.779Z"
+}
