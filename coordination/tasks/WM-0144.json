@@ -2,7 +2,7 @@
   "id": "WM-0144",
   "title": "Desktop E2E localized title expectation repair",
   "summary": "Repair desktop Electron E2E assertions so locale-specific Wuming Town titles are validated without requiring mixed zh-CN/en title text.",
-  "state": "ready",
+  "state": "verified",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -29,7 +29,7 @@
   ],
   "branch": "task/WM-0144-desktop-e2e-localized-title-expectation-repair",
   "createdAt": "2026-06-29T03:55:43.664Z",
-  "updatedAt": "2026-06-29T03:55:50.000Z",
+  "updatedAt": "2026-06-29T04:28:22.551Z",
   "history": [
     {
       "at": "2026-06-29T03:55:43.664Z",
@@ -42,6 +42,24 @@
       "actor": "project-director",
       "action": "scope",
       "details": "Repair task created from WM-0140 full test:e2e blocker; keep product localization behavior intact and update stale desktop E2E expectations only if inspection confirms no product bug."
+    },
+    {
+      "at": "2026-06-29T03:59:07.610Z",
+      "actor": "qa-performance",
+      "action": "claim",
+      "details": "thread=Codex WM-0144 desktop e2e locale title repair"
+    },
+    {
+      "at": "2026-06-29T04:21:25.958Z",
+      "actor": "qa-performance",
+      "action": "complete",
+      "details": "Desktop E2E locale-title assertions and reachability helpers repaired; desktop E2E 4/4, full test:e2e 29/29 and quality passed."
+    },
+    {
+      "at": "2026-06-29T04:28:22.551Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; inspected active-locale title assertions, mixed-language negative checks, clip-aware reachability helpers, first-play tall parent handling, and 2px Electron rounding tolerance; focused desktop E2E passed 4/4."
     }
   ],
   "milestone": "M8",
@@ -55,5 +73,15 @@
     "weakening locale detection, locale persistence, or player-facing localization behavior",
     "public release or platform verdict changes",
     "Simulation Worker authority, save schema or protocol changes"
-  ]
+  ],
+  "claimedBy": "qa-performance",
+  "threadLabel": "Codex WM-0144 desktop e2e locale title repair",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0144.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; inspected active-locale title assertions, mixed-language negative checks, clip-aware reachability helpers, first-play tall parent handling, and 2px Electron rounding tolerance; focused desktop E2E passed 4/4.",
+    "at": "2026-06-29T04:28:22.550Z"
+  }
 }

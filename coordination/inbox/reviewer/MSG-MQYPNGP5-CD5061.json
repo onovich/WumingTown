@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MQYPNGP5-CD5061",
+  "from": "qa-performance",
+  "to": "reviewer",
+  "taskId": "WM-0144",
+  "kind": "review-request",
+  "subject": "WM-0144 ready for review",
+  "body": "Desktop E2E locale-title assertions and reachability helpers repaired; desktop E2E 4/4, full test:e2e 29/29 and quality passed.",
+  "artifacts": [
+    "coordination/reports/WM-0144.md",
+    "task/WM-0144-desktop-e2e-localized-title-expectation-repair"
+  ],
+  "createdAt": "2026-06-29T04:21:25.961Z",
+  "acknowledgedAt": "2026-06-29T04:29:11.471Z"
+}

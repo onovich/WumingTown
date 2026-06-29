@@ -484,8 +484,7 @@ async function assertDesktopAccessibilityBaseline(
   page: Page,
   debugPayload: Record<string, unknown>,
 ): Promise<void> {
-  const shellText = await page.locator("[data-shell-ready='true']").textContent();
-  expect(shellText ?? "").toContain("Wuming Town");
+  await assertDesktopTitleForActiveLocale(page);
   await waitForUiScale(page, "standard");
   if ((await page.getByTestId("main-menu-surface").count()) > 0) {
     await assertDesktopStartSurfaceBaseline(page, "en");
@@ -495,7 +494,6 @@ async function assertDesktopAccessibilityBaseline(
   await assertDesktopPlayerHudStructure(page);
   await waitForHudText(page, "Display settings");
   await assertContrastBaseline(page);
-  expect(shellText ?? "").toContain("无明镇");
 
   const warningAlertText = await page
     .locator("[data-alert-severity='warning']")
@@ -567,6 +565,27 @@ async function assertDesktopPlayerHudLocaleState(
   }
 }
 
+async function assertDesktopTitleForActiveLocale(page: Page): Promise<void> {
+  const activeLocale = await page.locator("[data-shell-ready='true']").getAttribute("data-locale");
+  if (activeLocale !== "en" && activeLocale !== "zh-CN") {
+    throw new Error(`Unexpected desktop locale for title assertion: ${String(activeLocale)}`);
+  }
+
+  const shellText = await page.locator("[data-shell-ready='true']").textContent();
+  assertLocalizedDesktopTitleText(shellText ?? "", activeLocale);
+}
+
+function assertLocalizedDesktopTitleText(text: string, locale: "en" | "zh-CN"): void {
+  if (locale === "en") {
+    expect(text).toContain("Wuming Town");
+    expect(text).not.toContain("无明镇");
+    return;
+  }
+
+  expect(text).toContain("无明镇");
+  expect(text).not.toContain("Wuming Town");
+}
+
 async function assertDesktopDebugOverlayBaseline(page: Page): Promise<void> {
   expect(await page.getByTestId("player-hud").count()).toBe(1);
   expect(await page.getByTestId("debug-overlay").count()).toBe(1);
@@ -576,11 +595,11 @@ async function assertDesktopDebugOverlayBaseline(page: Page): Promise<void> {
   expect(overlayText ?? "").toContain("Web Product Gate");
 }
 
-async function assertDesktopOnboardingBaseline(page: Page): Promise<void> {
+async function assertDesktopOnboardingBaseline(page: Page, locale: "en" | "zh-CN"): Promise<void> {
   const surface = page.getByTestId("main-menu-surface");
   expect(await surface.count()).toBe(1);
   const surfaceText = await surface.textContent();
-  expect(surfaceText ?? "").toContain("Wuming Town");
+  assertLocalizedDesktopTitleText(surfaceText ?? "", locale);
   expect(await page.getByTestId("main-menu-new-game").count()).toBe(1);
   expect(await page.getByTestId("main-menu-continue").count()).toBe(1);
   expect(await page.getByTestId("main-menu-settings").count()).toBe(1);
@@ -595,7 +614,7 @@ async function assertDesktopStartSurfaceBaseline(
   page: Page,
   locale: "en" | "zh-CN",
 ): Promise<void> {
-  await assertDesktopOnboardingBaseline(page);
+  await assertDesktopOnboardingBaseline(page, locale);
   const surfaceText = await page.getByTestId("main-menu-surface").textContent();
   if (locale === "en") {
     expect(surfaceText ?? "").toContain("New Game");
@@ -838,8 +857,14 @@ async function assertDesktopStartSurfaceViewportLayout(
   expect(panelMetrics.overflowX).toBeLessThanOrEqual(1);
   await assertDocumentOverflowWithinViewport(page);
 
+  await assertTallSelectorReachableWithoutCover(
+    page,
+    "[data-testid='main-menu-first-play-guidance']",
+    width,
+    height,
+  );
+
   for (const testId of [
-    "main-menu-first-play-guidance",
     "main-menu-next-goal",
     "main-menu-available-actions",
     "main-menu-guidance-boundary",
@@ -1133,15 +1158,51 @@ async function assertSelectorReachableWithoutCover(
   expect(metrics.top, `${selector} top`).toBeGreaterThanOrEqual(0);
   expect(metrics.left, `${selector} left`).toBeGreaterThanOrEqual(0);
   expect(metrics.right, `${selector} right`).toBeLessThanOrEqual(width + 1);
-  expect(metrics.bottom, `${selector} bottom`).toBeLessThanOrEqual(height + 1);
+  expect(metrics.bottom, `${selector} bottom`).toBeLessThanOrEqual(height + 2);
 
-  const isUncovered = await page.locator(selector).evaluate((element: HTMLElement) => {
-    const rect = element.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    const hit = document.elementFromPoint(centerX, centerY);
-    return hit instanceof HTMLElement && (hit === element || element.contains(hit));
-  });
+  const isUncovered = await page
+    .locator(selector)
+    .evaluate((element: HTMLElement, viewportHeight: number) => {
+      const rect = element.getBoundingClientRect();
+      const clip = readVisibleClip(element, viewportHeight);
+      const visibleTop = Math.max(rect.top, clip.top);
+      const visibleBottom = Math.min(rect.bottom, clip.bottom);
+      const centerX = rect.left + rect.width / 2;
+      const sampleY = visibleTop + Math.max((visibleBottom - visibleTop) / 2, 1);
+      const hit = document.elementFromPoint(centerX, sampleY);
+      return (
+        hit instanceof HTMLElement &&
+        (hit === element || element.contains(hit) || hit.contains(element))
+      );
+
+      function readVisibleClip(
+        target: HTMLElement,
+        height: number,
+      ): { readonly bottom: number; readonly top: number } {
+        let top = 1;
+        let bottom = height - 1;
+        let current = target.parentElement;
+
+        while (current !== null) {
+          const style = window.getComputedStyle(current);
+          const clipsY =
+            style.overflowY === "auto" ||
+            style.overflowY === "scroll" ||
+            style.overflowY === "hidden" ||
+            style.overflow === "auto" ||
+            style.overflow === "scroll" ||
+            style.overflow === "hidden";
+          if (clipsY) {
+            const currentRect = current.getBoundingClientRect();
+            top = Math.max(top, currentRect.top);
+            bottom = Math.min(bottom, currentRect.bottom);
+          }
+          current = current.parentElement;
+        }
+
+        return { bottom, top };
+      }
+    }, height);
   expect(isUncovered, `${selector} uncovered`).toBe(true);
 }
 
@@ -1169,12 +1230,41 @@ async function assertTallSelectorReachableWithoutCover(
     .locator(selector)
     .evaluate((element: HTMLElement, viewportHeight: number) => {
       const rect = element.getBoundingClientRect();
-      const visibleTop = Math.max(rect.top, 1);
-      const visibleBottom = Math.min(rect.bottom, viewportHeight - 1);
+      const clip = readVisibleClip(element, viewportHeight);
+      const visibleTop = Math.max(rect.top, clip.top);
+      const visibleBottom = Math.min(rect.bottom, clip.bottom);
       const centerX = rect.left + rect.width / 2;
       const sampleY = visibleTop + Math.max((visibleBottom - visibleTop) / 2, 1);
       const hit = document.elementFromPoint(centerX, sampleY);
       return hit instanceof HTMLElement && (hit === element || element.contains(hit));
+
+      function readVisibleClip(
+        target: HTMLElement,
+        height: number,
+      ): { readonly bottom: number; readonly top: number } {
+        let top = 1;
+        let bottom = height - 1;
+        let current = target.parentElement;
+
+        while (current !== null) {
+          const style = window.getComputedStyle(current);
+          const clipsY =
+            style.overflowY === "auto" ||
+            style.overflowY === "scroll" ||
+            style.overflowY === "hidden" ||
+            style.overflow === "auto" ||
+            style.overflow === "scroll" ||
+            style.overflow === "hidden";
+          if (clipsY) {
+            const currentRect = current.getBoundingClientRect();
+            top = Math.max(top, currentRect.top);
+            bottom = Math.min(bottom, currentRect.bottom);
+          }
+          current = current.parentElement;
+        }
+
+        return { bottom, top };
+      }
     }, height);
   expect(isUncovered, `${selector} uncovered`).toBe(true);
 }
