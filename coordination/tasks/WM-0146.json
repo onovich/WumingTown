@@ -2,7 +2,7 @@
   "id": "WM-0146",
   "title": "Playable product UX acceptance reset and first-five-minute spec",
   "summary": "Turn the Owner/art-thread critique into a concrete first-five-minute product spec and acceptance reset centered on visible NPC action, clear player goals, and a lamp/build playable slice.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "gameplay-designer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -35,13 +35,19 @@
   ],
   "branch": "task/WM-0146-playable-product-ux-acceptance-reset-and-first-f",
   "createdAt": "2026-06-29T18:59:47.286Z",
-  "updatedAt": "2026-06-29T18:59:47.286Z",
+  "updatedAt": "2026-06-29T19:18:41.387Z",
   "history": [
     {
       "at": "2026-06-29T18:59:47.286Z",
       "actor": "taskctl",
       "action": "create",
       "details": ""
+    },
+    {
+      "at": "2026-06-29T19:18:41.387Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "Post-M8",

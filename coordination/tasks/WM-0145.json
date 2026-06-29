@@ -2,7 +2,7 @@
   "id": "WM-0145",
   "title": "Reopen product UX and playable NPC action blocker",
   "summary": "Record Owner post-closeout blocker that the current Web shell still fails product playability: information hierarchy is overwhelming, RimWorld-like player loop is absent, NPC action is not sufficiently player-perceptible, and building/job command loops are missing from the product surface. Produce a reviewed remediation DAG before further implementation.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -41,7 +41,7 @@
   ],
   "branch": "task/WM-0145-product-ux-blocker-reopen",
   "createdAt": "2026-06-29T18:55:50.127Z",
-  "updatedAt": "2026-06-29T19:12:08.777Z",
+  "updatedAt": "2026-06-29T19:18:41.353Z",
   "history": [
     {
       "at": "2026-06-29T18:55:50.127Z",
@@ -72,6 +72,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings; Owner critique and visible NPC-action product gate are recorded honestly, current shell-local/static facts and art feedback are incorporated, WM-0146..WM-0156 remain proposed as a coherent remediation DAG, release/platform owner gates are preserved, and required control-plane checks pass."
+    },
+    {
+      "at": "2026-06-29T19:18:41.302Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Merged commit e410e7a into main; handoff, taskctl validate/status and git diff --check passed on main; public gates preserved and downstream WM-0146..WM-0156 remain proposed."
+    },
+    {
+      "at": "2026-06-29T19:18:41.353Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "Post-M8",
@@ -114,5 +126,10 @@
     "verdict": "verified",
     "summary": "No blocking findings; Owner critique and visible NPC-action product gate are recorded honestly, current shell-local/static facts and art feedback are incorporated, WM-0146..WM-0156 remain proposed as a coherent remediation DAG, release/platform owner gates are preserved, and required control-plane checks pass.",
     "at": "2026-06-29T19:12:08.776Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Merged commit e410e7a into main; handoff, taskctl validate/status and git diff --check passed on main; public gates preserved and downstream WM-0146..WM-0156 remain proposed.",
+    "at": "2026-06-29T19:18:41.301Z"
   }
 }
