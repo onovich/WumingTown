@@ -2,7 +2,7 @@
   "id": "WM-0143",
   "title": "Compact first-play start surface viewport repair",
   "summary": "Repair compact viewport clipping in the first-play main menu/start surface exposed by WM-0140 visual regression gate.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -30,7 +30,7 @@
   ],
   "branch": "task/WM-0143-compact-first-play-start-surface-viewport-repair",
   "createdAt": "2026-06-29T03:04:10.809Z",
-  "updatedAt": "2026-06-29T03:25:00.865Z",
+  "updatedAt": "2026-06-29T03:28:16.466Z",
   "history": [
     {
       "at": "2026-06-29T03:04:10.809Z",
@@ -61,6 +61,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings; compact 390x720 and zh-CN large UI scale start-surface assertions pass; no E2E thresholds or forbidden paths changed."
+    },
+    {
+      "at": "2026-06-29T03:28:09.865Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Merged ee57a88 into main; handoff validation, taskctl validate/status, diff check and pnpm quality passed."
+    },
+    {
+      "at": "2026-06-29T03:28:16.465Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "M8",
@@ -85,5 +97,10 @@
     "verdict": "verified",
     "summary": "No blocking findings; compact 390x720 and zh-CN large UI scale start-surface assertions pass; no E2E thresholds or forbidden paths changed.",
     "at": "2026-06-29T03:25:00.864Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Merged ee57a88 into main; handoff validation, taskctl validate/status, diff check and pnpm quality passed.",
+    "at": "2026-06-29T03:28:09.864Z"
   }
 }
