@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MR0S73YN-B2FA50",
+  "from": "simulation-engineer",
+  "to": "systems-architect",
+  "taskId": "WM-0159",
+  "kind": "review-request",
+  "subject": "WM-0159 ready for review",
+  "body": "Implemented public deterministic WM-0150 playable advance helper/session API; all required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0159.md",
+    "task/WM-0159-public-deterministic-playable-worker-advance-helper"
+  ],
+  "createdAt": "2026-06-30T15:08:14.159Z",
+  "acknowledgedAt": "2026-06-30T15:09:30.260Z"
+}

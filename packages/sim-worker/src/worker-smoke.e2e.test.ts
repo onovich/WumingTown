@@ -21,7 +21,6 @@ import {
   createM3AdvanceCommandId,
   createM4AdvanceCommandId,
   createM5AdvanceCommandId,
-  createPlayableAdvanceCommandId,
   createPlayableCommandSliceRuntime,
   runM1HaulingBuildingReplay,
   runM2WorkLogisticsReplay,
@@ -66,9 +65,16 @@ import { chooseSimulationWorkerTransport } from "./sharedarraybuffer-fallback";
 
 interface BrowserWorkerRunInput {
   readonly expectedCount: number;
-  readonly inputMessages: readonly MainToSimulationMessage[];
+  readonly inputMessages: readonly BrowserWorkerInputMessage[];
   readonly modulePath: string;
 }
+
+interface BrowserWorkerPlayableAdvanceInput {
+  readonly kind: "AdvancePlayableToTick";
+  readonly targetTick: number;
+}
+
+type BrowserWorkerInputMessage = MainToSimulationMessage | BrowserWorkerPlayableAdvanceInput;
 
 interface BrowserWorkerRuntimeFacts {
   readonly pageCrossOriginIsolated: boolean;
@@ -176,6 +182,42 @@ describe("worker-smoke simulation Worker protocol", () => {
       SIMULATION_TO_MAIN_MESSAGE_KIND.CommandResult,
       SIMULATION_TO_MAIN_MESSAGE_KIND.SaveReady,
     ]);
+  });
+
+  it("advances WM-0150 through the public browser session helper", () => {
+    const worker = createSimulationWorker();
+    const session = createBrowserSimulationWorkerSession({
+      sessionId: "session-a",
+      workerFactory: () => new HarnessBrowserWorker(worker),
+    });
+    const messages: SimulationToMainMessage[] = [];
+    const reliable: SimulationToMainMessage[] = [];
+
+    session.subscribe((message) => {
+      messages.push(message);
+    });
+    session.subscribeReliable((message) => {
+      reliable.push(message);
+    });
+
+    session.initPlayableCommandScenario({ seed: "5" });
+    const posted = session.advancePlayableCommandScenarioToTick(45);
+    session.destroy();
+
+    expect(posted.kind).toBe(MAIN_TO_SIMULATION_MESSAGE_KIND.PlayerCommandBatch);
+    if (posted.kind !== MAIN_TO_SIMULATION_MESSAGE_KIND.PlayerCommandBatch) {
+      throw new Error("expected public advance helper to post PlayerCommandBatch");
+    }
+    const advanceCommand = posted.payload.commands[0];
+    if (advanceCommand === undefined) {
+      throw new Error("expected public advance helper to post one command");
+    }
+    expect(typeof advanceCommand.commandId).toBe("string");
+    expect(advanceCommand.kind).toBe(PLAYER_COMMAND_KIND.Noop);
+    expect(lastUiDelta(messages).payload.playable).toMatchObject({
+      basis: { tick: 45 },
+    });
+    expect(commandResultMessages(reliable)).toHaveLength(1);
   });
 
   it("matches Node headless hashes for the M1 hauling-building command stream", () => {
@@ -496,9 +538,9 @@ describe("worker-smoke simulation Worker protocol", () => {
     const browserMessages = await runBrowserWorker([
       makePlayableInitSession(1),
       commandBatch(2, [lamp]),
-      playableAdvanceBatch(3, 45),
+      playableAdvanceRequest(45),
       commandBatch(4, [build]),
-      playableAdvanceBatch(5, 220),
+      playableAdvanceRequest(220),
     ]);
     const commandResults = commandResultMessages(browserMessages);
     const finalUiDelta = lastUiDelta(browserMessages);
@@ -856,13 +898,11 @@ function makeM5AdvanceBatch(
   };
 }
 
-function playableAdvanceBatch(sequence: number, tick: number): MainToSimulationMessage {
-  return commandBatch(sequence, [
-    {
-      commandId: createPlayableAdvanceCommandId(tick),
-      kind: PLAYER_COMMAND_KIND.Noop,
-    },
-  ]);
+function playableAdvanceRequest(tick: number): BrowserWorkerPlayableAdvanceInput {
+  return {
+    kind: "AdvancePlayableToTick",
+    targetTick: tick,
+  };
 }
 
 function commandBatch(
@@ -1130,13 +1170,13 @@ function failMissingCheckpoint(): never {
 }
 
 async function runBrowserWorker(
-  inputMessages: readonly MainToSimulationMessage[],
+  inputMessages: readonly BrowserWorkerInputMessage[],
 ): Promise<readonly SimulationToMainMessage[]> {
   return (await runBrowserWorkerWithRuntime(inputMessages)).messages;
 }
 
 async function runBrowserWorkerWithRuntime(
-  inputMessages: readonly MainToSimulationMessage[],
+  inputMessages: readonly BrowserWorkerInputMessage[],
 ): Promise<BrowserWorkerRunResult> {
   const server = await createServer({
     configFile: false,
@@ -1210,7 +1250,7 @@ async function runBrowserWorkerWithRuntime(
 
         type PublicWorkerSessionSmokeRunner = (input: {
           readonly expectedCount: number;
-          readonly inputMessages: readonly MainToSimulationMessage[];
+          readonly inputMessages: readonly BrowserWorkerInputMessage[];
         }) => Promise<{
           readonly elapsedMs: number;
           readonly messages: readonly unknown[];
@@ -1329,6 +1369,8 @@ export function runPublicBrowserSimulationWorkerSession(input) {
         session.loadSession(message.payload);
       } else if (message.kind === MAIN_TO_SIMULATION_MESSAGE_KIND.PlayerCommandBatch) {
         session.sendPlayerCommandBatch(message.payload.commands);
+      } else if (message.kind === "AdvancePlayableToTick") {
+        session.advancePlayableCommandScenarioToTick(message.targetTick);
       } else if (message.kind === MAIN_TO_SIMULATION_MESSAGE_KIND.SetSpeed) {
         session.setSpeed(message.payload.speed);
       } else if (message.kind === MAIN_TO_SIMULATION_MESSAGE_KIND.Pause) {

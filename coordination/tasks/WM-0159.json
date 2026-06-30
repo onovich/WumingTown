@@ -2,7 +2,7 @@
   "id": "WM-0159",
   "title": "Public deterministic playable Worker advance helper",
   "summary": "Expose a legal public root Worker/session helper so Web can advance the authoritative WM-0150 playable scenario without importing sim-core or hardcoding the internal Noop command-id convention.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "systems-architect",
   "dependsOn": [
@@ -56,13 +56,43 @@
   ],
   "branch": "task/WM-0159-public-deterministic-playable-worker-advance-helper",
   "createdAt": "2026-06-30T14:56:00.000Z",
-  "updatedAt": "2026-06-30T14:56:00.000Z",
+  "updatedAt": "2026-06-30T15:18:26.876Z",
   "history": [
     {
       "at": "2026-06-30T14:56:00.000Z",
       "actor": "systems-architect",
       "action": "create-architecture-precursor",
       "details": "Created to unblock WM-0152 after confirming WM-0157/WM-0158 provide command/projection paths but no legal public way for Web to advance the authoritative playable Worker tick."
+    },
+    {
+      "at": "2026-06-30T14:59:43.217Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Tally"
+    },
+    {
+      "at": "2026-06-30T15:08:14.158Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented public deterministic WM-0150 playable advance helper/session API; all required checks pass."
+    },
+    {
+      "at": "2026-06-30T15:15:12.274Z",
+      "actor": "systems-architect",
+      "action": "review",
+      "details": "verified: No blocking findings. Verified ADR-0015 narrow public root @wuming-town/sim-worker advance helper/session method uses existing PlayerCommandBatch path with explicit target tick; apps/web uses public roots only and does not import sim-core or hardcode wm0150.advance; SetSpeed/Pause and reliable delivery remain separate; Chromium worker-smoke and required checks pass."
+    },
+    {
+      "at": "2026-06-30T15:18:16.417Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integrated verified public playable advance helper; required gates passed including typecheck, focused tests, worker-smoke, replay, boundaries, validate-handoff, taskctl, diff check and pnpm quality."
+    },
+    {
+      "at": "2026-06-30T15:18:26.875Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "Post-M8",
@@ -92,5 +122,20 @@
     "new public save compatibility, migration or release promises",
     "new runtime dependencies without a separate ADR",
     "public release, Early Access, store, signing, telemetry, accounts, paid services or public feedback surfaces"
-  ]
+  ],
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Tally",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0159.md",
+  "review": {
+    "reviewer": "systems-architect",
+    "verdict": "verified",
+    "summary": "No blocking findings. Verified ADR-0015 narrow public root @wuming-town/sim-worker advance helper/session method uses existing PlayerCommandBatch path with explicit target tick; apps/web uses public roots only and does not import sim-core or hardcode wm0150.advance; SetSpeed/Pause and reliable delivery remain separate; Chromium worker-smoke and required checks pass.",
+    "at": "2026-06-30T15:15:12.273Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integrated verified public playable advance helper; required gates passed including typecheck, focused tests, worker-smoke, replay, boundaries, validate-handoff, taskctl, diff check and pnpm quality.",
+    "at": "2026-06-30T15:18:16.416Z"
+  }
 }

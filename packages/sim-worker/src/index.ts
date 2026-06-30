@@ -65,6 +65,7 @@ import { createPlayableProjection } from "./playable-projection";
 export {
   WM0150_PLAYABLE_COMMAND_DEFAULT_SEED,
   WM0150_PLAYABLE_COMMAND_SCENARIO_ID,
+  advancePlayableCommandScenarioToTick,
   createBrowserSimulationWorker,
   createBrowserSimulationWorkerSession,
   type BrowserSimulationWorkerFactory,

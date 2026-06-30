@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MR0SG2KZ-B49BE9",
+  "from": "systems-architect",
+  "to": "simulation-engineer",
+  "taskId": "WM-0159",
+  "kind": "review-approved",
+  "subject": "WM-0159 review: verified",
+  "body": "No blocking findings. Verified ADR-0015 narrow public root @wuming-town/sim-worker advance helper/session method uses existing PlayerCommandBatch path with explicit target tick; apps/web uses public roots only and does not import sim-core or hardcode wm0150.advance; SetSpeed/Pause and reliable delivery remain separate; Chromium worker-smoke and required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0159.md"
+  ],
+  "createdAt": "2026-06-30T15:15:12.275Z",
+  "acknowledgedAt": "2026-06-30T15:16:07.186Z"
+}

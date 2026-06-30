@@ -1,6 +1,10 @@
-import { PLAYABLE_COMMAND_SLICE_SCENARIO_ID } from "@wuming-town/sim-core";
+import {
+  PLAYABLE_COMMAND_SLICE_SCENARIO_ID,
+  createPlayableAdvanceCommandId,
+} from "@wuming-town/sim-core";
 import {
   MAIN_TO_SIMULATION_MESSAGE_KIND,
+  PLAYER_COMMAND_KIND,
   SIMULATION_TO_MAIN_MESSAGE_KIND,
   SIM_PROTOCOL_VERSION,
   SIM_SCHEMA_VERSION,
@@ -71,6 +75,7 @@ export interface BrowserSimulationWorkerSession {
   initPlayableCommandScenario(input?: InitPlayableCommandScenarioInput): MainToSimulationMessage;
   loadSession(payload: LoadSessionPayload): MainToSimulationMessage;
   sendPlayerCommandBatch(commands: readonly PlayerCommand[]): MainToSimulationMessage;
+  advancePlayableCommandScenarioToTick(targetTick: number): MainToSimulationMessage;
   requestUiDetail(payload: RequestUiDetailPayload): MainToSimulationMessage;
   requestSave(payload: RequestSavePayload): MainToSimulationMessage;
   setSpeed(speed: 0 | 1 | 2 | 3): MainToSimulationMessage;
@@ -179,6 +184,15 @@ export function createBrowserSimulationWorkerSession(
         payload: { commands },
       });
     },
+    advancePlayableCommandScenarioToTick(targetTick: number): MainToSimulationMessage {
+      assertPlayableAdvanceTargetTick(targetTick);
+      return this.sendPlayerCommandBatch([
+        {
+          commandId: createPlayableAdvanceCommandId(targetTick),
+          kind: PLAYER_COMMAND_KIND.Noop,
+        },
+      ]);
+    },
     requestUiDetail(payload: RequestUiDetailPayload): MainToSimulationMessage {
       return post({
         ...nextBase(),
@@ -227,6 +241,13 @@ export function createBrowserSimulationWorkerSession(
   };
 }
 
+export function advancePlayableCommandScenarioToTick(
+  session: BrowserSimulationWorkerSession,
+  targetTick: number,
+): MainToSimulationMessage {
+  return session.advancePlayableCommandScenarioToTick(targetTick);
+}
+
 function assertCanPost(state: BrowserSimulationWorkerSessionState): void {
   if (state === "destroyed") {
     throw new Error("Browser Simulation Worker session has been destroyed.");
@@ -234,6 +255,12 @@ function assertCanPost(state: BrowserSimulationWorkerSessionState): void {
 
   if (state === "shutdown") {
     throw new Error("Browser Simulation Worker session has already been shut down.");
+  }
+}
+
+function assertPlayableAdvanceTargetTick(targetTick: number): void {
+  if (!Number.isSafeInteger(targetTick) || targetTick < 0) {
+    throw new Error("Playable Worker advance target tick must be a non-negative safe integer.");
   }
 }
 

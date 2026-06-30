@@ -6,6 +6,7 @@ import type {
 } from "@wuming-town/sim-worker";
 import {
   MAIN_TO_SIMULATION_MESSAGE_KIND,
+  PLAYER_COMMAND_KIND,
   SIMULATION_TO_MAIN_MESSAGE_KIND,
   type MainToSimulationMessage,
   type SimulationToMainMessage,
@@ -13,6 +14,7 @@ import {
 
 import {
   WEB_PLAYABLE_WORKER_SCENARIO_ID,
+  advanceWebPlayableWorkerScenarioToTick,
   createWebSimulationWorkerSession,
   sendWebPlayableCommandBatch,
   startWebPlayableWorkerScenario,
@@ -29,9 +31,10 @@ describe("web Simulation Worker session bridge adapter", () => {
 
     startWebPlayableWorkerScenario(session, "5");
     sendWebPlayableCommandBatch(session, []);
+    advanceWebPlayableWorkerScenarioToTick(session, 45);
     session.destroy();
 
-    expect(worker.messages).toStrictEqual([
+    expect(worker.messages.slice(0, 2)).toStrictEqual([
       {
         protocolVersion: 1,
         schemaVersion: 2,
@@ -54,6 +57,17 @@ describe("web Simulation Worker session bridge adapter", () => {
         },
       },
     ]);
+
+    const advanceMessage = worker.messages[2];
+    if (advanceMessage?.kind !== MAIN_TO_SIMULATION_MESSAGE_KIND.PlayerCommandBatch) {
+      throw new Error("expected public advance helper to post PlayerCommandBatch");
+    }
+    const advanceCommand = advanceMessage.payload.commands[0];
+    if (advanceCommand === undefined) {
+      throw new Error("expected public advance helper to post one command");
+    }
+    expect(typeof advanceCommand.commandId).toBe("string");
+    expect(advanceCommand.kind).toBe(PLAYER_COMMAND_KIND.Noop);
   });
 
   it("reads public playable projections from UiDelta without summary parsing", () => {

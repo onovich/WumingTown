@@ -1,5 +1,6 @@
 import {
   WM0150_PLAYABLE_COMMAND_SCENARIO_ID,
+  advancePlayableCommandScenarioToTick,
   createBrowserSimulationWorkerSession,
   type BrowserSimulationWorkerSession,
   type BrowserSimulationWorkerSessionOptions,
@@ -33,6 +34,13 @@ export function sendWebPlayableCommandBatch(
   commands: readonly PlayerCommand[],
 ): MainToSimulationMessage {
   return session.sendPlayerCommandBatch(commands);
+}
+
+export function advanceWebPlayableWorkerScenarioToTick(
+  session: BrowserSimulationWorkerSession,
+  targetTick: number,
+): MainToSimulationMessage {
+  return advancePlayableCommandScenarioToTick(session, targetTick);
 }
 
 export function readWebPlayableProjection(
