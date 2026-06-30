@@ -179,8 +179,10 @@ describe("shell-hud", () => {
     expect(markup).toContain("Available actions");
     expect(markup).toContain("Next goal");
     expect(markup).toContain("Lantern gap");
-    expect(markup).toContain("resident, structure, lantern post, visitor, or map tile");
-    expect(markup).toContain("Minimum command chain");
+    expect(markup).toContain("East Market Lantern Post, a pawn, or a map tile");
+    expect(markup).toContain("Lamp chain");
+    expect(markup).toContain("Build chain");
+    expect(markup).toContain("accepted and rejected commands show structured status");
     expect(markup).toContain("Build mode");
     expect(markup).toContain(
       "Player guidance stays on the player surface; internal tools remain separate",
@@ -208,10 +210,16 @@ describe("shell-hud", () => {
     expect(markup).toContain("黄昏守望");
     expect(markup).toContain("补上灯火缺口");
     expect(markup).toContain("先确认灯火覆盖、路线证据与守夜义务");
-    expect(markup).toContain("选择：点击居民");
-    expect(markup).toContain("最小命令链");
+    expect(markup).toContain("选择目标：点击东市灯柱");
+    expect(markup).toContain("灯火链路");
+    expect(markup).toContain("建造链路");
+    expect(markup).toContain("结构化状态、进度、完成或阻塞原因");
     expect(markup).toContain("建造模式");
     expect(markup).toContain("玩家指引保留在玩家界面");
+    expect(markup).not.toContain("本地补灯");
+    expect(markup).not.toContain("本地行动");
+    expect(markup).not.toContain("HUD");
+    expect(markup).not.toContain("Worker");
     expect(markup).not.toContain("Dusk watch");
     expect(markup).not.toContain("Lantern gap");
     expect(markup).not.toContain("East street fuel window");
@@ -347,6 +355,10 @@ describe("shell-hud", () => {
     expect(markup).toContain('data-command-state="queued"');
     expect(markup).toContain('data-action-marker-state="working"');
     expect(markup).toContain("wm0152-lamp-001");
+    expect(markup).toContain("东市灯柱");
+    expect(markup).toContain("工作中");
+    expect(markup).not.toContain("East Market Lantern Post");
+    expect(markup).not.toContain("Working");
   });
 
   it("renders localized empty-tile inspection feedback when no entity is selected", () => {

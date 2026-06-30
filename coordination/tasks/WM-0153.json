@@ -2,7 +2,7 @@
   "id": "WM-0153",
   "title": "First-play guidance localization and responsive repair",
   "summary": "Update first-play guidance, zh-CN/en copy and window/fullscreen responsive behavior around the real lamp/build interaction chain rather than static tutorial text.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -34,7 +34,7 @@
   ],
   "branch": "task/WM-0153-first-play-guidance-localization-and-responsive-",
   "createdAt": "2026-06-29T18:59:47.613Z",
-  "updatedAt": "2026-06-30T18:46:12.984Z",
+  "updatedAt": "2026-06-30T20:01:34.106Z",
   "history": [
     {
       "at": "2026-06-29T18:59:47.613Z",
@@ -47,6 +47,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-30T18:52:20.635Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": "thread=Canvas WM-0153 guidance repair"
+    },
+    {
+      "at": "2026-06-30T19:39:15.889Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Implemented WM-0153 first-play guidance localization and responsive repair around the real WM-0152 lamp/build command chain; required checks pass."
+    },
+    {
+      "at": "2026-06-30T19:47:11.274Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: Verified WM-0153: inspected WM-0152 chain-aligned guidance/localization/responsive HUD diff, UI-only scope hygiene, player command feedback tests, and lightweight gates; full web-shell E2E/quality PASS accepted from report."
+    },
+    {
+      "at": "2026-06-30T20:01:25.164Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integration gates passed in task worktree: typecheck, web-shell E2E 13/13, validate-handoff, taskctl validate/status, git diff --check, and pnpm quality 74 files / 413 tests. WM-0135 generated report diff restored before integration."
+    },
+    {
+      "at": "2026-06-30T20:01:34.106Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "Post-M8",
@@ -62,5 +92,20 @@
     "Simulation Worker or sim-core logic changes",
     "fake or unavailable command claims",
     "public release/EA/store/signing/telemetry/accounts/paid-services/public-save actions"
-  ]
+  ],
+  "claimedBy": "client-engineer",
+  "threadLabel": "Canvas WM-0153 guidance repair",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0153.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "Verified WM-0153: inspected WM-0152 chain-aligned guidance/localization/responsive HUD diff, UI-only scope hygiene, player command feedback tests, and lightweight gates; full web-shell E2E/quality PASS accepted from report.",
+    "at": "2026-06-30T19:47:11.273Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integration gates passed in task worktree: typecheck, web-shell E2E 13/13, validate-handoff, taskctl validate/status, git diff --check, and pnpm quality 74 files / 413 tests. WM-0135 generated report diff restored before integration.",
+    "at": "2026-06-30T20:01:25.164Z"
+  }
 }

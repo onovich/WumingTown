@@ -67,23 +67,29 @@ const EN_MESSAGES = {
   "ui.mainMenu.action.settings": "Settings",
   "ui.mainMenu.aria": "Main menu",
   "ui.mainMenu.badge": "Main menu",
-  "ui.mainMenu.continue.empty": "Continue becomes available after a local save exists.",
-  "ui.mainMenu.continue.ready": "Continue resumes the latest local town record on this device.",
+  "ui.mainMenu.continue.empty":
+    "Continue becomes available after a local shell evidence save exists. Authoritative command runtime is not restored from storage.",
+  "ui.mainMenu.continue.ready":
+    "Continue restores local shell selection and gate evidence only. Authoritative command runtime is not restored from storage.",
   "ui.mainMenu.cycle": "Season",
   "ui.mainMenu.cycleHint":
     "Use the current season and watchpoint to judge how much pressure is building.",
   "ui.mainMenu.firstPlay.action.continue":
-    "Continue: available only when a local save exists; otherwise it stays disabled.",
+    "Continue: available only when a local shell evidence save exists; it does not restore in-progress Worker commands.",
   "ui.mainMenu.firstPlay.action.newGame":
-    "New Game: enter the town view and inspect the current pressure before acting.",
+    "Enter town: New Game opens the player HUD so you can inspect the current lamp pressure before acting.",
   "ui.mainMenu.firstPlay.action.settings":
     "Settings: choose zh-CN or English presentation and adjust UI scale without changing simulation authority.",
   "ui.mainMenu.firstPlay.action.select":
-    "Select: click a resident, structure, lantern post, visitor, or map tile; the inspector shows visible read-model state.",
+    "Select target: click the East Market Lantern Post, a pawn, or a map tile; the inspector shows visible projection state.",
   "ui.mainMenu.firstPlay.action.camera":
     "Camera: drag the map to pan, then use camera reset if the current town focus is lost.",
   "ui.mainMenu.firstPlay.action.lampCommand":
-    "Minimum command chain: select the east market lamp target or enter Build mode, send the command from the HUD, and confirm authoritative acceptance or rejection.",
+    "Lamp chain: select the lamp target, send Prioritize lamp work from the command bar, then watch acceptance, job marker, pawn claim, movement, work, and terminal feedback.",
+  "ui.mainMenu.firstPlay.action.buildCommand":
+    "Build chain: enter Build mode, hover valid or invalid blueprint tiles, and place only when the Worker exposes an available blueprint command.",
+  "ui.mainMenu.firstPlay.action.feedback":
+    "Feedback: accepted and rejected commands show structured status, progress, completion, or blocked reason in the command bar and inspector.",
   "ui.mainMenu.firstPlay.actions": "Available actions",
   "ui.mainMenu.firstPlay.boundary":
     "Player guidance stays on the player surface; internal tools remain separate and must be opened explicitly.",
@@ -123,7 +129,7 @@ const EN_MESSAGES = {
     "Choose language and UI scale before entering the town view. These settings affect presentation only.",
   "ui.mainMenu.settings.title": "Display settings",
   "ui.mainMenu.summary":
-    "Read the current phase and next pressure, then start a new session or continue the latest local record.",
+    "Read the current phase and next pressure, then enter the town view or restore local shell evidence.",
   "ui.input.booting": "Shell starting",
   "ui.input.cameraDrag": "Drag pan",
   "ui.input.cameraReset": "Camera reset",
@@ -197,7 +203,9 @@ const EN_MESSAGES = {
   "ui.hud.command.playable.build.modeReady":
     "Enter build mode and hover an authoritative blueprint tile before placing it.",
   "ui.hud.command.playable.build.modeActive":
-    "Build mode is active. Hover a valid authoritative placement tile. Current hover: {tile}.",
+    "Build mode is active. Hover a valid authoritative placement tile. Current hover: {tile}. Click Build mode again to exit.",
+  "ui.hud.command.playable.build.invalidHover":
+    "No authoritative blueprint placement at {tile}. Move to a highlighted valid tile or click Build mode again to exit.",
   "ui.hud.command.playable.build.queued": "Authoritative build command is active for {target}.",
   "ui.hud.command.playable.build.ready":
     "Place an authoritative blueprint for {target} at tile {tile}.",
@@ -296,17 +304,17 @@ const EN_MESSAGES = {
   "ui.onboarding.release": "Release",
   "ui.onboarding.scopeLabel": "First-play guidance",
   "ui.onboarding.step1.body":
-    "Confirm the shell is ready, then inspect the current phase, goals, alerts, and selected resident details before changing plans.",
-  "ui.onboarding.step1.title": "Read the town state first",
+    "Inspect the current lamp pressure, select the East Market Lantern Post, and send only commands the command bar marks as available.",
+  "ui.onboarding.step1.title": "Start from the real command target",
   "ui.onboarding.step2.body":
-    "Use display settings to choose zh-CN or English and increase UI scale. This changes shell presentation only and never changes simulation authority or saves.",
-  "ui.onboarding.step2.title": "Choose language and shell scale",
+    "Use Build mode only after Worker placements appear. Hover tiles for valid or blocked feedback before placing a blueprint.",
+  "ui.onboarding.step2.title": "Place from authoritative previews",
   "ui.onboarding.step3.body":
-    "Treat reasons, alerts, and evidence as structured explanations. Diagnostics stay outside the default player HUD unless explicitly opened.",
-  "ui.onboarding.step3.title": "Follow evidence, not hidden truth",
+    "Read accepted or rejected command feedback, job marker state, pawn movement, progress, completion, and blocked reasons. Diagnostics stay outside the default HUD.",
+  "ui.onboarding.step3.title": "Follow command feedback",
   "ui.onboarding.summary":
-    "Start from the current phase, next pressure, resident state, and structured reasons before using any debug-only tools.",
-  "ui.onboarding.title": "M8 first-run path",
+    "First play follows the live lamp/build Worker chain, not a static tutorial or diagnostics surface.",
+  "ui.onboarding.title": "Playable command path",
   "ui.settings.aria": "Display settings",
   "ui.settings.currentLocale": "Current locale: {locale}",
   "ui.settings.displayBoundary":
@@ -355,20 +363,28 @@ const ZH_CN_MESSAGES = {
   "ui.mainMenu.action.settings": "设置",
   "ui.mainMenu.aria": "主菜单",
   "ui.mainMenu.badge": "主菜单",
-  "ui.mainMenu.continue.empty": "存在本地存档后即可使用继续。",
-  "ui.mainMenu.continue.ready": "继续会载入这台设备上最近一次本地城镇记录。",
+  "ui.mainMenu.continue.empty":
+    "存在本地壳层证据存档后即可使用继续；权威命令运行时不会从存储恢复。",
+  "ui.mainMenu.continue.ready":
+    "继续只会恢复本地壳层选择与闸门证据；权威命令运行时不会从存储恢复。",
   "ui.mainMenu.cycle": "时序",
   "ui.mainMenu.cycleHint": "可结合当前时序与警戒态势，判断城镇压力正在如何积累。",
-  "ui.mainMenu.firstPlay.action.continue": "继续：仅在存在本地存档时可用；否则会保持禁用。",
-  "ui.mainMenu.firstPlay.action.newGame": "新游戏：进入城镇视图，先观察当前压力，再决定如何行动。",
+  "ui.mainMenu.firstPlay.action.continue":
+    "继续：仅在存在本地壳层证据存档时可用；不会恢复执行中的权威命令。",
+  "ui.mainMenu.firstPlay.action.newGame":
+    "进入城镇：新游戏会打开玩家界面，先查看当前灯火压力，再决定如何行动。",
   "ui.mainMenu.firstPlay.action.settings":
     "设置：选择简体中文或英文界面，并调整界面缩放，不改变模拟权威。",
   "ui.mainMenu.firstPlay.action.select":
-    "选择：点击居民、设施、灯柱、访客或地图地块；查看器只显示可见读模型状态。",
+    "选择目标：点击东市灯柱、角色或地图地块；查看器显示可见的投影状态。",
   "ui.mainMenu.firstPlay.action.camera":
     "镜头：拖拽地图进行平移；若丢失当前城镇焦点，可使用相机复位。",
   "ui.mainMenu.firstPlay.action.lampCommand":
-    "最小命令链：选择东市灯位目标或进入建造模式，从 HUD 发出命令，并确认权威接受或拒绝反馈。",
+    "灯火链路：选择灯位目标，从命令带发出优先补灯，然后观察接受反馈、任务标记、角色认领、移动、工作与终态反馈。",
+  "ui.mainMenu.firstPlay.action.buildCommand":
+    "建造链路：进入建造模式，悬停有效或无效蓝图格；只有权威运行时暴露可用蓝图命令时才放置。",
+  "ui.mainMenu.firstPlay.action.feedback":
+    "反馈：已接受或被拒绝的命令会在命令带与查看器显示结构化状态、进度、完成或阻塞原因。",
   "ui.mainMenu.firstPlay.actions": "可用行动",
   "ui.mainMenu.firstPlay.boundary": "玩家指引保留在玩家界面；内部工具保持分离，且必须显式打开。",
   "ui.mainMenu.firstPlay.boundaryTitle": "边界",
@@ -404,7 +420,7 @@ const ZH_CN_MESSAGES = {
   "ui.mainMenu.settings.summary":
     "进入城镇视图前，可在这里确认语言与界面缩放；这些设置只影响呈现，不改变模拟。",
   "ui.mainMenu.settings.title": "显示设置",
-  "ui.mainMenu.summary": "先阅读当前阶段与下一处压力，再开始新局或继续最近一次本地记录。",
+  "ui.mainMenu.summary": "先阅读当前阶段与下一处压力，再进入城镇视图或恢复本地壳层证据。",
   "ui.input.booting": "外壳启动中",
   "ui.input.cameraDrag": "拖拽平移",
   "ui.input.cameraReset": "相机复位",
@@ -447,7 +463,7 @@ const ZH_CN_MESSAGES = {
   "ui.entityKind.resident": "居民",
   "ui.entityKind.structure": "设施",
   "ui.entityKind.visitor": "访客",
-  "ui.hud.aria": "玩家 HUD",
+  "ui.hud.aria": "玩家界面",
   "ui.hud.actionFeedback.body": "{target} 当前的权威命令状态：{state}。",
   "ui.hud.actionFeedback.commandId": "命令编号：{commandId}",
   "ui.hud.actionFeedback.reason": "原因：{reasonCode}",
@@ -459,12 +475,12 @@ const ZH_CN_MESSAGES = {
   "ui.hud.command.placeholder.inspect":
     "这里只提供视觉槽位；选中对象的行动仍保持只读详情，等待后续命令接线。",
   "ui.hud.command.placeholder.lamp": "这里只提供视觉槽位；灯路相关命令仍由后续交互任务接线。",
-  "ui.hud.command.playable.lamp.needsSelection": "选择守灯人或灯路相关对象后，可排入这条本地行动。",
-  "ui.hud.command.playable.lamp.queued": "已为 {target} 排入本地补灯优先行动。",
-  "ui.hud.command.playable.lamp.ready": "为 {target} 排入本地补灯优先行动。",
+  "ui.hud.command.playable.lamp.needsSelection": "选择东市灯位目标后，才能发出这条权威命令。",
+  "ui.hud.command.playable.lamp.queued": "{target} 的权威补灯命令正在执行。",
+  "ui.hud.command.playable.lamp.ready": "为 {target} 发出权威补灯优先命令。",
   "ui.hud.commandBar": "命令带",
   "ui.hud.commandBarHint":
-    "命令会发送到 Simulation Worker。可用性、标记、角色移动、进度与阻塞原因都来自权威 projection 更新。",
+    "命令会发送到权威模拟运行时。可用性、标记、角色移动、进度与阻塞原因都来自权威投影更新。",
   "ui.hud.currentState": "当前状态",
   "ui.hud.cycle": "时序",
   "ui.hud.events": "事件与观察点",
@@ -517,22 +533,20 @@ const ZH_CN_MESSAGES = {
     "文案范围：这里只说明当前壳层界面；完整 M8 内容翻译另有任务负责。",
   "ui.onboarding.release": "发布边界",
   "ui.onboarding.scopeLabel": "首次游玩指引",
-  "ui.onboarding.step1.body":
-    "先确认外壳已就绪，再查看当前时段、主要压力、警报与选中居民详情，然后再调整计划。",
-  "ui.onboarding.step1.title": "先读懂城镇状态",
+  "ui.onboarding.step1.body": "先查看当前灯火压力，选择东市灯柱，并且只发送命令带标为可用的命令。",
+  "ui.onboarding.step1.title": "从真实命令目标开始",
   "ui.onboarding.step2.body":
-    "可在此切换简体中文或英文，并放大界面缩放。它只改变壳层呈现，不会改变模拟权威或存档。",
-  "ui.onboarding.step2.title": "选择语言与壳层缩放",
+    "只有权威运行时暴露放置点后才使用建造模式。放置蓝图前，先悬停地块确认有效或阻塞反馈。",
+  "ui.onboarding.step2.title": "依据权威预览放置",
   "ui.onboarding.step3.body":
-    "把原因、警报与证据视为结构化说明。诊断信息默认不会出现在玩家 HUD，除非显式开启。",
-  "ui.onboarding.step3.title": "依据证据而非隐藏真相",
-  "ui.onboarding.summary":
-    "先从当前时段、主要压力、居民状态与结构化原因入手，再使用任何调试专用工具。",
-  "ui.onboarding.title": "M8 首次游玩路径",
+    "阅读命令接受或拒绝反馈、任务标记状态、角色移动、进度、完成与阻塞原因。诊断信息默认不进入玩家界面。",
+  "ui.onboarding.step3.title": "跟随命令反馈",
+  "ui.onboarding.summary": "首次游玩跟随实时灯火/建造权威链路，而不是静态教程或诊断界面。",
+  "ui.onboarding.title": "可游玩命令路径",
   "ui.settings.aria": "显示设置",
   "ui.settings.currentLocale": "当前语言：{locale}",
   "ui.settings.displayBoundary":
-    "这些壳层显示设置只会改变文字与 HUD 外观，不会改变模拟权威、存档格式或 Pixi 世界缩放。",
+    "这些壳层显示设置只会改变文字与玩家界面外观，不会改变模拟权威、存档格式或世界视图缩放。",
   "ui.settings.description":
     "选择玩家可见壳层界面的显示方式，包括语言与界面缩放。这些偏好仅保存在应用壳层本地。",
   "ui.settings.language": "语言",
@@ -577,11 +591,13 @@ const ZH_CN_MESSAGES = {
   "ui.hud.command.build": "放置蓝图",
   "ui.hud.command.buildMode": "建造模式",
   "ui.hud.command.playable.build.needsSelection":
-    "只有当权威 Worker 暴露出蓝图放置点后，建造模式才会可用。",
+    "只有当权威运行时暴露出蓝图放置点后，建造模式才会可用。",
   "ui.hud.command.playable.build.modeReady":
     "进入建造模式后，先将鼠标悬停在权威蓝图格上，再确认放置。",
   "ui.hud.command.playable.build.modeActive":
-    "建造模式已激活。请悬停到有效的权威放置格。当前悬停：{tile}。",
+    "建造模式已激活。请悬停到有效的权威放置格。当前悬停：{tile}。再次点击建造模式可退出。",
+  "ui.hud.command.playable.build.invalidHover":
+    "格位 {tile} 没有权威蓝图放置点。请移到高亮的有效格，或再次点击建造模式退出。",
   "ui.hud.command.playable.build.queued": "{target} 的权威建造命令正在执行。",
   "ui.hud.command.playable.build.ready": "在格位 {tile} 为 {target} 放置权威蓝图。",
   "ui.hud.command.playable.blocked": "已阻塞：{reason}",

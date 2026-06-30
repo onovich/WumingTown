@@ -854,7 +854,7 @@ function createInspectorCard(
         value:
           structuredTask === undefined
             ? localizeShellFixtureText(locale, selectedEntity.inspector.currentStep)
-            : structuredTask.stepLabel,
+            : localizeShellFixtureText(locale, structuredTask.stepLabel),
       },
       ...(structuredTask === undefined
         ? []
@@ -876,7 +876,7 @@ function createInspectorCard(
               value:
                 structuredTask.reason === undefined
                   ? formatMessage(locale, "ui.inspector.reasonNone")
-                  : `${structuredTask.reason.code} · ${structuredTask.reason.detail}`,
+                  : `${structuredTask.reason.code} · ${localizeShellFixtureText(locale, structuredTask.reason.detail)}`,
             },
           ]),
       {
@@ -1518,7 +1518,12 @@ function createCommandBar(
       "aria-label": formatMessage(locale, "ui.hud.commandBar"),
       "data-testid": "player-command-bar",
       "data-ui-slot": SHELL_DESIGN_TOKENS.slot.commandBar,
-      style: layoutMode === "compact" ? compactCommandBarStyle : commandBarStyle,
+      style:
+        layoutMode === "compact"
+          ? compactCommandBarStyle
+          : layoutMode === "medium"
+            ? mediumCommandBarStyle
+            : commandBarStyle,
     },
     createElement(
       "div",
@@ -1601,7 +1606,9 @@ function createCommandBar(
         ),
       ),
     ),
-    state.playableAction === undefined ? null : createPlayableActionFeedback(state, locale),
+    state.playableAction === undefined
+      ? null
+      : createPlayableActionFeedback(state, locale, layoutMode),
   );
 }
 
@@ -1758,7 +1765,11 @@ function readCommandSpecs(
   ];
 }
 
-function createPlayableActionFeedback(state: ShellState, locale: LocaleId): ReactElement | null {
+function createPlayableActionFeedback(
+  state: ShellState,
+  locale: LocaleId,
+  layoutMode: HudLayoutMode,
+): ReactElement | null {
   const action = state.playableAction;
   if (action === undefined) {
     return null;
@@ -1768,7 +1779,7 @@ function createPlayableActionFeedback(state: ShellState, locale: LocaleId): Reac
   const reasonText =
     action.reasonCode === undefined
       ? formatMessage(locale, "ui.inspector.reasonNone")
-      : `${action.reasonCode} · ${action.reasonDetail ?? action.reasonCode}`;
+      : `${action.reasonCode} · ${localizeShellFixtureText(locale, action.reasonDetail ?? action.reasonCode)}`;
   const stateText =
     action.status === "rejected"
       ? formatMessage(locale, "ui.hud.actionFeedback.rejected")
@@ -1785,12 +1796,12 @@ function createPlayableActionFeedback(state: ShellState, locale: LocaleId): Reac
       "data-reason-code": action.reasonCode ?? "",
       "data-target-entity": action.targetEntityId ?? "",
       "data-testid": "player-action-feedback",
-      style: actionFeedbackStyle,
+      style: layoutMode === "medium" ? mediumActionFeedbackStyle : actionFeedbackStyle,
     },
     createElement(
       "div",
       {
-        style: rowTitleStyle,
+        style: layoutMode === "medium" ? mediumActionFeedbackTitleStyle : actionFeedbackTitleStyle,
       },
       action.status === "rejected"
         ? formatMessage(locale, "ui.hud.actionFeedback.titleRejected")
@@ -1799,7 +1810,7 @@ function createPlayableActionFeedback(state: ShellState, locale: LocaleId): Reac
     createElement(
       "div",
       {
-        style: commandDetailStyle,
+        style: layoutMode === "medium" ? mediumActionFeedbackBodyStyle : actionFeedbackBodyStyle,
       },
       formatMessage(locale, "ui.hud.actionFeedback.body", {
         state: stateText,
@@ -1880,9 +1891,16 @@ function readBuildDescription(
   hoverTile: TileCoordinate | undefined,
 ): string {
   if (placement === undefined) {
-    return formatMessage(locale, "ui.hud.command.playable.build.modeActive", {
-      tile: hoverTile === undefined ? "?" : formatTile(hoverTile),
-    });
+    const tile = hoverTile === undefined ? "?" : formatTile(hoverTile);
+    return formatMessage(
+      locale,
+      hoverTile === undefined
+        ? "ui.hud.command.playable.build.modeActive"
+        : "ui.hud.command.playable.build.invalidHover",
+      {
+        tile,
+      },
+    );
   }
 
   if (!placement.valid || !placement.command.available) {
@@ -1910,7 +1928,9 @@ function formatCommandReason(
     return formatMessage(locale, "ui.inspector.reasonNone");
   }
 
-  return reasonDetail === undefined ? reasonCode : `${reasonCode} · ${reasonDetail}`;
+  return reasonDetail === undefined
+    ? reasonCode
+    : `${reasonCode} · ${localizeShellFixtureText(locale, reasonDetail)}`;
 }
 
 function formatTile(tile: TileCoordinate): string {
@@ -2931,6 +2951,12 @@ const compactCommandBarStyle: CSSProperties = {
   padding: `${SHELL_DESIGN_TOKENS.space.sm} ${SHELL_DESIGN_TOKENS.space.md}`,
 };
 
+const mediumCommandBarStyle: CSSProperties = {
+  ...commandBarStyle,
+  gap: SHELL_DESIGN_TOKENS.space.xs,
+  padding: `${SHELL_DESIGN_TOKENS.space.sm} ${SHELL_DESIGN_TOKENS.space.md}`,
+};
+
 const commandBarGroupStyle: CSSProperties = {
   display: "grid",
   gap: SHELL_DESIGN_TOKENS.space.sm,
@@ -2970,6 +2996,33 @@ const actionFeedbackStyle: CSSProperties = {
   flexDirection: "column",
   gap: SHELL_DESIGN_TOKENS.space.xs,
   padding: `${SHELL_DESIGN_TOKENS.space.sm} ${SHELL_DESIGN_TOKENS.space.md}`,
+};
+
+const mediumActionFeedbackStyle: CSSProperties = {
+  ...actionFeedbackStyle,
+  columnGap: SHELL_DESIGN_TOKENS.space.md,
+  display: "grid",
+  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+  padding: `${SHELL_DESIGN_TOKENS.space.xs} ${SHELL_DESIGN_TOKENS.space.md}`,
+  rowGap: SHELL_DESIGN_TOKENS.space.xs,
+};
+
+const actionFeedbackTitleStyle: CSSProperties = {
+  ...rowTitleStyle,
+};
+
+const mediumActionFeedbackTitleStyle: CSSProperties = {
+  ...actionFeedbackTitleStyle,
+  gridColumn: "1 / -1",
+};
+
+const actionFeedbackBodyStyle: CSSProperties = {
+  ...commandDetailStyle,
+};
+
+const mediumActionFeedbackBodyStyle: CSSProperties = {
+  ...actionFeedbackBodyStyle,
+  gridColumn: "1 / -1",
 };
 
 const actionFeedbackMetaStyle: CSSProperties = {

@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MR103VNR-DFCF5A",
+  "from": "project-director",
+  "to": "client-engineer",
+  "taskId": "WM-0153",
+  "kind": "assignment",
+  "subject": "WM-0153 ready for client implementation",
+  "body": "WM-0153 is ready after WM-0152 main merge/push at 7dc4fc4. Worktree: D:\\\\WebProjects\\\\WumingTown-WM-0153. Branch: task/WM-0153-first-play-guidance-localization-and-responsive-. Scope: first-play guidance, zh-CN/en/system-language behavior, window/fullscreen responsive repair, secondary settings/diagnostics, accessibility/readability around the real WM-0152 lamp/build command chain. Do not touch Simulation Worker or sim-core logic, do not claim unavailable controls, and preserve release/EA/store/signing/telemetry/accounts/public-save gates. Read AGENTS/workflow/task docs, run validate/status, claim as client-engineer, write coordination/reports/WM-0153-plan.md before product edits, then implement and complete to reviewer after required checks.",
+  "artifacts": [
+    "coordination/tasks/WM-0153.json",
+    "coordination/reports/WM-0152.md"
+  ],
+  "createdAt": "2026-06-30T18:49:40.360Z",
+  "acknowledgedAt": "2026-06-30T18:50:11.846Z"
+}

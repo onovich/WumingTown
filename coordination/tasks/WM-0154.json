@@ -2,7 +2,7 @@
   "id": "WM-0154",
   "title": "Playable product visual evidence and E2E gate",
   "summary": "Create reviewer-grade screenshot, video-adjacent debug evidence and E2E coverage proving visible NPC action, command-to-job flow, build/lamp completion and blocked reason handling.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -37,13 +37,19 @@
   ],
   "branch": "task/WM-0154-playable-product-visual-evidence-and-e2e-gate",
   "createdAt": "2026-06-29T18:59:47.659Z",
-  "updatedAt": "2026-06-29T18:59:47.659Z",
+  "updatedAt": "2026-06-30T20:01:34.136Z",
   "history": [
     {
       "at": "2026-06-29T18:59:47.659Z",
       "actor": "taskctl",
       "action": "create",
       "details": ""
+    },
+    {
+      "at": "2026-06-30T20:01:34.136Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "Post-M8",

@@ -175,6 +175,12 @@ const WM0118_RESPONSIVE_VIEWPORTS: readonly ResponsiveViewport[] = [
   { width: 2560, height: 1369 },
   { width: 2560, height: 1440 },
 ];
+const WM0153_PLAYER_COMMAND_VIEWPORTS: readonly ResponsiveViewport[] = [
+  { width: 1280, height: 720 },
+  { width: 1366, height: 768 },
+  { width: 1600, height: 900 },
+  { width: 1920, height: 1080 },
+];
 
 const WM0118_WEB_ARTIFACT_ROOT = path.join(process.cwd(), "coordination", "artifacts", "WM-0118");
 const WM0118_WEB_SCREENSHOT_ROOT = path.join(WM0118_WEB_ARTIFACT_ROOT, "web");
@@ -623,6 +629,11 @@ describe("web shell smoke", () => {
             (candidate) => candidate.entityId === "lantern-keeper-shen",
           )?.state,
         ).toMatch(/^(moving|working|completed)$/u);
+        for (const viewport of WM0153_PLAYER_COMMAND_VIEWPORTS) {
+          await assertTownHudViewportLayout(page, viewport.width, viewport.height, "en", {
+            assertSettingsSurface: false,
+          });
+        }
         await sleep(300);
 
         const buildButton = page.getByTestId("player-command-build");
@@ -630,6 +641,13 @@ describe("web shell smoke", () => {
         expect(await buildButton.getAttribute("data-command-state")).toBe("ready");
         await buildButton.click();
         await waitForCommandState(page, "player-command-build", "needs-placement");
+        const invalidBuildPoint = await findInspectableCanvasPoint(
+          page,
+          await readDebugPayload(page),
+        );
+        await hoverCanvasPoint(page, invalidBuildPoint);
+        await waitForCommandState(page, "player-command-build", "needs-placement");
+        await waitForHudText(page, "No authoritative blueprint placement");
         await hoverCanvasPoint(
           page,
           findRequiredEntity(await readDebugPayload(page), "east-market-lantern-post"),
@@ -1357,6 +1375,9 @@ async function assertPlayerHudLocaleState(
   expect(hudText ?? "").not.toContain("Rice");
   expect(hudText ?? "").not.toContain("Stable");
   expect(hudText ?? "").not.toContain("Unhurt");
+  expect(hudText ?? "").not.toContain("HUD");
+  expect(hudText ?? "").not.toContain("Worker");
+  expect(hudText ?? "").not.toContain("projection");
 }
 
 async function assertCommandAccessibility(page: import("playwright").Page): Promise<void> {
@@ -1403,6 +1424,15 @@ async function assertCommandAccessibility(page: import("playwright").Page): Prom
     const detailId = describedBy ?? "";
     const detailText = await page.locator(`#${detailId}`).textContent();
     expect((detailText ?? "").length).toBeGreaterThan(10);
+    if (spec.expectedAriaDisabled === "false") {
+      await button.focus();
+      const focusedTestId = await page.evaluate(() =>
+        document.activeElement instanceof HTMLElement
+          ? document.activeElement.getAttribute("data-testid")
+          : null,
+      );
+      expect(focusedTestId).toBe(spec.testId);
+    }
   }
 }
 
@@ -1438,6 +1468,7 @@ async function assertTownHudViewportLayout(
     await assertTestIdReachableWithoutCover(page, testId, width, height);
   }
   await assertTestIdWithinViewport(page, "player-command-lamp", width, height);
+  await assertTestIdWithinViewport(page, "player-command-build", width, height);
   await assertTestIdWithinViewport(page, "player-command-chronicle", width, height);
   await assertTestIdWithinViewport(page, "player-command-inspect", width, height);
 
@@ -1447,6 +1478,17 @@ async function assertTownHudViewportLayout(
     width,
     height,
   );
+  if ((await page.getByTestId("player-action-feedback").count()) > 0) {
+    await assertTallSelectorReachableWithoutCover(
+      page,
+      "[data-testid='player-action-feedback']",
+      width,
+      height,
+    );
+    const actionFeedbackText = await page.getByTestId("player-action-feedback").textContent();
+    expect(actionFeedbackText ?? "").toMatch(/accepted|rejected|已接受|已拒绝/iu);
+    expect(actionFeedbackText ?? "").toMatch(/Progress|进度/u);
+  }
   expect(await page.getByTestId("locale-settings").count()).toBe(0);
   if (options.assertSettingsSurface !== false) {
     await page.getByTestId("player-settings-toggle").click();
@@ -1521,6 +1563,10 @@ async function assertStartSurfaceBaseline(
     expect(surfaceText ?? "").toContain("First-play guidance");
     expect(surfaceText ?? "").toContain("Available actions");
     expect(surfaceText ?? "").toContain("Next goal");
+    expect(surfaceText ?? "").toContain("Lamp chain");
+    expect(surfaceText ?? "").toContain("Build chain");
+    expect(surfaceText ?? "").toContain("accepted and rejected commands show structured status");
+    expect(surfaceText ?? "").toContain("local shell evidence");
   } else {
     expect(surfaceText ?? "").toContain("主菜单");
     expect(surfaceText ?? "").toContain("新游戏");
@@ -1531,6 +1577,13 @@ async function assertStartSurfaceBaseline(
     expect(surfaceText ?? "").toContain("黄昏守望");
     expect(surfaceText ?? "").toContain("补上灯火缺口");
     expect(surfaceText ?? "").toContain("先确认灯火覆盖、路线证据与守夜义务");
+    expect(surfaceText ?? "").toContain("灯火链路");
+    expect(surfaceText ?? "").toContain("建造链路");
+    expect(surfaceText ?? "").toContain("结构化状态、进度、完成或阻塞原因");
+    expect(surfaceText ?? "").toContain("权威命令运行时不会从存储恢复");
+    expect(surfaceText ?? "").not.toContain("HUD");
+    expect(surfaceText ?? "").not.toContain("Worker");
+    expect(surfaceText ?? "").not.toContain("local shell");
     expect(surfaceText ?? "").not.toContain("Dusk watch");
     expect(surfaceText ?? "").not.toContain("Lantern corridor gap");
     expect(surfaceText ?? "").not.toContain("The east market lane may lose light before curfew.");

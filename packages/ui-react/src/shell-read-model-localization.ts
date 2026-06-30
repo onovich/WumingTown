@@ -927,11 +927,234 @@ const SHELL_FIXTURE_TEXT: FixtureTextCatalog = Object.freeze({
     en: "Silence",
     "zh-CN": "安静",
   },
+  "Authoritative structure completed.": {
+    en: "Authoritative structure completed.",
+    "zh-CN": "权威结构已完成。",
+  },
+  "Authoritative structure is under construction.": {
+    en: "Authoritative structure is under construction.",
+    "zh-CN": "权威结构正在施工。",
+  },
+  "Authoritative lamp gap is awaiting player action.": {
+    en: "Authoritative lamp gap is awaiting player action.",
+    "zh-CN": "权威灯火缺口正在等待玩家行动。",
+  },
+  "Lamp structure": {
+    en: "Lamp structure",
+    "zh-CN": "灯火结构",
+  },
+  "Lamp post completed": {
+    en: "Lamp post completed",
+    "zh-CN": "灯柱已完成",
+  },
+  "Build placement": {
+    en: "Build placement",
+    "zh-CN": "建造放置",
+  },
+  "Authoritative structure is stable": {
+    en: "Authoritative structure is stable",
+    "zh-CN": "权威结构稳定",
+  },
+  "Authoritative build is in progress": {
+    en: "Authoritative build is in progress",
+    "zh-CN": "权威建造正在进行",
+  },
+  "Select this structure or enter build mode": {
+    en: "Select this structure or enter build mode",
+    "zh-CN": "选择此结构或进入建造模式",
+  },
+  Structural: {
+    en: "Structural",
+    "zh-CN": "结构",
+  },
+  "This structure is rendered from the authoritative Worker projection.": {
+    en: "This structure is rendered from the authoritative Worker projection.",
+    "zh-CN": "此结构来自权威投影。",
+  },
+  "UI reads projection state only and does not own structure mutation.": {
+    en: "UI reads projection state only and does not own structure mutation.",
+    "zh-CN": "界面只读取投影状态，不拥有结构变更权威。",
+  },
+  "Completed lamp post": {
+    en: "Completed lamp post",
+    "zh-CN": "已完成灯柱",
+  },
+  "Lamp build target": {
+    en: "Lamp build target",
+    "zh-CN": "灯柱建造目标",
+  },
+  "Valid blueprint placement": {
+    en: "Valid blueprint placement",
+    "zh-CN": "有效蓝图放置点",
+  },
+  "No authoritative placement here": {
+    en: "No authoritative placement here",
+    "zh-CN": "此处没有权威放置点",
+  },
+  "Blocked build preview": {
+    en: "Blocked build preview",
+    "zh-CN": "受阻建造预览",
+  },
+  "Lamp build footprint": {
+    en: "Lamp build footprint",
+    "zh-CN": "灯柱建造占地",
+  },
+  "Lantern corridor stabilized": {
+    en: "Lantern corridor stabilized",
+    "zh-CN": "灯廊已稳定",
+  },
+  "The authoritative lamp order has completed.": {
+    en: "The authoritative lamp order has completed.",
+    "zh-CN": "权威补灯命令已完成。",
+  },
+  "Lamp order blocked": {
+    en: "Lamp order blocked",
+    "zh-CN": "补灯命令受阻",
+  },
+  "Lantern post raised": {
+    en: "Lantern post raised",
+    "zh-CN": "灯柱已立起",
+  },
+  "The authoritative build order completed the structure.": {
+    en: "The authoritative build order completed the structure.",
+    "zh-CN": "权威建造命令已完成结构。",
+  },
+  "Worker projection active": {
+    en: "Worker projection active",
+    "zh-CN": "权威投影已激活",
+  },
+  "simulation-worker-projection": {
+    en: "simulation-worker-projection",
+    "zh-CN": "权威模拟投影",
+  },
+  "Build construction": {
+    en: "Build construction",
+    "zh-CN": "建造施工",
+  },
+  "Build delivery": {
+    en: "Build delivery",
+    "zh-CN": "建材配送",
+  },
+  "Lamp refill": {
+    en: "Lamp refill",
+    "zh-CN": "补灯",
+  },
+  "Claimed by a worker": {
+    en: "Claimed by a worker",
+    "zh-CN": "已由角色认领",
+  },
+  "Worker moving": {
+    en: "Worker moving",
+    "zh-CN": "角色移动中",
+  },
+  "Work in progress": {
+    en: "Work in progress",
+    "zh-CN": "工作进行中",
+  },
+  "Blocked with a structured reason": {
+    en: "Blocked with a structured reason",
+    "zh-CN": "因结构化原因受阻",
+  },
+  Completed: {
+    en: "Completed",
+    "zh-CN": "已完成",
+  },
+  "Queued for worker pickup": {
+    en: "Queued for worker pickup",
+    "zh-CN": "等待角色认领",
+  },
+  "Moving to the order target": {
+    en: "Moving to the order target",
+    "zh-CN": "正在前往命令目标",
+  },
+  "Working on the current order": {
+    en: "Working on the current order",
+    "zh-CN": "正在执行当前命令",
+  },
+  "Blocked on the current order": {
+    en: "Blocked on the current order",
+    "zh-CN": "当前命令受阻",
+  },
+  "Order completed": {
+    en: "Order completed",
+    "zh-CN": "命令已完成",
+  },
+  "Order failed": {
+    en: "Order failed",
+    "zh-CN": "命令失败",
+  },
+  Idle: {
+    en: "Idle",
+    "zh-CN": "空闲",
+  },
+  "Missing Resource": {
+    en: "Missing Resource",
+    "zh-CN": "资源不足",
+  },
+  "No Path": {
+    en: "No Path",
+    "zh-CN": "无可用路径",
+  },
+  "No Worker": {
+    en: "No Worker",
+    "zh-CN": "无可用角色",
+  },
+  "Invalid Target": {
+    en: "Invalid Target",
+    "zh-CN": "目标无效",
+  },
+  "Stale Command": {
+    en: "Stale Command",
+    "zh-CN": "命令基准过期",
+  },
+  "Rule Policy Denial": {
+    en: "Rule Policy Denial",
+    "zh-CN": "规则策略拒绝",
+  },
+  Ready: {
+    en: "Ready",
+    "zh-CN": "就绪",
+  },
+  Oil: {
+    en: "Oil",
+    "zh-CN": "灯油",
+  },
 });
 
 export function localizeShellFixtureText(locale: LocaleId, source: string): string {
   const entry = SHELL_FIXTURE_TEXT[source];
-  return entry === undefined ? source : entry[locale];
+  return entry === undefined ? localizeKnownDynamicShellText(locale, source) : entry[locale];
+}
+
+function localizeKnownDynamicShellText(locale: LocaleId, source: string): string {
+  if (locale === "en") {
+    return source;
+  }
+
+  const separatorIndex = source.indexOf(": ");
+  if (separatorIndex < 0) {
+    return source;
+  }
+
+  const prefix = source.slice(0, separatorIndex);
+  const detail = source.slice(separatorIndex + 2);
+  const prefixEntry = SHELL_FIXTURE_TEXT[prefix];
+  if (prefixEntry === undefined) {
+    return source;
+  }
+
+  return `${prefixEntry[locale]}：${localizeKnownDynamicReasonDetail(locale, detail)}`;
+}
+
+function localizeKnownDynamicReasonDetail(locale: LocaleId, detail: string): string {
+  for (const source of ["Repair frame", "Wood", "Stone", "Material 9"] as const) {
+    const entry = SHELL_FIXTURE_TEXT[source];
+    if (entry !== undefined && detail.startsWith(`${source} `)) {
+      return `${entry[locale]}${detail.slice(source.length)}`;
+    }
+  }
+
+  return detail;
 }
 
 export function localizeShellLastInputLabel(locale: LocaleId, source: string): string {

@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MR11VNLF-7AD5CD",
+  "from": "client-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0153",
+  "kind": "review-request",
+  "subject": "WM-0153 ready for review",
+  "body": "Implemented WM-0153 first-play guidance localization and responsive repair around the real WM-0152 lamp/build command chain; required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0153.md",
+    "task/WM-0153-first-play-guidance-localization-and-responsive-"
+  ],
+  "createdAt": "2026-06-30T19:39:15.891Z",
+  "acknowledgedAt": "2026-06-30T19:41:51.527Z"
+}
