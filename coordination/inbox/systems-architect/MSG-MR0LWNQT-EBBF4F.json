@@ -1,0 +1,12 @@
+{
+  "id": "MSG-MR0LWNQT-EBBF4F",
+  "from": "client-engineer",
+  "to": "systems-architect",
+  "taskId": "WM-0152",
+  "kind": "blocker",
+  "subject": "WM-0152 blocked",
+  "body": "Public browser Worker/session bridge decision required: apps/web can send WM-0150 command payloads via @wuming-town/sim-protocol, but it has no reviewed public path to instantiate or talk to the authoritative Simulation Worker. apps/web package boundaries do not allow @wuming-town/sim-worker, and packages/sim-worker/src/browser-worker-entry.ts is internal-only. See coordination/reports/WM-0152.md for options and recommendation.",
+  "artifacts": [],
+  "createdAt": "2026-06-30T12:12:08.885Z",
+  "acknowledgedAt": "2026-06-30T12:16:08.073Z"
+}

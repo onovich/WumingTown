@@ -2,7 +2,7 @@
   "id": "WM-0152",
   "title": "Player lamp priority and build placement UI chain",
   "summary": "Connect the player-facing HUD/action bar to the authoritative lamp/build vertical slice with selection, placement, command, job feedback and failure reasons.",
-  "state": "ready",
+  "state": "blocked",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -40,7 +40,7 @@
   ],
   "branch": "task/WM-0152-player-lamp-priority-and-build-placement-ui-chai",
   "createdAt": "2026-06-29T18:59:47.563Z",
-  "updatedAt": "2026-06-30T12:03:15.010Z",
+  "updatedAt": "2026-06-30T12:12:08.884Z",
   "history": [
     {
       "at": "2026-06-29T18:59:47.564Z",
@@ -53,6 +53,18 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-30T12:10:35.886Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": "thread=Command Loom"
+    },
+    {
+      "at": "2026-06-30T12:12:08.884Z",
+      "actor": "client-engineer",
+      "action": "block",
+      "details": "Public browser Worker/session bridge decision required: apps/web can send WM-0150 command payloads via @wuming-town/sim-protocol, but it has no reviewed public path to instantiate or talk to the authoritative Simulation Worker. apps/web package boundaries do not allow @wuming-town/sim-worker, and packages/sim-worker/src/browser-worker-entry.ts is internal-only. See coordination/reports/WM-0152.md for options and recommendation."
     }
   ],
   "milestone": "Post-M8",
@@ -71,5 +83,14 @@
     "fake shell-local gameplay claimed as authoritative",
     "unreviewed public save compatibility promise",
     "public release/EA/store/signing/telemetry/accounts/paid-services/public-save actions"
-  ]
+  ],
+  "claimedBy": "client-engineer",
+  "threadLabel": "Command Loom",
+  "blocker": {
+    "by": "client-engineer",
+    "to": "systems-architect",
+    "reason": "Public browser Worker/session bridge decision required: apps/web can send WM-0150 command payloads via @wuming-town/sim-protocol, but it has no reviewed public path to instantiate or talk to the authoritative Simulation Worker. apps/web package boundaries do not allow @wuming-town/sim-worker, and packages/sim-worker/src/browser-worker-entry.ts is internal-only. See coordination/reports/WM-0152.md for options and recommendation.",
+    "previousState": "in_progress",
+    "at": "2026-06-30T12:12:08.883Z"
+  }
 }

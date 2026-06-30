@@ -1,0 +1,92 @@
+{
+  "id": "WM-0157",
+  "title": "Public browser Simulation Worker session bridge",
+  "summary": "Expose a reviewed package-root browser Worker/session bridge so apps/web can issue WM-0150 playable commands to the authoritative Simulation Worker without deep imports or shell-local authority.",
+  "state": "ready",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "systems-architect",
+  "dependsOn": [
+    "WM-0150",
+    "WM-0151"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/decisions/ADR-0001.md",
+    "coordination/decisions/ADR-0012.md",
+    "coordination/decisions/ADR-0013.md",
+    "coordination/reports/WM-0150.md",
+    "coordination/reports/WM-0151.md",
+    "coordination/reports/WM-0152.md",
+    "apps/web/package.json",
+    "apps/web/src/shell-bootstrap.ts",
+    "packages/sim-worker/package.json",
+    "packages/sim-worker/src/index.ts",
+    "packages/sim-worker/src/browser-worker-entry.ts",
+    "packages/sim-protocol/src/index.ts",
+    "packages/sim-protocol/src/types.ts",
+    "packages/platform/package.json",
+    "packages/platform/src/index.ts",
+    "tools/boundary-check.mjs"
+  ],
+  "acceptance": [
+    "A public package-root API from @wuming-town/sim-worker exposes a browser Worker/session client or equivalent root-exported entry URL/factory; apps/web never imports @wuming-town/sim-worker subpaths or packages/sim-worker/src/* internals",
+    "apps/web has a reviewed manifest boundary to consume @wuming-town/sim-worker from the package root only, and does not add @wuming-town/sim-core, sim-core internals, platform-owned simulation authority or any new runtime dependency",
+    "The browser session bridge can initialize the WM-0150 playable command scenario, send PlayerCommandBatch messages for PrioritizeLampWork and QueueSimpleBuild, and receive authoritative Ready, CommandResult, RenderSnapshot, UiDelta and MetricsSample output from the Simulation Worker",
+    "The bridge is transport/read-model delivery only: it does not mutate world state, synthesize command acceptance, invent blocked reasons, assign pawns, create jobs, reserve resources, complete builds or keep authoritative UI caches",
+    "Reliable Worker messages such as CommandResult, SaveReady and FatalSimulationError are not dropped by render snapshot backpressure; lifecycle and destroy behavior are explicit and do not rely on hidden global singletons",
+    "Save/load stance is explicit: no public save compatibility or migration promise is added; in-progress playable command persistence remains unsupported or fail-closed with structured reasons until a separate versioned save task is approved",
+    "Worker smoke or focused browser tests prove a real Chromium module Worker is reached through the public root bridge, and package boundary checks prove there are no deep imports",
+    "The report states the exact public import/API path WM-0152 should use when it resumes, plus any remaining limitations for Web save/load and product UI wiring"
+  ],
+  "requiredChecks": [
+    "corepack pnpm typecheck",
+    "corepack pnpm exec vitest run packages/sim-worker/src/playable-command-worker.test.ts packages/sim-protocol/src/protocol-validation.test.ts",
+    "node tools/test-runner.mjs e2e --filter worker-smoke",
+    "corepack pnpm boundaries:check",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0157-public-browser-simulation-worker-session-bridge",
+  "createdAt": "2026-06-30T12:20:30.000Z",
+  "updatedAt": "2026-06-30T12:20:30.000Z",
+  "history": [
+    {
+      "at": "2026-06-30T12:20:30.000Z",
+      "actor": "systems-architect",
+      "action": "create-architecture-precursor",
+      "details": "Created to unblock WM-0152 after confirming apps/web has no legal public browser Simulation Worker/session bridge."
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "owner-product-ux-remediation",
+  "architectureDecision": "coordination/decisions/ADR-0013.md",
+  "unblocks": [
+    "WM-0152"
+  ],
+  "saveLoadStance": "No public save compatibility is introduced. The bridge may expose Worker RequestSave/LoadSession transport status, but Web must not persist or restore in-progress playable command state until a separate versioned save/load task is approved.",
+  "allowedPaths": [
+    "packages/sim-worker/package.json",
+    "packages/sim-worker/src/**",
+    "apps/web/package.json",
+    "apps/web/src/*simulation-worker*.ts",
+    "apps/web/src/*worker-session*.ts",
+    "apps/web/src/*simulation-worker*.test.ts",
+    "apps/web/src/*worker-session*.test.ts",
+    "coordination/decisions/ADR-0013.md",
+    "coordination/reports/WM-0157*.md",
+    "coordination/tasks/WM-0157.json"
+  ],
+  "forbiddenPaths": [
+    "apps/web importing @wuming-town/sim-worker subpaths or packages/sim-worker/src/* internals",
+    "apps/web depending on @wuming-town/sim-core or sim-core internals",
+    "product HUD, placement UI or localization implementation beyond a focused bridge smoke adapter",
+    "UI-owned authoritative world, job, pawn, reservation, resource, build or blocked-reason state",
+    "fake shell-local gameplay claimed as authoritative",
+    "new public save compatibility, migration or release promises",
+    "new runtime dependencies without a separate ADR",
+    "public release, Early Access, store, signing, telemetry, accounts, paid services or public feedback surfaces"
+  ]
+}

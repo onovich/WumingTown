@@ -12,9 +12,9 @@
       "registeredAt": "2026-06-23T13:11:13.888Z"
     },
     "systems-architect": {
-      "threadId": "019f0029-737f-7041-add3-c071cef5cfc4",
-      "label": "Compass the 5th WM-0061 M4 planning",
-      "registeredAt": "2026-06-25T19:02:44.299Z"
+      "threadId": "019f1874-de0f-7f41-b494-918d02fab9c0",
+      "label": "Keystone WM-0152 worker bridge",
+      "registeredAt": "2026-06-30T12:15:54.554Z"
     },
     "simulation-engineer": {
       "threadId": "019f0d7d-3fd3-74f3-a891-e8d3bfa3fe0a",
@@ -47,5 +47,5 @@
       "registeredAt": "2026-06-28T19:53:14.736Z"
     }
   },
-  "updatedAt": "2026-06-28T19:53:14.737Z"
+  "updatedAt": "2026-06-30T12:15:54.554Z"
 }
