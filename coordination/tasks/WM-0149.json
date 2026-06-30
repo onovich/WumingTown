@@ -2,7 +2,7 @@
   "id": "WM-0149",
   "title": "Authoritative command and job protocol vertical slice design",
   "summary": "Design the reviewed Worker/player command contract for the first playable lamp/build vertical slice without UI-owned world mutation or save/protocol ambiguity.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -35,13 +35,19 @@
   ],
   "branch": "task/WM-0149-authoritative-command-and-job-protocol-vertical-",
   "createdAt": "2026-06-29T18:59:47.427Z",
-  "updatedAt": "2026-06-29T18:59:47.427Z",
+  "updatedAt": "2026-06-30T04:07:55.090Z",
   "history": [
     {
       "at": "2026-06-29T18:59:47.427Z",
       "actor": "taskctl",
       "action": "create",
       "details": ""
+    },
+    {
+      "at": "2026-06-30T04:07:55.090Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "Post-M8",

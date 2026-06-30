@@ -2,7 +2,7 @@
   "id": "WM-0147",
   "title": "Player HUD information hierarchy simplification",
   "summary": "Rework the default HUD hierarchy so the map, current objective, available actions, and selected-object inspector are readable without diagnostics/status-board overload.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -36,13 +36,19 @@
   ],
   "branch": "task/WM-0147-player-hud-information-hierarchy-simplification",
   "createdAt": "2026-06-29T18:59:47.335Z",
-  "updatedAt": "2026-06-29T18:59:47.335Z",
+  "updatedAt": "2026-06-30T04:07:55.089Z",
   "history": [
     {
       "at": "2026-06-29T18:59:47.335Z",
       "actor": "taskctl",
       "action": "create",
       "details": ""
+    },
+    {
+      "at": "2026-06-30T04:07:55.089Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "Post-M8",

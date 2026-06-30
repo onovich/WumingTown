@@ -2,7 +2,7 @@
   "id": "WM-0146",
   "title": "Playable product UX acceptance reset and first-five-minute spec",
   "summary": "Turn the Owner/art-thread critique into a concrete first-five-minute product spec and acceptance reset centered on visible NPC action, clear player goals, and a lamp/build playable slice.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "gameplay-designer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -17,6 +17,7 @@
     "docs/01_design/00_game_design_overview.md",
     "docs/01_design/03_daily_loop_and_pacing.md",
     "docs/01_design/05_ui_ux_information_design.md",
+    "docs/01_design/12_post_m8_playable_product_acceptance.md",
     "docs/02_systems/03_map_space_rooms_lanterns.md",
     "docs/02_systems/04_ai_jobs_reservations_pathing.md"
   ],
@@ -35,7 +36,7 @@
   ],
   "branch": "task/WM-0146-playable-product-ux-acceptance-reset-and-first-f",
   "createdAt": "2026-06-29T18:59:47.286Z",
-  "updatedAt": "2026-06-29T19:18:41.387Z",
+  "updatedAt": "2026-06-30T04:07:55.062Z",
   "history": [
     {
       "at": "2026-06-29T18:59:47.286Z",
@@ -48,6 +49,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-30T03:54:01.339Z",
+      "actor": "gameplay-designer",
+      "action": "claim",
+      "details": "thread=Beacon fallback"
+    },
+    {
+      "at": "2026-06-30T03:57:13.135Z",
+      "actor": "gameplay-designer",
+      "action": "complete",
+      "details": "Produced post-M8 playable-product acceptance reset and first-five-minute dusk lamp/simple-build spec; required checks pass; no implementation or release-gate action executed."
+    },
+    {
+      "at": "2026-06-30T04:04:59.387Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; WM-0146 is spec/control-plane only, hard product blocker and first-five-minute NPC-action gates are documented, required checks pass."
+    },
+    {
+      "at": "2026-06-30T04:07:46.665Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified by independent reviewer; integration checks and pnpm quality pass; no implementation or release-gate action."
+    },
+    {
+      "at": "2026-06-30T04:07:55.061Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "Post-M8",
@@ -65,5 +96,20 @@
     "Early Access launch",
     "store submission",
     "signing, telemetry, accounts, hosted feedback, paid services or public save compatibility"
-  ]
+  ],
+  "claimedBy": "gameplay-designer",
+  "threadLabel": "Beacon fallback",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0146.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; WM-0146 is spec/control-plane only, hard product blocker and first-five-minute NPC-action gates are documented, required checks pass.",
+    "at": "2026-06-30T04:04:59.387Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified by independent reviewer; integration checks and pnpm quality pass; no implementation or release-gate action.",
+    "at": "2026-06-30T04:07:46.665Z"
+  }
 }

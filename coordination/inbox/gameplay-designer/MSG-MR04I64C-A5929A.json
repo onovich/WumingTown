@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MR04I64C-A5929A",
+  "from": "reviewer",
+  "to": "gameplay-designer",
+  "taskId": "WM-0146",
+  "kind": "review-approved",
+  "subject": "WM-0146 review: verified",
+  "body": "No blocking findings; WM-0146 is spec/control-plane only, hard product blocker and first-five-minute NPC-action gates are documented, required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0146.md"
+  ],
+  "createdAt": "2026-06-30T04:04:59.388Z",
+  "acknowledgedAt": "2026-06-30T04:06:34.913Z"
+}
