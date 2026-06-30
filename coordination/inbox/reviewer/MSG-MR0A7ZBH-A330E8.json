@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MR0A7ZBH-A330E8",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0150",
+  "kind": "review-request",
+  "subject": "WM-0150 ready for review",
+  "body": "Implemented authoritative Worker/headless lamp-priority and simple-build command-to-job slice with schema-v2 command/results, explicit runtime job/pawn/read-model state, structured blocked reasons, deterministic replay evidence, and all required checks passing.",
+  "artifacts": [
+    "coordination/reports/WM-0150.md",
+    "task/WM-0150-headless-lamp-and-simple-build-job-execution-sli"
+  ],
+  "createdAt": "2026-06-30T06:45:01.709Z",
+  "acknowledgedAt": "2026-06-30T06:46:46.213Z"
+}

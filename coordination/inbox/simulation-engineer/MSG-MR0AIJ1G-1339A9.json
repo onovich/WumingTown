@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MR0AIJ1G-1339A9",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0150",
+  "kind": "changes-requested",
+  "subject": "WM-0150 review: changes_requested",
+  "body": "High: rejected duplicate PrioritizeLampWork mutates authoritative lamp order/pawn marker before returning rejected; High: validateBasis ignores target/map/reservation/job version mismatches and accepts stale reviewed basis; Medium: schema-v2 batch rejection still emits legacy accepted/reason instead of ADR-0012 batchAccepted/batchReason.",
+  "artifacts": [
+    "coordination/reports/WM-0150.md"
+  ],
+  "createdAt": "2026-06-30T06:53:13.828Z",
+  "acknowledgedAt": "2026-06-30T06:54:52.737Z"
+}

@@ -623,6 +623,19 @@ export {
   runM5AlphaContentReplay,
 } from "./m5-save-replay";
 export {
+  PLAYABLE_COMMAND_SLICE_ALIAS,
+  PLAYABLE_COMMAND_SLICE_BUILD_TICKS,
+  PLAYABLE_COMMAND_SLICE_CONTENT_HASH,
+  PLAYABLE_COMMAND_SLICE_LAMP_WORK_TICKS,
+  PLAYABLE_COMMAND_SLICE_SCENARIO_ID,
+  PLAYABLE_COMMAND_SLICE_TICK_RATE,
+  PlayableCommandSliceRuntime,
+  createPlayableAdvanceCommandId,
+  createPlayableCommandSliceRuntime,
+  parsePlayableAdvanceCommandId,
+  runPlayableCommandSliceScenario,
+} from "./playable-command-slice";
+export {
   M8_COMMAND_PREFIX,
   M8_FINAL_TICK,
   M8_LOAD_TICK,
@@ -1519,6 +1532,21 @@ export type {
   M5WorkerProjection,
   M5WorkerProjectionSurface,
 } from "./m5-worker-projection";
+export type {
+  PlayableAuthoritativeCommand,
+  PlayableBlockedReason,
+  PlayableCandidateCounts,
+  PlayableCommandAcceptedResult,
+  PlayableCommandBasis,
+  PlayableCommandResult,
+  PlayableCommandTarget,
+  PlayableEntityRef,
+  PlayableJobMarkerReadModel,
+  PlayablePawnReadModel,
+  PlayableReadModel,
+  PlayableSliceMetrics,
+  PlayableSliceSummary,
+} from "./playable-command-slice";
 export type {
   M2WorkLogisticsCounters,
   M2WorkLogisticsEndState,

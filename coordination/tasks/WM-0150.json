@@ -2,7 +2,7 @@
   "id": "WM-0150",
   "title": "Headless lamp and simple build job execution slice",
   "summary": "Implement the authoritative Simulation Worker/headless command-to-job execution slice for prioritize lamp work and a minimal build/place job with structured results.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -39,7 +39,7 @@
   ],
   "branch": "task/WM-0150-headless-lamp-and-simple-build-job-execution-sli",
   "createdAt": "2026-06-29T18:59:47.476Z",
-  "updatedAt": "2026-06-30T04:36:26.987Z",
+  "updatedAt": "2026-06-30T07:17:19.807Z",
   "history": [
     {
       "at": "2026-06-29T18:59:47.476Z",
@@ -52,6 +52,48 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-30T06:01:38.986Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Tally"
+    },
+    {
+      "at": "2026-06-30T06:45:01.697Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented authoritative Worker/headless lamp-priority and simple-build command-to-job slice with schema-v2 command/results, explicit runtime job/pawn/read-model state, structured blocked reasons, deterministic replay evidence, and all required checks passing."
+    },
+    {
+      "at": "2026-06-30T06:53:13.826Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: rejected duplicate PrioritizeLampWork mutates authoritative lamp order/pawn marker before returning rejected; High: validateBasis ignores target/map/reservation/job version mismatches and accepts stale reviewed basis; Medium: schema-v2 batch rejection still emits legacy accepted/reason instead of ADR-0012 batchAccepted/batchReason."
+    },
+    {
+      "at": "2026-06-30T07:06:29.616Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Addressed reviewer changes: rejected lamp duplicates no longer mutate authoritative read model, stale owner-version bases reject as stale_command, schema-v2 batch rejections include batchAccepted/batchReason/commandResults; focused and required checks pass."
+    },
+    {
+      "at": "2026-06-30T07:15:00.066Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; verified duplicate PrioritizeLampWork rejection leaves lamp/read-model state unchanged, validateBasis rejects snapshot/target/map/reservation/job version mismatches as stale_command, and schema-v2 batch rejection includes batchAccepted/batchReason/commandResults. Focused tests, headless run, taskctl validate, git diff --check, and typecheck pass."
+    },
+    {
+      "at": "2026-06-30T07:17:19.760Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Rebased on main 6f1a124; verified reviewer repair; integration gate passed: focused protocol/core/worker tests, focused WM-0150 sim run, M5 100000-tick scenario, m5-invariants, validate-handoff, taskctl validate/status, git diff --check, typecheck, and pnpm quality."
+    },
+    {
+      "at": "2026-06-30T07:17:19.807Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "Post-M8",
@@ -70,5 +112,20 @@
     "unreviewed save compatibility promise",
     "public release/EA/store/signing/telemetry/accounts/paid-services/public-save actions",
     "weakening deterministic iteration, 30 TPS, structured reason or hot-path allocation rules"
-  ]
+  ],
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Tally",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0150.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; verified duplicate PrioritizeLampWork rejection leaves lamp/read-model state unchanged, validateBasis rejects snapshot/target/map/reservation/job version mismatches as stale_command, and schema-v2 batch rejection includes batchAccepted/batchReason/commandResults. Focused tests, headless run, taskctl validate, git diff --check, and typecheck pass.",
+    "at": "2026-06-30T07:15:00.065Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Rebased on main 6f1a124; verified reviewer repair; integration gate passed: focused protocol/core/worker tests, focused WM-0150 sim run, M5 100000-tick scenario, m5-invariants, validate-handoff, taskctl validate/status, git diff --check, typecheck, and pnpm quality.",
+    "at": "2026-06-30T07:17:19.760Z"
+  }
 }

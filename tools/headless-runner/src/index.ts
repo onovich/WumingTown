@@ -8,18 +8,22 @@ import {
   M4_CORE_VERTICAL_SLICE_SCENARIO_ID,
   M5_ALPHA_CONTENT_ALIAS,
   M5_ALPHA_CONTENT_SCENARIO_ID,
+  PLAYABLE_COMMAND_SLICE_ALIAS,
+  PLAYABLE_COMMAND_SLICE_SCENARIO_ID,
   SIM_CORE_SMOKE,
   isSafeTick,
   runHaulingBuildingScenario,
   runHeadlessTicks,
   runM4CoreVerticalSliceScenario,
   runM5AlphaContentScenario,
+  runPlayableCommandSliceScenario,
   runM3OrdinaryLifeScenario,
   runM2WorkLogisticsScenario,
   type HaulingBuildingScenarioSummary,
   type HeadlessRunSummary,
   type M4CoreVerticalSliceScenarioSummary,
   type M5AlphaContentScenarioSummary,
+  type PlayableSliceSummary,
   type M3OrdinaryLifeScenarioSummary,
   type M2WorkLogisticsScenarioSummary,
 } from "@wuming-town/sim-core";
@@ -48,7 +52,8 @@ export interface HeadlessCliOptions {
     | "m2-work-logistics"
     | "m3-ordinary-life"
     | "m4-core-vertical-slice"
-    | "m5-alpha-content-framework";
+    | "m5-alpha-content-framework"
+    | "wm0150-playable-command-slice";
 }
 
 export type HeadlessCliResult =
@@ -60,7 +65,8 @@ export type HeadlessCliResult =
         | M3OrdinaryLifeScenarioSummary
         | M2WorkLogisticsScenarioSummary
         | M4CoreVerticalSliceScenarioSummary
-        | M5AlphaContentScenarioSummary;
+        | M5AlphaContentScenarioSummary
+        | PlayableSliceSummary;
     }
   | {
       readonly ok: false;
@@ -89,6 +95,7 @@ export function parseHeadlessCliOptions(argv: readonly string[]): HeadlessCliRes
     | "m3-ordinary-life"
     | "m4-core-vertical-slice"
     | "m5-alpha-content-framework"
+    | "wm0150-playable-command-slice"
     | undefined;
   let index = 0;
 
@@ -133,10 +140,11 @@ export function parseHeadlessCliOptions(argv: readonly string[]): HeadlessCliRes
         value !== "m2-work-logistics" &&
         value !== M3_ORDINARY_LIFE_ALIAS &&
         value !== M4_CORE_VERTICAL_SLICE_ALIAS &&
-        value !== M5_ALPHA_CONTENT_ALIAS
+        value !== M5_ALPHA_CONTENT_ALIAS &&
+        value !== PLAYABLE_COMMAND_SLICE_ALIAS
       ) {
         return failedOptions(
-          `--scenario supports hauling-building (${HAULING_BUILDING_SCENARIO_ID}), m2-work-logistics (${M2_WORK_LOGISTICS_SCENARIO_ID}), ${M3_ORDINARY_LIFE_ALIAS} (${M3_ORDINARY_LIFE_SCENARIO_ID}), ${M4_CORE_VERTICAL_SLICE_ALIAS} (${M4_CORE_VERTICAL_SLICE_SCENARIO_ID}), or ${M5_ALPHA_CONTENT_ALIAS} (${M5_ALPHA_CONTENT_SCENARIO_ID})`,
+          `--scenario supports hauling-building (${HAULING_BUILDING_SCENARIO_ID}), m2-work-logistics (${M2_WORK_LOGISTICS_SCENARIO_ID}), ${M3_ORDINARY_LIFE_ALIAS} (${M3_ORDINARY_LIFE_SCENARIO_ID}), ${M4_CORE_VERTICAL_SLICE_ALIAS} (${M4_CORE_VERTICAL_SLICE_SCENARIO_ID}), ${M5_ALPHA_CONTENT_ALIAS} (${M5_ALPHA_CONTENT_SCENARIO_ID}), or ${PLAYABLE_COMMAND_SLICE_ALIAS} (${PLAYABLE_COMMAND_SLICE_SCENARIO_ID})`,
         );
       }
 
@@ -194,7 +202,8 @@ function runSelectedHeadlessScenario(
   | M2WorkLogisticsScenarioSummary
   | M3OrdinaryLifeScenarioSummary
   | M4CoreVerticalSliceScenarioSummary
-  | M5AlphaContentScenarioSummary {
+  | M5AlphaContentScenarioSummary
+  | PlayableSliceSummary {
   if (options.scenario === "hauling-building") {
     return runHaulingBuildingScenario({ seed: options.seed, ticks: options.ticks });
   }
@@ -213,6 +222,10 @@ function runSelectedHeadlessScenario(
 
   if (options.scenario === M5_ALPHA_CONTENT_ALIAS) {
     return runM5AlphaContentScenario({ seed: options.seed, ticks: options.ticks });
+  }
+
+  if (options.scenario === PLAYABLE_COMMAND_SLICE_ALIAS) {
+    return runPlayableCommandSliceScenario({ seed: options.seed, ticks: options.ticks });
   }
 
   return runHeadlessTicks(options.seed, options.ticks);

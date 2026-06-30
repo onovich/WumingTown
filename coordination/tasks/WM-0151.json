@@ -2,7 +2,7 @@
   "id": "WM-0151",
   "title": "Renderer pawn motion intent path and job marker feedback",
   "summary": "Render pawn movement, intent paths, job markers, working progress, completed feedback and blocked reason badges from reviewed read-model/projection data.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -38,13 +38,19 @@
   ],
   "branch": "task/WM-0151-renderer-pawn-motion-intent-path-and-job-marker-",
   "createdAt": "2026-06-29T18:59:47.522Z",
-  "updatedAt": "2026-06-29T18:59:47.523Z",
+  "updatedAt": "2026-06-30T07:17:19.837Z",
   "history": [
     {
       "at": "2026-06-29T18:59:47.523Z",
       "actor": "taskctl",
       "action": "create",
       "details": ""
+    },
+    {
+      "at": "2026-06-30T07:17:19.837Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "Post-M8",

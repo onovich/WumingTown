@@ -3,7 +3,7 @@ import type { MainToSimulationMessageKind, PlayerCommandKind } from "./types";
 import type { ProtocolInputRecord } from "./validation-types";
 
 export function isRecord(value: unknown): value is ProtocolInputRecord {
-  return typeof value === "object" && value !== null;
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 export function isPositiveSafeInteger(value: unknown): value is number {
@@ -29,5 +29,10 @@ export function isMainMessageKind(value: unknown): value is MainToSimulationMess
 }
 
 export function isPlayerCommandKind(value: unknown): value is PlayerCommandKind {
-  return value === PLAYER_COMMAND_KIND.Noop || value === PLAYER_COMMAND_KIND.Echo;
+  return (
+    value === PLAYER_COMMAND_KIND.Noop ||
+    value === PLAYER_COMMAND_KIND.Echo ||
+    value === PLAYER_COMMAND_KIND.PrioritizeLampWork ||
+    value === PLAYER_COMMAND_KIND.QueueSimpleBuild
+  );
 }

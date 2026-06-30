@@ -5,6 +5,8 @@ import {
   M3_ORDINARY_LIFE_SCENARIO_ID,
   M4_CORE_VERTICAL_SLICE_SCENARIO_ID,
   M5_WORKER_ALPHA_CONTENT_SCENARIO_ID,
+  PLAYABLE_COMMAND_SLICE_ALIAS,
+  PLAYABLE_COMMAND_SLICE_SCENARIO_ID,
   createM4AdvanceCommandId,
   SIM_CORE_SMOKE,
   createM1AdvanceCommandId,
@@ -21,11 +23,13 @@ import {
   createM5WorkerAdvanceCommandId,
   createM5WorkerFocusedSaveEnvelope,
   createM5WorkerProjection,
+  createPlayableCommandSliceRuntime,
   parseM1AdvanceCommandId,
   parseM2AdvanceCommandId,
   parseM3AdvanceCommandId,
   parseM4AdvanceCommandId,
   parseM5WorkerAdvanceCommandId,
+  parsePlayableAdvanceCommandId,
   runM4CoreVerticalSliceScenario,
   runM3OrdinaryLifeScenario,
   runM2WorkLogisticsScenario,
@@ -35,9 +39,13 @@ import {
   type M3ReadOnlyProjection,
   type M4ReadOnlyProjection,
   type M5WorkerProjection,
+  type PlayableCommandResult,
+  type PlayableCommandSliceRuntime,
+  type PlayableReadModel,
 } from "@wuming-town/sim-core";
 import {
   MAIN_TO_SIMULATION_MESSAGE_KIND,
+  PLAYER_COMMAND_KIND,
   SIMULATION_PROTOCOL_REASON_CODE,
   SIMULATION_TO_MAIN_MESSAGE_KIND,
   SIM_PROTOCOL_VERSION,
@@ -46,6 +54,7 @@ import {
   validateMainToSimulationMessage,
   type CommandResultMessage,
   type MainToSimulationMessage,
+  type PlayerCommand,
   type ProtocolRejection,
   type SimulationToMainMessage,
 } from "@wuming-town/sim-protocol";
@@ -98,6 +107,7 @@ interface SimulationWorkerState {
   m3Scenario: M3WorkerScenarioState | undefined;
   m4Scenario: M4WorkerScenarioState | undefined;
   m5Scenario: M5WorkerScenarioState | undefined;
+  playableScenario: PlayableWorkerScenarioState | undefined;
 }
 
 interface M1WorkerScenarioState {
@@ -123,6 +133,13 @@ interface M4WorkerScenarioState {
 interface M5WorkerScenarioState {
   readonly seed: string;
   checkpointCount: number;
+}
+
+interface PlayableWorkerScenarioState {
+  readonly seed: string;
+  readonly runtime: PlayableCommandSliceRuntime;
+  checkpointCount: number;
+  latestCommandResults: readonly PlayableCommandResult[];
 }
 
 export type M5WorkerProjectionBasisValidation =
@@ -156,6 +173,7 @@ export function createSimulationWorker(): SimulationWorker {
     m3Scenario: undefined,
     m4Scenario: undefined,
     m5Scenario: undefined,
+    playableScenario: undefined,
   };
 
   return {
@@ -278,6 +296,16 @@ function handleAcceptedMessage(
         message.payload.catalogVersion === M5_WORKER_ALPHA_CONTENT_SCENARIO_ID
           ? { seed: message.payload.seed, checkpointCount: 1 }
           : undefined;
+      state.playableScenario =
+        message.payload.catalogVersion === PLAYABLE_COMMAND_SLICE_SCENARIO_ID ||
+        message.payload.catalogVersion === PLAYABLE_COMMAND_SLICE_ALIAS
+          ? {
+              seed: message.payload.seed,
+              runtime: createPlayableCommandSliceRuntime(),
+              checkpointCount: 1,
+              latestCommandResults: [],
+            }
+          : undefined;
       return [
         makeReady(state),
         makeRenderSnapshot(state, message.sequence),
@@ -294,6 +322,7 @@ function handleAcceptedMessage(
       state.m3Scenario = undefined;
       state.m4Scenario = undefined;
       state.m5Scenario = undefined;
+      state.playableScenario = undefined;
       return [
         makeReady(state),
         makeRenderSnapshot(state, message.sequence),
@@ -312,11 +341,17 @@ function handleAcceptedMessage(
         applyM4Commands(state, message.payload.commands);
       } else if (state.m5Scenario !== undefined) {
         applyM5Commands(state, message.payload.commands);
+      } else if (state.playableScenario !== undefined) {
+        applyPlayableCommands(state, message.payload.commands);
       } else {
         state.tick += message.payload.commands.length;
       }
       return [
-        makeAcceptedCommandResult(state, message.sequence),
+        makeAcceptedCommandResult(
+          state,
+          message.sequence,
+          state.playableScenario?.latestCommandResults,
+        ),
         makeRenderSnapshot(state, message.sequence),
         makeUiDelta(state),
         makeMetricsSample(state),
@@ -441,6 +476,7 @@ function makeUiDelta(state: SimulationWorkerState): SimulationToMainMessage {
 function makeAcceptedCommandResult(
   state: SimulationWorkerState,
   inReplyToSequence: number,
+  commandResults?: readonly PlayableCommandResult[],
 ): CommandResultMessage {
   return {
     ...nextEnvelopeBase(state, state.sessionId),
@@ -448,6 +484,8 @@ function makeAcceptedCommandResult(
     payload: {
       inReplyToSequence,
       accepted: true,
+      batchAccepted: true,
+      commandResults: commandResults ?? [],
     },
   };
 }
@@ -465,6 +503,9 @@ function makeRejectedCommandResult(
       inReplyToSequence,
       accepted: false,
       reason,
+      batchAccepted: false,
+      batchReason: reason,
+      commandResults: [],
     },
   };
 }
@@ -617,6 +658,43 @@ function applyM5Commands(
   }
 }
 
+function applyPlayableCommands(
+  state: SimulationWorkerState,
+  commands: readonly PlayerCommand[],
+): void {
+  const scenario = state.playableScenario;
+  if (scenario === undefined) {
+    return;
+  }
+
+  const results: PlayableCommandResult[] = [];
+  for (let index = 0; index < commands.length; index += 1) {
+    const command = commands[index];
+    if (command === undefined) {
+      continue;
+    }
+
+    if (command.kind === PLAYER_COMMAND_KIND.Noop) {
+      const tick = parsePlayableAdvanceCommandId(command.commandId);
+      if (tick !== undefined && tick >= scenario.runtime.currentTick) {
+        scenario.runtime.advanceTo(tick);
+        scenario.checkpointCount += 1;
+      }
+      continue;
+    }
+
+    if (
+      command.kind === PLAYER_COMMAND_KIND.PrioritizeLampWork ||
+      command.kind === PLAYER_COMMAND_KIND.QueueSimpleBuild
+    ) {
+      results.push(scenario.runtime.applyCommand(command, index));
+    }
+  }
+
+  state.tick = scenario.runtime.currentTick;
+  scenario.latestCommandResults = results;
+}
+
 interface WorkerProjectionView {
   readonly scenarioId: string;
   readonly worldHash: string;
@@ -681,18 +759,31 @@ function readWorkerProjection(state: SimulationWorkerState): WorkerProjectionVie
   }
 
   const m5Projection = readM5Projection(state);
-  if (m5Projection === undefined) {
+  if (m5Projection !== undefined) {
+    return {
+      scenarioId: m5Projection.scenarioId,
+      worldHash: m5Projection.worldHash,
+      readModelHash: m5Projection.authoritativeReadModelHash,
+      entityCount: m5Projection.entityCount,
+      summaries: createM5WorkerSummaries(m5Projection),
+      detailHash: m5Projection.detailHash,
+      checkpointCount: state.m5Scenario?.checkpointCount ?? 0,
+    };
+  }
+
+  const playableProjection = readPlayableProjection(state);
+  if (playableProjection === undefined) {
     return undefined;
   }
 
   return {
-    scenarioId: m5Projection.scenarioId,
-    worldHash: m5Projection.worldHash,
-    readModelHash: m5Projection.authoritativeReadModelHash,
-    entityCount: m5Projection.entityCount,
-    summaries: createM5WorkerSummaries(m5Projection),
-    detailHash: m5Projection.detailHash,
-    checkpointCount: state.m5Scenario?.checkpointCount ?? 0,
+    scenarioId: PLAYABLE_COMMAND_SLICE_SCENARIO_ID,
+    worldHash: playableProjection.basisWorldHash,
+    readModelHash: playableProjection.basisReadModelHash,
+    entityCount: playableProjection.pawns.length,
+    summaries: playableProjection.summaries,
+    detailHash: playableProjection.basisReadModelHash,
+    checkpointCount: state.playableScenario?.checkpointCount ?? 0,
   };
 }
 
@@ -743,6 +834,10 @@ function readM5Projection(state: SimulationWorkerState): M5WorkerProjection | un
   }
 
   return createM5WorkerProjection(scenario.seed, state.tick);
+}
+
+function readPlayableProjection(state: SimulationWorkerState): PlayableReadModel | undefined {
+  return state.playableScenario?.runtime.readModel();
 }
 
 function createM4WorkerSummaries(projection: M4ReadOnlyProjection): readonly string[] {

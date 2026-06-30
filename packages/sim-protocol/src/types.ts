@@ -1,4 +1,5 @@
 import type {
+  COMMAND_BLOCKED_REASON_CODE,
   MAIN_TO_SIMULATION_MESSAGE_KIND,
   PLAYER_COMMAND_KIND,
   SIMULATION_PROTOCOL_REASON_CODE,
@@ -37,10 +38,74 @@ export interface LoadSessionPayload {
 }
 
 export type PlayerCommandKind = (typeof PLAYER_COMMAND_KIND)[keyof typeof PLAYER_COMMAND_KIND];
+export type CommandBlockedReasonCode =
+  (typeof COMMAND_BLOCKED_REASON_CODE)[keyof typeof COMMAND_BLOCKED_REASON_CODE];
 
-export interface PlayerCommand {
+export interface ProtocolEntityRef {
+  readonly index: number;
+  readonly generation: number;
+}
+
+export interface CellRef {
+  readonly x: number;
+  readonly y: number;
+  readonly cellIndex: number;
+}
+
+export interface CommandBasis {
+  readonly playableCommandContractVersion: 1;
+  readonly basisTick: number;
+  readonly basisSnapshotSequence: number;
+  readonly basisReadModelHash: string;
+  readonly contentManifestHash: string;
+  readonly targetVersion?: number;
+  readonly mapVersion?: number;
+  readonly reservationVersion?: number;
+  readonly jobVersion?: number;
+}
+
+export interface PrioritizeLampWorkPayload {
+  readonly target:
+    | { readonly kind: "lamp"; readonly entity: ProtocolEntityRef }
+    | { readonly kind: "lamp_gap"; readonly gapId: string; readonly anchorCell: CellRef }
+    | { readonly kind: "build_site"; readonly siteId: number; readonly site: ProtocolEntityRef };
+  readonly requestedAction: "auto" | "refill_lamp" | "repair_lamp" | "complete_lamp_build_site";
+  readonly priorityBand: 1 | 2 | 3;
+}
+
+export interface QueueSimpleBuildPayload {
+  readonly blueprint:
+    | { readonly kind: "simple_lamp_post"; readonly blueprintDefId: number }
+    | { readonly kind: "simple_repair_frame"; readonly blueprintDefId: number };
+  readonly anchorCell: CellRef;
+  readonly orientation: 0 | 1 | 2 | 3;
+  readonly priorityBand: 1 | 2 | 3;
+}
+
+export type PlayerCommandPayload = PrioritizeLampWorkPayload | QueueSimpleBuildPayload;
+
+export type PlayerCommand =
+  | LegacyPlayerCommand
+  | PrioritizeLampWorkCommand
+  | QueueSimpleBuildCommand;
+
+export interface LegacyPlayerCommand {
   readonly commandId: string;
-  readonly kind: PlayerCommandKind;
+  readonly kind: typeof PLAYER_COMMAND_KIND.Noop | typeof PLAYER_COMMAND_KIND.Echo;
+}
+
+export interface PrioritizeLampWorkCommand {
+  readonly commandId: string;
+  readonly kind: typeof PLAYER_COMMAND_KIND.PrioritizeLampWork;
+  readonly payload: PrioritizeLampWorkPayload;
+  readonly basis: CommandBasis;
+}
+
+export interface QueueSimpleBuildCommand {
+  readonly commandId: string;
+  readonly kind: typeof PLAYER_COMMAND_KIND.QueueSimpleBuild;
+  readonly payload: QueueSimpleBuildPayload;
+  readonly basis: CommandBasis;
 }
 
 export interface PlayerCommandBatchPayload {
@@ -154,10 +219,135 @@ export interface UiDeltaPayload {
   readonly readOnly?: true;
 }
 
-export interface CommandResultPayload {
+export type CommandResultPayload = CommandResultAcceptedPayload | CommandResultRejectedPayload;
+
+export interface CommandResultAcceptedPayload {
   readonly inReplyToSequence: number;
-  readonly accepted: boolean;
+  readonly accepted: true;
   readonly reason?: ProtocolRejection;
+  readonly batchAccepted: true;
+  readonly batchReason?: ProtocolRejection;
+  readonly commandResults: readonly PlayerCommandResult[];
+}
+
+export interface CommandResultRejectedPayload {
+  readonly inReplyToSequence: number;
+  readonly accepted: false;
+  readonly reason: ProtocolRejection;
+  readonly batchAccepted: false;
+  readonly batchReason: ProtocolRejection;
+  readonly commandResults: readonly PlayerCommandResult[];
+}
+
+export type CommandTargetRef =
+  | {
+      readonly kind: "lamp";
+      readonly entity: ProtocolEntityRef;
+    }
+  | {
+      readonly kind: "lamp_gap";
+      readonly gapId: string;
+      readonly anchorCell: CellRef;
+    }
+  | {
+      readonly kind: "build_site";
+      readonly siteId: number;
+      readonly site: ProtocolEntityRef;
+    }
+  | {
+      readonly kind: "build_cell";
+      readonly anchorCell: CellRef;
+      readonly blueprintDefId: number;
+    };
+
+export interface ResourceRequirementRef {
+  readonly defId: number;
+  readonly requiredAmount: number;
+  readonly availableAmount: number;
+  readonly reservedAmount: number;
+}
+
+export interface StaleBasisRef {
+  readonly expectedTick?: number;
+  readonly observedTick?: number;
+  readonly expectedReadModelHash?: string;
+  readonly observedReadModelHash?: string;
+  readonly expectedVersion?: number;
+  readonly observedVersion?: number;
+}
+
+export interface PolicyRef {
+  readonly policyId: string;
+  readonly reasonCode: string;
+}
+
+export interface CandidateCounts {
+  readonly workerCandidates: number;
+  readonly visitedCandidates: number;
+  readonly selectedCandidates: number;
+  readonly candidateCap: number;
+  readonly candidateCapHit: boolean;
+  readonly pathRequests: number;
+}
+
+export interface CommandBlockedReason {
+  readonly code: CommandBlockedReasonCode;
+  readonly source:
+    | "command_validation"
+    | "work_selection"
+    | "reservation"
+    | "pathing"
+    | "job_driver"
+    | "policy";
+  readonly target?: CommandTargetRef;
+  readonly actor?: ProtocolEntityRef;
+  readonly requirement?: ResourceRequirementRef;
+  readonly basis?: StaleBasisRef;
+  readonly policy?: PolicyRef;
+  readonly candidateCounts?: CandidateCounts;
+}
+
+export interface CommandOrderRef {
+  readonly orderKind: "lamp_priority" | "simple_build";
+  readonly orderId: string;
+  readonly targetVersion: number;
+}
+
+export interface CommandJobRef {
+  readonly jobId: number;
+  readonly jobKind:
+    | "lamp_refill"
+    | "lamp_repair"
+    | "build_site_delivery"
+    | "build_site_construction";
+  readonly owner?: ProtocolEntityRef;
+}
+
+export type PlayerCommandResult = PlayerCommandAcceptedResult | PlayerCommandRejectedResult;
+
+export interface PlayerCommandAcceptedResult {
+  readonly commandId: string;
+  readonly kind:
+    | typeof PLAYER_COMMAND_KIND.PrioritizeLampWork
+    | typeof PLAYER_COMMAND_KIND.QueueSimpleBuild;
+  readonly status: "accepted";
+  readonly acceptedTick: number;
+  readonly committedTick: number;
+  readonly target: CommandTargetRef;
+  readonly order?: CommandOrderRef;
+  readonly job?: CommandJobRef;
+  readonly initialState: "queued" | "claimable" | "claimed" | "blocked" | "completed";
+  readonly blockedReason?: CommandBlockedReason;
+}
+
+export interface PlayerCommandRejectedResult {
+  readonly commandId: string;
+  readonly kind:
+    | typeof PLAYER_COMMAND_KIND.PrioritizeLampWork
+    | typeof PLAYER_COMMAND_KIND.QueueSimpleBuild;
+  readonly status: "rejected";
+  readonly rejectedTick: number;
+  readonly reason: CommandBlockedReason;
 }
 
 export interface AlertBatchPayload {

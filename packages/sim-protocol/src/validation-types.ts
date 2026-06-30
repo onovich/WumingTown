@@ -22,6 +22,32 @@ export interface ProtocolInputRecord {
   readonly speed?: unknown;
   readonly subject?: unknown;
   readonly text?: unknown;
+  readonly anchorCell?: unknown;
+  readonly basis?: unknown;
+  readonly basisReadModelHash?: unknown;
+  readonly basisSnapshotSequence?: unknown;
+  readonly basisTick?: unknown;
+  readonly blueprint?: unknown;
+  readonly blueprintDefId?: unknown;
+  readonly cellIndex?: unknown;
+  readonly contentManifestHash?: unknown;
+  readonly entity?: unknown;
+  readonly gapId?: unknown;
+  readonly generation?: unknown;
+  readonly index?: unknown;
+  readonly jobVersion?: unknown;
+  readonly mapVersion?: unknown;
+  readonly orientation?: unknown;
+  readonly playableCommandContractVersion?: unknown;
+  readonly priorityBand?: unknown;
+  readonly requestedAction?: unknown;
+  readonly reservationVersion?: unknown;
+  readonly site?: unknown;
+  readonly siteId?: unknown;
+  readonly target?: unknown;
+  readonly targetVersion?: unknown;
+  readonly x?: unknown;
+  readonly y?: unknown;
 }
 
 export interface ValidMainEnvelopeRecord {

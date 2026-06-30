@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MR0BAIXV-EE9E72",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0150",
+  "kind": "review-approved",
+  "subject": "WM-0150 review: verified",
+  "body": "No blocking findings; verified duplicate PrioritizeLampWork rejection leaves lamp/read-model state unchanged, validateBasis rejects snapshot/target/map/reservation/job version mismatches as stale_command, and schema-v2 batch rejection includes batchAccepted/batchReason/commandResults. Focused tests, headless run, taskctl validate, git diff --check, and typecheck pass.",
+  "artifacts": [
+    "coordination/reports/WM-0150.md"
+  ],
+  "createdAt": "2026-06-30T07:15:00.067Z",
+  "acknowledgedAt": "2026-06-30T07:15:57.659Z"
+}
