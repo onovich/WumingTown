@@ -22,9 +22,9 @@
       "registeredAt": "2026-06-30T16:34:39.370Z"
     },
     "client-engineer": {
-      "threadId": "019f0d07-f642-7731-885c-8fe6503087f7",
-      "label": "Canvas WM-0120 accessibility readability",
-      "registeredAt": "2026-06-28T07:01:16.769Z"
+      "threadId": "019f186b-f56d-73c0-8401-b9c7d8c8b5b2",
+      "label": "Canvas WM-0152 playable UI",
+      "registeredAt": "2026-06-30T17:18:22.901Z"
     },
     "qa-performance": {
       "threadId": "019f0d54-d49d-7871-aa61-382a25723138",
@@ -42,10 +42,10 @@
       "registeredAt": "2026-06-28T05:15:43.739Z"
     },
     "reviewer": {
-      "threadId": "019f0fc0-f8a4-78c0-8621-49abd5ffe66b",
-      "label": "Gate the 4th WM-0136 review",
-      "registeredAt": "2026-06-28T19:53:14.736Z"
+      "threadId": "019f19c6-a3f3-71a0-9184-58bd00cfd925",
+      "label": "Mirror WM-0152 review",
+      "registeredAt": "2026-06-30T18:24:50.461Z"
     }
   },
-  "updatedAt": "2026-06-30T16:34:39.370Z"
+  "updatedAt": "2026-06-30T18:24:50.462Z"
 }

@@ -34,7 +34,14 @@ import {
 import { ShellMainMenuSurface } from "./shell-main-menu-surface";
 import { ShellSettingsPanel } from "./shell-settings-panel";
 import { ShellStoragePanel } from "./shell-storage-panel";
-import { getSelectedEntity, type ShellState, type ShellStore } from "./shell-store";
+import {
+  getSelectedEntity,
+  type ShellPlayableCommandSurfaceState,
+  type ShellPlayableCommandTemplateState,
+  type ShellPlayablePlacementPreviewState,
+  type ShellState,
+  type ShellStore,
+} from "./shell-store";
 import type { ShellCommandActions, ShellSettingsActions, ShellStorageActions } from "./shell-store";
 
 type AlertSeverity = ShellState["readModel"]["town"]["alerts"][number]["severity"];
@@ -69,10 +76,11 @@ interface PlayerHudModel {
 
 interface HudCommandSpec {
   readonly actionId: "placeholder" | "prioritize-lamp-work" | "queue-simple-build";
-  readonly commandState: "needs-selection" | "placeholder" | "queued" | "ready";
+  readonly commandState: "needs-placement" | "needs-selection" | "placeholder" | "queued" | "ready";
+  readonly command?: ShellPlayableCommandTemplateState;
   readonly description: string;
   readonly disabled: boolean;
-  readonly targetEntityId?: string;
+  readonly modeAction?: "activate-build-mode" | "deactivate-build-mode";
   readonly testId: string;
   readonly title: string;
   readonly tone: "primary" | "secondary";
@@ -1550,12 +1558,26 @@ function createCommandBar(
             key: spec.testId,
             onClick: (event): void => {
               event.preventDefault();
-              if (!spec.disabled && spec.targetEntityId !== undefined) {
+              if (spec.disabled) {
+                return;
+              }
+
+              if (spec.command !== undefined) {
                 if (spec.actionId === "prioritize-lamp-work") {
-                  void commandActions.onPrioritizeLampWork(spec.targetEntityId);
+                  void commandActions.onPrioritizeLampWork(spec.command);
                 } else if (spec.actionId === "queue-simple-build") {
-                  void commandActions.onQueueSimpleBuild(spec.targetEntityId);
+                  void commandActions.onQueueSimpleBuild(spec.command);
                 }
+                return;
+              }
+
+              if (spec.modeAction === "activate-build-mode") {
+                void commandActions.onSetBuildMode("place-simple-lamp-post");
+                return;
+              }
+
+              if (spec.modeAction === "deactivate-build-mode") {
+                void commandActions.onSetBuildMode("inactive");
               }
             },
             style: commandButtonStyle(spec.tone, spec.visualState),
@@ -1588,82 +1610,131 @@ function readCommandSpecs(
   selectedEntity: ReturnType<typeof getSelectedEntity>,
   locale: LocaleId,
 ): readonly HudCommandSpec[] {
-  const selectedTargetLabel =
-    selectedEntity === undefined
-      ? ""
-      : localizeShellFixtureText(locale, selectedEntity.displayName);
-  const lampTargetReady = isLampPriorityTarget(selectedEntity);
-  const queuedForSelectedTarget =
-    lampTargetReady &&
+  const lampCommand = readSelectedLampCommand(
+    state.playableCommandSurface,
+    selectedEntity?.entityId,
+  );
+  const queuedLampCommand =
+    lampCommand !== undefined &&
     state.playableAction?.actionId === "prioritize-lamp-work" &&
-    state.playableAction.targetEntityId === selectedEntity?.entityId;
-  const buildTargetReady = isBuildCommandTarget(selectedEntity);
-  const buildQueuedForSelectedTarget =
-    buildTargetReady &&
-    state.playableAction?.actionId === "queue-simple-build" &&
-    state.playableAction.targetEntityId === selectedEntity?.entityId;
-  const lampCommandState = queuedForSelectedTarget
-    ? "queued"
-    : lampTargetReady
-      ? "ready"
-      : "needs-selection";
-  const buildCommandState = buildQueuedForSelectedTarget
-    ? "queued"
-    : buildTargetReady
-      ? "ready"
-      : "needs-selection";
+    state.playableAction.status === "accepted" &&
+    state.playableAction.markerState !== "blocked" &&
+    state.playableAction.markerState !== "completed" &&
+    state.playableAction.targetEntityId === lampCommand.targetEntityId;
   const lampDescription =
-    lampCommandState === "queued"
-      ? formatMessage(locale, "ui.hud.command.playable.lamp.queued", {
-          target: selectedTargetLabel,
-        })
-      : lampCommandState === "ready"
-        ? formatMessage(locale, "ui.hud.command.playable.lamp.ready", {
-            target: selectedTargetLabel,
+    lampCommand === undefined
+      ? formatMessage(locale, "ui.hud.command.playable.lamp.authoritativeNeedsSelection")
+      : queuedLampCommand
+        ? formatMessage(locale, "ui.hud.command.playable.lamp.authoritativeQueued", {
+            target: localizeShellFixtureText(locale, lampCommand.targetLabel),
           })
-        : formatMessage(locale, "ui.hud.command.playable.lamp.needsSelection");
-  const buildDescription =
-    buildCommandState === "queued"
-      ? formatMessage(locale, "ui.hud.command.playable.build.queued", {
-          target: selectedTargetLabel,
-        })
-      : buildCommandState === "ready"
-        ? formatMessage(locale, "ui.hud.command.playable.build.ready", {
-            target: selectedTargetLabel,
-          })
-        : formatMessage(locale, "ui.hud.command.playable.build.needsSelection");
+        : lampCommand.available
+          ? formatMessage(locale, "ui.hud.command.playable.lamp.authoritativeReady", {
+              target: localizeShellFixtureText(locale, lampCommand.targetLabel),
+            })
+          : formatMessage(locale, "ui.hud.command.playable.blocked", {
+              reason: formatCommandReason(
+                lampCommand.blockedReasonCode,
+                lampCommand.blockedReasonDetail,
+                locale,
+              ),
+            });
+  const hoveredPlacement = readHoveredPlacementPreview(
+    state.playableCommandSurface,
+    state.hoverTile,
+  );
+  const queuedBuildCommand =
+    state.playableAction?.actionId === "queue-simple-build" &&
+    state.playableAction.status === "accepted" &&
+    state.playableAction.markerState !== "blocked" &&
+    state.playableAction.markerState !== "completed";
+  const buildTitle =
+    state.buildMode === "place-simple-lamp-post" && hoveredPlacement?.valid === true
+      ? formatMessage(locale, "ui.hud.command.build")
+      : formatMessage(locale, "ui.hud.command.buildMode");
+  const buildSpec: HudCommandSpec = queuedBuildCommand
+    ? {
+        actionId: "queue-simple-build",
+        commandState: "queued",
+        description: formatMessage(locale, "ui.hud.command.playable.build.queued", {
+          target: localizeShellFixtureText(locale, state.playableAction.targetLabel),
+        }),
+        disabled: true,
+        testId: "player-command-build",
+        title: formatMessage(locale, "ui.hud.command.build"),
+        tone: "primary",
+        visualState: "active",
+      }
+    : state.buildMode === "place-simple-lamp-post"
+      ? hoveredPlacement !== undefined &&
+        hoveredPlacement.valid &&
+        hoveredPlacement.command.available
+        ? {
+            actionId: "queue-simple-build",
+            command: hoveredPlacement.command,
+            commandState: "ready",
+            description: formatMessage(locale, "ui.hud.command.playable.build.ready", {
+              target: localizeShellFixtureText(locale, hoveredPlacement.command.targetLabel),
+              tile: formatTile(hoveredPlacement.anchorTile),
+            }),
+            disabled: false,
+            testId: "player-command-build",
+            title: formatMessage(locale, "ui.hud.command.build"),
+            tone: "primary",
+            visualState: "default",
+          }
+        : {
+            actionId: "queue-simple-build",
+            commandState: "needs-placement",
+            description: readBuildDescription(locale, hoveredPlacement, state.hoverTile),
+            disabled: false,
+            modeAction: "deactivate-build-mode",
+            testId: "player-command-build",
+            title: buildTitle,
+            tone: "primary",
+            visualState: "active",
+          }
+      : state.playableCommandSurface !== undefined &&
+          state.playableCommandSurface.buildPlacements.length > 0
+        ? {
+            actionId: "queue-simple-build",
+            commandState: "ready",
+            description: formatMessage(locale, "ui.hud.command.playable.build.modeReady"),
+            disabled: false,
+            modeAction: "activate-build-mode",
+            testId: "player-command-build",
+            title: buildTitle,
+            tone: "primary",
+            visualState: "default",
+          }
+        : {
+            actionId: "queue-simple-build",
+            commandState: "needs-selection",
+            description: formatMessage(locale, "ui.hud.command.playable.build.needsSelection"),
+            disabled: true,
+            testId: "player-command-build",
+            title: buildTitle,
+            tone: "primary",
+            visualState: "disabled",
+          };
 
   return [
     {
       actionId: "prioritize-lamp-work",
-      commandState: lampCommandState,
+      ...(lampCommand === undefined ? {} : { command: lampCommand }),
+      commandState: queuedLampCommand
+        ? "queued"
+        : lampCommand?.available
+          ? "ready"
+          : "needs-selection",
       description: lampDescription,
-      disabled: !lampTargetReady,
-      ...(lampTargetReady && selectedEntity !== undefined
-        ? { targetEntityId: selectedEntity.entityId }
-        : {}),
+      disabled: !lampCommand?.available,
       testId: "player-command-lamp",
       title: formatMessage(locale, "ui.hud.command.lamp"),
       tone: "primary",
-      visualState: queuedForSelectedTarget ? "active" : lampTargetReady ? "default" : "disabled",
+      visualState: queuedLampCommand ? "active" : lampCommand?.available ? "default" : "disabled",
     },
-    {
-      actionId: "queue-simple-build",
-      commandState: buildCommandState,
-      description: buildDescription,
-      disabled: !buildTargetReady,
-      ...(buildTargetReady && selectedEntity !== undefined
-        ? { targetEntityId: selectedEntity.entityId }
-        : {}),
-      testId: "player-command-build",
-      title: formatMessage(locale, "ui.hud.command.build"),
-      tone: "primary",
-      visualState: buildQueuedForSelectedTarget
-        ? "active"
-        : buildTargetReady
-          ? "default"
-          : "disabled",
-    },
+    buildSpec,
     {
       actionId: "placeholder",
       commandState: "placeholder",
@@ -1776,30 +1847,78 @@ function createPlayableActionFeedback(state: ShellState, locale: LocaleId): Reac
   );
 }
 
-function isLampPriorityTarget(entity: WorldEntityReadModel | undefined): boolean {
-  if (entity === undefined) {
-    return false;
+function readSelectedLampCommand(
+  surface: ShellPlayableCommandSurfaceState | undefined,
+  selectedEntityId: string | undefined,
+): ShellPlayableCommandTemplateState | undefined {
+  if (surface === undefined || selectedEntityId === undefined) {
+    return undefined;
   }
 
-  if (entity.kind === "lantern-keeper") {
-    return true;
-  }
-
-  const searchText =
-    `${entity.entityId} ${entity.displayName} ${entity.inspector.roleLabel} ${entity.inspector.currentJob}`.toLowerCase();
-  return searchText.includes("lamp") || searchText.includes("lantern");
+  return surface.lampCommands.find((command) => command.targetEntityId === selectedEntityId);
 }
 
-function isBuildCommandTarget(entity: WorldEntityReadModel | undefined): boolean {
-  if (entity === undefined) {
-    return false;
+function readHoveredPlacementPreview(
+  surface: ShellPlayableCommandSurfaceState | undefined,
+  hoverTile: TileCoordinate | undefined,
+): ShellPlayablePlacementPreviewState | undefined {
+  if (surface === undefined || hoverTile === undefined) {
+    return undefined;
   }
 
-  if (entity.entityId === "east-market-lantern-post") {
-    return true;
+  return surface.buildPlacements.find(
+    (placement) =>
+      matchesTile(placement.anchorTile, hoverTile) ||
+      placement.footprintTiles.some((tile) => matchesTile(tile, hoverTile)) ||
+      placement.interactionTiles.some((tile) => matchesTile(tile, hoverTile)),
+  );
+}
+
+function readBuildDescription(
+  locale: LocaleId,
+  placement: ShellPlayablePlacementPreviewState | undefined,
+  hoverTile: TileCoordinate | undefined,
+): string {
+  if (placement === undefined) {
+    return formatMessage(locale, "ui.hud.command.playable.build.modeActive", {
+      tile: hoverTile === undefined ? "?" : formatTile(hoverTile),
+    });
   }
 
-  return isLampPriorityTarget(entity);
+  if (!placement.valid || !placement.command.available) {
+    return formatMessage(locale, "ui.hud.command.playable.blocked", {
+      reason: formatCommandReason(
+        placement.blockedReasonCode ?? placement.command.blockedReasonCode,
+        placement.blockedReasonDetail ?? placement.command.blockedReasonDetail,
+        locale,
+      ),
+    });
+  }
+
+  return formatMessage(locale, "ui.hud.command.playable.build.ready", {
+    target: localizeShellFixtureText(locale, placement.command.targetLabel),
+    tile: formatTile(placement.anchorTile),
+  });
+}
+
+function formatCommandReason(
+  reasonCode: string | undefined,
+  reasonDetail: string | undefined,
+  locale: LocaleId,
+): string {
+  if (reasonCode === undefined) {
+    return formatMessage(locale, "ui.inspector.reasonNone");
+  }
+
+  return reasonDetail === undefined ? reasonCode : `${reasonCode} · ${reasonDetail}`;
+}
+
+function formatTile(tile: TileCoordinate): string {
+  return `${String(tile.x)},${String(tile.y)}`;
+}
+
+function matchesTile(left: TileCoordinate, right: TileCoordinate): boolean {
+  return left.x === right.x && left.y === right.y;
 }
 
 function readCommandButtonSlot(

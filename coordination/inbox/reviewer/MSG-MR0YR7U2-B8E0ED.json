@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MR0YR7U2-B8E0ED",
+  "from": "client-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0152",
+  "kind": "review-request",
+  "subject": "WM-0152 ready for review",
+  "body": "Implemented authoritative WM-0150 lamp/build HUD chain through public Web Worker projection/drain; required WM-0152 checks pass, including web-shell E2E and pnpm quality.",
+  "artifacts": [
+    "coordination/reports/WM-0152.md",
+    "task/WM-0152-player-lamp-priority-and-build-placement-ui-chai"
+  ],
+  "createdAt": "2026-06-30T18:11:49.994Z",
+  "acknowledgedAt": "2026-06-30T18:13:20.688Z"
+}

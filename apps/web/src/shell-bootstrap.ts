@@ -11,12 +11,21 @@ import {
   createPixiWorldRenderer,
   type PixiWorldRendererDebugState,
 } from "@wuming-town/renderer-pixi";
+import type {
+  CommandBlockedReason,
+  CommandResultMessage,
+  ProtocolRejection,
+  PrioritizeLampWorkPayload,
+  QueueSimpleBuildPayload,
+} from "@wuming-town/sim-protocol";
 import {
   createShellHudElement,
   createShellStore,
   getEntityTile,
   type ShellOnboardingState,
+  type ShellBuildModeState,
   type ShellLocaleState,
+  type ShellPlayableCommandTemplateState,
   type ShellPlayableActionState,
   type ShellState,
 } from "@wuming-town/ui-react";
@@ -32,11 +41,21 @@ import {
   type WebDiagnosticDebugState,
 } from "./diagnostic-package-gate";
 import {
+  createPlayableCommandSurface,
+  createPlayableWorldReadModel,
   createProjectedPlayableDebugState,
-  createReviewedPlayableProjectionSession,
-} from "./reviewed-playable-session";
+  patchPlayableActionFromProjection,
+} from "./playable-worker-projection";
+import { WEB_PRODUCT_GATE_READ_MODEL } from "./product-gate-fixture";
 import { createShellReleaseGateInfo, readShellBrowserLabel } from "./product-gate-harness";
 import { createShellSettingsController, readDiagnosticsVisibility } from "./shell-locale";
+import {
+  createWebSimulationWorkerSession,
+  drainWebPlayableCommandsToTerminal,
+  readWebPlayableProjection,
+  sendWebPlayableCommandBatch,
+  startWebPlayableWorkerScenario,
+} from "./simulation-worker-session";
 import {
   createInitialStorageGateState,
   createWebStorageGateController,
@@ -74,20 +93,31 @@ export interface MountedWebShell {
   destroy(): Promise<void>;
 }
 
+const PLAYABLE_DRAIN_STEP_TICKS = 15;
+const PLAYABLE_DRAIN_MAX_TICK_SPAN = 360;
+
 export async function mountWebClientShell(rootElement: HTMLElement): Promise<MountedWebShell> {
   prepareDocumentChrome();
   const platformPorts = resolvePlatformPorts();
   const settingsController = createShellSettingsController();
   const diagnosticsVisible = readDiagnosticsVisibility(window.location.search);
-  const playableSession = createReviewedPlayableProjectionSession();
-  const initialPlayableSnapshot = playableSession.readSnapshot();
-  const initialReadModel = initialPlayableSnapshot.readModel;
+  const workerSession = createWebSimulationWorkerSession({
+    sessionId: "wm0152-web-shell",
+  });
+  const initialReadModel = WEB_PRODUCT_GATE_READ_MODEL;
   const releaseGate = createShellReleaseGateInfo({
     browserLabel: readShellBrowserLabel(navigator.userAgent),
     crossOriginIsolated: window.crossOriginIsolated,
   });
   const recentStructuredErrors: M6DiagnosticEntryInput[] = [];
   let diagnosticState = createInitialDiagnosticDebugState(platformPorts.host);
+  let playableProjection: ReturnType<typeof readWebPlayableProjection> = undefined;
+  let nextLampCommandOrdinal = 1;
+  let nextBuildCommandOrdinal = 1;
+  const pendingCommands = new Map<string, ShellPlayableCommandTemplateState>();
+  const activePlayableCommandIds = new Set<string>();
+  let playableDrainAbortController: AbortController | undefined;
+  let playableDrainRunId = 0;
 
   const shellFrame = document.createElement("div");
   shellFrame.style.cssText =
@@ -104,6 +134,8 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
   } = {
     current: undefined,
   };
+  let isSyncingRendererProjection = false;
+  let isDestroyed = false;
 
   shellFrame.append(canvasHost, hudHost);
   rootElement.replaceChildren(shellFrame);
@@ -126,6 +158,7 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
     selectedEntityId: initialReadModel.selectedEntityId,
     inspectedTile: getEntityTile(initialReadModel, initialReadModel.selectedEntityId),
     hoverTile: undefined,
+    buildMode: "inactive",
   };
   const store = createShellStore(initialState);
   const storageController = createWebStorageGateController({
@@ -138,7 +171,11 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
       syncDebug(
         activeRenderer.readDebugState(),
         store.getSnapshot(),
-        createProjectedPlayableDebugState(playableSession.readSnapshot()),
+        createProjectedPlayableDebugState(
+          playableProjection,
+          store.getSnapshot().playableAction,
+          store.getSnapshot().readModel,
+        ),
         platformPorts.host,
         storageController.readDebugState(),
         diagnosticState,
@@ -175,29 +212,15 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
         },
       },
       {
-        onPrioritizeLampWork(targetEntityId: string): Promise<void> {
-          const currentState = store.getSnapshot();
-          const playableAction = playableSession.queuePrioritizeLampWork(targetEntityId);
-          const nextState: ShellState = {
-            ...currentState,
-            lastInputLabel: `Action queued ${playableAction.commandId}`,
-            playableAction,
-          };
-          store.setState(nextState);
-          syncRendererProjection(nextState);
-          return Promise.resolve();
+        async onPrioritizeLampWork(command): Promise<void> {
+          await dispatchPlayableCommand(command);
         },
-        onQueueSimpleBuild(targetEntityId: string): Promise<void> {
-          const currentState = store.getSnapshot();
-          const playableAction = playableSession.queueSimpleBuild(targetEntityId);
-          const nextState: ShellState = {
-            ...currentState,
-            lastInputLabel: `Action queued ${playableAction.commandId}`,
-            playableAction,
-          };
-          store.setState(nextState);
-          syncRendererProjection(nextState);
-          return Promise.resolve();
+        async onQueueSimpleBuild(command): Promise<void> {
+          await setBuildMode("inactive");
+          await dispatchPlayableCommand(command);
+        },
+        async onSetBuildMode(mode): Promise<void> {
+          await setBuildMode(mode);
         },
       },
     ),
@@ -230,20 +253,13 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
         selectedEntityId: entityId,
       });
       const activeRenderer = rendererRef.current;
-      if (activeRenderer !== undefined) {
-        syncDebug(
-          activeRenderer.readDebugState(),
-          store.getSnapshot(),
-          createProjectedPlayableDebugState(playableSession.readSnapshot()),
-          platformPorts.host,
-          storageController.readDebugState(),
-          diagnosticState,
-        );
+      if (activeRenderer !== undefined && !isSyncingRendererProjection) {
+        syncRendererProjection(store.getSnapshot());
       }
     },
     onStateChange(nextRendererState): void {
       const currentState = store.getSnapshot();
-      store.setState({
+      const nextState = {
         ...currentState,
         canvasWidth: nextRendererState.canvasWidth,
         canvasHeight: nextRendererState.canvasHeight,
@@ -252,25 +268,31 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
         lastInputLabel: nextRendererState.lastInputLabel,
         selectedEntityId: nextRendererState.selectedEntityId,
         zoom: nextRendererState.zoom,
-      });
+      } satisfies ShellState;
+      store.setState(nextState);
       const activeRenderer = rendererRef.current;
-      if (activeRenderer !== undefined) {
-        syncDebug(
-          activeRenderer.readDebugState(),
-          store.getSnapshot(),
-          createProjectedPlayableDebugState(playableSession.readSnapshot()),
-          platformPorts.host,
-          storageController.readDebugState(),
-          diagnosticState,
-        );
+      if (activeRenderer !== undefined && !isSyncingRendererProjection) {
+        syncRendererProjection(nextState);
       }
     },
   });
   rendererRef.current = renderer;
   void storageController.refresh();
-  const unsubscribePlayableSession = playableSession.subscribe(() => {
-    syncRendererProjection(store.getSnapshot());
+  const unsubscribeWorkerSession = workerSession.subscribe((message) => {
+    const nextProjection = readWebPlayableProjection(message);
+    if (nextProjection !== undefined) {
+      playableProjection = nextProjection;
+      syncRendererProjection(store.getSnapshot());
+    }
   });
+  const unsubscribeReliableSession = workerSession.subscribeReliable((message) => {
+    if (message.kind !== "CommandResult") {
+      return;
+    }
+
+    handleCommandResult(message);
+  });
+  startWebPlayableWorkerScenario(workerSession, "5");
 
   const resizeObserver = new ResizeObserver(() => {
     const nextWidth = Math.max(shellFrame.clientWidth, 1);
@@ -279,7 +301,11 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
     syncDebug(
       renderer.readDebugState(),
       store.getSnapshot(),
-      createProjectedPlayableDebugState(playableSession.readSnapshot()),
+      createProjectedPlayableDebugState(
+        playableProjection,
+        store.getSnapshot().playableAction,
+        store.getSnapshot().readModel,
+      ),
       platformPorts.host,
       storageController.readDebugState(),
       diagnosticState,
@@ -291,7 +317,11 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
   syncDebug(
     renderer.readDebugState(),
     store.getSnapshot(),
-    createProjectedPlayableDebugState(playableSession.readSnapshot()),
+    createProjectedPlayableDebugState(
+      playableProjection,
+      store.getSnapshot().playableAction,
+      store.getSnapshot().readModel,
+    ),
     platformPorts.host,
     storageController.readDebugState(),
     diagnosticState,
@@ -325,7 +355,11 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
     syncDebug(
       activeRenderer.readDebugState(),
       store.getSnapshot(),
-      createProjectedPlayableDebugState(playableSession.readSnapshot()),
+      createProjectedPlayableDebugState(
+        playableProjection,
+        store.getSnapshot().playableAction,
+        store.getSnapshot().readModel,
+      ),
       platformPorts.host,
       storageController.readDebugState(),
       diagnosticState,
@@ -348,7 +382,11 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
       syncDebug(
         activeRenderer.readDebugState(),
         nextState,
-        createProjectedPlayableDebugState(playableSession.readSnapshot()),
+        createProjectedPlayableDebugState(
+          playableProjection,
+          nextState.playableAction,
+          nextState.readModel,
+        ),
         platformPorts.host,
         storageController.readDebugState(),
         diagnosticState,
@@ -357,29 +395,51 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
   }
 
   function syncRendererProjection(currentState: ShellState): void {
-    const playableSnapshot = playableSession.readSnapshot(currentState.selectedEntityId);
-    const nextReadModel = playableSnapshot.readModel;
+    const nextReadModel =
+      playableProjection === undefined
+        ? currentState.readModel
+        : createPlayableWorldReadModel({
+            baseReadModel: WEB_PRODUCT_GATE_READ_MODEL,
+            projection: playableProjection,
+            buildMode: currentState.buildMode,
+            hoverTile: currentState.hoverTile,
+            selectedEntityId: currentState.selectedEntityId,
+          });
+    const playableAction = patchPlayableActionFromProjection(
+      currentState.playableAction,
+      playableProjection,
+    );
     const nextState: ShellState = {
       ...currentState,
       inspectedTile:
         currentState.selectedEntityId === undefined
           ? currentState.inspectedTile
           : getEntityTile(nextReadModel, currentState.selectedEntityId),
-      ...(playableSnapshot.latestCommand === undefined
+      ...(playableProjection === undefined
         ? {}
         : {
-            playableAction: playableSnapshot.latestCommand,
+            playableCommandSurface: createPlayableCommandSurface(playableProjection),
           }),
+      ...(playableAction === undefined ? {} : { playableAction }),
       readModel: nextReadModel,
     };
     store.setState(nextState);
     const activeRenderer = rendererRef.current;
     if (activeRenderer !== undefined) {
-      activeRenderer.setReadModel(nextReadModel);
+      isSyncingRendererProjection = true;
+      try {
+        activeRenderer.setReadModel(nextReadModel);
+      } finally {
+        isSyncingRendererProjection = false;
+      }
       syncDebug(
         activeRenderer.readDebugState(),
         nextState,
-        createProjectedPlayableDebugState(playableSnapshot),
+        createProjectedPlayableDebugState(
+          playableProjection,
+          nextState.playableAction,
+          nextReadModel,
+        ),
         platformPorts.host,
         storageController.readDebugState(),
         diagnosticState,
@@ -387,16 +447,186 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
     }
   }
 
+  function dispatchPlayableCommand(command: ShellPlayableCommandTemplateState): Promise<void> {
+    const commandId =
+      command.actionId === "prioritize-lamp-work"
+        ? `wm0152-lamp-${String(nextLampCommandOrdinal).padStart(3, "0")}`
+        : `wm0152-build-${String(nextBuildCommandOrdinal).padStart(3, "0")}`;
+    if (command.actionId === "prioritize-lamp-work") {
+      nextLampCommandOrdinal += 1;
+    } else {
+      nextBuildCommandOrdinal += 1;
+    }
+
+    pendingCommands.set(commandId, command);
+    if (command.actionId === "prioritize-lamp-work") {
+      const payload = command.payload;
+      if (!isPrioritizeLampWorkPayload(payload)) {
+        pendingCommands.delete(commandId);
+        recordStructuredError(recentStructuredErrors, "playable_lamp_payload_invalid", {
+          message: "HUD lamp command template did not carry a PrioritizeLampWork payload.",
+        });
+        return Promise.resolve();
+      }
+      sendWebPlayableCommandBatch(workerSession, [
+        {
+          commandId,
+          kind: "PrioritizeLampWork",
+          basis: command.commandBasis,
+          payload,
+        },
+      ]);
+    } else {
+      const payload = command.payload;
+      if (!isQueueSimpleBuildPayload(payload)) {
+        pendingCommands.delete(commandId);
+        recordStructuredError(recentStructuredErrors, "playable_build_payload_invalid", {
+          message: "HUD build command template did not carry a QueueSimpleBuild payload.",
+        });
+        return Promise.resolve();
+      }
+      sendWebPlayableCommandBatch(workerSession, [
+        {
+          commandId,
+          kind: "QueueSimpleBuild",
+          basis: command.commandBasis,
+          payload,
+        },
+      ]);
+    }
+    const currentState = store.getSnapshot();
+    store.setState({
+      ...currentState,
+      lastInputLabel: `Action queued ${commandId}`,
+    });
+    return Promise.resolve();
+  }
+
+  function setBuildMode(mode: ShellBuildModeState): Promise<void> {
+    const currentState = store.getSnapshot();
+    store.setState({
+      ...currentState,
+      buildMode: mode,
+    });
+    syncRendererProjection(store.getSnapshot());
+    return Promise.resolve();
+  }
+
+  function handleCommandResult(message: CommandResultMessage): void {
+    if (message.payload.commandResults.length === 0 && message.payload.batchReason === undefined) {
+      return;
+    }
+
+    const currentState = store.getSnapshot();
+    const nextAction = readLatestCommandAction(
+      message,
+      currentState.playableAction,
+      pendingCommands,
+    );
+    if (nextAction === undefined) {
+      return;
+    }
+
+    store.setState({
+      ...currentState,
+      lastInputLabel: `${nextAction.status === "accepted" ? "Accepted" : "Rejected"} ${nextAction.commandId}`,
+      playableAction: nextAction,
+    });
+    syncRendererProjection(store.getSnapshot());
+    if (nextAction.status === "accepted") {
+      drainPlayableCommand(nextAction.commandId);
+    }
+  }
+
+  function drainPlayableCommand(commandId: string): void {
+    activePlayableCommandIds.add(commandId);
+    restartPlayableDrain();
+  }
+
+  function restartPlayableDrain(): void {
+    if (isDestroyed) {
+      return;
+    }
+
+    const commandIds = [...activePlayableCommandIds];
+    if (commandIds.length === 0) {
+      return;
+    }
+
+    playableDrainAbortController?.abort(new Error("Playable drain superseded."));
+    const controller = new AbortController();
+    playableDrainAbortController = controller;
+    playableDrainRunId += 1;
+    const drainRunId = playableDrainRunId;
+    const currentTick = playableProjection?.basis.tick ?? 0;
+
+    void drainWebPlayableCommandsToTerminal(workerSession, {
+      commandIds,
+      maxTargetTick: Math.max(
+        PLAYABLE_DRAIN_MAX_TICK_SPAN,
+        currentTick + PLAYABLE_DRAIN_MAX_TICK_SPAN,
+      ),
+      stepTicks: PLAYABLE_DRAIN_STEP_TICKS,
+      signal: controller.signal,
+    })
+      .then((result) => {
+        if (isDestroyed || drainRunId !== playableDrainRunId) {
+          return;
+        }
+
+        playableDrainAbortController = undefined;
+        playableProjection = result.projection;
+        for (const terminalCommandId of result.terminalCommandIds) {
+          activePlayableCommandIds.delete(terminalCommandId);
+        }
+        syncRendererProjection(store.getSnapshot());
+
+        if (result.status === "max_target_reached") {
+          recordStructuredError(recentStructuredErrors, "playable_drain_max_target_reached", {
+            message: `Playable drain reached tick ${String(result.targetTick)} with active commands: ${result.activeCommandIds.join(",")}`,
+          });
+        }
+      })
+      .catch((error: unknown) => {
+        if (isDestroyed || drainRunId !== playableDrainRunId || controller.signal.aborted) {
+          return;
+        }
+
+        playableDrainAbortController = undefined;
+        recordStructuredError(recentStructuredErrors, "playable_drain_failed", {
+          message: readUnknownReason(error),
+        });
+      });
+  }
+
+  async function teardownMountedShell(): Promise<void> {
+    if (isDestroyed) {
+      return;
+    }
+    isDestroyed = true;
+
+    window.removeEventListener("pagehide", pageHideListener);
+    unsubscribeWorkerSession();
+    unsubscribeReliableSession();
+    playableDrainAbortController?.abort(new Error("Mounted Web shell destroyed."));
+    playableDrainAbortController = undefined;
+    workerSession.destroy();
+    window.removeEventListener("error", windowErrorListener);
+    window.removeEventListener("unhandledrejection", unhandledRejectionListener);
+    resizeObserver.disconnect();
+    reactRoot.unmount();
+    await renderer.destroy();
+    rootElement.replaceChildren();
+  }
+
+  const pageHideListener = (): void => {
+    void teardownMountedShell();
+  };
+  window.addEventListener("pagehide", pageHideListener, { once: true });
+
   return {
     async destroy(): Promise<void> {
-      unsubscribePlayableSession();
-      playableSession.destroy();
-      window.removeEventListener("error", windowErrorListener);
-      window.removeEventListener("unhandledrejection", unhandledRejectionListener);
-      resizeObserver.disconnect();
-      reactRoot.unmount();
-      await renderer.destroy();
-      rootElement.replaceChildren();
+      await teardownMountedShell();
     },
   };
 }
@@ -453,7 +683,7 @@ function shouldIgnoreCameraInputTarget(target: EventTarget | null, hudHost: HTML
 function syncDebug(
   debugState: PixiWorldRendererDebugState,
   shellState: Pick<ShellState, "diagnosticsVisible" | "locale" | "playableAction" | "uiScale">,
-  playableState: ReturnType<typeof createProjectedPlayableDebugState>,
+  playableState: ReturnType<typeof createProjectedPlayableDebugState> | undefined,
   platformHost: PlatformHostInfo,
   storageGate: WebStorageDebugState,
   diagnostics: WebDiagnosticDebugState,
@@ -483,7 +713,7 @@ function syncDebug(
       preference: shellState.uiScale.preference,
     },
     platformHost,
-    playable: playableState,
+    ...(playableState === undefined ? {} : { playable: playableState }),
     ...(shellState.playableAction === undefined
       ? {}
       : { playableAction: shellState.playableAction }),
@@ -495,4 +725,114 @@ function syncDebug(
   if (debugNode !== null) {
     debugNode.textContent = JSON.stringify(debugPayload);
   }
+}
+
+function readLatestCommandAction(
+  message: CommandResultMessage,
+  fallback: ShellPlayableActionState | undefined,
+  pendingCommands: Map<string, ShellPlayableCommandTemplateState>,
+): ShellPlayableActionState | undefined {
+  const commandResult = message.payload.commandResults[message.payload.commandResults.length - 1];
+  const pendingCommand =
+    commandResult === undefined
+      ? [...pendingCommands.values()][pendingCommands.size - 1]
+      : pendingCommands.get(commandResult.commandId);
+  if (pendingCommand === undefined) {
+    return fallback;
+  }
+  if (commandResult === undefined) {
+    if (message.payload.batchReason === undefined) {
+      return fallback;
+    }
+    pendingCommands.delete([...pendingCommands.keys()][pendingCommands.size - 1] ?? "");
+    return {
+      actionId: pendingCommand.actionId,
+      adapterId: "wm0152-authoritative-worker-session",
+      authority: "simulation-worker-projection",
+      commandId: "batch-rejected",
+      reasonCode: message.payload.batchReason.code,
+      reasonDetail: message.payload.batchReason.detail,
+      reasonSource: "command_result",
+      status: "rejected",
+      targetEntityId: pendingCommand.targetEntityId,
+      targetLabel: pendingCommand.targetLabel,
+    };
+  }
+  if (!pendingCommands.delete(commandResult.commandId)) {
+    return fallback;
+  }
+
+  if (commandResult.status === "rejected") {
+    const reason = commandResult.reason;
+    return {
+      actionId: pendingCommand.actionId,
+      adapterId: "wm0152-authoritative-worker-session",
+      authority: "simulation-worker-projection",
+      commandId: commandResult.commandId,
+      reasonCode: reason.code,
+      reasonDetail: readCommandReasonDetail(reason),
+      reasonSource: reason.source,
+      status: "rejected",
+      targetEntityId: pendingCommand.targetEntityId,
+      targetLabel: pendingCommand.targetLabel,
+    };
+  }
+
+  return {
+    actionId: pendingCommand.actionId,
+    adapterId: "wm0152-authoritative-worker-session",
+    authority: "simulation-worker-projection",
+    commandId: commandResult.commandId,
+    markerState: commandResult.initialState,
+    ...(commandResult.blockedReason === undefined
+      ? {}
+      : {
+          reasonCode: commandResult.blockedReason.code,
+          reasonDetail: readCommandReasonDetail(commandResult.blockedReason),
+          reasonSource: commandResult.blockedReason.source,
+        }),
+    status: "accepted",
+    targetEntityId: pendingCommand.targetEntityId,
+    targetLabel: pendingCommand.targetLabel,
+  };
+}
+
+function isPrioritizeLampWorkPayload(payload: unknown): payload is PrioritizeLampWorkPayload {
+  return (
+    isRecord(payload) &&
+    isRecord(payload["target"]) &&
+    typeof payload["requestedAction"] === "string" &&
+    typeof payload["priorityBand"] === "number"
+  );
+}
+
+function isQueueSimpleBuildPayload(payload: unknown): payload is QueueSimpleBuildPayload {
+  return (
+    isRecord(payload) &&
+    isRecord(payload["blueprint"]) &&
+    isRecord(payload["anchorCell"]) &&
+    typeof payload["orientation"] === "number" &&
+    typeof payload["priorityBand"] === "number"
+  );
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function readCommandReasonDetail(
+  reason: CommandBlockedReason | ProtocolRejection | undefined,
+): string {
+  if (reason === undefined) {
+    return "";
+  }
+
+  if ("detail" in reason) {
+    return reason.detail;
+  }
+
+  return reason.code
+    .split("_")
+    .map((segment: string) => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join(" ");
 }

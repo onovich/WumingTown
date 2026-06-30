@@ -1,13 +1,29 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import type { WorldReadModel } from "@wuming-town/sim-protocol";
+import type { CommandBasis, WorldReadModel } from "@wuming-town/sim-protocol";
 
 import { createShellHudElement } from "./shell-hud";
 import { localizeShellLastInputLabel } from "./shell-read-model-localization";
 import { createDefaultShellLocaleState } from "./localization";
 import { createDefaultShellUiScaleState } from "./shell-ui-scale";
-import { createShellStore, type ShellState } from "./shell-store";
+import {
+  createShellStore,
+  type ShellPlayableCommandSurfaceState,
+  type ShellState,
+} from "./shell-store";
+
+const COMMAND_BASIS: CommandBasis = {
+  playableCommandContractVersion: 1,
+  basisTick: 120,
+  basisSnapshotSequence: 8,
+  basisReadModelHash: "read-model-hash",
+  contentManifestHash: "content-hash",
+  targetVersion: 3,
+  mapVersion: 2,
+  reservationVersion: 1,
+  jobVersion: 4,
+};
 
 const READ_MODEL: WorldReadModel = {
   sessionId: "session-ui",
@@ -165,7 +181,7 @@ describe("shell-hud", () => {
     expect(markup).toContain("Lantern gap");
     expect(markup).toContain("resident, structure, lantern post, visitor, or map tile");
     expect(markup).toContain("Minimum command chain");
-    expect(markup).toContain("Prioritize lamp work");
+    expect(markup).toContain("Build mode");
     expect(markup).toContain(
       "Player guidance stays on the player surface; internal tools remain separate",
     );
@@ -194,7 +210,7 @@ describe("shell-hud", () => {
     expect(markup).toContain("先确认灯火覆盖、路线证据与守夜义务");
     expect(markup).toContain("选择：点击居民");
     expect(markup).toContain("最小命令链");
-    expect(markup).toContain("优先补灯");
+    expect(markup).toContain("建造模式");
     expect(markup).toContain("玩家指引保留在玩家界面");
     expect(markup).not.toContain("Dusk watch");
     expect(markup).not.toContain("Lantern gap");
@@ -271,53 +287,55 @@ describe("shell-hud", () => {
     );
   });
 
-  it("renders reviewed projection lamp feedback with visible progress", () => {
+  it("renders authoritative Worker lamp feedback with visible progress", () => {
     const state = {
       ...createShellState(createDefaultShellLocaleState(["en-US"]), createLampPriorityReadModel()),
       diagnosticsVisible: true,
-      lastInputLabel: "Action queued wm0151-lamp-001",
+      lastInputLabel: "Action queued wm0152-lamp-001",
+      playableCommandSurface: createPlayableCommandSurfaceState(),
       playableAction: {
         actionId: "prioritize-lamp-work",
-        adapterId: "wm0151-reviewed-projection-harness",
-        authority: "world-read-model-projection",
-        commandId: "wm0151-lamp-001",
+        adapterId: "wm0152-authoritative-worker-session",
+        authority: "simulation-worker-projection",
+        commandId: "wm0152-lamp-001",
         markerState: "moving",
         progressPercent: 32,
         status: "accepted",
-        targetEntityId: "lamp-keeper-test",
-        targetLabel: "Lantern Keeper Shen",
+        targetEntityId: "east-market-lantern-post",
+        targetLabel: "East Market Lantern Post",
       },
     } satisfies ShellState;
     const markup = renderShell(state);
 
     expect(markup).toContain('data-testid="player-action-feedback"');
-    expect(markup).toContain('data-action-authority="world-read-model-projection"');
+    expect(markup).toContain('data-action-authority="simulation-worker-projection"');
     expect(markup).toContain('data-action-marker-state="moving"');
     expect(markup).toContain('data-command-state="queued"');
     expect(markup).toContain('data-reason-code=""');
-    expect(markup).toContain('data-target-entity="lamp-keeper-test"');
+    expect(markup).toContain('data-target-entity="east-market-lantern-post"');
     expect(markup).toContain('data-ui-slot="button.primary.active"');
-    expect(markup).toContain("Reviewed playback active");
+    expect(markup).toContain("Authoritative command accepted");
     expect(markup).toContain("State: Moving");
     expect(markup).toContain("Progress: 32%");
-    expect(markup).toContain("Command id: wm0151-lamp-001");
+    expect(markup).toContain("Command id: wm0152-lamp-001");
   });
 
-  it("renders zh-CN objective-action HUD with reviewed lamp feedback", () => {
+  it("renders zh-CN objective-action HUD with authoritative lamp feedback", () => {
     const state = {
       ...createShellState(createDefaultShellLocaleState(["zh-CN"]), createLampPriorityReadModel()),
       diagnosticsVisible: true,
-      lastInputLabel: "Action queued wm0151-lamp-001",
+      lastInputLabel: "Action queued wm0152-lamp-001",
+      playableCommandSurface: createPlayableCommandSurfaceState(),
       playableAction: {
         actionId: "prioritize-lamp-work",
-        adapterId: "wm0151-reviewed-projection-harness",
-        authority: "world-read-model-projection",
-        commandId: "wm0151-lamp-001",
+        adapterId: "wm0152-authoritative-worker-session",
+        authority: "simulation-worker-projection",
+        commandId: "wm0152-lamp-001",
         markerState: "working",
         progressPercent: 64,
         status: "accepted",
-        targetEntityId: "lamp-keeper-test",
-        targetLabel: "Lantern Keeper Shen",
+        targetEntityId: "east-market-lantern-post",
+        targetLabel: "East Market Lantern Post",
       },
     } satisfies ShellState;
     const markup = renderShell(state);
@@ -328,7 +346,7 @@ describe("shell-hud", () => {
     expect(markup).toContain('data-testid="player-action-feedback"');
     expect(markup).toContain('data-command-state="queued"');
     expect(markup).toContain('data-action-marker-state="working"');
-    expect(markup).toContain("wm0151-lamp-001");
+    expect(markup).toContain("wm0152-lamp-001");
   });
 
   it("renders localized empty-tile inspection feedback when no entity is selected", () => {
@@ -447,6 +465,7 @@ function createShellState(
       x: 96,
       y: 80,
     },
+    buildMode: "inactive",
   };
 }
 
@@ -455,6 +474,28 @@ function createLampPriorityReadModel(): WorldReadModel {
     ...READ_MODEL,
     entities: [
       ...READ_MODEL.entities,
+      {
+        entityId: "east-market-lantern-post",
+        displayName: "East Market Lantern Post",
+        kind: "structure",
+        tile: {
+          x: 104,
+          y: 88,
+        },
+        colorHex: 0xf6bd60,
+        summary: "Authoritative lamp gap is awaiting player action.",
+        inspector: {
+          roleLabel: "Lamp structure",
+          currentJob: "Build placement",
+          currentStep: "Select this structure or enter build mode",
+          moodLabel: "Stable",
+          healthLabel: "Structural",
+          lastDecision: "Select this structure or enter build mode",
+          explainers: ["This structure is rendered from the authoritative Worker projection."],
+          thoughts: ["UI reads projection state only and does not own structure mutation."],
+          needs: [],
+        },
+      },
       {
         entityId: "lamp-keeper-test",
         displayName: "Lantern Keeper Shen",
@@ -484,7 +525,86 @@ function createLampPriorityReadModel(): WorldReadModel {
         },
       },
     ],
-    selectedEntityId: "lamp-keeper-test",
+    selectedEntityId: "east-market-lantern-post",
+  };
+}
+
+function createPlayableCommandSurfaceState(): ShellPlayableCommandSurfaceState {
+  return {
+    currentTick: 120,
+    lampCommands: [
+      {
+        actionId: "prioritize-lamp-work",
+        commandKind: "PrioritizeLampWork",
+        commandBasis: COMMAND_BASIS,
+        payload: {
+          target: {
+            kind: "lamp_gap",
+            gapId: "east-market-gap",
+            anchorCell: {
+              x: 12,
+              y: 7,
+              cellIndex: 124,
+            },
+          },
+          requestedAction: "auto",
+          priorityBand: 1,
+        },
+        available: true,
+        targetEntityId: "east-market-lantern-post",
+        targetLabel: "East Market Lantern Post",
+        targetTile: {
+          x: 120,
+          y: 92,
+        },
+      },
+    ],
+    buildPlacements: [
+      {
+        anchorTile: {
+          x: 120,
+          y: 92,
+        },
+        footprintTiles: [
+          {
+            x: 120,
+            y: 92,
+          },
+        ],
+        interactionTiles: [
+          {
+            x: 120,
+            y: 92,
+          },
+        ],
+        valid: true,
+        command: {
+          actionId: "queue-simple-build",
+          commandKind: "QueueSimpleBuild",
+          commandBasis: COMMAND_BASIS,
+          payload: {
+            blueprint: {
+              kind: "simple_lamp_post",
+              blueprintDefId: 1,
+            },
+            anchorCell: {
+              x: 12,
+              y: 7,
+              cellIndex: 124,
+            },
+            orientation: 0,
+            priorityBand: 1,
+          },
+          available: true,
+          targetEntityId: "east-market-lantern-post",
+          targetLabel: "East Market Lantern Post",
+          targetTile: {
+            x: 120,
+            y: 92,
+          },
+        },
+      },
+    ],
   };
 }
 
@@ -495,7 +615,8 @@ function renderShell(state: ShellState): string {
   const noopSetUiScale: (scale: "standard" | "large" | "extra-large") => Promise<void> = () =>
     Promise.resolve();
   const noopImport: (file: File) => Promise<void> = () => Promise.resolve();
-  const noopCommand: (targetEntityId: string) => Promise<void> = () => Promise.resolve();
+  const noopCommand = (): Promise<void> => Promise.resolve();
+  const noopSetBuildMode = (): Promise<void> => Promise.resolve();
 
   return renderToStaticMarkup(
     createShellHudElement(
@@ -516,6 +637,7 @@ function renderShell(state: ShellState): string {
       {
         onPrioritizeLampWork: noopCommand,
         onQueueSimpleBuild: noopCommand,
+        onSetBuildMode: noopSetBuildMode,
       },
     ),
   );

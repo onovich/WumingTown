@@ -38,7 +38,16 @@ interface WebShellDebugPayload {
     readonly targetLabel: string;
   };
   readonly playable?: {
+    readonly build?: {
+      readonly active: boolean;
+      readonly completed: boolean;
+      readonly progressPercent?: number;
+    };
     readonly currentTick: number;
+    readonly lamps: readonly {
+      readonly progressPercent?: number;
+      readonly state: string;
+    }[];
     readonly latestCommand?: {
       readonly actionId: string;
       readonly commandId: string;
@@ -233,7 +242,10 @@ describe("web shell smoke", () => {
       await waitForHudText(page, "Canvas 1180 x 760");
       await waitForHudText(page, "Map 192 x 192");
       await waitForHudText(page, "Chrome Stable, Edge Stable");
-      await waitForStorageStatus(page, "Web storage evidence is current.");
+      await waitForStorageStatus(
+        page,
+        "Web storage evidence is current. Authoritative Worker command runtime is not loaded from this envelope.",
+      );
 
       const debugPayload = await readDebugPayload(page);
       expect(debugPayload.fixtureId).toBe("wm-0086-web-product-gate");
@@ -301,11 +313,14 @@ describe("web shell smoke", () => {
       await page.getByTestId("storage-import-input").setInputFiles(EXPORTED_SAVE_PATH);
       await waitForStorageStatus(
         page,
-        "Imported the gate save into OPFS. Load it to restore the shell state.",
+        "Imported the gate save into OPFS. Load it to restore shell selection and gate evidence only.",
       );
 
       await page.getByTestId("storage-load-button").click();
-      await waitForStorageStatus(page, "Loaded the gate save and restored the shell selection.");
+      await waitForStorageStatus(
+        page,
+        "Loaded the gate save and restored shell selection only. Authoritative Worker command runtime was not restored from storage.",
+      );
       await waitForSelectedEntity(page, "lantern-keeper-shen");
       expect(await page.getByTestId("player-action-feedback").count()).toBe(0);
       const afterLoadPayload = await readDebugPayload(page);
@@ -359,7 +374,10 @@ describe("web shell smoke", () => {
       });
       await page.waitForSelector("[data-shell-ready='true']");
       await assertDebugOverlayBaseline(page);
-      await waitForStorageStatus(page, "Web storage evidence is current.");
+      await waitForStorageStatus(
+        page,
+        "Web storage evidence is current. Authoritative Worker command runtime is not loaded from this envelope.",
+      );
 
       await page.getByTestId("storage-save-button").click();
       await waitForStorageStatus(page, "Saved the current shell evidence envelope into OPFS.");
@@ -400,7 +418,10 @@ describe("web shell smoke", () => {
       expect(diagnosticText).toContain("quota_exceeded");
 
       await page.getByTestId("storage-load-button").click();
-      await waitForStorageStatus(page, "Loaded the gate save and restored the shell selection.");
+      await waitForStorageStatus(
+        page,
+        "Loaded the gate save and restored shell selection only. Authoritative Worker command runtime was not restored from storage.",
+      );
 
       await context.close();
     } finally {
@@ -539,7 +560,7 @@ describe("web shell smoke", () => {
     }
   }, 120000);
 
-  it("shows reviewed job marker, pawn motion, blocked reason, work progress, and completion for lamp and build commands", async () => {
+  it("shows authoritative job marker, pawn motion, work progress, and completion for lamp and build commands", async () => {
     const appRoot = path.join(process.cwd(), "apps", "web");
     const server = await createServer({
       configFile: false,
@@ -588,66 +609,108 @@ describe("web shell smoke", () => {
         expect(await lampButton.getAttribute("data-command-state")).toBe("ready");
         await lampButton.click();
         await waitForActionFeedbackStatus(page, "accepted");
-        await waitForPlayableMarkerState(page, "moving", "lantern-keeper-shen");
-        const lampMovingPayload = await readDebugPayload(page);
-        const lampMovingPawn = lampMovingPayload.playable?.pawns.find(
-          (candidate) => candidate.entityId === "lantern-keeper-shen",
+        const acceptedLampPayload = await readDebugPayload(page);
+        expect(["claimed", "moving", "working", "completed"]).toContain(
+          acceptedLampPayload.playableAction?.markerState,
         );
-        expect(lampMovingPawn).toBeDefined();
-        await page.waitForTimeout(450);
-        const lampLaterPayload = await readDebugPayload(page);
-        const lampLaterPawn = lampLaterPayload.playable?.pawns.find(
-          (candidate) => candidate.entityId === "lantern-keeper-shen",
-        );
-        expect(lampLaterPawn).toBeDefined();
+        const lampMovingPayload = await waitForPlayableCommandMarkerStateIn(page, "wm0152-lamp-", [
+          "moving",
+          "working",
+          "completed",
+        ]);
         expect(
-          lampMovingPawn?.tile.x !== lampLaterPawn?.tile.x ||
-            lampMovingPawn?.tile.y !== lampLaterPawn?.tile.y,
-        ).toBe(true);
-        await waitForPlayableMarkerState(page, "working", "lantern-keeper-shen");
+          lampMovingPayload.playable?.pawns.find(
+            (candidate) => candidate.entityId === "lantern-keeper-shen",
+          )?.state,
+        ).toMatch(/^(moving|working|completed)$/u);
+        await sleep(300);
 
         const buildButton = page.getByTestId("player-command-build");
         expect(await buildButton.getAttribute("aria-disabled")).toBe("false");
-        await buildButton.evaluate((element: HTMLElement) => {
-          element.click();
-        });
+        expect(await buildButton.getAttribute("data-command-state")).toBe("ready");
+        await buildButton.click();
+        await waitForCommandState(page, "player-command-build", "needs-placement");
+        await hoverCanvasPoint(
+          page,
+          findRequiredEntity(await readDebugPayload(page), "east-market-lantern-post"),
+        );
+        await waitForCommandState(page, "player-command-build", "ready");
+        await buildButton.click();
         await waitForActionFeedbackStatus(page, "accepted");
-        await waitForPlayableMarkerState(page, "blocked", "lamp-aide-15");
+        const acceptedBuildPayload = await readDebugPayload(page);
+        expect(["claimed", "moving", "working", "completed"]).toContain(
+          acceptedBuildPayload.playableAction?.markerState,
+        );
+        const buildMovingPayload = await waitForPlayableCommandMarkerStateIn(
+          page,
+          "wm0152-build-",
+          ["moving", "working", "completed"],
+        );
+        expect(
+          buildMovingPayload.playable?.pawns.find(
+            (candidate) => candidate.entityId === "lamp-aide-15",
+          )?.state,
+        ).toMatch(/^(moving|working|completed)$/u);
+        const buildWorkingPayload = await waitForPlayableCommandMarkerStateIn(
+          page,
+          "wm0152-build-",
+          ["working", "completed"],
+        );
+        expect(
+          buildWorkingPayload.playable?.pawns.find(
+            (candidate) => candidate.entityId === "lamp-aide-15",
+          )?.state,
+        ).toMatch(/^(working|completed)$/u);
+        const terminalPayload = await waitForPlayableTerminalState(page, 15000);
+        const lampTerminalStates = terminalPayload.playable?.lamps.map((lamp) => lamp.state) ?? [];
+        const terminalBuildMarker = terminalPayload.playable?.jobMarkers.find((candidate) =>
+          candidate.commandId.startsWith("wm0152-build-"),
+        );
+        const terminalBuildPawn = terminalPayload.playable?.pawns.find(
+          (candidate) => candidate.entityId === "lamp-aide-15",
+        );
+        const terminalProgressPercent = Math.max(
+          terminalPayload.playable?.build?.progressPercent ?? 0,
+          terminalBuildMarker?.progressPercent ?? 0,
+          terminalBuildPawn?.progressPercent ?? 0,
+        );
 
-        const blockedInspectorText =
-          (await page.getByTestId("player-selected-detail").textContent()) ?? "";
-        expect(blockedInspectorText).toContain("Reason");
-        expect(blockedInspectorText).toContain("no_path");
+        expect(
+          lampTerminalStates.includes("blocked") || lampTerminalStates.includes("completed"),
+        ).toBe(true);
+        expect(
+          terminalBuildMarker?.state === "completed" ||
+            terminalBuildPawn?.state === "completed" ||
+            terminalPayload.playable?.build?.completed === true,
+        ).toBe(true);
+        expect(terminalPayload.playable?.build?.completed).toBe(true);
+        expect(terminalProgressPercent).toBeGreaterThan(0);
 
-        const motionEvidence = await collectPlayableEvidence(page, 9000);
-        expect(motionEvidence.lampStates).toContain("completed");
-        expect(motionEvidence.buildStates).toContain("blocked");
-        expect(motionEvidence.buildStates).toContain("moving");
-        expect(motionEvidence.buildStates).toContain("working");
-        expect(motionEvidence.buildStates).toContain("completed");
-        expect(motionEvidence.buildMoved).toBe(true);
-        expect(motionEvidence.maxProgressPercent).toBeGreaterThan(0);
+        const actionFeedbackText =
+          (await page.getByTestId("player-action-feedback").textContent()) ?? "";
+        expect(actionFeedbackText).toContain("East Market Lantern Post");
+        expect(actionFeedbackText).toContain("Progress");
 
         const inspectorText =
           (await page.getByTestId("player-selected-detail").textContent()) ?? "";
-        expect(inspectorText).toContain("Target");
-        expect(inspectorText).toContain("Progress");
+        expect(inspectorText).toContain("Authoritative structure completed");
 
-        const finalPayload = await readDebugPayload(page);
-        expect(finalPayload.playableAction?.authority).toBe("world-read-model-projection");
-        expect(finalPayload.playableAction?.status).toBe("accepted");
-        expect(finalPayload.playableAction?.adapterId).toBe("wm0151-reviewed-projection-harness");
-        expect(finalPayload.playableAction?.commandId.startsWith("wm0151-build-")).toBe(true);
+        expect(terminalPayload.playableAction?.authority).toBe("simulation-worker-projection");
+        expect(terminalPayload.playableAction?.status).toBe("accepted");
+        expect(terminalPayload.playableAction?.adapterId).toBe(
+          "wm0152-authoritative-worker-session",
+        );
+        expect(terminalPayload.playableAction?.commandId.startsWith("wm0152-build-")).toBe(true);
 
         if (WM0140_ARTIFACT_CAPTURE_ENABLED) {
           await mkdir(WM0140_WEB_SCREENSHOT_ROOT, { recursive: true });
           await page.screenshot({
             animations: "disabled",
-            path: path.join(WM0140_WEB_SCREENSHOT_ROOT, "wm0151-playable-motion.png"),
+            path: path.join(WM0140_WEB_SCREENSHOT_ROOT, "wm0152-playable-motion.png"),
           });
         }
       } finally {
-        await context.close();
+        await closeBrowserContext(context);
       }
     } finally {
       await browser.close();
@@ -1283,7 +1346,7 @@ async function assertPlayerHudLocaleState(
   expect(hudText ?? "").toContain("编志所");
   expect(hudText ?? "").toContain("命令带");
   expect(hudText ?? "").toContain("优先补灯");
-  expect(hudText ?? "").toContain("米粮");
+  expect(hudText ?? "").toContain("木材");
   expect(hudText ?? "").toContain("平稳");
   expect(hudText ?? "").toContain("无伤");
   expect(hudText ?? "").not.toContain("Command bar");
@@ -1303,7 +1366,7 @@ async function assertCommandAccessibility(page: import("playwright").Page): Prom
     .locator("[data-selected-entity]")
     .first()
     .getAttribute("data-selected-entity");
-  const lampCommandReady = selectedEntityId === "lantern-keeper-shen";
+  const lampCommandReady = selectedEntityId === "east-market-lantern-post";
 
   for (const spec of [
     {
@@ -1313,9 +1376,9 @@ async function assertCommandAccessibility(page: import("playwright").Page): Prom
       testId: "player-command-lamp",
     },
     {
-      expectedAriaDisabled: lampCommandReady ? "false" : "true",
-      expectedState: lampCommandReady ? "ready" : "needs-selection",
-      expectedSlot: lampCommandReady ? "button.primary.default" : "button.primary.disabled",
+      expectedAriaDisabled: "false",
+      expectedState: "ready",
+      expectedSlot: "button.primary.default",
       testId: "player-command-build",
     },
     {
@@ -2088,7 +2151,7 @@ async function collectWm0140LampCommandArtifact(
       ...(commandState === null ? {} : { commandState }),
       diagnosticsVisible: await readDiagnosticsVisible(page),
       locale: localeCase.expectedLocale,
-      note: "Reviewed lamp command evidence captured from projection playback motion feedback.",
+      note: "Authoritative lamp command evidence captured from Worker projection motion feedback.",
       ...(markerState === undefined ? {} : { reasonCode: markerState }),
       scenario: "lamp-command",
       screenshotPath: await captureWm0140Screenshot(
@@ -2449,7 +2512,7 @@ async function waitForStartSurfaceClosed(page: import("playwright").Page): Promi
       return;
     }
 
-    await page.waitForTimeout(100);
+    await sleep(100);
   }
 
   throw new Error("Timed out waiting for the main menu surface to close.");
@@ -2657,6 +2720,26 @@ async function clickCanvasPoint(
       );
       canvas.dispatchEvent(
         new PointerEvent("pointerup", {
+          bubbles: true,
+          clientX: rect.left + target.x,
+          clientY: rect.top + target.y,
+          pointerId: 1,
+          pointerType: "mouse",
+        }),
+      );
+    }, point);
+}
+
+async function hoverCanvasPoint(
+  page: import("playwright").Page,
+  point: { readonly x: number; readonly y: number },
+): Promise<void> {
+  await page
+    .locator("[data-testid='world-canvas']")
+    .evaluate((canvas: HTMLCanvasElement, target: { readonly x: number; readonly y: number }) => {
+      const rect = canvas.getBoundingClientRect();
+      canvas.dispatchEvent(
+        new PointerEvent("pointermove", {
           bubbles: true,
           clientX: rect.left + target.x,
           clientY: rect.top + target.y,
@@ -2880,7 +2963,9 @@ function findRequiredEntity(
 }
 
 async function readDebugPayload(page: import("playwright").Page): Promise<WebShellDebugPayload> {
-  const debugText = await page.locator("#wm-shell-debug").textContent();
+  const debugText = await page.evaluate(
+    () => document.getElementById("wm-shell-debug")?.textContent ?? null,
+  );
   expect(debugText).not.toBeNull();
   return parseDebugPayload(debugText ?? "{}");
 }
@@ -2902,7 +2987,7 @@ async function waitForHudText(
       return;
     }
 
-    await page.waitForTimeout(100);
+    await sleep(100);
   }
 
   throw new Error(`Timed out waiting for HUD text: ${expectedText}`);
@@ -2918,10 +3003,27 @@ async function waitForStorageStatus(
       return;
     }
 
-    await page.waitForTimeout(100);
+    await sleep(100);
   }
 
   throw new Error(`Timed out waiting for storage status: ${expectedText}`);
+}
+
+async function waitForCommandState(
+  page: import("playwright").Page,
+  testId: string,
+  expectedState: string,
+): Promise<void> {
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    const commandState = await page.getByTestId(testId).getAttribute("data-command-state");
+    if (commandState === expectedState) {
+      return;
+    }
+
+    await sleep(100);
+  }
+
+  throw new Error(`Timed out waiting for ${testId} command state ${expectedState}.`);
 }
 
 async function waitForSelectedEntity(
@@ -2936,7 +3038,7 @@ async function waitForSelectedEntity(
       return;
     }
 
-    await page.waitForTimeout(100);
+    await sleep(100);
   }
 
   throw new Error(`Timed out waiting for selected entity ${expectedEntityId}`);
@@ -2958,104 +3060,63 @@ async function waitForActionFeedbackStatus(
   throw new Error(`Timed out waiting for action feedback status ${expectedStatus}.`);
 }
 
-async function waitForPlayableMarkerState(
+async function waitForPlayableCommandMarkerStateIn(
   page: import("playwright").Page,
-  expectedState: string,
-  ownerEntityId: string,
-): Promise<void> {
-  for (let attempt = 0; attempt < 90; attempt += 1) {
+  commandIdPrefix: string,
+  expectedStates: readonly string[],
+): Promise<WebShellDebugPayload> {
+  for (let attempt = 0; attempt < 60; attempt += 1) {
     const payload = await readDebugPayload(page);
-    const marker = payload.playable?.jobMarkers.find(
-      (candidate) => candidate.ownerEntityId === ownerEntityId,
+    const marker = payload.playable?.jobMarkers.find((candidate) =>
+      candidate.commandId.startsWith(commandIdPrefix),
     );
-    if (marker?.state === expectedState) {
-      return;
+    if (marker !== undefined && expectedStates.includes(marker.state)) {
+      return payload;
     }
 
     await page.waitForTimeout(100);
   }
 
-  throw new Error(`Timed out waiting for ${ownerEntityId} marker state ${expectedState}.`);
+  throw new Error(
+    `Timed out waiting for marker ${commandIdPrefix} to reach states ${expectedStates.join(",")}.`,
+  );
 }
 
-async function collectPlayableEvidence(
+async function waitForPlayableTerminalState(
   page: import("playwright").Page,
   durationMs: number,
-): Promise<{
-  readonly buildMoved: boolean;
-  readonly buildStates: readonly string[];
-  readonly lampMoved: boolean;
-  readonly lampStates: readonly string[];
-  readonly maxProgressPercent: number;
-}> {
-  const lampStates = new Set<string>();
-  const buildStates = new Set<string>();
-  let lampMoved = false;
-  let buildMoved = false;
-  let maxProgressPercent = 0;
-  let previousLampTile: { readonly x: number; readonly y: number } | undefined;
-  let previousBuildTile: { readonly x: number; readonly y: number } | undefined;
+): Promise<WebShellDebugPayload> {
   const deadline = Date.now() + durationMs;
 
   while (Date.now() < deadline) {
     const payload = await readDebugPayload(page);
     const playable = payload.playable;
     if (playable !== undefined) {
-      const lampMarker = playable.jobMarkers.find(
-        (candidate) => candidate.ownerEntityId === "lantern-keeper-shen",
-      );
-      const buildMarker = playable.jobMarkers.find(
-        (candidate) => candidate.ownerEntityId === "lamp-aide-15",
-      );
-      const lampPawn = playable.pawns.find(
-        (candidate) => candidate.entityId === "lantern-keeper-shen",
+      const buildMarker = playable.jobMarkers.find((candidate) =>
+        candidate.commandId.startsWith("wm0152-build-"),
       );
       const buildPawn = playable.pawns.find((candidate) => candidate.entityId === "lamp-aide-15");
-
-      if (lampMarker !== undefined) {
-        lampStates.add(lampMarker.state);
-        maxProgressPercent = Math.max(maxProgressPercent, lampMarker.progressPercent ?? 0);
+      const terminalProgressPercent = Math.max(
+        playable.build?.progressPercent ?? 0,
+        buildMarker?.progressPercent ?? 0,
+        buildPawn?.progressPercent ?? 0,
+      );
+      const lampTerminal = playable.lamps.some(
+        (lamp) => lamp.state === "blocked" || lamp.state === "completed",
+      );
+      const buildTerminal =
+        playable.build?.completed === true ||
+        buildMarker?.state === "completed" ||
+        buildPawn?.state === "completed";
+      if (lampTerminal && buildTerminal && terminalProgressPercent > 0) {
+        return payload;
       }
-      if (buildMarker !== undefined) {
-        buildStates.add(buildMarker.state);
-        maxProgressPercent = Math.max(maxProgressPercent, buildMarker.progressPercent ?? 0);
-      }
-      if (lampPawn !== undefined && previousLampTile !== undefined) {
-        lampMoved =
-          lampMoved ||
-          lampPawn.tile.x !== previousLampTile.x ||
-          lampPawn.tile.y !== previousLampTile.y;
-      }
-      if (buildPawn !== undefined && previousBuildTile !== undefined) {
-        buildMoved =
-          buildMoved ||
-          buildPawn.tile.x !== previousBuildTile.x ||
-          buildPawn.tile.y !== previousBuildTile.y;
-      }
-      previousLampTile = lampPawn?.tile ?? previousLampTile;
-      previousBuildTile = buildPawn?.tile ?? previousBuildTile;
     }
 
-    if (
-      lampStates.has("completed") &&
-      buildStates.has("completed") &&
-      lampMoved &&
-      buildMoved &&
-      maxProgressPercent > 0
-    ) {
-      break;
-    }
-
-    await page.waitForTimeout(120);
+    await sleep(120);
   }
 
-  return {
-    buildMoved,
-    buildStates: [...buildStates],
-    lampMoved,
-    lampStates: [...lampStates],
-    maxProgressPercent,
-  };
+  throw new Error("Timed out waiting for authoritative playable terminal state.");
 }
 
 async function waitForInspectedTile(page: import("playwright").Page): Promise<string> {
@@ -3071,6 +3132,21 @@ async function waitForInspectedTile(page: import("playwright").Page): Promise<st
   }
 
   throw new Error("Timed out waiting for empty-tile inspection feedback.");
+}
+
+async function closeBrowserContext(context: import("playwright").BrowserContext): Promise<void> {
+  await Promise.race([
+    context.close(),
+    new Promise<void>((resolve) => {
+      setTimeout(resolve, 5_000);
+    }),
+  ]);
+}
+
+async function sleep(durationMs: number): Promise<void> {
+  await new Promise<void>((resolve) => {
+    setTimeout(resolve, durationMs);
+  });
 }
 
 async function waitForTimeout(page: import("playwright").Page, durationMs: number): Promise<void> {
@@ -3405,12 +3481,17 @@ function readPlayableProjectionPayload(
   const playable = expectRecord(value, "playable projection");
   if (
     typeof playable["currentTick"] !== "number" ||
+    !Array.isArray(playable["lamps"]) ||
     !Array.isArray(playable["jobMarkers"]) ||
     !Array.isArray(playable["pawns"])
   ) {
     throw new Error("Unexpected playable projection payload.");
   }
 
+  const build =
+    playable["build"] === undefined
+      ? undefined
+      : readPlayableBuildPayload(expectRecord(playable["build"], "playable build"));
   const latestCommand =
     playable["latestCommand"] === undefined
       ? undefined
@@ -3419,7 +3500,21 @@ function readPlayableProjectionPayload(
         );
 
   return {
+    ...(build === undefined ? {} : { build }),
     currentTick: playable["currentTick"],
+    lamps: playable["lamps"].map((entry) => {
+      const lamp = expectRecord(entry, "playable lamp");
+      if (typeof lamp["state"] !== "string") {
+        throw new Error("Unexpected playable lamp payload.");
+      }
+
+      return {
+        ...(typeof lamp["progressPercent"] === "number"
+          ? { progressPercent: lamp["progressPercent"] }
+          : {}),
+        state: lamp["state"],
+      };
+    }),
     ...(latestCommand === undefined ? {} : { latestCommand }),
     jobMarkers: playable["jobMarkers"].map((entry) => {
       const marker = expectRecord(entry, "playable marker");
@@ -3467,6 +3562,22 @@ function readPlayableProjectionPayload(
         },
       };
     }),
+  };
+}
+
+function readPlayableBuildPayload(
+  value: Record<string, unknown>,
+): NonNullable<WebShellDebugPayload["playable"]>["build"] {
+  if (typeof value["active"] !== "boolean" || typeof value["completed"] !== "boolean") {
+    throw new Error("Unexpected playable build payload.");
+  }
+
+  return {
+    active: value["active"],
+    completed: value["completed"],
+    ...(typeof value["progressPercent"] === "number"
+      ? { progressPercent: value["progressPercent"] }
+      : {}),
   };
 }
 

@@ -83,7 +83,7 @@ const EN_MESSAGES = {
   "ui.mainMenu.firstPlay.action.camera":
     "Camera: drag the map to pan, then use camera reset if the current town focus is lost.",
   "ui.mainMenu.firstPlay.action.lampCommand":
-    "Minimum command chain: select a lantern keeper or lamp-relevant object, choose Prioritize lamp work, and confirm the queued feedback in the HUD.",
+    "Minimum command chain: select the east market lamp target or enter Build mode, send the command from the HUD, and confirm authoritative acceptance or rejection.",
   "ui.mainMenu.firstPlay.actions": "Available actions",
   "ui.mainMenu.firstPlay.boundary":
     "Player guidance stays on the player surface; internal tools remain separate and must be opened explicitly.",
@@ -177,25 +177,31 @@ const EN_MESSAGES = {
   "ui.entityKind.visitor": "visitor",
   "ui.hud.aria": "Player HUD",
   "ui.hud.actionFeedback.accepted": "Accepted",
-  "ui.hud.actionFeedback.body":
-    "{target} is currently shown through reviewed playback state: {state}.",
+  "ui.hud.actionFeedback.body": "{target} authoritative command state: {state}.",
   "ui.hud.actionFeedback.commandId": "Command id: {commandId}",
   "ui.hud.actionFeedback.progress": "Progress: {progress}%",
   "ui.hud.actionFeedback.progressNone": "Progress: waiting for first visible work step",
   "ui.hud.actionFeedback.reason": "Reason: {reasonCode}",
   "ui.hud.actionFeedback.rejected": "Rejected",
   "ui.hud.actionFeedback.state": "State: {state}",
-  "ui.hud.actionFeedback.titleAccepted": "Reviewed playback active",
-  "ui.hud.actionFeedback.title": "Reviewed playback active",
-  "ui.hud.actionFeedback.titleRejected": "Reviewed playback rejected",
-  "ui.hud.command.build": "Queue simple build",
+  "ui.hud.actionFeedback.titleAccepted": "Authoritative command accepted",
+  "ui.hud.actionFeedback.title": "Authoritative command accepted",
+  "ui.hud.actionFeedback.titleRejected": "Authoritative command rejected",
+  "ui.hud.command.build": "Place blueprint",
+  "ui.hud.command.buildMode": "Build mode",
   "ui.hud.command.lamp": "Prioritize lamp work",
   "ui.hud.command.chronicle": "Chronicle slips",
   "ui.hud.command.inspect": "Inspector notes",
   "ui.hud.command.playable.build.needsSelection":
-    "Select a lamp-route pawn or the east market target to queue a reviewed build command.",
-  "ui.hud.command.playable.build.queued": "Reviewed build command is active for {target}.",
-  "ui.hud.command.playable.build.ready": "Queue reviewed build work for {target}.",
+    "Build mode becomes available after the authoritative Worker exposes blueprint placements.",
+  "ui.hud.command.playable.build.modeReady":
+    "Enter build mode and hover an authoritative blueprint tile before placing it.",
+  "ui.hud.command.playable.build.modeActive":
+    "Build mode is active. Hover a valid authoritative placement tile. Current hover: {tile}.",
+  "ui.hud.command.playable.build.queued": "Authoritative build command is active for {target}.",
+  "ui.hud.command.playable.build.ready":
+    "Place an authoritative blueprint for {target} at tile {tile}.",
+  "ui.hud.command.playable.blocked": "Blocked: {reason}",
   "ui.hud.command.placeholder.chronicle":
     "Placeholder slot only. Chronicle command wiring stays in a later gameplay task.",
   "ui.hud.command.placeholder.inspect":
@@ -203,12 +209,18 @@ const EN_MESSAGES = {
   "ui.hud.command.placeholder.lamp":
     "Placeholder slot only. Lamp-path command wiring stays gated to later interaction work.",
   "ui.hud.command.playable.lamp.needsSelection":
-    "Select a lantern keeper or east market target to queue this reviewed command.",
-  "ui.hud.command.playable.lamp.queued": "Reviewed lamp command is active for {target}.",
-  "ui.hud.command.playable.lamp.ready": "Queue reviewed lamp-priority work for {target}.",
+    "Select the east market lamp target to issue this authoritative command.",
+  "ui.hud.command.playable.lamp.queued": "Authoritative lamp command is active for {target}.",
+  "ui.hud.command.playable.lamp.ready": "Issue authoritative lamp-priority work for {target}.",
+  "ui.hud.command.playable.lamp.authoritativeNeedsSelection":
+    "Select the east market lamp target to issue this authoritative command.",
+  "ui.hud.command.playable.lamp.authoritativeQueued":
+    "Authoritative lamp command is active for {target}.",
+  "ui.hud.command.playable.lamp.authoritativeReady":
+    "Issue authoritative lamp-priority work for {target}.",
   "ui.hud.commandBar": "Command bar",
   "ui.hud.commandBarHint":
-    "This shell replays reviewed projection feedback only. Map markers, pawn motion and progress stay read-model driven.",
+    "Commands are sent to the Simulation Worker. Availability, markers, pawn motion, progress, and blocked reasons come from authoritative projection updates.",
   "ui.hud.currentState": "Current state",
   "ui.hud.cycle": "Cycle",
   "ui.hud.events": "Events and watchpoints",
@@ -216,7 +228,7 @@ const EN_MESSAGES = {
   "ui.hud.firstPlay.camera":
     "Camera: drag the map to pan; camera reset returns the current town focus.",
   "ui.hud.firstPlay.command":
-    "Command chain: issue a reviewed lamp or build command, watch the job marker appear, the pawn claim it, move, work, then complete or report a reason.",
+    "Command chain: select the east market lamp target or enter Build mode, send the command, then watch authoritative job markers, pawn claim, movement, work, completion, or blocked reason.",
   "ui.hud.firstPlay.hint": "Reachable player guidance",
   "ui.hud.firstPlay.select":
     "Select: residents, structures, lantern posts, visitors, and map tiles expose visible inspector state.",
@@ -313,7 +325,7 @@ const EN_MESSAGES = {
   "ui.settings.scale": "UI scale",
   "ui.settings.scale.current": "Current scale: {scale}",
   "ui.settings.scale.description":
-    "Increase player-facing text and shell chrome size without changing the reviewed world playback view.",
+    "Increase player-facing text and shell chrome size without changing the world view or simulation authority.",
   "ui.settings.scale.option.extra-large": "Extra large (120%)",
   "ui.settings.scale.option.large": "Large (110%)",
   "ui.settings.scale.option.standard": "Standard (100%)",
@@ -356,7 +368,7 @@ const ZH_CN_MESSAGES = {
   "ui.mainMenu.firstPlay.action.camera":
     "镜头：拖拽地图进行平移；若丢失当前城镇焦点，可使用相机复位。",
   "ui.mainMenu.firstPlay.action.lampCommand":
-    "最小命令链：选择守灯人或灯路相关对象，使用“优先补灯”，并在 HUD 中确认已排入反馈。",
+    "最小命令链：选择东市灯位目标或进入建造模式，从 HUD 发出命令，并确认权威接受或拒绝反馈。",
   "ui.mainMenu.firstPlay.actions": "可用行动",
   "ui.mainMenu.firstPlay.boundary": "玩家指引保留在玩家界面；内部工具保持分离，且必须显式打开。",
   "ui.mainMenu.firstPlay.boundaryTitle": "边界",
@@ -436,11 +448,10 @@ const ZH_CN_MESSAGES = {
   "ui.entityKind.structure": "设施",
   "ui.entityKind.visitor": "访客",
   "ui.hud.aria": "玩家 HUD",
-  "ui.hud.actionFeedback.body":
-    "{target} 当前显示为已评审回放状态：{state}。这里回放的是 projection 反馈，不是世界权威。",
+  "ui.hud.actionFeedback.body": "{target} 当前的权威命令状态：{state}。",
   "ui.hud.actionFeedback.commandId": "命令编号：{commandId}",
   "ui.hud.actionFeedback.reason": "原因：{reasonCode}",
-  "ui.hud.actionFeedback.title": "已评审回放进行中",
+  "ui.hud.actionFeedback.title": "权威命令已接受",
   "ui.hud.command.lamp": "优先补灯",
   "ui.hud.command.chronicle": "镇志槽位",
   "ui.hud.command.inspect": "查看槽位",
@@ -453,14 +464,14 @@ const ZH_CN_MESSAGES = {
   "ui.hud.command.playable.lamp.ready": "为 {target} 排入本地补灯优先行动。",
   "ui.hud.commandBar": "命令带",
   "ui.hud.commandBarHint":
-    "这里只回放已评审 projection 反馈；地图标记、角色移动与进度仍由 read-model 驱动。",
+    "命令会发送到 Simulation Worker。可用性、标记、角色移动、进度与阻塞原因都来自权威 projection 更新。",
   "ui.hud.currentState": "当前状态",
   "ui.hud.cycle": "时序",
   "ui.hud.events": "事件与观察点",
   "ui.hud.eventsHint": "夜幕收紧前，哪些事项需要留意。",
   "ui.hud.firstPlay.camera": "镜头：拖拽地图进行平移；相机复位会返回当前城镇焦点。",
   "ui.hud.firstPlay.command":
-    "命令链：选择守灯人或灯路相关对象，使用“优先补灯”，再读取已排入反馈。",
+    "命令链：选择东市灯位目标或进入建造模式，发出命令后观察权威任务标记、角色认领、移动、施工、完成或阻塞原因。",
   "ui.hud.firstPlay.hint": "玩家界面可随时查看",
   "ui.hud.firstPlay.select": "选择：居民、设施、灯柱、访客与地图地块会显示可见查看器状态。",
   "ui.hud.firstPlay.title": "首次操作",
@@ -533,7 +544,7 @@ const ZH_CN_MESSAGES = {
     "语言已切换，但保存偏好失败。本次选择仅在当前会话内生效。",
   "ui.settings.scale": "界面缩放",
   "ui.settings.scale.current": "当前缩放：{scale}",
-  "ui.settings.scale.description": "放大玩家可见文字与壳层外观，但不会改变已评审世界回放视图。",
+  "ui.settings.scale.description": "放大玩家可见文字与壳层外观，但不会改变世界视图或模拟权威。",
   "ui.settings.scale.option.extra-large": "特大（120%）",
   "ui.settings.scale.option.large": "大（110%）",
   "ui.settings.scale.option.standard": "标准（100%）",
@@ -561,13 +572,23 @@ const ZH_CN_MESSAGES = {
   "ui.hud.actionFeedback.progressNone": "进度：等待首个可见工作步骤",
   "ui.hud.actionFeedback.rejected": "已拒绝",
   "ui.hud.actionFeedback.state": "状态：{state}",
-  "ui.hud.actionFeedback.titleAccepted": "已评审回放进行中",
-  "ui.hud.actionFeedback.titleRejected": "已评审回放被拒绝",
-  "ui.hud.command.build": "排入简易建造",
+  "ui.hud.actionFeedback.titleAccepted": "权威命令已接受",
+  "ui.hud.actionFeedback.titleRejected": "权威命令被拒绝",
+  "ui.hud.command.build": "放置蓝图",
+  "ui.hud.command.buildMode": "建造模式",
   "ui.hud.command.playable.build.needsSelection":
-    "选择灯线路径 pawn 或东市目标，才能排入已评审建造命令。",
-  "ui.hud.command.playable.build.queued": "{target} 的已评审建造命令正在执行。",
-  "ui.hud.command.playable.build.ready": "为 {target} 排入已评审建造工作。",
+    "只有当权威 Worker 暴露出蓝图放置点后，建造模式才会可用。",
+  "ui.hud.command.playable.build.modeReady":
+    "进入建造模式后，先将鼠标悬停在权威蓝图格上，再确认放置。",
+  "ui.hud.command.playable.build.modeActive":
+    "建造模式已激活。请悬停到有效的权威放置格。当前悬停：{tile}。",
+  "ui.hud.command.playable.build.queued": "{target} 的权威建造命令正在执行。",
+  "ui.hud.command.playable.build.ready": "在格位 {tile} 为 {target} 放置权威蓝图。",
+  "ui.hud.command.playable.blocked": "已阻塞：{reason}",
+  "ui.hud.command.playable.lamp.authoritativeNeedsSelection":
+    "选择东市灯位目标后，才能发出这条权威命令。",
+  "ui.hud.command.playable.lamp.authoritativeQueued": "{target} 的权威补灯命令正在执行。",
+  "ui.hud.command.playable.lamp.authoritativeReady": "为 {target} 发出权威补灯优先命令。",
   "ui.task.job.buildConstruction": "建造施工",
   "ui.task.job.buildDelivery": "建材配送",
   "ui.task.job.lampRefill": "补灯",

@@ -2,7 +2,7 @@
   "id": "WM-0153",
   "title": "First-play guidance localization and responsive repair",
   "summary": "Update first-play guidance, zh-CN/en copy and window/fullscreen responsive behavior around the real lamp/build interaction chain rather than static tutorial text.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -34,13 +34,19 @@
   ],
   "branch": "task/WM-0153-first-play-guidance-localization-and-responsive-",
   "createdAt": "2026-06-29T18:59:47.613Z",
-  "updatedAt": "2026-06-29T18:59:47.613Z",
+  "updatedAt": "2026-06-30T18:46:12.984Z",
   "history": [
     {
       "at": "2026-06-29T18:59:47.613Z",
       "actor": "taskctl",
       "action": "create",
       "details": ""
+    },
+    {
+      "at": "2026-06-30T18:46:12.984Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "Post-M8",

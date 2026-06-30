@@ -63,6 +63,22 @@ const SHELL_FIXTURE_TEXT: FixtureTextCatalog = Object.freeze({
     en: "Rice",
     "zh-CN": "米粮",
   },
+  Wood: {
+    en: "Wood",
+    "zh-CN": "木材",
+  },
+  Stone: {
+    en: "Stone",
+    "zh-CN": "石料",
+  },
+  "Material 9": {
+    en: "Material 9",
+    "zh-CN": "材料 9",
+  },
+  "Repair frame": {
+    en: "Repair frame",
+    "zh-CN": "修灯框",
+  },
   "Lamp oil": {
     en: "Lamp oil",
     "zh-CN": "灯油",
@@ -98,6 +114,10 @@ const SHELL_FIXTURE_TEXT: FixtureTextCatalog = Object.freeze({
   b: {
     en: "b",
     "zh-CN": "包",
+  },
+  u: {
+    en: "u",
+    "zh-CN": "件",
   },
   "Chronicler Lin": {
     en: "Chronicler Lin",

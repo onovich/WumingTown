@@ -1,4 +1,7 @@
 import type {
+  CommandBasis,
+  PlayerCommandKind,
+  PlayerCommandPayload,
   TileCoordinate,
   WorldEntityReadModel,
   WorldJobMarkerState,
@@ -10,8 +13,8 @@ import type { ShellUiScaleState, UiScaleId } from "./shell-ui-scale";
 
 export interface ShellPlayableActionState {
   readonly actionId: "prioritize-lamp-work" | "queue-simple-build";
-  readonly adapterId: "wm0151-reviewed-projection-harness";
-  readonly authority: "world-read-model-projection";
+  readonly adapterId: "wm0152-authoritative-worker-session";
+  readonly authority: "simulation-worker-projection";
   readonly commandId: string;
   readonly markerState?: WorldJobMarkerState;
   readonly orderId?: string;
@@ -23,6 +26,39 @@ export interface ShellPlayableActionState {
   readonly targetEntityId: string | undefined;
   readonly targetLabel: string;
 }
+
+export interface ShellPlayableCommandTemplateState {
+  readonly actionId: "prioritize-lamp-work" | "queue-simple-build";
+  readonly commandKind: PlayerCommandKind;
+  readonly commandBasis: CommandBasis;
+  readonly payload: PlayerCommandPayload;
+  readonly available: boolean;
+  readonly blockedReasonCode?: string;
+  readonly blockedReasonDetail?: string;
+  readonly blockedReasonSource?: string;
+  readonly targetEntityId: string | undefined;
+  readonly targetLabel: string;
+  readonly targetTile: TileCoordinate;
+}
+
+export interface ShellPlayablePlacementPreviewState {
+  readonly anchorTile: TileCoordinate;
+  readonly footprintTiles: readonly TileCoordinate[];
+  readonly interactionTiles: readonly TileCoordinate[];
+  readonly valid: boolean;
+  readonly blockedReasonCode?: string;
+  readonly blockedReasonDetail?: string;
+  readonly blockedReasonSource?: string;
+  readonly command: ShellPlayableCommandTemplateState;
+}
+
+export interface ShellPlayableCommandSurfaceState {
+  readonly currentTick: number;
+  readonly lampCommands: readonly ShellPlayableCommandTemplateState[];
+  readonly buildPlacements: readonly ShellPlayablePlacementPreviewState[];
+}
+
+export type ShellBuildModeState = "inactive" | "place-simple-lamp-post";
 
 export interface ShellState {
   readonly readModel: WorldReadModel;
@@ -39,6 +75,8 @@ export interface ShellState {
   readonly selectedEntityId: string | undefined;
   readonly inspectedTile: TileCoordinate | undefined;
   readonly hoverTile: TileCoordinate | undefined;
+  readonly buildMode: ShellBuildModeState;
+  readonly playableCommandSurface?: ShellPlayableCommandSurfaceState;
   readonly playableAction?: ShellPlayableActionState;
 }
 
@@ -121,8 +159,9 @@ export interface ShellUiScaleActions {
 export interface ShellSettingsActions extends ShellLocaleActions, ShellUiScaleActions {}
 
 export interface ShellCommandActions {
-  readonly onPrioritizeLampWork: (targetEntityId: string) => Promise<void>;
-  readonly onQueueSimpleBuild: (targetEntityId: string) => Promise<void>;
+  readonly onPrioritizeLampWork: (command: ShellPlayableCommandTemplateState) => Promise<void>;
+  readonly onQueueSimpleBuild: (command: ShellPlayableCommandTemplateState) => Promise<void>;
+  readonly onSetBuildMode: (mode: ShellBuildModeState) => Promise<void>;
 }
 
 export interface ShellStore {

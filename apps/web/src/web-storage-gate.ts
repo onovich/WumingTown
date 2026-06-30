@@ -58,12 +58,12 @@ export function createInitialStorageGateState(): ShellStorageGateState {
     saveId: WEB_STORAGE_SAVE_ID,
     saveSlots: Object.freeze([]),
     scopeNote:
-      "M6 gate envelope only. This stores read-only shell evidence and does not promise public save compatibility beyond the product gate.",
-    statusDetail: "Checking OPFS availability, quota estimate and existing save slots.",
+      "M6 gate envelope only. It restores shell selection and gate evidence only, not authoritative Worker command runtime or in-progress playable orders.",
+    statusDetail: "Checking OPFS availability, quota estimate, and gate-evidence save slots.",
     statusTone: "warning",
     storageKindLabel: "Checking OPFS",
     usageBytes: null,
-    userMessage: "Preparing browser storage evidence.",
+    userMessage: "Preparing browser storage evidence without restoring Worker command runtime.",
   });
 }
 
@@ -141,11 +141,12 @@ async function refreshStorageState(
     quotaAvailableBytes: describeResult.value.quota.availableBytes,
     quotaBytes: describeResult.value.quota.quotaBytes,
     saveSlots: Object.freeze(listResult.value.map(mapSlotState)),
-    statusDetail: `${String(listResult.value.length)} save slot(s) visible in OPFS.`,
+    statusDetail: `${String(listResult.value.length)} gate save slot(s) visible in OPFS.`,
     statusTone: "stable",
     storageKindLabel,
     usageBytes: describeResult.value.quota.usageBytes,
-    userMessage: "Web storage evidence is current.",
+    userMessage:
+      "Web storage evidence is current. Authoritative Worker command runtime is not loaded from this envelope.",
   });
   onStorageGateStateChange?.();
 }
@@ -232,7 +233,8 @@ async function runImportFile(
     lastActionLabel: "Import save",
     statusDetail: `${file.name} | ${decoded.checksumSha256Hex.slice(0, 12)}...`,
     statusTone: "stable",
-    userMessage: "Imported the gate save into OPFS. Load it to restore the shell state.",
+    userMessage:
+      "Imported the gate save into OPFS. Load it to restore shell selection and gate evidence only.",
   });
   onStorageGateStateChange?.();
 }
@@ -274,16 +276,22 @@ async function runLoadSave(
       lastActionLabel: "Load save",
       statusDetail: `${decoded.checksumSha256Hex.slice(0, 12)}... | ${decoded.data.runtimeBrowser}`,
       statusTone: "stable",
-      userMessage: "Loaded the gate save and restored the shell selection.",
+      userMessage:
+        "Loaded the gate save and restored shell selection only. Authoritative Worker command runtime was not restored from storage.",
     }),
   });
   onStorageGateStateChange?.();
 }
 
-function withoutPlayableAction(state: ShellState): Omit<ShellState, "playableAction"> {
-  const { playableAction, ...baseState } = state;
+function withoutPlayableAction(state: ShellState): ShellState {
+  const { buildMode, playableAction, playableCommandSurface, ...baseState } = state;
+  void buildMode;
   void playableAction;
-  return baseState;
+  void playableCommandSurface;
+  return {
+    ...baseState,
+    buildMode: "inactive",
+  };
 }
 
 async function runSaveFixture(

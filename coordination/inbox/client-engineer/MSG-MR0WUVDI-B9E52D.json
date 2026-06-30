@@ -1,0 +1,16 @@
+{
+  "id": "MSG-MR0WUVDI-B9E52D",
+  "from": "project-director",
+  "to": "client-engineer",
+  "taskId": "WM-0152",
+  "kind": "unblock-resume",
+  "subject": "WM-0152 unblocked after WM-0160",
+  "body": "WM-0152 is unblocked. WM-0160 is verified, done, merged and pushed to origin/main at 45f0e5f; this worktree has been fast-forwarded to main while preserving your existing product UI WIP. Replace the debug/hot-poll advance loop with apps/web/src/simulation-worker-session.ts public helpers: waitForWebPlayableProjectionAtOrBeyondTick and especially drainWebPlayableCommandsToTerminal. Continue WM-0152 only in its allowed product UI paths. Do not import sim-core, sim-worker subpaths, packages/*/src internals, parse wm0150.advance ids, parse summaries/debug payloads as gameplay state, or synthesize Web authority. Required product result remains a player-facing playable chain: default player HUD, selectable objects/actors, visible authoritative pawn/job movement/progress, lamp priority command, build placement/queue command, terminal job feedback and structured failure reasons. Update tests and WM-0152 report; run required gates; taskctl complete to reviewer when ready.",
+  "artifacts": [
+    "coordination/reports/WM-0160.md",
+    "coordination/tasks/WM-0152.json",
+    "apps/web/src/simulation-worker-session.ts"
+  ],
+  "createdAt": "2026-06-30T17:18:41.238Z",
+  "acknowledgedAt": "2026-06-30T17:19:18.003Z"
+}
