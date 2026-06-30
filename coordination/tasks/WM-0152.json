@@ -40,7 +40,7 @@
   ],
   "branch": "task/WM-0152-player-lamp-priority-and-build-placement-ui-chai",
   "createdAt": "2026-06-29T18:59:47.563Z",
-  "updatedAt": "2026-06-30T12:12:08.884Z",
+  "updatedAt": "2026-06-30T13:03:59.357Z",
   "history": [
     {
       "at": "2026-06-29T18:59:47.564Z",
@@ -65,6 +65,18 @@
       "actor": "client-engineer",
       "action": "block",
       "details": "Public browser Worker/session bridge decision required: apps/web can send WM-0150 command payloads via @wuming-town/sim-protocol, but it has no reviewed public path to instantiate or talk to the authoritative Simulation Worker. apps/web package boundaries do not allow @wuming-town/sim-worker, and packages/sim-worker/src/browser-worker-entry.ts is internal-only. See coordination/reports/WM-0152.md for options and recommendation."
+    },
+    {
+      "at": "2026-06-30T12:59:49.987Z",
+      "actor": "project-director",
+      "action": "unblock",
+      "details": "WM-0157 is done and pushed at 7a24e1e; @wuming-town/sim-worker now exposes the reviewed package-root browser Worker session API for WM-0152 to consume without deep imports or UI authority."
+    },
+    {
+      "at": "2026-06-30T13:03:59.357Z",
+      "actor": "client-engineer",
+      "action": "block",
+      "details": "Public authoritative playable projection is still missing after WM-0157. Web can now send WM-0150 commands through @wuming-town/sim-worker, but the reviewed Worker protocol/session surface still exposes only RenderSnapshot/UiDelta hashes and compact summaries, not the full playable read-model needed for HUD, placement, job markers, pawn motion/progress, and blocked reasons. WM-0152 cannot truthfully replace WM-0151 playback until that projection surface exists. See coordination/reports/WM-0152.md for options and recommendation."
     }
   ],
   "milestone": "Post-M8",
@@ -89,8 +101,8 @@
   "blocker": {
     "by": "client-engineer",
     "to": "systems-architect",
-    "reason": "Public browser Worker/session bridge decision required: apps/web can send WM-0150 command payloads via @wuming-town/sim-protocol, but it has no reviewed public path to instantiate or talk to the authoritative Simulation Worker. apps/web package boundaries do not allow @wuming-town/sim-worker, and packages/sim-worker/src/browser-worker-entry.ts is internal-only. See coordination/reports/WM-0152.md for options and recommendation.",
+    "reason": "Public authoritative playable projection is still missing after WM-0157. Web can now send WM-0150 commands through @wuming-town/sim-worker, but the reviewed Worker protocol/session surface still exposes only RenderSnapshot/UiDelta hashes and compact summaries, not the full playable read-model needed for HUD, placement, job markers, pawn motion/progress, and blocked reasons. WM-0152 cannot truthfully replace WM-0151 playback until that projection surface exists. See coordination/reports/WM-0152.md for options and recommendation.",
     "previousState": "in_progress",
-    "at": "2026-06-30T12:12:08.883Z"
+    "at": "2026-06-30T13:03:59.357Z"
   }
 }

@@ -3,8 +3,13 @@
 ## Scope
 
 Deliver the first real player-facing lamp/build command chain only if `apps/web`
-can legally issue WM-0150 playable commands to the authoritative Simulation
-Worker through existing public package surfaces.
+can both:
+
+- legally issue WM-0150 playable commands to the authoritative Simulation
+  Worker through public package surfaces, and
+- receive enough authoritative playable projection data back to render HUD,
+  placement, job markers, pawn movement/progress, and structured blocked
+  reasons without shell-local simulation.
 
 ## Workflow status
 
@@ -31,30 +36,45 @@ Worker through existing public package surfaces.
 
 ## Findings
 
-- `apps/web/package.json` currently allows
-  `@wuming-town/foundation`, `@wuming-town/platform`,
-  `@wuming-town/renderer-pixi`, `@wuming-town/sim-protocol`,
-  and `@wuming-town/ui-react` only. It does not allow
-  `@wuming-town/sim-worker`.
+Initial blocker is resolved:
+
+- `apps/web` now has the reviewed root dependency on `@wuming-town/sim-worker`.
+- `apps/web/src/simulation-worker-session.ts` can create a public
+  browser-session bridge and start the WM-0150 scenario without deep imports.
+
+New blocker after resumed investigation:
+
 - `apps/web/src/shell-bootstrap.ts` still wires the reviewed local
   `createReviewedPlayableProjectionSession()` harness and updates HUD/debug
-  state from that projection playback rather than from live Worker messages.
-- `packages/sim-protocol` exposes the WM-0150 command/result types, but it does
-  not expose a browser-side session client or Worker bootstrap.
-- `packages/sim-worker/src/browser-worker-entry.ts` exists, but it is a package
-  internal file and is not exported through a reviewed public entrypoint.
+  state from that playback rather than from live Worker projection data.
+- `packages/sim-protocol/src/types.ts` still defines `RenderSnapshotPayload`
+  and `UiDeltaPayload` as hash/summary carriers only; there is no public
+  authoritative playable read-model payload for Web to render.
+- WM-0157 explicitly records this gap: "Current Worker `UiDelta` still carries
+  compact summaries, not a full public playable read-model object for Web
+  product UX."
+- The authoritative playable runtime does have a focused read-model shape
+  internally (`PlayableReadModel` in `sim-core`), but `apps/web` cannot reach
+  it through the current public Worker protocol, and WM-0152 is not allowed to
+  edit `packages/sim-worker/**`.
 - The current Web save flow in `apps/web/src/web-storage-gate.ts` is still the
-  M6 gate envelope and explicitly strips `playableAction` on load. It is not an
-  authoritative playable-command persistence surface.
+  M6 gate envelope and explicitly strips `playableAction` on load. That can be
+  truthfully presented as unsupported, but it does not solve the missing live
+  projection surface.
 
 ## Planned action
 
-Stop and raise a blocker. Implementing WM-0152 inside the current allowed paths
-would require at least one unapproved boundary change:
+Stop and raise a new blocker. WM-0152 can now send authoritative commands, but
+it still cannot render the authoritative command chain honestly because the
+public Worker protocol does not deliver a public playable projection object.
 
-- a new public browser Worker entry/client surface,
-- a reviewed `apps/web -> @wuming-town/sim-worker` dependency decision, or
-- a reviewed platform-owned adapter that exposes the authoritative session to
-  Web without deep-importing package internals.
+Required owner decision now:
 
-No product code will be changed until that decision exists.
+- expose the authoritative WM-0150 playable read-model through the public
+  Worker protocol/session surface, including the basis/action/job/pawn/build
+  fields needed by ADR-0012 UI wiring; or
+- provide an equivalent reviewed public adapter that delivers that projection to
+  `apps/web` without deep imports or shell-local simulation.
+
+No product code should claim live authoritative motion/progress until that
+projection surface exists.

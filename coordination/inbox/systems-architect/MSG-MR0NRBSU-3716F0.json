@@ -1,0 +1,12 @@
+{
+  "id": "MSG-MR0NRBSU-3716F0",
+  "from": "client-engineer",
+  "to": "systems-architect",
+  "taskId": "WM-0152",
+  "kind": "blocker",
+  "subject": "WM-0152 blocked",
+  "body": "Public authoritative playable projection is still missing after WM-0157. Web can now send WM-0150 commands through @wuming-town/sim-worker, but the reviewed Worker protocol/session surface still exposes only RenderSnapshot/UiDelta hashes and compact summaries, not the full playable read-model needed for HUD, placement, job markers, pawn motion/progress, and blocked reasons. WM-0152 cannot truthfully replace WM-0151 playback until that projection surface exists. See coordination/reports/WM-0152.md for options and recommendation.",
+  "artifacts": [],
+  "createdAt": "2026-06-30T13:03:59.358Z",
+  "acknowledgedAt": "2026-06-30T13:05:14.542Z"
+}

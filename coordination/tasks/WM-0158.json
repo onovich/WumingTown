@@ -1,0 +1,94 @@
+{
+  "id": "WM-0158",
+  "title": "Public playable Worker projection surface",
+  "summary": "Expose the authoritative WM-0150 playable read-model through the public Worker protocol/session so Web can render command chains without deep imports or shell-local projection authority.",
+  "state": "ready",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "systems-architect",
+  "dependsOn": [
+    "WM-0157"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/decisions/ADR-0001.md",
+    "coordination/decisions/ADR-0012.md",
+    "coordination/decisions/ADR-0013.md",
+    "coordination/decisions/ADR-0014.md",
+    "coordination/reports/WM-0150.md",
+    "coordination/reports/WM-0152.md",
+    "coordination/reports/WM-0157.md",
+    "apps/web/src/shell-bootstrap.ts",
+    "apps/web/src/simulation-worker-session.ts",
+    "packages/sim-core/src/playable-command-slice.ts",
+    "packages/sim-protocol/src/types.ts",
+    "packages/sim-protocol/src/web-read-model.ts",
+    "packages/sim-worker/src/index.ts",
+    "packages/sim-worker/src/browser-session.ts",
+    "packages/sim-worker/src/worker-smoke.e2e.test.ts",
+    "tools/boundary-check.mjs"
+  ],
+  "acceptance": [
+    "A versioned public playable projection type is exported from @wuming-town/sim-protocol and is delivered through the existing Worker protocol/session surface, preferably as UiDeltaPayload.playable or an equivalent versioned UiDelta field",
+    "The projection includes playableCommandReadModelVersion, tick/snapshot/world/read-model/content basis, target/map/reservation/job versions, and command basis/template data needed to build the next PrioritizeLampWork or QueueSimpleBuild command",
+    "The projection includes authoritative target/action availability and simple-build placement validity, including anchor/footprint or interaction basis when available and structured blocked/disabled reasons when invalid",
+    "The projection includes authoritative order/job markers, pawn states/path intent/progress, build/lamp progress, resource/reservation-aware counts, focused alerts, and structured blocked reasons sufficient for WM-0152 HUD/Pixi rendering",
+    "sim-worker maps from authoritative sim-core owner-store/read-model data into the protocol projection; apps/web does not import @wuming-town/sim-core, sim-worker internals, or parse summary strings as gameplay state",
+    "CommandResult, SaveReady and fatal/error reliable delivery remains separate from projection delivery and is covered by tests so larger UiDelta projections cannot drop reliable command outcomes",
+    "A real Chromium worker-smoke proves the public root browser session receives WM-0150 command results and a renderable playable projection after init, command batches, Noop/advance, and RequestUiDetail",
+    "No product HUD, placement UI, localization rewrite, renderer feature implementation, public release action, telemetry/account surface, or public save compatibility promise is added",
+    "Save/load stance is explicit: in-progress playable command persistence remains unsupported unless a later versioned save task adds focused sections, fail-closed validation and migration/fixture evidence",
+    "The report states the exact public projection field/type names and the exact WM-0152 resume path"
+  ],
+  "requiredChecks": [
+    "corepack pnpm typecheck",
+    "corepack pnpm exec vitest run packages/sim-core/src/playable-command-slice.test.ts packages/sim-worker/src/playable-command-worker.test.ts packages/sim-protocol/src/protocol-validation.test.ts apps/web/src/simulation-worker-session.test.ts",
+    "node tools/test-runner.mjs e2e --filter worker-smoke",
+    "corepack pnpm sim:run -- --seed 5 --scenario wm0150-playable-command-slice --ticks 240",
+    "corepack pnpm boundaries:check",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0158-public-playable-worker-projection-surface",
+  "createdAt": "2026-06-30T13:07:15.000Z",
+  "updatedAt": "2026-06-30T13:07:15.000Z",
+  "history": [
+    {
+      "at": "2026-06-30T13:07:15.000Z",
+      "actor": "systems-architect",
+      "action": "create-architecture-precursor",
+      "details": "Created to unblock WM-0152 after confirming WM-0157 solved Worker transport but public Worker output still lacks a renderable authoritative playable projection."
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "owner-product-ux-remediation",
+  "architectureDecision": "coordination/decisions/ADR-0014.md",
+  "unblocks": [
+    "WM-0152"
+  ],
+  "saveLoadStance": "No public save compatibility is introduced. The projection is derived read-only Worker output; in-progress playable command persistence remains unsupported until a separate versioned save/load task is approved.",
+  "allowedPaths": [
+    "packages/sim-protocol/src/**",
+    "packages/sim-worker/src/**",
+    "packages/sim-core/src/playable-command-slice.ts",
+    "packages/sim-core/src/playable-command-slice.test.ts",
+    "apps/web/src/simulation-worker-session.ts",
+    "apps/web/src/simulation-worker-session.test.ts",
+    "coordination/decisions/ADR-0014.md",
+    "coordination/reports/WM-0158*.md",
+    "coordination/tasks/WM-0158.json"
+  ],
+  "forbiddenPaths": [
+    "apps/web importing @wuming-town/sim-core, @wuming-town/sim-worker subpaths, or packages/*/src internals",
+    "apps/web parsing UiDelta summaries as gameplay state",
+    "product HUD, placement UI, renderer-pixi, ui-react, localization, or shell-bootstrap feature implementation",
+    "UI-owned authoritative world, job, pawn, reservation, resource, build, placement, action-availability or blocked-reason state",
+    "fake shell-local gameplay claimed as authoritative",
+    "new top-level Worker message family unless ADR-0014 is updated with a stricter reason",
+    "new public save compatibility, migration or release promises",
+    "new runtime dependencies without a separate ADR",
+    "public release, Early Access, store, signing, telemetry, accounts, paid services or public feedback surfaces"
+  ]
+}
