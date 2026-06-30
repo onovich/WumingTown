@@ -242,19 +242,44 @@ export interface PlayablePawnReadModel {
 
 export interface PlayableBuildReadModel {
   readonly siteId: number;
+  readonly site: PlayableEntityRef;
   readonly active: boolean;
   readonly completed: boolean;
   readonly blueprintDefId: number;
   readonly anchorCell: PlayableCellRef;
+  readonly interactionCells: readonly PlayableCellRef[];
+  readonly requiredWoodDefId: number;
+  readonly requiredStoneDefId: number;
   readonly requiredWood: number;
   readonly requiredStone: number;
   readonly deliveredWood: number;
   readonly deliveredStone: number;
+  readonly reservedWood: number;
+  readonly reservedStone: number;
   readonly remainingWood: number;
   readonly remainingStone: number;
   readonly buildProgressTicks: number;
   readonly buildRequiredTicks: number;
   readonly lanternState: number;
+}
+
+export interface PlayableLampActionReadModel {
+  readonly target: PlayableCommandTarget;
+  readonly available: boolean;
+  readonly payloadTemplate: PrioritizeLampWorkCommandInput["payload"];
+  readonly disabledReason?: PlayableBlockedReason;
+}
+
+export interface PlayablePlacementReadModel {
+  readonly blueprint: QueueSimpleBuildCommandInput["payload"]["blueprint"];
+  readonly anchorCell: PlayableCellRef;
+  readonly orientation: 0 | 1 | 2 | 3;
+  readonly orientationOptions: readonly [0, 1, 2, 3];
+  readonly footprint: readonly PlayableCellRef[];
+  readonly interactionCells: readonly PlayableCellRef[];
+  readonly valid: boolean;
+  readonly payloadTemplate: QueueSimpleBuildCommandInput["payload"];
+  readonly disabledReason?: PlayableBlockedReason;
 }
 
 export interface PlayableReadModel {
@@ -268,13 +293,25 @@ export interface PlayableReadModel {
   readonly mapVersion: number;
   readonly reservationVersion: number;
   readonly jobVersion: number;
+  readonly commandBasis: PlayableCommandBasis;
+  readonly lampAction: PlayableLampActionReadModel;
+  readonly placement: PlayablePlacementReadModel;
   readonly jobMarkers: readonly PlayableJobMarkerReadModel[];
   readonly pawns: readonly PlayablePawnReadModel[];
   readonly build?: PlayableBuildReadModel;
   readonly resources: {
+    readonly woodDefId: number;
     readonly woodAvailable: number;
+    readonly woodReserved: number;
+    readonly woodTotal: number;
+    readonly stoneDefId: number;
     readonly stoneAvailable: number;
+    readonly stoneReserved: number;
+    readonly stoneTotal: number;
+    readonly repairFrameDefId: number;
     readonly repairFrameAvailable: number;
+    readonly repairFrameReserved: number;
+    readonly repairFrameTotal: number;
   };
   readonly alerts: readonly PlayableBlockedReason[];
   readonly summaries: readonly string[];
@@ -448,15 +485,30 @@ export class PlayableCommandSliceRuntime {
       mapVersion: this.fixture.grid.globalVersion,
       reservationVersion: this.fixture.ledger.version,
       jobVersion: this.fixture.jobCore.version,
+      commandBasis: this.readCommandBasis(),
+      lampAction: this.createLampActionReadModel(),
+      placement: this.createPlacementReadModel(),
       jobMarkers,
       pawns,
       ...(build !== undefined ? { build } : {}),
       resources: {
+        woodDefId: WOOD_DEF,
         woodAvailable:
           this.fixture.items.readStack(WOOD_STACK_ID, this.fixture.ledger)?.availableQuantity ?? 0,
+        woodReserved:
+          this.fixture.items.readStack(WOOD_STACK_ID, this.fixture.ledger)?.reservedQuantity ?? 0,
+        woodTotal: this.fixture.items.readStack(WOOD_STACK_ID, this.fixture.ledger)?.quantity ?? 0,
+        stoneDefId: STONE_DEF,
         stoneAvailable:
           this.fixture.items.readStack(STONE_STACK_ID, this.fixture.ledger)?.availableQuantity ?? 0,
+        stoneReserved:
+          this.fixture.items.readStack(STONE_STACK_ID, this.fixture.ledger)?.reservedQuantity ?? 0,
+        stoneTotal:
+          this.fixture.items.readStack(STONE_STACK_ID, this.fixture.ledger)?.quantity ?? 0,
+        repairFrameDefId: REPAIR_FRAME_DEF,
         repairFrameAvailable: 0,
+        repairFrameReserved: 0,
+        repairFrameTotal: 0,
       },
       alerts: this.latestAlerts,
       summaries,
@@ -1092,19 +1144,91 @@ export class PlayableCommandSliceRuntime {
 
     return {
       siteId: site.siteId,
+      site: site.site,
       active: site.active,
       completed: site.completed,
       blueprintDefId: site.blueprintDefId,
       anchorCell: { x: site.anchorX, y: site.anchorY, cellIndex: site.anchorCellIndex },
+      interactionCells: [
+        cellRefFromIndex(site.interactionCellA),
+        cellRefFromIndex(site.interactionCellB),
+      ],
+      requiredWoodDefId: site.requiredDefA,
+      requiredStoneDefId: site.requiredDefB,
       requiredWood: site.requiredAmountA,
       requiredStone: site.requiredAmountB,
       deliveredWood: site.deliveredAmountA,
       deliveredStone: site.deliveredAmountB,
+      reservedWood: site.reservedCapacityA,
+      reservedStone: site.reservedCapacityB,
       remainingWood: site.remainingDemandA,
       remainingStone: site.remainingDemandB,
       buildProgressTicks: site.buildProgressTicks,
       buildRequiredTicks: site.buildRequiredTicks,
       lanternState: site.lanternState,
+    };
+  }
+
+  private createLampActionReadModel(): PlayableLampActionReadModel {
+    const target = this.lampGapTarget("lamp-gap-0");
+    const disabledReason = this.lampOrderActive ? this.jobDriverReason(target) : undefined;
+    return {
+      target,
+      available: disabledReason === undefined,
+      payloadTemplate: {
+        target: {
+          kind: "lamp_gap",
+          gapId: "lamp-gap-0",
+          anchorCell: {
+            x: TARGET_LAMP_GAP_X,
+            y: TARGET_LAMP_GAP_Y,
+            cellIndex: TARGET_LAMP_GAP_CELL,
+          },
+        },
+        requestedAction: "auto",
+        priorityBand: 1,
+      },
+      ...(disabledReason !== undefined ? { disabledReason } : {}),
+    };
+  }
+
+  private createPlacementReadModel(): PlayablePlacementReadModel {
+    const anchorCell = {
+      x: TARGET_LAMP_GAP_X,
+      y: TARGET_LAMP_GAP_Y,
+      cellIndex: TARGET_LAMP_GAP_CELL,
+    };
+    const disabledReason = this.buildOrderActive
+      ? this.invalidBuildTarget({
+          commandId: "projection-template",
+          kind: "QueueSimpleBuild",
+          basis: this.readCommandBasis(),
+          payload: {
+            blueprint: { kind: "simple_lamp_post", blueprintDefId: SIMPLE_LAMP_BLUEPRINT },
+            anchorCell,
+            orientation: 0,
+            priorityBand: 1,
+          },
+        })
+      : undefined;
+    return {
+      blueprint: { kind: "simple_lamp_post", blueprintDefId: SIMPLE_LAMP_BLUEPRINT },
+      anchorCell,
+      orientation: 0,
+      orientationOptions: [0, 1, 2, 3],
+      footprint: [anchorCell],
+      interactionCells: [
+        cellRefFromIndex(BUILD_INTERACTION_WEST),
+        cellRefFromIndex(BUILD_INTERACTION_SOUTH),
+      ],
+      valid: disabledReason === undefined,
+      payloadTemplate: {
+        blueprint: { kind: "simple_lamp_post", blueprintDefId: SIMPLE_LAMP_BLUEPRINT },
+        anchorCell,
+        orientation: 0,
+        priorityBand: 1,
+      },
+      ...(disabledReason !== undefined ? { disabledReason } : {}),
     };
   }
 
@@ -1518,6 +1642,14 @@ function buildJobKind(jobKind: number): PlayableJobMarkerReadModel["jobKind"] {
     return "build_site_construction";
   }
   return "build_site_delivery";
+}
+
+function cellRefFromIndex(cellIndex: number): PlayableCellRef {
+  return {
+    x: cellIndex % MAP_WIDTH,
+    y: Math.floor(cellIndex / MAP_WIDTH),
+    cellIndex,
+  };
 }
 
 function allocate(registry: EntityRegistry): EntityId {

@@ -44,6 +44,31 @@ describe("WM-0150 Simulation Worker playable command slice", () => {
     expect(uiDelta(worker.receive(initSession(1))).payload).toMatchObject({
       scenarioId: PLAYABLE_COMMAND_SLICE_SCENARIO_ID,
       readOnly: true,
+      playable: {
+        playableCommandReadModelVersion: 1,
+        basis: {
+          tick: 0,
+          commandBasis: {
+            playableCommandContractVersion: 1,
+          },
+        },
+        targets: [
+          {
+            target: { kind: "lamp_gap", gapId: "lamp-gap-0" },
+            actions: [{ commandKind: PLAYER_COMMAND_KIND.PrioritizeLampWork, available: true }],
+          },
+          {
+            target: { kind: "build_cell", blueprintDefId: 4 },
+            actions: [{ commandKind: PLAYER_COMMAND_KIND.QueueSimpleBuild, available: true }],
+          },
+        ],
+        placements: [
+          {
+            valid: true,
+            footprint: [{ x: 12, y: 7, cellIndex: 124 }],
+          },
+        ],
+      },
     });
 
     const lampResult = commandResult(
@@ -84,6 +109,40 @@ describe("WM-0150 Simulation Worker playable command slice", () => {
     expect(
       uiDelta(worker.receive(commandBatch(7, [advanceCommand(220)]))).payload.summaries,
     ).toContainEqual(expect.stringContaining("wm0150:build:site=0;completed=true"));
+    const detailProjection = uiDelta(worker.receive(requestUiDetail(8))).payload.playable;
+    expect(detailProjection).toMatchObject({
+      basis: {
+        tick: 220,
+      },
+      build: {
+        siteId: 0,
+        completed: true,
+        requiredMaterials: [
+          { defId: 1, requiredAmount: 6, deliveredAmount: 6 },
+          { defId: 2, requiredAmount: 2, deliveredAmount: 2 },
+        ],
+      },
+      orders: [
+        {
+          orderId: "lamp-priority-0",
+          markerState: "completed",
+        },
+        {
+          orderId: "simple-build-0",
+          markerState: "completed",
+        },
+      ],
+      pawns: [
+        { displayId: "pawn-0", state: "completed" },
+        { displayId: "pawn-1", state: "completed" },
+      ],
+      lamps: [
+        {
+          target: { kind: "lamp_gap", gapId: "lamp-gap-0" },
+          state: "completed",
+        },
+      ],
+    });
   });
 });
 
@@ -126,6 +185,19 @@ function invalidPlayerCommandBatch(): unknown {
     kind: MAIN_TO_SIMULATION_MESSAGE_KIND.PlayerCommandBatch,
     payload: {
       commands: [{ commandId: "invalid-command", kind: "TeleportWithoutRules" }],
+    },
+  };
+}
+
+function requestUiDetail(sequence: number): MainToSimulationMessage {
+  return {
+    protocolVersion: SIM_PROTOCOL_VERSION,
+    schemaVersion: SIM_SCHEMA_VERSION,
+    sessionId: "session-wm0150",
+    sequence,
+    kind: MAIN_TO_SIMULATION_MESSAGE_KIND.RequestUiDetail,
+    payload: {
+      subject: { kind: "session" },
     },
   };
 }

@@ -4,9 +4,16 @@ import {
   type BrowserSimulationWorkerSession,
   type BrowserSimulationWorkerSessionOptions,
 } from "@wuming-town/sim-worker";
-import type { MainToSimulationMessage, PlayerCommand } from "@wuming-town/sim-protocol";
+import {
+  SIMULATION_TO_MAIN_MESSAGE_KIND,
+  type MainToSimulationMessage,
+  type PlayableProjectionV1,
+  type PlayerCommand,
+  type SimulationToMainMessage,
+} from "@wuming-town/sim-protocol";
 
 export const WEB_PLAYABLE_WORKER_SCENARIO_ID = WM0150_PLAYABLE_COMMAND_SCENARIO_ID;
+export type WebPlayableProjection = PlayableProjectionV1;
 
 export function createWebSimulationWorkerSession(
   options: BrowserSimulationWorkerSessionOptions,
@@ -26,4 +33,12 @@ export function sendWebPlayableCommandBatch(
   commands: readonly PlayerCommand[],
 ): MainToSimulationMessage {
   return session.sendPlayerCommandBatch(commands);
+}
+
+export function readWebPlayableProjection(
+  message: SimulationToMainMessage,
+): WebPlayableProjection | undefined {
+  return message.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.UiDelta
+    ? message.payload.playable
+    : undefined;
 }

@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MR0OOFK7-3067F1",
+  "from": "simulation-engineer",
+  "to": "systems-architect",
+  "taskId": "WM-0158",
+  "kind": "review-request",
+  "subject": "WM-0158 ready for review",
+  "body": "Implemented public UiDelta playable projection surface and Web adapter reader; checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0158.md",
+    "task/WM-0158-public-playable-worker-projection-surface"
+  ],
+  "createdAt": "2026-06-30T13:29:43.879Z",
+  "acknowledgedAt": "2026-06-30T13:31:16.176Z"
+}

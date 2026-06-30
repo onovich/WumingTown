@@ -2,7 +2,7 @@
   "id": "WM-0158",
   "title": "Public playable Worker projection surface",
   "summary": "Expose the authoritative WM-0150 playable read-model through the public Worker protocol/session so Web can render command chains without deep imports or shell-local projection authority.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "systems-architect",
   "dependsOn": [
@@ -53,13 +53,43 @@
   ],
   "branch": "task/WM-0158-public-playable-worker-projection-surface",
   "createdAt": "2026-06-30T13:07:15.000Z",
-  "updatedAt": "2026-06-30T13:07:15.000Z",
+  "updatedAt": "2026-06-30T13:38:27.103Z",
   "history": [
     {
       "at": "2026-06-30T13:07:15.000Z",
       "actor": "systems-architect",
       "action": "create-architecture-precursor",
       "details": "Created to unblock WM-0152 after confirming WM-0157 solved Worker transport but public Worker output still lacks a renderable authoritative playable projection."
+    },
+    {
+      "at": "2026-06-30T13:14:19.322Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Tally"
+    },
+    {
+      "at": "2026-06-30T13:29:43.877Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented public UiDelta playable projection surface and Web adapter reader; checks pass."
+    },
+    {
+      "at": "2026-06-30T13:35:27.506Z",
+      "actor": "systems-architect",
+      "action": "review",
+      "details": "verified: No blocking findings. Verified ADR-0014 is implemented through UiDeltaPayload.playable with public protocol-owned PlayableProjectionV1 types, Web uses only package-root public APIs via readWebPlayableProjection, sim-worker maps from authoritative PlayableReadModel, reliable CommandResult/SaveReady/fatal delivery remains separate, worker-smoke and focused checks pass, and no save/release/telemetry/account promise was introduced."
+    },
+    {
+      "at": "2026-06-30T13:38:16.608Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integrated verified playable projection surface; required gates passed including typecheck, focused tests, worker-smoke, 240 tick replay, boundaries, validate-handoff, taskctl, diff check and pnpm quality."
+    },
+    {
+      "at": "2026-06-30T13:38:27.102Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "Post-M8",
@@ -90,5 +120,20 @@
     "new public save compatibility, migration or release promises",
     "new runtime dependencies without a separate ADR",
     "public release, Early Access, store, signing, telemetry, accounts, paid services or public feedback surfaces"
-  ]
+  ],
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Tally",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0158.md",
+  "review": {
+    "reviewer": "systems-architect",
+    "verdict": "verified",
+    "summary": "No blocking findings. Verified ADR-0014 is implemented through UiDeltaPayload.playable with public protocol-owned PlayableProjectionV1 types, Web uses only package-root public APIs via readWebPlayableProjection, sim-worker maps from authoritative PlayableReadModel, reliable CommandResult/SaveReady/fatal delivery remains separate, worker-smoke and focused checks pass, and no save/release/telemetry/account promise was introduced.",
+    "at": "2026-06-30T13:35:27.506Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integrated verified playable projection surface; required gates passed including typecheck, focused tests, worker-smoke, 240 tick replay, boundaries, validate-handoff, taskctl, diff check and pnpm quality.",
+    "at": "2026-06-30T13:38:16.607Z"
+  }
 }

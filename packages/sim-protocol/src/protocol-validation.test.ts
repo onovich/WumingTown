@@ -4,10 +4,12 @@ import {
   MAIN_TO_SIMULATION_MESSAGE_KIND,
   PLAYER_COMMAND_KIND,
   SIMULATION_PROTOCOL_REASON_CODE,
+  SIMULATION_TO_MAIN_MESSAGE_KIND,
   SIM_PROTOCOL_VERSION,
   SIM_SCHEMA_VERSION,
   validateMainToSimulationMessage,
   type MainToSimulationMessage,
+  type UiDeltaMessage,
 } from "./index";
 
 const initMessage = {
@@ -196,6 +198,45 @@ describe("validateMainToSimulationMessage", () => {
         code: SIMULATION_PROTOCOL_REASON_CODE.InvalidPayload,
       },
     });
+  });
+
+  it("exposes a versioned playable projection on UiDelta payloads", () => {
+    const message = {
+      protocolVersion: SIM_PROTOCOL_VERSION,
+      schemaVersion: SIM_SCHEMA_VERSION,
+      sessionId: "session-a",
+      sequence: 3,
+      kind: SIMULATION_TO_MAIN_MESSAGE_KIND.UiDelta,
+      payload: {
+        tick: 0,
+        summaries: [],
+        readOnly: true,
+        playable: {
+          playableCommandReadModelVersion: 1,
+          basis: {
+            tick: 0,
+            snapshotSequence: 0,
+            worldHash: "0xworld",
+            readModelHash: "0xread",
+            contentManifestHash: "0x0150015a",
+            targetVersion: 0,
+            mapVersion: 0,
+            reservationVersion: 0,
+            jobVersion: 0,
+            commandBasis: commandBasis(),
+          },
+          targets: [],
+          placements: [],
+          orders: [],
+          pawns: [],
+          lamps: [],
+          resources: { materials: [] },
+          alerts: [],
+        },
+      },
+    } satisfies UiDeltaMessage;
+
+    expect(message.payload.playable.playableCommandReadModelVersion).toBe(1);
   });
 });
 

@@ -217,6 +217,138 @@ export interface UiDeltaPayload {
   readonly readModelHash?: string;
   readonly detailHash?: string;
   readonly readOnly?: true;
+  readonly playable?: PlayableProjectionV1;
+}
+
+export interface PlayableProjectionBasisV1 {
+  readonly tick: number;
+  readonly snapshotSequence: number;
+  readonly worldHash: string;
+  readonly readModelHash: string;
+  readonly contentManifestHash: string;
+  readonly targetVersion: number;
+  readonly mapVersion: number;
+  readonly reservationVersion: number;
+  readonly jobVersion: number;
+  readonly commandBasis: CommandBasis;
+}
+
+export interface PlayableCommandTemplateV1 {
+  readonly commandKind:
+    | typeof PLAYER_COMMAND_KIND.PrioritizeLampWork
+    | typeof PLAYER_COMMAND_KIND.QueueSimpleBuild;
+  readonly commandBasis: CommandBasis;
+  readonly payload: PlayerCommandPayload;
+  readonly available: boolean;
+  readonly disabledReason?: CommandBlockedReason;
+}
+
+export interface PlayableTargetActionProjectionV1 {
+  readonly target: CommandTargetRef;
+  readonly targetState: "available" | "active" | "blocked" | "completed";
+  readonly targetVersion: number;
+  readonly actions: readonly PlayableCommandTemplateV1[];
+  readonly blockedReason?: CommandBlockedReason;
+}
+
+export interface PlayablePlacementProjectionV1 {
+  readonly blueprint: QueueSimpleBuildPayload["blueprint"];
+  readonly anchorCell: CellRef;
+  readonly orientation: 0 | 1 | 2 | 3;
+  readonly orientationOptions: readonly [0, 1, 2, 3];
+  readonly footprint: readonly CellRef[];
+  readonly interactionCells: readonly CellRef[];
+  readonly valid: boolean;
+  readonly command: PlayableCommandTemplateV1;
+  readonly blockedReason?: CommandBlockedReason;
+}
+
+export interface PlayableOrderJobProjectionV1 {
+  readonly orderId: string;
+  readonly commandId: string;
+  readonly jobId: number;
+  readonly jobKind: CommandJobRef["jobKind"];
+  readonly markerState:
+    | "queued"
+    | "claimable"
+    | "claimed"
+    | "moving"
+    | "working"
+    | "blocked"
+    | "completed"
+    | "failed"
+    | "canceled";
+  readonly owner?: ProtocolEntityRef;
+  readonly target: CommandTargetRef;
+  readonly progressQ16: number;
+  readonly requiredWork: number;
+  readonly blockedReason?: CommandBlockedReason;
+}
+
+export interface PlayablePawnProjectionV1 {
+  readonly actor: ProtocolEntityRef;
+  readonly displayId: string;
+  readonly cellIndex: number;
+  readonly state: "idle" | "moving" | "working" | "blocked" | "completed" | "failed";
+  readonly orderId: string;
+  readonly jobId: number;
+  readonly pathTargetCell: number;
+  readonly blockedReason?: CommandBlockedReason;
+}
+
+export interface PlayableBuildProjectionV1 {
+  readonly siteId: number;
+  readonly site: ProtocolEntityRef;
+  readonly active: boolean;
+  readonly completed: boolean;
+  readonly blueprintDefId: number;
+  readonly anchorCell: CellRef;
+  readonly interactionCells: readonly CellRef[];
+  readonly requiredMaterials: readonly PlayableResourceRequirementProjectionV1[];
+  readonly buildProgressTicks: number;
+  readonly buildRequiredTicks: number;
+  readonly lanternState: number;
+}
+
+export interface PlayableLampProjectionV1 {
+  readonly target: CommandTargetRef;
+  readonly state: "gap" | "queued" | "working" | "completed" | "blocked";
+  readonly reason: "dusk_lamp_gap";
+  readonly progressQ16: number;
+  readonly requiredWork: number;
+  readonly blockedReason?: CommandBlockedReason;
+}
+
+export interface PlayableResourceRequirementProjectionV1 {
+  readonly defId: number;
+  readonly requiredAmount: number;
+  readonly deliveredAmount: number;
+  readonly reservedAmount: number;
+  readonly remainingAmount: number;
+}
+
+export interface PlayableResourceCountProjectionV1 {
+  readonly defId: number;
+  readonly availableAmount: number;
+  readonly reservedAmount: number;
+  readonly totalAmount: number;
+}
+
+export interface PlayableResourceProjectionV1 {
+  readonly materials: readonly PlayableResourceCountProjectionV1[];
+}
+
+export interface PlayableProjectionV1 {
+  readonly playableCommandReadModelVersion: 1;
+  readonly basis: PlayableProjectionBasisV1;
+  readonly targets: readonly PlayableTargetActionProjectionV1[];
+  readonly placements: readonly PlayablePlacementProjectionV1[];
+  readonly orders: readonly PlayableOrderJobProjectionV1[];
+  readonly pawns: readonly PlayablePawnProjectionV1[];
+  readonly build?: PlayableBuildProjectionV1;
+  readonly lamps: readonly PlayableLampProjectionV1[];
+  readonly resources: PlayableResourceProjectionV1;
+  readonly alerts: readonly CommandBlockedReason[];
 }
 
 export type CommandResultPayload = CommandResultAcceptedPayload | CommandResultRejectedPayload;

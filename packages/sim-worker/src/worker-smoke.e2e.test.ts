@@ -524,6 +524,32 @@ describe("worker-smoke simulation Worker protocol", () => {
     expect(finalUiDelta.payload.summaries).toContainEqual(
       expect.stringContaining("wm0150:build:site=0;completed=true"),
     );
+    expect(finalUiDelta.payload.playable).toMatchObject({
+      playableCommandReadModelVersion: 1,
+      basis: {
+        tick: 220,
+        commandBasis: {
+          playableCommandContractVersion: 1,
+        },
+      },
+      placements: [
+        {
+          valid: false,
+          command: {
+            commandKind: PLAYER_COMMAND_KIND.QueueSimpleBuild,
+            available: false,
+          },
+        },
+      ],
+      build: {
+        completed: true,
+        buildProgressTicks: 120,
+      },
+      orders: [
+        { commandId: "browser-lamp", markerState: "completed" },
+        { commandId: "browser-build", markerState: "completed" },
+      ],
+    });
     expect(lastMetricsSample(browserMessages).payload).toMatchObject({
       scenarioId: PLAYABLE_COMMAND_SLICE_SCENARIO_ID,
       checkpointCount: 3,

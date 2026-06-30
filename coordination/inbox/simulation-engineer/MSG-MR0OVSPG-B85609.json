@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MR0OVSPG-B85609",
+  "from": "systems-architect",
+  "to": "simulation-engineer",
+  "taskId": "WM-0158",
+  "kind": "review-approved",
+  "subject": "WM-0158 review: verified",
+  "body": "No blocking findings. Verified ADR-0014 is implemented through UiDeltaPayload.playable with public protocol-owned PlayableProjectionV1 types, Web uses only package-root public APIs via readWebPlayableProjection, sim-worker maps from authoritative PlayableReadModel, reliable CommandResult/SaveReady/fatal delivery remains separate, worker-smoke and focused checks pass, and no save/release/telemetry/account promise was introduced.",
+  "artifacts": [
+    "coordination/reports/WM-0158.md"
+  ],
+  "createdAt": "2026-06-30T13:35:27.508Z",
+  "acknowledgedAt": "2026-06-30T13:36:27.863Z"
+}

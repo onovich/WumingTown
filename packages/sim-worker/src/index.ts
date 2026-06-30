@@ -54,10 +54,13 @@ import {
   validateMainToSimulationMessage,
   type CommandResultMessage,
   type MainToSimulationMessage,
+  type PlayableProjectionV1,
   type PlayerCommand,
   type ProtocolRejection,
   type SimulationToMainMessage,
 } from "@wuming-town/sim-protocol";
+
+import { createPlayableProjection } from "./playable-projection";
 
 export {
   WM0150_PLAYABLE_COMMAND_DEFAULT_SEED,
@@ -474,6 +477,7 @@ function makeUiDelta(state: SimulationWorkerState): SimulationToMainMessage {
         readModelHash: projection.readModelHash,
         detailHash: projection.detailHash,
         readOnly: true,
+        ...(projection.playable !== undefined ? { playable: projection.playable } : {}),
       },
     };
   }
@@ -720,6 +724,7 @@ interface WorkerProjectionView {
   readonly summaries: readonly string[];
   readonly detailHash: string;
   readonly checkpointCount: number;
+  readonly playable?: PlayableProjectionV1;
 }
 
 function readWorkerProjection(state: SimulationWorkerState): WorkerProjectionView | undefined {
@@ -801,6 +806,7 @@ function readWorkerProjection(state: SimulationWorkerState): WorkerProjectionVie
     summaries: playableProjection.summaries,
     detailHash: playableProjection.basisReadModelHash,
     checkpointCount: state.playableScenario?.checkpointCount ?? 0,
+    playable: createPlayableProjection(playableProjection),
   };
 }
 

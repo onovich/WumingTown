@@ -25,6 +25,24 @@ describe("WM-0150 playable command-to-job slice", () => {
       markerState: "claimed",
       owner: { index: 0, generation: 1 },
     });
+    expect(runtime.readModel()).toMatchObject({
+      commandBasis: {
+        playableCommandContractVersion: 1,
+        basisTick: 0,
+      },
+      lampAction: {
+        available: false,
+        target: { kind: "lamp_gap", gapId: "lamp-gap-0" },
+      },
+      placement: {
+        valid: true,
+        anchorCell: { x: 12, y: 7, cellIndex: 124 },
+        interactionCells: [
+          { x: 11, y: 7, cellIndex: 123 },
+          { x: 12, y: 8, cellIndex: 140 },
+        ],
+      },
+    });
 
     runtime.advanceTo(5);
     expect(runtime.readModel().basisTick).toBe(5);
@@ -117,10 +135,19 @@ describe("WM-0150 playable command-to-job slice", () => {
       },
       readModel: {
         build: {
+          site: { index: 4, generation: 1 },
           completed: true,
           deliveredWood: 6,
           deliveredStone: 2,
+          reservedWood: 0,
+          reservedStone: 0,
           buildProgressTicks: 120,
+        },
+        resources: {
+          woodDefId: 1,
+          woodTotal: 0,
+          stoneDefId: 2,
+          stoneTotal: 0,
         },
       },
     });

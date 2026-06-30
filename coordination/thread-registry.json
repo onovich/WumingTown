@@ -18,8 +18,8 @@
     },
     "simulation-engineer": {
       "threadId": "019f1882-5f86-7953-8725-0394c042cbf7",
-      "label": "Tally WM-0157 worker bridge",
-      "registeredAt": "2026-06-30T12:30:39.100Z"
+      "label": "Tally WM-0158 playable projection",
+      "registeredAt": "2026-06-30T13:13:22.517Z"
     },
     "client-engineer": {
       "threadId": "019f0d07-f642-7731-885c-8fe6503087f7",
@@ -47,5 +47,5 @@
       "registeredAt": "2026-06-28T19:53:14.736Z"
     }
   },
-  "updatedAt": "2026-06-30T12:30:39.100Z"
+  "updatedAt": "2026-06-30T13:13:22.517Z"
 }
