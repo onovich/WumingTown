@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MR0859JQ-F64B82",
+  "from": "reviewer",
+  "to": "client-engineer",
+  "taskId": "WM-0147",
+  "kind": "review-approved",
+  "subject": "WM-0147 review: verified",
+  "body": "No blocking findings; HUD hierarchy is map/objective/action first, settings and diagnostics are behind explicit secondary surfaces, command bar and inspector preserve disabled reasons, en/zh-CN responsive coverage is recorded for required viewports, diagnostics overlay reachability is covered, scope stays UI/Web only, and later pawn/build authority work remains correctly deferred.",
+  "artifacts": [
+    "coordination/reports/WM-0147.md"
+  ],
+  "createdAt": "2026-06-30T05:46:55.766Z",
+  "acknowledgedAt": "2026-06-30T05:50:58.457Z"
+}

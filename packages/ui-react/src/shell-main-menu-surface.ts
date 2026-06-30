@@ -1,11 +1,6 @@
 import { createElement, useState, type CSSProperties, type ReactElement } from "react";
 
-import {
-  formatMessage,
-  getLocaleDisplayName,
-  type LocaleId,
-  type ShellLocaleState,
-} from "./localization";
+import { formatMessage, type LocaleId, type ShellLocaleState } from "./localization";
 import {
   SHELL_DESIGN_TOKENS,
   createCommandButtonStyle,
@@ -39,7 +34,6 @@ export interface ShellMainMenuSurfaceProps {
 
 type AlertSeverity = ShellState["readModel"]["town"]["alerts"][number]["severity"];
 type MainMenuView = "home" | "settings";
-type LocaleSelection = LocaleId | "system";
 type NextGoal = ShellMainMenuSurfaceProps["nextGoal"];
 
 interface LocalizedNextGoalCopy {
@@ -142,12 +136,6 @@ export function ShellMainMenuSurface({
           localizeShellFixtureText(uiLocale, cycleLabel),
           formatMessage(uiLocale, "ui.mainMenu.cycleHint"),
         ),
-        createMetaCard(
-          uiLocale,
-          "ui.mainMenu.language",
-          getLocaleDisplayName(localeState.resolvedLocale, uiLocale),
-          formatMessage(uiLocale, "ui.mainMenu.languageHint"),
-        ),
       ),
       view === "home"
         ? createHomeView(
@@ -156,7 +144,6 @@ export function ShellMainMenuSurface({
             continuePending,
             nextGoal,
             phaseMeaning,
-            settingsActions,
             localeState,
             onDismiss,
             () => {
@@ -191,7 +178,6 @@ function createHomeView(
   continuePending: boolean,
   nextGoal: NextGoal,
   phaseMeaning: string,
-  settingsActions: ShellSettingsActions,
   localeState: ShellLocaleState,
   onDismiss: () => void,
   onContinue: () => void,
@@ -242,41 +228,11 @@ function createHomeView(
       ),
     ),
     createElement(
-      "section",
+      "p",
       {
-        "aria-label": formatMessage(uiLocale, "ui.mainMenu.language"),
-        "data-testid": "main-menu-language",
-        style: localeSectionStyle,
+        style: detailStyle,
       },
-      createElement(
-        "div",
-        {
-          style: localeHeaderStyle,
-        },
-        createElement(
-          "div",
-          {
-            style: sectionTitleStyle,
-          },
-          formatMessage(uiLocale, "ui.mainMenu.language"),
-        ),
-        createElement(
-          "p",
-          {
-            style: bodyStyle,
-          },
-          formatMessage(uiLocale, "ui.mainMenu.languageHint"),
-        ),
-      ),
-      createElement(
-        "div",
-        {
-          style: segmentedRowStyle,
-        },
-        createLocaleButton(settingsActions, localeState, "system"),
-        createLocaleButton(settingsActions, localeState, "zh-CN"),
-        createLocaleButton(settingsActions, localeState, "en"),
-      ),
+      formatMessage(uiLocale, "ui.mainMenu.settings.hint"),
     ),
   );
 }
@@ -334,22 +290,20 @@ function createFirstPlayGuidance(
         [
           formatMessage(locale, "ui.mainMenu.firstPlay.action.newGame"),
           formatMessage(locale, "ui.mainMenu.firstPlay.action.select"),
-          formatMessage(locale, "ui.mainMenu.firstPlay.action.camera"),
           formatMessage(locale, "ui.mainMenu.firstPlay.action.lampCommand"),
-          formatMessage(locale, "ui.mainMenu.firstPlay.action.continue"),
           formatMessage(locale, "ui.mainMenu.firstPlay.action.settings"),
         ],
         "main-menu-available-actions",
         compact,
       ),
-      createGuidanceCard(
-        formatMessage(locale, "ui.mainMenu.firstPlay.boundaryTitle"),
-        formatMessage(locale, "ui.mainMenu.firstPlay.boundaryTitle"),
-        formatMessage(locale, "ui.mainMenu.firstPlay.boundary"),
-        "stable",
-        "main-menu-guidance-boundary",
-        compact,
-      ),
+    ),
+    createElement(
+      "p",
+      {
+        "data-testid": "main-menu-guidance-boundary",
+        style: detailStyle,
+      },
+      formatMessage(locale, "ui.mainMenu.firstPlay.boundary"),
     ),
   );
 }
@@ -604,45 +558,6 @@ function createMetaCard(
   );
 }
 
-function createLocaleButton(
-  settingsActions: ShellSettingsActions,
-  localeState: ShellLocaleState,
-  selection: LocaleSelection,
-): ReactElement {
-  const uiLocale = localeState.resolvedLocale;
-  const active =
-    selection === "system"
-      ? localeState.source === "system"
-      : localeState.source === "manual" && localeState.manualLocale === selection;
-  const label =
-    selection === "system"
-      ? formatMessage(uiLocale, "ui.mainMenu.language.system")
-      : getLocaleDisplayName(selection, uiLocale);
-
-  return createElement(
-    "button",
-    {
-      "data-active": active ? "true" : "false",
-      "data-ui-slot": active
-        ? SHELL_DESIGN_TOKENS.slot.buttonSecondaryActive
-        : SHELL_DESIGN_TOKENS.slot.buttonSecondaryDefault,
-      "data-testid": `main-menu-locale-${selection}`,
-      "aria-pressed": active,
-      onClick: (): void => {
-        if (selection === "system") {
-          void settingsActions.onUseSystemLocale();
-          return;
-        }
-
-        void settingsActions.onUseManualLocale(selection);
-      },
-      style: localeButtonStyle(active),
-      type: "button",
-    },
-    label,
-  );
-}
-
 function createActionButton(
   label: string,
   options: {
@@ -687,14 +602,6 @@ function actionButtonStyle(primary: boolean, disabled: boolean): CSSProperties {
     primary ? "primary" : "secondary",
     disabled ? "disabled" : "default",
   );
-}
-
-function localeButtonStyle(active: boolean): CSSProperties {
-  return {
-    ...createCommandButtonStyle("secondary", active ? "active" : "default"),
-    minHeight: SHELL_DESIGN_TOKENS.button.minHeightCompact,
-    padding: "10px 14px",
-  };
 }
 
 const overlayStyle: CSSProperties = {
@@ -772,7 +679,7 @@ const bodyStyle: CSSProperties = {
 const metaGridStyle: CSSProperties = {
   display: "grid",
   gap: "12px",
-  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
 };
 
 const compactMetaGridStyle: CSSProperties = {
@@ -938,12 +845,6 @@ const sectionTitleStyle: CSSProperties = {
   fontSize: "16px",
   fontWeight: 700,
   lineHeight: "22px",
-};
-
-const segmentedRowStyle: CSSProperties = {
-  display: "flex",
-  flexWrap: "wrap",
-  gap: "8px",
 };
 
 const settingsLayoutStyle: CSSProperties = {

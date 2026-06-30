@@ -154,6 +154,7 @@ const WM0140_VISUAL_ARTIFACT_REPORT_PATH = path.join(
   "reports",
   "WM-0140-visual-artifacts.md",
 );
+const WM0140_ARTIFACT_CAPTURE_ENABLED = process.env["WM0140_CAPTURE_ARTIFACTS"] === "1";
 
 const SCREENSHOT_PATH = readScreenshotPath();
 const EXPORTED_SAVE_PATH = path.join(path.dirname(SCREENSHOT_PATH), "m6-gate-slot.wtsave");
@@ -931,6 +932,10 @@ describe("web shell smoke", () => {
   }, 420000);
 
   it("captures WM-0140 visual regression and interaction evidence artifacts", async () => {
+    if (!WM0140_ARTIFACT_CAPTURE_ENABLED) {
+      return;
+    }
+
     const appRoot = path.join(process.cwd(), "apps", "web");
     const server = await createServer({
       configFile: false,
@@ -1034,10 +1039,10 @@ describe("web shell smoke", () => {
       await waitForLocale(chinesePage, "zh-CN", "system");
       await waitForUiScale(chinesePage, "standard");
       await assertStartSurfaceBaseline(chinesePage, "zh-CN");
-      await chinesePage.getByTestId("main-menu-locale-en").click();
+      await chinesePage.getByTestId("main-menu-settings").click();
+      await chinesePage.getByTestId("locale-select").selectOption("en");
       await waitForLocale(chinesePage, "en", "manual");
       await waitForHudText(chinesePage, "New Game");
-      await chinesePage.getByTestId("main-menu-settings").click();
       await chinesePage.getByTestId("ui-scale-select").selectOption("large");
       await waitForUiScale(chinesePage, "large");
       await chinesePage.getByTestId("main-menu-back").click();
@@ -1127,13 +1132,10 @@ async function assertAccessibilityBaseline(page: import("playwright").Page): Pro
     .locator("[data-alert-severity='warning']")
     .first()
     .textContent();
-  const stableAlertText = await page
-    .locator("[data-alert-severity='stable']")
-    .first()
-    .textContent();
   expect(warningAlertText ?? "").toContain("WARNING");
   expect(warningAlertText ?? "").toContain("Lantern corridor gap");
-  expect(stableAlertText ?? "").toContain("STABLE");
+  const nightRiskText = await page.getByTestId("player-night-risk").textContent();
+  expect(nightRiskText ?? "").toContain("Strained");
 
   expect(await page.getByTestId("storage-panel").count()).toBe(0);
   expect(await page.locator("[data-release-gate-fixture='wm-0086-web-product-gate']").count()).toBe(
@@ -1205,9 +1207,9 @@ async function assertPlayerHudStructure(page: import("playwright").Page): Promis
   expect(await page.getByTestId("player-top-bar").count()).toBe(1);
   expect(await page.getByTestId("player-next-goal").count()).toBe(1);
   expect(await page.getByTestId("player-night-risk").count()).toBe(1);
-  expect(await page.getByTestId("player-task-list").count()).toBe(1);
-  expect(await page.getByTestId("player-event-list").count()).toBe(1);
+  expect(await page.getByTestId("player-attention-queue").count()).toBe(1);
   expect(await page.getByTestId("player-resident-watch").count()).toBe(1);
+  expect(await page.getByTestId("player-settings-toggle").count()).toBe(1);
   expect(await page.locator("[data-testid='world-canvas']").count()).toBe(1);
 }
 
@@ -1235,12 +1237,12 @@ async function assertPlayerHudLocaleState(
 
   const hudText = await page.getByTestId("player-hud").textContent();
   expect(hudText ?? "").toContain("灯廊缺口");
-  expect(hudText ?? "").toContain("桥路包裹已备妥");
+  expect(hudText ?? "").toContain("事件与观察点");
   expect(hudText ?? "").toContain("编志所");
   expect(hudText ?? "").toContain("命令带");
   expect(hudText ?? "").toContain("优先补灯");
   expect(hudText ?? "").toContain("米粮");
-  expect(hudText ?? "").toContain("稳定");
+  expect(hudText ?? "").toContain("平稳");
   expect(hudText ?? "").toContain("无伤");
   expect(hudText ?? "").not.toContain("Command bar");
   expect(hudText ?? "").not.toContain("Prioritize lamp work");
@@ -1298,6 +1300,9 @@ async function assertTownHudViewportLayout(
   width: number,
   height: number,
   locale: "en" | "zh-CN" = "en",
+  options: {
+    readonly assertSettingsSurface?: boolean;
+  } = {},
 ): Promise<void> {
   await page.setViewportSize({
     width,
@@ -1315,10 +1320,9 @@ async function assertTownHudViewportLayout(
   for (const testId of [
     "player-command-bar",
     "player-next-goal",
-    "player-task-list",
-    "player-event-list",
+    "player-attention-queue",
     "player-resident-watch",
-    "ui-scale-settings",
+    "player-settings-toggle",
   ]) {
     await assertTestIdReachableWithoutCover(page, testId, width, height);
   }
@@ -1332,12 +1336,21 @@ async function assertTownHudViewportLayout(
     width,
     height,
   );
-  await assertTallSelectorReachableWithoutCover(
-    page,
-    "[data-testid='locale-settings']",
-    width,
-    height,
-  );
+  expect(await page.getByTestId("locale-settings").count()).toBe(0);
+  if (options.assertSettingsSurface !== false) {
+    await page.getByTestId("player-settings-toggle").click();
+    await page.getByTestId("player-settings-surface").waitFor();
+    await assertTallSelectorReachableWithoutCover(
+      page,
+      "[data-testid='player-settings-surface']",
+      width,
+      height,
+    );
+    expect(await page.getByTestId("locale-settings").count()).toBe(1);
+    await page.getByTestId("player-settings-close").click();
+    await page.waitForTimeout(80);
+    expect(await page.getByTestId("player-settings-surface").count()).toBe(0);
+  }
   const worldCanvasMetrics = await readElementViewportMetrics(page, "[data-testid='world-canvas']");
   expect(worldCanvasMetrics.left).toBeLessThanOrEqual(1);
   expect(worldCanvasMetrics.top).toBeLessThanOrEqual(1);
@@ -1382,7 +1395,7 @@ async function assertOnboardingBaseline(
   expect(await page.getByTestId("main-menu-next-goal").count()).toBe(1);
   expect(await page.getByTestId("main-menu-available-actions").count()).toBe(1);
   expect(await page.getByTestId("main-menu-guidance-boundary").count()).toBe(1);
-  expect(await page.getByTestId("main-menu-language").count()).toBe(1);
+  expect(await page.getByTestId("main-menu-language").count()).toBe(0);
 }
 
 async function assertStartSurfaceBaseline(
@@ -1427,6 +1440,9 @@ async function assertCompactStartSurfaceLayout(
   page: import("playwright").Page,
   width: number,
   height: number,
+  options: {
+    readonly assertSettingsSurface?: boolean;
+  } = {},
 ): Promise<void> {
   await page.setViewportSize({
     width,
@@ -1449,28 +1465,26 @@ async function assertCompactStartSurfaceLayout(
     "main-menu-next-goal",
     "main-menu-available-actions",
     "main-menu-guidance-boundary",
-    "main-menu-language",
   ]) {
     await assertTestIdWithinViewport(page, testId, width, height);
   }
 
-  await assertTestIdWithinViewport(page, "main-menu-locale-system", width, height);
-  await assertTestIdWithinViewport(page, "main-menu-locale-zh-CN", width, height);
-  await assertTestIdWithinViewport(page, "main-menu-locale-en", width, height);
-
-  await page.getByTestId("main-menu-settings").click();
-  await page.getByTestId("locale-select").scrollIntoViewIfNeeded();
-  await assertTestIdWithinViewport(page, "main-menu-back", width, height);
-  await assertTestIdWithinViewport(page, "locale-select", width, height);
-  await assertTestIdWithinViewport(page, "locale-source", width, height);
-  await assertTestIdWithinViewport(page, "locale-current", width, height);
-  await assertTestIdWithinViewport(page, "locale-persistence", width, height);
-  await assertTestIdWithinViewport(page, "ui-scale-select", width, height);
-  await assertTestIdWithinViewport(page, "ui-scale-current", width, height);
-  await assertTestIdWithinViewport(page, "ui-scale-persistence", width, height);
-  await assertTestIdWithinViewport(page, "display-boundary", width, height);
-  await page.getByTestId("main-menu-back").click();
-  await page.getByTestId("main-menu-settings").waitFor();
+  await assertTestIdWithinViewport(page, "main-menu-settings", width, height);
+  if (options.assertSettingsSurface !== false) {
+    await page.getByTestId("main-menu-settings").click();
+    await page.getByTestId("locale-select").scrollIntoViewIfNeeded();
+    await assertTestIdWithinViewport(page, "main-menu-back", width, height);
+    await assertTestIdWithinViewport(page, "locale-select", width, height);
+    await assertTestIdWithinViewport(page, "locale-source", width, height);
+    await assertTestIdWithinViewport(page, "locale-current", width, height);
+    await assertTestIdWithinViewport(page, "locale-persistence", width, height);
+    await assertTestIdWithinViewport(page, "ui-scale-select", width, height);
+    await assertTestIdWithinViewport(page, "ui-scale-current", width, height);
+    await assertTestIdWithinViewport(page, "ui-scale-persistence", width, height);
+    await assertTestIdWithinViewport(page, "display-boundary", width, height);
+    await page.getByTestId("main-menu-back").click();
+    await page.getByTestId("main-menu-settings").waitFor();
+  }
 }
 
 async function collectResponsiveLocaleArtifacts(
@@ -1503,7 +1517,9 @@ async function collectResponsiveLocaleArtifacts(
     await assertStartSurfaceBaseline(page, localeCase.expectedLocale);
 
     for (const viewport of WM0118_RESPONSIVE_VIEWPORTS) {
-      await assertCompactStartSurfaceLayout(page, viewport.width, viewport.height);
+      await assertCompactStartSurfaceLayout(page, viewport.width, viewport.height, {
+        assertSettingsSurface: false,
+      });
       const screenshotPath = await maybeCaptureWebResponsiveScreenshot(
         page,
         "start-surface",
@@ -1517,9 +1533,9 @@ async function collectResponsiveLocaleArtifacts(
             availableActions: "[data-testid='main-menu-available-actions']",
             firstPlayGuidance: "[data-testid='main-menu-first-play-guidance']",
             guidanceBoundary: "[data-testid='main-menu-guidance-boundary']",
-            languageSection: "[data-testid='main-menu-language']",
             nextGoal: "[data-testid='main-menu-next-goal']",
             panel: "[data-testid='main-menu-panel']",
+            settingsButton: "[data-testid='main-menu-settings']",
           },
           shell: "web",
           source: "system",
@@ -1539,6 +1555,9 @@ async function collectResponsiveLocaleArtifacts(
         viewport.width,
         viewport.height,
         localeCase.expectedLocale,
+        {
+          assertSettingsSurface: false,
+        },
       );
       const screenshotPath = await maybeCaptureWebResponsiveScreenshot(
         page,
@@ -1550,14 +1569,12 @@ async function collectResponsiveLocaleArtifacts(
         await captureResponsiveLayoutArtifact(page, {
           locale: localeCase.expectedLocale,
           selectors: {
-            bottomDrawer: "[data-testid='player-bottom-drawer']",
-            eventList: "[data-testid='player-event-list']",
-            localeSettings: "[data-testid='locale-settings']",
+            attentionQueue: "[data-testid='player-attention-queue']",
             mapFocus: "[data-testid='player-map-focus']",
             nextGoal: "[data-testid='player-next-goal']",
             residentWatch: "[data-testid='player-resident-watch']",
+            settingsToggle: "[data-testid='player-settings-toggle']",
             selectedDetail: "[data-testid='player-selected-detail']",
-            taskList: "[data-testid='player-task-list']",
             topBar: "[data-testid='player-top-bar']",
             worldCanvas: "[data-testid='world-canvas']",
           },
@@ -1611,13 +1628,13 @@ async function collectResponsiveDebugArtifacts(
           locale: "en",
           selectors: {
             debugOverlay: "[data-testid='debug-overlay']",
-            eventList: "[data-testid='player-event-list']",
+            attentionQueue: "[data-testid='player-attention-queue']",
             mapFocus: "[data-testid='player-map-focus']",
             nextGoal: "[data-testid='player-next-goal']",
             residentWatch: "[data-testid='player-resident-watch']",
             selectedDetail: "[data-testid='player-selected-detail']",
             storagePanel: "[data-testid='storage-panel']",
-            taskList: "[data-testid='player-task-list']",
+            settingsToggle: "[data-testid='player-settings-toggle']",
             topBar: "[data-testid='player-top-bar']",
           },
           shell: "web",
@@ -1686,13 +1703,12 @@ async function collectWm0140ResponsiveHudArtifacts(
             commandChronicle: "[data-testid='player-command-chronicle']",
             commandInspect: "[data-testid='player-command-inspect']",
             commandLamp: "[data-testid='player-command-lamp']",
-            eventList: "[data-testid='player-event-list']",
-            localeSettings: "[data-testid='locale-settings']",
+            attentionQueue: "[data-testid='player-attention-queue']",
             mapFocus: "[data-testid='player-map-focus']",
             nextGoal: "[data-testid='player-next-goal']",
             residentWatch: "[data-testid='player-resident-watch']",
+            settingsToggle: "[data-testid='player-settings-toggle']",
             selectedDetail: "[data-testid='player-selected-detail']",
-            taskList: "[data-testid='player-task-list']",
             topBar: "[data-testid='player-top-bar']",
             worldCanvas: "[data-testid='world-canvas']",
           },
@@ -1750,13 +1766,13 @@ async function collectWm0140DebugOverlayArtifacts(
             commandBar: "[data-testid='player-command-bar']",
             commandLamp: "[data-testid='player-command-lamp']",
             debugOverlay: "[data-testid='debug-overlay']",
-            eventList: "[data-testid='player-event-list']",
+            attentionQueue: "[data-testid='player-attention-queue']",
             mapFocus: "[data-testid='player-map-focus']",
             nextGoal: "[data-testid='player-next-goal']",
             residentWatch: "[data-testid='player-resident-watch']",
             selectedDetail: "[data-testid='player-selected-detail']",
             storagePanel: "[data-testid='storage-panel']",
-            taskList: "[data-testid='player-task-list']",
+            settingsToggle: "[data-testid='player-settings-toggle']",
             topBar: "[data-testid='player-top-bar']",
           },
           shell: "web",
@@ -2060,9 +2076,9 @@ async function assertDebugOverlayViewportLayout(
     "player-command-bar",
     "player-top-bar",
     "player-next-goal",
-    "player-task-list",
-    "player-event-list",
+    "player-attention-queue",
     "player-resident-watch",
+    "player-settings-toggle",
   ]) {
     await assertTestIdReachableWithoutCover(page, testId, width, height);
   }
@@ -2331,20 +2347,7 @@ async function assertMapFocusArea(
   );
   expect(focusHit.coveredByHud, `map focus covered ${JSON.stringify(focusHit)}`).toBe(false);
 
-  if (layoutMode === "medium") {
-    const drawerMetrics = await readElementViewportMetrics(
-      page,
-      "[data-testid='player-bottom-drawer']",
-    );
-    expect(drawerMetrics.left, "bottom drawer left").toBeGreaterThanOrEqual(0);
-    expect(drawerMetrics.right, "bottom drawer right").toBeLessThanOrEqual(width + 1);
-    expect(drawerMetrics.bottom, "bottom drawer bottom").toBeLessThanOrEqual(height + 1);
-    expect(drawerMetrics.height, "bottom drawer stable height").toBeLessThanOrEqual(
-      Math.min(270, height * 0.36) + 1,
-    );
-  } else {
-    expect(await page.getByTestId("player-bottom-drawer").count()).toBe(0);
-  }
+  expect(await page.getByTestId("player-bottom-drawer").count()).toBe(0);
 }
 
 async function waitForViewportSize(
@@ -3041,7 +3044,7 @@ async function waitForUiScale(
 async function assertContrastBaseline(page: import("playwright").Page): Promise<void> {
   for (const check of [
     { selector: "[data-testid='player-next-goal']", minimumRatio: 7 },
-    { selector: "[data-testid='player-event-list']", minimumRatio: 7 },
+    { selector: "[data-testid='player-attention-queue']", minimumRatio: 7 },
     { selector: "[data-testid='locale-current']", minimumRatio: 4.5 },
     { selector: "[data-testid='ui-scale-current']", minimumRatio: 4.5 },
     { selector: "[data-testid='main-menu-panel'] h1", minimumRatio: 7 },

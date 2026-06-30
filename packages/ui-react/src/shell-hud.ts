@@ -8,7 +8,7 @@ import {
 
 import type { TerrainKind, TileCoordinate, WorldEntityReadModel } from "@wuming-town/sim-protocol";
 
-import { formatMessage, type LocaleId, type MessageKey } from "./localization";
+import { formatMessage, type LocaleId } from "./localization";
 import {
   SHELL_DESIGN_TOKENS,
   createCommandButtonStyle,
@@ -35,12 +35,6 @@ type HudLayoutMode = "compact" | "desktop" | "medium";
 type NeedState = WorldEntityReadModel["inspector"]["needs"][number]["state"];
 type NightRiskTier = ShellNightRiskTier;
 
-const FIRST_PLAY_HUD_GUIDANCE_KEYS = [
-  "ui.hud.firstPlay.select",
-  "ui.hud.firstPlay.camera",
-  "ui.hud.firstPlay.command",
-] as const satisfies readonly MessageKey[];
-
 export interface ShellHudRootProps {
   readonly commandActions: ShellCommandActions;
   readonly settingsActions: ShellSettingsActions;
@@ -66,6 +60,17 @@ interface PlayerHudModel {
   readonly taskEntities: readonly WorldEntityReadModel[];
 }
 
+interface HudCommandSpec {
+  readonly commandState: "needs-selection" | "placeholder" | "queued" | "ready";
+  readonly description: string;
+  readonly disabled: boolean;
+  readonly targetEntityId?: string;
+  readonly testId: string;
+  readonly title: string;
+  readonly tone: "primary" | "secondary";
+  readonly visualState: "active" | "default" | "disabled";
+}
+
 export function createShellHudElement(
   store: ShellStore,
   storageActions: ShellStorageActions,
@@ -87,6 +92,7 @@ export function ShellHudRoot({
   storageActions,
 }: ShellHudRootProps): ReactElement {
   const [startSurfaceDismissed, setStartSurfaceDismissed] = useState(false);
+  const [settingsVisible, setSettingsVisible] = useState(false);
   const state = useSyncExternalStore(
     (listener) => store.subscribe(listener),
     () => store.getSnapshot(),
@@ -139,6 +145,7 @@ export function ShellHudRoot({
   }
 
   const playerHud = createPlayerHudModel(state, selectedEntity, uiLocale);
+  const commandSpecs = readCommandSpecs(state, selectedEntity, uiLocale);
 
   return createElement(
     "div",
@@ -166,34 +173,21 @@ export function ShellHudRoot({
           key: "player-hud",
           style: hudLayerStyle,
         },
-        createTopBar(state, playerHud, uiLocale, hudLayoutMode),
+        createTopBar(state, playerHud, uiLocale, hudLayoutMode, settingsVisible, () => {
+          setSettingsVisible((current) => !current);
+        }),
         createAlertStrip(state, uiLocale, hudLayoutMode),
         hudLayoutMode === "desktop"
-          ? createDesktopHudBody(
-              state,
-              playerHud,
-              selectedEntity,
-              uiLocale,
-              settingsActions,
-              commandActions,
-            )
+          ? createDesktopHudBody(state, playerHud, selectedEntity, uiLocale, commandSpecs)
           : hudLayoutMode === "medium"
-            ? createMediumHudBody(
-                state,
-                playerHud,
-                selectedEntity,
-                uiLocale,
-                settingsActions,
-                commandActions,
-              )
-            : createCompactHudBody(
-                state,
-                playerHud,
-                selectedEntity,
-                uiLocale,
-                settingsActions,
-                commandActions,
-              ),
+            ? createMediumHudBody(state, playerHud, selectedEntity, uiLocale, commandSpecs)
+            : createCompactHudBody(state, playerHud, selectedEntity, uiLocale, commandSpecs),
+        createCommandBar(state, commandSpecs, uiLocale, commandActions, hudLayoutMode),
+        settingsVisible
+          ? createSettingsSurface(state, uiLocale, hudLayoutMode, settingsActions, () => {
+              setSettingsVisible(false);
+            })
+          : null,
         state.diagnosticsVisible ? createDebugOverlay(state, storageActions, hudLayoutMode) : null,
       ),
     ),
@@ -205,6 +199,8 @@ function createTopBar(
   playerHud: PlayerHudModel,
   locale: LocaleId,
   layoutMode: HudLayoutMode,
+  settingsVisible: boolean,
+  onToggleSettings: () => void,
 ): ReactElement {
   if (layoutMode === "compact") {
     return createElement(
@@ -216,6 +212,7 @@ function createTopBar(
         style: compactTopBarStyle,
       },
       createIdentityCard(state, locale, playerHud, true),
+      createSecondaryToolbar(locale, settingsVisible, onToggleSettings),
     );
   }
 
@@ -236,6 +233,7 @@ function createTopBar(
         },
         createNightRiskBadge(playerHud.nightRisk.tier, locale, false),
         createResourceStrip(state, locale),
+        createSecondaryToolbar(locale, settingsVisible, onToggleSettings),
       ),
     );
   }
@@ -256,6 +254,7 @@ function createTopBar(
       },
       createNightRiskBadge(playerHud.nightRisk.tier, locale, false),
       createResourceStrip(state, locale),
+      createSecondaryToolbar(locale, settingsVisible, onToggleSettings),
     ),
   );
 }
@@ -319,8 +318,7 @@ function createDesktopHudBody(
   playerHud: PlayerHudModel,
   selectedEntity: ReturnType<typeof getSelectedEntity>,
   locale: LocaleId,
-  settingsActions: ShellSettingsActions,
-  commandActions: ShellCommandActions,
+  commandSpecs: readonly HudCommandSpec[],
 ): ReactElement {
   return createElement(
     "div",
@@ -328,16 +326,13 @@ function createDesktopHudBody(
       style: desktopHudBodyStyle,
     },
     createElement(
-      "div",
+      "aside",
       {
+        "data-testid": "player-objective-rail",
         style: desktopHudColumnStyle,
       },
-      createCurrentStateCard(state, playerHud.phaseMeaning, locale),
-      createNextGoalCard(playerHud, locale),
-      createFirstPlayHudGuidance(locale),
-      createCommandBar(state, selectedEntity, locale, commandActions),
-      createTaskCard(playerHud.taskEntities, locale),
-      createEventCard(state, locale),
+      createObjectiveCard(state, playerHud, selectedEntity, commandSpecs, locale),
+      createAttentionQueue(state, playerHud.taskEntities, locale),
     ),
     createElement("div", {
       "data-testid": "player-map-focus",
@@ -353,11 +348,6 @@ function createDesktopHudBody(
       },
       createInspectorCard(state, selectedEntity, locale, false),
       createResidentAttentionCard(playerHud.residentItems, locale),
-      createElement(ShellSettingsPanel, {
-        actions: settingsActions,
-        localeState: state.locale,
-        uiScaleState: state.uiScale,
-      }),
     ),
   );
 }
@@ -367,8 +357,7 @@ function createMediumHudBody(
   playerHud: PlayerHudModel,
   selectedEntity: ReturnType<typeof getSelectedEntity>,
   locale: LocaleId,
-  settingsActions: ShellSettingsActions,
-  commandActions: ShellCommandActions,
+  commandSpecs: readonly HudCommandSpec[],
 ): ReactElement {
   return createElement(
     "div",
@@ -386,27 +375,11 @@ function createMediumHudBody(
         "aria-label": formatMessage(locale, "ui.inspector.aria"),
         "data-inspected-tile": formatTileCoordinate(state.inspectedTile),
         "data-selected-entity": selectedEntity?.entityId ?? "",
-        style: mediumInspectorColumnStyle,
+        style: mediumSideRailStyle,
       },
+      createObjectiveCard(state, playerHud, selectedEntity, commandSpecs, locale),
       createInspectorCard(state, selectedEntity, locale, true),
-      createElement(ShellSettingsPanel, {
-        actions: settingsActions,
-        localeState: state.locale,
-        uiScaleState: state.uiScale,
-      }),
-    ),
-    createElement(
-      "div",
-      {
-        "data-testid": "player-bottom-drawer",
-        style: mediumHudDrawerStyle,
-      },
-      createCurrentStateCard(state, playerHud.phaseMeaning, locale),
-      createNextGoalCard(playerHud, locale),
-      createFirstPlayHudGuidance(locale),
-      createCommandBar(state, selectedEntity, locale, commandActions),
-      createTaskCard(playerHud.taskEntities, locale),
-      createEventCard(state, locale),
+      createAttentionQueue(state, playerHud.taskEntities, locale),
       createResidentAttentionCard(playerHud.residentItems, locale),
     ),
   );
@@ -417,8 +390,7 @@ function createCompactHudBody(
   playerHud: PlayerHudModel,
   selectedEntity: ReturnType<typeof getSelectedEntity>,
   locale: LocaleId,
-  settingsActions: ShellSettingsActions,
-  commandActions: ShellCommandActions,
+  commandSpecs: readonly HudCommandSpec[],
 ): ReactElement {
   return createElement(
     "div",
@@ -426,13 +398,9 @@ function createCompactHudBody(
       style: compactHudBodyStyle,
     },
     createNightRiskBadge(playerHud.nightRisk.tier, locale, true),
-    createCurrentStateCard(state, playerHud.phaseMeaning, locale),
     createResourceSummaryCard(state, locale),
-    createNextGoalCard(playerHud, locale),
-    createFirstPlayHudGuidance(locale),
-    createCommandBar(state, selectedEntity, locale, commandActions),
-    createTaskCard(playerHud.taskEntities, locale),
-    createEventCard(state, locale),
+    createObjectiveCard(state, playerHud, selectedEntity, commandSpecs, locale),
+    createAttentionQueue(state, playerHud.taskEntities, locale),
     createResidentAttentionCard(playerHud.residentItems, locale),
     createElement(
       "aside",
@@ -444,11 +412,6 @@ function createCompactHudBody(
       },
       createInspectorCard(state, selectedEntity, locale, true),
     ),
-    createElement(ShellSettingsPanel, {
-      actions: settingsActions,
-      localeState: state.locale,
-      uiScaleState: state.uiScale,
-    }),
   );
 }
 
@@ -515,40 +478,13 @@ function createResourceSummaryCard(state: ShellState, locale: LocaleId): ReactEl
   );
 }
 
-function createCurrentStateCard(
+function createObjectiveCard(
   state: ShellState,
-  phaseMeaning: string,
+  model: PlayerHudModel,
+  selectedEntity: ReturnType<typeof getSelectedEntity>,
+  commandSpecs: readonly HudCommandSpec[],
   locale: LocaleId,
 ): ReactElement {
-  return createElement(
-    "section",
-    {
-      "data-ui-slot": SHELL_DESIGN_TOKENS.slot.panelPaper,
-      style: paperCardStyle,
-    },
-    createSectionHeader(formatMessage(locale, "ui.hud.currentState"), phaseMeaning),
-    createDefinitionStack([
-      {
-        label: formatMessage(locale, "ui.hud.phase"),
-        value: localizeShellFixtureText(locale, state.readModel.town.phaseLabel),
-      },
-      {
-        label: formatMessage(locale, "ui.hud.cycle"),
-        value: localizeShellFixtureText(locale, state.readModel.town.cycleLabel),
-      },
-      {
-        label: formatMessage(locale, "ui.hud.speed"),
-        value: localizeShellFixtureText(locale, state.readModel.town.speedLabel),
-      },
-      {
-        label: formatMessage(locale, "ui.hud.map"),
-        value: localizeShellFixtureText(locale, state.readModel.mapName),
-      },
-    ]),
-  );
-}
-
-function createNextGoalCard(model: PlayerHudModel, locale: LocaleId): ReactElement {
   const nextGoal = model.nextGoal;
   const title =
     nextGoal === undefined
@@ -559,12 +495,17 @@ function createNextGoalCard(model: PlayerHudModel, locale: LocaleId): ReactEleme
       ? formatMessage(locale, "ui.hud.nextGoal.noneDetail")
       : localizeShellFixtureText(locale, nextGoal.detail);
   const severity = nextGoal?.severity ?? "stable";
+  const primaryCommand = commandSpecs[0];
+  const selectedTargetLabel =
+    selectedEntity === undefined
+      ? formatMessage(locale, "ui.inspector.noSelection.title")
+      : localizeShellFixtureText(locale, selectedEntity.displayName);
 
   return createElement(
     "section",
     {
-      "data-ui-slot": SHELL_DESIGN_TOKENS.slot.panelPaper,
       "data-testid": "player-next-goal",
+      "data-ui-slot": SHELL_DESIGN_TOKENS.slot.panelPaper,
       style: paperCardStyle,
     },
     createSectionHeader(
@@ -589,6 +530,79 @@ function createNextGoalCard(model: PlayerHudModel, locale: LocaleId): ReactEleme
     createElement(
       "div",
       {
+        style: objectiveSummaryStyle,
+      },
+      createObjectiveSummarySlip(formatMessage(locale, "ui.hud.phase"), model.phaseMeaning, false),
+      createObjectiveSummarySlip(
+        formatMessage(locale, "ui.hud.cycle"),
+        localizeShellFixtureText(locale, state.readModel.town.cycleLabel),
+        false,
+      ),
+      createObjectiveSummarySlip(
+        formatMessage(locale, "ui.hud.nightRisk"),
+        formatNightRisk(model.nightRisk.tier, locale),
+        true,
+      ),
+    ),
+    createElement(
+      "div",
+      {
+        style: stackSectionStyle,
+      },
+      createElement(
+        "div",
+        {
+          style: sectionEyebrowStyle,
+        },
+        formatMessage(locale, "ui.mainMenu.firstPlay.actions"),
+      ),
+      createElement(
+        "div",
+        {
+          style: objectiveActionStyle(primaryCommand?.visualState ?? "disabled"),
+        },
+        createElement(
+          "div",
+          {
+            style: rowHeaderStyle,
+          },
+          createElement(
+            "div",
+            {
+              style: rowTitleStyle,
+            },
+            primaryCommand?.title ?? formatMessage(locale, "ui.hud.command.lamp"),
+          ),
+          createElement(
+            "div",
+            {
+              style:
+                primaryCommand === undefined
+                  ? sectionHintStyle
+                  : severityBadgeStyle(
+                      primaryCommand.visualState === "active"
+                        ? "stable"
+                        : primaryCommand.disabled
+                          ? "warning"
+                          : "stable",
+                    ),
+            },
+            selectedTargetLabel,
+          ),
+        ),
+        createElement(
+          "p",
+          {
+            style: bodyTextStyle,
+          },
+          primaryCommand?.description ??
+            formatMessage(locale, "ui.hud.command.playable.lamp.needsSelection"),
+        ),
+      ),
+    ),
+    createElement(
+      "div",
+      {
         style: reasonListStyle,
       },
       ...model.nightRisk.reasons.map((reason) =>
@@ -605,50 +619,44 @@ function createNextGoalCard(model: PlayerHudModel, locale: LocaleId): ReactEleme
   );
 }
 
-function createFirstPlayHudGuidance(locale: LocaleId): ReactElement {
+function createObjectiveSummarySlip(label: string, value: string, inverse: boolean): ReactElement {
   return createElement(
-    "section",
+    "div",
     {
-      "data-testid": "player-first-play-guidance",
-      "data-ui-slot": SHELL_DESIGN_TOKENS.slot.panelPaper,
-      style: paperCardStyle,
+      style: objectiveSummarySlipStyle,
     },
-    createSectionHeader(
-      formatMessage(locale, "ui.hud.firstPlay.title"),
-      formatMessage(locale, "ui.hud.firstPlay.hint"),
+    createElement(
+      "div",
+      {
+        style: inverse ? sectionEyebrowInverseStyle : sectionEyebrowStyle,
+      },
+      label,
     ),
     createElement(
-      "ul",
+      "div",
       {
-        style: bulletListStyle,
+        style: inverse ? rowValueStyle : pairValueStyle,
       },
-      ...FIRST_PLAY_HUD_GUIDANCE_KEYS.map((key) =>
-        createElement(
-          "li",
-          {
-            key,
-            style: bulletItemStyle,
-          },
-          formatMessage(locale, key),
-        ),
-      ),
+      value,
     ),
   );
 }
 
-function createTaskCard(
+function createAttentionQueue(
+  state: ShellState,
   taskEntities: readonly WorldEntityReadModel[],
   locale: LocaleId,
 ): ReactElement {
+  const alerts = state.readModel.town.alerts.slice(0, 2);
   return createElement(
     "section",
     {
       "data-ui-slot": SHELL_DESIGN_TOKENS.slot.panelToolbar,
-      "data-testid": "player-task-list",
+      "data-testid": "player-attention-queue",
       style: inkCardStyle,
     },
     createSectionHeader(
-      formatMessage(locale, "ui.hud.tasks"),
+      formatMessage(locale, "ui.hud.events"),
       formatMessage(locale, "ui.hud.tasksHint"),
       "neutral",
       true,
@@ -658,7 +666,46 @@ function createTaskCard(
       {
         style: rowStackStyle,
       },
-      ...taskEntities.map((entity) =>
+      ...alerts.map((alert) =>
+        createElement(
+          "div",
+          {
+            "aria-label": `${formatAlertSeverity(alert.severity, locale)}: ${localizeShellFixtureText(locale, alert.label)}. ${localizeShellFixtureText(locale, alert.detail)}`,
+            "data-alert-severity": alert.severity,
+            "data-ui-slot": SHELL_DESIGN_TOKENS.slot.panelAlert,
+            key: `${alert.severity}:${alert.label}:attention`,
+            style: alertRowStyle(alert.severity),
+          },
+          createElement(
+            "div",
+            {
+              style: rowHeaderStyle,
+            },
+            createElement(
+              "div",
+              {
+                style: rowTitleStyle,
+              },
+              localizeShellFixtureText(locale, alert.label),
+            ),
+            createElement(
+              "div",
+              {
+                style: severityBadgeStyle(alert.severity),
+              },
+              formatAlertSeverity(alert.severity, locale).toUpperCase(),
+            ),
+          ),
+          createElement(
+            "div",
+            {
+              style: rowValueStyle,
+            },
+            localizeShellFixtureText(locale, alert.detail),
+          ),
+        ),
+      ),
+      ...taskEntities.slice(0, 2).map((entity) =>
         createElement(
           "div",
           {
@@ -698,68 +745,6 @@ function createTaskCard(
               style: mutedInverseTextStyle,
             },
             localizeShellFixtureText(locale, entity.inspector.currentStep),
-          ),
-        ),
-      ),
-    ),
-  );
-}
-
-function createEventCard(state: ShellState, locale: LocaleId): ReactElement {
-  return createElement(
-    "section",
-    {
-      "data-ui-slot": SHELL_DESIGN_TOKENS.slot.panelToolbar,
-      "data-testid": "player-event-list",
-      style: inkCardStyle,
-    },
-    createSectionHeader(
-      formatMessage(locale, "ui.hud.events"),
-      formatMessage(locale, "ui.hud.eventsHint"),
-      "neutral",
-      true,
-    ),
-    createElement(
-      "div",
-      {
-        style: rowStackStyle,
-      },
-      ...state.readModel.town.alerts.map((alert) =>
-        createElement(
-          "div",
-          {
-            "aria-label": `${formatAlertSeverity(alert.severity, locale)}: ${localizeShellFixtureText(locale, alert.label)}. ${localizeShellFixtureText(locale, alert.detail)}`,
-            "data-alert-severity": alert.severity,
-            "data-ui-slot": SHELL_DESIGN_TOKENS.slot.panelAlert,
-            key: `${alert.severity}:${alert.label}`,
-            style: alertRowStyle(alert.severity),
-          },
-          createElement(
-            "div",
-            {
-              style: rowHeaderStyle,
-            },
-            createElement(
-              "div",
-              {
-                style: rowTitleStyle,
-              },
-              localizeShellFixtureText(locale, alert.label),
-            ),
-            createElement(
-              "div",
-              {
-                style: severityBadgeStyle(alert.severity),
-              },
-              formatAlertSeverity(alert.severity, locale).toUpperCase(),
-            ),
-          ),
-          createElement(
-            "div",
-            {
-              style: mutedInverseTextStyle,
-            },
-            localizeShellFixtureText(locale, alert.detail),
           ),
         ),
       ),
@@ -1394,20 +1379,100 @@ function createSectionHeader(
   );
 }
 
+function createSecondaryToolbar(
+  locale: LocaleId,
+  settingsVisible: boolean,
+  onToggleSettings: () => void,
+): ReactElement {
+  return createElement(
+    "div",
+    {
+      style: secondaryToolbarStyle,
+    },
+    createElement(
+      "button",
+      {
+        "aria-expanded": settingsVisible ? "true" : "false",
+        "data-testid": "player-settings-toggle",
+        "data-ui-slot": settingsVisible
+          ? SHELL_DESIGN_TOKENS.slot.buttonSecondaryActive
+          : SHELL_DESIGN_TOKENS.slot.buttonSecondaryDefault,
+        onClick: onToggleSettings,
+        style: secondaryToolbarButtonStyle(settingsVisible),
+        type: "button",
+      },
+      settingsVisible
+        ? formatMessage(locale, "ui.mainMenu.action.back")
+        : formatMessage(locale, "ui.settings.title"),
+    ),
+  );
+}
+
+function createSettingsSurface(
+  state: ShellState,
+  locale: LocaleId,
+  layoutMode: HudLayoutMode,
+  settingsActions: ShellSettingsActions,
+  onClose: () => void,
+): ReactElement {
+  return createElement(
+    "aside",
+    {
+      "aria-label": formatMessage(locale, "ui.settings.aria"),
+      "data-testid": "player-settings-surface",
+      style:
+        layoutMode === "compact"
+          ? compactSettingsSurfaceStyle
+          : layoutMode === "medium"
+            ? mediumSettingsSurfaceStyle
+            : settingsSurfaceStyle,
+    },
+    createElement(
+      "div",
+      {
+        style: secondarySurfaceHeaderStyle,
+      },
+      createElement(
+        "div",
+        {
+          style: sectionTitleStyle,
+        },
+        formatMessage(locale, "ui.settings.title"),
+      ),
+      createElement(
+        "button",
+        {
+          "data-testid": "player-settings-close",
+          "data-ui-slot": SHELL_DESIGN_TOKENS.slot.buttonSecondaryDefault,
+          onClick: onClose,
+          style: secondaryToolbarButtonStyle(false),
+          type: "button",
+        },
+        formatMessage(locale, "ui.mainMenu.action.back"),
+      ),
+    ),
+    createElement(ShellSettingsPanel, {
+      actions: settingsActions,
+      localeState: state.locale,
+      uiScaleState: state.uiScale,
+    }),
+  );
+}
+
 function createCommandBar(
   state: ShellState,
-  selectedEntity: ReturnType<typeof getSelectedEntity>,
+  commandSpecs: readonly HudCommandSpec[],
   locale: LocaleId,
   commandActions: ShellCommandActions,
+  layoutMode: HudLayoutMode,
 ): ReactElement {
-  const commandSpecs = readCommandSpecs(state, selectedEntity, locale);
   return createElement(
     "section",
     {
       "aria-label": formatMessage(locale, "ui.hud.commandBar"),
       "data-testid": "player-command-bar",
       "data-ui-slot": SHELL_DESIGN_TOKENS.slot.commandBar,
-      style: commandBarStyle,
+      style: layoutMode === "compact" ? compactCommandBarStyle : commandBarStyle,
     },
     createElement(
       "div",
@@ -1480,16 +1545,7 @@ function readCommandSpecs(
   state: ShellState,
   selectedEntity: ReturnType<typeof getSelectedEntity>,
   locale: LocaleId,
-): readonly {
-  readonly commandState: "needs-selection" | "placeholder" | "queued" | "ready";
-  readonly description: string;
-  readonly disabled: boolean;
-  readonly targetEntityId?: string;
-  readonly testId: string;
-  readonly title: string;
-  readonly tone: "primary" | "secondary";
-  readonly visualState: "active" | "default" | "disabled";
-}[] {
+): readonly HudCommandSpec[] {
   const selectedTargetLabel =
     selectedEntity === undefined
       ? ""
@@ -1635,43 +1691,6 @@ function readCommandButtonSlot(
     : state === "default"
       ? SHELL_DESIGN_TOKENS.slot.buttonSecondaryDefault
       : SHELL_DESIGN_TOKENS.slot.buttonSecondaryDisabled;
-}
-
-function createDefinitionStack(
-  items: readonly {
-    readonly label: string;
-    readonly value: string;
-  }[],
-): ReactElement {
-  return createElement(
-    "div",
-    {
-      style: definitionStackStyle,
-    },
-    ...items.map((item) =>
-      createElement(
-        "div",
-        {
-          key: item.label,
-          style: definitionRowStyle,
-        },
-        createElement(
-          "div",
-          {
-            style: sectionEyebrowStyle,
-          },
-          item.label,
-        ),
-        createElement(
-          "div",
-          {
-            style: definitionValueStyle,
-          },
-          item.value,
-        ),
-      ),
-    ),
-  );
 }
 
 function createPlayerHudModel(
@@ -2005,7 +2024,7 @@ const hudLayerStyle: CSSProperties = {
   boxSizing: "border-box",
   display: "grid",
   gap: SHELL_DESIGN_TOKENS.space.md,
-  gridTemplateRows: "auto auto minmax(0, 1fr)",
+  gridTemplateRows: "auto auto minmax(0, 1fr) auto",
   height: "100%",
   inset: 0,
   minHeight: 0,
@@ -2101,7 +2120,6 @@ const mediumHudBodyStyle: CSSProperties = {
   display: "grid",
   gap: SHELL_DESIGN_TOKENS.space.md,
   gridTemplateColumns: "minmax(0, 1fr) minmax(296px, 336px)",
-  gridTemplateRows: "minmax(160px, 1fr) minmax(176px, min(32vh, 260px))",
   height: "100%",
   minHeight: 0,
   overflow: "hidden",
@@ -2116,27 +2134,12 @@ const mediumMapFocusStyle: CSSProperties = {
   pointerEvents: "none",
 };
 
-const mediumInspectorColumnStyle: CSSProperties = {
+const mediumSideRailStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
   gap: SHELL_DESIGN_TOKENS.space.md,
   gridColumn: "2",
-  gridRow: "1 / span 2",
   minHeight: 0,
-  overflowY: "auto",
-  paddingRight: SHELL_DESIGN_TOKENS.space.xs,
-  pointerEvents: "auto",
-  scrollbarGutter: "stable",
-};
-
-const mediumHudDrawerStyle: CSSProperties = {
-  display: "grid",
-  gap: SHELL_DESIGN_TOKENS.space.md,
-  gridColumn: "1",
-  gridRow: "2",
-  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-  minHeight: 0,
-  overflowX: "hidden",
   overflowY: "auto",
   paddingRight: SHELL_DESIGN_TOKENS.space.xs,
   pointerEvents: "auto",
@@ -2148,8 +2151,6 @@ const compactHudBodyStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
   gap: SHELL_DESIGN_TOKENS.space.md,
-  height: "calc(100vh - 380px)",
-  maxHeight: "calc(100vh - 380px)",
   minHeight: 0,
   overflowX: "hidden",
   overflowY: "auto",
@@ -2168,6 +2169,32 @@ const compactInspectorPanelStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
   gap: SHELL_DESIGN_TOKENS.space.md,
+};
+
+const settingsSurfaceStyle: CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: SHELL_DESIGN_TOKENS.space.sm,
+  pointerEvents: "auto",
+  position: "absolute",
+  right: SHELL_DESIGN_TOKENS.space.lg,
+  top: "88px",
+  width: "min(340px, calc(100% - 32px))",
+  zIndex: 5,
+};
+
+const mediumSettingsSurfaceStyle: CSSProperties = {
+  ...settingsSurfaceStyle,
+  right: "16px",
+  top: "104px",
+};
+
+const compactSettingsSurfaceStyle: CSSProperties = {
+  ...settingsSurfaceStyle,
+  left: "16px",
+  right: "16px",
+  top: "136px",
+  width: "auto",
 };
 
 const identityCardStyle: CSSProperties = {
@@ -2398,23 +2425,6 @@ const inlineReasonStyle: CSSProperties = {
   padding: "6px 10px",
 };
 
-const definitionStackStyle: CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  gap: SHELL_DESIGN_TOKENS.space.sm,
-};
-
-const definitionRowStyle: CSSProperties = createHairlineRuleStyle("rgba(126, 111, 85, 0.2)");
-
-const definitionValueStyle: CSSProperties = {
-  color: "var(--shell-color-text-primary)",
-  fontFamily: SHELL_DESIGN_TOKENS.font.familyUi,
-  fontSize: SHELL_DESIGN_TOKENS.font.body,
-  fontWeight: 600,
-  lineHeight: "18px",
-  overflowWrap: "anywhere",
-};
-
 const pairGridStyle: CSSProperties = {
   display: "grid",
   gap: SHELL_DESIGN_TOKENS.space.sm,
@@ -2451,6 +2461,41 @@ const stackSectionStyle: CSSProperties = {
   flexDirection: "column",
   gap: SHELL_DESIGN_TOKENS.space.sm,
 };
+
+const objectiveSummaryStyle: CSSProperties = {
+  display: "grid",
+  gap: SHELL_DESIGN_TOKENS.space.sm,
+  gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+};
+
+const objectiveSummarySlipStyle: CSSProperties = {
+  ...createShellSurfaceStyle("agedPaper", {
+    gap: SHELL_DESIGN_TOKENS.space.xs,
+    minHeight: "68px",
+    padding: `${SHELL_DESIGN_TOKENS.space.sm} ${SHELL_DESIGN_TOKENS.space.md}`,
+    radius: SHELL_DESIGN_TOKENS.radius.panel,
+  }),
+  boxShadow:
+    "inset 0 1px 0 rgba(255, 249, 235, 0.38), inset 2px 0 0 rgba(126, 111, 85, 0.3), 0 4px 10px rgba(0, 0, 0, 0.08)",
+};
+
+function objectiveActionStyle(state: HudCommandSpec["visualState"]): CSSProperties {
+  const accent =
+    state === "active"
+      ? "rgba(47, 111, 78, 0.42)"
+      : state === "disabled"
+        ? "rgba(181, 122, 34, 0.38)"
+        : "rgba(217, 150, 58, 0.42)";
+  return {
+    background: "rgba(106, 74, 47, 0.08)",
+    border: `1px solid ${accent}`,
+    borderRadius: SHELL_DESIGN_TOKENS.radius.panel,
+    display: "flex",
+    flexDirection: "column",
+    gap: SHELL_DESIGN_TOKENS.space.xs,
+    padding: `${SHELL_DESIGN_TOKENS.space.sm} ${SHELL_DESIGN_TOKENS.space.md}`,
+  };
+}
 
 const needStackStyle: CSSProperties = {
   display: "flex",
@@ -2516,9 +2561,9 @@ const debugOverlayStyle: CSSProperties = {
     padding: `${SHELL_DESIGN_TOKENS.space.md} ${SHELL_DESIGN_TOKENS.space.lg}`,
     radius: SHELL_DESIGN_TOKENS.radius.slip,
   }),
-  bottom: "16px",
+  bottom: "156px",
   left: "352px",
-  maxHeight: "min(360px, calc(100% - 32px))",
+  maxHeight: "min(320px, calc(100% - 188px))",
   overflowY: "auto",
   pointerEvents: "auto",
   position: "absolute",
@@ -2584,6 +2629,11 @@ const commandBarStyle: CSSProperties = {
   pointerEvents: "auto",
 };
 
+const compactCommandBarStyle: CSSProperties = {
+  ...commandBarStyle,
+  marginBottom: SHELL_DESIGN_TOKENS.space.xs,
+};
+
 const commandBarGroupStyle: CSSProperties = {
   display: "grid",
   gap: SHELL_DESIGN_TOKENS.space.sm,
@@ -2625,6 +2675,30 @@ const actionFeedbackMetaStyle: CSSProperties = {
   fontSize: "11px",
   lineHeight: "15px",
   overflowWrap: "anywhere",
+};
+
+const secondaryToolbarStyle: CSSProperties = {
+  alignItems: "flex-end",
+  display: "flex",
+  justifyContent: "flex-end",
+  width: "100%",
+};
+
+function secondaryToolbarButtonStyle(active: boolean): CSSProperties {
+  return {
+    ...createCommandButtonStyle("secondary", active ? "active" : "default"),
+    alignItems: "center",
+    minHeight: SHELL_DESIGN_TOKENS.button.minHeightCompact,
+    padding: `10px ${SHELL_DESIGN_TOKENS.space.md}`,
+    width: "auto",
+  };
+}
+
+const secondarySurfaceHeaderStyle: CSSProperties = {
+  alignItems: "center",
+  display: "flex",
+  gap: SHELL_DESIGN_TOKENS.space.sm,
+  justifyContent: "space-between",
 };
 
 function trendBadgeStyle(

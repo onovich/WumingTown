@@ -2,7 +2,7 @@
   "id": "WM-0147",
   "title": "Player HUD information hierarchy simplification",
   "summary": "Rework the default HUD hierarchy so the map, current objective, available actions, and selected-object inspector are readable without diagnostics/status-board overload.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -36,7 +36,7 @@
   ],
   "branch": "task/WM-0147-player-hud-information-hierarchy-simplification",
   "createdAt": "2026-06-29T18:59:47.335Z",
-  "updatedAt": "2026-06-30T04:07:55.089Z",
+  "updatedAt": "2026-06-30T05:58:06.024Z",
   "history": [
     {
       "at": "2026-06-29T18:59:47.335Z",
@@ -49,6 +49,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-30T04:14:55.849Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": "thread=Canvas"
+    },
+    {
+      "at": "2026-06-30T05:41:44.963Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Simplified default player HUD hierarchy; moved settings and locale/system preferences behind secondary surfaces; kept command bar and inspector readable; fixed explicit diagnostics overlay not to cover player commands; required checks pass including web-shell e2e wrapper and quality."
+    },
+    {
+      "at": "2026-06-30T05:46:55.765Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; HUD hierarchy is map/objective/action first, settings and diagnostics are behind explicit secondary surfaces, command bar and inspector preserve disabled reasons, en/zh-CN responsive coverage is recorded for required viewports, diagnostics overlay reachability is covered, scope stays UI/Web only, and later pawn/build authority work remains correctly deferred."
+    },
+    {
+      "at": "2026-06-30T05:57:59.172Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Rebased on main 1cbf80f; full integration gate passed: typecheck, HUD unit, web-shell e2e, validate-handoff, taskctl validate/status, git diff --check, and pnpm quality."
+    },
+    {
+      "at": "2026-06-30T05:58:06.023Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "Post-M8",
@@ -64,5 +94,20 @@
     "Simulation Worker protocol changes",
     "sim-core runtime changes",
     "public release/EA/store/signing/telemetry/accounts/paid-services/public-save actions"
-  ]
+  ],
+  "claimedBy": "client-engineer",
+  "threadLabel": "Canvas",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0147.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; HUD hierarchy is map/objective/action first, settings and diagnostics are behind explicit secondary surfaces, command bar and inspector preserve disabled reasons, en/zh-CN responsive coverage is recorded for required viewports, diagnostics overlay reachability is covered, scope stays UI/Web only, and later pawn/build authority work remains correctly deferred.",
+    "at": "2026-06-30T05:46:55.764Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Rebased on main 1cbf80f; full integration gate passed: typecheck, HUD unit, web-shell e2e, validate-handoff, taskctl validate/status, git diff --check, and pnpm quality.",
+    "at": "2026-06-30T05:57:59.172Z"
+  }
 }

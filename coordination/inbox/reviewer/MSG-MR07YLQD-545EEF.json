@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MR07YLQD-545EEF",
+  "from": "client-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0147",
+  "kind": "review-request",
+  "subject": "WM-0147 ready for review",
+  "body": "Simplified default player HUD hierarchy; moved settings and locale/system preferences behind secondary surfaces; kept command bar and inspector readable; fixed explicit diagnostics overlay not to cover player commands; required checks pass including web-shell e2e wrapper and quality.",
+  "artifacts": [
+    "coordination/reports/WM-0147.md",
+    "task/WM-0147-player-hud-information-hierarchy-simplification"
+  ],
+  "createdAt": "2026-06-30T05:41:44.965Z",
+  "acknowledgedAt": "2026-06-30T05:42:29.710Z"
+}

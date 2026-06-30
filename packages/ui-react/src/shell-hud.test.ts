@@ -158,15 +158,12 @@ describe("shell-hud", () => {
     expect(markup).toContain("New Game");
     expect(markup).toContain("Continue");
     expect(markup).toContain("Settings");
-    expect(markup).toContain("Presentation language");
-    expect(markup).toContain("UI scale");
     expect(markup).toContain("Current phase");
     expect(markup).toContain("First-play guidance");
     expect(markup).toContain("Available actions");
     expect(markup).toContain("Next goal");
     expect(markup).toContain("Lantern gap");
     expect(markup).toContain("resident, structure, lantern post, visitor, or map tile");
-    expect(markup).toContain("drag the map to pan");
     expect(markup).toContain("Minimum command chain");
     expect(markup).toContain("Prioritize lamp work");
     expect(markup).toContain(
@@ -189,8 +186,6 @@ describe("shell-hud", () => {
     expect(markup).toContain("新游戏");
     expect(markup).toContain("继续");
     expect(markup).toContain("设置");
-    expect(markup).toContain("界面语言");
-    expect(markup).toContain("界面缩放");
     expect(markup).toContain("首次游玩指引");
     expect(markup).toContain("可用行动");
     expect(markup).toContain("下一目标");
@@ -198,7 +193,6 @@ describe("shell-hud", () => {
     expect(markup).toContain("补上灯火缺口");
     expect(markup).toContain("先确认灯火覆盖、路线证据与守夜义务");
     expect(markup).toContain("选择：点击居民");
-    expect(markup).toContain("镜头：拖拽地图进行平移");
     expect(markup).toContain("最小命令链");
     expect(markup).toContain("优先补灯");
     expect(markup).toContain("玩家指引保留在玩家界面");
@@ -224,18 +218,14 @@ describe("shell-hud", () => {
     const markup = renderShell(state);
 
     expect(markup).toContain("Player HUD");
-    expect(markup).toContain("Current state");
     expect(markup).toContain("Next goal");
     expect(markup).toContain("Night risk");
-    expect(markup).toContain("Current tasks");
+    expect(markup).toContain("Events and watchpoints");
     expect(markup).toContain("Residents to watch");
     expect(markup).toContain("Command bar");
-    expect(markup).toContain('data-testid="player-first-play-guidance"');
-    expect(markup).toContain("First-play controls");
-    expect(markup).toContain("Reachable player guidance");
-    expect(markup).toContain("residents, structures, lantern posts, visitors, and map tiles");
-    expect(markup).toContain("Camera: drag the map to pan");
-    expect(markup).toContain("Command chain");
+    expect(markup).toContain('data-testid="player-attention-queue"');
+    expect(markup).toContain('data-testid="player-settings-toggle"');
+    expect(markup).not.toContain('data-testid="locale-settings"');
     expect(markup).toContain("Prioritize lamp work");
     expect(markup).toContain('data-testid="player-command-bar"');
     expect(markup).toContain('data-ui-slot="panel.paper.primary"');
@@ -264,11 +254,8 @@ describe("shell-hud", () => {
     expect(markup).toContain("\u5c31\u7eea");
     expect(markup).toContain("\u547d\u4ee4\u5e26");
     expect(markup).toContain("\u4f18\u5148\u8865\u706f");
-    expect(markup).toContain("\u9996\u6b21\u64cd\u4f5c");
-    expect(markup).toContain("\u73a9\u5bb6\u754c\u9762\u53ef\u968f\u65f6\u67e5\u770b");
-    expect(markup).toContain("\u9009\u62e9\uff1a\u5c45\u6c11");
-    expect(markup).toContain("\u955c\u5934\uff1a\u62d6\u62fd\u5730\u56fe\u8fdb\u884c\u5e73\u79fb");
-    expect(markup).toContain("\u547d\u4ee4\u94fe");
+    expect(markup).toContain("\u4e8b\u4ef6\u4e0e\u89c2\u5bdf\u70b9");
+    expect(markup).toContain("\u706f\u5eca\u7f3a\u53e3");
     expect(markup).not.toContain("Command bar");
     expect(markup).not.toContain("Prioritize lamp work");
     expect(markup).not.toContain("Lantern corridor gap");
@@ -316,7 +303,7 @@ describe("shell-hud", () => {
     expect(markup).not.toContain("world authority has changed");
   });
 
-  it("renders zh-CN first-play guidance with queued lamp-priority feedback", () => {
+  it("renders zh-CN objective-action HUD with queued lamp-priority feedback", () => {
     const state = {
       ...createShellState(createDefaultShellLocaleState(["zh-CN"]), createLampPriorityReadModel()),
       diagnosticsVisible: true,
@@ -337,10 +324,9 @@ describe("shell-hud", () => {
     } satisfies ShellState;
     const markup = renderShell(state);
 
-    expect(markup).toContain('data-testid="player-first-play-guidance"');
-    expect(markup).toContain("\u9996\u6b21\u64cd\u4f5c");
-    expect(markup).toContain("\u9009\u62e9\uff1a\u5c45\u6c11");
-    expect(markup).toContain("\u547d\u4ee4\u94fe");
+    expect(markup).toContain('data-testid="player-next-goal"');
+    expect(markup).toContain("\u4f18\u5148\u8865\u706f");
+    expect(markup).toContain('data-testid="player-settings-toggle"');
     expect(markup).toContain('data-testid="player-action-feedback"');
     expect(markup).toContain('data-command-state="queued"');
     expect(markup).toContain('data-reason-code="wm0138.local_adapter.lamp_priority"');
@@ -366,7 +352,7 @@ describe("shell-hud", () => {
     expect(markup).toContain("Terrain");
     expect(markup).toContain("Lantern glow");
     expect(markup).toContain("East market and bridge road");
-    expect(markup).not.toContain("No selection");
+    expect(markup).toContain('data-testid="player-selected-detail"');
   });
 
   it("selects desktop, medium, and compact HUD layout modes from viewport size", () => {
