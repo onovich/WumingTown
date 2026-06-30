@@ -1,0 +1,12 @@
+{
+  "id": "MSG-MR0UQXSC-CCD82D",
+  "from": "client-engineer",
+  "to": "systems-architect",
+  "taskId": "WM-0152",
+  "kind": "blocker",
+  "subject": "WM-0152 blocked",
+  "body": "WM-0152 remains blocked after WM-0159. The legal public advance adapter is integrated and direct local repro reaches authoritative accepted -> moving -> working states for lamp/build, but the required web-shell E2E still times out at 120000ms under the live advance loop. The remaining missing public contract is a reliable authoritative terminal/drain surface for playable command progression: Web/E2E currently must poll projection/debug state while issuing advance requests, and there is no public awaitable UiDelta/terminal/idle helper to stop pumping deterministically. Recommended: add a public sim-worker session helper or reliable message for playable command terminal/drain state. Report: coordination/reports/WM-0152.md",
+  "artifacts": [],
+  "createdAt": "2026-06-30T16:19:38.508Z",
+  "acknowledgedAt": "2026-06-30T16:21:02.754Z"
+}

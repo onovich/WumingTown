@@ -40,7 +40,7 @@
   ],
   "branch": "task/WM-0152-player-lamp-priority-and-build-placement-ui-chai",
   "createdAt": "2026-06-29T18:59:47.563Z",
-  "updatedAt": "2026-06-30T14:51:12.349Z",
+  "updatedAt": "2026-06-30T16:19:38.507Z",
   "history": [
     {
       "at": "2026-06-29T18:59:47.564Z",
@@ -89,6 +89,18 @@
       "actor": "client-engineer",
       "action": "block",
       "details": "WM-0152 remains blocked on a missing public Worker advance surface. apps/web can issue real authoritative WM-0150 lamp/build commands and receive CommandResult acceptance/rejection, but the playable projection stays at tick 0. Public browser-session SetSpeed/Pause do not advance time. The only discovered advance path is an internal Noop command-id convention (wm0150.advance.<tick>) exposed via @wuming-town/sim-core, which task rules forbid importing. Needed decision: expose a legal public advance helper/session API from @wuming-town/sim-worker or @wuming-town/sim-protocol, or make SetSpeed/Pause actually drive browser Worker ticks. Recommended: add a root-level public advance helper/session API; report: coordination/reports/WM-0152.md"
+    },
+    {
+      "at": "2026-06-30T15:21:23.773Z",
+      "actor": "project-director",
+      "action": "unblock",
+      "details": "WM-0159 is done and pushed at db8a21c; public advance helper advanceWebPlayableWorkerScenarioToTick now lets Web request deterministic authoritative WM-0150 tick progression without sim-core imports or magic command ids."
+    },
+    {
+      "at": "2026-06-30T16:19:38.507Z",
+      "actor": "client-engineer",
+      "action": "block",
+      "details": "WM-0152 remains blocked after WM-0159. The legal public advance adapter is integrated and direct local repro reaches authoritative accepted -> moving -> working states for lamp/build, but the required web-shell E2E still times out at 120000ms under the live advance loop. The remaining missing public contract is a reliable authoritative terminal/drain surface for playable command progression: Web/E2E currently must poll projection/debug state while issuing advance requests, and there is no public awaitable UiDelta/terminal/idle helper to stop pumping deterministically. Recommended: add a public sim-worker session helper or reliable message for playable command terminal/drain state. Report: coordination/reports/WM-0152.md"
     }
   ],
   "milestone": "Post-M8",
@@ -113,8 +125,8 @@
   "blocker": {
     "by": "client-engineer",
     "to": "systems-architect",
-    "reason": "WM-0152 remains blocked on a missing public Worker advance surface. apps/web can issue real authoritative WM-0150 lamp/build commands and receive CommandResult acceptance/rejection, but the playable projection stays at tick 0. Public browser-session SetSpeed/Pause do not advance time. The only discovered advance path is an internal Noop command-id convention (wm0150.advance.<tick>) exposed via @wuming-town/sim-core, which task rules forbid importing. Needed decision: expose a legal public advance helper/session API from @wuming-town/sim-worker or @wuming-town/sim-protocol, or make SetSpeed/Pause actually drive browser Worker ticks. Recommended: add a root-level public advance helper/session API; report: coordination/reports/WM-0152.md",
+    "reason": "WM-0152 remains blocked after WM-0159. The legal public advance adapter is integrated and direct local repro reaches authoritative accepted -> moving -> working states for lamp/build, but the required web-shell E2E still times out at 120000ms under the live advance loop. The remaining missing public contract is a reliable authoritative terminal/drain surface for playable command progression: Web/E2E currently must poll projection/debug state while issuing advance requests, and there is no public awaitable UiDelta/terminal/idle helper to stop pumping deterministically. Recommended: add a public sim-worker session helper or reliable message for playable command terminal/drain state. Report: coordination/reports/WM-0152.md",
     "previousState": "in_progress",
-    "at": "2026-06-30T14:51:12.348Z"
+    "at": "2026-06-30T16:19:38.506Z"
   }
 }
