@@ -1,0 +1,96 @@
+{
+  "id": "WM-0159",
+  "title": "Public deterministic playable Worker advance helper",
+  "summary": "Expose a legal public root Worker/session helper so Web can advance the authoritative WM-0150 playable scenario without importing sim-core or hardcoding the internal Noop command-id convention.",
+  "state": "ready",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "systems-architect",
+  "dependsOn": [
+    "WM-0157",
+    "WM-0158"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/decisions/ADR-0001.md",
+    "coordination/decisions/ADR-0012.md",
+    "coordination/decisions/ADR-0013.md",
+    "coordination/decisions/ADR-0014.md",
+    "coordination/decisions/ADR-0015.md",
+    "coordination/reports/WM-0152.md",
+    "coordination/reports/WM-0157.md",
+    "coordination/reports/WM-0158.md",
+    "packages/sim-worker/src/index.ts",
+    "packages/sim-worker/src/browser-session.ts",
+    "packages/sim-worker/src/playable-command-worker.test.ts",
+    "packages/sim-worker/src/worker-smoke.e2e.test.ts",
+    "packages/sim-protocol/src/index.ts",
+    "packages/sim-protocol/src/types.ts",
+    "packages/sim-protocol/src/protocol-validation.test.ts",
+    "apps/web/src/simulation-worker-session.ts",
+    "apps/web/src/simulation-worker-session.test.ts",
+    "tools/boundary-check.mjs"
+  ],
+  "acceptance": [
+    "A public root @wuming-town/sim-worker helper or BrowserSimulationWorkerSession method lets Web advance the WM-0150 playable scenario to an explicit logical target tick without importing @wuming-town/sim-core",
+    "The helper uses the existing Worker PlayerCommandBatch path and does not add a new top-level Worker message family unless ADR-0015 is superseded with a stricter reason",
+    "apps/web consumes only @wuming-town/sim-worker and @wuming-town/sim-protocol public roots through apps/web/src/simulation-worker-session.ts; no app code imports sim-core, worker internals, or hardcodes/parses wm0150.advance command ids",
+    "SetSpeed/Pause behavior is documented as not being autonomous browser ticking for this precursor, or any larger clock-loop change is covered by a superseding ADR and tests",
+    "Worker tests prove init -> public advance -> UiDeltaPayload.playable tick progression, and accepted PrioritizeLampWork / QueueSimpleBuild commands followed by public advance requests progress job, pawn, build/lamp and resource projection state",
+    "Reliable CommandResult, SaveReady and fatal/error delivery remains separate from projection delivery after larger or repeated advance-driven UiDelta payloads",
+    "A real Chromium worker-smoke proves the public root browser session/helper path advances WM-0150 from tick 0 and produces updated PlayableProjectionV1 without direct sim-core imports in the smoke module",
+    "No product HUD, placement UI, localization rewrite, renderer-pixi feature implementation, public release, telemetry/account surface, or public save compatibility promise is added",
+    "Save/load stance is explicit: advance requests are active-session deterministic inputs only; in-progress playable command persistence remains unsupported unless a later versioned save task adds focused sections and migration/fixture evidence",
+    "The report states the exact public helper/session API name and the exact WM-0152 resume path"
+  ],
+  "requiredChecks": [
+    "corepack pnpm typecheck",
+    "corepack pnpm exec vitest run packages/sim-worker/src/playable-command-worker.test.ts packages/sim-worker/src/worker-smoke.e2e.test.ts apps/web/src/simulation-worker-session.test.ts",
+    "node tools/test-runner.mjs e2e --filter worker-smoke",
+    "corepack pnpm sim:run -- --seed 5 --scenario wm0150-playable-command-slice --ticks 240",
+    "corepack pnpm boundaries:check",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0159-public-deterministic-playable-worker-advance-helper",
+  "createdAt": "2026-06-30T14:56:00.000Z",
+  "updatedAt": "2026-06-30T14:56:00.000Z",
+  "history": [
+    {
+      "at": "2026-06-30T14:56:00.000Z",
+      "actor": "systems-architect",
+      "action": "create-architecture-precursor",
+      "details": "Created to unblock WM-0152 after confirming WM-0157/WM-0158 provide command/projection paths but no legal public way for Web to advance the authoritative playable Worker tick."
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "owner-product-ux-remediation",
+  "architectureDecision": "coordination/decisions/ADR-0015.md",
+  "unblocks": [
+    "WM-0152"
+  ],
+  "saveLoadStance": "No public save compatibility is introduced. Advance requests are deterministic active-session inputs only; in-progress playable command persistence remains unsupported until a separate versioned save/load task is approved.",
+  "allowedPaths": [
+    "packages/sim-worker/src/**",
+    "packages/sim-protocol/src/**",
+    "apps/web/src/simulation-worker-session.ts",
+    "apps/web/src/simulation-worker-session.test.ts",
+    "coordination/decisions/ADR-0015.md",
+    "coordination/reports/WM-0159*.md",
+    "coordination/tasks/WM-0159.json"
+  ],
+  "forbiddenPaths": [
+    "apps/web importing @wuming-town/sim-core, @wuming-town/sim-worker subpaths, or packages/*/src internals",
+    "apps/web hardcoding or parsing wm0150.advance command-id strings",
+    "product HUD, placement UI, renderer-pixi, ui-react, localization, shell-bootstrap feature implementation beyond a thin simulation-worker-session adapter",
+    "UI-owned authoritative ticking, job state, pawn motion, resource counts, build progress, action availability or blocked reasons",
+    "hidden global Worker/session singleton or timer singleton",
+    "new autonomous browser clock loop via SetSpeed/Pause unless ADR-0015 is superseded with lifecycle/backpressure/replay semantics",
+    "new top-level Worker message family unless ADR-0015 is superseded with a stricter reason",
+    "new public save compatibility, migration or release promises",
+    "new runtime dependencies without a separate ADR",
+    "public release, Early Access, store, signing, telemetry, accounts, paid services or public feedback surfaces"
+  ]
+}

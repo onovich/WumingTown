@@ -2,79 +2,66 @@
 
 ## Scope
 
-Deliver the first real player-facing lamp/build command chain only if `apps/web`
-can both:
-
-- legally issue WM-0150 playable commands to the authoritative Simulation
-  Worker through public package surfaces, and
-- receive enough authoritative playable projection data back to render HUD,
-  placement, job markers, pawn movement/progress, and structured blocked
-  reasons without shell-local simulation.
+Finish the player-facing lamp/build command chain on top of the public WM-0158
+Worker projection path. The Web shell must send real WM-0150 commands through
+the reviewed Worker bridge, render read-only authoritative outcomes, localize
+the surfaces in en/zh-CN, and keep save/load claims honest.
 
 ## Workflow status
 
 - Read `AGENTS.md` and `.agents/skills/wuming-town-agent-workflow/SKILL.md`.
 - Ran `taskctl validate` and `taskctl status`.
-- Read task packet, WM-0147/WM-0150/WM-0151 reports, `apps/web/src/*`,
-  `packages/ui-react/src/*`, `packages/sim-protocol/src/*`,
-  `docs/01_design/05_ui_ux_information_design.md`,
-  `docs/02_systems/03_map_space_rooms_lanterns.md`.
-- Claimed `WM-0152` as `client-engineer` on thread `Command Loom`.
+- Confirmed `coordination/tasks/WM-0152.json` is still dirty from
+  project-director unblock and must be preserved.
+- Re-read the current `apps/web`, `packages/ui-react`, `packages/sim-protocol`,
+  and WM-0158 public projection surface.
 
-## Decision gate
+## Constraints
 
-1. Verify whether `apps/web` already has a legal public path to:
-   - create or connect to a browser Simulation Worker runtime,
-   - send `PlayerCommandBatch` messages with WM-0150 payloads,
-   - receive authoritative `CommandResult` / `RenderSnapshot` / `UiDelta`
-     messages,
-   - keep save/load behavior truthful for in-progress command state.
-2. Only if that path exists, implement a thin client adapter plus HUD/placement
-   UI, localization, read-only projection rendering, and focused tests.
-3. If the path does not exist, stop before product-code edits and block the
-   task with the exact missing public protocol/package-boundary decision.
+- Authority stays in the Simulation Worker only.
+- `apps/web` may use only the reviewed public Worker/session APIs.
+- Command payloads must come from `projection.targets[].actions[].payload` and
+  `projection.placements[].command.payload`.
+- UI must not parse Worker `summaries`, import `sim-core`, or recreate a local
+  authority layer.
+- Save/load must stay explicitly scoped to the existing M6 shell evidence
+  envelope; no new public save compatibility promise.
 
-## Findings
+## Implementation plan
 
-Initial blocker is resolved:
+1. Add a thin Web projection adapter that:
+   - reads `PlayableProjectionV1` from `readWebPlayableProjection(message)`,
+   - maps authoritative protocol refs/cells into Web-facing read-model overlays,
+   - derives localized command surface inputs, build placement previews, job
+     markers, pawn motion/progress, alerts, and resource summaries without
+     mutating authority.
+2. Replace `createReviewedPlayableProjectionSession()` wiring in
+   `apps/web/src/shell-bootstrap.ts` with the public Worker session:
+   - start the playable scenario,
+   - subscribe to `UiDelta` and reliable `CommandResult` messages,
+   - issue real command batches from HUD actions,
+   - update the store from authoritative projection and command replies,
+   - expose debug payloads from the authoritative projection path.
+3. Update `packages/ui-react` shell contracts and HUD logic so the action bar:
+   - shows only authoritative lamp/build availability,
+   - supports build mode enter/hover/place flow,
+   - surfaces accepted/rejected command feedback and blocked reasons honestly,
+   - localizes all player-facing copy in en and zh-CN.
+4. Keep save/load truth explicit:
+   - drop in-progress/completed authoritative command UI state from the M6
+     shell envelope on save/load,
+   - state that the envelope restores shell selection only, not authoritative
+     Worker command runtime.
+5. Refresh focused tests and E2E evidence, then write the final WM-0152 report
+   and complete to reviewer if the full required gate passes.
 
-- `apps/web` now has the reviewed root dependency on `@wuming-town/sim-worker`.
-- `apps/web/src/simulation-worker-session.ts` can create a public
-  browser-session bridge and start the WM-0150 scenario without deep imports.
+## Known design choices
 
-New blocker after resumed investigation:
-
-- `apps/web/src/shell-bootstrap.ts` still wires the reviewed local
-  `createReviewedPlayableProjectionSession()` harness and updates HUD/debug
-  state from that playback rather than from live Worker projection data.
-- `packages/sim-protocol/src/types.ts` still defines `RenderSnapshotPayload`
-  and `UiDeltaPayload` as hash/summary carriers only; there is no public
-  authoritative playable read-model payload for Web to render.
-- WM-0157 explicitly records this gap: "Current Worker `UiDelta` still carries
-  compact summaries, not a full public playable read-model object for Web
-  product UX."
-- The authoritative playable runtime does have a focused read-model shape
-  internally (`PlayableReadModel` in `sim-core`), but `apps/web` cannot reach
-  it through the current public Worker protocol, and WM-0152 is not allowed to
-  edit `packages/sim-worker/**`.
-- The current Web save flow in `apps/web/src/web-storage-gate.ts` is still the
-  M6 gate envelope and explicitly strips `playableAction` on load. That can be
-  truthfully presented as unsupported, but it does not solve the missing live
-  projection surface.
-
-## Planned action
-
-Stop and raise a new blocker. WM-0152 can now send authoritative commands, but
-it still cannot render the authoritative command chain honestly because the
-public Worker protocol does not deliver a public playable projection object.
-
-Required owner decision now:
-
-- expose the authoritative WM-0150 playable read-model through the public
-  Worker protocol/session surface, including the basis/action/job/pawn/build
-  fields needed by ADR-0012 UI wiring; or
-- provide an equivalent reviewed public adapter that delivers that projection to
-  `apps/web` without deep imports or shell-local simulation.
-
-No product code should claim live authoritative motion/progress until that
-projection surface exists.
+- The Worker slice exposes protocol-owned refs/cells rather than Web entity ids,
+  so the adapter will map those refs into the existing shell world presentation
+  with reviewed static correspondence and read-only overlays.
+- Build mode is UI-local state only. Placement validity and command payloads are
+  still authoritative because they come from the Worker projection.
+- The Web shell may present richer map/status feedback than the raw protocol,
+  but only as a projection of authoritative state already returned by the
+  Worker.

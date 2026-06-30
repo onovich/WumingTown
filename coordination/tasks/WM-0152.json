@@ -40,7 +40,7 @@
   ],
   "branch": "task/WM-0152-player-lamp-priority-and-build-placement-ui-chai",
   "createdAt": "2026-06-29T18:59:47.563Z",
-  "updatedAt": "2026-06-30T13:03:59.357Z",
+  "updatedAt": "2026-06-30T14:51:12.349Z",
   "history": [
     {
       "at": "2026-06-29T18:59:47.564Z",
@@ -77,6 +77,18 @@
       "actor": "client-engineer",
       "action": "block",
       "details": "Public authoritative playable projection is still missing after WM-0157. Web can now send WM-0150 commands through @wuming-town/sim-worker, but the reviewed Worker protocol/session surface still exposes only RenderSnapshot/UiDelta hashes and compact summaries, not the full playable read-model needed for HUD, placement, job markers, pawn motion/progress, and blocked reasons. WM-0152 cannot truthfully replace WM-0151 playback until that projection surface exists. See coordination/reports/WM-0152.md for options and recommendation."
+    },
+    {
+      "at": "2026-06-30T13:41:12.822Z",
+      "actor": "project-director",
+      "action": "unblock",
+      "details": "WM-0158 is done and pushed at e61aad5; Worker UiDelta now exposes protocol-owned PlayableProjectionV1 via readWebPlayableProjection, so WM-0152 can resume UI wiring without summary parsing or shell-local authority."
+    },
+    {
+      "at": "2026-06-30T14:51:12.349Z",
+      "actor": "client-engineer",
+      "action": "block",
+      "details": "WM-0152 remains blocked on a missing public Worker advance surface. apps/web can issue real authoritative WM-0150 lamp/build commands and receive CommandResult acceptance/rejection, but the playable projection stays at tick 0. Public browser-session SetSpeed/Pause do not advance time. The only discovered advance path is an internal Noop command-id convention (wm0150.advance.<tick>) exposed via @wuming-town/sim-core, which task rules forbid importing. Needed decision: expose a legal public advance helper/session API from @wuming-town/sim-worker or @wuming-town/sim-protocol, or make SetSpeed/Pause actually drive browser Worker ticks. Recommended: add a root-level public advance helper/session API; report: coordination/reports/WM-0152.md"
     }
   ],
   "milestone": "Post-M8",
@@ -101,8 +113,8 @@
   "blocker": {
     "by": "client-engineer",
     "to": "systems-architect",
-    "reason": "Public authoritative playable projection is still missing after WM-0157. Web can now send WM-0150 commands through @wuming-town/sim-worker, but the reviewed Worker protocol/session surface still exposes only RenderSnapshot/UiDelta hashes and compact summaries, not the full playable read-model needed for HUD, placement, job markers, pawn motion/progress, and blocked reasons. WM-0152 cannot truthfully replace WM-0151 playback until that projection surface exists. See coordination/reports/WM-0152.md for options and recommendation.",
+    "reason": "WM-0152 remains blocked on a missing public Worker advance surface. apps/web can issue real authoritative WM-0150 lamp/build commands and receive CommandResult acceptance/rejection, but the playable projection stays at tick 0. Public browser-session SetSpeed/Pause do not advance time. The only discovered advance path is an internal Noop command-id convention (wm0150.advance.<tick>) exposed via @wuming-town/sim-core, which task rules forbid importing. Needed decision: expose a legal public advance helper/session API from @wuming-town/sim-worker or @wuming-town/sim-protocol, or make SetSpeed/Pause actually drive browser Worker ticks. Recommended: add a root-level public advance helper/session API; report: coordination/reports/WM-0152.md",
     "previousState": "in_progress",
-    "at": "2026-06-30T13:03:59.357Z"
+    "at": "2026-06-30T14:51:12.348Z"
   }
 }

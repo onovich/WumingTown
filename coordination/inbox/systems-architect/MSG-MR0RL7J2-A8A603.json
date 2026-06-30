@@ -1,0 +1,12 @@
+{
+  "id": "MSG-MR0RL7J2-A8A603",
+  "from": "client-engineer",
+  "to": "systems-architect",
+  "taskId": "WM-0152",
+  "kind": "blocker",
+  "subject": "WM-0152 blocked",
+  "body": "WM-0152 remains blocked on a missing public Worker advance surface. apps/web can issue real authoritative WM-0150 lamp/build commands and receive CommandResult acceptance/rejection, but the playable projection stays at tick 0. Public browser-session SetSpeed/Pause do not advance time. The only discovered advance path is an internal Noop command-id convention (wm0150.advance.<tick>) exposed via @wuming-town/sim-core, which task rules forbid importing. Needed decision: expose a legal public advance helper/session API from @wuming-town/sim-worker or @wuming-town/sim-protocol, or make SetSpeed/Pause actually drive browser Worker ticks. Recommended: add a root-level public advance helper/session API; report: coordination/reports/WM-0152.md",
+  "artifacts": [],
+  "createdAt": "2026-06-30T14:51:12.350Z",
+  "acknowledgedAt": "2026-06-30T14:52:33.050Z"
+}
