@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MR0W09OA-6866F2",
+  "from": "simulation-engineer",
+  "to": "systems-architect",
+  "taskId": "WM-0160",
+  "kind": "review-request",
+  "subject": "WM-0160 ready for review",
+  "body": "Implemented public root playable Worker wait/drain helpers, Web adapter aliases, terminal projection tests, Chromium worker-smoke coverage, and WM-0160 report; all required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0160.md",
+    "task/WM-0160-public-playable-worker-drain-terminal-helper"
+  ],
+  "createdAt": "2026-06-30T16:54:53.434Z",
+  "acknowledgedAt": "2026-06-30T16:57:31.677Z"
+}

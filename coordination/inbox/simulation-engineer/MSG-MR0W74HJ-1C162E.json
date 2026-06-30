@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MR0W74HJ-1C162E",
+  "from": "systems-architect",
+  "to": "simulation-engineer",
+  "taskId": "WM-0160",
+  "kind": "changes-requested",
+  "subject": "WM-0160 review: changes_requested",
+  "body": "Blocker: lifecycle/message listener cleanup is not reliable for concurrent public wait/drain helpers. packages/sim-worker/src/browser-session.ts emits lifecycle/message listeners by iterating the live listener array, while packages/sim-worker/src/playable-drain.ts cleanup unsubscribes by splicing that same array during emit. With two pending wait/drain calls, session.destroy() rejects the first but skips the second, leaving a pending promise that can outlive the session. Fix by snapshotting listeners before emit or otherwise making unsubscribe-during-emit safe, and add focused coverage for multiple concurrent wait/drain helpers on destroy/shutdown and/or shared UiDelta delivery.",
+  "artifacts": [
+    "coordination/reports/WM-0160.md"
+  ],
+  "createdAt": "2026-06-30T17:00:13.303Z",
+  "acknowledgedAt": "2026-06-30T17:00:53.505Z"
+}

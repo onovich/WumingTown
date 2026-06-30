@@ -45,6 +45,7 @@ import {
   type MetricsSampleMessage,
   type MainToSimulationMessage,
   type PlayerCommand,
+  type PlayerCommandResult,
   type RenderSnapshotMessage as ProtocolRenderSnapshotMessage,
   type SaveReadyMessage as ProtocolSaveReadyMessage,
   type SimulationToMainMessage,
@@ -69,12 +70,14 @@ interface BrowserWorkerRunInput {
   readonly modulePath: string;
 }
 
-interface BrowserWorkerPlayableAdvanceInput {
-  readonly kind: "AdvancePlayableToTick";
-  readonly targetTick: number;
+interface BrowserWorkerPlayableDrainInput {
+  readonly kind: "DrainPlayableCommands";
+  readonly commandIds: readonly string[];
+  readonly maxTargetTick: number;
+  readonly stepTicks: number;
 }
 
-type BrowserWorkerInputMessage = MainToSimulationMessage | BrowserWorkerPlayableAdvanceInput;
+type BrowserWorkerInputMessage = MainToSimulationMessage | BrowserWorkerPlayableDrainInput;
 
 interface BrowserWorkerRuntimeFacts {
   readonly pageCrossOriginIsolated: boolean;
@@ -218,6 +221,59 @@ describe("worker-smoke simulation Worker protocol", () => {
       basis: { tick: 45 },
     });
     expect(commandResultMessages(reliable)).toHaveLength(1);
+  });
+
+  it("drains WM-0150 commands to terminal projection states through the public session helper", async () => {
+    const worker = createSimulationWorker();
+    const session = createBrowserSimulationWorkerSession({
+      sessionId: "session-a",
+      workerFactory: () => new HarnessBrowserWorker(worker),
+    });
+    const reliable: SimulationToMainMessage[] = [];
+    const mirror = createPlayableCommandSliceRuntime();
+    const lamp = lampCommand("drain-lamp", mirror.readCommandBasis());
+
+    session.subscribeReliable((message) => {
+      reliable.push(message);
+    });
+    session.initPlayableCommandScenario({ seed: "5" });
+    session.sendPlayerCommandBatch([lamp]);
+    const lampDrain = await session.drainPlayableCommandsToTerminal({
+      commandIds: ["drain-lamp"],
+      maxTargetTick: 45,
+      stepTicks: 15,
+    });
+    const build = buildCommand("drain-build", lampDrain.projection.basis.commandBasis);
+    session.sendPlayerCommandBatch([build]);
+    const buildDrain = await session.drainPlayableCommandsToTerminal({
+      commandIds: ["drain-build"],
+      maxTargetTick: 220,
+      stepTicks: 25,
+    });
+    session.destroy();
+
+    expect(lampDrain.status).toBe("terminal");
+    expect(lampDrain.terminalCommandIds).toStrictEqual(["drain-lamp"]);
+    expect(lampDrain.activeCommandIds).toStrictEqual([]);
+    expect(buildDrain).toMatchObject({
+      status: "terminal",
+      terminalCommandIds: ["drain-build"],
+      activeCommandIds: [],
+      projection: {
+        build: {
+          completed: true,
+        },
+      },
+    });
+    expect(buildDrain.postedMessages.length).toBeGreaterThan(1);
+    expect(readPlayerCommandResult(reliable, "drain-lamp")).toMatchObject({
+      status: "accepted",
+      job: { jobKind: "lamp_refill" },
+    });
+    expect(readPlayerCommandResult(reliable, "drain-build")).toMatchObject({
+      status: "accepted",
+      job: { jobKind: "build_site_delivery" },
+    });
   });
 
   it("matches Node headless hashes for the M1 hauling-building command stream", () => {
@@ -538,9 +594,9 @@ describe("worker-smoke simulation Worker protocol", () => {
     const browserMessages = await runBrowserWorker([
       makePlayableInitSession(1),
       commandBatch(2, [lamp]),
-      playableAdvanceRequest(45),
+      playableDrainRequest(["browser-lamp"], 45, 15),
       commandBatch(4, [build]),
-      playableAdvanceRequest(220),
+      playableDrainRequest(["browser-build"], 220, 25),
     ]);
     const commandResults = commandResultMessages(browserMessages);
     const finalUiDelta = lastUiDelta(browserMessages);
@@ -548,28 +604,28 @@ describe("worker-smoke simulation Worker protocol", () => {
       renderSnapshots(browserMessages)[renderSnapshots(browserMessages).length - 1];
 
     expect(WM0150_PLAYABLE_COMMAND_SCENARIO_ID).toBe(PLAYABLE_COMMAND_SLICE_SCENARIO_ID);
-    expect(commandResults[0]?.payload.commandResults[0]).toMatchObject({
+    expect(readPlayerCommandResult(commandResults, "browser-lamp")).toMatchObject({
       commandId: "browser-lamp",
       status: "accepted",
       job: { jobKind: "lamp_refill" },
     });
-    expect(commandResults[2]?.payload.commandResults[0]).toMatchObject({
+    expect(readPlayerCommandResult(commandResults, "browser-build")).toMatchObject({
       commandId: "browser-build",
       status: "accepted",
       job: { jobKind: "build_site_delivery" },
     });
     expect(finalSnapshot?.payload).toMatchObject({
       scenarioId: PLAYABLE_COMMAND_SLICE_SCENARIO_ID,
-      tick: 220,
       readOnly: true,
     });
+    expect(finalSnapshot?.payload.tick).toBeLessThanOrEqual(220);
     expect(finalUiDelta.payload.summaries).toContainEqual(
       expect.stringContaining("wm0150:build:site=0;completed=true"),
     );
     expect(finalUiDelta.payload.playable).toMatchObject({
       playableCommandReadModelVersion: 1,
       basis: {
-        tick: 220,
+        tick: finalSnapshot?.payload.tick,
         commandBasis: {
           playableCommandContractVersion: 1,
         },
@@ -592,10 +648,11 @@ describe("worker-smoke simulation Worker protocol", () => {
         { commandId: "browser-build", markerState: "completed" },
       ],
     });
-    expect(lastMetricsSample(browserMessages).payload).toMatchObject({
+    const finalMetrics = lastMetricsSample(browserMessages);
+    expect(finalMetrics.payload).toMatchObject({
       scenarioId: PLAYABLE_COMMAND_SLICE_SCENARIO_ID,
-      checkpointCount: 3,
     });
+    expect(finalMetrics.payload.checkpointCount).toBeGreaterThan(3);
   }, 120000);
 
   it("returns M1 save metadata without exposing mutable authority through the Worker", () => {
@@ -898,10 +955,16 @@ function makeM5AdvanceBatch(
   };
 }
 
-function playableAdvanceRequest(tick: number): BrowserWorkerPlayableAdvanceInput {
+function playableDrainRequest(
+  commandIds: readonly string[],
+  maxTargetTick: number,
+  stepTicks: number,
+): BrowserWorkerPlayableDrainInput {
   return {
-    kind: "AdvancePlayableToTick",
-    targetTick: tick,
+    kind: "DrainPlayableCommands",
+    commandIds,
+    maxTargetTick,
+    stepTicks,
   };
 }
 
@@ -1031,6 +1094,21 @@ function commandResultMessages(
     }
   }
   return results;
+}
+
+function readPlayerCommandResult(
+  messages: readonly SimulationToMainMessage[],
+  commandId: string,
+): PlayerCommandResult {
+  for (const message of commandResultMessages(messages)) {
+    for (const result of message.payload.commandResults) {
+      if (result.commandId === commandId) {
+        return result;
+      }
+    }
+  }
+
+  throw new Error(`expected PlayerCommandResult for ${commandId}`);
 }
 
 function renderSnapshot(
@@ -1347,13 +1425,11 @@ export function runPublicBrowserSimulationWorkerSession(input) {
     const sessionId = input.inputMessages[0]?.sessionId ?? "session-a";
     const session = createBrowserSimulationWorkerSession({ sessionId });
     const received = [];
-    const timeout = window.setTimeout(() => {
-      session.destroy();
-      reject(new Error("Timed out waiting for " + String(input.expectedCount) + " Worker messages."));
-    }, 30000);
-    session.subscribe((message) => {
-      received.push(message);
-      if (received.length >= input.expectedCount) {
+    let inputComplete = false;
+    let settled = false;
+    const finish = () => {
+      if (!settled && inputComplete && received.length >= input.expectedCount) {
+        settled = true;
         window.clearTimeout(timeout);
         session.destroy();
         resolve({
@@ -1361,16 +1437,37 @@ export function runPublicBrowserSimulationWorkerSession(input) {
           messages: received,
         });
       }
+    };
+    const fail = (error) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      window.clearTimeout(timeout);
+      session.destroy();
+      reject(error);
+    };
+    const timeout = window.setTimeout(() => {
+      fail(new Error("Timed out waiting for " + String(input.expectedCount) + " Worker messages."));
+    }, 30000);
+    session.subscribe((message) => {
+      received.push(message);
+      finish();
     });
-    for (const message of input.inputMessages) {
+    const runInputs = async () => {
+      for (const message of input.inputMessages) {
       if (message.kind === MAIN_TO_SIMULATION_MESSAGE_KIND.InitSession) {
         session.initSession(message.payload);
       } else if (message.kind === MAIN_TO_SIMULATION_MESSAGE_KIND.LoadSession) {
         session.loadSession(message.payload);
       } else if (message.kind === MAIN_TO_SIMULATION_MESSAGE_KIND.PlayerCommandBatch) {
         session.sendPlayerCommandBatch(message.payload.commands);
-      } else if (message.kind === "AdvancePlayableToTick") {
-        session.advancePlayableCommandScenarioToTick(message.targetTick);
+      } else if (message.kind === "DrainPlayableCommands") {
+        await session.drainPlayableCommandsToTerminal({
+          commandIds: message.commandIds,
+          maxTargetTick: message.maxTargetTick,
+          stepTicks: message.stepTicks,
+        });
       } else if (message.kind === MAIN_TO_SIMULATION_MESSAGE_KIND.SetSpeed) {
         session.setSpeed(message.payload.speed);
       } else if (message.kind === MAIN_TO_SIMULATION_MESSAGE_KIND.Pause) {
@@ -1382,12 +1479,14 @@ export function runPublicBrowserSimulationWorkerSession(input) {
       } else if (message.kind === MAIN_TO_SIMULATION_MESSAGE_KIND.Shutdown) {
         session.shutdown();
       } else {
-        window.clearTimeout(timeout);
-        session.destroy();
-        reject(new Error("Unsupported smoke input message kind: " + String(message.kind)));
+        fail(new Error("Unsupported smoke input message kind: " + String(message.kind)));
         return;
       }
     }
+      inputComplete = true;
+      finish();
+    };
+    void runInputs().catch(fail);
   });
 }
 

@@ -18,6 +18,15 @@ import {
   type SimulationToMainMessage,
 } from "@wuming-town/sim-protocol";
 
+import {
+  drainPlayableCommandsToTerminal as drainPlayableCommandsToTerminalImpl,
+  waitForPlayableProjectionAtOrBeyondTick as waitForPlayableProjectionAtOrBeyondTickImpl,
+  type PlayableDrainRequest,
+  type PlayableDrainResult,
+  type PlayableProjectionWaitRequest,
+  type PlayableProjectionWaitResult,
+} from "./playable-drain";
+
 export const WM0150_PLAYABLE_COMMAND_SCENARIO_ID = PLAYABLE_COMMAND_SLICE_SCENARIO_ID;
 export const WM0150_PLAYABLE_COMMAND_DEFAULT_SEED = "5";
 
@@ -56,6 +65,9 @@ export type BrowserSimulationWorkerMessageListener = (message: SimulationToMainM
 export type ReliableSimulationWorkerMessageListener = (
   message: ReliableSimulationWorkerMessage,
 ) => void;
+export type BrowserSimulationWorkerLifecycleListener = (
+  event: BrowserSimulationWorkerLifecycleEvent,
+) => void;
 
 export interface BrowserSimulationWorkerSessionOptions {
   readonly sessionId: string;
@@ -66,16 +78,25 @@ export interface InitPlayableCommandScenarioInput {
   readonly seed?: string;
 }
 
+export interface BrowserSimulationWorkerLifecycleEvent {
+  readonly state: BrowserSimulationWorkerSessionState;
+}
+
 export interface BrowserSimulationWorkerSession {
   readonly sessionId: string;
   getState(): BrowserSimulationWorkerSessionState;
   subscribe(listener: BrowserSimulationWorkerMessageListener): () => void;
   subscribeReliable(listener: ReliableSimulationWorkerMessageListener): () => void;
+  subscribeLifecycle(listener: BrowserSimulationWorkerLifecycleListener): () => void;
   initSession(payload: InitSessionPayload): MainToSimulationMessage;
   initPlayableCommandScenario(input?: InitPlayableCommandScenarioInput): MainToSimulationMessage;
   loadSession(payload: LoadSessionPayload): MainToSimulationMessage;
   sendPlayerCommandBatch(commands: readonly PlayerCommand[]): MainToSimulationMessage;
   advancePlayableCommandScenarioToTick(targetTick: number): MainToSimulationMessage;
+  waitForPlayableProjectionAtOrBeyondTick(
+    request: PlayableProjectionWaitRequest,
+  ): Promise<PlayableProjectionWaitResult>;
+  drainPlayableCommandsToTerminal(request: PlayableDrainRequest): Promise<PlayableDrainResult>;
   requestUiDetail(payload: RequestUiDetailPayload): MainToSimulationMessage;
   requestSave(payload: RequestSavePayload): MainToSimulationMessage;
   setSpeed(speed: 0 | 1 | 2 | 3): MainToSimulationMessage;
@@ -108,6 +129,7 @@ export function createBrowserSimulationWorkerSession(
   let state: BrowserSimulationWorkerSessionState = "created";
   const messageListeners: BrowserSimulationWorkerMessageListener[] = [];
   const reliableListeners: ReliableSimulationWorkerMessageListener[] = [];
+  const lifecycleListeners: BrowserSimulationWorkerLifecycleListener[] = [];
   const workerFactory = options.workerFactory ?? createBrowserSimulationWorker;
   const worker = workerFactory();
 
@@ -155,6 +177,9 @@ export function createBrowserSimulationWorkerSession(
     subscribeReliable(listener: ReliableSimulationWorkerMessageListener): () => void {
       return subscribe(reliableListeners, listener);
     },
+    subscribeLifecycle(listener: BrowserSimulationWorkerLifecycleListener): () => void {
+      return subscribe(lifecycleListeners, listener);
+    },
     initSession(payload: InitSessionPayload): MainToSimulationMessage {
       state = "active";
       return post({
@@ -193,6 +218,14 @@ export function createBrowserSimulationWorkerSession(
         },
       ]);
     },
+    waitForPlayableProjectionAtOrBeyondTick(
+      request: PlayableProjectionWaitRequest,
+    ): Promise<PlayableProjectionWaitResult> {
+      return waitForPlayableProjectionAtOrBeyondTickImpl(this, request);
+    },
+    drainPlayableCommandsToTerminal(request: PlayableDrainRequest): Promise<PlayableDrainResult> {
+      return drainPlayableCommandsToTerminalImpl(this, request);
+    },
     requestUiDetail(payload: RequestUiDetailPayload): MainToSimulationMessage {
       return post({
         ...nextBase(),
@@ -227,7 +260,7 @@ export function createBrowserSimulationWorkerSession(
         kind: MAIN_TO_SIMULATION_MESSAGE_KIND.Shutdown,
         payload: { reason: "client-request" },
       });
-      state = "shutdown";
+      setState("shutdown");
       return message;
     },
     destroy(): void {
@@ -236,9 +269,14 @@ export function createBrowserSimulationWorkerSession(
       }
       worker.removeEventListener("message", onMessage);
       worker.terminate();
-      state = "destroyed";
+      setState("destroyed");
     },
   };
+
+  function setState(nextState: BrowserSimulationWorkerSessionState): void {
+    state = nextState;
+    emitLifecycleMessage(lifecycleListeners, { state });
+  }
 }
 
 export function advancePlayableCommandScenarioToTick(
@@ -246,6 +284,20 @@ export function advancePlayableCommandScenarioToTick(
   targetTick: number,
 ): MainToSimulationMessage {
   return session.advancePlayableCommandScenarioToTick(targetTick);
+}
+
+export function waitForPlayableProjectionAtOrBeyondTick(
+  session: BrowserSimulationWorkerSession,
+  request: PlayableProjectionWaitRequest,
+): Promise<PlayableProjectionWaitResult> {
+  return session.waitForPlayableProjectionAtOrBeyondTick(request);
+}
+
+export function drainPlayableCommandsToTerminal(
+  session: BrowserSimulationWorkerSession,
+  request: PlayableDrainRequest,
+): Promise<PlayableDrainResult> {
+  return session.drainPlayableCommandsToTerminal(request);
 }
 
 function assertCanPost(state: BrowserSimulationWorkerSessionState): void {
@@ -278,7 +330,8 @@ function emitMessage(
   listeners: readonly BrowserSimulationWorkerMessageListener[],
   message: SimulationToMainMessage,
 ): void {
-  for (const listener of listeners) {
+  const snapshot = [...listeners];
+  for (const listener of snapshot) {
     listener(message);
   }
 }
@@ -287,8 +340,19 @@ function emitReliableMessage(
   listeners: readonly ReliableSimulationWorkerMessageListener[],
   message: ReliableSimulationWorkerMessage,
 ): void {
-  for (const listener of listeners) {
+  const snapshot = [...listeners];
+  for (const listener of snapshot) {
     listener(message);
+  }
+}
+
+function emitLifecycleMessage(
+  listeners: readonly BrowserSimulationWorkerLifecycleListener[],
+  event: BrowserSimulationWorkerLifecycleEvent,
+): void {
+  const snapshot = [...listeners];
+  for (const listener of snapshot) {
+    listener(event);
   }
 }
 

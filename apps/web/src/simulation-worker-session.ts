@@ -2,8 +2,14 @@ import {
   WM0150_PLAYABLE_COMMAND_SCENARIO_ID,
   advancePlayableCommandScenarioToTick,
   createBrowserSimulationWorkerSession,
+  drainPlayableCommandsToTerminal,
+  waitForPlayableProjectionAtOrBeyondTick,
   type BrowserSimulationWorkerSession,
   type BrowserSimulationWorkerSessionOptions,
+  type PlayableDrainRequest,
+  type PlayableDrainResult,
+  type PlayableProjectionWaitRequest,
+  type PlayableProjectionWaitResult,
 } from "@wuming-town/sim-worker";
 import {
   SIMULATION_TO_MAIN_MESSAGE_KIND,
@@ -15,6 +21,10 @@ import {
 
 export const WEB_PLAYABLE_WORKER_SCENARIO_ID = WM0150_PLAYABLE_COMMAND_SCENARIO_ID;
 export type WebPlayableProjection = PlayableProjectionV1;
+export type WebPlayableProjectionWaitRequest = PlayableProjectionWaitRequest;
+export type WebPlayableProjectionWaitResult = PlayableProjectionWaitResult;
+export type WebPlayableDrainRequest = PlayableDrainRequest;
+export type WebPlayableDrainResult = PlayableDrainResult;
 
 export function createWebSimulationWorkerSession(
   options: BrowserSimulationWorkerSessionOptions,
@@ -41,6 +51,20 @@ export function advanceWebPlayableWorkerScenarioToTick(
   targetTick: number,
 ): MainToSimulationMessage {
   return advancePlayableCommandScenarioToTick(session, targetTick);
+}
+
+export function waitForWebPlayableProjectionAtOrBeyondTick(
+  session: BrowserSimulationWorkerSession,
+  request: WebPlayableProjectionWaitRequest,
+): Promise<WebPlayableProjectionWaitResult> {
+  return waitForPlayableProjectionAtOrBeyondTick(session, request);
+}
+
+export function drainWebPlayableCommandsToTerminal(
+  session: BrowserSimulationWorkerSession,
+  request: WebPlayableDrainRequest,
+): Promise<WebPlayableDrainResult> {
+  return drainPlayableCommandsToTerminal(session, request);
 }
 
 export function readWebPlayableProjection(

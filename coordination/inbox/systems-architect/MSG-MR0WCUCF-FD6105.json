@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MR0WCUCF-FD6105",
+  "from": "simulation-engineer",
+  "to": "systems-architect",
+  "taskId": "WM-0160",
+  "kind": "review-request",
+  "subject": "WM-0160 ready for review",
+  "body": "Addressed Keystone changes_requested: listener emit cleanup is safe under concurrent wait/drain; focused coverage and gates pass",
+  "artifacts": [
+    "coordination/reports/WM-0160.md",
+    "task/WM-0160-public-playable-worker-drain-terminal-helper"
+  ],
+  "createdAt": "2026-06-30T17:04:40.095Z",
+  "acknowledgedAt": "2026-06-30T17:05:26.783Z"
+}

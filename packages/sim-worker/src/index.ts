@@ -68,8 +68,12 @@ export {
   advancePlayableCommandScenarioToTick,
   createBrowserSimulationWorker,
   createBrowserSimulationWorkerSession,
+  drainPlayableCommandsToTerminal,
+  waitForPlayableProjectionAtOrBeyondTick,
   type BrowserSimulationWorkerFactory,
   type BrowserSimulationWorkerHandle,
+  type BrowserSimulationWorkerLifecycleEvent,
+  type BrowserSimulationWorkerLifecycleListener,
   type BrowserSimulationWorkerMessageEvent,
   type BrowserSimulationWorkerMessageListener,
   type BrowserSimulationWorkerSession,
@@ -79,6 +83,15 @@ export {
   type ReliableSimulationWorkerMessage,
   type ReliableSimulationWorkerMessageListener,
 } from "./browser-session";
+export type {
+  PlayableDrainOrderState,
+  PlayableDrainRequest,
+  PlayableDrainResult,
+  PlayableDrainStatus,
+  PlayableProjectionWaitRequest,
+  PlayableProjectionWaitResult,
+  PlayableProjectionWaitStatus,
+} from "./playable-drain";
 
 export const SIM_WORKER_SMOKE: WorkspaceSmoke = defineWorkspaceSmoke(
   "@wuming-town/sim-worker",

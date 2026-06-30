@@ -2,7 +2,7 @@
   "id": "WM-0160",
   "title": "Public playable Worker drain and terminal wait helper",
   "summary": "Expose a legal public root sim-worker/session helper so Web can advance and await authoritative WM-0150 playable UiDelta terminal or max-target state without debug polling, sim-core imports or UI-owned terminal authority.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "systems-architect",
   "dependsOn": [
@@ -60,7 +60,7 @@
   ],
   "branch": "task/WM-0160-public-playable-worker-drain-terminal-helper",
   "createdAt": "2026-06-30T16:30:00.000Z",
-  "updatedAt": "2026-06-30T16:42:00.000Z",
+  "updatedAt": "2026-06-30T17:13:37.808Z",
   "history": [
     {
       "at": "2026-06-30T16:30:00.000Z",
@@ -73,6 +73,48 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-30T16:35:46.833Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=019f1882-5f86-7953-8725-0394c042cbf7"
+    },
+    {
+      "at": "2026-06-30T16:54:53.432Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented public root playable Worker wait/drain helpers, Web adapter aliases, terminal projection tests, Chromium worker-smoke coverage, and WM-0160 report; all required checks pass."
+    },
+    {
+      "at": "2026-06-30T17:00:13.302Z",
+      "actor": "systems-architect",
+      "action": "review",
+      "details": "changes_requested: Blocker: lifecycle/message listener cleanup is not reliable for concurrent public wait/drain helpers. packages/sim-worker/src/browser-session.ts emits lifecycle/message listeners by iterating the live listener array, while packages/sim-worker/src/playable-drain.ts cleanup unsubscribes by splicing that same array during emit. With two pending wait/drain calls, session.destroy() rejects the first but skips the second, leaving a pending promise that can outlive the session. Fix by snapshotting listeners before emit or otherwise making unsubscribe-during-emit safe, and add focused coverage for multiple concurrent wait/drain helpers on destroy/shutdown and/or shared UiDelta delivery."
+    },
+    {
+      "at": "2026-06-30T17:04:40.093Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Addressed Keystone changes_requested: listener emit cleanup is safe under concurrent wait/drain; focused coverage and gates pass"
+    },
+    {
+      "at": "2026-06-30T17:09:41.121Z",
+      "actor": "systems-architect",
+      "action": "review",
+      "details": "verified: Verified WM-0160 after Keystone follow-up. Prior listener cleanup blocker is fixed by snapshotting ordinary, reliable, and lifecycle listener emits; concurrent wait and drain helpers settle on shared UiDelta, destroy, and shutdown. Public API remains root sim-worker with thin Web adapter aliases only; no product UI changes, new protocol message family, timer loop, singleton, sim-core import in apps/web, or deep import. Focused Vitest, Chromium worker-smoke, typecheck, boundaries, sim-run, validate-handoff, taskctl validate/status, and git diff --check pass."
+    },
+    {
+      "at": "2026-06-30T17:13:30.337Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified by systems-architect; integration gate passed in WM-0160 branch: typecheck, focused Vitest 26 tests, Chromium worker-smoke 17 tests, 240 tick deterministic sim-run, boundaries, validate-handoff, taskctl validate/status, git diff --check, pnpm quality 413 tests. Preparing main merge and push."
+    },
+    {
+      "at": "2026-06-30T17:13:37.807Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "Post-M8",
@@ -104,8 +146,19 @@
     "new runtime dependencies without a separate ADR",
     "public release, Early Access, store, signing, telemetry, accounts, paid services or public feedback surfaces"
   ],
-  "claimedBy": null,
-  "threadLabel": null,
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "019f1882-5f86-7953-8725-0394c042cbf7",
   "blocker": null,
-  "reportPath": "coordination/reports/WM-0160.md"
+  "reportPath": "coordination/reports/WM-0160.md",
+  "review": {
+    "reviewer": "systems-architect",
+    "verdict": "verified",
+    "summary": "Verified WM-0160 after Keystone follow-up. Prior listener cleanup blocker is fixed by snapshotting ordinary, reliable, and lifecycle listener emits; concurrent wait and drain helpers settle on shared UiDelta, destroy, and shutdown. Public API remains root sim-worker with thin Web adapter aliases only; no product UI changes, new protocol message family, timer loop, singleton, sim-core import in apps/web, or deep import. Focused Vitest, Chromium worker-smoke, typecheck, boundaries, sim-run, validate-handoff, taskctl validate/status, and git diff --check pass.",
+    "at": "2026-06-30T17:09:41.121Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified by systems-architect; integration gate passed in WM-0160 branch: typecheck, focused Vitest 26 tests, Chromium worker-smoke 17 tests, 240 tick deterministic sim-run, boundaries, validate-handoff, taskctl validate/status, git diff --check, pnpm quality 413 tests. Preparing main merge and push.",
+    "at": "2026-06-30T17:13:30.336Z"
+  }
 }
