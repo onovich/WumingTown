@@ -2,7 +2,7 @@
   "id": "WM-0151",
   "title": "Renderer pawn motion intent path and job marker feedback",
   "summary": "Render pawn movement, intent paths, job markers, working progress, completed feedback and blocked reason badges from reviewed read-model/projection data.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -38,7 +38,7 @@
   ],
   "branch": "task/WM-0151-renderer-pawn-motion-intent-path-and-job-marker-",
   "createdAt": "2026-06-29T18:59:47.522Z",
-  "updatedAt": "2026-06-30T07:17:19.837Z",
+  "updatedAt": "2026-06-30T12:03:14.986Z",
   "history": [
     {
       "at": "2026-06-29T18:59:47.523Z",
@@ -51,6 +51,54 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-30T09:10:54.020Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": "thread=Pathlight"
+    },
+    {
+      "at": "2026-06-30T11:16:26.752Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Delivered legal reviewed-projection Web/Pixi pawn motion and job feedback, removed illegal apps/web sim-core imports, added command-motion-progress E2E evidence, and passed required checks including web-shell wrapper E2E and quality."
+    },
+    {
+      "at": "2026-06-30T11:24:26.143Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: Medium: Web projection playback is still described as authoritative and uses non-WM-0150 reason codes, conflicting with the report's non-live-Worker boundary and no-new-semantics contract; Medium: Pixi setReadModel rebuilds static terrain/semantic/entity layers on every read-model update, with the Web interval continuing after completion, so performance evidence is not bounded enough for the accepted read-model update path."
+    },
+    {
+      "at": "2026-06-30T11:25:44.031Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": "thread=Pathlight"
+    },
+    {
+      "at": "2026-06-30T11:47:01.962Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Repaired reviewer findings by correcting projection-playback wording, removing unreviewed reason codes in favor of reviewed WM-0150 codes, bounding Pixi read-model updates with static/dynamic layer separation, stopping completed Web playback timers, and rerunning required checks including web-shell E2E and quality."
+    },
+    {
+      "at": "2026-06-30T11:50:52.628Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: Previous review findings resolved: wording now identifies reviewed projection/WorldReadModel playback, reason codes use reviewed WM-0150 codes such as no_path/invalid_target, Pixi read-model updates separate static layers from dynamic overlays, playback timer stops at terminal states, and no illegal sim-core import or coordination noise remains in the final diff."
+    },
+    {
+      "at": "2026-06-30T12:03:14.928Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified by independent reviewer; integration gate passed with typecheck, renderer focused test, web-shell E2E, validate-handoff, taskctl validate/status, git diff --check, and pnpm quality."
+    },
+    {
+      "at": "2026-06-30T12:03:14.986Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "Post-M8",
@@ -67,5 +115,20 @@
     "UI-owned authoritative world mutation",
     "new unreviewed command semantics",
     "public release/EA/store/signing/telemetry/accounts/paid-services/public-save actions"
-  ]
+  ],
+  "claimedBy": "client-engineer",
+  "threadLabel": "Pathlight",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0151.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "Previous review findings resolved: wording now identifies reviewed projection/WorldReadModel playback, reason codes use reviewed WM-0150 codes such as no_path/invalid_target, Pixi read-model updates separate static layers from dynamic overlays, playback timer stops at terminal states, and no illegal sim-core import or coordination noise remains in the final diff.",
+    "at": "2026-06-30T11:50:52.628Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified by independent reviewer; integration gate passed with typecheck, renderer focused test, web-shell E2E, validate-handoff, taskctl validate/status, git diff --check, and pnpm quality.",
+    "at": "2026-06-30T12:03:14.927Z"
+  }
 }

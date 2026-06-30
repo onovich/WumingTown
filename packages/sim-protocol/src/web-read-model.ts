@@ -2,6 +2,20 @@ export type TerrainKind = "path" | "earth" | "brush" | "water" | "lantern-glow";
 export type WorldSemanticAreaKind = "structure" | "lamp-coverage" | "dark-gap" | "blocked-area";
 export type WorldFocusMarkerKind = "selectable" | "blocked" | "completed";
 export type WorldEntityActivityState = "idle" | "moving" | "working" | "blocked" | "completed";
+export type WorldJobMarkerState =
+  | "queued"
+  | "claimable"
+  | "claimed"
+  | "moving"
+  | "working"
+  | "blocked"
+  | "completed"
+  | "failed"
+  | "canceled";
+export type WorldStructuredJobKind =
+  | "lamp_refill"
+  | "build_site_delivery"
+  | "build_site_construction";
 
 export interface TileCoordinate {
   readonly x: number;
@@ -36,6 +50,24 @@ export interface EntityNeedReadModel {
   readonly state: "low" | "steady" | "high";
 }
 
+export interface StructuredReasonReadModel {
+  readonly code: string;
+  readonly source: string;
+  readonly detail: string;
+}
+
+export interface EntityTaskReadModel {
+  readonly state: WorldJobMarkerState | "idle";
+  readonly jobKind: WorldStructuredJobKind;
+  readonly stepLabel: string;
+  readonly targetLabel: string;
+  readonly progressPercent?: number;
+  readonly targetTile?: TileCoordinate;
+  readonly orderId?: string;
+  readonly commandId?: string;
+  readonly reason?: StructuredReasonReadModel;
+}
+
 export interface EntityInspectorReadModel {
   readonly roleLabel: string;
   readonly currentJob: string;
@@ -46,6 +78,7 @@ export interface EntityInspectorReadModel {
   readonly explainers: readonly string[];
   readonly thoughts: readonly string[];
   readonly needs: readonly EntityNeedReadModel[];
+  readonly task?: EntityTaskReadModel;
 }
 
 export type WorldEntityKind = "resident" | "visitor" | "lantern-keeper" | "structure";
@@ -79,6 +112,21 @@ export interface WorldFocusMarkerReadModel {
   readonly entityId?: string;
 }
 
+export interface WorldJobMarkerReadModel {
+  readonly markerId: string;
+  readonly orderId: string;
+  readonly commandId: string;
+  readonly jobKind: WorldStructuredJobKind;
+  readonly state: WorldJobMarkerState;
+  readonly label: string;
+  readonly detail: string;
+  readonly tile: TileCoordinate;
+  readonly progressPercent?: number;
+  readonly ownerEntityId?: string;
+  readonly targetEntityId?: string;
+  readonly reason?: StructuredReasonReadModel;
+}
+
 export interface WorldEntityReadModel {
   readonly entityId: string;
   readonly displayName: string;
@@ -110,5 +158,6 @@ export interface WorldReadModel {
   readonly entities: readonly WorldEntityReadModel[];
   readonly semanticAreas?: readonly WorldSemanticAreaReadModel[];
   readonly focusMarkers?: readonly WorldFocusMarkerReadModel[];
+  readonly jobMarkers?: readonly WorldJobMarkerReadModel[];
   readonly selectedEntityId: string;
 }

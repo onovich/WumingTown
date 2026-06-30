@@ -20,7 +20,6 @@ import {
   type ShellPlayableActionState,
   type ShellState,
 } from "@wuming-town/ui-react";
-import type { WorldEntityReadModel } from "@wuming-town/sim-protocol";
 
 import {
   buildShellDiagnosticPackage,
@@ -32,9 +31,12 @@ import {
   triggerDiagnosticDownload,
   type WebDiagnosticDebugState,
 } from "./diagnostic-package-gate";
+import {
+  createProjectedPlayableDebugState,
+  createReviewedPlayableProjectionSession,
+} from "./reviewed-playable-session";
 import { createShellReleaseGateInfo, readShellBrowserLabel } from "./product-gate-harness";
 import { createShellSettingsController, readDiagnosticsVisibility } from "./shell-locale";
-import { WEB_SHELL_SMOKE_READ_MODEL } from "./smoke-read-model";
 import {
   createInitialStorageGateState,
   createWebStorageGateController,
@@ -55,6 +57,7 @@ export interface WebShellDebugPayload extends PixiWorldRendererDebugState {
     readonly systemLocale: string;
   };
   readonly platformHost: PlatformHostInfo;
+  readonly playable?: ReturnType<typeof createProjectedPlayableDebugState>;
   readonly playableAction?: ShellPlayableActionState;
   readonly runtimeBrowser: string;
   readonly runtimeCrossOriginIsolated: boolean;
@@ -76,6 +79,9 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
   const platformPorts = resolvePlatformPorts();
   const settingsController = createShellSettingsController();
   const diagnosticsVisible = readDiagnosticsVisibility(window.location.search);
+  const playableSession = createReviewedPlayableProjectionSession();
+  const initialPlayableSnapshot = playableSession.readSnapshot();
+  const initialReadModel = initialPlayableSnapshot.readModel;
   const releaseGate = createShellReleaseGateInfo({
     browserLabel: readShellBrowserLabel(navigator.userAgent),
     crossOriginIsolated: window.crossOriginIsolated,
@@ -106,7 +112,7 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
   applyDocumentLocale(settingsState.locale);
   document.body.dataset["uiScale"] = settingsState.uiScale.preference;
   const initialState: ShellState = {
-    readModel: WEB_SHELL_SMOKE_READ_MODEL,
+    readModel: initialReadModel,
     releaseGate,
     storageGate: createInitialStorageGateState(),
     onboarding: createM8OnboardingState(),
@@ -117,11 +123,8 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
     canvasHeight: Math.max(shellFrame.clientHeight, 1),
     zoom: 1,
     lastInputLabel: "Booting shell",
-    selectedEntityId: WEB_SHELL_SMOKE_READ_MODEL.selectedEntityId,
-    inspectedTile: getEntityTile(
-      WEB_SHELL_SMOKE_READ_MODEL,
-      WEB_SHELL_SMOKE_READ_MODEL.selectedEntityId,
-    ),
+    selectedEntityId: initialReadModel.selectedEntityId,
+    inspectedTile: getEntityTile(initialReadModel, initialReadModel.selectedEntityId),
     hoverTile: undefined,
   };
   const store = createShellStore(initialState);
@@ -135,6 +138,7 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
       syncDebug(
         activeRenderer.readDebugState(),
         store.getSnapshot(),
+        createProjectedPlayableDebugState(playableSession.readSnapshot()),
         platformPorts.host,
         storageController.readDebugState(),
         diagnosticState,
@@ -151,7 +155,6 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
   if (diagnosticsVisible) {
     shellFrame.append(diagnosticDock.element);
   }
-  let localPlayableCommandSequence = 0;
   const reactRoot = createRoot(hudHost);
   reactRoot.render(
     createShellHudElement(
@@ -172,8 +175,28 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
         },
       },
       {
-        onPrioritizeLampWork(targetEntityId): Promise<void> {
-          queueLocalLampPriority(targetEntityId);
+        onPrioritizeLampWork(targetEntityId: string): Promise<void> {
+          const currentState = store.getSnapshot();
+          const playableAction = playableSession.queuePrioritizeLampWork(targetEntityId);
+          const nextState: ShellState = {
+            ...currentState,
+            lastInputLabel: `Action queued ${playableAction.commandId}`,
+            playableAction,
+          };
+          store.setState(nextState);
+          syncRendererProjection(nextState);
+          return Promise.resolve();
+        },
+        onQueueSimpleBuild(targetEntityId: string): Promise<void> {
+          const currentState = store.getSnapshot();
+          const playableAction = playableSession.queueSimpleBuild(targetEntityId);
+          const nextState: ShellState = {
+            ...currentState,
+            lastInputLabel: `Action queued ${playableAction.commandId}`,
+            playableAction,
+          };
+          store.setState(nextState);
+          syncRendererProjection(nextState);
           return Promise.resolve();
         },
       },
@@ -195,8 +218,8 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
   const renderer = await createPixiWorldRenderer({
     container: canvasHost,
     inputTarget: shellFrame,
-    readModel: WEB_SHELL_SMOKE_READ_MODEL,
-    selectedEntityId: WEB_SHELL_SMOKE_READ_MODEL.selectedEntityId,
+    readModel: initialReadModel,
+    selectedEntityId: initialReadModel.selectedEntityId,
     shouldIgnoreInputTarget: (target) => shouldIgnoreCameraInputTarget(target, hudHost),
     onSelectionChange(entityId: string | undefined, inputLabel: string, inspectedTile): void {
       const currentState = store.getSnapshot();
@@ -211,6 +234,7 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
         syncDebug(
           activeRenderer.readDebugState(),
           store.getSnapshot(),
+          createProjectedPlayableDebugState(playableSession.readSnapshot()),
           platformPorts.host,
           storageController.readDebugState(),
           diagnosticState,
@@ -234,6 +258,7 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
         syncDebug(
           activeRenderer.readDebugState(),
           store.getSnapshot(),
+          createProjectedPlayableDebugState(playableSession.readSnapshot()),
           platformPorts.host,
           storageController.readDebugState(),
           diagnosticState,
@@ -243,6 +268,9 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
   });
   rendererRef.current = renderer;
   void storageController.refresh();
+  const unsubscribePlayableSession = playableSession.subscribe(() => {
+    syncRendererProjection(store.getSnapshot());
+  });
 
   const resizeObserver = new ResizeObserver(() => {
     const nextWidth = Math.max(shellFrame.clientWidth, 1);
@@ -251,6 +279,7 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
     syncDebug(
       renderer.readDebugState(),
       store.getSnapshot(),
+      createProjectedPlayableDebugState(playableSession.readSnapshot()),
       platformPorts.host,
       storageController.readDebugState(),
       diagnosticState,
@@ -262,6 +291,7 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
   syncDebug(
     renderer.readDebugState(),
     store.getSnapshot(),
+    createProjectedPlayableDebugState(playableSession.readSnapshot()),
     platformPorts.host,
     storageController.readDebugState(),
     diagnosticState,
@@ -295,6 +325,7 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
     syncDebug(
       activeRenderer.readDebugState(),
       store.getSnapshot(),
+      createProjectedPlayableDebugState(playableSession.readSnapshot()),
       platformPorts.host,
       storageController.readDebugState(),
       diagnosticState,
@@ -317,6 +348,7 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
       syncDebug(
         activeRenderer.readDebugState(),
         nextState,
+        createProjectedPlayableDebugState(playableSession.readSnapshot()),
         platformPorts.host,
         storageController.readDebugState(),
         diagnosticState,
@@ -324,45 +356,30 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
     }
   }
 
-  function queueLocalLampPriority(targetEntityId: string): void {
-    const currentState = store.getSnapshot();
-    const targetEntity = readWorldEntity(currentState, targetEntityId);
-    if (!isLampPriorityCommandTarget(targetEntity)) {
-      return;
-    }
-
-    localPlayableCommandSequence += 1;
-    const commandId = `wm0138-lamp-priority-${String(localPlayableCommandSequence).padStart(
-      3,
-      "0",
-    )}`;
-    const playableAction: ShellPlayableActionState = {
-      actionId: "prioritize-lamp-work",
-      adapterId: "wm0138-web-local-playable-adapter",
-      authority: "shell-local-adapter",
-      commandId,
-      consequenceClass: "lamp-boundary-preparation",
-      followUp:
-        "Simulation Worker command protocol remains unchanged until a reviewed authoritative command lands.",
-      reasonCode: "wm0138.local_adapter.lamp_priority",
-      reasonDetail: "Selected lamp-relevant target requested priority lamp work.",
-      status: "queued",
-      targetEntityId: targetEntity.entityId,
-      targetLabel: targetEntity.displayName,
-    };
+  function syncRendererProjection(currentState: ShellState): void {
+    const playableSnapshot = playableSession.readSnapshot(currentState.selectedEntityId);
+    const nextReadModel = playableSnapshot.readModel;
     const nextState: ShellState = {
       ...currentState,
-      inspectedTile: targetEntity.tile,
-      lastInputLabel: `Action queued ${commandId}`,
-      playableAction,
-      selectedEntityId: targetEntity.entityId,
+      inspectedTile:
+        currentState.selectedEntityId === undefined
+          ? currentState.inspectedTile
+          : getEntityTile(nextReadModel, currentState.selectedEntityId),
+      ...(playableSnapshot.latestCommand === undefined
+        ? {}
+        : {
+            playableAction: playableSnapshot.latestCommand,
+          }),
+      readModel: nextReadModel,
     };
     store.setState(nextState);
     const activeRenderer = rendererRef.current;
     if (activeRenderer !== undefined) {
+      activeRenderer.setReadModel(nextReadModel);
       syncDebug(
         activeRenderer.readDebugState(),
         nextState,
+        createProjectedPlayableDebugState(playableSnapshot),
         platformPorts.host,
         storageController.readDebugState(),
         diagnosticState,
@@ -372,6 +389,8 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
 
   return {
     async destroy(): Promise<void> {
+      unsubscribePlayableSession();
+      playableSession.destroy();
       window.removeEventListener("error", windowErrorListener);
       window.removeEventListener("unhandledrejection", unhandledRejectionListener);
       resizeObserver.disconnect();
@@ -431,38 +450,10 @@ function shouldIgnoreCameraInputTarget(target: EventTarget | null, hudHost: HTML
   return false;
 }
 
-function readWorldEntity(
-  state: Pick<ShellState, "readModel">,
-  entityId: string,
-): WorldEntityReadModel | undefined {
-  for (const entity of state.readModel.entities) {
-    if (entity.entityId === entityId) {
-      return entity;
-    }
-  }
-
-  return undefined;
-}
-
-function isLampPriorityCommandTarget(
-  entity: WorldEntityReadModel | undefined,
-): entity is WorldEntityReadModel {
-  if (entity === undefined) {
-    return false;
-  }
-
-  if (entity.kind === "lantern-keeper") {
-    return true;
-  }
-
-  const searchText =
-    `${entity.entityId} ${entity.displayName} ${entity.inspector.roleLabel} ${entity.inspector.currentJob}`.toLowerCase();
-  return searchText.includes("lamp") || searchText.includes("lantern");
-}
-
 function syncDebug(
   debugState: PixiWorldRendererDebugState,
   shellState: Pick<ShellState, "diagnosticsVisible" | "locale" | "playableAction" | "uiScale">,
+  playableState: ReturnType<typeof createProjectedPlayableDebugState>,
   platformHost: PlatformHostInfo,
   storageGate: WebStorageDebugState,
   diagnostics: WebDiagnosticDebugState,
@@ -492,6 +483,7 @@ function syncDebug(
       preference: shellState.uiScale.preference,
     },
     platformHost,
+    playable: playableState,
     ...(shellState.playableAction === undefined
       ? {}
       : { playableAction: shellState.playableAction }),

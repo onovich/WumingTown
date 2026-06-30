@@ -2,7 +2,7 @@
   "id": "WM-0152",
   "title": "Player lamp priority and build placement UI chain",
   "summary": "Connect the player-facing HUD/action bar to the authoritative lamp/build vertical slice with selection, placement, command, job feedback and failure reasons.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -40,13 +40,19 @@
   ],
   "branch": "task/WM-0152-player-lamp-priority-and-build-placement-ui-chai",
   "createdAt": "2026-06-29T18:59:47.563Z",
-  "updatedAt": "2026-06-29T18:59:47.564Z",
+  "updatedAt": "2026-06-30T12:03:15.010Z",
   "history": [
     {
       "at": "2026-06-29T18:59:47.564Z",
       "actor": "taskctl",
       "action": "create",
       "details": ""
+    },
+    {
+      "at": "2026-06-30T12:03:15.010Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "Post-M8",

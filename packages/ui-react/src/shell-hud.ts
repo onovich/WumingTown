@@ -6,7 +6,14 @@ import {
   type ReactElement,
 } from "react";
 
-import type { TerrainKind, TileCoordinate, WorldEntityReadModel } from "@wuming-town/sim-protocol";
+import type {
+  EntityTaskReadModel,
+  TerrainKind,
+  TileCoordinate,
+  WorldEntityReadModel,
+  WorldJobMarkerState,
+  WorldStructuredJobKind,
+} from "@wuming-town/sim-protocol";
 
 import { formatMessage, type LocaleId } from "./localization";
 import {
@@ -61,6 +68,7 @@ interface PlayerHudModel {
 }
 
 interface HudCommandSpec {
+  readonly actionId: "placeholder" | "prioritize-lamp-work" | "queue-simple-build";
   readonly commandState: "needs-selection" | "placeholder" | "queued" | "ready";
   readonly description: string;
   readonly disabled: boolean;
@@ -791,6 +799,7 @@ function createInspectorCard(
     );
   }
 
+  const structuredTask = selectedEntity.inspector.task;
   return createElement(
     "section",
     {
@@ -827,12 +836,41 @@ function createInspectorCard(
     createPairGrid(locale, [
       {
         label: formatMessage(locale, "ui.inspector.currentJob"),
-        value: localizeShellFixtureText(locale, selectedEntity.inspector.currentJob),
+        value:
+          structuredTask === undefined
+            ? localizeShellFixtureText(locale, selectedEntity.inspector.currentJob)
+            : formatStructuredJobKind(structuredTask.jobKind, locale),
       },
       {
         label: formatMessage(locale, "ui.inspector.currentStep"),
-        value: localizeShellFixtureText(locale, selectedEntity.inspector.currentStep),
+        value:
+          structuredTask === undefined
+            ? localizeShellFixtureText(locale, selectedEntity.inspector.currentStep)
+            : structuredTask.stepLabel,
       },
+      ...(structuredTask === undefined
+        ? []
+        : [
+            {
+              label: formatMessage(locale, "ui.inspector.target"),
+              value: localizeShellFixtureText(locale, structuredTask.targetLabel),
+            },
+            {
+              label: formatMessage(locale, "ui.inspector.progress"),
+              value: formatStructuredProgress(structuredTask.progressPercent, locale),
+            },
+            {
+              label: formatMessage(locale, "ui.inspector.taskState"),
+              value: formatStructuredTaskState(structuredTask.state, locale),
+            },
+            {
+              label: formatMessage(locale, "ui.inspector.reason"),
+              value:
+                structuredTask.reason === undefined
+                  ? formatMessage(locale, "ui.inspector.reasonNone")
+                  : `${structuredTask.reason.code} · ${structuredTask.reason.detail}`,
+            },
+          ]),
       {
         label: formatMessage(locale, "ui.inspector.mood"),
         value: localizeShellFixtureText(locale, selectedEntity.inspector.moodLabel),
@@ -1497,7 +1535,7 @@ function createCommandBar(
     createElement(
       "div",
       {
-        style: commandBarGroupStyle,
+        style: layoutMode === "compact" ? compactCommandBarGroupStyle : commandBarGroupStyle,
       },
       ...commandSpecs.map((spec) =>
         createElement(
@@ -1513,7 +1551,11 @@ function createCommandBar(
             onClick: (event): void => {
               event.preventDefault();
               if (!spec.disabled && spec.targetEntityId !== undefined) {
-                void commandActions.onPrioritizeLampWork(spec.targetEntityId);
+                if (spec.actionId === "prioritize-lamp-work") {
+                  void commandActions.onPrioritizeLampWork(spec.targetEntityId);
+                } else if (spec.actionId === "queue-simple-build") {
+                  void commandActions.onQueueSimpleBuild(spec.targetEntityId);
+                }
               }
             },
             style: commandButtonStyle(spec.tone, spec.visualState),
@@ -1555,9 +1597,19 @@ function readCommandSpecs(
     lampTargetReady &&
     state.playableAction?.actionId === "prioritize-lamp-work" &&
     state.playableAction.targetEntityId === selectedEntity?.entityId;
+  const buildTargetReady = isBuildCommandTarget(selectedEntity);
+  const buildQueuedForSelectedTarget =
+    buildTargetReady &&
+    state.playableAction?.actionId === "queue-simple-build" &&
+    state.playableAction.targetEntityId === selectedEntity?.entityId;
   const lampCommandState = queuedForSelectedTarget
     ? "queued"
     : lampTargetReady
+      ? "ready"
+      : "needs-selection";
+  const buildCommandState = buildQueuedForSelectedTarget
+    ? "queued"
+    : buildTargetReady
       ? "ready"
       : "needs-selection";
   const lampDescription =
@@ -1570,9 +1622,20 @@ function readCommandSpecs(
             target: selectedTargetLabel,
           })
         : formatMessage(locale, "ui.hud.command.playable.lamp.needsSelection");
+  const buildDescription =
+    buildCommandState === "queued"
+      ? formatMessage(locale, "ui.hud.command.playable.build.queued", {
+          target: selectedTargetLabel,
+        })
+      : buildCommandState === "ready"
+        ? formatMessage(locale, "ui.hud.command.playable.build.ready", {
+            target: selectedTargetLabel,
+          })
+        : formatMessage(locale, "ui.hud.command.playable.build.needsSelection");
 
   return [
     {
+      actionId: "prioritize-lamp-work",
       commandState: lampCommandState,
       description: lampDescription,
       disabled: !lampTargetReady,
@@ -1585,6 +1648,24 @@ function readCommandSpecs(
       visualState: queuedForSelectedTarget ? "active" : lampTargetReady ? "default" : "disabled",
     },
     {
+      actionId: "queue-simple-build",
+      commandState: buildCommandState,
+      description: buildDescription,
+      disabled: !buildTargetReady,
+      ...(buildTargetReady && selectedEntity !== undefined
+        ? { targetEntityId: selectedEntity.entityId }
+        : {}),
+      testId: "player-command-build",
+      title: formatMessage(locale, "ui.hud.command.build"),
+      tone: "primary",
+      visualState: buildQueuedForSelectedTarget
+        ? "active"
+        : buildTargetReady
+          ? "default"
+          : "disabled",
+    },
+    {
+      actionId: "placeholder",
       commandState: "placeholder",
       description: formatMessage(locale, "ui.hud.command.placeholder.chronicle"),
       disabled: true,
@@ -1594,6 +1675,7 @@ function readCommandSpecs(
       visualState: "disabled",
     },
     {
+      actionId: "placeholder",
       commandState: "placeholder",
       description: formatMessage(locale, "ui.hud.command.placeholder.inspect"),
       disabled: true,
@@ -1612,14 +1694,25 @@ function createPlayableActionFeedback(state: ShellState, locale: LocaleId): Reac
   }
 
   const target = localizeShellFixtureText(locale, action.targetLabel);
+  const reasonText =
+    action.reasonCode === undefined
+      ? formatMessage(locale, "ui.inspector.reasonNone")
+      : `${action.reasonCode} · ${action.reasonDetail ?? action.reasonCode}`;
+  const stateText =
+    action.status === "rejected"
+      ? formatMessage(locale, "ui.hud.actionFeedback.rejected")
+      : action.markerState === undefined
+        ? formatMessage(locale, "ui.hud.actionFeedback.accepted")
+        : formatStructuredTaskState(action.markerState, locale);
   return createElement(
     "div",
     {
       "data-action-authority": action.authority,
+      "data-action-marker-state": action.markerState ?? "",
       "data-action-status": action.status,
       "data-adapter-id": action.adapterId,
-      "data-reason-code": action.reasonCode,
-      "data-target-entity": action.targetEntityId,
+      "data-reason-code": action.reasonCode ?? "",
+      "data-target-entity": action.targetEntityId ?? "",
       "data-testid": "player-action-feedback",
       style: actionFeedbackStyle,
     },
@@ -1628,7 +1721,9 @@ function createPlayableActionFeedback(state: ShellState, locale: LocaleId): Reac
       {
         style: rowTitleStyle,
       },
-      formatMessage(locale, "ui.hud.actionFeedback.title"),
+      action.status === "rejected"
+        ? formatMessage(locale, "ui.hud.actionFeedback.titleRejected")
+        : formatMessage(locale, "ui.hud.actionFeedback.titleAccepted"),
     ),
     createElement(
       "div",
@@ -1636,6 +1731,7 @@ function createPlayableActionFeedback(state: ShellState, locale: LocaleId): Reac
         style: commandDetailStyle,
       },
       formatMessage(locale, "ui.hud.actionFeedback.body", {
+        state: stateText,
         target,
       }),
     ),
@@ -1644,9 +1740,29 @@ function createPlayableActionFeedback(state: ShellState, locale: LocaleId): Reac
       {
         style: actionFeedbackMetaStyle,
       },
-      formatMessage(locale, "ui.hud.actionFeedback.reason", {
-        reasonCode: action.reasonCode,
+      formatMessage(locale, "ui.hud.actionFeedback.state", {
+        state: stateText,
       }),
+    ),
+    createElement(
+      "div",
+      {
+        style: actionFeedbackMetaStyle,
+      },
+      formatMessage(locale, "ui.hud.actionFeedback.reason", {
+        reasonCode: reasonText,
+      }),
+    ),
+    createElement(
+      "div",
+      {
+        style: actionFeedbackMetaStyle,
+      },
+      action.progressPercent === undefined
+        ? formatMessage(locale, "ui.hud.actionFeedback.progressNone")
+        : formatMessage(locale, "ui.hud.actionFeedback.progress", {
+            progress: String(action.progressPercent),
+          }),
     ),
     createElement(
       "div",
@@ -1672,6 +1788,18 @@ function isLampPriorityTarget(entity: WorldEntityReadModel | undefined): boolean
   const searchText =
     `${entity.entityId} ${entity.displayName} ${entity.inspector.roleLabel} ${entity.inspector.currentJob}`.toLowerCase();
   return searchText.includes("lamp") || searchText.includes("lantern");
+}
+
+function isBuildCommandTarget(entity: WorldEntityReadModel | undefined): boolean {
+  if (entity === undefined) {
+    return false;
+  }
+
+  if (entity.entityId === "east-market-lantern-post") {
+    return true;
+  }
+
+  return isLampPriorityTarget(entity);
 }
 
 function readCommandButtonSlot(
@@ -1876,6 +2004,55 @@ function measureEntityPriority(
   score += entity.inspector.currentJob.length > 0 ? 12 : 0;
   score += entity.inspector.currentStep.length > 0 ? 8 : 0;
   return score;
+}
+
+function formatStructuredJobKind(jobKind: WorldStructuredJobKind, locale: LocaleId): string {
+  switch (jobKind) {
+    case "lamp_refill":
+      return formatMessage(locale, "ui.task.job.lampRefill");
+    case "build_site_delivery":
+      return formatMessage(locale, "ui.task.job.buildDelivery");
+    case "build_site_construction":
+      return formatMessage(locale, "ui.task.job.buildConstruction");
+  }
+}
+
+function formatStructuredTaskState(
+  state: EntityTaskReadModel["state"] | WorldJobMarkerState,
+  locale: LocaleId,
+): string {
+  switch (state) {
+    case "idle":
+      return formatMessage(locale, "ui.task.state.idle");
+    case "queued":
+      return formatMessage(locale, "ui.task.state.queued");
+    case "claimable":
+      return formatMessage(locale, "ui.task.state.claimable");
+    case "claimed":
+      return formatMessage(locale, "ui.task.state.claimed");
+    case "moving":
+      return formatMessage(locale, "ui.task.state.moving");
+    case "working":
+      return formatMessage(locale, "ui.task.state.working");
+    case "blocked":
+      return formatMessage(locale, "ui.task.state.blocked");
+    case "completed":
+      return formatMessage(locale, "ui.task.state.completed");
+    case "failed":
+      return formatMessage(locale, "ui.task.state.failed");
+    case "canceled":
+      return formatMessage(locale, "ui.task.state.canceled");
+  }
+}
+
+function formatStructuredProgress(progressPercent: number | undefined, locale: LocaleId): string {
+  if (progressPercent === undefined) {
+    return formatMessage(locale, "ui.inspector.progressNone");
+  }
+
+  return formatMessage(locale, "ui.inspector.progressValue", {
+    progress: String(progressPercent),
+  });
 }
 
 function formatAlertSeverity(severity: AlertSeverity, locale: LocaleId): string {
@@ -2632,12 +2809,19 @@ const commandBarStyle: CSSProperties = {
 const compactCommandBarStyle: CSSProperties = {
   ...commandBarStyle,
   marginBottom: SHELL_DESIGN_TOKENS.space.xs,
+  padding: `${SHELL_DESIGN_TOKENS.space.sm} ${SHELL_DESIGN_TOKENS.space.md}`,
 };
 
 const commandBarGroupStyle: CSSProperties = {
   display: "grid",
   gap: SHELL_DESIGN_TOKENS.space.sm,
   gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+};
+
+const compactCommandBarGroupStyle: CSSProperties = {
+  ...commandBarGroupStyle,
+  gap: SHELL_DESIGN_TOKENS.space.xs,
+  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
 };
 
 const commandDetailStyle: CSSProperties = {

@@ -271,21 +271,19 @@ describe("shell-hud", () => {
     );
   });
 
-  it("renders a traceable queued local lamp action without world authority claims", () => {
+  it("renders reviewed projection lamp feedback with visible progress", () => {
     const state = {
       ...createShellState(createDefaultShellLocaleState(["en-US"]), createLampPriorityReadModel()),
       diagnosticsVisible: true,
-      lastInputLabel: "Action queued wm0138-lamp-priority-001",
+      lastInputLabel: "Action queued wm0151-lamp-001",
       playableAction: {
         actionId: "prioritize-lamp-work",
-        adapterId: "wm0138-web-local-playable-adapter",
-        authority: "shell-local-adapter",
-        commandId: "wm0138-lamp-priority-001",
-        consequenceClass: "lamp-boundary-preparation",
-        followUp: "Simulation Worker command protocol remains unchanged.",
-        reasonCode: "wm0138.local_adapter.lamp_priority",
-        reasonDetail: "Selected lamp-relevant target requested priority lamp work.",
-        status: "queued",
+        adapterId: "wm0151-reviewed-projection-harness",
+        authority: "world-read-model-projection",
+        commandId: "wm0151-lamp-001",
+        markerState: "moving",
+        progressPercent: 32,
+        status: "accepted",
         targetEntityId: "lamp-keeper-test",
         targetLabel: "Lantern Keeper Shen",
       },
@@ -293,31 +291,31 @@ describe("shell-hud", () => {
     const markup = renderShell(state);
 
     expect(markup).toContain('data-testid="player-action-feedback"');
-    expect(markup).toContain('data-action-authority="shell-local-adapter"');
+    expect(markup).toContain('data-action-authority="world-read-model-projection"');
+    expect(markup).toContain('data-action-marker-state="moving"');
     expect(markup).toContain('data-command-state="queued"');
-    expect(markup).toContain('data-reason-code="wm0138.local_adapter.lamp_priority"');
+    expect(markup).toContain('data-reason-code=""');
     expect(markup).toContain('data-target-entity="lamp-keeper-test"');
     expect(markup).toContain('data-ui-slot="button.primary.active"');
-    expect(markup).toContain("Local action queued");
-    expect(markup).toContain("Command id: wm0138-lamp-priority-001");
-    expect(markup).not.toContain("world authority has changed");
+    expect(markup).toContain("Reviewed playback active");
+    expect(markup).toContain("State: Moving");
+    expect(markup).toContain("Progress: 32%");
+    expect(markup).toContain("Command id: wm0151-lamp-001");
   });
 
-  it("renders zh-CN objective-action HUD with queued lamp-priority feedback", () => {
+  it("renders zh-CN objective-action HUD with reviewed lamp feedback", () => {
     const state = {
       ...createShellState(createDefaultShellLocaleState(["zh-CN"]), createLampPriorityReadModel()),
       diagnosticsVisible: true,
-      lastInputLabel: "Action queued wm0138-lamp-priority-001",
+      lastInputLabel: "Action queued wm0151-lamp-001",
       playableAction: {
         actionId: "prioritize-lamp-work",
-        adapterId: "wm0138-web-local-playable-adapter",
-        authority: "shell-local-adapter",
-        commandId: "wm0138-lamp-priority-001",
-        consequenceClass: "lamp-boundary-preparation",
-        followUp: "Simulation Worker command protocol remains unchanged.",
-        reasonCode: "wm0138.local_adapter.lamp_priority",
-        reasonDetail: "Selected lamp-relevant target requested priority lamp work.",
-        status: "queued",
+        adapterId: "wm0151-reviewed-projection-harness",
+        authority: "world-read-model-projection",
+        commandId: "wm0151-lamp-001",
+        markerState: "working",
+        progressPercent: 64,
+        status: "accepted",
         targetEntityId: "lamp-keeper-test",
         targetLabel: "Lantern Keeper Shen",
       },
@@ -329,9 +327,8 @@ describe("shell-hud", () => {
     expect(markup).toContain('data-testid="player-settings-toggle"');
     expect(markup).toContain('data-testid="player-action-feedback"');
     expect(markup).toContain('data-command-state="queued"');
-    expect(markup).toContain('data-reason-code="wm0138.local_adapter.lamp_priority"');
-    expect(markup).toContain("\u672c\u5730\u884c\u52a8\u5df2\u6392\u5165");
-    expect(markup).toContain("\u547d\u4ee4\u7f16\u53f7\uff1awm0138-lamp-priority-001");
+    expect(markup).toContain('data-action-marker-state="working"');
+    expect(markup).toContain("wm0151-lamp-001");
   });
 
   it("renders localized empty-tile inspection feedback when no entity is selected", () => {
@@ -518,6 +515,7 @@ function renderShell(state: ShellState): string {
       },
       {
         onPrioritizeLampWork: noopCommand,
+        onQueueSimpleBuild: noopCommand,
       },
     ),
   );

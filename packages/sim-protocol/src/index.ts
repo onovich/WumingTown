@@ -57,16 +57,21 @@ export type {
   UiDetailSubject,
 } from "./types";
 export type {
+  EntityTaskReadModel,
   EntityInspectorReadModel,
   EntityNeedReadModel,
   ResourceSummaryReadModel,
+  StructuredReasonReadModel,
   WorldEntityActivityReadModel,
   WorldFocusMarkerReadModel,
+  WorldJobMarkerReadModel,
   WorldSemanticAreaReadModel,
 } from "./web-read-model";
 export type {
   TerrainKind,
   TileCoordinate,
+  WorldJobMarkerState,
+  WorldStructuredJobKind,
   TownAlertReadModel,
   WorldEntityActivityState,
   TownOverviewReadModel,

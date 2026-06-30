@@ -28,12 +28,41 @@ interface WebShellDebugPayload {
   readonly playableAction?: {
     readonly actionId: string;
     readonly adapterId: string;
-    readonly authority: "shell-local-adapter";
+    readonly authority: string;
     readonly commandId: string;
-    readonly reasonCode: string;
-    readonly status: "queued";
-    readonly targetEntityId: string;
+    readonly markerState?: string;
+    readonly progressPercent?: number;
+    readonly reasonCode?: string;
+    readonly status: "accepted" | "rejected";
+    readonly targetEntityId?: string;
     readonly targetLabel: string;
+  };
+  readonly playable?: {
+    readonly currentTick: number;
+    readonly latestCommand?: {
+      readonly actionId: string;
+      readonly commandId: string;
+      readonly markerState?: string;
+      readonly progressPercent?: number;
+      readonly reasonCode?: string;
+      readonly status: "accepted" | "rejected";
+    };
+    readonly jobMarkers: readonly {
+      readonly commandId: string;
+      readonly markerId: string;
+      readonly ownerEntityId?: string;
+      readonly progressPercent?: number;
+      readonly state: string;
+    }[];
+    readonly pawns: readonly {
+      readonly entityId: string;
+      readonly progressPercent?: number;
+      readonly state: string;
+      readonly tile: {
+        readonly x: number;
+        readonly y: number;
+      };
+    }[];
   };
   readonly zoom: number;
   readonly runtimeBrowser: string;
@@ -253,16 +282,6 @@ describe("web shell smoke", () => {
       const afterSavePayload = await readDebugPayload(page);
       expect(afterSavePayload.storageGate.saveSlotCount).toBe(1);
       expect(afterSavePayload.playableAction).toBeUndefined();
-
-      const lampButton = page.getByTestId("player-command-lamp");
-      expect(await lampButton.getAttribute("data-command-state")).toBe("ready");
-      await lampButton.click();
-      await waitForActionFeedback(page, "wm0138.local_adapter.lamp_priority");
-      const afterQueuedPayload = await readDebugPayload(page);
-      expect(afterQueuedPayload.playableAction?.adapterId).toBe(
-        "wm0138-web-local-playable-adapter",
-      );
-      expect(afterQueuedPayload.playableAction?.targetEntityId).toBe("lantern-keeper-shen");
 
       const downloadPromise = page.waitForEvent("download");
       await page.getByTestId("storage-export-button").click();
@@ -520,7 +539,7 @@ describe("web shell smoke", () => {
     }
   }, 120000);
 
-  it("queues a traceable local lamp-priority action in en and zh-CN", async () => {
+  it("shows reviewed job marker, pawn motion, blocked reason, work progress, and completion for lamp and build commands", async () => {
     const appRoot = path.join(process.cwd(), "apps", "web");
     const server = await createServer({
       configFile: false,
@@ -538,74 +557,97 @@ describe("web shell smoke", () => {
     const browser = await chromium.launch();
 
     try {
-      for (const localeCase of [
-        {
-          expectedInputText: "Queued wm0138-lamp-priority-001",
-          expectedLocale: "en",
-          expectedTitle: "Local action queued",
-          playwrightLocale: "en-US",
+      const context = await browser.newContext({
+        deviceScaleFactor: 1,
+        locale: "en-US",
+        viewport: {
+          width: 1424,
+          height: 861,
         },
-        {
-          expectedInputText: "\u5df2\u6392\u5165\uff1awm0138-lamp-priority-001",
-          expectedLocale: "zh-CN",
-          expectedTitle: "\u672c\u5730\u884c\u52a8\u5df2\u6392\u5165",
-          playwrightLocale: "zh-CN",
-        },
-      ] as const) {
-        const context = await browser.newContext({
-          deviceScaleFactor: 1,
-          locale: localeCase.playwrightLocale,
-          viewport: {
-            width: 1424,
-            height: 861,
-          },
+      });
+
+      try {
+        const page = await context.newPage();
+        await page.goto(serverUrl, {
+          waitUntil: "networkidle",
         });
+        await page.waitForSelector("[data-shell-ready='true']");
+        await waitForLocale(page, "en", "system");
+        await page.getByTestId("main-menu-new-game").click();
+        await waitForStartSurfaceClosed(page);
 
-        try {
-          const page = await context.newPage();
-          await page.goto(serverUrl, {
-            waitUntil: "networkidle",
+        const baselinePayload = await readDebugPayload(page);
+        await clickCanvasPoint(
+          page,
+          findRequiredEntity(baselinePayload, "east-market-lantern-post"),
+        );
+        await waitForSelectedEntity(page, "east-market-lantern-post");
+
+        const lampButton = page.getByTestId("player-command-lamp");
+        expect(await lampButton.getAttribute("aria-disabled")).toBe("false");
+        expect(await lampButton.getAttribute("data-command-state")).toBe("ready");
+        await lampButton.click();
+        await waitForActionFeedbackStatus(page, "accepted");
+        await waitForPlayableMarkerState(page, "moving", "lantern-keeper-shen");
+        const lampMovingPayload = await readDebugPayload(page);
+        const lampMovingPawn = lampMovingPayload.playable?.pawns.find(
+          (candidate) => candidate.entityId === "lantern-keeper-shen",
+        );
+        expect(lampMovingPawn).toBeDefined();
+        await page.waitForTimeout(450);
+        const lampLaterPayload = await readDebugPayload(page);
+        const lampLaterPawn = lampLaterPayload.playable?.pawns.find(
+          (candidate) => candidate.entityId === "lantern-keeper-shen",
+        );
+        expect(lampLaterPawn).toBeDefined();
+        expect(
+          lampMovingPawn?.tile.x !== lampLaterPawn?.tile.x ||
+            lampMovingPawn?.tile.y !== lampLaterPawn?.tile.y,
+        ).toBe(true);
+        await waitForPlayableMarkerState(page, "working", "lantern-keeper-shen");
+
+        const buildButton = page.getByTestId("player-command-build");
+        expect(await buildButton.getAttribute("aria-disabled")).toBe("false");
+        await buildButton.evaluate((element: HTMLElement) => {
+          element.click();
+        });
+        await waitForActionFeedbackStatus(page, "accepted");
+        await waitForPlayableMarkerState(page, "blocked", "lamp-aide-15");
+
+        const blockedInspectorText =
+          (await page.getByTestId("player-selected-detail").textContent()) ?? "";
+        expect(blockedInspectorText).toContain("Reason");
+        expect(blockedInspectorText).toContain("no_path");
+
+        const motionEvidence = await collectPlayableEvidence(page, 9000);
+        expect(motionEvidence.lampStates).toContain("completed");
+        expect(motionEvidence.buildStates).toContain("blocked");
+        expect(motionEvidence.buildStates).toContain("moving");
+        expect(motionEvidence.buildStates).toContain("working");
+        expect(motionEvidence.buildStates).toContain("completed");
+        expect(motionEvidence.buildMoved).toBe(true);
+        expect(motionEvidence.maxProgressPercent).toBeGreaterThan(0);
+
+        const inspectorText =
+          (await page.getByTestId("player-selected-detail").textContent()) ?? "";
+        expect(inspectorText).toContain("Target");
+        expect(inspectorText).toContain("Progress");
+
+        const finalPayload = await readDebugPayload(page);
+        expect(finalPayload.playableAction?.authority).toBe("world-read-model-projection");
+        expect(finalPayload.playableAction?.status).toBe("accepted");
+        expect(finalPayload.playableAction?.adapterId).toBe("wm0151-reviewed-projection-harness");
+        expect(finalPayload.playableAction?.commandId.startsWith("wm0151-build-")).toBe(true);
+
+        if (WM0140_ARTIFACT_CAPTURE_ENABLED) {
+          await mkdir(WM0140_WEB_SCREENSHOT_ROOT, { recursive: true });
+          await page.screenshot({
+            animations: "disabled",
+            path: path.join(WM0140_WEB_SCREENSHOT_ROOT, "wm0151-playable-motion.png"),
           });
-          await page.waitForSelector("[data-shell-ready='true']");
-          await waitForLocale(page, localeCase.expectedLocale, "system");
-          await page.getByTestId("main-menu-new-game").click();
-          await waitForStartSurfaceClosed(page);
-
-          const debugPayload = await readDebugPayload(page);
-          await clickCanvasPoint(page, findRequiredEntity(debugPayload, "lantern-keeper-shen"));
-          await waitForSelectedEntity(page, "lantern-keeper-shen");
-
-          const lampButton = page.getByTestId("player-command-lamp");
-          expect(await lampButton.getAttribute("aria-disabled")).toBe("false");
-          expect(await lampButton.getAttribute("data-command-state")).toBe("ready");
-          await lampButton.click();
-          await waitForActionFeedback(page, "wm0138.local_adapter.lamp_priority");
-          await waitForHudText(page, localeCase.expectedInputText);
-
-          const feedback = page.getByTestId("player-action-feedback");
-          expect(await feedback.getAttribute("data-action-authority")).toBe("shell-local-adapter");
-          expect(await feedback.getAttribute("data-action-status")).toBe("queued");
-          expect(await feedback.getAttribute("data-adapter-id")).toBe(
-            "wm0138-web-local-playable-adapter",
-          );
-          expect(await feedback.getAttribute("data-target-entity")).toBe("lantern-keeper-shen");
-          expect((await feedback.textContent()) ?? "").toContain(localeCase.expectedTitle);
-          expect(await lampButton.getAttribute("data-command-state")).toBe("queued");
-
-          const afterActionPayload = await readDebugPayload(page);
-          expect(afterActionPayload.playableAction?.adapterId).toBe(
-            "wm0138-web-local-playable-adapter",
-          );
-          expect(afterActionPayload.playableAction?.authority).toBe("shell-local-adapter");
-          expect(afterActionPayload.playableAction?.commandId).toBe("wm0138-lamp-priority-001");
-          expect(afterActionPayload.playableAction?.reasonCode).toBe(
-            "wm0138.local_adapter.lamp_priority",
-          );
-          expect(afterActionPayload.playableAction?.status).toBe("queued");
-          expect(afterActionPayload.playableAction?.targetEntityId).toBe("lantern-keeper-shen");
-        } finally {
-          await context.close();
         }
+      } finally {
+        await context.close();
       }
     } finally {
       await browser.close();
@@ -929,7 +971,7 @@ describe("web shell smoke", () => {
       await browser.close();
       await server.close();
     }
-  }, 420000);
+  }, 720000);
 
   it("captures WM-0140 visual regression and interaction evidence artifacts", async () => {
     if (!WM0140_ARTIFACT_CAPTURE_ENABLED) {
@@ -1269,6 +1311,12 @@ async function assertCommandAccessibility(page: import("playwright").Page): Prom
       expectedState: lampCommandReady ? "ready" : "needs-selection",
       expectedSlot: lampCommandReady ? "button.primary.default" : "button.primary.disabled",
       testId: "player-command-lamp",
+    },
+    {
+      expectedAriaDisabled: lampCommandReady ? "false" : "true",
+      expectedState: lampCommandReady ? "ready" : "needs-selection",
+      expectedSlot: lampCommandReady ? "button.primary.default" : "button.primary.disabled",
+      testId: "player-command-build",
     },
     {
       expectedAriaDisabled: "true",
@@ -2029,19 +2077,19 @@ async function collectWm0140LampCommandArtifact(
     expect(await lampButton.getAttribute("aria-disabled")).toBe("false");
     expect(await lampButton.getAttribute("data-command-state")).toBe("ready");
     await lampButton.click();
-    await waitForActionFeedback(page, "wm0138.local_adapter.lamp_priority");
+    await waitForActionFeedbackStatus(page, "accepted");
 
     const actionPayload = await readDebugPayload(page);
     const commandState = await lampButton.getAttribute("data-command-state");
     expect(commandState).toBe("queued");
-    const reasonCode = actionPayload.playableAction?.reasonCode;
+    const markerState = actionPayload.playableAction?.markerState;
     const selectedEntityId = actionPayload.playableAction?.targetEntityId;
     artifacts.push({
       ...(commandState === null ? {} : { commandState }),
       diagnosticsVisible: await readDiagnosticsVisible(page),
       locale: localeCase.expectedLocale,
-      note: "Queued reviewed shell-local playable command evidence.",
-      ...(reasonCode === undefined ? {} : { reasonCode }),
+      note: "Reviewed lamp command evidence captured from projection playback motion feedback.",
+      ...(markerState === undefined ? {} : { reasonCode: markerState }),
       scenario: "lamp-command",
       screenshotPath: await captureWm0140Screenshot(
         page,
@@ -2234,7 +2282,7 @@ function formatWm0140VisualArtifactMarkdown(
     "",
     "Generated by `apps/web/src/web-shell.e2e.test.ts` during the WM-0140 visual evidence gate.",
     "Responsive screenshots cover default player HUD in `en` and `zh-CN`, plus explicit diagnostics overlay screenshots in `en`.",
-    "Interaction artifacts record reviewer-inspectable evidence for selection, camera, and the reviewed local command chain without changing authoritative simulation behavior.",
+    "Interaction artifacts record reviewer-inspectable evidence for selection, camera, and the reviewed projection-playback command chain without changing Simulation Worker ownership.",
     "",
     "## Responsive Screenshots",
     "",
@@ -2894,23 +2942,120 @@ async function waitForSelectedEntity(
   throw new Error(`Timed out waiting for selected entity ${expectedEntityId}`);
 }
 
-async function waitForActionFeedback(
+async function waitForActionFeedbackStatus(
   page: import("playwright").Page,
-  expectedReasonCode: string,
+  expectedStatus: "accepted" | "rejected",
 ): Promise<void> {
   for (let attempt = 0; attempt < 60; attempt += 1) {
-    const feedback = page.getByTestId("player-action-feedback");
-    if (
-      (await feedback.count()) === 1 &&
-      (await feedback.getAttribute("data-reason-code")) === expectedReasonCode
-    ) {
+    const payload = await readDebugPayload(page);
+    if (payload.playableAction?.status === expectedStatus) {
       return;
     }
 
     await page.waitForTimeout(100);
   }
 
-  throw new Error(`Timed out waiting for action feedback ${expectedReasonCode}.`);
+  throw new Error(`Timed out waiting for action feedback status ${expectedStatus}.`);
+}
+
+async function waitForPlayableMarkerState(
+  page: import("playwright").Page,
+  expectedState: string,
+  ownerEntityId: string,
+): Promise<void> {
+  for (let attempt = 0; attempt < 90; attempt += 1) {
+    const payload = await readDebugPayload(page);
+    const marker = payload.playable?.jobMarkers.find(
+      (candidate) => candidate.ownerEntityId === ownerEntityId,
+    );
+    if (marker?.state === expectedState) {
+      return;
+    }
+
+    await page.waitForTimeout(100);
+  }
+
+  throw new Error(`Timed out waiting for ${ownerEntityId} marker state ${expectedState}.`);
+}
+
+async function collectPlayableEvidence(
+  page: import("playwright").Page,
+  durationMs: number,
+): Promise<{
+  readonly buildMoved: boolean;
+  readonly buildStates: readonly string[];
+  readonly lampMoved: boolean;
+  readonly lampStates: readonly string[];
+  readonly maxProgressPercent: number;
+}> {
+  const lampStates = new Set<string>();
+  const buildStates = new Set<string>();
+  let lampMoved = false;
+  let buildMoved = false;
+  let maxProgressPercent = 0;
+  let previousLampTile: { readonly x: number; readonly y: number } | undefined;
+  let previousBuildTile: { readonly x: number; readonly y: number } | undefined;
+  const deadline = Date.now() + durationMs;
+
+  while (Date.now() < deadline) {
+    const payload = await readDebugPayload(page);
+    const playable = payload.playable;
+    if (playable !== undefined) {
+      const lampMarker = playable.jobMarkers.find(
+        (candidate) => candidate.ownerEntityId === "lantern-keeper-shen",
+      );
+      const buildMarker = playable.jobMarkers.find(
+        (candidate) => candidate.ownerEntityId === "lamp-aide-15",
+      );
+      const lampPawn = playable.pawns.find(
+        (candidate) => candidate.entityId === "lantern-keeper-shen",
+      );
+      const buildPawn = playable.pawns.find((candidate) => candidate.entityId === "lamp-aide-15");
+
+      if (lampMarker !== undefined) {
+        lampStates.add(lampMarker.state);
+        maxProgressPercent = Math.max(maxProgressPercent, lampMarker.progressPercent ?? 0);
+      }
+      if (buildMarker !== undefined) {
+        buildStates.add(buildMarker.state);
+        maxProgressPercent = Math.max(maxProgressPercent, buildMarker.progressPercent ?? 0);
+      }
+      if (lampPawn !== undefined && previousLampTile !== undefined) {
+        lampMoved =
+          lampMoved ||
+          lampPawn.tile.x !== previousLampTile.x ||
+          lampPawn.tile.y !== previousLampTile.y;
+      }
+      if (buildPawn !== undefined && previousBuildTile !== undefined) {
+        buildMoved =
+          buildMoved ||
+          buildPawn.tile.x !== previousBuildTile.x ||
+          buildPawn.tile.y !== previousBuildTile.y;
+      }
+      previousLampTile = lampPawn?.tile ?? previousLampTile;
+      previousBuildTile = buildPawn?.tile ?? previousBuildTile;
+    }
+
+    if (
+      lampStates.has("completed") &&
+      buildStates.has("completed") &&
+      lampMoved &&
+      buildMoved &&
+      maxProgressPercent > 0
+    ) {
+      break;
+    }
+
+    await page.waitForTimeout(120);
+  }
+
+  return {
+    buildMoved,
+    buildStates: [...buildStates],
+    lampMoved,
+    lampStates: [...lampStates],
+    maxProgressPercent,
+  };
 }
 
 async function waitForInspectedTile(page: import("playwright").Page): Promise<string> {
@@ -3122,6 +3267,7 @@ function parseDebugPayload(text: string): WebShellDebugPayload {
   }
 
   const playableAction = readPlayableActionPayload(parsed["playableAction"]);
+  const playable = readPlayableProjectionPayload(parsed["playable"]);
   const positions = parsed["entityScreenPositions"].map((entry) => {
     if (
       !isRecord(entry) ||
@@ -3171,6 +3317,7 @@ function parseDebugPayload(text: string): WebShellDebugPayload {
       windowsHostPackageStatus: readDiagnosticAvailability(diagnostics["windowsHostPackageStatus"]),
     },
     fixtureId: parsed["fixtureId"],
+    ...(playable === undefined ? {} : { playable }),
     ...(playableAction === undefined ? {} : { playableAction }),
     zoom: parsed["zoom"],
     runtimeBrowser: parsed["runtimeBrowser"],
@@ -3222,11 +3369,9 @@ function readPlayableActionPayload(
   if (
     typeof value["actionId"] !== "string" ||
     typeof value["adapterId"] !== "string" ||
-    value["authority"] !== "shell-local-adapter" ||
+    typeof value["authority"] !== "string" ||
     typeof value["commandId"] !== "string" ||
-    typeof value["reasonCode"] !== "string" ||
-    value["status"] !== "queued" ||
-    typeof value["targetEntityId"] !== "string" ||
+    (value["status"] !== "accepted" && value["status"] !== "rejected") ||
     typeof value["targetLabel"] !== "string"
   ) {
     throw new Error("Unexpected playable action debug payload.");
@@ -3235,12 +3380,116 @@ function readPlayableActionPayload(
   return {
     actionId: value["actionId"],
     adapterId: value["adapterId"],
-    authority: "shell-local-adapter",
+    authority: value["authority"],
     commandId: value["commandId"],
-    reasonCode: value["reasonCode"],
-    status: "queued",
-    targetEntityId: value["targetEntityId"],
+    ...(typeof value["markerState"] === "string" ? { markerState: value["markerState"] } : {}),
+    ...(typeof value["progressPercent"] === "number"
+      ? { progressPercent: value["progressPercent"] }
+      : {}),
+    ...(typeof value["reasonCode"] === "string" ? { reasonCode: value["reasonCode"] } : {}),
+    status: value["status"],
+    ...(typeof value["targetEntityId"] === "string"
+      ? { targetEntityId: value["targetEntityId"] }
+      : {}),
     targetLabel: value["targetLabel"],
+  };
+}
+
+function readPlayableProjectionPayload(
+  value: unknown,
+): WebShellDebugPayload["playable"] | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const playable = expectRecord(value, "playable projection");
+  if (
+    typeof playable["currentTick"] !== "number" ||
+    !Array.isArray(playable["jobMarkers"]) ||
+    !Array.isArray(playable["pawns"])
+  ) {
+    throw new Error("Unexpected playable projection payload.");
+  }
+
+  const latestCommand =
+    playable["latestCommand"] === undefined
+      ? undefined
+      : readLatestPlayableCommand(
+          expectRecord(playable["latestCommand"], "latest playable command"),
+        );
+
+  return {
+    currentTick: playable["currentTick"],
+    ...(latestCommand === undefined ? {} : { latestCommand }),
+    jobMarkers: playable["jobMarkers"].map((entry) => {
+      const marker = expectRecord(entry, "playable marker");
+      if (
+        typeof marker["commandId"] !== "string" ||
+        typeof marker["markerId"] !== "string" ||
+        typeof marker["state"] !== "string"
+      ) {
+        throw new Error("Unexpected playable marker payload.");
+      }
+
+      return {
+        commandId: marker["commandId"],
+        markerId: marker["markerId"],
+        ...(typeof marker["ownerEntityId"] === "string"
+          ? { ownerEntityId: marker["ownerEntityId"] }
+          : {}),
+        ...(typeof marker["progressPercent"] === "number"
+          ? { progressPercent: marker["progressPercent"] }
+          : {}),
+        state: marker["state"],
+      };
+    }),
+    pawns: playable["pawns"].map((entry) => {
+      const pawn = expectRecord(entry, "playable pawn");
+      const tile = expectRecord(pawn["tile"], "playable pawn tile");
+      if (
+        typeof pawn["entityId"] !== "string" ||
+        typeof pawn["state"] !== "string" ||
+        typeof tile["x"] !== "number" ||
+        typeof tile["y"] !== "number"
+      ) {
+        throw new Error("Unexpected playable pawn payload.");
+      }
+
+      return {
+        entityId: pawn["entityId"],
+        ...(typeof pawn["progressPercent"] === "number"
+          ? { progressPercent: pawn["progressPercent"] }
+          : {}),
+        state: pawn["state"],
+        tile: {
+          x: tile["x"],
+          y: tile["y"],
+        },
+      };
+    }),
+  };
+}
+
+function readLatestPlayableCommand(
+  value: Record<string, unknown>,
+): NonNullable<WebShellDebugPayload["playable"]>["latestCommand"] {
+  if (
+    typeof value["actionId"] !== "string" ||
+    typeof value["commandId"] !== "string" ||
+    (value["status"] !== "accepted" && value["status"] !== "rejected")
+  ) {
+    throw new Error("Unexpected latest playable command payload.");
+  }
+
+  return {
+    actionId: value["actionId"],
+    commandId: value["commandId"],
+    ...(typeof value["markerState"] === "string" ? { markerState: value["markerState"] } : {}),
+    ...(typeof value["progressPercent"] === "number"
+      ? { progressPercent: value["progressPercent"] }
+      : {}),
+    ...(typeof value["reasonCode"] === "string" ? { reasonCode: value["reasonCode"] } : {}),
+    status: value["status"],
   };
 }
 

@@ -1,6 +1,7 @@
 import type {
   TileCoordinate,
   WorldEntityReadModel,
+  WorldJobMarkerState,
   WorldReadModel,
 } from "@wuming-town/sim-protocol";
 
@@ -8,16 +9,18 @@ import type { LocaleId, ShellLocaleState } from "./localization";
 import type { ShellUiScaleState, UiScaleId } from "./shell-ui-scale";
 
 export interface ShellPlayableActionState {
-  readonly actionId: "prioritize-lamp-work";
-  readonly adapterId: "wm0138-web-local-playable-adapter";
-  readonly authority: "shell-local-adapter";
+  readonly actionId: "prioritize-lamp-work" | "queue-simple-build";
+  readonly adapterId: "wm0151-reviewed-projection-harness";
+  readonly authority: "world-read-model-projection";
   readonly commandId: string;
-  readonly consequenceClass: "lamp-boundary-preparation";
-  readonly followUp: string;
-  readonly reasonCode: "wm0138.local_adapter.lamp_priority";
-  readonly reasonDetail: string;
-  readonly status: "queued";
-  readonly targetEntityId: string;
+  readonly markerState?: WorldJobMarkerState;
+  readonly orderId?: string;
+  readonly progressPercent?: number;
+  readonly reasonCode?: string;
+  readonly reasonDetail?: string;
+  readonly reasonSource?: string;
+  readonly status: "accepted" | "rejected";
+  readonly targetEntityId: string | undefined;
   readonly targetLabel: string;
 }
 
@@ -119,6 +122,7 @@ export interface ShellSettingsActions extends ShellLocaleActions, ShellUiScaleAc
 
 export interface ShellCommandActions {
   readonly onPrioritizeLampWork: (targetEntityId: string) => Promise<void>;
+  readonly onQueueSimpleBuild: (targetEntityId: string) => Promise<void>;
 }
 
 export interface ShellStore {

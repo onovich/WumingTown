@@ -7,6 +7,7 @@ import type {
   TileCoordinate,
   TerrainKind,
   WorldEntityReadModel,
+  WorldJobMarkerReadModel,
   WorldReadModel,
 } from "@wuming-town/sim-protocol";
 
@@ -60,6 +61,7 @@ export interface CreatePixiWorldRendererOptions {
 export interface PixiWorldRenderer {
   readonly canvas: HTMLCanvasElement;
   resize(width: number, height: number, devicePixelRatio: number): void;
+  setReadModel(readModel: WorldReadModel): void;
   setSelectedEntityId(entityId: string | undefined): void;
   readDebugState(): PixiWorldRendererDebugState;
   destroy(): Promise<void>;
@@ -90,6 +92,16 @@ interface CameraDragState {
   readonly startPoint: ScreenPoint;
   readonly previousPoint: ScreenPoint;
   readonly moved: boolean;
+}
+
+interface StaticLayerSignature {
+  readonly chunkSize: number;
+  readonly chunks: WorldReadModel["chunks"];
+  readonly focusMarkers: WorldReadModel["focusMarkers"];
+  readonly mapHeight: number;
+  readonly mapWidth: number;
+  readonly semanticAreas: WorldReadModel["semanticAreas"];
+  readonly tileSize: number;
 }
 
 export async function createPixiWorldRenderer(
@@ -126,36 +138,37 @@ export async function createPixiWorldRenderer(
   const intentLayer = new Container();
   const entityLayer = new Container();
   const focusMarkerLayer = new Container();
+  const jobMarkerLayer = new Container();
   const overlayLayer = new Container();
   worldRoot.addChild(terrainLayer);
   worldRoot.addChild(semanticLayer);
   worldRoot.addChild(intentLayer);
   worldRoot.addChild(entityLayer);
   worldRoot.addChild(focusMarkerLayer);
+  worldRoot.addChild(jobMarkerLayer);
   worldRoot.addChild(overlayLayer);
   app.stage.addChild(worldRoot);
 
+  let currentReadModel = options.readModel;
   let viewport = createFittedViewport(
-    options.readModel,
+    currentReadModel,
     Math.max(options.container.clientWidth, 1),
     Math.max(options.container.clientHeight, 1),
   );
   let hoverTile: TileCoordinate | undefined;
   let selectedEntityId: string | undefined =
-    options.selectedEntityId ?? options.readModel.selectedEntityId;
+    options.selectedEntityId ?? currentReadModel.selectedEntityId;
   let inspectedTile: TileCoordinate | undefined = readEntityTile(
-    options.readModel,
+    currentReadModel,
     selectedEntityId,
   );
   let lastInputLabel = "Ready";
   let userAdjustedViewport = false;
   let dragState: CameraDragState | undefined;
+  let currentStaticLayerSignature = readStaticLayerSignature(currentReadModel);
 
-  buildTerrainGraphics(terrainLayer, options.readModel);
-  buildSemanticAreaGraphics(semanticLayer, options.readModel);
-  buildIntentGraphics(intentLayer, options.readModel);
-  buildEntityGraphics(entityLayer, options.readModel);
-  buildFocusMarkerGraphics(focusMarkerLayer, options.readModel);
+  rebuildStaticReadModelGraphics();
+  rebuildDynamicReadModelGraphics();
 
   const selectionGraphic = new Graphics();
   const hoverGraphic = new Graphics();
@@ -190,28 +203,23 @@ export async function createPixiWorldRenderer(
           userAdjustedViewport = true;
           viewport = panViewport(
             viewport,
-            options.readModel,
+            currentReadModel,
             -deltaX / viewport.zoom,
             -deltaY / viewport.zoom,
           );
           lastInputLabel = "Camera drag";
           applyViewport(app, worldRoot, viewport, devicePixelRatio);
-          drawSelectionGraphic(
-            selectionGraphic,
-            selectedEntityId,
-            inspectedTile,
-            options.readModel,
-          );
+          drawSelectionGraphic(selectionGraphic, selectedEntityId, inspectedTile, currentReadModel);
         }
 
-        hoverTile = screenToTile(viewport, options.readModel, point);
-        drawHoverGraphic(hoverGraphic, hoverTile, options.readModel);
+        hoverTile = screenToTile(viewport, currentReadModel, point);
+        drawHoverGraphic(hoverGraphic, hoverTile, currentReadModel);
         emitStateChange();
         return;
       }
     }
 
-    const tile = screenToTile(viewport, options.readModel, point);
+    const tile = screenToTile(viewport, currentReadModel, point);
     if (
       tile?.x === hoverTile?.x &&
       tile?.y === hoverTile?.y &&
@@ -222,7 +230,7 @@ export async function createPixiWorldRenderer(
     }
 
     hoverTile = tile;
-    drawHoverGraphic(hoverGraphic, hoverTile, options.readModel);
+    drawHoverGraphic(hoverGraphic, hoverTile, currentReadModel);
     emitStateChange();
   };
 
@@ -232,7 +240,7 @@ export async function createPixiWorldRenderer(
     }
 
     hoverTile = undefined;
-    drawHoverGraphic(hoverGraphic, hoverTile, options.readModel);
+    drawHoverGraphic(hoverGraphic, hoverTile, currentReadModel);
     emitStateChange();
   };
 
@@ -289,43 +297,43 @@ export async function createPixiWorldRenderer(
     const zoomFactor = event.deltaY < 0 ? 1.12 : 0.9;
     viewport = zoomViewportAtPoint(
       viewport,
-      options.readModel,
+      currentReadModel,
       readRelativePoint(event, canvas),
       viewport.zoom * zoomFactor,
     );
     lastInputLabel = `Wheel zoom ${String(Math.round(viewport.zoom * 100))}%`;
     applyViewport(app, worldRoot, viewport, devicePixelRatio);
-    drawSelectionGraphic(selectionGraphic, selectedEntityId, inspectedTile, options.readModel);
-    drawHoverGraphic(hoverGraphic, hoverTile, options.readModel);
+    drawSelectionGraphic(selectionGraphic, selectedEntityId, inspectedTile, currentReadModel);
+    drawHoverGraphic(hoverGraphic, hoverTile, currentReadModel);
     emitStateChange();
   };
 
   const onKeyDown = (event: KeyboardEvent): void => {
     let nextViewport: RendererViewportState;
-    const panStep = options.readModel.tileSize * PAN_STEP_TILES;
+    const panStep = currentReadModel.tileSize * PAN_STEP_TILES;
 
     switch (event.code) {
       case "ArrowUp":
       case "KeyW":
-        nextViewport = panViewport(viewport, options.readModel, 0, -panStep);
+        nextViewport = panViewport(viewport, currentReadModel, 0, -panStep);
         break;
       case "ArrowDown":
       case "KeyS":
-        nextViewport = panViewport(viewport, options.readModel, 0, panStep);
+        nextViewport = panViewport(viewport, currentReadModel, 0, panStep);
         break;
       case "ArrowLeft":
       case "KeyA":
-        nextViewport = panViewport(viewport, options.readModel, -panStep, 0);
+        nextViewport = panViewport(viewport, currentReadModel, -panStep, 0);
         break;
       case "ArrowRight":
       case "KeyD":
-        nextViewport = panViewport(viewport, options.readModel, panStep, 0);
+        nextViewport = panViewport(viewport, currentReadModel, panStep, 0);
         break;
       case "Equal":
       case "NumpadAdd":
         nextViewport = zoomViewportAtPoint(
           viewport,
-          options.readModel,
+          currentReadModel,
           {
             x: viewport.canvasWidth / 2,
             y: viewport.canvasHeight / 2,
@@ -337,7 +345,7 @@ export async function createPixiWorldRenderer(
       case "NumpadSubtract":
         nextViewport = zoomViewportAtPoint(
           viewport,
-          options.readModel,
+          currentReadModel,
           {
             x: viewport.canvasWidth / 2,
             y: viewport.canvasHeight / 2,
@@ -360,8 +368,8 @@ export async function createPixiWorldRenderer(
     viewport = nextViewport;
     lastInputLabel = `Keyboard ${event.code}`;
     applyViewport(app, worldRoot, viewport, devicePixelRatio);
-    drawSelectionGraphic(selectionGraphic, selectedEntityId, inspectedTile, options.readModel);
-    drawHoverGraphic(hoverGraphic, hoverTile, options.readModel);
+    drawSelectionGraphic(selectionGraphic, selectedEntityId, inspectedTile, currentReadModel);
+    drawHoverGraphic(hoverGraphic, hoverTile, currentReadModel);
     emitStateChange();
   };
 
@@ -374,19 +382,45 @@ export async function createPixiWorldRenderer(
   canvas.addEventListener("keydown", onKeyDown);
 
   applyViewport(app, worldRoot, viewport, devicePixelRatio);
-  drawSelectionGraphic(selectionGraphic, selectedEntityId, inspectedTile, options.readModel);
-  drawHoverGraphic(hoverGraphic, hoverTile, options.readModel);
+  drawSelectionGraphic(selectionGraphic, selectedEntityId, inspectedTile, currentReadModel);
+  drawHoverGraphic(hoverGraphic, hoverTile, currentReadModel);
   emitStateChange();
 
   return {
     canvas,
     resize(width: number, height: number, nextDevicePixelRatio: number): void {
       viewport = userAdjustedViewport
-        ? resizeViewport(viewport, options.readModel, width, height)
-        : createFittedViewport(options.readModel, width, height);
+        ? resizeViewport(viewport, currentReadModel, width, height)
+        : createFittedViewport(currentReadModel, width, height);
       applyViewport(app, worldRoot, viewport, nextDevicePixelRatio);
-      drawSelectionGraphic(selectionGraphic, selectedEntityId, inspectedTile, options.readModel);
-      drawHoverGraphic(hoverGraphic, hoverTile, options.readModel);
+      drawSelectionGraphic(selectionGraphic, selectedEntityId, inspectedTile, currentReadModel);
+      drawHoverGraphic(hoverGraphic, hoverTile, currentReadModel);
+      emitStateChange();
+    },
+    setReadModel(readModel: WorldReadModel): void {
+      const nextStaticLayerSignature = readStaticLayerSignature(readModel);
+      const shouldRebuildStaticLayers = !matchesStaticLayerSignature(
+        currentStaticLayerSignature,
+        nextStaticLayerSignature,
+      );
+      currentReadModel = readModel;
+      currentStaticLayerSignature = nextStaticLayerSignature;
+      if (!userAdjustedViewport) {
+        viewport = createFittedViewport(readModel, viewport.canvasWidth, viewport.canvasHeight);
+        applyViewport(app, worldRoot, viewport, devicePixelRatio);
+      } else {
+        viewport = resizeViewport(viewport, readModel, viewport.canvasWidth, viewport.canvasHeight);
+        applyViewport(app, worldRoot, viewport, devicePixelRatio);
+      }
+      if (selectedEntityId !== undefined) {
+        inspectedTile = readEntityTile(readModel, selectedEntityId);
+      }
+      if (shouldRebuildStaticLayers) {
+        rebuildStaticReadModelGraphics();
+      }
+      rebuildDynamicReadModelGraphics();
+      drawSelectionGraphic(selectionGraphic, selectedEntityId, inspectedTile, currentReadModel);
+      drawHoverGraphic(hoverGraphic, hoverTile, currentReadModel);
       emitStateChange();
     },
     setSelectedEntityId(entityId: string | undefined): void {
@@ -395,8 +429,8 @@ export async function createPixiWorldRenderer(
       }
 
       selectedEntityId = entityId;
-      inspectedTile = readEntityTile(options.readModel, selectedEntityId);
-      drawSelectionGraphic(selectionGraphic, selectedEntityId, inspectedTile, options.readModel);
+      inspectedTile = readEntityTile(currentReadModel, selectedEntityId);
+      drawSelectionGraphic(selectionGraphic, selectedEntityId, inspectedTile, currentReadModel);
       emitStateChange();
     },
     readDebugState(): PixiWorldRendererDebugState {
@@ -407,7 +441,7 @@ export async function createPixiWorldRenderer(
         centerWorldY: viewport.centerWorldY,
         zoom: viewport.zoom,
         selectedEntityId,
-        entityScreenPositions: readEntityScreenPositions(viewport, options.readModel),
+        entityScreenPositions: readEntityScreenPositions(viewport, currentReadModel),
       };
     },
     destroy(): Promise<void> {
@@ -437,12 +471,12 @@ export async function createPixiWorldRenderer(
   }
 
   function selectCanvasPoint(point: ScreenPoint): void {
-    const entityId = findEntityAtScreenPoint(viewport, options.readModel, point);
+    const entityId = findEntityAtScreenPoint(viewport, currentReadModel, point);
     if (entityId !== selectedEntityId) {
       selectedEntityId = entityId;
     }
 
-    const tile = screenToTile(viewport, options.readModel, point);
+    const tile = screenToTile(viewport, currentReadModel, point);
     inspectedTile = tile;
     lastInputLabel =
       entityId !== undefined
@@ -450,23 +484,41 @@ export async function createPixiWorldRenderer(
         : tile !== undefined
           ? `Canvas inspect ${String(tile.x)},${String(tile.y)}`
           : "Canvas pointer";
-    drawSelectionGraphic(selectionGraphic, selectedEntityId, inspectedTile, options.readModel);
+    drawSelectionGraphic(selectionGraphic, selectedEntityId, inspectedTile, currentReadModel);
     options.onSelectionChange?.(entityId, lastInputLabel, inspectedTile);
     emitStateChange();
   }
 
   function resetCamera(): void {
     userAdjustedViewport = false;
-    viewport = createFittedViewport(options.readModel, viewport.canvasWidth, viewport.canvasHeight);
+    viewport = createFittedViewport(currentReadModel, viewport.canvasWidth, viewport.canvasHeight);
     lastInputLabel = "Camera reset";
     applyViewport(app, worldRoot, viewport, devicePixelRatio);
-    drawSelectionGraphic(selectionGraphic, selectedEntityId, inspectedTile, options.readModel);
-    drawHoverGraphic(hoverGraphic, hoverTile, options.readModel);
+    drawSelectionGraphic(selectionGraphic, selectedEntityId, inspectedTile, currentReadModel);
+    drawHoverGraphic(hoverGraphic, hoverTile, currentReadModel);
     emitStateChange();
   }
 
   function shouldIgnoreInputEvent(event: Event): boolean {
     return options.shouldIgnoreInputTarget?.(event.target) === true;
+  }
+
+  function rebuildStaticReadModelGraphics(): void {
+    replaceLayerGraphics(terrainLayer, () => buildTerrainGraphics(terrainLayer, currentReadModel));
+    replaceLayerGraphics(semanticLayer, () =>
+      buildSemanticAreaGraphics(semanticLayer, currentReadModel),
+    );
+    replaceLayerGraphics(focusMarkerLayer, () =>
+      buildFocusMarkerGraphics(focusMarkerLayer, currentReadModel),
+    );
+  }
+
+  function rebuildDynamicReadModelGraphics(): void {
+    replaceLayerGraphics(intentLayer, () => buildIntentGraphics(intentLayer, currentReadModel));
+    replaceLayerGraphics(entityLayer, () => buildEntityGraphics(entityLayer, currentReadModel));
+    replaceLayerGraphics(jobMarkerLayer, () =>
+      buildJobMarkerGraphics(jobMarkerLayer, currentReadModel),
+    );
   }
 }
 
@@ -637,6 +689,14 @@ function buildFocusMarkerGraphics(layer: Container, readModel: WorldReadModel): 
   for (const marker of readModel.focusMarkers ?? []) {
     const graphic = new Graphics();
     drawFocusMarker(graphic, readModel, marker);
+    layer.addChild(graphic);
+  }
+}
+
+function buildJobMarkerGraphics(layer: Container, readModel: WorldReadModel): void {
+  for (const marker of readModel.jobMarkers ?? []) {
+    const graphic = new Graphics();
+    drawJobMarker(graphic, readModel, marker);
     layer.addChild(graphic);
   }
 }
@@ -1154,6 +1214,133 @@ function drawFocusMarker(
   }
 }
 
+function drawJobMarker(
+  graphic: Graphics,
+  readModel: WorldReadModel,
+  marker: WorldJobMarkerReadModel,
+): void {
+  const bounds = tileWorldBounds(readModel, marker.tile);
+  const centerX = bounds.x + bounds.width / 2;
+  const centerY = bounds.y + bounds.height / 2;
+  const accent = readMarkerAccent(marker.state);
+
+  switch (marker.state) {
+    case "queued":
+    case "claimable":
+      drawTileCorners(
+        graphic,
+        bounds.x - 2,
+        bounds.y - 2,
+        bounds.width + 4,
+        bounds.height + 4,
+        accent,
+        7,
+        2,
+      );
+      graphic.circle(centerX, centerY, 3);
+      graphic.fill(accent);
+      break;
+    case "claimed":
+      graphic.rect(centerX - 9, centerY - 9, 18, 18);
+      graphic.stroke({
+        color: accent,
+        pixelLine: true,
+        width: 2,
+      });
+      graphic.moveTo(centerX - 5, centerY);
+      graphic.lineTo(centerX + 5, centerY);
+      graphic.moveTo(centerX, centerY - 5);
+      graphic.lineTo(centerX, centerY + 5);
+      graphic.stroke({
+        color: accent,
+        pixelLine: true,
+        width: 2,
+      });
+      break;
+    case "moving":
+      graphic.poly([
+        centerX,
+        centerY - 11,
+        centerX + 11,
+        centerY,
+        centerX,
+        centerY + 11,
+        centerX - 11,
+        centerY,
+      ]);
+      graphic.stroke({
+        color: accent,
+        pixelLine: true,
+        width: 2,
+      });
+      break;
+    case "working":
+      graphic.circle(centerX, centerY, 12);
+      graphic.stroke({
+        color: accent,
+        pixelLine: true,
+        width: 2,
+      });
+      drawMarkerProgressRing(graphic, centerX, centerY, marker.progressPercent ?? 0, accent);
+      break;
+    case "blocked":
+    case "failed":
+    case "canceled":
+      graphic.poly([
+        centerX,
+        centerY - 10,
+        centerX + 10,
+        centerY,
+        centerX,
+        centerY + 10,
+        centerX - 10,
+        centerY,
+      ]);
+      graphic.stroke({
+        color: accent,
+        pixelLine: true,
+        width: 2,
+      });
+      graphic.moveTo(centerX - 4, centerY - 4);
+      graphic.lineTo(centerX + 4, centerY + 4);
+      graphic.moveTo(centerX + 4, centerY - 4);
+      graphic.lineTo(centerX - 4, centerY + 4);
+      graphic.stroke({
+        color: accent,
+        pixelLine: true,
+        width: 2,
+      });
+      break;
+    case "completed":
+      graphic.circle(centerX, centerY, 11);
+      graphic.stroke({
+        color: accent,
+        pixelLine: true,
+        width: 2,
+      });
+      graphic.moveTo(centerX - 4, centerY);
+      graphic.lineTo(centerX - 1, centerY + 3);
+      graphic.lineTo(centerX + 5, centerY - 4);
+      graphic.stroke({
+        color: accent,
+        pixelLine: true,
+        width: 2,
+      });
+      break;
+  }
+
+  if (marker.progressPercent !== undefined && marker.state !== "working") {
+    drawMarkerProgressBar(
+      graphic,
+      bounds.x,
+      bounds.y - 10,
+      bounds.width,
+      marker.progressPercent,
+      accent,
+    );
+  }
+}
+
 function drawTileCorners(
   graphic: Graphics,
   x: number,
@@ -1198,6 +1385,68 @@ function readActivityAccent(state: NonNullable<WorldEntityReadModel["activity"]>
   }
 }
 
+function readMarkerAccent(state: WorldJobMarkerReadModel["state"]): number {
+  switch (state) {
+    case "queued":
+      return 0xc9d2e4;
+    case "claimable":
+      return 0xf5d06a;
+    case "claimed":
+      return 0x8fd3ff;
+    case "moving":
+      return 0x5fd1ff;
+    case "working":
+      return 0xf5d06a;
+    case "blocked":
+    case "failed":
+    case "canceled":
+      return 0xff8b6a;
+    case "completed":
+      return 0x7dd3a6;
+  }
+}
+
+function drawMarkerProgressBar(
+  graphic: Graphics,
+  x: number,
+  y: number,
+  width: number,
+  progressPercent: number,
+  color: number,
+): void {
+  const clampedPercent = Math.max(0, Math.min(progressPercent, 100));
+  graphic.rect(x, y, width, 5);
+  graphic.fill(0x1b140e);
+  graphic.stroke({
+    color: 0xf5e6bf,
+    pixelLine: true,
+    width: 1,
+  });
+  graphic.rect(x + 1, y + 1, ((width - 2) * clampedPercent) / 100, 3);
+  graphic.fill(color);
+}
+
+function drawMarkerProgressRing(
+  graphic: Graphics,
+  centerX: number,
+  centerY: number,
+  progressPercent: number,
+  color: number,
+): void {
+  const clampedPercent = Math.max(0, Math.min(progressPercent, 100));
+  if (clampedPercent <= 0) {
+    return;
+  }
+
+  const sweep = (Math.PI * 2 * clampedPercent) / 100;
+  graphic.arc(centerX, centerY, 9, -Math.PI / 2, -Math.PI / 2 + sweep);
+  graphic.stroke({
+    color,
+    pixelLine: true,
+    width: 3,
+  });
+}
+
 function tileWorldCenter(
   readModel: WorldReadModel,
   tile: TileCoordinate,
@@ -1229,6 +1478,41 @@ function adjustColor(color: number, amount: number): number {
 
 function clampChannel(value: number): number {
   return Math.max(0, Math.min(value, 1));
+}
+
+function replaceLayerGraphics(layer: Container, rebuild: () => void): void {
+  const removedChildren = layer.removeChildren();
+  for (const child of removedChildren) {
+    child.destroy({ children: true });
+  }
+  rebuild();
+}
+
+function readStaticLayerSignature(readModel: WorldReadModel): StaticLayerSignature {
+  return {
+    chunkSize: readModel.chunkSize,
+    chunks: readModel.chunks,
+    focusMarkers: readModel.focusMarkers,
+    mapHeight: readModel.mapHeight,
+    mapWidth: readModel.mapWidth,
+    semanticAreas: readModel.semanticAreas,
+    tileSize: readModel.tileSize,
+  };
+}
+
+function matchesStaticLayerSignature(
+  previous: StaticLayerSignature,
+  next: StaticLayerSignature,
+): boolean {
+  return (
+    previous.tileSize === next.tileSize &&
+    previous.chunkSize === next.chunkSize &&
+    previous.mapWidth === next.mapWidth &&
+    previous.mapHeight === next.mapHeight &&
+    previous.chunks === next.chunks &&
+    previous.semanticAreas === next.semanticAreas &&
+    previous.focusMarkers === next.focusMarkers
+  );
 }
 
 function readEntity(readModel: WorldReadModel, entityId: string): WorldEntityReadModel | undefined {
