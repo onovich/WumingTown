@@ -2,7 +2,7 @@
   "id": "WM-0157",
   "title": "Public browser Simulation Worker session bridge",
   "summary": "Expose a reviewed package-root browser Worker/session bridge so apps/web can issue WM-0150 playable commands to the authoritative Simulation Worker without deep imports or shell-local authority.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "systems-architect",
   "dependsOn": [
@@ -51,13 +51,43 @@
   ],
   "branch": "task/WM-0157-public-browser-simulation-worker-session-bridge",
   "createdAt": "2026-06-30T12:20:30.000Z",
-  "updatedAt": "2026-06-30T12:20:30.000Z",
+  "updatedAt": "2026-06-30T12:55:54.096Z",
   "history": [
     {
       "at": "2026-06-30T12:20:30.000Z",
       "actor": "systems-architect",
       "action": "create-architecture-precursor",
       "details": "Created to unblock WM-0152 after confirming apps/web has no legal public browser Simulation Worker/session bridge."
+    },
+    {
+      "at": "2026-06-30T12:32:42.789Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Tally"
+    },
+    {
+      "at": "2026-06-30T12:47:30.788Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented root-exported browser Simulation Worker session bridge and Web root adapter; Worker-smoke proves WM-0150 commands through public root API; required checks pass."
+    },
+    {
+      "at": "2026-06-30T12:52:28.133Z",
+      "actor": "systems-architect",
+      "action": "review",
+      "details": "verified: No blocking findings; ADR-0013 root bridge, Web package boundaries, transport-only ownership, reliable message delivery, explicit lifecycle, save/load non-commitment and Chromium worker-smoke evidence all verified."
+    },
+    {
+      "at": "2026-06-30T12:55:41.021Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Integrated verified bridge implementation; required integration gates passed including typecheck, focused tests, worker-smoke, boundaries, validate-handoff, taskctl, diff check and pnpm quality."
+    },
+    {
+      "at": "2026-06-30T12:55:54.096Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "Post-M8",
@@ -88,5 +118,20 @@
     "new public save compatibility, migration or release promises",
     "new runtime dependencies without a separate ADR",
     "public release, Early Access, store, signing, telemetry, accounts, paid services or public feedback surfaces"
-  ]
+  ],
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Tally",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0157.md",
+  "review": {
+    "reviewer": "systems-architect",
+    "verdict": "verified",
+    "summary": "No blocking findings; ADR-0013 root bridge, Web package boundaries, transport-only ownership, reliable message delivery, explicit lifecycle, save/load non-commitment and Chromium worker-smoke evidence all verified.",
+    "at": "2026-06-30T12:52:28.132Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Integrated verified bridge implementation; required integration gates passed including typecheck, focused tests, worker-smoke, boundaries, validate-handoff, taskctl, diff check and pnpm quality.",
+    "at": "2026-06-30T12:55:41.021Z"
+  }
 }

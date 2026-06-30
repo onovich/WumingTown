@@ -1,5 +1,7 @@
 /// <reference lib="dom" />
 
+import * as path from "node:path";
+
 import { chromium } from "playwright";
 import { createServer, type ViteDevServer } from "vite";
 import { describe, expect, it } from "vitest";
@@ -13,11 +15,14 @@ import {
   M4_REPLAY_CHECKPOINT_SEQUENCE,
   M5_ALPHA_CONTENT_SCENARIO_ID,
   M5_REPLAY_CHECKPOINT_SEQUENCE,
+  PLAYABLE_COMMAND_SLICE_SCENARIO_ID,
   createM1AdvanceCommandId,
   createM2AdvanceCommandId,
   createM3AdvanceCommandId,
   createM4AdvanceCommandId,
   createM5AdvanceCommandId,
+  createPlayableAdvanceCommandId,
+  createPlayableCommandSliceRuntime,
   runM1HaulingBuildingReplay,
   runM2WorkLogisticsReplay,
   runM3OrdinaryLifeReplay,
@@ -28,6 +33,7 @@ import {
   type M3ReplayRun,
   type M4ReplayRun,
   type M5ReplayRun,
+  type PlayableCommandBasis,
 } from "@wuming-town/sim-core";
 import {
   MAIN_TO_SIMULATION_MESSAGE_KIND,
@@ -39,6 +45,7 @@ import {
   type CommandResultMessage,
   type MetricsSampleMessage,
   type MainToSimulationMessage,
+  type PlayerCommand,
   type RenderSnapshotMessage as ProtocolRenderSnapshotMessage,
   type SaveReadyMessage as ProtocolSaveReadyMessage,
   type SimulationToMainMessage,
@@ -46,8 +53,12 @@ import {
 } from "@wuming-town/sim-protocol";
 
 import {
+  WM0150_PLAYABLE_COMMAND_SCENARIO_ID,
+  createBrowserSimulationWorkerSession,
   connectSimulationWorkerPort,
   createSimulationWorker,
+  type BrowserSimulationWorkerHandle,
+  type BrowserSimulationWorkerMessageEvent,
   type SimulationWorkerMessageEvent,
   type SimulationWorkerPort,
 } from "./index";
@@ -56,7 +67,7 @@ import { chooseSimulationWorkerTransport } from "./sharedarraybuffer-fallback";
 interface BrowserWorkerRunInput {
   readonly expectedCount: number;
   readonly inputMessages: readonly MainToSimulationMessage[];
-  readonly workerPath: string;
+  readonly modulePath: string;
 }
 
 interface BrowserWorkerRuntimeFacts {
@@ -139,6 +150,32 @@ describe("worker-smoke simulation Worker protocol", () => {
     expect(kinds(port.messages)).toContain(SIMULATION_TO_MAIN_MESSAGE_KIND.Ready);
     expect(kinds(port.messages)).toContain(SIMULATION_TO_MAIN_MESSAGE_KIND.CommandResult);
     expect(commandResult(port.messages).payload.accepted).toBe(true);
+  });
+
+  it("delivers reliable messages separately through the public browser session client", () => {
+    const worker = createSimulationWorker();
+    const session = createBrowserSimulationWorkerSession({
+      sessionId: "session-a",
+      workerFactory: () => new HarnessBrowserWorker(worker),
+    });
+    const reliable: SimulationToMainMessage[] = [];
+    const allMessages: SimulationToMainMessage[] = [];
+
+    session.subscribe((message) => {
+      allMessages.push(message);
+    });
+    session.subscribeReliable((message) => {
+      reliable.push(message);
+    });
+    session.initSession({ seed: "1", catalogVersion: HAULING_BUILDING_SCENARIO_ID });
+    session.requestSave({ reason: "manual" });
+    session.destroy();
+
+    expect(kinds(allMessages)).toContain(SIMULATION_TO_MAIN_MESSAGE_KIND.Ready);
+    expect(kinds(reliable)).toStrictEqual([
+      SIMULATION_TO_MAIN_MESSAGE_KIND.CommandResult,
+      SIMULATION_TO_MAIN_MESSAGE_KIND.SaveReady,
+    ]);
   });
 
   it("matches Node headless hashes for the M1 hauling-building command stream", () => {
@@ -450,6 +487,49 @@ describe("worker-smoke simulation Worker protocol", () => {
     });
   }, 120000);
 
+  it("runs WM-0150 playable commands through the public root browser session bridge", async () => {
+    const mirror = createPlayableCommandSliceRuntime();
+    const lamp = lampCommand("browser-lamp", mirror.readCommandBasis());
+    mirror.applyCommand(lamp, 0);
+    mirror.advanceTo(45);
+    const build = buildCommand("browser-build", mirror.readCommandBasis());
+    const browserMessages = await runBrowserWorker([
+      makePlayableInitSession(1),
+      commandBatch(2, [lamp]),
+      playableAdvanceBatch(3, 45),
+      commandBatch(4, [build]),
+      playableAdvanceBatch(5, 220),
+    ]);
+    const commandResults = commandResultMessages(browserMessages);
+    const finalUiDelta = lastUiDelta(browserMessages);
+    const finalSnapshot =
+      renderSnapshots(browserMessages)[renderSnapshots(browserMessages).length - 1];
+
+    expect(WM0150_PLAYABLE_COMMAND_SCENARIO_ID).toBe(PLAYABLE_COMMAND_SLICE_SCENARIO_ID);
+    expect(commandResults[0]?.payload.commandResults[0]).toMatchObject({
+      commandId: "browser-lamp",
+      status: "accepted",
+      job: { jobKind: "lamp_refill" },
+    });
+    expect(commandResults[2]?.payload.commandResults[0]).toMatchObject({
+      commandId: "browser-build",
+      status: "accepted",
+      job: { jobKind: "build_site_delivery" },
+    });
+    expect(finalSnapshot?.payload).toMatchObject({
+      scenarioId: PLAYABLE_COMMAND_SLICE_SCENARIO_ID,
+      tick: 220,
+      readOnly: true,
+    });
+    expect(finalUiDelta.payload.summaries).toContainEqual(
+      expect.stringContaining("wm0150:build:site=0;completed=true"),
+    );
+    expect(lastMetricsSample(browserMessages).payload).toMatchObject({
+      scenarioId: PLAYABLE_COMMAND_SLICE_SCENARIO_ID,
+      checkpointCount: 3,
+    });
+  }, 120000);
+
   it("returns M1 save metadata without exposing mutable authority through the Worker", () => {
     const worker = createSimulationWorker();
 
@@ -493,6 +573,46 @@ class MemoryWorkerPort implements SimulationWorkerPort {
     }
 
     activeListener({ data });
+  }
+}
+
+class HarnessBrowserWorker implements BrowserSimulationWorkerHandle {
+  private listener: ((event: BrowserSimulationWorkerMessageEvent) => void) | undefined;
+
+  constructor(private readonly worker: ReturnType<typeof createSimulationWorker>) {}
+
+  postMessage(message: MainToSimulationMessage): void {
+    const activeListener = this.listener;
+    if (activeListener === undefined) {
+      throw new Error("no browser worker listener registered");
+    }
+
+    const responses = this.worker.receive(message);
+    for (const response of responses) {
+      activeListener({ data: response });
+    }
+  }
+
+  addEventListener(
+    type: "message",
+    listener: (event: BrowserSimulationWorkerMessageEvent) => void,
+  ): void {
+    expect(type).toBe("message");
+    this.listener = listener;
+  }
+
+  removeEventListener(
+    type: "message",
+    listener: (event: BrowserSimulationWorkerMessageEvent) => void,
+  ): void {
+    expect(type).toBe("message");
+    if (this.listener === listener) {
+      this.listener = undefined;
+    }
+  }
+
+  terminate(): void {
+    this.listener = undefined;
   }
 }
 
@@ -576,6 +696,20 @@ function makeM5InitSession(sequence: number): MainToSimulationMessage {
     payload: {
       seed: "5",
       catalogVersion: M5_ALPHA_CONTENT_SCENARIO_ID,
+    },
+  };
+}
+
+function makePlayableInitSession(sequence: number): MainToSimulationMessage {
+  return {
+    protocolVersion: SIM_PROTOCOL_VERSION,
+    schemaVersion: SIM_SCHEMA_VERSION,
+    sessionId: "session-a",
+    sequence,
+    kind: MAIN_TO_SIMULATION_MESSAGE_KIND.InitSession,
+    payload: {
+      seed: "5",
+      catalogVersion: PLAYABLE_COMMAND_SLICE_SCENARIO_ID,
     },
   };
 }
@@ -696,6 +830,91 @@ function makeM5AdvanceBatch(
   };
 }
 
+function playableAdvanceBatch(sequence: number, tick: number): MainToSimulationMessage {
+  return commandBatch(sequence, [
+    {
+      commandId: createPlayableAdvanceCommandId(tick),
+      kind: PLAYER_COMMAND_KIND.Noop,
+    },
+  ]);
+}
+
+function commandBatch(
+  sequence: number,
+  commands: readonly PlayerCommand[],
+): MainToSimulationMessage {
+  return {
+    protocolVersion: SIM_PROTOCOL_VERSION,
+    schemaVersion: SIM_SCHEMA_VERSION,
+    sessionId: "session-a",
+    sequence,
+    kind: MAIN_TO_SIMULATION_MESSAGE_KIND.PlayerCommandBatch,
+    payload: {
+      commands,
+    },
+  };
+}
+
+function lampCommand(
+  commandId: string,
+  basis: PlayableCommandBasis,
+): {
+  readonly commandId: string;
+  readonly kind: typeof PLAYER_COMMAND_KIND.PrioritizeLampWork;
+  readonly basis: PlayableCommandBasis;
+  readonly payload: {
+    readonly target: {
+      readonly kind: "lamp_gap";
+      readonly gapId: "lamp-gap-0";
+      readonly anchorCell: { readonly x: 12; readonly y: 7; readonly cellIndex: 124 };
+    };
+    readonly requestedAction: "auto";
+    readonly priorityBand: 1;
+  };
+} {
+  return {
+    commandId,
+    kind: PLAYER_COMMAND_KIND.PrioritizeLampWork,
+    basis,
+    payload: {
+      target: {
+        kind: "lamp_gap",
+        gapId: "lamp-gap-0",
+        anchorCell: { x: 12, y: 7, cellIndex: 124 },
+      },
+      requestedAction: "auto",
+      priorityBand: 1,
+    },
+  };
+}
+
+function buildCommand(
+  commandId: string,
+  basis: PlayableCommandBasis,
+): {
+  readonly commandId: string;
+  readonly kind: typeof PLAYER_COMMAND_KIND.QueueSimpleBuild;
+  readonly basis: PlayableCommandBasis;
+  readonly payload: {
+    readonly blueprint: { readonly kind: "simple_lamp_post"; readonly blueprintDefId: 4 };
+    readonly anchorCell: { readonly x: 12; readonly y: 7; readonly cellIndex: 124 };
+    readonly orientation: 0;
+    readonly priorityBand: 1;
+  };
+} {
+  return {
+    commandId,
+    kind: PLAYER_COMMAND_KIND.QueueSimpleBuild,
+    basis,
+    payload: {
+      blueprint: { kind: "simple_lamp_post", blueprintDefId: 4 },
+      anchorCell: { x: 12, y: 7, cellIndex: 124 },
+      orientation: 0,
+      priorityBand: 1,
+    },
+  };
+}
+
 function makePause(sequence: number): MainToSimulationMessage {
   return {
     protocolVersion: SIM_PROTOCOL_VERSION,
@@ -734,6 +953,18 @@ function commandResult(messages: readonly SimulationToMainMessage[]): CommandRes
   }
 
   throw new Error("expected CommandResult message");
+}
+
+function commandResultMessages(
+  messages: readonly SimulationToMainMessage[],
+): readonly CommandResultMessage[] {
+  const results: CommandResultMessage[] = [];
+  for (const message of messages) {
+    if (message.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.CommandResult) {
+      results.push(message);
+    }
+  }
+  return results;
 }
 
 function renderSnapshot(
@@ -884,6 +1115,7 @@ async function runBrowserWorkerWithRuntime(
   const server = await createServer({
     configFile: false,
     logLevel: "error",
+    plugins: [createPublicWorkerSessionSmokePlugin()],
     root: process.cwd(),
     server: {
       host: "127.0.0.1",
@@ -899,10 +1131,10 @@ async function runBrowserWorkerWithRuntime(
     const page = await browser.newPage();
     await page.goto(readServerUrl(server), { waitUntil: "domcontentloaded" });
     const rawResult: unknown = await page.evaluate(
-      ({
+      async ({
         expectedCount,
         inputMessages: browserInputMessages,
-        workerPath,
+        modulePath,
       }: BrowserWorkerRunInput): Promise<{
         readonly elapsedMs: number;
         readonly messages: readonly unknown[];
@@ -950,57 +1182,61 @@ async function runBrowserWorkerWithRuntime(
             };
           });
 
-        return new Promise((resolve, reject) => {
-          const startedAtMs = performance.now();
-          const worker = new Worker(new URL(workerPath, window.location.href), {
-            type: "module",
-          });
-          const received: unknown[] = [];
-          const timeout = window.setTimeout((): void => {
-            worker.terminate();
-            reject(new Error(`Timed out waiting for ${String(expectedCount)} Worker messages.`));
-          }, 30_000);
+        type PublicWorkerSessionSmokeRunner = (input: {
+          readonly expectedCount: number;
+          readonly inputMessages: readonly MainToSimulationMessage[];
+        }) => Promise<{
+          readonly elapsedMs: number;
+          readonly messages: readonly unknown[];
+        }>;
+        interface PublicWorkerSessionSmokeGlobal {
+          readonly __wm0157PublicWorkerSessionSmoke?: unknown;
+        }
 
-          worker.onerror = (event: ErrorEvent): void => {
-            window.clearTimeout(timeout);
-            worker.terminate();
-            reject(new Error(`Browser Worker error: ${event.message}`));
-          };
-          worker.onmessage = (event: MessageEvent<unknown>): void => {
-            received.push(event.data);
-            if (received.length >= expectedCount) {
-              window.clearTimeout(timeout);
-              worker.terminate();
-              readDedicatedWorkerRuntimeFacts()
-                .then((workerRuntimeFacts) => {
-                  resolve({
-                    elapsedMs: performance.now() - startedAtMs,
-                    messages: received,
-                    runtimeFacts: {
-                      pageCrossOriginIsolated: window.crossOriginIsolated,
-                      pageSharedArrayBufferType: typeof SharedArrayBuffer,
-                      workerCrossOriginIsolated: workerRuntimeFacts.crossOriginIsolated,
-                      workerSharedArrayBufferType: workerRuntimeFacts.sharedArrayBufferType,
-                    },
-                  });
-                })
-                .catch((error: unknown) => {
-                  reject(
-                    error instanceof Error ? error : new Error("Worker runtime facts failed."),
-                  );
-                });
-            }
-          };
+        const isPublicWorkerSessionSmokeRunner = (
+          value: unknown,
+        ): value is PublicWorkerSessionSmokeRunner => typeof value === "function";
 
-          for (const message of browserInputMessages) {
-            worker.postMessage(message);
-          }
+        await new Promise<void>((resolve, reject) => {
+          const script = document.createElement("script");
+          script.type = "module";
+          script.src = modulePath;
+          script.onload = (): void => {
+            resolve();
+          };
+          script.onerror = (): void => {
+            reject(new Error("Public Worker session smoke module failed to load."));
+          };
+          document.head.append(script);
         });
+
+        const pageWindow: Window & PublicWorkerSessionSmokeGlobal = window;
+        const runner = pageWindow.__wm0157PublicWorkerSessionSmoke;
+        if (!isPublicWorkerSessionSmokeRunner(runner)) {
+          throw new Error("Public Worker session smoke runner was not available.");
+        }
+
+        const sessionResult = await runner({
+          expectedCount,
+          inputMessages: browserInputMessages,
+        });
+        const workerRuntimeFacts = await readDedicatedWorkerRuntimeFacts();
+
+        return {
+          elapsedMs: sessionResult.elapsedMs,
+          messages: sessionResult.messages,
+          runtimeFacts: {
+            pageCrossOriginIsolated: window.crossOriginIsolated,
+            pageSharedArrayBufferType: typeof SharedArrayBuffer,
+            workerCrossOriginIsolated: workerRuntimeFacts.crossOriginIsolated,
+            workerSharedArrayBufferType: workerRuntimeFacts.sharedArrayBufferType,
+          },
+        };
       },
       {
         expectedCount: inputMessages.length * 4,
         inputMessages,
-        workerPath: "/packages/sim-worker/src/browser-worker-entry.ts",
+        modulePath: "/wm0157-public-worker-session-smoke.js",
       },
     );
 
@@ -1009,6 +1245,108 @@ async function runBrowserWorkerWithRuntime(
     await browser.close();
     await server.close();
   }
+}
+
+function createPublicWorkerSessionSmokePlugin(): {
+  readonly name: string;
+  resolveId(id: string): string | undefined;
+  load(id: string): string | undefined;
+} {
+  const moduleId = "/wm0157-public-worker-session-smoke.js";
+  return {
+    name: "wm0157-public-worker-session-smoke",
+    resolveId(id: string): string | undefined {
+      if (id === moduleId) {
+        return moduleId;
+      }
+
+      return resolveWorkspacePublicIndex(id);
+    },
+    load(id: string): string | undefined {
+      if (id !== moduleId) {
+        return undefined;
+      }
+
+      return `
+import {
+  MAIN_TO_SIMULATION_MESSAGE_KIND,
+} from "@wuming-town/sim-protocol";
+import {
+  createBrowserSimulationWorkerSession,
+} from "@wuming-town/sim-worker";
+
+export function runPublicBrowserSimulationWorkerSession(input) {
+  return new Promise((resolve, reject) => {
+    const startedAtMs = performance.now();
+    const sessionId = input.inputMessages[0]?.sessionId ?? "session-a";
+    const session = createBrowserSimulationWorkerSession({ sessionId });
+    const received = [];
+    const timeout = window.setTimeout(() => {
+      session.destroy();
+      reject(new Error("Timed out waiting for " + String(input.expectedCount) + " Worker messages."));
+    }, 30000);
+    session.subscribe((message) => {
+      received.push(message);
+      if (received.length >= input.expectedCount) {
+        window.clearTimeout(timeout);
+        session.destroy();
+        resolve({
+          elapsedMs: performance.now() - startedAtMs,
+          messages: received,
+        });
+      }
+    });
+    for (const message of input.inputMessages) {
+      if (message.kind === MAIN_TO_SIMULATION_MESSAGE_KIND.InitSession) {
+        session.initSession(message.payload);
+      } else if (message.kind === MAIN_TO_SIMULATION_MESSAGE_KIND.LoadSession) {
+        session.loadSession(message.payload);
+      } else if (message.kind === MAIN_TO_SIMULATION_MESSAGE_KIND.PlayerCommandBatch) {
+        session.sendPlayerCommandBatch(message.payload.commands);
+      } else if (message.kind === MAIN_TO_SIMULATION_MESSAGE_KIND.SetSpeed) {
+        session.setSpeed(message.payload.speed);
+      } else if (message.kind === MAIN_TO_SIMULATION_MESSAGE_KIND.Pause) {
+        session.pause(message.payload.paused);
+      } else if (message.kind === MAIN_TO_SIMULATION_MESSAGE_KIND.RequestUiDetail) {
+        session.requestUiDetail(message.payload);
+      } else if (message.kind === MAIN_TO_SIMULATION_MESSAGE_KIND.RequestSave) {
+        session.requestSave(message.payload);
+      } else if (message.kind === MAIN_TO_SIMULATION_MESSAGE_KIND.Shutdown) {
+        session.shutdown();
+      } else {
+        window.clearTimeout(timeout);
+        session.destroy();
+        reject(new Error("Unsupported smoke input message kind: " + String(message.kind)));
+        return;
+      }
+    }
+  });
+}
+
+globalThis.__wm0157PublicWorkerSessionSmoke = runPublicBrowserSimulationWorkerSession;
+`;
+    },
+  };
+}
+
+function resolveWorkspacePublicIndex(id: string): string | undefined {
+  if (!id.startsWith("@wuming-town/")) {
+    return undefined;
+  }
+
+  const packagePathByName = new Map<string, string>([
+    ["@wuming-town/content-schema", "packages/content-schema"],
+    ["@wuming-town/foundation", "packages/foundation"],
+    ["@wuming-town/sim-core", "packages/sim-core"],
+    ["@wuming-town/sim-protocol", "packages/sim-protocol"],
+    ["@wuming-town/sim-worker", "packages/sim-worker"],
+  ]);
+  const packagePath = packagePathByName.get(id);
+  if (packagePath === undefined) {
+    return undefined;
+  }
+
+  return path.join(process.cwd(), packagePath, "src", "index.ts");
 }
 
 interface DedicatedWorkerRuntimeFacts {

@@ -75,6 +75,9 @@ importers:
       '@wuming-town/sim-protocol':
         specifier: workspace:0.0.0
         version: link:../../packages/sim-protocol
+      '@wuming-town/sim-worker':
+        specifier: workspace:0.0.0
+        version: link:../../packages/sim-worker
       '@wuming-town/ui-react':
         specifier: workspace:0.0.0
         version: link:../../packages/ui-react

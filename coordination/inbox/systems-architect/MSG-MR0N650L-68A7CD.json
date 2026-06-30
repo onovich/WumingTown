@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MR0N650L-68A7CD",
+  "from": "simulation-engineer",
+  "to": "systems-architect",
+  "taskId": "WM-0157",
+  "kind": "review-request",
+  "subject": "WM-0157 ready for review",
+  "body": "Implemented root-exported browser Simulation Worker session bridge and Web root adapter; Worker-smoke proves WM-0150 commands through public root API; required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0157.md",
+    "task/WM-0157-public-browser-simulation-worker-session-bridge"
+  ],
+  "createdAt": "2026-06-30T12:47:30.789Z",
+  "acknowledgedAt": "2026-06-30T12:48:46.809Z"
+}

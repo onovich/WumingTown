@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MR0NCIG6-3567DD",
+  "from": "systems-architect",
+  "to": "simulation-engineer",
+  "taskId": "WM-0157",
+  "kind": "review-approved",
+  "subject": "WM-0157 review: verified",
+  "body": "No blocking findings; ADR-0013 root bridge, Web package boundaries, transport-only ownership, reliable message delivery, explicit lifecycle, save/load non-commitment and Chromium worker-smoke evidence all verified.",
+  "artifacts": [
+    "coordination/reports/WM-0157.md"
+  ],
+  "createdAt": "2026-06-30T12:52:28.134Z",
+  "acknowledgedAt": "2026-06-30T12:53:34.956Z"
+}

@@ -11,6 +11,7 @@
     "@wuming-town/platform": "workspace:0.0.0",
     "@wuming-town/renderer-pixi": "workspace:0.0.0",
     "@wuming-town/sim-protocol": "workspace:0.0.0",
+    "@wuming-town/sim-worker": "workspace:0.0.0",
     "@wuming-town/ui-react": "workspace:0.0.0",
     "react": "19.2.7",
     "react-dom": "19.2.7"
@@ -25,6 +26,7 @@
       "@wuming-town/platform",
       "@wuming-town/renderer-pixi",
       "@wuming-town/sim-protocol",
+      "@wuming-town/sim-worker",
       "@wuming-town/ui-react"
     ]
   }

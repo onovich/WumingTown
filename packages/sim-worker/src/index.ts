@@ -59,6 +59,23 @@ import {
   type SimulationToMainMessage,
 } from "@wuming-town/sim-protocol";
 
+export {
+  WM0150_PLAYABLE_COMMAND_DEFAULT_SEED,
+  WM0150_PLAYABLE_COMMAND_SCENARIO_ID,
+  createBrowserSimulationWorker,
+  createBrowserSimulationWorkerSession,
+  type BrowserSimulationWorkerFactory,
+  type BrowserSimulationWorkerHandle,
+  type BrowserSimulationWorkerMessageEvent,
+  type BrowserSimulationWorkerMessageListener,
+  type BrowserSimulationWorkerSession,
+  type BrowserSimulationWorkerSessionOptions,
+  type BrowserSimulationWorkerSessionState,
+  type InitPlayableCommandScenarioInput,
+  type ReliableSimulationWorkerMessage,
+  type ReliableSimulationWorkerMessageListener,
+} from "./browser-session";
+
 export const SIM_WORKER_SMOKE: WorkspaceSmoke = defineWorkspaceSmoke(
   "@wuming-town/sim-worker",
   "package",
