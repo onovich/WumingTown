@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MR057XJ9-FBF68A",
+  "from": "systems-architect",
+  "to": "reviewer",
+  "taskId": "WM-0149",
+  "kind": "review-request",
+  "subject": "WM-0149 ready for review",
+  "body": "Authored ADR-0012 and Worker protocol note for the authoritative lamp-priority/simple-build command/job contract; required checks pass; no implementation code changed.",
+  "artifacts": [
+    "coordination/reports/WM-0149.md",
+    "task/WM-0149-authoritative-command-and-job-protocol-vertical-"
+  ],
+  "createdAt": "2026-06-30T04:25:01.317Z",
+  "acknowledgedAt": "2026-06-30T04:32:48.291Z"
+}

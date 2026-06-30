@@ -47,6 +47,35 @@ evidence for the non-isolated Chromium path. It does not add a new message
 family, protocol version, schema version or compatibility mode. SAB may be used
 by a future optimized transport only after separate evidence and review.
 
+## WM-0149 playable command/job contract note
+
+`coordination/decisions/ADR-0012.md` proposes the first authoritative
+player-command contract for the post-M8 dusk lamp / simple-build slice. The
+existing message families remain the intended route: `PlayerCommandBatch`
+carries typed player intent, and `CommandResult` carries batch plus per-command
+results. Implementation must bump the schema before adding the incompatible
+payload shapes.
+
+The slice must keep Simulation Worker or Node headless as the only world
+writer. React, Pixi and Electron may build commands from read-model basis data
+and render read-only projections only. They may not create jobs, reserve
+materials, move pawns, complete builds, repair stale command basis, or invent
+blocked reasons.
+
+Required structured blocked reason classes for the slice are:
+
+- `missing_resource`
+- `no_path`
+- `no_worker`
+- `invalid_target`
+- `stale_command`
+- `rule_policy_denial`
+
+Playable read models must project target action availability, order/job
+markers, pawn state, progress, resources/alerts and basis versions from
+authoritative owner stores. Localized prose is rendered by the UI from reason
+codes and parameters, not emitted as authority by simulation code.
+
 ### Simulation → Main
 
 - `Ready`

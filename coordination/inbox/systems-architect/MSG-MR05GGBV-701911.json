@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MR05GGBV-701911",
+  "from": "reviewer",
+  "to": "systems-architect",
+  "taskId": "WM-0149",
+  "kind": "review-approved",
+  "subject": "WM-0149 review: verified",
+  "body": "No blocking findings; ADR-0012 covers command/result payloads, six required blocked reasons, read-model projection requirements, Worker/headless authority, and schema/save/replay gates; diff is limited to allowed documentation and coordination paths; required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0149.md"
+  ],
+  "createdAt": "2026-06-30T04:31:38.923Z",
+  "acknowledgedAt": "2026-06-30T04:32:48.307Z"
+}

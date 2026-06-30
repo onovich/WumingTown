@@ -2,7 +2,7 @@
   "id": "WM-0149",
   "title": "Authoritative command and job protocol vertical slice design",
   "summary": "Design the reviewed Worker/player command contract for the first playable lamp/build vertical slice without UI-owned world mutation or save/protocol ambiguity.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -35,7 +35,7 @@
   ],
   "branch": "task/WM-0149-authoritative-command-and-job-protocol-vertical-",
   "createdAt": "2026-06-29T18:59:47.427Z",
-  "updatedAt": "2026-06-30T04:07:55.090Z",
+  "updatedAt": "2026-06-30T04:36:26.932Z",
   "history": [
     {
       "at": "2026-06-29T18:59:47.427Z",
@@ -48,6 +48,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-30T04:15:18.373Z",
+      "actor": "systems-architect",
+      "action": "claim",
+      "details": "thread=Compass"
+    },
+    {
+      "at": "2026-06-30T04:25:01.316Z",
+      "actor": "systems-architect",
+      "action": "complete",
+      "details": "Authored ADR-0012 and Worker protocol note for the authoritative lamp-priority/simple-build command/job contract; required checks pass; no implementation code changed."
+    },
+    {
+      "at": "2026-06-30T04:31:38.899Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; ADR-0012 covers command/result payloads, six required blocked reasons, read-model projection requirements, Worker/headless authority, and schema/save/replay gates; diff is limited to allowed documentation and coordination paths; required checks pass."
+    },
+    {
+      "at": "2026-06-30T04:36:20.067Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified by independent reviewer; handoff/taskctl/diff checks and pnpm quality pass; ADR-0012 remains design-only."
+    },
+    {
+      "at": "2026-06-30T04:36:26.930Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "Post-M8",
@@ -63,5 +93,20 @@
     "product implementation code without an approved expanded packet",
     "public release/EA/store/signing/telemetry/accounts/paid-services/public-save actions",
     "weakening Simulation Worker authority or deterministic replay requirements"
-  ]
+  ],
+  "claimedBy": "systems-architect",
+  "threadLabel": "Compass",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0149.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; ADR-0012 covers command/result payloads, six required blocked reasons, read-model projection requirements, Worker/headless authority, and schema/save/replay gates; diff is limited to allowed documentation and coordination paths; required checks pass.",
+    "at": "2026-06-30T04:31:38.898Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified by independent reviewer; handoff/taskctl/diff checks and pnpm quality pass; ADR-0012 remains design-only.",
+    "at": "2026-06-30T04:36:20.066Z"
+  }
 }
