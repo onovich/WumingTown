@@ -1,4 +1,10 @@
-import type { TileCoordinate, WorldReadModel } from "@wuming-town/sim-protocol";
+import type {
+  TileCoordinate,
+  WorldEntityReadModel,
+  WorldFocusMarkerReadModel,
+  WorldReadModel,
+  WorldSemanticAreaReadModel,
+} from "@wuming-town/sim-protocol";
 
 export interface RendererViewportState {
   readonly canvasWidth: number;
@@ -15,6 +21,20 @@ export interface ScreenPoint {
 
 export interface ScreenEntityPosition extends ScreenPoint {
   readonly entityId: string;
+}
+
+export interface ScreenRect extends ScreenPoint {
+  readonly width: number;
+  readonly height: number;
+}
+
+export interface ScreenEntityActivityProjection {
+  readonly badgeAnchor: ScreenPoint;
+  readonly center: ScreenPoint;
+  readonly entityId: string;
+  readonly path: readonly ScreenPoint[];
+  readonly progressBar?: ScreenRect;
+  readonly target?: ScreenPoint;
 }
 
 const FIT_PADDING_PX = 48;
@@ -171,6 +191,83 @@ export function readEntityScreenPositions(
   return positions;
 }
 
+export function readSemanticAreaScreenRect(
+  viewport: RendererViewportState,
+  readModel: WorldReadModel,
+  area: WorldSemanticAreaReadModel,
+): ScreenRect {
+  const topLeft = worldToScreen(
+    viewport,
+    area.originTile.x * readModel.tileSize,
+    area.originTile.y * readModel.tileSize,
+  );
+
+  return {
+    height: area.height * readModel.tileSize * viewport.zoom,
+    width: area.width * readModel.tileSize * viewport.zoom,
+    x: topLeft.x,
+    y: topLeft.y,
+  };
+}
+
+export function readFocusMarkerScreenPoint(
+  viewport: RendererViewportState,
+  readModel: WorldReadModel,
+  marker: WorldFocusMarkerReadModel,
+): ScreenPoint {
+  return tileToScreenCenter(viewport, readModel, marker.tile);
+}
+
+export function readPathScreenPoints(
+  viewport: RendererViewportState,
+  readModel: WorldReadModel,
+  pathTiles: readonly TileCoordinate[],
+): readonly ScreenPoint[] {
+  return pathTiles.map((tile) => tileToScreenCenter(viewport, readModel, tile));
+}
+
+export function readEntityActivityScreenProjection(
+  viewport: RendererViewportState,
+  readModel: WorldReadModel,
+  entity: WorldEntityReadModel,
+): ScreenEntityActivityProjection | undefined {
+  const activity = entity.activity;
+  if (activity === undefined) {
+    return undefined;
+  }
+
+  const center = tileToScreenCenter(viewport, readModel, entity.tile);
+  const path =
+    activity.pathTiles === undefined
+      ? []
+      : readPathScreenPoints(viewport, readModel, activity.pathTiles);
+  const target =
+    activity.targetTile === undefined
+      ? undefined
+      : tileToScreenCenter(viewport, readModel, activity.targetTile);
+  const progressBar =
+    activity.progressPercent === undefined
+      ? undefined
+      : {
+          height: 6,
+          width: readModel.tileSize * 1.35 * viewport.zoom,
+          x: center.x - (readModel.tileSize * 1.35 * viewport.zoom) / 2,
+          y: center.y + readModel.tileSize * 0.62 * viewport.zoom,
+        };
+
+  return {
+    badgeAnchor: {
+      x: center.x,
+      y: center.y - readModel.tileSize * 0.8 * viewport.zoom,
+    },
+    center,
+    entityId: entity.entityId,
+    path,
+    ...(progressBar === undefined ? {} : { progressBar }),
+    ...(target === undefined ? {} : { target }),
+  };
+}
+
 export function tileToScreenCenter(
   viewport: RendererViewportState,
   readModel: WorldReadModel,
@@ -179,6 +276,21 @@ export function tileToScreenCenter(
   const worldX = tile.x * readModel.tileSize + readModel.tileSize / 2;
   const worldY = tile.y * readModel.tileSize + readModel.tileSize / 2;
   return worldToScreen(viewport, worldX, worldY);
+}
+
+export function tileToScreenBounds(
+  viewport: RendererViewportState,
+  readModel: WorldReadModel,
+  tile: TileCoordinate,
+): ScreenRect {
+  const topLeft = worldToScreen(viewport, tile.x * readModel.tileSize, tile.y * readModel.tileSize);
+
+  return {
+    height: readModel.tileSize * viewport.zoom,
+    width: readModel.tileSize * viewport.zoom,
+    x: topLeft.x,
+    y: topLeft.y,
+  };
 }
 
 function clampViewport(

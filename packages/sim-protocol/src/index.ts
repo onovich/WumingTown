@@ -60,16 +60,22 @@ export type {
   EntityInspectorReadModel,
   EntityNeedReadModel,
   ResourceSummaryReadModel,
+  WorldEntityActivityReadModel,
+  WorldFocusMarkerReadModel,
+  WorldSemanticAreaReadModel,
 } from "./web-read-model";
 export type {
   TerrainKind,
   TileCoordinate,
   TownAlertReadModel,
+  WorldEntityActivityState,
   TownOverviewReadModel,
   WorldChunkReadModel,
   WorldEntityKind,
   WorldEntityReadModel,
+  WorldFocusMarkerKind,
   WorldReadModel,
+  WorldSemanticAreaKind,
 } from "./web-read-model";
 
 export const SIM_PROTOCOL_SMOKE: WorkspaceSmoke = defineWorkspaceSmoke(

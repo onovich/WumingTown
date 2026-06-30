@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MR0AFREH-ABF630",
+  "from": "client-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0148",
+  "kind": "review-request",
+  "subject": "WM-0148 ready for review",
+  "body": "Added read-model semantic map overlays and visible pawn state projection; Pixi now renders semantic areas, focus markers, paths, target markers, and progress from fixture-driven read-model data; required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0148.md",
+    "task/WM-0148-semantic-map-readability-and-visible-pawn-state-"
+  ],
+  "createdAt": "2026-06-30T06:51:04.697Z",
+  "acknowledgedAt": "2026-06-30T06:52:45.066Z"
+}

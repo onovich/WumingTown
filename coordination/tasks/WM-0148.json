@@ -2,7 +2,7 @@
   "id": "WM-0148",
   "title": "Semantic map readability and visible pawn state layer",
   "summary": "Make the world view read as a game map with semantic terrain/building/lamp/dark-area cues and visible idle, moving, working, blocked and completed pawn states.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "client-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -36,7 +36,7 @@
   ],
   "branch": "task/WM-0148-semantic-map-readability-and-visible-pawn-state-",
   "createdAt": "2026-06-29T18:59:47.376Z",
-  "updatedAt": "2026-06-30T04:07:55.090Z",
+  "updatedAt": "2026-06-30T07:00:30.804Z",
   "history": [
     {
       "at": "2026-06-29T18:59:47.377Z",
@@ -49,6 +49,36 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-06-30T06:01:38.974Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": "thread=Fieldglass"
+    },
+    {
+      "at": "2026-06-30T06:51:04.695Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Added read-model semantic map overlays and visible pawn state projection; Pixi now renders semantic areas, focus markers, paths, target markers, and progress from fixture-driven read-model data; required checks pass."
+    },
+    {
+      "at": "2026-06-30T06:58:42.030Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; verified optional read-model projection fields, fixture-driven semantic map and five pawn states, renderer-only Pixi consumption, distinct non-color-only overlays/markers, no command/Worker/sim-core/public-release boundary changes, WM-0135 artifact absent; sampled geometry/typecheck/handoff/validate/diff-check pass."
+    },
+    {
+      "at": "2026-06-30T07:00:30.759Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Verified by independent reviewer; integration gate sampled typecheck, render geometry tests, validate-handoff, taskctl validate/status and git diff --check; implementation report records web-shell e2e and quality passing."
+    },
+    {
+      "at": "2026-06-30T07:00:30.804Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "Post-M8",
@@ -65,5 +95,20 @@
     "unreviewed command protocol semantics",
     "sim-core runtime implementation",
     "public release/EA/store/signing/telemetry/accounts/paid-services/public-save actions"
-  ]
+  ],
+  "claimedBy": "client-engineer",
+  "threadLabel": "Fieldglass",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0148.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; verified optional read-model projection fields, fixture-driven semantic map and five pawn states, renderer-only Pixi consumption, distinct non-color-only overlays/markers, no command/Worker/sim-core/public-release boundary changes, WM-0135 artifact absent; sampled geometry/typecheck/handoff/validate/diff-check pass.",
+    "at": "2026-06-30T06:58:42.030Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Verified by independent reviewer; integration gate sampled typecheck, render geometry tests, validate-handoff, taskctl validate/status and git diff --check; implementation report records web-shell e2e and quality passing.",
+    "at": "2026-06-30T07:00:30.759Z"
+  }
 }

@@ -1,8 +1,12 @@
 import type {
   TerrainKind,
+  TileCoordinate,
   WorldChunkReadModel,
+  WorldEntityActivityReadModel,
   WorldEntityReadModel,
+  WorldFocusMarkerReadModel,
   WorldReadModel,
+  WorldSemanticAreaReadModel,
 } from "@wuming-town/sim-protocol";
 
 const CHUNK_SIZE = 16;
@@ -374,6 +378,75 @@ const SUPPORT_ROLES = [
   },
 ];
 
+const SEMANTIC_AREAS: readonly WorldSemanticAreaReadModel[] = [
+  createSemanticArea("archive-hall", "structure", "Archive hall", 74, 66, 28, 18, 96, 84),
+  createSemanticArea("market-courtyard", "structure", "Market courtyard", 84, 104, 26, 18, 96, 104),
+  createSemanticArea("guesthouse-yard", "structure", "Guesthouse row", 112, 78, 20, 22, 120, 100),
+  createSemanticArea(
+    "west-lamp-band",
+    "lamp-coverage",
+    "Stable lamp corridor",
+    70,
+    88,
+    26,
+    18,
+    92,
+    96,
+  ),
+  createSemanticArea(
+    "east-lamp-band",
+    "lamp-coverage",
+    "Bridge approach coverage",
+    108,
+    86,
+    24,
+    20,
+    120,
+    94,
+  ),
+  createSemanticArea("east-gap", "dark-gap", "Uncovered dark gap", 132, 88, 16, 18, 140, 96),
+  createSemanticArea(
+    "south-closed-lane",
+    "blocked-area",
+    "Closed threshold lane",
+    100,
+    122,
+    14,
+    10,
+    106,
+    126,
+  ),
+];
+
+const FOCUS_MARKERS: readonly WorldFocusMarkerReadModel[] = [
+  createFocusMarker("lamp-frame-select", "selectable", "Lamp frame", 120, 92, "lamp-aide-15"),
+  createFocusMarker(
+    "stockpile-select",
+    "selectable",
+    "Oil + timber stockpile",
+    88,
+    118,
+    "bridge-ledger-kiosk-04",
+  ),
+  createFocusMarker(
+    "guesthouse-select",
+    "selectable",
+    "Guesthouse threshold",
+    120,
+    90,
+    "guesthouse-ren",
+  ),
+  createFocusMarker("threshold-blocked", "blocked", "Closed gate", 140, 96, "night-watch-qiao"),
+  createFocusMarker(
+    "archive-complete",
+    "completed",
+    "Archive lamp stable",
+    88,
+    72,
+    "archivist-sun",
+  ),
+];
+
 export const WEB_PRODUCT_GATE_READ_MODEL: WorldReadModel = {
   sessionId: "wm-0086-web-product-gate",
   mapName: "East market and bridge road",
@@ -418,6 +491,8 @@ export const WEB_PRODUCT_GATE_READ_MODEL: WorldReadModel = {
   },
   chunks: createProductGateChunks(),
   entities: createEntities(),
+  semanticAreas: SEMANTIC_AREAS,
+  focusMarkers: FOCUS_MARKERS,
   selectedEntityId: "chronicler-lin",
 };
 
@@ -543,11 +618,19 @@ function readTerrainKind(tileX: number, tileY: number): TerrainKind {
     return "water";
   }
 
-  if (tileX > 16 && tileX < 176 && Math.abs(tileY - 96) <= 2) {
+  if (tileX > 18 && tileX < 176 && Math.abs(tileY - 96) <= 2) {
     return "path";
   }
 
-  if (tileY > 20 && tileY < 170 && Math.abs(tileX - 96) <= 2) {
+  if (tileY > 22 && tileY < 170 && Math.abs(tileX - 96) <= 2) {
+    return "path";
+  }
+
+  if (tileX > 80 && tileX < 132 && Math.abs(tileY - 84) <= 1) {
+    return "path";
+  }
+
+  if (tileX > 84 && tileX < 124 && Math.abs(tileY - 116) <= 1) {
     return "path";
   }
 
@@ -591,7 +674,9 @@ function createEntity(input: {
   readonly explainers: readonly string[];
   readonly thoughts: readonly string[];
   readonly needs: WorldEntityReadModel["inspector"]["needs"];
+  readonly activity?: WorldEntityActivityReadModel;
 }): WorldEntityReadModel {
+  const activity = input.activity ?? readEntityActivity(input.entityId);
   return {
     entityId: input.entityId,
     displayName: input.displayName,
@@ -613,7 +698,137 @@ function createEntity(input: {
       thoughts: input.thoughts,
       needs: input.needs,
     },
+    ...(activity === undefined ? {} : { activity }),
   };
+}
+
+function readEntityActivity(entityId: string): WorldEntityActivityReadModel | undefined {
+  switch (entityId) {
+    case "chronicler-lin":
+      return createActivity({
+        detail: "Waiting for the next reviewed lamp order before leaving the archive.",
+        label: "Idle and watching the archive lane",
+        state: "idle",
+      });
+    case "lantern-keeper-shen":
+      return createActivity({
+        detail: "Heading for the east lamp frame before the corridor falls dark.",
+        intentLabel: "Refill east market lamp",
+        label: "Moving to the east lamp gap",
+        pathTiles: createPath([
+          [72, 102],
+          [80, 102],
+          [88, 100],
+          [96, 98],
+          [104, 96],
+          [112, 94],
+          [120, 92],
+        ]),
+        state: "moving",
+        targetTile: createTile(120, 92),
+      });
+    case "medic-fan":
+      return createActivity({
+        detail: "Packing treatment kits under the covered lamp lane.",
+        intentLabel: "Bundle lamp-safe kits",
+        label: "Working at the infirmary stockpile",
+        progressPercent: 68,
+        state: "working",
+        targetTile: createTile(88, 118),
+      });
+    case "night-watch-qiao":
+      return createActivity({
+        detail: "The watch route is blocked by a closed threshold and dark approach.",
+        intentLabel: "Hold the checkpoint",
+        label: "Blocked by the east threshold",
+        pathTiles: createPath([
+          [132, 63],
+          [132, 72],
+          [136, 80],
+          [140, 88],
+        ]),
+        state: "blocked",
+        targetTile: createTile(140, 96),
+      });
+    case "lamp-aide-15":
+      return createActivity({
+        detail: "The corridor lamp is stable and ready for the next patrol.",
+        intentLabel: "Lantern line secured",
+        label: "Completed the lamp refill",
+        progressPercent: 100,
+        state: "completed",
+        targetTile: createTile(120, 92),
+      });
+    default:
+      return undefined;
+  }
+}
+
+function createActivity(input: {
+  readonly detail: string;
+  readonly intentLabel?: string;
+  readonly label: string;
+  readonly pathTiles?: readonly TileCoordinate[];
+  readonly progressPercent?: number;
+  readonly state: WorldEntityActivityReadModel["state"];
+  readonly targetTile?: TileCoordinate;
+}): WorldEntityActivityReadModel {
+  return {
+    detail: input.detail,
+    ...(input.intentLabel === undefined ? {} : { intentLabel: input.intentLabel }),
+    label: input.label,
+    ...(input.pathTiles === undefined ? {} : { pathTiles: input.pathTiles }),
+    ...(input.progressPercent === undefined ? {} : { progressPercent: input.progressPercent }),
+    state: input.state,
+    ...(input.targetTile === undefined ? {} : { targetTile: input.targetTile }),
+  };
+}
+
+function createSemanticArea(
+  areaId: string,
+  kind: WorldSemanticAreaReadModel["kind"],
+  label: string,
+  originTileX: number,
+  originTileY: number,
+  width: number,
+  height: number,
+  emphasisTileX: number,
+  emphasisTileY: number,
+): WorldSemanticAreaReadModel {
+  return {
+    areaId,
+    kind,
+    label,
+    originTile: createTile(originTileX, originTileY),
+    width,
+    height,
+    emphasisTile: createTile(emphasisTileX, emphasisTileY),
+  };
+}
+
+function createFocusMarker(
+  markerId: string,
+  kind: WorldFocusMarkerReadModel["kind"],
+  label: string,
+  tileX: number,
+  tileY: number,
+  entityId: string,
+): WorldFocusMarkerReadModel {
+  return {
+    markerId,
+    kind,
+    label,
+    tile: createTile(tileX, tileY),
+    entityId,
+  };
+}
+
+function createPath(steps: readonly (readonly [number, number])[]): readonly TileCoordinate[] {
+  return steps.map(([tileX, tileY]) => createTile(tileX, tileY));
+}
+
+function createTile(x: number, y: number): TileCoordinate {
+  return { x, y };
 }
 
 function createNeed(
