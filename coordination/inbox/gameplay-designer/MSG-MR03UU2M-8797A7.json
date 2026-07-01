@@ -1,0 +1,16 @@
+{
+  "id": "MSG-MR03UU2M-8797A7",
+  "from": "project-director",
+  "to": "gameplay-designer",
+  "taskId": "WM-0146",
+  "kind": "assignment",
+  "subject": "WM-0146 ready: playable product UX acceptance reset",
+  "body": "Please claim and execute WM-0146 from D:\\\\WebProjects\\\\WumingTown-WM-0146 as gameplay-designer. This is a spec/control task, not implementation. Produce the first-five-minute product spec and acceptance reset centered on visible NPC action, a 2-3 minute dusk lamp/simple-build slice, first-screen information priority, structured success/failure paths and no public release/platform verdict changes. Run the task-required control-plane checks, write coordination/reports/WM-0146.md and complete for reviewer.",
+  "artifacts": [
+    "coordination/tasks/WM-0146.json",
+    "coordination/reports/WM-0145.md",
+    "D:\\WebProjects\\WumingTown-WM-0146"
+  ],
+  "createdAt": "2026-06-30T03:46:50.687Z",
+  "acknowledgedAt": "2026-06-30T03:47:20.957Z"
+}

@@ -5,6 +5,7 @@ coverage/
 playwright-report/
 test-results/
 *.log
+.wuming-town-web.pid
 .env
 .env.*
 !.env.example
