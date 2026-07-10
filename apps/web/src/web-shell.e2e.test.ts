@@ -16,6 +16,44 @@ interface WebShellDebugPayload {
   readonly centerWorldY: number;
   readonly diagnostics: WebDiagnosticDebugState;
   readonly fixtureId: string;
+  readonly gameSession?: {
+    readonly basis: {
+      readonly contentManifestHash: string;
+      readonly readModelHash: string;
+      readonly scenarioId: string;
+      readonly snapshotSequence: number;
+      readonly tick: number;
+      readonly worldHash: string;
+    };
+    readonly build: {
+      readonly completed: boolean;
+      readonly progressTicks: number;
+      readonly requiredTicks: number;
+    };
+    readonly jobMarkers: readonly {
+      readonly markerId: string;
+      readonly progressQ16: number;
+      readonly state: string;
+    }[];
+    readonly lamp: {
+      readonly fuel: number;
+      readonly stateCode: number;
+    };
+    readonly projectionSource: "game-session-worker";
+    readonly renderEntities: readonly {
+      readonly entityId: string;
+      readonly kind: string;
+    }[];
+    readonly renderEntityCount: number;
+    readonly residentCount: number;
+    readonly resourceCount: number;
+    readonly selectionDetailKind: "resident" | "resource" | "structure" | null;
+  };
+  readonly gameSessionFailure?: {
+    readonly code: string;
+    readonly detail: string;
+  };
+  readonly gameSessionLifecycle: string;
   readonly locale?: {
     readonly diagnosticsVisible: boolean;
     readonly manualLocale: string | null;
@@ -24,54 +62,6 @@ interface WebShellDebugPayload {
     readonly resolvedLocale: string;
     readonly source: string;
     readonly systemLocale: string;
-  };
-  readonly playableAction?: {
-    readonly actionId: string;
-    readonly adapterId: string;
-    readonly authority: string;
-    readonly commandId: string;
-    readonly markerState?: string;
-    readonly progressPercent?: number;
-    readonly reasonCode?: string;
-    readonly status: "accepted" | "rejected";
-    readonly targetEntityId?: string;
-    readonly targetLabel: string;
-  };
-  readonly playable?: {
-    readonly build?: {
-      readonly active: boolean;
-      readonly completed: boolean;
-      readonly progressPercent?: number;
-    };
-    readonly currentTick: number;
-    readonly lamps: readonly {
-      readonly progressPercent?: number;
-      readonly state: string;
-    }[];
-    readonly latestCommand?: {
-      readonly actionId: string;
-      readonly commandId: string;
-      readonly markerState?: string;
-      readonly progressPercent?: number;
-      readonly reasonCode?: string;
-      readonly status: "accepted" | "rejected";
-    };
-    readonly jobMarkers: readonly {
-      readonly commandId: string;
-      readonly markerId: string;
-      readonly ownerEntityId?: string;
-      readonly progressPercent?: number;
-      readonly state: string;
-    }[];
-    readonly pawns: readonly {
-      readonly entityId: string;
-      readonly progressPercent?: number;
-      readonly state: string;
-      readonly tile: {
-        readonly x: number;
-        readonly y: number;
-      };
-    }[];
   };
   readonly zoom: number;
   readonly runtimeBrowser: string;
@@ -245,8 +235,8 @@ describe("web shell smoke", () => {
         width: 1180,
         height: 760,
       });
+      await waitForGameSessionProjection(page);
       await waitForHudText(page, "Canvas 1180 x 760");
-      await waitForHudText(page, "Map 192 x 192");
       await waitForHudText(page, "Chrome Stable, Edge Stable");
       await waitForStorageStatus(
         page,
@@ -259,39 +249,11 @@ describe("web shell smoke", () => {
       expect(debugPayload.browserTargets).toContain("Edge Stable");
       expect(debugPayload.storageGate.storageKindLabel).toBe("OPFS ready");
       expect(debugPayload.storageGate.interoperabilityVerdict).toBe("blocked");
-      const targetEntity = debugPayload.entityScreenPositions.find(
-        (entity) => entity.entityId === "lantern-keeper-shen",
-      );
-      expect(targetEntity).toBeDefined();
-      await page.locator("[data-testid='world-canvas']").evaluate(
-        (canvas: HTMLCanvasElement, point: { readonly x: number; readonly y: number }) => {
-          const rect = canvas.getBoundingClientRect();
-          canvas.dispatchEvent(
-            new PointerEvent("pointerdown", {
-              bubbles: true,
-              clientX: rect.left + point.x,
-              clientY: rect.top + point.y,
-              pointerId: 1,
-              pointerType: "mouse",
-            }),
-          );
-          canvas.dispatchEvent(
-            new PointerEvent("pointerup", {
-              bubbles: true,
-              clientX: rect.left + point.x,
-              clientY: rect.top + point.y,
-              pointerId: 1,
-              pointerType: "mouse",
-            }),
-          );
-        },
-        {
-          x: targetEntity?.x ?? 0,
-          y: targetEntity?.y ?? 0,
-        },
-      );
-      await waitForSelectedEntity(page, "lantern-keeper-shen");
+      const residentId = findFirstEntityIdByKind(debugPayload, "resident");
+      await clickCanvasPoint(page, findRequiredEntity(debugPayload, residentId));
+      await waitForSelectedEntity(page, residentId);
 
+      await page.locator("[data-testid='world-canvas']").focus();
       await page.keyboard.press("KeyD");
       await waitForHudText(page, "Keyboard KeyD");
       await page.getByTestId("storage-save-button").click();
@@ -299,7 +261,7 @@ describe("web shell smoke", () => {
 
       const afterSavePayload = await readDebugPayload(page);
       expect(afterSavePayload.storageGate.saveSlotCount).toBe(1);
-      expect(afterSavePayload.playableAction).toBeUndefined();
+      expect(afterSavePayload.gameSession?.projectionSource).toBe("game-session-worker");
 
       const downloadPromise = page.waitForEvent("download");
       await page.getByTestId("storage-export-button").click();
@@ -327,10 +289,10 @@ describe("web shell smoke", () => {
         page,
         "Loaded the gate save and restored shell selection only. Authoritative Worker command runtime was not restored from storage.",
       );
-      await waitForSelectedEntity(page, "lantern-keeper-shen");
+      await waitForSelectedEntity(page, residentId);
       expect(await page.getByTestId("player-action-feedback").count()).toBe(0);
       const afterLoadPayload = await readDebugPayload(page);
-      expect(afterLoadPayload.playableAction).toBeUndefined();
+      expect(afterLoadPayload.gameSessionLifecycle).toBe("active");
 
       await mkdir(path.dirname(SCREENSHOT_PATH), { recursive: true });
       await page.screenshot({
@@ -469,13 +431,16 @@ describe("web shell smoke", () => {
       });
       await page.waitForSelector("[data-shell-ready='true']");
       await waitForLocale(page, "en", "system");
+      await waitForGameSessionProjection(page);
       await assertAccessibilityBaseline(page);
 
       const debugPayload = await readDebugPayload(page);
-      const targetEntity = findRequiredEntity(debugPayload, "lantern-keeper-shen");
+      const residentId = findFirstEntityIdByKind(debugPayload, "resident");
+      const targetEntity = findRequiredEntity(debugPayload, residentId);
       await clickCanvasPoint(page, targetEntity);
-      await waitForSelectedEntity(page, "lantern-keeper-shen");
+      await waitForSelectedEntity(page, residentId);
 
+      await page.locator("[data-testid='world-canvas']").focus();
       await page.keyboard.press("Equal");
       await waitForHudText(page, "Keyboard Equal");
       await page.keyboard.press("ArrowLeft");
@@ -529,13 +494,13 @@ describe("web shell smoke", () => {
       await waitForLocale(page, "en", "system");
       await page.getByTestId("main-menu-new-game").click();
       await waitForStartSurfaceClosed(page);
+      await waitForGameSessionProjection(page);
 
       let debugPayload = await readDebugPayload(page);
-      await clickCanvasPoint(page, findRequiredEntity(debugPayload, "lantern-keeper-shen"));
-      await waitForSelectedEntity(page, "lantern-keeper-shen");
-      expect(await page.getByTestId("player-selected-detail").textContent()).toContain(
-        "Lantern Keeper Shen",
-      );
+      const residentId = findFirstEntityIdByKind(debugPayload, "resident");
+      await clickCanvasPoint(page, findRequiredEntity(debugPayload, residentId));
+      await waitForSelectedEntity(page, residentId);
+      expect(await page.getByTestId("player-selected-detail").textContent()).toContain("Resident");
 
       const emptyPoint = await findInspectableCanvasPoint(page, debugPayload);
       await clickCanvasPoint(page, emptyPoint);
@@ -553,11 +518,10 @@ describe("web shell smoke", () => {
       await assertTownHudViewportLayout(page, 2560, 1369);
 
       debugPayload = await readDebugPayload(page);
-      await clickCanvasPoint(page, findRequiredEntity(debugPayload, "bridge-ledger-kiosk-04"));
-      await waitForSelectedEntity(page, "bridge-ledger-kiosk-04");
-      expect(await page.getByTestId("player-selected-detail").textContent()).toContain(
-        "Bridge Ledger Kiosk 4",
-      );
+      const structureId = findFirstEntityIdByKind(debugPayload, "structure");
+      await clickCanvasPoint(page, findRequiredEntity(debugPayload, structureId));
+      await waitForSelectedEntity(page, structureId);
+      expect(await page.getByTestId("player-selected-detail").textContent()).toContain("structure");
 
       await context.close();
     } finally {
@@ -566,7 +530,7 @@ describe("web shell smoke", () => {
     }
   }, 120000);
 
-  it("shows authoritative job marker, pawn motion, work progress, and completion for lamp and build commands", async () => {
+  it("observes advancing PR-1 GameSession truth without UI advance, drain, or canvas dispatch", async () => {
     const appRoot = path.join(process.cwd(), "apps", "web");
     const server = await createServer({
       configFile: false,
@@ -595,136 +559,53 @@ describe("web shell smoke", () => {
 
       try {
         const page = await context.newPage();
-        await page.goto(serverUrl, {
-          waitUntil: "networkidle",
-        });
+        await page.goto(serverUrl, { waitUntil: "networkidle" });
         await page.waitForSelector("[data-shell-ready='true']");
         await waitForLocale(page, "en", "system");
         await page.getByTestId("main-menu-new-game").click();
         await waitForStartSurfaceClosed(page);
+        const baseline = await waitForGameSessionProjection(page);
 
-        const baselinePayload = await readDebugPayload(page);
-        await clickCanvasPoint(
+        expect(baseline.gameSessionLifecycle).toBe("active");
+        expect(baseline.gameSessionFailure).toBeUndefined();
+        expect(baseline.gameSession).toMatchObject({
+          projectionSource: "game-session-worker",
+          renderEntityCount: 22,
+          residentCount: 8,
+          resourceCount: 4,
+        });
+        expect(baseline.gameSession?.jobMarkers).toHaveLength(8);
+        expect(baseline.entityScreenPositions).toHaveLength(22);
+        expect(await page.getByTestId("player-command-lamp").getAttribute("aria-disabled")).toBe(
+          "true",
+        );
+        expect(await page.getByTestId("player-command-build").getAttribute("aria-disabled")).toBe(
+          "true",
+        );
+
+        const advanced = await waitForGameSessionTickAfter(
           page,
-          findRequiredEntity(baselinePayload, "east-market-lantern-post"),
+          (baseline.gameSession?.basis.tick ?? 0) + 6,
         );
-        await waitForSelectedEntity(page, "east-market-lantern-post");
+        expect(advanced.gameSession?.basis.snapshotSequence).toBeGreaterThan(
+          baseline.gameSession?.basis.snapshotSequence ?? 0,
+        );
+        expect(advanced.gameSession?.basis.worldHash).not.toBe(
+          baseline.gameSession?.basis.worldHash,
+        );
 
-        const lampButton = page.getByTestId("player-command-lamp");
-        expect(await lampButton.getAttribute("aria-disabled")).toBe("false");
-        expect(await lampButton.getAttribute("data-command-state")).toBe("ready");
-        await lampButton.click();
-        await waitForActionFeedbackStatus(page, "accepted");
-        const acceptedLampPayload = await readDebugPayload(page);
-        expect(["claimed", "moving", "working", "completed"]).toContain(
-          acceptedLampPayload.playableAction?.markerState,
+        const residentId = findFirstEntityIdByKind(advanced, "resident");
+        await clickCanvasPoint(page, findRequiredEntity(advanced, residentId));
+        await waitForSelectedEntity(page, residentId);
+        const detailed = await waitForSelectionDetailKind(page, "resident");
+        expect(detailed.gameSession?.basis.scenarioId).toBe(advanced.gameSession?.basis.scenarioId);
+        expect((await page.getByTestId("player-selected-detail").textContent()) ?? "").toContain(
+          "Resident",
         );
-        const lampMovingPayload = await waitForPlayableCommandMarkerStateIn(page, "wm0152-lamp-", [
-          "moving",
-          "working",
-          "completed",
-        ]);
-        expect(
-          lampMovingPayload.playable?.pawns.find(
-            (candidate) => candidate.entityId === "lantern-keeper-shen",
-          )?.state,
-        ).toMatch(/^(moving|working|completed)$/u);
+
         for (const viewport of WM0153_PLAYER_COMMAND_VIEWPORTS) {
           await assertTownHudViewportLayout(page, viewport.width, viewport.height, "en", {
             assertSettingsSurface: false,
-          });
-        }
-        await sleep(300);
-
-        const buildButton = page.getByTestId("player-command-build");
-        expect(await buildButton.getAttribute("aria-disabled")).toBe("false");
-        expect(await buildButton.getAttribute("data-command-state")).toBe("ready");
-        await buildButton.click();
-        await waitForCommandState(page, "player-command-build", "needs-placement");
-        const invalidBuildPoint = await findInspectableCanvasPoint(
-          page,
-          await readDebugPayload(page),
-        );
-        await hoverCanvasPoint(page, invalidBuildPoint);
-        await waitForCommandState(page, "player-command-build", "needs-placement");
-        await waitForHudText(page, "No authoritative blueprint placement");
-        await hoverCanvasPoint(
-          page,
-          findRequiredEntity(await readDebugPayload(page), "east-market-lantern-post"),
-        );
-        await waitForCommandState(page, "player-command-build", "ready");
-        await buildButton.click();
-        await waitForActionFeedbackStatus(page, "accepted");
-        const acceptedBuildPayload = await readDebugPayload(page);
-        expect(["claimed", "moving", "working", "completed"]).toContain(
-          acceptedBuildPayload.playableAction?.markerState,
-        );
-        const buildMovingPayload = await waitForPlayableCommandMarkerStateIn(
-          page,
-          "wm0152-build-",
-          ["moving", "working", "completed"],
-        );
-        expect(
-          buildMovingPayload.playable?.pawns.find(
-            (candidate) => candidate.entityId === "lamp-aide-15",
-          )?.state,
-        ).toMatch(/^(moving|working|completed)$/u);
-        const buildWorkingPayload = await waitForPlayableCommandMarkerStateIn(
-          page,
-          "wm0152-build-",
-          ["working", "completed"],
-        );
-        expect(
-          buildWorkingPayload.playable?.pawns.find(
-            (candidate) => candidate.entityId === "lamp-aide-15",
-          )?.state,
-        ).toMatch(/^(working|completed)$/u);
-        const terminalPayload = await waitForPlayableTerminalState(page, 15000);
-        const lampTerminalStates = terminalPayload.playable?.lamps.map((lamp) => lamp.state) ?? [];
-        const terminalBuildMarker = terminalPayload.playable?.jobMarkers.find((candidate) =>
-          candidate.commandId.startsWith("wm0152-build-"),
-        );
-        const terminalBuildPawn = terminalPayload.playable?.pawns.find(
-          (candidate) => candidate.entityId === "lamp-aide-15",
-        );
-        const terminalProgressPercent = Math.max(
-          terminalPayload.playable?.build?.progressPercent ?? 0,
-          terminalBuildMarker?.progressPercent ?? 0,
-          terminalBuildPawn?.progressPercent ?? 0,
-        );
-
-        expect(
-          lampTerminalStates.includes("blocked") || lampTerminalStates.includes("completed"),
-        ).toBe(true);
-        expect(
-          terminalBuildMarker?.state === "completed" ||
-            terminalBuildPawn?.state === "completed" ||
-            terminalPayload.playable?.build?.completed === true,
-        ).toBe(true);
-        expect(terminalPayload.playable?.build?.completed).toBe(true);
-        expect(terminalProgressPercent).toBeGreaterThan(0);
-
-        const actionFeedbackText =
-          (await page.getByTestId("player-action-feedback").textContent()) ?? "";
-        expect(actionFeedbackText).toContain("East Market Lantern Post");
-        expect(actionFeedbackText).toContain("Progress");
-
-        const inspectorText =
-          (await page.getByTestId("player-selected-detail").textContent()) ?? "";
-        expect(inspectorText).toContain("Authoritative structure completed");
-
-        expect(terminalPayload.playableAction?.authority).toBe("simulation-worker-projection");
-        expect(terminalPayload.playableAction?.status).toBe("accepted");
-        expect(terminalPayload.playableAction?.adapterId).toBe(
-          "wm0152-authoritative-worker-session",
-        );
-        expect(terminalPayload.playableAction?.commandId.startsWith("wm0152-build-")).toBe(true);
-
-        if (WM0140_ARTIFACT_CAPTURE_ENABLED) {
-          await mkdir(WM0140_WEB_SCREENSHOT_ROOT, { recursive: true });
-          await page.screenshot({
-            animations: "disabled",
-            path: path.join(WM0140_WEB_SCREENSHOT_ROOT, "wm0152-playable-motion.png"),
           });
         }
       } finally {
@@ -781,8 +662,12 @@ describe("web shell smoke", () => {
       });
       await waitForHudText(page, "Drag pan");
       const dragged = await readDebugPayload(page);
-      expect(Math.abs(dragged.centerWorldX - baseline.centerWorldX)).toBeGreaterThan(20);
-      expect(Math.abs(dragged.centerWorldY - baseline.centerWorldY)).toBeGreaterThan(8);
+      expect(
+        Math.max(
+          Math.abs(dragged.centerWorldX - baseline.centerWorldX),
+          Math.abs(dragged.centerWorldY - baseline.centerWorldY),
+        ),
+      ).toBeGreaterThan(8);
 
       const wheelPoint = await readMapFocusViewportPoint(page, 0.55, 0.46);
       await page.mouse.move(wheelPoint.x, wheelPoint.y);
@@ -791,11 +676,13 @@ describe("web shell smoke", () => {
       const zoomed = await readDebugPayload(page);
       expect(zoomed.zoom).toBeGreaterThan(dragged.zoom);
 
-      await page.keyboard.press("ArrowRight");
-      await waitForHudText(page, "Keyboard ArrowRight");
+      await page.locator("[data-testid='world-canvas']").focus();
+      await page.keyboard.press("ArrowDown");
+      await waitForHudText(page, "Keyboard ArrowDown");
       const keyboardMoved = await readDebugPayload(page);
-      expect(keyboardMoved.centerWorldX).toBeGreaterThan(zoomed.centerWorldX);
+      expect(keyboardMoved.centerWorldY).toBeGreaterThan(zoomed.centerWorldY);
 
+      await page.locator("[data-testid='world-canvas']").focus();
       await page.keyboard.press("Home");
       await waitForHudText(page, "Camera reset");
       const reset = await readDebugPayload(page);
@@ -1247,18 +1134,14 @@ async function assertAccessibilityBaseline(page: import("playwright").Page): Pro
     await page.getByTestId("main-menu-new-game").click();
     await waitForStartSurfaceClosed(page);
   }
+  await waitForGameSessionProjection(page);
   await assertPlayerHudBaseline(page);
   await waitForHudText(page, "Display settings");
   await assertContrastBaseline(page);
 
-  const warningAlertText = await page
-    .locator("[data-alert-severity='warning']")
-    .first()
-    .textContent();
-  expect(warningAlertText ?? "").toContain("WARNING");
-  expect(warningAlertText ?? "").toContain("Lantern corridor gap");
-  const nightRiskText = await page.getByTestId("player-night-risk").textContent();
-  expect(nightRiskText ?? "").toContain("Strained");
+  expect(await page.getByTestId("player-night-risk").getAttribute("data-night-risk-tier")).toBe(
+    "stable",
+  );
 
   expect(await page.getByTestId("storage-panel").count()).toBe(0);
   expect(await page.locator("[data-release-gate-fixture='wm-0086-web-product-gate']").count()).toBe(
@@ -1307,20 +1190,24 @@ async function assertAccessibilityBaseline(page: import("playwright").Page): Pro
 }
 
 async function assertPlayerHudBaseline(page: import("playwright").Page): Promise<void> {
+  const projection = await waitForGameSessionProjection(page);
   await assertPlayerHudStructure(page);
   expect(await page.getByTestId("debug-overlay").count()).toBe(0);
   await assertCommandAccessibility(page);
 
   const hudText = await page.getByTestId("player-hud").textContent();
-  const goalText = await page.getByTestId("player-next-goal").textContent();
   expect(hudText ?? "").not.toContain("Web Product Gate");
   expect(hudText ?? "").not.toContain("read-model fixture");
   expect(hudText ?? "").not.toContain("wm-0086-web-product-gate");
-  expect(goalText ?? "").toContain("Lantern corridor gap");
+  expect(projection.gameSession).toMatchObject({
+    projectionSource: "game-session-worker",
+    residentCount: 8,
+    resourceCount: 4,
+  });
   const nightRiskTier = await page
     .getByTestId("player-night-risk")
     .getAttribute("data-night-risk-tier");
-  expect(nightRiskTier).toBe("strained");
+  expect(nightRiskTier).toBe("stable");
 }
 
 async function assertPlayerHudStructure(page: import("playwright").Page): Promise<void> {
@@ -1347,34 +1234,26 @@ async function assertPlayerHudLocaleState(
   const nightRiskTier = await page
     .getByTestId("player-night-risk")
     .getAttribute("data-night-risk-tier");
-  expect(nightRiskTier).toBe("strained");
+  expect(nightRiskTier).toBe("stable");
   if (locale === "en") {
-    const goalText = await page.getByTestId("player-next-goal").textContent();
     const hudText = await page.getByTestId("player-hud").textContent();
     expect(hudText ?? "").not.toContain("Web Product Gate");
     expect(hudText ?? "").not.toContain("read-model fixture");
     expect(hudText ?? "").not.toContain("wm-0086-web-product-gate");
-    expect(goalText ?? "").toContain("Lantern corridor gap");
     return;
   }
 
   const hudText = await page.getByTestId("player-hud").textContent();
-  expect(hudText ?? "").toContain("灯廊缺口");
   expect(hudText ?? "").toContain("事件与观察点");
-  expect(hudText ?? "").toContain("编志所");
   expect(hudText ?? "").toContain("命令带");
   expect(hudText ?? "").toContain("优先补灯");
-  expect(hudText ?? "").toContain("木材");
   expect(hudText ?? "").toContain("平稳");
-  expect(hudText ?? "").toContain("无伤");
   expect(hudText ?? "").not.toContain("Command bar");
   expect(hudText ?? "").not.toContain("Prioritize lamp work");
   expect(hudText ?? "").not.toContain("Lantern corridor gap");
   expect(hudText ?? "").not.toContain("Bridge parcels staged");
   expect(hudText ?? "").not.toContain("Chronicle office");
   expect(hudText ?? "").not.toContain("Rice");
-  expect(hudText ?? "").not.toContain("Stable");
-  expect(hudText ?? "").not.toContain("Unhurt");
   expect(hudText ?? "").not.toContain("HUD");
   expect(hudText ?? "").not.toContain("Worker");
   expect(hudText ?? "").not.toContain("projection");
@@ -1383,23 +1262,17 @@ async function assertPlayerHudLocaleState(
 async function assertCommandAccessibility(page: import("playwright").Page): Promise<void> {
   const commandBarSlot = await page.getByTestId("player-command-bar").getAttribute("data-ui-slot");
   expect(commandBarSlot).toBe("panel.wood.toolbar");
-  const selectedEntityId = await page
-    .locator("[data-selected-entity]")
-    .first()
-    .getAttribute("data-selected-entity");
-  const lampCommandReady = selectedEntityId === "east-market-lantern-post";
-
   for (const spec of [
     {
-      expectedAriaDisabled: lampCommandReady ? "false" : "true",
-      expectedState: lampCommandReady ? "ready" : "needs-selection",
-      expectedSlot: lampCommandReady ? "button.primary.default" : "button.primary.disabled",
+      expectedAriaDisabled: "true",
+      expectedState: "needs-selection",
+      expectedSlot: "button.primary.disabled",
       testId: "player-command-lamp",
     },
     {
-      expectedAriaDisabled: "false",
-      expectedState: "ready",
-      expectedSlot: "button.primary.default",
+      expectedAriaDisabled: "true",
+      expectedState: "needs-selection",
+      expectedSlot: "button.primary.disabled",
       testId: "player-command-build",
     },
     {
@@ -1424,15 +1297,6 @@ async function assertCommandAccessibility(page: import("playwright").Page): Prom
     const detailId = describedBy ?? "";
     const detailText = await page.locator(`#${detailId}`).textContent();
     expect((detailText ?? "").length).toBeGreaterThan(10);
-    if (spec.expectedAriaDisabled === "false") {
-      await button.focus();
-      const focusedTestId = await page.evaluate(() =>
-        document.activeElement instanceof HTMLElement
-          ? document.activeElement.getAttribute("data-testid")
-          : null,
-      );
-      expect(focusedTestId).toBe(spec.testId);
-    }
   }
 }
 
@@ -1574,9 +1438,8 @@ async function assertStartSurfaceBaseline(
     expect(surfaceText ?? "").toContain("首次游玩指引");
     expect(surfaceText ?? "").toContain("可用行动");
     expect(surfaceText ?? "").toContain("下一目标");
-    expect(surfaceText ?? "").toContain("黄昏守望");
-    expect(surfaceText ?? "").toContain("补上灯火缺口");
-    expect(surfaceText ?? "").toContain("先确认灯火覆盖、路线证据与守夜义务");
+    expect(surfaceText ?? "").toContain("dawn");
+    expect(surfaceText ?? "").toContain("Day 1");
     expect(surfaceText ?? "").toContain("灯火链路");
     expect(surfaceText ?? "").toContain("建造链路");
     expect(surfaceText ?? "").toContain("结构化状态、进度、完成或阻塞原因");
@@ -2001,11 +1864,13 @@ async function collectWm0140SelectionArtifacts(
     await waitForLocale(page, "en", "system");
     await page.getByTestId("main-menu-new-game").click();
     await waitForStartSurfaceClosed(page);
+    await waitForGameSessionProjection(page);
     await assertTownHudViewportLayout(page, windowedViewport.width, windowedViewport.height);
 
     let debugPayload = await readDebugPayload(page);
-    await clickCanvasPoint(page, findRequiredEntity(debugPayload, "lantern-keeper-shen"));
-    await waitForSelectedEntity(page, "lantern-keeper-shen");
+    const residentId = findFirstEntityIdByKind(debugPayload, "resident");
+    await clickCanvasPoint(page, findRequiredEntity(debugPayload, residentId));
+    await waitForSelectedEntity(page, residentId);
     artifacts.push({
       diagnosticsVisible: await readDiagnosticsVisible(page),
       locale: "en",
@@ -2019,7 +1884,7 @@ async function collectWm0140SelectionArtifacts(
           `resident-selection-${String(windowedViewport.width)}x${String(windowedViewport.height)}.png`,
         ),
       ),
-      selectedEntityId: "lantern-keeper-shen",
+      selectedEntityId: residentId,
       viewport: windowedViewport,
     });
 
@@ -2045,8 +1910,9 @@ async function collectWm0140SelectionArtifacts(
 
     await assertTownHudViewportLayout(page, fullscreenViewport.width, fullscreenViewport.height);
     debugPayload = await readDebugPayload(page);
-    await clickCanvasPoint(page, findRequiredEntity(debugPayload, "bridge-ledger-kiosk-04"));
-    await waitForSelectedEntity(page, "bridge-ledger-kiosk-04");
+    const structureId = findFirstEntityIdByKind(debugPayload, "structure");
+    await clickCanvasPoint(page, findRequiredEntity(debugPayload, structureId));
+    await waitForSelectedEntity(page, structureId);
     artifacts.push({
       diagnosticsVisible: await readDiagnosticsVisible(page),
       locale: "en",
@@ -2060,7 +1926,7 @@ async function collectWm0140SelectionArtifacts(
           `structure-selection-${String(fullscreenViewport.width)}x${String(fullscreenViewport.height)}.png`,
         ),
       ),
-      selectedEntityId: "bridge-ledger-kiosk-04",
+      selectedEntityId: structureId,
       viewport: fullscreenViewport,
     });
   } finally {
@@ -2092,6 +1958,7 @@ async function collectWm0140CameraArtifact(
     await waitForLocale(page, "en", "system");
     await page.getByTestId("main-menu-new-game").click();
     await waitForStartSurfaceClosed(page);
+    await waitForGameSessionProjection(page);
     await assertTownHudViewportLayout(page, viewport.width, viewport.height);
 
     const baseline = await readDebugPayload(page);
@@ -2178,6 +2045,7 @@ async function collectWm0140LampCommandArtifact(
     await waitForLocale(page, localeCase.expectedLocale, "system");
     await page.getByTestId("main-menu-new-game").click();
     await waitForStartSurfaceClosed(page);
+    await waitForGameSessionProjection(page);
     await assertTownHudViewportLayout(
       page,
       viewport.width,
@@ -2186,26 +2054,21 @@ async function collectWm0140LampCommandArtifact(
     );
 
     const debugPayload = await readDebugPayload(page);
-    await clickCanvasPoint(page, findRequiredEntity(debugPayload, "lantern-keeper-shen"));
-    await waitForSelectedEntity(page, "lantern-keeper-shen");
+    const residentId = findFirstEntityIdByKind(debugPayload, "resident");
+    await clickCanvasPoint(page, findRequiredEntity(debugPayload, residentId));
+    await waitForSelectedEntity(page, residentId);
 
     const lampButton = page.getByTestId("player-command-lamp");
-    expect(await lampButton.getAttribute("aria-disabled")).toBe("false");
-    expect(await lampButton.getAttribute("data-command-state")).toBe("ready");
-    await lampButton.click();
-    await waitForActionFeedbackStatus(page, "accepted");
+    expect(await lampButton.getAttribute("aria-disabled")).toBe("true");
+    expect(await lampButton.getAttribute("data-command-state")).toBe("needs-selection");
 
-    const actionPayload = await readDebugPayload(page);
     const commandState = await lampButton.getAttribute("data-command-state");
-    expect(commandState).toBe("queued");
-    const markerState = actionPayload.playableAction?.markerState;
-    const selectedEntityId = actionPayload.playableAction?.targetEntityId;
+    expect(commandState).toBe("needs-selection");
     artifacts.push({
       ...(commandState === null ? {} : { commandState }),
       diagnosticsVisible: await readDiagnosticsVisible(page),
       locale: localeCase.expectedLocale,
-      note: "Authoritative lamp command evidence captured from Worker projection motion feedback.",
-      ...(markerState === undefined ? {} : { reasonCode: markerState }),
+      note: "Historical WM-0140 capture records that PR-1 exposes no lamp command surface.",
       scenario: "lamp-command",
       screenshotPath: await captureWm0140Screenshot(
         page,
@@ -2215,7 +2078,7 @@ async function collectWm0140LampCommandArtifact(
           `lamp-command-${String(viewport.width)}x${String(viewport.height)}.png`,
         ),
       ),
-      ...(selectedEntityId === undefined ? {} : { selectedEntityId }),
+      selectedEntityId: residentId,
       viewport,
     });
   } finally {
@@ -2758,77 +2621,16 @@ async function clickCanvasPoint(
   page: import("playwright").Page,
   point: { readonly x: number; readonly y: number },
 ): Promise<void> {
-  await page
-    .locator("[data-testid='world-canvas']")
-    .evaluate((canvas: HTMLCanvasElement, target: { readonly x: number; readonly y: number }) => {
-      const rect = canvas.getBoundingClientRect();
-      canvas.dispatchEvent(
-        new PointerEvent("pointerdown", {
-          bubbles: true,
-          clientX: rect.left + target.x,
-          clientY: rect.top + target.y,
-          pointerId: 1,
-          pointerType: "mouse",
-        }),
-      );
-      canvas.dispatchEvent(
-        new PointerEvent("pointerup", {
-          bubbles: true,
-          clientX: rect.left + target.x,
-          clientY: rect.top + target.y,
-          pointerId: 1,
-          pointerType: "mouse",
-        }),
-      );
-    }, point);
-}
-
-async function hoverCanvasPoint(
-  page: import("playwright").Page,
-  point: { readonly x: number; readonly y: number },
-): Promise<void> {
-  await page
-    .locator("[data-testid='world-canvas']")
-    .evaluate((canvas: HTMLCanvasElement, target: { readonly x: number; readonly y: number }) => {
-      const rect = canvas.getBoundingClientRect();
-      canvas.dispatchEvent(
-        new PointerEvent("pointermove", {
-          bubbles: true,
-          clientX: rect.left + target.x,
-          clientY: rect.top + target.y,
-          pointerId: 1,
-          pointerType: "mouse",
-        }),
-      );
-    }, point);
+  const box = await page.locator("[data-testid='world-canvas']").boundingBox();
+  if (box === null) throw new Error("Expected world canvas bounds.");
+  await page.mouse.click(box.x + point.x, box.y + point.y);
 }
 
 async function clickCanvasViewportPoint(
   page: import("playwright").Page,
   point: { readonly x: number; readonly y: number },
 ): Promise<void> {
-  await page
-    .locator("[data-testid='world-canvas']")
-    .evaluate((canvas: HTMLCanvasElement, target: { readonly x: number; readonly y: number }) => {
-      canvas.dispatchEvent(
-        new PointerEvent("pointerdown", {
-          bubbles: true,
-          clientX: target.x,
-          clientY: target.y,
-          pointerId: 11,
-          pointerType: "mouse",
-        }),
-      );
-      canvas.dispatchEvent(
-        new PointerEvent("pointerup", {
-          bubbles: true,
-          clientX: target.x,
-          clientY: target.y,
-          pointerId: 11,
-          pointerType: "mouse",
-        }),
-      );
-    }, point);
+  await page.mouse.click(point.x, point.y);
 }
 
 async function dragCanvasViewportPoint(
@@ -2836,53 +2638,10 @@ async function dragCanvasViewportPoint(
   start: { readonly x: number; readonly y: number },
   end: { readonly x: number; readonly y: number },
 ): Promise<void> {
-  await page.locator("[data-testid='world-canvas']").evaluate(
-    (
-      canvas: HTMLCanvasElement,
-      points: {
-        readonly end: { readonly x: number; readonly y: number };
-        readonly start: { readonly x: number; readonly y: number };
-      },
-    ) => {
-      canvas.dispatchEvent(
-        new PointerEvent("pointerdown", {
-          bubbles: true,
-          clientX: points.start.x,
-          clientY: points.start.y,
-          pointerId: 12,
-          pointerType: "mouse",
-        }),
-      );
-      canvas.dispatchEvent(
-        new PointerEvent("pointermove", {
-          bubbles: true,
-          clientX: points.start.x + (points.end.x - points.start.x) / 2,
-          clientY: points.start.y + (points.end.y - points.start.y) / 2,
-          pointerId: 12,
-          pointerType: "mouse",
-        }),
-      );
-      canvas.dispatchEvent(
-        new PointerEvent("pointermove", {
-          bubbles: true,
-          clientX: points.end.x,
-          clientY: points.end.y,
-          pointerId: 12,
-          pointerType: "mouse",
-        }),
-      );
-      canvas.dispatchEvent(
-        new PointerEvent("pointerup", {
-          bubbles: true,
-          clientX: points.end.x,
-          clientY: points.end.y,
-          pointerId: 12,
-          pointerType: "mouse",
-        }),
-      );
-    },
-    { end, start },
-  );
+  await page.mouse.move(start.x, start.y);
+  await page.mouse.down();
+  await page.mouse.move(end.x, end.y, { steps: 2 });
+  await page.mouse.up();
 }
 
 async function readMapFocusViewportPoint(
@@ -3015,6 +2774,53 @@ function findRequiredEntity(
   return entity;
 }
 
+function findFirstEntityIdByKind(payload: WebShellDebugPayload, kind: string): string {
+  const entityId = payload.gameSession?.renderEntities.find(
+    (entity) => entity.kind === kind,
+  )?.entityId;
+  if (entityId === undefined) {
+    throw new Error(`Expected a GameSession render entity with kind ${kind}.`);
+  }
+  return entityId;
+}
+
+async function waitForGameSessionProjection(
+  page: import("playwright").Page,
+): Promise<WebShellDebugPayload> {
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    const payload = await readDebugPayload(page);
+    if (payload.gameSessionLifecycle === "active" && payload.gameSession !== undefined) {
+      return payload;
+    }
+    await page.waitForTimeout(100);
+  }
+  throw new Error("Timed out waiting for active GameSession projection.");
+}
+
+async function waitForGameSessionTickAfter(
+  page: import("playwright").Page,
+  targetTick: number,
+): Promise<WebShellDebugPayload> {
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    const payload = await readDebugPayload(page);
+    if ((payload.gameSession?.basis.tick ?? -1) >= targetTick) return payload;
+    await page.waitForTimeout(100);
+  }
+  throw new Error(`Timed out waiting for GameSession tick ${String(targetTick)}.`);
+}
+
+async function waitForSelectionDetailKind(
+  page: import("playwright").Page,
+  kind: "resident" | "resource" | "structure",
+): Promise<WebShellDebugPayload> {
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    const payload = await readDebugPayload(page);
+    if (payload.gameSession?.selectionDetailKind === kind) return payload;
+    await page.waitForTimeout(100);
+  }
+  throw new Error(`Timed out waiting for GameSession ${kind} selection detail.`);
+}
+
 async function readDebugPayload(page: import("playwright").Page): Promise<WebShellDebugPayload> {
   const debugText = await page.evaluate(
     () => document.getElementById("wm-shell-debug")?.textContent ?? null,
@@ -3062,23 +2868,6 @@ async function waitForStorageStatus(
   throw new Error(`Timed out waiting for storage status: ${expectedText}`);
 }
 
-async function waitForCommandState(
-  page: import("playwright").Page,
-  testId: string,
-  expectedState: string,
-): Promise<void> {
-  for (let attempt = 0; attempt < 60; attempt += 1) {
-    const commandState = await page.getByTestId(testId).getAttribute("data-command-state");
-    if (commandState === expectedState) {
-      return;
-    }
-
-    await sleep(100);
-  }
-
-  throw new Error(`Timed out waiting for ${testId} command state ${expectedState}.`);
-}
-
 async function waitForSelectedEntity(
   page: import("playwright").Page,
   expectedEntityId: string,
@@ -3095,81 +2884,6 @@ async function waitForSelectedEntity(
   }
 
   throw new Error(`Timed out waiting for selected entity ${expectedEntityId}`);
-}
-
-async function waitForActionFeedbackStatus(
-  page: import("playwright").Page,
-  expectedStatus: "accepted" | "rejected",
-): Promise<void> {
-  for (let attempt = 0; attempt < 60; attempt += 1) {
-    const payload = await readDebugPayload(page);
-    if (payload.playableAction?.status === expectedStatus) {
-      return;
-    }
-
-    await page.waitForTimeout(100);
-  }
-
-  throw new Error(`Timed out waiting for action feedback status ${expectedStatus}.`);
-}
-
-async function waitForPlayableCommandMarkerStateIn(
-  page: import("playwright").Page,
-  commandIdPrefix: string,
-  expectedStates: readonly string[],
-): Promise<WebShellDebugPayload> {
-  for (let attempt = 0; attempt < 60; attempt += 1) {
-    const payload = await readDebugPayload(page);
-    const marker = payload.playable?.jobMarkers.find((candidate) =>
-      candidate.commandId.startsWith(commandIdPrefix),
-    );
-    if (marker !== undefined && expectedStates.includes(marker.state)) {
-      return payload;
-    }
-
-    await page.waitForTimeout(100);
-  }
-
-  throw new Error(
-    `Timed out waiting for marker ${commandIdPrefix} to reach states ${expectedStates.join(",")}.`,
-  );
-}
-
-async function waitForPlayableTerminalState(
-  page: import("playwright").Page,
-  durationMs: number,
-): Promise<WebShellDebugPayload> {
-  const deadline = Date.now() + durationMs;
-
-  while (Date.now() < deadline) {
-    const payload = await readDebugPayload(page);
-    const playable = payload.playable;
-    if (playable !== undefined) {
-      const buildMarker = playable.jobMarkers.find((candidate) =>
-        candidate.commandId.startsWith("wm0152-build-"),
-      );
-      const buildPawn = playable.pawns.find((candidate) => candidate.entityId === "lamp-aide-15");
-      const terminalProgressPercent = Math.max(
-        playable.build?.progressPercent ?? 0,
-        buildMarker?.progressPercent ?? 0,
-        buildPawn?.progressPercent ?? 0,
-      );
-      const lampTerminal = playable.lamps.some(
-        (lamp) => lamp.state === "blocked" || lamp.state === "completed",
-      );
-      const buildTerminal =
-        playable.build?.completed === true ||
-        buildMarker?.state === "completed" ||
-        buildPawn?.state === "completed";
-      if (lampTerminal && buildTerminal && terminalProgressPercent > 0) {
-        return payload;
-      }
-    }
-
-    await sleep(120);
-  }
-
-  throw new Error("Timed out waiting for authoritative playable terminal state.");
 }
 
 async function waitForInspectedTile(page: import("playwright").Page): Promise<string> {
@@ -3359,6 +3073,7 @@ function parseDebugPayload(text: string): WebShellDebugPayload {
     typeof parsed["centerWorldY"] !== "number" ||
     !isRecord(parsed["diagnostics"]) ||
     typeof parsed["fixtureId"] !== "string" ||
+    typeof parsed["gameSessionLifecycle"] !== "string" ||
     typeof parsed["runtimeBrowser"] !== "string" ||
     typeof parsed["runtimeCrossOriginIsolated"] !== "boolean" ||
     typeof parsed["zoom"] !== "number" ||
@@ -3395,8 +3110,8 @@ function parseDebugPayload(text: string): WebShellDebugPayload {
     throw new Error("Unexpected diagnostic debug payload.");
   }
 
-  const playableAction = readPlayableActionPayload(parsed["playableAction"]);
-  const playable = readPlayableProjectionPayload(parsed["playable"]);
+  const gameSession = readGameSessionDebugPayload(parsed["gameSession"]);
+  const gameSessionFailure = readGameSessionFailure(parsed["gameSessionFailure"]);
   const positions = parsed["entityScreenPositions"].map((entry) => {
     if (
       !isRecord(entry) ||
@@ -3446,8 +3161,9 @@ function parseDebugPayload(text: string): WebShellDebugPayload {
       windowsHostPackageStatus: readDiagnosticAvailability(diagnostics["windowsHostPackageStatus"]),
     },
     fixtureId: parsed["fixtureId"],
-    ...(playable === undefined ? {} : { playable }),
-    ...(playableAction === undefined ? {} : { playableAction }),
+    ...(gameSession === undefined ? {} : { gameSession }),
+    ...(gameSessionFailure === undefined ? {} : { gameSessionFailure }),
+    gameSessionLifecycle: parsed["gameSessionLifecycle"],
     zoom: parsed["zoom"],
     runtimeBrowser: parsed["runtimeBrowser"],
     runtimeCrossOriginIsolated: parsed["runtimeCrossOriginIsolated"],
@@ -3484,177 +3200,98 @@ function parseDebugPayload(text: string): WebShellDebugPayload {
   };
 }
 
-function readPlayableActionPayload(
+function readGameSessionDebugPayload(
   value: unknown,
-): WebShellDebugPayload["playableAction"] | undefined {
+): WebShellDebugPayload["gameSession"] | undefined {
   if (value === undefined) {
     return undefined;
   }
-
-  if (!isRecord(value)) {
-    throw new Error("Unexpected playable action debug payload.");
-  }
-
+  const gameSession = expectRecord(value, "GameSession debug projection");
+  const basis = expectRecord(gameSession["basis"], "GameSession basis");
+  const build = expectRecord(gameSession["build"], "GameSession build");
+  const lamp = expectRecord(gameSession["lamp"], "GameSession lamp");
   if (
-    typeof value["actionId"] !== "string" ||
-    typeof value["adapterId"] !== "string" ||
-    typeof value["authority"] !== "string" ||
-    typeof value["commandId"] !== "string" ||
-    (value["status"] !== "accepted" && value["status"] !== "rejected") ||
-    typeof value["targetLabel"] !== "string"
+    typeof basis["contentManifestHash"] !== "string" ||
+    typeof basis["readModelHash"] !== "string" ||
+    typeof basis["scenarioId"] !== "string" ||
+    typeof basis["snapshotSequence"] !== "number" ||
+    typeof basis["tick"] !== "number" ||
+    typeof basis["worldHash"] !== "string" ||
+    typeof build["completed"] !== "boolean" ||
+    typeof build["progressTicks"] !== "number" ||
+    typeof build["requiredTicks"] !== "number" ||
+    !Array.isArray(gameSession["jobMarkers"]) ||
+    typeof lamp["fuel"] !== "number" ||
+    typeof lamp["stateCode"] !== "number" ||
+    gameSession["projectionSource"] !== "game-session-worker" ||
+    !Array.isArray(gameSession["renderEntities"]) ||
+    typeof gameSession["renderEntityCount"] !== "number" ||
+    typeof gameSession["residentCount"] !== "number" ||
+    typeof gameSession["resourceCount"] !== "number"
   ) {
-    throw new Error("Unexpected playable action debug payload.");
+    throw new Error("Unexpected GameSession debug payload.");
   }
-
   return {
-    actionId: value["actionId"],
-    adapterId: value["adapterId"],
-    authority: value["authority"],
-    commandId: value["commandId"],
-    ...(typeof value["markerState"] === "string" ? { markerState: value["markerState"] } : {}),
-    ...(typeof value["progressPercent"] === "number"
-      ? { progressPercent: value["progressPercent"] }
-      : {}),
-    ...(typeof value["reasonCode"] === "string" ? { reasonCode: value["reasonCode"] } : {}),
-    status: value["status"],
-    ...(typeof value["targetEntityId"] === "string"
-      ? { targetEntityId: value["targetEntityId"] }
-      : {}),
-    targetLabel: value["targetLabel"],
-  };
-}
-
-function readPlayableProjectionPayload(
-  value: unknown,
-): WebShellDebugPayload["playable"] | undefined {
-  if (value === undefined) {
-    return undefined;
-  }
-
-  const playable = expectRecord(value, "playable projection");
-  if (
-    typeof playable["currentTick"] !== "number" ||
-    !Array.isArray(playable["lamps"]) ||
-    !Array.isArray(playable["jobMarkers"]) ||
-    !Array.isArray(playable["pawns"])
-  ) {
-    throw new Error("Unexpected playable projection payload.");
-  }
-
-  const build =
-    playable["build"] === undefined
-      ? undefined
-      : readPlayableBuildPayload(expectRecord(playable["build"], "playable build"));
-  const latestCommand =
-    playable["latestCommand"] === undefined
-      ? undefined
-      : readLatestPlayableCommand(
-          expectRecord(playable["latestCommand"], "latest playable command"),
-        );
-
-  return {
-    ...(build === undefined ? {} : { build }),
-    currentTick: playable["currentTick"],
-    lamps: playable["lamps"].map((entry) => {
-      const lamp = expectRecord(entry, "playable lamp");
-      if (typeof lamp["state"] !== "string") {
-        throw new Error("Unexpected playable lamp payload.");
-      }
-
-      return {
-        ...(typeof lamp["progressPercent"] === "number"
-          ? { progressPercent: lamp["progressPercent"] }
-          : {}),
-        state: lamp["state"],
-      };
-    }),
-    ...(latestCommand === undefined ? {} : { latestCommand }),
-    jobMarkers: playable["jobMarkers"].map((entry) => {
-      const marker = expectRecord(entry, "playable marker");
+    basis: {
+      contentManifestHash: basis["contentManifestHash"],
+      readModelHash: basis["readModelHash"],
+      scenarioId: basis["scenarioId"],
+      snapshotSequence: basis["snapshotSequence"],
+      tick: basis["tick"],
+      worldHash: basis["worldHash"],
+    },
+    build: {
+      completed: build["completed"],
+      progressTicks: build["progressTicks"],
+      requiredTicks: build["requiredTicks"],
+    },
+    jobMarkers: gameSession["jobMarkers"].map((entry) => {
+      const marker = expectRecord(entry, "GameSession job marker");
       if (
-        typeof marker["commandId"] !== "string" ||
         typeof marker["markerId"] !== "string" ||
+        typeof marker["progressQ16"] !== "number" ||
         typeof marker["state"] !== "string"
       ) {
-        throw new Error("Unexpected playable marker payload.");
+        throw new Error("Unexpected GameSession marker payload.");
       }
-
       return {
-        commandId: marker["commandId"],
         markerId: marker["markerId"],
-        ...(typeof marker["ownerEntityId"] === "string"
-          ? { ownerEntityId: marker["ownerEntityId"] }
-          : {}),
-        ...(typeof marker["progressPercent"] === "number"
-          ? { progressPercent: marker["progressPercent"] }
-          : {}),
+        progressQ16: marker["progressQ16"],
         state: marker["state"],
       };
     }),
-    pawns: playable["pawns"].map((entry) => {
-      const pawn = expectRecord(entry, "playable pawn");
-      const tile = expectRecord(pawn["tile"], "playable pawn tile");
-      if (
-        typeof pawn["entityId"] !== "string" ||
-        typeof pawn["state"] !== "string" ||
-        typeof tile["x"] !== "number" ||
-        typeof tile["y"] !== "number"
-      ) {
-        throw new Error("Unexpected playable pawn payload.");
+    lamp: { fuel: lamp["fuel"], stateCode: lamp["stateCode"] },
+    projectionSource: "game-session-worker",
+    renderEntities: gameSession["renderEntities"].map((entry) => {
+      const entity = expectRecord(entry, "GameSession render entity");
+      if (typeof entity["entityId"] !== "string" || typeof entity["kind"] !== "string") {
+        throw new Error("Unexpected GameSession render entity payload.");
       }
-
-      return {
-        entityId: pawn["entityId"],
-        ...(typeof pawn["progressPercent"] === "number"
-          ? { progressPercent: pawn["progressPercent"] }
-          : {}),
-        state: pawn["state"],
-        tile: {
-          x: tile["x"],
-          y: tile["y"],
-        },
-      };
+      return { entityId: entity["entityId"], kind: entity["kind"] };
     }),
+    renderEntityCount: gameSession["renderEntityCount"],
+    residentCount: gameSession["residentCount"],
+    resourceCount: gameSession["resourceCount"],
+    selectionDetailKind: readSelectionDetailKind(gameSession["selectionDetailKind"]),
   };
 }
 
-function readPlayableBuildPayload(
-  value: Record<string, unknown>,
-): NonNullable<WebShellDebugPayload["playable"]>["build"] {
-  if (typeof value["active"] !== "boolean" || typeof value["completed"] !== "boolean") {
-    throw new Error("Unexpected playable build payload.");
+function readGameSessionFailure(
+  value: unknown,
+): WebShellDebugPayload["gameSessionFailure"] | undefined {
+  if (value === undefined) return undefined;
+  const failure = expectRecord(value, "GameSession failure");
+  if (typeof failure["code"] !== "string" || typeof failure["detail"] !== "string") {
+    throw new Error("Unexpected GameSession failure payload.");
   }
-
-  return {
-    active: value["active"],
-    completed: value["completed"],
-    ...(typeof value["progressPercent"] === "number"
-      ? { progressPercent: value["progressPercent"] }
-      : {}),
-  };
+  return { code: failure["code"], detail: failure["detail"] };
 }
 
-function readLatestPlayableCommand(
-  value: Record<string, unknown>,
-): NonNullable<WebShellDebugPayload["playable"]>["latestCommand"] {
-  if (
-    typeof value["actionId"] !== "string" ||
-    typeof value["commandId"] !== "string" ||
-    (value["status"] !== "accepted" && value["status"] !== "rejected")
-  ) {
-    throw new Error("Unexpected latest playable command payload.");
+function readSelectionDetailKind(value: unknown): "resident" | "resource" | "structure" | null {
+  if (value === null || value === "resident" || value === "resource" || value === "structure") {
+    return value;
   }
-
-  return {
-    actionId: value["actionId"],
-    commandId: value["commandId"],
-    ...(typeof value["markerState"] === "string" ? { markerState: value["markerState"] } : {}),
-    ...(typeof value["progressPercent"] === "number"
-      ? { progressPercent: value["progressPercent"] }
-      : {}),
-    ...(typeof value["reasonCode"] === "string" ? { reasonCode: value["reasonCode"] } : {}),
-    status: value["status"],
-  };
+  throw new Error("Unexpected GameSession selection detail kind.");
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

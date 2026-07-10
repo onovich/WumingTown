@@ -1,10 +1,9 @@
 # Integrated GameSession Architecture
 
-Status: WM-0162 PR-1 planning output. This document defines the architecture
-and candidate task DAG only. It does not implement `GameSession`, mutate public
-protocol/schema/save files, promote PR-1 implementation tasks, or create PR-2
-work. It does approve the minimum projection protocol/schema change assigned to
-proposed task WM-0164.
+Status: ADR-0017 architecture record, updated through the WM-0165 Web default
+route. WM-0162 authored the plan; WM-0163 and WM-0164 implemented the runtime,
+schema-v3 projection, and Worker scheduler; WM-0165 consumes those public roots.
+This document does not approve PR-2 work or public save compatibility.
 
 ## Scope
 
@@ -23,23 +22,23 @@ Non-goals for PR-1 planning:
 
 ## Current Asset Inventory
 
-| Surface | Existing assets | PR-1 disposition |
-| --- | --- | --- |
-| Deterministic basis | `deterministic-hash`, `deterministic-rng`, `world-hash`, `time`, `runner` | Reuse. `TICKS_PER_SECOND = 30`, named random streams, canonical hashes and explicit headless stepping are the foundation for session parity. |
-| Entity/map/location | `EntityRegistry`, `LocationStore`, `SpatialIndex`, `MapGrid`, `RegionRoomRebuilder`, map hashing | Reuse. Compose into the session owner graph; do not expose references as persistent identity outside `EntityId(index,generation)`. |
-| Pathing | `PathRequestBatcher`, `GridPathfinder`, `resolveTopKPathCandidates`, path basis versions | Reuse with caps. Path requests/results must retain map/navigation/region basis and reject stale results before mutation. |
-| Work discovery | `WorkOfferIndex`, `ReasonTraceStore`, storage/lamp/rest/food/medical candidate indexes | Reuse. Work producers update indexed offers on owner changes; actor thinking must query buckets and Top-K candidates, never scan the whole world. |
-| Job and reservation | `JobCoreStore`, `ReservationLedger`, `HaulingJobStore`, `BuildSiteStore`, M3 rest/eating/treatment drivers | Reuse. Job position remains explicit serializable state; reservations remain the only active claim authority. |
-| Items/storage/building | `ItemStackStore`, `StorageLogisticsIndex`, build delivery/construction states | Reuse/adapt. PR-1 uses food, wood, stone and lamp oil/material lanes from owner stores; static product resource counts become projections. |
-| M3 life systems | needs, health, ability, rest/sleep, food/eating, medical, mood/thought, relationship, day/night/weather/schedule | Adapt. Use minimum resident state, needs and day/night fields in PR-1; broader social/medical richness remains regression-protected until PR-2+. |
-| M4 town systems | lamp network/gap, Chronicle/evidence, obligation, town rule, borrowed shadow, director pressure | Adapt/test-only. Lamp/build targets are PR-1 relevant; Chronicle/obligation/crisis remain protected regression assets unless explicitly connected later. |
-| M5/M8 content | anomaly roster, factions/governance, seasons, old bridge, third knock, faction endgame | Test-only for PR-1. Preserve deterministic hashes and save/replay harnesses; do not pull broad content into the first integrated session. |
-| Scenario runners | `runHaulingBuildingScenario`, `runM2WorkLogisticsScenario`, `runM3OrdinaryLifeScenario`, `runM4CoreVerticalSliceScenario`, `runM5AlphaContentScenario`, `runM8FactionEndgameScenario`, `runPlayableCommandSliceScenario` | Adapt/test-only. Mine initialization data and regression facts, but do not keep them as product runtimes. |
-| Worker modes | `sim-worker` catalogVersion switches for M1-M5 and playable command slice | Retire for default product. Keep as parity/regression modes; PR-1 product route hosts a long-lived session instead of rerunning scenario summaries. |
-| Worker browser/session helpers | root `@wuming-town/sim-worker` browser session, reliable subscriptions, explicit advance/wait/drain helpers | Adapt. Browser session remains transport; drain helpers stay tests/tools only, not normal product time. |
-| Projections | schema-v2 `RenderSnapshotPayload`/`UiDeltaPayload`, M1-M5 read-only projections, M5 Worker projection, `PlayableProjectionV1`, Web projection adapter | Adapt with reviewed schema bump. Existing render payloads cannot carry positions and the focused playable model cannot carry the integrated resident/resource/time/alert/detail surface. WM-0164 alone owns schema-v3 `GameSession*ProjectionV1` protocol files and tests. |
-| Save/replay | M1-M5/M8 focused save envelopes, focused command tails, `RequestSave` smoke, web storage gate | Test-only/boundary. PR-1 defines `GameSessionSaveSnapshot` authority but does not promise public compatibility. Existing focused saves remain regression harnesses. |
-| Web product state | `WEB_PRODUCT_GATE_READ_MODEL`, `reviewed-playable-session`, `playable-worker-projection`, `shell-bootstrap` | Retire/adapt. Static fixture and reviewed playback are diagnostics/tests only; default gameplay reads Worker session projection. |
+| Surface                        | Existing assets                                                                                                                                                                                                          | PR-1 disposition                                                                                                                                                                                                                                                           |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Deterministic basis            | `deterministic-hash`, `deterministic-rng`, `world-hash`, `time`, `runner`                                                                                                                                                | Reuse. `TICKS_PER_SECOND = 30`, named random streams, canonical hashes and explicit headless stepping are the foundation for session parity.                                                                                                                               |
+| Entity/map/location            | `EntityRegistry`, `LocationStore`, `SpatialIndex`, `MapGrid`, `RegionRoomRebuilder`, map hashing                                                                                                                         | Reuse. Compose into the session owner graph; do not expose references as persistent identity outside `EntityId(index,generation)`.                                                                                                                                         |
+| Pathing                        | `PathRequestBatcher`, `GridPathfinder`, `resolveTopKPathCandidates`, path basis versions                                                                                                                                 | Reuse with caps. Path requests/results must retain map/navigation/region basis and reject stale results before mutation.                                                                                                                                                   |
+| Work discovery                 | `WorkOfferIndex`, `ReasonTraceStore`, storage/lamp/rest/food/medical candidate indexes                                                                                                                                   | Reuse. Work producers update indexed offers on owner changes; actor thinking must query buckets and Top-K candidates, never scan the whole world.                                                                                                                          |
+| Job and reservation            | `JobCoreStore`, `ReservationLedger`, `HaulingJobStore`, `BuildSiteStore`, M3 rest/eating/treatment drivers                                                                                                               | Reuse. Job position remains explicit serializable state; reservations remain the only active claim authority.                                                                                                                                                              |
+| Items/storage/building         | `ItemStackStore`, `StorageLogisticsIndex`, build delivery/construction states                                                                                                                                            | Reuse/adapt. PR-1 uses food, wood, stone and lamp oil/material lanes from owner stores; static product resource counts become projections.                                                                                                                                 |
+| M3 life systems                | needs, health, ability, rest/sleep, food/eating, medical, mood/thought, relationship, day/night/weather/schedule                                                                                                         | Adapt. Use minimum resident state, needs and day/night fields in PR-1; broader social/medical richness remains regression-protected until PR-2+.                                                                                                                           |
+| M4 town systems                | lamp network/gap, Chronicle/evidence, obligation, town rule, borrowed shadow, director pressure                                                                                                                          | Adapt/test-only. Lamp/build targets are PR-1 relevant; Chronicle/obligation/crisis remain protected regression assets unless explicitly connected later.                                                                                                                   |
+| M5/M8 content                  | anomaly roster, factions/governance, seasons, old bridge, third knock, faction endgame                                                                                                                                   | Test-only for PR-1. Preserve deterministic hashes and save/replay harnesses; do not pull broad content into the first integrated session.                                                                                                                                  |
+| Scenario runners               | `runHaulingBuildingScenario`, `runM2WorkLogisticsScenario`, `runM3OrdinaryLifeScenario`, `runM4CoreVerticalSliceScenario`, `runM5AlphaContentScenario`, `runM8FactionEndgameScenario`, `runPlayableCommandSliceScenario` | Adapt/test-only. Mine initialization data and regression facts, but do not keep them as product runtimes.                                                                                                                                                                  |
+| Worker modes                   | `sim-worker` catalogVersion switches for M1-M5 and playable command slice                                                                                                                                                | Retire for default product. Keep as parity/regression modes; PR-1 product route hosts a long-lived session instead of rerunning scenario summaries.                                                                                                                        |
+| Worker browser/session helpers | root `@wuming-town/sim-worker` browser session, reliable subscriptions, explicit advance/wait/drain helpers                                                                                                              | Adapt. Browser session remains transport; drain helpers stay tests/tools only, not normal product time.                                                                                                                                                                    |
+| Projections                    | schema-v2 `RenderSnapshotPayload`/`UiDeltaPayload`, M1-M5 read-only projections, M5 Worker projection, `PlayableProjectionV1`, Web projection adapter                                                                    | Adapt with reviewed schema bump. Existing render payloads cannot carry positions and the focused playable model cannot carry the integrated resident/resource/time/alert/detail surface. WM-0164 alone owns schema-v3 `GameSession*ProjectionV1` protocol files and tests. |
+| Save/replay                    | M1-M5/M8 focused save envelopes, focused command tails, `RequestSave` smoke, web storage gate                                                                                                                            | Test-only/boundary. PR-1 defines `GameSessionSaveSnapshot` authority but does not promise public compatibility. Existing focused saves remain regression harnesses.                                                                                                        |
+| Web product state              | `WEB_PRODUCT_GATE_READ_MODEL`, `reviewed-playable-session`, `playable-worker-projection`, `shell-bootstrap`                                                                                                              | Retire/adapt. Static fixture and reviewed playback are diagnostics/tests only; default gameplay reads Worker session projection.                                                                                                                                           |
 
 ## Authority Contract
 
@@ -97,12 +96,12 @@ structured unsupported reason or remain outside the default product path.
 `sim-core` advances by integer ticks only. Worker owns real-time scheduling
 outside the core. Effective speed:
 
-| Requested speed | Effective ticks per second |
-| ---: | ---: |
-| paused or speed 0 | 0 |
-| 1 | 30 |
-| 2 | 60 |
-| 3 | 90 |
+|   Requested speed | Effective ticks per second |
+| ----------------: | -------------------------: |
+| paused or speed 0 |                          0 |
+|                 1 |                         30 |
+|                 2 |                         60 |
+|                 3 |                         90 |
 
 Pause preserves requested speed but sets effective speed to zero. `SetSpeed`
 changes requested speed for future scheduling and does not retroactively alter
@@ -182,8 +181,9 @@ action availability, blocked reasons, resource counts or job state.
 ADR-0017 approves one protocol change for PR-1. The existing message families
 remain unchanged, `protocolVersion` stays at 1, envelope `schemaVersion` moves
 from 2 to 3, and the nested GameSession projection contract starts at version
+
 1. Schema and projection versions are separate so future payload evolution does
-not overload transport-family identity.
+   not overload transport-family identity.
 
 ### Negotiation
 
@@ -327,6 +327,56 @@ work.
    diagnostics or explicit historical gates.
 6. Run PR-1 exit gates before any PR-2 planning or WM-0154 unblock.
 
+### WM-0165 Web default route status
+
+WM-0165 completes migration step 4 for the default Web shell. The route calls
+`createBrowserSimulationWorkerSession()` through the Web-local adapter and
+starts `session.initGameSession()` from the `@wuming-town/sim-worker` package
+root. That public method sends the PR-1 catalog, seed, and exact
+`{ kind: "game_session", version: 1 }` projection request. The shell does not
+enter projected gameplay until the public browser session reaches `active`
+after the exact schema-3 Ready contract.
+
+The Web projection adapter retains at most one pending RenderSnapshot and one
+pending UiDelta. It publishes a product frame only when both name the same
+snapshot sequence and `validateCoherentGameSessionProjectionPair()` from the
+`@wuming-town/sim-protocol` root accepts their complete basis. Map dimensions
+and entity positions come only from that frame's RenderSnapshot. Residents,
+resources, alerts, generic job-marker state/progress, lamp/build facts, and
+requested selection detail come only from its UiDelta. The current Pixi bridge
+snaps to each accepted RenderSnapshot; WM-0165 adds no client-side simulation
+or interpolation clock.
+
+Before the first coherent frame, and after any protocol/session fatal, the
+shell uses an empty lifecycle read model with no entities, resource counts,
+alerts, jobs, resident positions, build progress, blocked reasons, or command
+outcomes. A malformed or mismatched newer message terminates/closes the public
+browser session, clears the last product frame, and never falls back to a
+fixture. Normal time is the WM-0164 Worker scheduler; the default bootstrap
+does not import or call playable advance, wait, or drain helpers.
+
+Historical surfaces remain quarantined as follows:
+
+- `product-gate-fixture.ts` remains fixture data for
+  `product-gate-harness.test.ts`, `smoke-read-model.ts`, and the historical
+  `reviewed-playable-session.ts`; `shell-bootstrap.ts` does not import it.
+- `product-gate-harness.ts` remains release-gate metadata for the explicit
+  `wmDiagnostics=1` overlay, local diagnostic package, and shell-evidence
+  storage envelope. It is not a town-state source.
+- `reviewed-playable-session.ts` remains the explicit WM-0151 historical
+  projection-playback module and has no default-shell import.
+- WM-0150 playable start/advance/wait/drain exports remain in
+  `simulation-worker-session.ts` for focused regression tests and tools;
+  default bootstrap imports only the GameSession start/read functions.
+- `smoke-read-model.ts` and the app-root fixture export remain historical smoke
+  gates. Product E2E mechanically scans the default bootstrap to prevent these
+  sources from returning to gameplay.
+
+GameSession authoritative save/load remains unsupported. The diagnostics-only
+OPFS envelope can restore a local selected id and shell evidence, but it cannot
+restore runtime tick, stores, jobs, reservations, resource state, projections,
+or Worker scheduling.
+
 ## Rollback Plan
 
 - Before implementation: remove ADR-0017, this document and proposed
@@ -382,12 +432,12 @@ PR-1 is not complete until all gates are reported by WM-0166:
 
 ## Proposed PR-1 DAG
 
-| Task | Owner | Depends on | Write ownership | Purpose |
-| --- | --- | --- | --- | --- |
-| WM-0163 | simulation-engineer | WM-0162 | `packages/sim-core/src/game-session*`, `runner`, sim-core tests | Create the authoritative runtime scaffold, PR-1 initializer and headless parity surface. |
-| WM-0164 | simulation-engineer | WM-0163 | exact `packages/sim-protocol` projection files listed above plus focused `packages/sim-worker` session/scheduler files and tests | Implement the ADR-approved schema-v3 projection contract as sole protocol writer, then host the runtime with continuous scheduling, fail-closed validation and backpressure. |
-| WM-0165 | client-engineer | WM-0164 | focused `apps/web/src` session/projection/bootstrap paths; protocol is consume-only | Route default Web gameplay truth to the validated Worker session projection and quarantine static fixtures. |
-| WM-0166 | qa-performance | WM-0165 | focused integrated tests/reports; protocol and feature code are consume-only | Run the PR-1 exit gates and record residual risks. |
+| Task    | Owner               | Depends on | Write ownership                                                                                                                  | Purpose                                                                                                                                                                      |
+| ------- | ------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| WM-0163 | simulation-engineer | WM-0162    | `packages/sim-core/src/game-session*`, `runner`, sim-core tests                                                                  | Create the authoritative runtime scaffold, PR-1 initializer and headless parity surface.                                                                                     |
+| WM-0164 | simulation-engineer | WM-0163    | exact `packages/sim-protocol` projection files listed above plus focused `packages/sim-worker` session/scheduler files and tests | Implement the ADR-approved schema-v3 projection contract as sole protocol writer, then host the runtime with continuous scheduling, fail-closed validation and backpressure. |
+| WM-0165 | client-engineer     | WM-0164    | focused `apps/web/src` session/projection/bootstrap paths; protocol is consume-only                                              | Route default Web gameplay truth to the validated Worker session projection and quarantine static fixtures.                                                                  |
+| WM-0166 | qa-performance      | WM-0165    | focused integrated tests/reports; protocol and feature code are consume-only                                                     | Run the PR-1 exit gates and record residual risks.                                                                                                                           |
 
 The critical path is
 `WM-0162 -> WM-0163 -> WM-0164 -> WM-0165 -> WM-0166`. The maximum concurrent

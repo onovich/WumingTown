@@ -1,4 +1,6 @@
 import {
+  PR1_GAME_SESSION_DEFAULT_SEED,
+  PR1_GAME_SESSION_SCENARIO_ID,
   WM0150_PLAYABLE_COMMAND_SCENARIO_ID,
   advancePlayableCommandScenarioToTick,
   createBrowserSimulationWorkerSession,
@@ -13,6 +15,8 @@ import {
 } from "@wuming-town/sim-worker";
 import {
   SIMULATION_TO_MAIN_MESSAGE_KIND,
+  type GameSessionRenderProjectionV1,
+  type GameSessionUiProjectionV1,
   type MainToSimulationMessage,
   type PlayableProjectionV1,
   type PlayerCommand,
@@ -20,6 +24,10 @@ import {
 } from "@wuming-town/sim-protocol";
 
 export const WEB_PLAYABLE_WORKER_SCENARIO_ID = WM0150_PLAYABLE_COMMAND_SCENARIO_ID;
+export const WEB_GAME_SESSION_SCENARIO_ID = PR1_GAME_SESSION_SCENARIO_ID;
+export const WEB_GAME_SESSION_DEFAULT_SEED = PR1_GAME_SESSION_DEFAULT_SEED;
+export type WebGameSessionRenderProjection = GameSessionRenderProjectionV1;
+export type WebGameSessionUiProjection = GameSessionUiProjectionV1;
 export type WebPlayableProjection = PlayableProjectionV1;
 export type WebPlayableProjectionWaitRequest = PlayableProjectionWaitRequest;
 export type WebPlayableProjectionWaitResult = PlayableProjectionWaitResult;
@@ -37,6 +45,13 @@ export function startWebPlayableWorkerScenario(
   seed: string,
 ): MainToSimulationMessage {
   return session.initPlayableCommandScenario({ seed });
+}
+
+export function startWebGameSession(
+  session: BrowserSimulationWorkerSession,
+  seed: string = WEB_GAME_SESSION_DEFAULT_SEED,
+): MainToSimulationMessage {
+  return session.initGameSession({ seed });
 }
 
 export function sendWebPlayableCommandBatch(
@@ -72,5 +87,21 @@ export function readWebPlayableProjection(
 ): WebPlayableProjection | undefined {
   return message.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.UiDelta
     ? message.payload.playable
+    : undefined;
+}
+
+export function readWebGameSessionRenderProjection(
+  message: SimulationToMainMessage,
+): WebGameSessionRenderProjection | undefined {
+  return message.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.RenderSnapshot
+    ? message.payload.gameSession
+    : undefined;
+}
+
+export function readWebGameSessionUiProjection(
+  message: SimulationToMainMessage,
+): WebGameSessionUiProjection | undefined {
+  return message.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.UiDelta
+    ? message.payload.gameSession
     : undefined;
 }

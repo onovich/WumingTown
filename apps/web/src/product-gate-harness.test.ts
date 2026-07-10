@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -45,4 +47,28 @@ describe("web product gate harness", () => {
       true,
     );
   });
+
+  it("quarantines historical fixtures and synthetic canvas dispatch from the default route", () => {
+    const bootstrap = readSiblingSource("shell-bootstrap.ts");
+    const e2e = readSiblingSource("web-shell.e2e.test.ts");
+
+    for (const forbiddenDefaultSource of [
+      "WEB_PRODUCT_GATE_READ_MODEL",
+      "reviewed-playable-session",
+      "startWebPlayableWorkerScenario",
+      "advanceWebPlayableWorkerScenarioToTick",
+      "drainWebPlayableCommandsToTerminal",
+      "readWebPlayableProjection",
+    ]) {
+      expect(bootstrap).not.toContain(forbiddenDefaultSource);
+    }
+    expect(bootstrap).toContain("startWebGameSession(workerSession)");
+    expect(bootstrap).toContain("readWebGameSessionRenderProjection");
+    expect(bootstrap).toContain("readWebGameSessionUiProjection");
+    expect(e2e).not.toContain("canvas.dispatchEvent");
+  });
 });
+
+function readSiblingSource(fileName: string): string {
+  return readFileSync(new URL(fileName, import.meta.url), "utf8");
+}

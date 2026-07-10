@@ -4,6 +4,13 @@ import type {
   BrowserSimulationWorkerHandle,
   BrowserSimulationWorkerMessageEvent,
 } from "@wuming-town/sim-worker";
+import { createSimulationWorker } from "@wuming-town/sim-worker";
+import {
+  createGameSessionLifecycleReadModel,
+  createGameSessionWorldReadModel,
+  createWebGameSessionProjectionAssembler,
+  type WebGameSessionProjectionFrame,
+} from "./playable-worker-projection";
 import {
   GAME_SESSION_PROJECTION_VERSION,
   MAIN_TO_SIMULATION_MESSAGE_KIND,
@@ -16,17 +23,220 @@ import {
 } from "@wuming-town/sim-protocol";
 
 import {
+  WEB_GAME_SESSION_DEFAULT_SEED,
+  WEB_GAME_SESSION_SCENARIO_ID,
   WEB_PLAYABLE_WORKER_SCENARIO_ID,
   advanceWebPlayableWorkerScenarioToTick,
   createWebSimulationWorkerSession,
   drainWebPlayableCommandsToTerminal,
+  readWebGameSessionRenderProjection,
+  readWebGameSessionUiProjection,
   sendWebPlayableCommandBatch,
   startWebPlayableWorkerScenario,
+  startWebGameSession,
   readWebPlayableProjection,
   waitForWebPlayableProjectionAtOrBeyondTick,
 } from "./simulation-worker-session";
 
 describe("web Simulation Worker session bridge adapter", () => {
+  it("requests the exact PR-1 GameSession contract and waits for validated Ready", () => {
+    const worker = new RecordingBrowserWorker();
+    const session = createWebSimulationWorkerSession({
+      sessionId: "web-session",
+      workerFactory: () => worker,
+    });
+
+    const init = startWebGameSession(session);
+
+    expect(session.getState()).toBe("initializing");
+    expect(init).toStrictEqual({
+      protocolVersion: SIM_PROTOCOL_VERSION,
+      schemaVersion: SIM_SCHEMA_VERSION,
+      sessionId: "web-session",
+      sequence: 1,
+      kind: MAIN_TO_SIMULATION_MESSAGE_KIND.InitSession,
+      payload: {
+        seed: WEB_GAME_SESSION_DEFAULT_SEED,
+        catalogVersion: WEB_GAME_SESSION_SCENARIO_ID,
+        projectionRequest: {
+          kind: "game_session",
+          version: GAME_SESSION_PROJECTION_VERSION,
+        },
+      },
+    });
+
+    worker.dispatch({ ...gameSessionReady(), sequence: 1 });
+    expect(session.getState()).toBe("active");
+    session.destroy();
+  });
+
+  it("reads GameSession render and UI payloads from public fields without summaries", () => {
+    const transport = new RecordingBrowserWorker();
+    const browserSession = createWebSimulationWorkerSession({
+      sessionId: "web-session",
+      workerFactory: () => transport,
+    });
+    const init = startWebGameSession(browserSession);
+    const messages = createSimulationWorker().receive(init);
+    const render = messages.find(
+      (message) => message.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.RenderSnapshot,
+    );
+    const ui = messages.find((message) => message.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.UiDelta);
+    if (render === undefined || ui === undefined) {
+      throw new Error("Expected initial GameSession render/UI projections.");
+    }
+
+    expect(readWebGameSessionRenderProjection(render)?.entities).toHaveLength(22);
+    expect(readWebGameSessionUiProjection(ui)?.residents).toHaveLength(8);
+    expect(readWebGameSessionRenderProjection(ui)).toBeUndefined();
+    expect(readWebGameSessionUiProjection(render)).toBeUndefined();
+    browserSession.destroy();
+  });
+
+  it("fails malformed negotiated GameSession payloads closed without a legacy fallback", () => {
+    const worker = new RecordingBrowserWorker();
+    const session = createWebSimulationWorkerSession({
+      sessionId: "web-session",
+      workerFactory: () => worker,
+    });
+    const received: SimulationToMainMessage[] = [];
+    session.subscribe((message) => received.push(message));
+    startWebGameSession(session);
+    worker.dispatch({ ...gameSessionReady(), sequence: 1 });
+    worker.dispatch({
+      protocolVersion: SIM_PROTOCOL_VERSION,
+      schemaVersion: SIM_SCHEMA_VERSION,
+      sessionId: "web-session",
+      sequence: 2,
+      kind: SIMULATION_TO_MAIN_MESSAGE_KIND.UiDelta,
+      payload: { tick: 0, summaries: ["must-not-be-used"] },
+    });
+
+    expect(session.getState()).toBe("fatal");
+    expect(worker.terminated).toBe(true);
+    expect(received.at(-1)).toMatchObject({
+      kind: SIMULATION_TO_MAIN_MESSAGE_KIND.FatalSimulationError,
+      payload: {
+        reason: {
+          detail: "Negotiated UiDelta is missing gameSession",
+        },
+      },
+    });
+  });
+
+  it("publishes one coherent GameSession basis for residents, resources, jobs, and detail", () => {
+    const transport = new RecordingBrowserWorker();
+    const browserSession = createWebSimulationWorkerSession({
+      sessionId: "web-session",
+      workerFactory: () => transport,
+    });
+    const worker = createSimulationWorker();
+    const initialMessages = worker.receive(startWebGameSession(browserSession));
+    const initialFrame = assembleGameSessionFrame(initialMessages);
+    const selectedRender = initialFrame.render.entities.find(
+      (entity) => entity.kind === "resident",
+    );
+    if (selectedRender === undefined) throw new Error("Expected a projected resident.");
+    const selectedEntityId = `${String(selectedRender.entity.index)}:${String(selectedRender.entity.generation)}`;
+    const detailMessages = worker.receive({
+      protocolVersion: SIM_PROTOCOL_VERSION,
+      schemaVersion: SIM_SCHEMA_VERSION,
+      sessionId: "web-session",
+      sequence: 2,
+      kind: MAIN_TO_SIMULATION_MESSAGE_KIND.RequestUiDetail,
+      payload: { subject: { kind: "entity", entityId: selectedEntityId } },
+    });
+    const frame = assembleGameSessionFrame(detailMessages);
+    const readModel = createGameSessionWorldReadModel({ frame, selectedEntityId });
+
+    expect(frame.render.basis).toStrictEqual(frame.ui.basis);
+    expect(frame.ui.selectionDetail?.basis).toMatchObject(frame.basis);
+    expect(readModel.sessionId).toBe(frame.basis.scenarioId);
+    expect(readModel.entities.filter((entity) => entity.kind === "resident")).toHaveLength(8);
+    expect(readModel.town.resources).toStrictEqual([]);
+    expect(frame.render.entities.filter((entity) => entity.kind === "resource")).toHaveLength(4);
+    expect(readModel.entities.some((entity) => entity.summary.includes("available"))).toBe(true);
+    expect(readModel.focusMarkers).toHaveLength(frame.ui.jobs.length);
+    expect(readModel.jobMarkers).toBeUndefined();
+    expect(readModel.selectedEntityId).toBe(selectedEntityId);
+    expect(
+      readModel.entities.find((entity) => entity.entityId === selectedEntityId)?.tile,
+    ).toStrictEqual({
+      x: selectedRender.xQ16 / frame.render.tileSizeQ16,
+      y: selectedRender.yQ16 / frame.render.tileSizeQ16,
+    });
+    const otherResident = frame.render.entities.find(
+      (entity) =>
+        entity.kind === "resident" &&
+        (entity.entity.index !== selectedRender.entity.index ||
+          entity.entity.generation !== selectedRender.entity.generation),
+    );
+    if (otherResident === undefined) throw new Error("Expected another projected resident.");
+    const otherResidentId = `${String(otherResident.entity.index)}:${String(otherResident.entity.generation)}`;
+    const switched = createGameSessionWorldReadModel({
+      frame,
+      selectedEntityId: otherResidentId,
+    });
+    expect(
+      switched.entities.find((entity) => entity.entityId === otherResidentId)?.inspector
+        .lastDecision,
+    ).toBe("—");
+
+    const resourceRender = frame.render.entities.find((entity) => entity.kind === "resource");
+    if (resourceRender === undefined) throw new Error("Expected a projected resource.");
+    const resourceEntityId = `${String(resourceRender.entity.index)}:${String(resourceRender.entity.generation)}`;
+    const resourceFrame = assembleGameSessionFrame(
+      worker.receive({
+        protocolVersion: SIM_PROTOCOL_VERSION,
+        schemaVersion: SIM_SCHEMA_VERSION,
+        sessionId: "web-session",
+        sequence: 3,
+        kind: MAIN_TO_SIMULATION_MESSAGE_KIND.RequestUiDetail,
+        payload: { subject: { kind: "entity", entityId: resourceEntityId } },
+      }),
+    );
+    const resourceReadModel = createGameSessionWorldReadModel({
+      frame: resourceFrame,
+      selectedEntityId: resourceEntityId,
+    });
+    expect(resourceFrame.ui.selectionDetail?.kind).toBe("resource");
+    expect(
+      resourceReadModel.entities.find((entity) => entity.entityId === resourceEntityId)?.summary,
+    ).toContain("available");
+    browserSession.destroy();
+  });
+
+  it("rejects an incoherent Web pair and keeps lifecycle placeholders free of town facts", () => {
+    const transport = new RecordingBrowserWorker();
+    const browserSession = createWebSimulationWorkerSession({
+      sessionId: "web-session",
+      workerFactory: () => transport,
+    });
+    const frame = assembleGameSessionFrame(
+      createSimulationWorker().receive(startWebGameSession(browserSession)),
+    );
+    const assembler = createWebGameSessionProjectionAssembler();
+
+    expect(assembler.pushRender(frame.render)).toStrictEqual({ status: "pending" });
+    expect(
+      assembler.pushUi({
+        ...frame.ui,
+        basis: { ...frame.ui.basis, worldHash: "0xincoherent" },
+      }),
+    ).toMatchObject({ status: "invalid" });
+
+    const fatal = createGameSessionLifecycleReadModel(
+      "web-session",
+      "fatal",
+      "projection mismatch",
+    );
+    expect(fatal.entities).toStrictEqual([]);
+    expect(fatal.town.resources).toStrictEqual([]);
+    expect(fatal.town.alerts).toStrictEqual([]);
+    expect(fatal.focusMarkers).toStrictEqual([]);
+    browserSession.destroy();
+  });
+
   it("uses the sim-worker package-root session API for WM-0150 transport only", () => {
     const worker = new RecordingBrowserWorker();
     const session = createWebSimulationWorkerSession({
@@ -203,6 +413,25 @@ describe("web Simulation Worker session bridge adapter", () => {
     );
   });
 });
+
+function assembleGameSessionFrame(
+  messages: readonly SimulationToMainMessage[],
+): WebGameSessionProjectionFrame {
+  const assembler = createWebGameSessionProjectionAssembler();
+  for (const message of messages) {
+    const render = readWebGameSessionRenderProjection(message);
+    const ui = readWebGameSessionUiProjection(message);
+    const update =
+      render !== undefined
+        ? assembler.pushRender(render)
+        : ui === undefined
+          ? undefined
+          : assembler.pushUi(ui);
+    if (update?.status === "invalid") throw new Error(update.detail);
+    if (update?.status === "ready") return update.frame;
+  }
+  throw new Error("Expected a coherent GameSession projection frame.");
+}
 
 class RecordingBrowserWorker implements BrowserSimulationWorkerHandle {
   readonly messages: MainToSimulationMessage[] = [];

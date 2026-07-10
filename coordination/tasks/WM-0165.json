@@ -2,12 +2,10 @@
   "id": "WM-0165",
   "title": "PR-1 product read-model default GameSession route",
   "summary": "Route the default Web shell to read the PR-1 GameSession Worker projection as gameplay truth and quarantine static product-gate fixtures to diagnostics/tests without UI authority over simulation.",
-  "state": "ready",
+  "state": "in_progress",
   "ownerRole": "client-engineer",
   "reviewerRole": "systems-architect",
-  "dependsOn": [
-    "WM-0164"
-  ],
+  "dependsOn": ["WM-0164"],
   "docs": [
     "AGENTS.md",
     "coordination/decisions/ADR-0017.md",
@@ -52,7 +50,7 @@
   ],
   "branch": "task/WM-0165-pr-1-product-read-model-default-gamesession-route",
   "createdAt": "2026-07-10T07:38:28.775Z",
-  "updatedAt": "2026-07-10T15:08:58.507Z",
+  "updatedAt": "2026-07-10T15:18:45.515Z",
   "history": [
     {
       "at": "2026-07-10T07:38:28.777Z",
@@ -77,14 +75,18 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-07-10T15:18:45.515Z",
+      "actor": "client-engineer",
+      "action": "claim",
+      "details": "thread=Canvas WM-0165"
     }
   ],
   "milestone": "Post-M8",
   "phase": "pr-1-integrated-gamesession",
   "architectureDecision": "coordination/decisions/ADR-0017.md",
-  "unblocks": [
-    "WM-0166"
-  ],
+  "unblocks": ["WM-0166"],
   "saveLoadStance": "No public save UI or compatibility promise is introduced. Web may expose only fail-closed or diagnostic GameSession save status until a later reviewed save task.",
   "allowedPaths": [
     "apps/web/src/shell-bootstrap.ts",
@@ -106,5 +108,8 @@
     "large product UX redesign, PR-2 autonomous-life behavior, PR-3 general command/building expansion, PR-4 map-first UX redesign or final art/audio production",
     "synthetic canvas dispatch or debug payloads as standalone gameplay evidence",
     "public save compatibility, migration, release, telemetry, accounts, paid services or public feedback surfaces"
-  ]
+  ],
+  "claimedBy": "client-engineer",
+  "threadLabel": "Canvas WM-0165",
+  "blocker": null
 }
