@@ -2,7 +2,7 @@
   "id": "WM-0166",
   "title": "PR-1 integrated GameSession exit gates",
   "summary": "Run and harden the integrated PR-1 gates for continuous 10-minute runtime, same-session read models, Worker/headless hash parity, 100000-tick leak checks and static-fixture retirement evidence.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -51,7 +51,7 @@
   ],
   "branch": "task/WM-0166-pr-1-integrated-gamesession-exit-gates",
   "createdAt": "2026-07-10T07:38:28.861Z",
-  "updatedAt": "2026-07-10T08:20:00.000Z",
+  "updatedAt": "2026-07-10T19:44:21.837Z",
   "history": [
     {
       "at": "2026-07-10T07:38:28.862Z",
@@ -70,6 +70,12 @@
       "actor": "systems-architect",
       "action": "changes-requested-fix",
       "details": "Made WM-0165 the sole direct dependency on the serial critical path and added independent schema-v3 projection negotiation/failure-closure evidence; task remains proposed and unclaimed."
+    },
+    {
+      "at": "2026-07-10T19:44:21.837Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "Post-M8",

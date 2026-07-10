@@ -2,7 +2,7 @@
   "id": "WM-0165",
   "title": "PR-1 product read-model default GameSession route",
   "summary": "Route the default Web shell to read the PR-1 GameSession Worker projection as gameplay truth and quarantine static product-gate fixtures to diagnostics/tests without UI authority over simulation.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "client-engineer",
   "reviewerRole": "systems-architect",
   "dependsOn": [
@@ -63,7 +63,7 @@
   ],
   "branch": "task/WM-0165-pr-1-product-read-model-default-gamesession-route",
   "createdAt": "2026-07-10T07:38:28.775Z",
-  "updatedAt": "2026-07-10T19:38:48.707Z",
+  "updatedAt": "2026-07-10T19:44:21.825Z",
   "history": [
     {
       "at": "2026-07-10T07:38:28.777Z",
@@ -142,6 +142,18 @@
       "actor": "systems-architect",
       "action": "review",
       "details": "verified: No blocking findings: independent default Vite/Chromium graph excludes every forbidden module individually; wmDiagnostics=1 remains functional; real 1424x861 mouse selects resident 1:1 then resource 8:1 with exact 80/0/80; focused 53/53, web-shell 13/13, worker-smoke 18/18, typecheck, localization, boundaries, handoff, task validation, diff check, and quality 458/458 pass. Residual risks remain documented: no public Worker transport-crash hook, unsupported GameSession save/load, and oversized shell-bootstrap."
+    },
+    {
+      "at": "2026-07-10T19:44:21.768Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Fast-forwarded verified WM-0165 through 08c0900 onto exact main; typecheck, focused 53/53, Web E2E 13/13, Worker smoke 18/18, localization, boundaries, handoff, task validation, diff check, and quality 458/458 passed."
+    },
+    {
+      "at": "2026-07-10T19:44:21.825Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "Post-M8",
@@ -191,5 +203,10 @@
     "verdict": "verified",
     "summary": "No blocking findings: independent default Vite/Chromium graph excludes every forbidden module individually; wmDiagnostics=1 remains functional; real 1424x861 mouse selects resident 1:1 then resource 8:1 with exact 80/0/80; focused 53/53, web-shell 13/13, worker-smoke 18/18, typecheck, localization, boundaries, handoff, task validation, diff check, and quality 458/458 pass. Residual risks remain documented: no public Worker transport-crash hook, unsupported GameSession save/load, and oversized shell-bootstrap.",
     "at": "2026-07-10T19:38:48.706Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Fast-forwarded verified WM-0165 through 08c0900 onto exact main; typecheck, focused 53/53, Web E2E 13/13, Worker smoke 18/18, localization, boundaries, handoff, task validation, diff check, and quality 458/458 passed.",
+    "at": "2026-07-10T19:44:21.767Z"
   }
 }
