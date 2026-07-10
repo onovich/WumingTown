@@ -271,9 +271,13 @@ WM-0164 is the sole writer for these exact protocol surfaces:
 - `packages/sim-protocol/src/game-session-projection.test.ts`;
 - `packages/sim-protocol/src/index.ts`.
 
-WM-0163, WM-0165 and WM-0166 are forbidden from editing
-`packages/sim-protocol/**`; they consume the package public root after their
-declared dependency completes.
+WM-0163, WM-0165 and WM-0166 are forbidden from editing the wire-protocol
+surfaces above; they consume the package public root after their declared
+dependency completes. WM-0165 has one exact presentation-only exception:
+`packages/sim-protocol/src/web-read-model.ts` may add `"resource"` to the
+existing `WorldEntityKind` union so the already-approved GameSession render
+kind is not mislabeled as a structure. This additive consumer completion does
+not change schema 3, projection v1, validators, messages or package exports.
 
 ## Presentation Interpolation
 
@@ -346,6 +350,15 @@ resources, alerts, generic job-marker state/progress, lamp/build facts, and
 requested selection detail come only from its UiDelta. The current Pixi bridge
 snaps to each accepted RenderSnapshot; WM-0165 adds no client-side simulation
 or interpolation clock.
+
+The public presentation path preserves resource identity end to end:
+`GameSessionRenderKindV1.resource -> WorldEntityKind.resource -> Pixi resource
+marker/selection -> localized HUD resource label`. The client may format the
+already-projected resource kind and quantities, but it may not alias a resource
+to another entity kind, invent a trend/count, or replace the inspector through
+shell-local DOM/CSS. The default 1424 x 861 framing must leave at least one
+authoritative resource marker reachable by real mouse input, with Web E2E
+covering both resident and resource selection.
 
 Before the first coherent frame, and after any protocol/session fatal, the
 shell uses an empty lifecycle read model with no entities, resource counts,
@@ -436,7 +449,7 @@ PR-1 is not complete until all gates are reported by WM-0166:
 | ------- | ------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | WM-0163 | simulation-engineer | WM-0162    | `packages/sim-core/src/game-session*`, `runner`, sim-core tests                                                                  | Create the authoritative runtime scaffold, PR-1 initializer and headless parity surface.                                                                                     |
 | WM-0164 | simulation-engineer | WM-0163    | exact `packages/sim-protocol` projection files listed above plus focused `packages/sim-worker` session/scheduler files and tests | Implement the ADR-approved schema-v3 projection contract as sole protocol writer, then host the runtime with continuous scheduling, fail-closed validation and backpressure. |
-| WM-0165 | client-engineer     | WM-0164    | focused `apps/web/src` session/projection/bootstrap paths; protocol is consume-only                                              | Route default Web gameplay truth to the validated Worker session projection and quarantine static fixtures.                                                                  |
+| WM-0165 | client-engineer     | WM-0164    | focused `apps/web/src` paths plus exact presentation enum, Pixi resource marker, and HUD localization consumers; wire protocol remains consume-only | Route default Web gameplay truth to the validated Worker session projection and quarantine static fixtures.                                                                  |
 | WM-0166 | qa-performance      | WM-0165    | focused integrated tests/reports; protocol and feature code are consume-only                                                     | Run the PR-1 exit gates and record residual risks.                                                                                                                           |
 
 The critical path is
@@ -454,5 +467,8 @@ surface one active owner.
 - ADR-0017 approves only schema 3 and `GameSession*ProjectionV1` in WM-0164.
   Any new message family, projection v2, command-contract change or additional
   protocol surface must block for another reviewed ADR.
+- The additive `WorldEntityKind.resource` presentation correction recorded in
+  ADR-0017 is not another wire-protocol surface. It permits only the lossless
+  consumer mapping and exhaustive Pixi/HUD localization needed by WM-0165.
 - Public save compatibility is not approved. PR-1 may define and test internal
   snapshot authority only if the task keeps it versioned and non-public.

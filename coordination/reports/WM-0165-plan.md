@@ -1,5 +1,55 @@
 # WM-0165 - PR-1 product read-model default GameSession route
 
+## Changes-requested blocker resolution
+
+The blocker is confirmed. `GameSessionRenderKindV1` and resource selection
+detail already carry the authoritative kind `resource`, while the older public
+presentation `WorldEntityKind` is closed to resident, visitor, lantern keeper,
+and structure. Mapping the authoritative resource to structure, another actor
+kind, or shell-local DOM/CSS would be false presentation semantics.
+
+No new ADR is required. ADR-0017 is clarified with a narrow consumer-completion
+exception: WM-0165 may add only `resource` to the additive
+`WorldEntityKind` presentation union. This changes no protocol/schema version,
+message, GameSession projection, validator, authority owner, package export,
+dependency, save contract, or resource fact.
+
+Exact additional write ownership:
+
+- `packages/sim-protocol/src/web-read-model.ts`: add only the presentation enum
+  member `resource`.
+- `packages/renderer-pixi/src/pixi-world-renderer.ts`: handle the new member in
+  the existing marker and selection-outline switches; no renderer authority or
+  product redesign.
+- `packages/ui-react/src/localization.ts`: add only the English and zh-CN
+  resource-kind labels.
+- `packages/ui-react/src/localization.test.ts`: focused catalog coverage.
+- `packages/ui-react/src/shell-hud.ts`: map `WorldEntityKind.resource` to the
+  localized label in the existing inspector header.
+- `packages/ui-react/src/shell-hud.test.ts`: prove English/zh-CN resource
+  semantics and existing selection-detail rendering.
+
+Canvas may continue the three review repairs in the existing exact Web paths:
+
+1. Keep RenderSnapshot coordinates authoritative while adjusting only Web
+   presentation framing so a real Playwright mouse can select resident and
+   resource markers at 1424 x 861. Do not synthesize coordinates or replace
+   DOM/CSS after rendering.
+2. Preserve initial default selection separately, but clear an explicit entity
+   id absent from a newer coherent frame. Add rapid resident/resource and
+   unavailable-entity identity tests.
+3. Replace exact-string source checks with a TypeScript-aware default-gameplay
+   import/API graph guard. It must reject aliases and indirect fixture,
+   reviewed-playback, sim-core, package-internal, playable clock/command paths,
+   while explicitly classifying accepted diagnostics-only branches.
+
+Required evidence additionally includes focused localization/HUD tests,
+`localization:validate`, and the real module-Worker Web E2E selecting both a
+resident and a resource and showing same-basis available/reserved/total values.
+Rollback removes the additive presentation member and its exhaustive consumers
+and returns the route to an explicit blocked/loading state; rollback must never
+restore a resource-as-structure alias.
+
 ## 目标
 
 让默认 Web gameplay route 只渲染经过 schema-v3 / GameSession projection v1 协商和验证的 Simulation Worker 投影，并在没有合法同 basis 投影或会话 fatal 时保持 fail closed。
