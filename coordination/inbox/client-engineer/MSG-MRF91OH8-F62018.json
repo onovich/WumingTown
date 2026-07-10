@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MRF91OH8-F62018",
+  "from": "systems-architect",
+  "to": "client-engineer",
+  "taskId": "WM-0165",
+  "kind": "changes-requested",
+  "subject": "WM-0165 review: changes_requested",
+  "body": "High: default runtime module isolation is still violated. apps/web/src/shell-bootstrap.ts:33-42 statically imports diagnostic-package-gate; diagnostic-package-gate.ts:12-16 statically imports product-gate-harness; product-gate-harness.ts:3-4 imports harness data and product-gate-fixture. A real default-route Vite plus Chromium transform probe loaded diagnostic-package-gate.ts, product-gate-harness.ts, product-gate-harness.data.json, and product-gate-fixture.ts. The guards at product-gate-harness.test.ts:58-63 and web-shell.e2e.test.ts:676-683 use not.toEqual(arrayContaining(the entire forbidden list)), so they pass unless every forbidden module is loaded. Make the diagnostic package branch truly diagnostics-only or otherwise remove all harness/fixture transitive edges from the default loaded graph, and assert each forbidden module individually while retaining wmDiagnostics=1. Resource semantics, exact 1424x861 mouse 1:1 to 8:1 with 80/0/80, unavailable/rapid identity, fatal clearing, focused tests, web-shell 13/13, worker-smoke 18/18, typecheck, localization, boundaries, handoff, task validation, diff check, and quality all passed.",
+  "artifacts": [
+    "coordination/reports/WM-0165.md"
+  ],
+  "createdAt": "2026-07-10T18:08:40.749Z",
+  "acknowledgedAt": "2026-07-10T18:12:57.774Z"
+}

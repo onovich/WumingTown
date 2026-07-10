@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MRFBRB7W-E53E51",
+  "from": "client-engineer",
+  "to": "systems-architect",
+  "taskId": "WM-0165",
+  "kind": "review-request",
+  "subject": "WM-0165 ready for review",
+  "body": "Closed the final source-isolation High: default diagnostics dependencies are dynamically gated behind wmDiagnostics=1, TypeScript-aware import graph and per-module runtime guards no longer false-green, while real resource/selection, focused, Web E2E, Worker smoke and full quality gates pass.",
+  "artifacts": [
+    "coordination/reports/WM-0165.md",
+    "task/WM-0165-pr-1-product-read-model-default-gamesession-route"
+  ],
+  "createdAt": "2026-07-10T19:24:35.852Z",
+  "acknowledgedAt": "2026-07-10T19:25:44.269Z"
+}

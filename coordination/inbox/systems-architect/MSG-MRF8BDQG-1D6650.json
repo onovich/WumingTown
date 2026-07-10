@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MRF8BDQG-1D6650",
+  "from": "client-engineer",
+  "to": "systems-architect",
+  "taskId": "WM-0165",
+  "kind": "review-request",
+  "subject": "WM-0165 ready for review",
+  "body": "Closed all WM-0165 changes-requested findings: lossless localized resource presentation with real 1424x861 resident-to-resource mouse evidence and exact quantities; explicit unavailable selection clearing and rapid identity tests; AST default graph plus runtime module/outbound guards; required focused, web-shell 13/13, worker-smoke, typecheck, localization, boundaries, handoff, diff and quality gates pass.",
+  "artifacts": [
+    "coordination/reports/WM-0165.md",
+    "task/WM-0165-pr-1-product-read-model-default-gamesession-route"
+  ],
+  "createdAt": "2026-07-10T17:48:13.768Z",
+  "acknowledgedAt": "2026-07-10T17:50:47.780Z"
+}

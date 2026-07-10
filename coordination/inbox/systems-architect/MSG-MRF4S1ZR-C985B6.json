@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MRF4S1ZR-C985B6",
+  "from": "client-engineer",
+  "to": "systems-architect",
+  "taskId": "WM-0165",
+  "kind": "review-request",
+  "subject": "WM-0165 ready for review",
+  "body": "Routed the default Web shell to coherent schema-v3 PR-1 GameSession Worker projections, removed fixture and UI-driven clock authority, added fail-closed and real-input scheduler evidence; all required checks pass.",
+  "artifacts": [
+    "coordination/reports/WM-0165.md",
+    "task/WM-0165-pr-1-product-read-model-default-gamesession-route"
+  ],
+  "createdAt": "2026-07-10T16:09:13.239Z",
+  "acknowledgedAt": "2026-07-10T16:11:29.808Z"
+}

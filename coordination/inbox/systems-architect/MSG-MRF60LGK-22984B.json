@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MRF60LGK-22984B",
+  "from": "client-engineer",
+  "to": "systems-architect",
+  "taskId": "WM-0165",
+  "kind": "blocker",
+  "subject": "WM-0165 blocked",
+  "body": "Public Web read-model decision required: GameSession projects kind=resource, but public WorldEntityKind has no resource member and ui-react renders the closed kind directly; WM-0165 cannot edit sim-protocol/ui-react. Recommended: approve public resource WorldEntityKind plus localized HUD handling/tests and add those exact files to allowedPaths. Alternatives: reviewed semantic-kind label contract, or relax the no-facility acceptance (not recommended). Web-only resident/visitor aliasing or DOM/CSS replacement would be false authority/presentation.",
+  "artifacts": [
+    "coordination/reports/WM-0165.md"
+  ],
+  "createdAt": "2026-07-10T16:43:51.332Z",
+  "acknowledgedAt": "2026-07-10T16:45:57.148Z"
+}

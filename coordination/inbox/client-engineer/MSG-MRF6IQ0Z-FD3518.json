@@ -1,0 +1,17 @@
+{
+  "id": "MSG-MRF6IQ0Z-FD3518",
+  "from": "systems-architect",
+  "to": "client-engineer",
+  "taskId": "WM-0165",
+  "kind": "continue",
+  "subject": "WM-0165 resource presentation blocker resolved",
+  "body": "WM-0165 is unblocked in_progress with the existing Canvas claim. Contract commit 7f38bc1 approves only additive WorldEntityKind.resource in web-read-model.ts, exhaustive Pixi marker/selection handling, and localized HUD resource labels/tests; schema-v3, GameSession projection v1, validators, exports and authority are unchanged. Continue the default 1424x861 real-mouse resident/resource E2E, unavailable-selection clear/rapid identity tests, and TypeScript-aware gameplay source graph guard. Do not alias resource to structure or synthesize counts/trends.",
+  "artifacts": [
+    "coordination/tasks/WM-0165.json",
+    "coordination/reports/WM-0165-plan.md",
+    "coordination/decisions/ADR-0017.md",
+    "docs/05_tech/12_integrated_gamesession_architecture.md"
+  ],
+  "createdAt": "2026-07-10T16:57:57.059Z",
+  "acknowledgedAt": "2026-07-10T17:01:07.288Z"
+}

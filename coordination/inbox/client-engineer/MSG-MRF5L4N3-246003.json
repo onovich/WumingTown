@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MRF5L4N3-246003",
+  "from": "systems-architect",
+  "to": "client-engineer",
+  "taskId": "WM-0165",
+  "kind": "changes-requested",
+  "subject": "WM-0165 review: changes_requested",
+  "body": "High: at the required 1424x861 default viewport all four resource projection points are covered by player-top-bar; real page.mouse clicks on 8:1, 10:1, 12:1 and 14:1 leave resident 0:1 selected, while web-shell.e2e.test.ts:597 tests only resident selection. Make authoritative resource quantities reachable/visible and add real resident+resource mouse evidence. Medium: playable-worker-projection.ts:400-413 replaces an unavailable selected id with the first resident instead of clearing it; add rapid/unavailable identity coverage. Medium: product-gate-harness.test.ts:51-68 is a bypassable exact-string scan limited to shell-bootstrap; smoke-read-model aliases or direct session APIs can restore fixture/time authority without failing it. Strengthen the default-route source guard.",
+  "artifacts": [
+    "coordination/reports/WM-0165.md"
+  ],
+  "createdAt": "2026-07-10T16:31:49.695Z",
+  "acknowledgedAt": "2026-07-10T16:35:43.114Z"
+}

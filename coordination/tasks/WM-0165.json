@@ -2,7 +2,7 @@
   "id": "WM-0165",
   "title": "PR-1 product read-model default GameSession route",
   "summary": "Route the default Web shell to read the PR-1 GameSession Worker projection as gameplay truth and quarantine static product-gate fixtures to diagnostics/tests without UI authority over simulation.",
-  "state": "in_progress",
+  "state": "verified",
   "ownerRole": "client-engineer",
   "reviewerRole": "systems-architect",
   "dependsOn": [
@@ -63,7 +63,7 @@
   ],
   "branch": "task/WM-0165-pr-1-product-read-model-default-gamesession-route",
   "createdAt": "2026-07-10T07:38:28.775Z",
-  "updatedAt": "2026-07-10T16:55:24.016Z",
+  "updatedAt": "2026-07-10T19:38:48.707Z",
   "history": [
     {
       "at": "2026-07-10T07:38:28.777Z",
@@ -118,6 +118,30 @@
       "actor": "systems-architect",
       "action": "unblock",
       "details": "Approved ADR-0017 presentation consumer completion: exact WorldEntityKind resource, Pixi marker/selection, and localized HUD files authorized; wire schema/projection remains unchanged. Canvas retains claim and may continue the three review repairs under expanded exact checks."
+    },
+    {
+      "at": "2026-07-10T17:48:13.766Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Closed all WM-0165 changes-requested findings: lossless localized resource presentation with real 1424x861 resident-to-resource mouse evidence and exact quantities; explicit unavailable selection clearing and rapid identity tests; AST default graph plus runtime module/outbound guards; required focused, web-shell 13/13, worker-smoke, typecheck, localization, boundaries, handoff, diff and quality gates pass."
+    },
+    {
+      "at": "2026-07-10T18:08:40.747Z",
+      "actor": "systems-architect",
+      "action": "review",
+      "details": "changes_requested: High: default runtime module isolation is still violated. apps/web/src/shell-bootstrap.ts:33-42 statically imports diagnostic-package-gate; diagnostic-package-gate.ts:12-16 statically imports product-gate-harness; product-gate-harness.ts:3-4 imports harness data and product-gate-fixture. A real default-route Vite plus Chromium transform probe loaded diagnostic-package-gate.ts, product-gate-harness.ts, product-gate-harness.data.json, and product-gate-fixture.ts. The guards at product-gate-harness.test.ts:58-63 and web-shell.e2e.test.ts:676-683 use not.toEqual(arrayContaining(the entire forbidden list)), so they pass unless every forbidden module is loaded. Make the diagnostic package branch truly diagnostics-only or otherwise remove all harness/fixture transitive edges from the default loaded graph, and assert each forbidden module individually while retaining wmDiagnostics=1. Resource semantics, exact 1424x861 mouse 1:1 to 8:1 with 80/0/80, unavailable/rapid identity, fatal clearing, focused tests, web-shell 13/13, worker-smoke 18/18, typecheck, localization, boundaries, handoff, task validation, diff check, and quality all passed."
+    },
+    {
+      "at": "2026-07-10T19:24:35.849Z",
+      "actor": "client-engineer",
+      "action": "complete",
+      "details": "Closed the final source-isolation High: default diagnostics dependencies are dynamically gated behind wmDiagnostics=1, TypeScript-aware import graph and per-module runtime guards no longer false-green, while real resource/selection, focused, Web E2E, Worker smoke and full quality gates pass."
+    },
+    {
+      "at": "2026-07-10T19:38:48.707Z",
+      "actor": "systems-architect",
+      "action": "review",
+      "details": "verified: No blocking findings: independent default Vite/Chromium graph excludes every forbidden module individually; wmDiagnostics=1 remains functional; real 1424x861 mouse selects resident 1:1 then resource 8:1 with exact 80/0/80; focused 53/53, web-shell 13/13, worker-smoke 18/18, typecheck, localization, boundaries, handoff, task validation, diff check, and quality 458/458 pass. Residual risks remain documented: no public Worker transport-crash hook, unsupported GameSession save/load, and oversized shell-bootstrap."
     }
   ],
   "milestone": "Post-M8",
@@ -164,8 +188,8 @@
   "reportPath": "coordination/reports/WM-0165.md",
   "review": {
     "reviewer": "systems-architect",
-    "verdict": "changes_requested",
-    "summary": "High: at the required 1424x861 default viewport all four resource projection points are covered by player-top-bar; real page.mouse clicks on 8:1, 10:1, 12:1 and 14:1 leave resident 0:1 selected, while web-shell.e2e.test.ts:597 tests only resident selection. Make authoritative resource quantities reachable/visible and add real resident+resource mouse evidence. Medium: playable-worker-projection.ts:400-413 replaces an unavailable selected id with the first resident instead of clearing it; add rapid/unavailable identity coverage. Medium: product-gate-harness.test.ts:51-68 is a bypassable exact-string scan limited to shell-bootstrap; smoke-read-model aliases or direct session APIs can restore fixture/time authority without failing it. Strengthen the default-route source guard.",
-    "at": "2026-07-10T16:31:49.693Z"
+    "verdict": "verified",
+    "summary": "No blocking findings: independent default Vite/Chromium graph excludes every forbidden module individually; wmDiagnostics=1 remains functional; real 1424x861 mouse selects resident 1:1 then resource 8:1 with exact 80/0/80; focused 53/53, web-shell 13/13, worker-smoke 18/18, typecheck, localization, boundaries, handoff, task validation, diff check, and quality 458/458 pass. Residual risks remain documented: no public Worker transport-crash hook, unsupported GameSession save/load, and oversized shell-bootstrap.",
+    "at": "2026-07-10T19:38:48.706Z"
   }
 }
