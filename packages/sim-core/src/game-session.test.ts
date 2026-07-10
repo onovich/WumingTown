@@ -91,23 +91,28 @@ describe("PR-1 authoritative GameSessionRuntime", () => {
 
   it("runs one explicit serializable job and reservation lifecycle through phases 4 and 5", () => {
     const runtime = createRuntime("job-lifecycle");
-    runtime.advanceTicks(1);
+    const expectActive = (
+      step: "path_to_source" | "interact",
+      stepEnteredTick: number,
+      stepTickCount: number,
+      activity: "moving" | "working",
+    ): void => {
+      expect(runtime.owners.jobs.readJob(0)).toMatchObject({
+        status: "running",
+        step,
+        stepEnteredTick,
+        stepTickCount,
+        requiredWorkQ16: 393_216,
+      });
+      expect(runtime.owners.residents.read(0)).toMatchObject({ activity, currentJobId: 0 });
+      expect(runtime.owners.reservations.activeCount).toBe(1);
+    };
 
-    expect(runtime.owners.jobs.readJob(0)).toMatchObject({
-      status: "running",
-      step: "interact",
-      progressQ16: 0,
-      requiredWorkQ16: 131_072,
-    });
-    expect(runtime.owners.reservations.activeCount).toBe(1);
-    expect(runtime.owners.residents.read(0)).toMatchObject({
-      activity: "working",
-      currentJobId: 0,
-      reason: "game_session.job_working",
-    });
+    runtime.advanceTicks(3);
+    expectActive("path_to_source", 0, 2, "moving");
     expect(JSON.parse(JSON.stringify(runtime.owners.jobs.createSnapshot()))).toMatchObject({
       activeCount: 1,
-      records: [{ jobId: 0, status: "running", step: "interact" }],
+      records: [{ jobId: 0, step: "path_to_source", stepEnteredTick: 0, stepTickCount: 2 }],
     });
     expect(JSON.parse(JSON.stringify(runtime.owners.reservations.createSnapshot()))).toMatchObject({
       activeCount: 1,
@@ -123,11 +128,19 @@ describe("PR-1 authoritative GameSessionRuntime", () => {
       actual: 1,
     });
 
-    runtime.advanceTicks(2);
+    runtime.advanceTicks(3);
+    expectActive("path_to_source", 0, 5, "moving");
+    runtime.advanceTicks(3);
+    expectActive("interact", 6, 2, "working");
+    runtime.advanceTicks(3);
+    expectActive("interact", 6, 5, "working");
+    runtime.advanceTicks(3);
     expect(runtime.owners.jobs.readJob(0)).toMatchObject({
       status: "completed",
       step: "complete",
-      progressQ16: 131_072,
+      stepEnteredTick: 12,
+      stepTickCount: 6,
+      progressQ16: 393_216,
     });
     expect(runtime.owners.reservations.activeCount).toBe(0);
     expect(runtime.owners.residents.read(0)).toMatchObject({

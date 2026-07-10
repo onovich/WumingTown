@@ -48,6 +48,14 @@
 4. 验证 latest-wins 与 reliable outbox 行为，禁止通过协议字段扩展取证。
 5. 运行 task packet 全部 checks，写 WM-0167 report，提交后 `taskctl complete` 给独立 reviewer。
 
+## 审计后执行参数
+
+- `JobCoreStore` 继续作为唯一 job step/progress owner。新生命周期使用现有 `path_to_source` 与 `interact` step；两阶段分别累计 6 个整数 tick，不增加第二套 cursor。按 3-tick quantum，预期 coherent publication 为 tick 3/6 `moving`、tick 9/12 `working`、tick 15 terminal `idle`。
+- 移动阶段通过现有 `tickJob(..., 0)` 只推进 `stepTickCount`，交互阶段继续使用 Q16 progress；`stepEnteredTick`、`stepTickCount`、reservation 与 terminal release 都保留在现有 owner snapshot/hash 中。
+- scheduler 只在 Worker 边界读取单调毫秒时钟。每次 interval callback 最多派发 10 个 100 ms quantum，未派发 debt 留待后续 callback；debt 上限为 60000 ms，超过部分单独累计为 discarded wall-time diagnostics，防止停摆后无界追赶。
+- 正常 100 ms cadence 下，每 callback 仍只派发一个 quantum；speed 1/2/3 仍分别由 host 把每 quantum 解释为 3/6/9 ticks。Pause 继续消耗 wall-time cadence 但不推进世界，因此 resume 只影响未来调度。
+- delayed-callback 测试同时断言单次 catch-up 上限、剩余 debt、debt cap；catch-up 输出在一次 flush 中沿用 outbox latest-wins，可靠消息继续按 worker sequence 保留。真实 Chromium 600 秒证据仍属于 WM-0168。
+
 ## 测试与基准
 
 - Focused core/Worker tests 必须明确断言两个连续 `moving` publication pairs、两个后续连续 `working` pairs 与 terminal idle。

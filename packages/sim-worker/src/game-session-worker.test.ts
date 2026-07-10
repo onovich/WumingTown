@@ -10,6 +10,13 @@ import {
 } from "@wuming-town/sim-protocol";
 
 import { connectSimulationWorkerPort, createSimulationWorker } from "./index";
+import {
+  GAME_SESSION_MAX_CATCH_UP_QUANTA_PER_CALLBACK,
+  GAME_SESSION_MAX_WALL_TIME_DEBT_MS,
+  createGameSessionContinuousScheduler,
+  type GameSessionSchedulerTimer,
+} from "./game-session-scheduler";
+import { GameSessionWorkerHost } from "./game-session-worker-host";
 import { GameSessionWorkerOutbox } from "./game-session-worker-outbox";
 import {
   RecordingSimulationWorkerPort,
@@ -99,6 +106,116 @@ describe("PR-1 GameSession Simulation Worker", () => {
     expect(worker.runScheduledQuantum()).toEqual([]);
   });
 
+  it("publishes two coherent moving pairs and two coherent working pairs before idle", () => {
+    const worker = createSimulationWorker();
+    worker.receive(initMessage());
+    const ticks: number[] = [];
+    const activities: string[] = [];
+    for (let quantum = 0; quantum < 5; quantum += 1) {
+      const messages = worker.runScheduledQuantum();
+      const render = findRender(messages);
+      const ui = findUi(messages);
+      expect(readProjectionPair(render, ui)).toEqual({ ok: true });
+      ticks.push(ui.payload.gameSession?.basis.tick ?? -1);
+      activities.push(ui.payload.gameSession?.residents[0]?.activity ?? "missing");
+    }
+    expect(ticks).toEqual([3, 6, 9, 12, 15]);
+    expect(activities).toEqual(["moving", "moving", "working", "working", "idle"]);
+  });
+
+  it("bounds delayed scheduler catch-up while retaining integer wall-time debt", () => {
+    vi.useFakeTimers();
+    try {
+      let nowMilliseconds = 0;
+      const dispatches: number[] = [];
+      let queuedCallback: (() => void) | undefined;
+      const timer: GameSessionSchedulerTimer = {
+        setRepeating(callback, intervalMilliseconds) {
+          queuedCallback = callback;
+          return globalThis.setInterval(callback, intervalMilliseconds);
+        },
+        clearRepeating(handle) {
+          queuedCallback?.();
+          globalThis.clearInterval(handle);
+        },
+        readNowMilliseconds: () => nowMilliseconds,
+      };
+      const scheduler = createGameSessionContinuousScheduler(
+        (count) => dispatches.push(count),
+        timer,
+      );
+      scheduler.start();
+
+      nowMilliseconds = 550;
+      vi.advanceTimersToNextTimer();
+      expect(dispatches).toEqual([5]);
+      expect(scheduler.createDiagnostics().debtMilliseconds).toBe(50);
+
+      nowMilliseconds = 3_050;
+      vi.advanceTimersToNextTimer();
+      expect(dispatches.at(-1)).toBe(GAME_SESSION_MAX_CATCH_UP_QUANTA_PER_CALLBACK);
+      expect(scheduler.createDiagnostics().debtMilliseconds).toBe(1_550);
+
+      nowMilliseconds = 100_000;
+      vi.advanceTimersToNextTimer();
+      const diagnostics = scheduler.createDiagnostics();
+      expect(diagnostics.debtMilliseconds).toBe(
+        GAME_SESSION_MAX_WALL_TIME_DEBT_MS - GAME_SESSION_MAX_CATCH_UP_QUANTA_PER_CALLBACK * 100,
+      );
+      expect(diagnostics.discardedWallTimeMilliseconds).toBe(38_500);
+      expect(diagnostics.dispatchedQuantumCount).toBe(25);
+      nowMilliseconds = 100_100;
+      scheduler.stop();
+      expect(dispatches).toHaveLength(3);
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("reaches 18000 ticks during a passive 600000 ms normal-speed scheduler run", () => {
+    vi.useFakeTimers();
+    try {
+      const initialized = GameSessionWorkerHost.initialize("5");
+      if (!initialized.ok) throw new Error(initialized.reason.detail);
+      const scheduler = createGameSessionContinuousScheduler((quantumCount) => {
+        for (let quantum = 0; quantum < quantumCount; quantum += 1) {
+          initialized.host.advanceScheduledQuantum();
+        }
+      });
+      scheduler.start();
+      vi.advanceTimersByTime(600_000);
+      expect(initialized.host.tick).toBe(18_000);
+      expect(scheduler.createDiagnostics().dispatchedQuantumCount).toBe(6_000);
+      scheduler.stop();
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("consumes scheduler cadence while paused and resumes without historical catch-up", () => {
+    vi.useFakeTimers();
+    try {
+      const port = new RecordingSimulationWorkerPort();
+      const connection = connectSimulationWorkerPort(port);
+      port.dispatch(initMessage());
+      vi.advanceTimersByTime(100);
+      expect(readLatestTick(port.messages)).toBe(3);
+
+      port.dispatch(pauseMessage(2, true));
+      vi.advanceTimersByTime(1_000);
+      expect(readLatestTick(port.messages)).toBe(3);
+
+      port.dispatch(pauseMessage(3, false));
+      vi.advanceTimersByTime(100);
+      expect(readLatestTick(port.messages)).toBe(6);
+      connection.disconnect();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("matches headless hashes for the same seed, command stream, and checkpoint", () => {
     const worker = createSimulationWorker();
     worker.receive(initMessage());
@@ -152,8 +269,8 @@ describe("PR-1 GameSession Simulation Worker", () => {
       readModelHash: controlBasis?.readModelHash,
     });
     expect(controlBasis).toMatchObject({
-      worldHash: "0x0fba7fbb",
-      readModelHash: "0x7c1484a3",
+      worldHash: "0x5c850f07",
+      readModelHash: "0x33affcde",
     });
   });
 
@@ -232,13 +349,14 @@ describe("PR-1 GameSession Simulation Worker", () => {
     const outbox = new GameSessionWorkerOutbox();
     outbox.enqueue(worker.receive(initMessage()));
     outbox.enqueue(worker.receive(commandMessage(2, "reliable.noop")));
-    outbox.enqueue(worker.runScheduledQuantum());
-    outbox.enqueue(worker.runScheduledQuantum());
+    for (let quantum = 0; quantum < GAME_SESSION_MAX_CATCH_UP_QUANTA_PER_CALLBACK; quantum += 1) {
+      outbox.enqueue(worker.runScheduledQuantum());
+    }
     const metricsBeforeDrain = outbox.createMetrics();
     const drained = outbox.drain();
 
-    expect(metricsBeforeDrain.droppedSnapshots).toBeGreaterThan(0);
-    expect(metricsBeforeDrain.queuedReliableMessages).toBeGreaterThanOrEqual(2);
+    expect(metricsBeforeDrain.droppedSnapshots).toBe(11);
+    expect(metricsBeforeDrain.queuedReliableMessages).toBe(6);
     expect(countKind(drained, SIMULATION_TO_MAIN_MESSAGE_KIND.RenderSnapshot)).toBe(1);
     expect(countKind(drained, SIMULATION_TO_MAIN_MESSAGE_KIND.UiDelta)).toBe(1);
     expect(countKind(drained, SIMULATION_TO_MAIN_MESSAGE_KIND.CommandResult)).toBe(1);

@@ -5,7 +5,9 @@ import type { Tick } from "./time";
 
 const PR1_MINIMAL_JOB_ID = 0;
 const PR1_MINIMAL_JOB_KIND = 1;
-const PR1_MINIMAL_JOB_WORK_Q16 = 2 * 65_536;
+const PR1_MINIMAL_JOB_MOVE_TICKS = 6;
+const PR1_MINIMAL_JOB_WORK_TICKS = 6;
+const PR1_MINIMAL_JOB_WORK_Q16 = PR1_MINIMAL_JOB_WORK_TICKS * 65_536;
 const PR1_MINIMAL_JOB_TICK_Q16 = 65_536;
 const PR1_MINIMAL_JOB_LEASE_TICKS = 30;
 
@@ -165,26 +167,51 @@ export class GameSessionJobLifecycle {
     }
 
     if (job.status === "ready") {
-      const entered = this.owners.jobs.enterStep(job.jobId, "interact", tick);
+      const entered = this.owners.jobs.enterStep(job.jobId, "path_to_source", tick);
       this.eventResultObjectCallCountValue += 1;
-      if (entered.ok) {
-        this.owners.residents.setJobState(
-          this.selectedResidentId,
-          job.jobId,
-          "working",
-          "game_session.job_working",
-        );
-        this.eventResultObjectCallCountValue += 1;
-      }
+      if (!entered.ok) return;
+      this.owners.residents.setJobState(
+        this.selectedResidentId,
+        job.jobId,
+        "moving",
+        "game_session.job_reserved",
+      );
+      this.eventResultObjectCallCountValue += 1;
       return;
     }
 
     if (job.status !== "running") return;
-    const advanced = this.owners.jobs.tickJob(job.jobId, tick, PR1_MINIMAL_JOB_TICK_Q16);
+    if (job.step === "path_to_source") {
+      this.advanceMovement(job.jobId, job.stepTickCount, tick);
+      return;
+    }
+    if (job.step !== "interact") return;
+    this.advanceInteraction(job.jobId, tick);
+  }
+
+  private advanceMovement(jobId: number, stepTickCount: number, tick: Tick): void {
+    const advanced = this.owners.jobs.tickJob(jobId, tick, 0);
+    this.eventResultObjectCallCountValue += 1;
+    if (!advanced.ok || stepTickCount + 1 < PR1_MINIMAL_JOB_MOVE_TICKS) return;
+
+    const entered = this.owners.jobs.enterStep(jobId, "interact", tick);
+    this.eventResultObjectCallCountValue += 1;
+    if (!entered.ok) return;
+    this.owners.residents.setJobState(
+      this.selectedResidentId,
+      jobId,
+      "working",
+      "game_session.job_working",
+    );
+    this.eventResultObjectCallCountValue += 1;
+  }
+
+  private advanceInteraction(jobId: number, tick: Tick): void {
+    const advanced = this.owners.jobs.tickJob(jobId, tick, PR1_MINIMAL_JOB_TICK_Q16);
     this.eventResultObjectCallCountValue += 1;
     if (!advanced.ok || !advanced.readyToComplete) return;
 
-    const completed = this.owners.jobs.completeJob(job.jobId, tick, this.owners.reservations);
+    const completed = this.owners.jobs.completeJob(jobId, tick, this.owners.reservations);
     this.eventResultObjectCallCountValue += 1;
     if (!completed.ok) return;
     this.activeJobIdValue = GAME_SESSION_NO_JOB;

@@ -267,8 +267,10 @@ export function connectSimulationWorkerPort(
     flush();
   };
 
-  const scheduler = createGameSessionContinuousScheduler((): void => {
-    outbox.enqueue(worker.runScheduledQuantum());
+  const scheduler = createGameSessionContinuousScheduler((quantumCount): void => {
+    for (let quantum = 0; quantum < quantumCount; quantum += 1) {
+      outbox.enqueue(worker.runScheduledQuantum());
+    }
     flush();
   });
 
