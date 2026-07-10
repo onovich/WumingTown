@@ -1,9 +1,12 @@
 # Integrated GameSession Architecture
 
-Status: ADR-0017 architecture record, updated through the WM-0165 Web default
-route. WM-0162 authored the plan; WM-0163 and WM-0164 implemented the runtime,
-schema-v3 projection, and Worker scheduler; WM-0165 consumes those public roots.
-This document does not approve PR-2 work or public save compatibility.
+Status: ADR-0017 architecture record, validated through the WM-0166 PR-1 exit
+gates. WM-0162 authored the plan; WM-0163 and WM-0164 implemented the runtime,
+schema-v3 projection, and Worker scheduler; WM-0165 consumes those public roots;
+WM-0166 passed the integrated focused, Worker, Web, 18000-tick, 100000-tick,
+boundary and workspace quality gates. This document does not approve PR-2 work
+or public save compatibility. ADR status closure remains a systems-architect /
+project-director action.
 
 ## Scope
 

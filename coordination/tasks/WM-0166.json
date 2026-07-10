@@ -2,7 +2,7 @@
   "id": "WM-0166",
   "title": "PR-1 integrated GameSession exit gates",
   "summary": "Run and harden the integrated PR-1 gates for continuous 10-minute runtime, same-session read models, Worker/headless hash parity, 100000-tick leak checks and static-fixture retirement evidence.",
-  "state": "ready",
+  "state": "in_progress",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -51,7 +51,7 @@
   ],
   "branch": "task/WM-0166-pr-1-integrated-gamesession-exit-gates",
   "createdAt": "2026-07-10T07:38:28.861Z",
-  "updatedAt": "2026-07-10T19:44:21.837Z",
+  "updatedAt": "2026-07-10T19:45:52.412Z",
   "history": [
     {
       "at": "2026-07-10T07:38:28.862Z",
@@ -76,6 +76,12 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-07-10T19:45:52.411Z",
+      "actor": "qa-performance",
+      "action": "claim",
+      "details": "thread=Tally WM-0166"
     }
   ],
   "milestone": "Post-M8",
@@ -98,5 +104,8 @@
     "packages/sim-protocol/** changes or any protocol/schema/save format mutation",
     "PR-2+ autonomous-life, command/building expansion, product UX redesign or content-scale implementation",
     "public release, Early Access, store, signing, telemetry, accounts, paid services, public feedback or public save compatibility actions"
-  ]
+  ],
+  "claimedBy": "qa-performance",
+  "threadLabel": "Tally WM-0166",
+  "blocker": null
 }
