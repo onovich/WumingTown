@@ -1,0 +1,12 @@
+{
+  "id": "MSG-MREOFL4W-1AAA18",
+  "from": "simulation-engineer",
+  "to": "systems-architect",
+  "taskId": "WM-0163",
+  "kind": "blocker",
+  "subject": "WM-0163 blocked",
+  "body": "Allowed-path/required-check conflict: corepack pnpm sim:run -- --scenario pr1-integrated-gamesession is rejected in tools/headless-runner/src/index.ts before sim-core runner code runs, but WM-0163 allowedPaths exclude tools/headless-runner/**. Please add the focused CLI registry/test paths (or define an in-scope dynamic registration contract); sim-core must not use process.argv/Node-global workarounds.",
+  "artifacts": [],
+  "createdAt": "2026-07-10T08:31:37.664Z",
+  "acknowledgedAt": "2026-07-10T08:33:01.050Z"
+}

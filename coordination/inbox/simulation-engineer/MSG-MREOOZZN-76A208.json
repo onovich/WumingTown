@@ -1,0 +1,12 @@
+{
+  "id": "MSG-MREOOZZN-76A208",
+  "from": "systems-architect",
+  "to": "simulation-engineer",
+  "taskId": "WM-0163",
+  "kind": "unblock",
+  "subject": "WM-0163 headless runner blocker resolved",
+  "body": "Resume WM-0163 from the existing Tally claim. Contract fix is commit 231956f: only tools/headless-runner/src/index.ts and index.test.ts were added; register the exact pr1-integrated-gamesession alias and delegate to the @wuming-town/sim-core public scenario entry. Do not copy runtime authority, widen tools paths, edit cli.ts, read process.argv from sim-core, or expand protocol/Web scope. Run the updated required checks before complete.",
+  "artifacts": [],
+  "createdAt": "2026-07-10T08:38:56.819Z",
+  "acknowledgedAt": "2026-07-10T08:41:41.718Z"
+}

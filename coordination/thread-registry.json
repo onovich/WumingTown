@@ -18,8 +18,8 @@
     },
     "simulation-engineer": {
       "threadId": "019f1882-5f86-7953-8725-0394c042cbf7",
-      "label": "Tally WM-0160 playable drain",
-      "registeredAt": "2026-06-30T16:34:39.370Z"
+      "label": "Tally WM-0163",
+      "registeredAt": "2026-07-10T08:26:07.559Z"
     },
     "client-engineer": {
       "threadId": "019f186b-f56d-73c0-8401-b9c7d8c8b5b2",
@@ -47,5 +47,5 @@
       "registeredAt": "2026-07-10T06:55:49.690Z"
     }
   },
-  "updatedAt": "2026-07-10T07:32:58.987Z"
+  "updatedAt": "2026-07-10T08:26:07.559Z"
 }

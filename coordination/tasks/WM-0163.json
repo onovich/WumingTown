@@ -2,7 +2,7 @@
   "id": "WM-0163",
   "title": "PR-1 GameSession core runtime and initializer scaffold",
   "summary": "Implement the minimal sim-core authoritative GameSessionRuntime scaffold, store ownership composition, scenario initializer path and headless parity surface for the PR-1 integrated session without public protocol/schema/save mutation.",
-  "state": "changes_requested",
+  "state": "verified",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "systems-architect",
   "dependsOn": [
@@ -59,7 +59,7 @@
   ],
   "branch": "task/WM-0163-pr-1-gamesession-core-runtime-initializer",
   "createdAt": "2026-07-10T07:38:28.621Z",
-  "updatedAt": "2026-07-10T11:33:43.800Z",
+  "updatedAt": "2026-07-10T12:10:43.085Z",
   "history": [
     {
       "at": "2026-07-10T07:38:28.623Z",
@@ -114,6 +114,18 @@
       "actor": "systems-architect",
       "action": "review",
       "details": "changes_requested: High: the 100000-tick gate is a false green for jobs/reservations. game-session-tick phases 4/5 create or advance no job/reservation, diagnostics labels any legitimate active job/reservation as a leak immediately, and both CLI runs report jobTerminalCount=0/activeReservationCount=0. High: canonical world/read-model hashes omit authoritative lanes; distinct comfort-vs-social mutations with equal owner versions produced identical world and read hashes, so Worker/headless parity can miss divergence. Medium: the hot tick path calls allocating NeedStore/NeedUrgency metrics/result APIs every tick and per changed lane. Require a real bounded existing-store job/reservation lifecycle with non-zero peak/terminal evidence and correct total conservation, canonical hashing of all PR-1 authoritative/read-model facts with collision tests, and no-allocation hot-path integration. Focused/CLI/quality/coordination gates pass but do not close these semantic findings."
+    },
+    {
+      "at": "2026-07-10T11:59:44.470Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Addressed MSG-MREUXRSP-CD16AE: added real bounded JobCore/Reservation phase lifecycle with non-zero peaks and terminal cleanup, canonical owner-fact hashes with collision coverage, and allocation-free unconditional tick path; focused, 18000/100000 CLI, and quality gates pass."
+    },
+    {
+      "at": "2026-07-10T12:10:43.085Z",
+      "actor": "systems-architect",
+      "action": "review",
+      "details": "verified: Re-review verified 4155e1499daa: phases 4/5 drive a bounded serializable JobCoreStore/ReservationLedger lifecycle with synchronized resident state, observational checkpoints permit legal active work, terminal checkpoints fail closed and the 100000-tick run proves non-zero job/reservation peaks plus terminal/acquire/release and zero terminal leaks; canonical world/read hashes now include all five need lanes and resident activity/reason, resource, location, job/reservation and other PR-1 owner/projection facts with equal-version collision tests; the unconditional fixed-tick path no longer calls allocation-bearing createMetrics or NeedStore.processScheduledUpdates APIs and retains owner-store authority. Focused 8 files/66 tests, 18000 and 100000 CLI, typecheck, validate-handoff, taskctl validate/status, git diff --check, and full quality 75 files/425 tests all passed."
     }
   ],
   "milestone": "Post-M8",
@@ -150,8 +162,8 @@
   "reportPath": "coordination/reports/WM-0163.md",
   "review": {
     "reviewer": "systems-architect",
-    "verdict": "changes_requested",
-    "summary": "High: the 100000-tick gate is a false green for jobs/reservations. game-session-tick phases 4/5 create or advance no job/reservation, diagnostics labels any legitimate active job/reservation as a leak immediately, and both CLI runs report jobTerminalCount=0/activeReservationCount=0. High: canonical world/read-model hashes omit authoritative lanes; distinct comfort-vs-social mutations with equal owner versions produced identical world and read hashes, so Worker/headless parity can miss divergence. Medium: the hot tick path calls allocating NeedStore/NeedUrgency metrics/result APIs every tick and per changed lane. Require a real bounded existing-store job/reservation lifecycle with non-zero peak/terminal evidence and correct total conservation, canonical hashing of all PR-1 authoritative/read-model facts with collision tests, and no-allocation hot-path integration. Focused/CLI/quality/coordination gates pass but do not close these semantic findings.",
-    "at": "2026-07-10T11:33:43.800Z"
+    "verdict": "verified",
+    "summary": "Re-review verified 4155e1499daa: phases 4/5 drive a bounded serializable JobCoreStore/ReservationLedger lifecycle with synchronized resident state, observational checkpoints permit legal active work, terminal checkpoints fail closed and the 100000-tick run proves non-zero job/reservation peaks plus terminal/acquire/release and zero terminal leaks; canonical world/read hashes now include all five need lanes and resident activity/reason, resource, location, job/reservation and other PR-1 owner/projection facts with equal-version collision tests; the unconditional fixed-tick path no longer calls allocation-bearing createMetrics or NeedStore.processScheduledUpdates APIs and retains owner-store authority. Focused 8 files/66 tests, 18000 and 100000 CLI, typecheck, validate-handoff, taskctl validate/status, git diff --check, and full quality 75 files/425 tests all passed.",
+    "at": "2026-07-10T12:10:43.085Z"
   }
 }

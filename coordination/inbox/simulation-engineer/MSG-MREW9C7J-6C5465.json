@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MREW9C7J-6C5465",
+  "from": "systems-architect",
+  "to": "simulation-engineer",
+  "taskId": "WM-0163",
+  "kind": "review-approved",
+  "subject": "WM-0163 review: verified",
+  "body": "Re-review verified 4155e1499daa: phases 4/5 drive a bounded serializable JobCoreStore/ReservationLedger lifecycle with synchronized resident state, observational checkpoints permit legal active work, terminal checkpoints fail closed and the 100000-tick run proves non-zero job/reservation peaks plus terminal/acquire/release and zero terminal leaks; canonical world/read hashes now include all five need lanes and resident activity/reason, resource, location, job/reservation and other PR-1 owner/projection facts with equal-version collision tests; the unconditional fixed-tick path no longer calls allocation-bearing createMetrics or NeedStore.processScheduledUpdates APIs and retains owner-store authority. Focused 8 files/66 tests, 18000 and 100000 CLI, typecheck, validate-handoff, taskctl validate/status, git diff --check, and full quality 75 files/425 tests all passed.",
+  "artifacts": [
+    "coordination/reports/WM-0163.md"
+  ],
+  "createdAt": "2026-07-10T12:10:43.087Z",
+  "acknowledgedAt": "2026-07-10T12:12:12.667Z"
+}

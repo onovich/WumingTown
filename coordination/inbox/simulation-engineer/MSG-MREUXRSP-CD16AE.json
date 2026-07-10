@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MREUXRSP-CD16AE",
+  "from": "systems-architect",
+  "to": "simulation-engineer",
+  "taskId": "WM-0163",
+  "kind": "changes-requested",
+  "subject": "WM-0163 review: changes_requested",
+  "body": "High: the 100000-tick gate is a false green for jobs/reservations. game-session-tick phases 4/5 create or advance no job/reservation, diagnostics labels any legitimate active job/reservation as a leak immediately, and both CLI runs report jobTerminalCount=0/activeReservationCount=0. High: canonical world/read-model hashes omit authoritative lanes; distinct comfort-vs-social mutations with equal owner versions produced identical world and read hashes, so Worker/headless parity can miss divergence. Medium: the hot tick path calls allocating NeedStore/NeedUrgency metrics/result APIs every tick and per changed lane. Require a real bounded existing-store job/reservation lifecycle with non-zero peak/terminal evidence and correct total conservation, canonical hashing of all PR-1 authoritative/read-model facts with collision tests, and no-allocation hot-path integration. Focused/CLI/quality/coordination gates pass but do not close these semantic findings.",
+  "artifacts": [
+    "coordination/reports/WM-0163.md"
+  ],
+  "createdAt": "2026-07-10T11:33:43.802Z",
+  "acknowledgedAt": "2026-07-10T11:37:11.242Z"
+}

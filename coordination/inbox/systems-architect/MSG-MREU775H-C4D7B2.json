@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MREU775H-C4D7B2",
+  "from": "simulation-engineer",
+  "to": "systems-architect",
+  "taskId": "WM-0163",
+  "kind": "review-request",
+  "subject": "WM-0163 ready for review",
+  "body": "Implemented package-root PR-1 GameSessionRuntime/initializer, deterministic owner graph/phase/queue/hash/projections, exact headless alias, and 100000-tick conservation coverage; all required gates pass.",
+  "artifacts": [
+    "coordination/reports/WM-0163.md",
+    "task/WM-0163-pr-1-gamesession-core-runtime-initializer"
+  ],
+  "createdAt": "2026-07-10T11:13:03.990Z",
+  "acknowledgedAt": "2026-07-10T11:15:09.909Z"
+}
