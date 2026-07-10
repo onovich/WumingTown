@@ -2,7 +2,7 @@
   "id": "WM-0162",
   "title": "Integrated GameSession architecture and PR-1 reviewed task DAG",
   "summary": "Inventory the reusable M0-M8 simulation assets and define the single authoritative continuously running GameSession contract, migration plan, product projection/save boundaries, and a limited executable PR-1 task DAG without starting implementation.",
-  "state": "ready",
+  "state": "in_progress",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -35,7 +35,7 @@
   ],
   "branch": "task/WM-0162-integrated-gamesession-architecture-and-pr-1-rev",
   "createdAt": "2026-07-10T06:49:29.795Z",
-  "updatedAt": "2026-07-10T07:05:03.289Z",
+  "updatedAt": "2026-07-10T07:46:00.000Z",
   "history": [
     {
       "at": "2026-07-10T06:49:29.796Z",
@@ -48,10 +48,32 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-07-10T07:35:07.837Z",
+      "actor": "systems-architect",
+      "action": "claim",
+      "details": "thread=Keystone/WM-0162"
+    },
+    {
+      "at": "2026-07-10T07:46:00.000Z",
+      "actor": "systems-architect",
+      "action": "plan",
+      "details": "Recorded ADR-0017, integrated GameSession architecture doc, execution plan and proposed WM-0163..WM-0166 PR-1 DAG; implementation tasks remain proposed."
     }
   ],
   "milestone": "Post-M8",
   "phase": "pr-1-integrated-gamesession-planning",
+  "architectureDecision": "coordination/decisions/ADR-0017.md",
+  "planningDoc": "docs/05_tech/12_integrated_gamesession_architecture.md",
+  "executionPlan": "coordination/reports/WM-0162-plan.md",
+  "proposedDag": [
+    "WM-0163",
+    "WM-0164",
+    "WM-0165",
+    "WM-0166"
+  ],
+  "saveLoadStance": "WM-0162 defines the GameSession save/load authority boundary only. It does not create a public save container, public migration promise, platform save UI or compatibility claim.",
   "allowedPaths": [
     "coordination/decisions/**",
     "coordination/project-state.json",
@@ -72,5 +94,8 @@
     "claiming or promoting PR-1 implementation tasks before this planning task is verified and done",
     "creating PR-2 or later implementation task packets",
     "public release, Early Access, store, signing, telemetry, accounts, paid services or public save compatibility actions"
-  ]
+  ],
+  "claimedBy": "systems-architect",
+  "threadLabel": "Keystone/WM-0162",
+  "blocker": null
 }

@@ -1,0 +1,99 @@
+{
+  "id": "WM-0163",
+  "title": "PR-1 GameSession core runtime and initializer scaffold",
+  "summary": "Implement the minimal sim-core authoritative GameSessionRuntime scaffold, store ownership composition, scenario initializer path and headless parity surface for the PR-1 integrated session without public protocol/schema/save mutation.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "systems-architect",
+  "dependsOn": [
+    "WM-0162"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/decisions/ADR-0017.md",
+    "docs/05_tech/01_technical_architecture.md",
+    "docs/05_tech/12_integrated_gamesession_architecture.md",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "docs/02_systems/13_save_replay_migration.md",
+    "packages/sim-core/src/index.ts",
+    "packages/sim-core/src/runner.ts",
+    "packages/sim-core/src/time.ts",
+    "packages/sim-core/src/entity-id.ts",
+    "packages/sim-core/src/map-grid.ts",
+    "packages/sim-core/src/location-store.ts",
+    "packages/sim-core/src/reservation-ledger.ts",
+    "packages/sim-core/src/job-core.ts",
+    "packages/sim-core/src/work-offers.ts",
+    "packages/sim-core/src/pathing.ts",
+    "packages/sim-core/src/item-stack-store.ts",
+    "packages/sim-core/src/storage-logistics-index.ts",
+    "packages/sim-core/src/build-site.ts",
+    "packages/sim-core/src/m3-needs.ts",
+    "packages/sim-core/src/m3-environment.ts",
+    "packages/sim-core/src/m4-lamp-network.ts"
+  ],
+  "acceptance": [
+    "A package-root-exported sim-core GameSessionRuntime or equivalent focused PR-1 runtime surface owns tick, seed, random streams, command ordering, owner-store composition, metrics and canonical hash input without DOM/React/Pixi/Electron/Node filesystem or real-clock dependencies",
+    "The runtime composes PR-1 minimum owner stores for map/entity/location/spatial, residents, resources, jobs, reservations, WorkOffers, path basis, day/night, lamp/build and structured reasons; derived indexes name owner-version basis and rebuild paths",
+    "A ScenarioDefinition initializer creates at least the roadmap minimum: 64x64 navigable map, 8 residents, food/wood/stone/lamp oil or material lanes, inventory/storage, beds or rest fixtures, lamp target and one buildable structure",
+    "Historical M1-M8 scenario runners are not called as the product runtime; any reused facts are copied through initializer code or explicitly marked regression/test-only",
+    "Tick advancement is fixed 30 TPS integer semantics with stable phase ordering, no Math.random/Date/performance access, no global scans, no hidden singletons, no coroutine/Promise job position and no unversioned caches",
+    "Headless tests can create the same GameSessionRuntime, step explicit ticks, queue deterministic commands and produce stable world/read-model hashes",
+    "The runtime exposes read-only projection builders for RenderSnapshot/UiDelta basis data but does not import protocol, Web, React, Pixi or Electron presentation code",
+    "A 100000 tick sim-core leak/conservation test covers jobs, reservations, queues and PR-1 resources, with structured diagnostics for first divergence",
+    "Existing M1-M8 regression facts are either unchanged or any fixture/hash update is explicitly justified in the task report; no public save container, schema or compatibility promise is introduced",
+    "The report lists every reused store, adapted scenario fact and still-unconnected historical capability"
+  ],
+  "requiredChecks": [
+    "corepack pnpm typecheck",
+    "corepack pnpm exec vitest run packages/sim-core/src/game-session.test.ts packages/sim-core/src/runner.test.ts packages/sim-core/src/entity-store.invariants.test.ts packages/sim-core/src/reservation-ledger.test.ts packages/sim-core/src/job-core.test.ts packages/sim-core/src/work-offers.test.ts packages/sim-core/src/pathing.test.ts",
+    "corepack pnpm sim:run -- --seed 5 --scenario pr1-integrated-gamesession --ticks 18000",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0163-pr-1-gamesession-core-runtime-initializer",
+  "createdAt": "2026-07-10T07:38:28.621Z",
+  "updatedAt": "2026-07-10T07:45:00.000Z",
+  "history": [
+    {
+      "at": "2026-07-10T07:38:28.623Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    },
+    {
+      "at": "2026-07-10T07:45:00.000Z",
+      "actor": "systems-architect",
+      "action": "refine-proposed-task",
+      "details": "Scoped as the first PR-1 critical-path sim-core task from WM-0162 architecture; remains proposed until WM-0162 is verified and done."
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "pr-1-integrated-gamesession",
+  "architectureDecision": "coordination/decisions/ADR-0017.md",
+  "unblocks": [
+    "WM-0164",
+    "WM-0165"
+  ],
+  "saveLoadStance": "No public save compatibility is introduced. Any internal GameSession snapshot in this task must be versioned, tested as focused PR-1 evidence and kept out of platform player-save promises.",
+  "allowedPaths": [
+    "packages/sim-core/src/game-session*.ts",
+    "packages/sim-core/src/game-session*.test.ts",
+    "packages/sim-core/src/runner.ts",
+    "packages/sim-core/src/runner.test.ts",
+    "packages/sim-core/src/index.ts",
+    "coordination/reports/WM-0163*.md",
+    "coordination/tasks/WM-0163.json",
+    "docs/05_tech/12_integrated_gamesession_architecture.md"
+  ],
+  "forbiddenPaths": [
+    "packages/sim-core depending on DOM, React, PixiJS, Electron, Node filesystem or real clocks",
+    "apps/**, packages/sim-worker/**, packages/sim-protocol/**, packages/persistence/** or Electron/Web implementation changes",
+    "public protocol/schema/save format mutation",
+    "whole-world pawn work scans, unversioned caches, hidden global singleton session state, Promise/coroutine job position or UI-owned authority",
+    "public release, Early Access, store, signing, telemetry, accounts, paid services or public save compatibility actions"
+  ]
+}

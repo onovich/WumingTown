@@ -1,0 +1,92 @@
+{
+  "id": "WM-0165",
+  "title": "PR-1 product read-model default GameSession route",
+  "summary": "Route the default Web shell to read the PR-1 GameSession Worker projection as gameplay truth and quarantine static product-gate fixtures to diagnostics/tests without UI authority over simulation.",
+  "state": "proposed",
+  "ownerRole": "client-engineer",
+  "reviewerRole": "systems-architect",
+  "dependsOn": [
+    "WM-0163"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/decisions/ADR-0017.md",
+    "docs/05_tech/01_technical_architecture.md",
+    "docs/05_tech/12_integrated_gamesession_architecture.md",
+    "docs/07_roadmap/12_playable_product_recovery_roadmap.md",
+    "apps/web/src/shell-bootstrap.ts",
+    "apps/web/src/simulation-worker-session.ts",
+    "apps/web/src/playable-worker-projection.ts",
+    "apps/web/src/product-gate-fixture.ts",
+    "apps/web/src/reviewed-playable-session.ts",
+    "apps/web/src/web-shell.e2e.test.ts",
+    "packages/sim-worker/src/browser-session.ts",
+    "packages/sim-protocol/src/types.ts"
+  ],
+  "acceptance": [
+    "Default Web gameplay initializes or connects to the PR-1 GameSession Worker route and treats its projection as gameplay truth for residents, resources, alerts, job markers and selected-object details",
+    "WEB_PRODUCT_GATE_READ_MODEL and reviewed-playable-session static/playback surfaces remain only in tests, diagnostics or explicitly labeled historical gates; default gameplay does not read them as town state",
+    "React and Pixi adapters render read-only session projections and may keep only camera, hover, selected id, build-mode affordance, locale, UI scale and diagnostics visibility locally",
+    "No Web, React, Pixi or Electron code creates jobs, reservations, resource counts, resident positions, build progress, blocked reasons or command outcomes",
+    "The product read model carries a single GameSession basis: tick, snapshot sequence, scenario/content id, world hash and read-model hash, and all visible PR-1 residents/resources/alerts/details come from that basis",
+    "Presentation interpolation uses RenderSnapshot basis only and cannot mutate authoritative cell, path progress, job step, resource quantity or build state",
+    "The default route no longer uses WM-0160 drain helpers or explicit advance command batches as normal game time; time progression comes from the Worker scheduler once WM-0164 is available",
+    "E2E or focused Web tests prove the default route can observe advancing GameSession projection state without synthetic canvas dispatch as gameplay evidence",
+    "No broad product UX redesign, new final art, localization rewrite, public save UI, Electron preload expansion, public release action or telemetry/account surface is added",
+    "The report identifies every fixture/debug path left behind and how reviewers can confirm it is not the default gameplay source"
+  ],
+  "requiredChecks": [
+    "corepack pnpm typecheck",
+    "corepack pnpm exec vitest run apps/web/src/simulation-worker-session.test.ts apps/web/src/product-gate-harness.test.ts packages/sim-worker/src/game-session-worker.test.ts",
+    "node tools/test-runner.mjs e2e --filter web-shell",
+    "node tools/test-runner.mjs e2e --filter worker-smoke",
+    "corepack pnpm boundaries:check",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0165-pr-1-product-read-model-default-gamesession-route",
+  "createdAt": "2026-07-10T07:38:28.775Z",
+  "updatedAt": "2026-07-10T07:45:00.000Z",
+  "history": [
+    {
+      "at": "2026-07-10T07:38:28.777Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    },
+    {
+      "at": "2026-07-10T07:45:00.000Z",
+      "actor": "systems-architect",
+      "action": "refine-proposed-task",
+      "details": "Scoped as the Web default-route/read-model task after WM-0163; remains proposed and must not implement broader PR-2/PR-4 UX."
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "pr-1-integrated-gamesession",
+  "architectureDecision": "coordination/decisions/ADR-0017.md",
+  "saveLoadStance": "No public save UI or compatibility promise is introduced. Web may expose only fail-closed or diagnostic GameSession save status until a later reviewed save task.",
+  "allowedPaths": [
+    "apps/web/src/shell-bootstrap.ts",
+    "apps/web/src/simulation-worker-session.ts",
+    "apps/web/src/simulation-worker-session.test.ts",
+    "apps/web/src/playable-worker-projection.ts",
+    "apps/web/src/product-gate-fixture.ts",
+    "apps/web/src/product-gate-harness.test.ts",
+    "apps/web/src/reviewed-playable-session.ts",
+    "apps/web/src/web-shell.e2e.test.ts",
+    "apps/web/src/smoke-read-model.ts",
+    "coordination/reports/WM-0165*.md",
+    "coordination/tasks/WM-0165.json",
+    "docs/05_tech/12_integrated_gamesession_architecture.md"
+  ],
+  "forbiddenPaths": [
+    "packages/sim-core/**, packages/sim-worker/** or packages/sim-protocol/** implementation changes except consuming public roots already produced by dependencies",
+    "React/Pixi/Electron code owning authoritative world, job, reservation, resident position, resource, build progress, action availability or blocked-reason state",
+    "large product UX redesign, PR-2 autonomous-life behavior, PR-3 general command/building expansion, PR-4 map-first UX redesign or final art/audio production",
+    "synthetic canvas dispatch or debug payloads as standalone gameplay evidence",
+    "public save compatibility, migration, release, telemetry, accounts, paid services or public feedback surfaces"
+  ]
+}

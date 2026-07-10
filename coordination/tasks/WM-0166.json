@@ -1,0 +1,89 @@
+{
+  "id": "WM-0166",
+  "title": "PR-1 integrated GameSession exit gates",
+  "summary": "Run and harden the integrated PR-1 gates for continuous 10-minute runtime, same-session read models, Worker/headless hash parity, 100000-tick leak checks and static-fixture retirement evidence.",
+  "state": "proposed",
+  "ownerRole": "qa-performance",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0164",
+    "WM-0165"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/decisions/ADR-0017.md",
+    "docs/05_tech/12_integrated_gamesession_architecture.md",
+    "docs/07_roadmap/12_playable_product_recovery_roadmap.md",
+    "coordination/reports/WM-0163.md",
+    "coordination/reports/WM-0164.md",
+    "coordination/reports/WM-0165.md",
+    "packages/sim-core/src/game-session.test.ts",
+    "packages/sim-worker/src/game-session-worker.test.ts",
+    "packages/sim-worker/src/worker-smoke.e2e.test.ts",
+    "apps/web/src/web-shell.e2e.test.ts"
+  ],
+  "acceptance": [
+    "Normal speed GameSession runs continuously for 10 minutes with Worker-owned scheduling and without UI advance helpers, drain helpers or command-drain loops driving normal time",
+    "At least 8 default visible residents, focused resources, alerts and selection details are proven to come from one GameSession basis and matching world/read-model hash lineage",
+    "Worker and headless produce matching checkpoint hashes and read-model hashes for a fixed PR-1 seed and command stream",
+    "A 100000 tick integrated run reports no job, reservation, queue, path-request or resource conservation leak; first divergence diagnostics include seed, tick, owner store and reason",
+    "Default product route does not read WEB_PRODUCT_GATE_READ_MODEL or reviewed-playable-session as gameplay truth; remaining fixture paths are test/diagnostic-only and mechanically checked where feasible",
+    "Non-instant work produces observable moving and working projections across multiple publications; no resident work chain completes entirely within one visible frame",
+    "Idle, blocked and failed states in the PR-1 path carry structured reason codes and parameters rather than prose-only strings",
+    "The report lists every store reused in PR-1 and every historical M1-M8 capability still not connected to the product runtime",
+    "Existing M1-M8 deterministic, save/replay, Worker parity, package-boundary, platform-security and quality gates are either passing or any reviewed exception is explicitly recorded",
+    "No PR-2+ implementation, public protocol/schema/save mutation, release action, telemetry/account surface or public save compatibility promise is added"
+  ],
+  "requiredChecks": [
+    "corepack pnpm typecheck",
+    "corepack pnpm exec vitest run packages/sim-core/src/game-session.test.ts packages/sim-worker/src/game-session-worker.test.ts apps/web/src/simulation-worker-session.test.ts",
+    "node tools/test-runner.mjs e2e --filter worker-smoke",
+    "node tools/test-runner.mjs e2e --filter web-shell",
+    "corepack pnpm sim:run -- --seed 5 --scenario pr1-integrated-gamesession --ticks 18000",
+    "corepack pnpm sim:run -- --seed 5 --scenario pr1-integrated-gamesession --ticks 100000",
+    "corepack pnpm boundaries:check",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0166-pr-1-integrated-gamesession-exit-gates",
+  "createdAt": "2026-07-10T07:38:28.861Z",
+  "updatedAt": "2026-07-10T07:45:00.000Z",
+  "history": [
+    {
+      "at": "2026-07-10T07:38:28.862Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    },
+    {
+      "at": "2026-07-10T07:45:00.000Z",
+      "actor": "systems-architect",
+      "action": "refine-proposed-task",
+      "details": "Scoped as the PR-1 integrated gate task after Worker/Web routing; remains proposed and owned by qa-performance for independent evidence."
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "pr-1-integrated-gamesession",
+  "architectureDecision": "coordination/decisions/ADR-0017.md",
+  "saveLoadStance": "No public save compatibility is introduced. Gate evidence may test focused internal snapshots only if WM-0163/0164 produced them explicitly and fail-closed.",
+  "allowedPaths": [
+    "packages/sim-core/src/game-session*.test.ts",
+    "packages/sim-worker/src/game-session*.test.ts",
+    "packages/sim-worker/src/worker-smoke.e2e.test.ts",
+    "apps/web/src/web-shell.e2e.test.ts",
+    "apps/web/src/simulation-worker-session.test.ts",
+    "coordination/reports/WM-0166*.md",
+    "coordination/tasks/WM-0166.json",
+    "docs/05_tech/12_integrated_gamesession_architecture.md"
+  ],
+  "forbiddenPaths": [
+    "feature implementation beyond focused gates, tests, diagnostics and reports",
+    "lowering PR-1 exit gates to pass a partial implementation",
+    "public protocol/schema/save format mutation",
+    "PR-2+ autonomous-life, command/building expansion, product UX redesign or content-scale implementation",
+    "public release, Early Access, store, signing, telemetry, accounts, paid services, public feedback or public save compatibility actions"
+  ]
+}

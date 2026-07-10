@@ -281,3 +281,17 @@ Architecture decision:
 - Performance implication: the gate records bounded owner-row counts, route
   visits, faction-fact visits, cap hits and stale rejects; it does not add
   per-tick runtime work or derived-cache persistence.
+
+## WM-0162 PR-1 GameSession save boundary note
+
+ADR-0017 defines the future `GameSessionSaveSnapshot` authority boundary for
+the integrated product session. A valid authoritative snapshot must be based on
+owner-store state, random stream positions, current tick, command tail, content
+manifest and rebuild diagnostics. Derived WorkOffer rows, path caches,
+read-models, render snapshots, Pixi interpolation, UI selection, debug payloads
+and static product-gate fixture prose are not save authority.
+
+WM-0162 does not create a public save container, public migration promise,
+desktop/Web interoperability claim, codec dependency or platform save UI. PR-1
+implementation must fail closed or stay unsupported for `GameSession` load/save
+unless a focused versioned snapshot gate is explicitly approved by its task.

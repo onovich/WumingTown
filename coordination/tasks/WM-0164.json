@@ -1,0 +1,89 @@
+{
+  "id": "WM-0164",
+  "title": "PR-1 continuous Simulation Worker session scheduler",
+  "summary": "Adapt sim-worker to host the PR-1 GameSessionRuntime with continuous fixed-30-TPS scheduling, pause/speed semantics, snapshot backpressure and Worker/headless parity using existing message families.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "systems-architect",
+  "dependsOn": [
+    "WM-0163"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "coordination/decisions/ADR-0017.md",
+    "docs/05_tech/02_worker_protocol.md",
+    "docs/05_tech/12_integrated_gamesession_architecture.md",
+    "packages/sim-worker/src/index.ts",
+    "packages/sim-worker/src/browser-session.ts",
+    "packages/sim-worker/src/playable-drain.ts",
+    "packages/sim-worker/src/worker-smoke.e2e.test.ts",
+    "packages/sim-core/src/index.ts",
+    "packages/sim-core/src/runner.ts",
+    "packages/sim-protocol/src/types.ts"
+  ],
+  "acceptance": [
+    "Simulation Worker can initialize and host the PR-1 GameSessionRuntime from WM-0163 through existing InitSession/LoadSession/PlayerCommandBatch/SetSpeed/Pause/RequestUiDetail/RequestSave/Shutdown families without public schema drift",
+    "Worker owns normal product scheduling: fixed 30 TPS at speed 1, 60 at speed 2, 90 at speed 3, and 0 when paused or speed 0; sim-core receives only integer tick advancement",
+    "Pause preserves requested speed while stopping automatic ticks, SetSpeed affects future scheduling only, and command results remain reliable around pause/speed changes",
+    "RenderSnapshot/UiDelta publication is latest-wins under backpressure, while CommandResult, SaveReady, FatalSimulationError and structured alerts are not dropped",
+    "WM-0160 explicit advance/drain helpers remain available for tests/tools but are not used as the default gameplay clock",
+    "Worker and Node headless produce matching checkpoint world/read-model hashes for the same seed, scenario definition and fixed command stream",
+    "RequestSave/LoadSession for GameSession either use an explicitly versioned focused PR-1 snapshot or fail closed with structured unsupported reasons; no public save compatibility promise is added",
+    "Browser Worker smoke proves real Chromium Worker scheduling emits advancing PR-1 GameSession projections without UI dispatching advance helper commands as normal time",
+    "No apps/web product UI, renderer-pixi, ui-react, Electron preload, public protocol/schema/save, new runtime dependency or release action is changed",
+    "The report records scheduler policy, backpressure behavior, reliable-message evidence, parity hashes and any residual PR-1 blockers"
+  ],
+  "requiredChecks": [
+    "corepack pnpm typecheck",
+    "corepack pnpm exec vitest run packages/sim-worker/src/game-session-worker.test.ts packages/sim-worker/src/worker-smoke.e2e.test.ts packages/sim-core/src/game-session.test.ts",
+    "node tools/test-runner.mjs e2e --filter worker-smoke",
+    "corepack pnpm sim:run -- --seed 5 --scenario pr1-integrated-gamesession --ticks 18000",
+    "corepack pnpm boundaries:check",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0164-pr-1-continuous-simulation-worker-session",
+  "createdAt": "2026-07-10T07:38:28.688Z",
+  "updatedAt": "2026-07-10T07:45:00.000Z",
+  "history": [
+    {
+      "at": "2026-07-10T07:38:28.689Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    },
+    {
+      "at": "2026-07-10T07:45:00.000Z",
+      "actor": "systems-architect",
+      "action": "refine-proposed-task",
+      "details": "Scoped as the Worker host/scheduler task after WM-0163; remains proposed and must not introduce protocol/schema/save drift without a new gate."
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "pr-1-integrated-gamesession",
+  "architectureDecision": "coordination/decisions/ADR-0017.md",
+  "saveLoadStance": "No public save compatibility is introduced. RequestSave/LoadSession behavior for GameSession must be versioned focused evidence or fail-closed unsupported behavior.",
+  "allowedPaths": [
+    "packages/sim-worker/src/game-session*.ts",
+    "packages/sim-worker/src/game-session*.test.ts",
+    "packages/sim-worker/src/index.ts",
+    "packages/sim-worker/src/browser-session.ts",
+    "packages/sim-worker/src/browser-worker-entry.ts",
+    "packages/sim-worker/src/worker-smoke.e2e.test.ts",
+    "packages/sim-worker/src/*worker-parity.test.ts",
+    "coordination/reports/WM-0164*.md",
+    "coordination/tasks/WM-0164.json",
+    "docs/05_tech/02_worker_protocol.md"
+  ],
+  "forbiddenPaths": [
+    "new public Worker message family or incompatible protocol/schema payload without a new reviewed ADR",
+    "apps/** product UI implementation, renderer-pixi/ui-react changes or Electron preload changes",
+    "sim-core runtime ownership changes beyond consuming WM-0163 public root exports",
+    "using WM-0160 drain/advance helpers as the default gameplay clock",
+    "hidden global Worker/session singleton, timer authority inside sim-core, dropped reliable messages or UI-owned simulation state",
+    "public save compatibility, migration, release, telemetry, accounts, paid services or public feedback surfaces"
+  ]
+}
