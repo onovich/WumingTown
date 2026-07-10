@@ -2,7 +2,7 @@
   "id": "WM-0163",
   "title": "PR-1 GameSession core runtime and initializer scaffold",
   "summary": "Implement the minimal sim-core authoritative GameSessionRuntime scaffold, store ownership composition, scenario initializer path and headless parity surface for the PR-1 integrated session without public protocol/schema/save mutation.",
-  "state": "blocked",
+  "state": "in_progress",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "systems-architect",
   "dependsOn": [
@@ -59,7 +59,7 @@
   ],
   "branch": "task/WM-0163-pr-1-gamesession-core-runtime-initializer",
   "createdAt": "2026-07-10T07:38:28.621Z",
-  "updatedAt": "2026-07-10T08:31:37.662Z",
+  "updatedAt": "2026-07-10T08:38:34.293Z",
   "history": [
     {
       "at": "2026-07-10T07:38:28.623Z",
@@ -96,6 +96,12 @@
       "actor": "simulation-engineer",
       "action": "block",
       "details": "Allowed-path/required-check conflict: corepack pnpm sim:run -- --scenario pr1-integrated-gamesession is rejected in tools/headless-runner/src/index.ts before sim-core runner code runs, but WM-0163 allowedPaths exclude tools/headless-runner/**. Please add the focused CLI registry/test paths (or define an in-scope dynamic registration contract); sim-core must not use process.argv/Node-global workarounds."
+    },
+    {
+      "at": "2026-07-10T08:38:34.292Z",
+      "actor": "systems-architect",
+      "action": "unblock",
+      "details": "Resolved allowed-path/required-check conflict in commit 231956f: exact tools/headless-runner/src/index.ts and index.test.ts are now documented/allowed, focused checks include the CLI test, and the adapter must call only the @wuming-town/sim-core public scenario entry with no runtime copy, tools wildcard, cli.ts change, or process.argv workaround."
     }
   ],
   "milestone": "Post-M8",
@@ -128,11 +134,5 @@
   ],
   "claimedBy": "simulation-engineer",
   "threadLabel": "Tally/WM-0163",
-  "blocker": {
-    "by": "simulation-engineer",
-    "to": "systems-architect",
-    "reason": "Allowed-path/required-check conflict: corepack pnpm sim:run -- --scenario pr1-integrated-gamesession is rejected in tools/headless-runner/src/index.ts before sim-core runner code runs, but WM-0163 allowedPaths exclude tools/headless-runner/**. Please add the focused CLI registry/test paths (or define an in-scope dynamic registration contract); sim-core must not use process.argv/Node-global workarounds.",
-    "previousState": "in_progress",
-    "at": "2026-07-10T08:31:37.662Z"
-  }
+  "blocker": null
 }

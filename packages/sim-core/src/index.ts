@@ -842,6 +842,25 @@ export {
 } from "./entity-id";
 export { SpatialIndex, createSpatialIndex } from "./spatial-index";
 export {
+  GAME_SESSION_COMMAND_QUEUE_CAPACITY,
+  GAME_SESSION_NO_JOB,
+  GAME_SESSION_PHASE_ORDER,
+  GAME_SESSION_PROJECTION_BASIS_VERSION,
+  GAME_SESSION_RUNTIME_VERSION,
+  PR1_BLUEPRINT_SIMPLE_SHELTER,
+  PR1_CONTENT_MANIFEST_HASH,
+  PR1_INTEGRATED_GAME_SESSION_ALIAS,
+  PR1_INTEGRATED_GAME_SESSION_ID,
+  PR1_RESOURCE_FOOD,
+  PR1_RESOURCE_LAMP_OIL,
+  PR1_RESOURCE_STONE,
+  PR1_RESOURCE_WOOD,
+} from "./game-session-types";
+export { GameSessionResidentStore, createGameSessionResidentStore } from "./game-session-residents";
+export { createPr1IntegratedGameSessionDefinition } from "./game-session-definition";
+export { GameSessionRuntime, initializeGameSessionRuntime } from "./game-session-runtime";
+export { runPr1IntegratedGameSessionScenario } from "./game-session-scenario";
+export {
   HEADLESS_SUMMARY_VERSION,
   HEADLESS_SNAPSHOT_VERSION,
   advanceHeadlessTicks,
@@ -877,6 +896,46 @@ export type {
   EntityValidationResult,
 } from "./entity-id";
 export { TICKS_PER_DAY, TICKS_PER_SECOND, isSafeTick, requireSafeTick } from "./time";
+export type {
+  GameSessionAdvanceResult,
+  GameSessionBedStart,
+  GameSessionBuildSiteStart,
+  GameSessionCommandInput,
+  GameSessionConservationDivergence,
+  GameSessionConservationDivergenceCode,
+  GameSessionConservationReport,
+  GameSessionDerivedIndexBasis,
+  GameSessionLampStart,
+  GameSessionMetrics,
+  GameSessionPhase,
+  GameSessionProjectionBasis,
+  GameSessionQueueCommandResult,
+  GameSessionQueuedCommand,
+  GameSessionRenderEntity,
+  GameSessionRenderEntityKind,
+  GameSessionRenderProjection,
+  GameSessionResidentActivity,
+  GameSessionResidentStart,
+  GameSessionResidentView,
+  GameSessionResourceConservationRow,
+  GameSessionResourceStart,
+  GameSessionRuntimeOptions,
+  GameSessionScenarioDefinition,
+  GameSessionStructuredReason,
+  GameSessionUiProjection,
+  GameSessionUiResident,
+  GameSessionUiResource,
+  Pr1IntegratedGameSessionScenarioOptions,
+  Pr1IntegratedGameSessionScenarioSummary,
+} from "./game-session-types";
+export type {
+  GameSessionInitializationReason,
+  GameSessionOwnerGraph,
+  GameSessionOwnerGraphFailure,
+  GameSessionOwnerGraphResult,
+  GameSessionScenarioReferences,
+} from "./game-session-initializer";
+export type { GameSessionRuntimeInitializationResult } from "./game-session-runtime";
 export type {
   HeadlessCommandInput,
   HeadlessQueuedCommand,

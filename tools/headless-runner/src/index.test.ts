@@ -49,7 +49,53 @@ describe("parseHeadlessCliOptions", () => {
     expect(isRecord(invariants) ? invariants["lampJobCompleted"] : undefined).toBe(true);
     expect(isRecord(invariants) ? invariants["simpleBuildCompleted"] : undefined).toBe(true);
   });
+
+  it("dispatches only the exact PR-1 integrated GameSession alias", () => {
+    const lines: string[] = [];
+    const errors: string[] = [];
+    const exitCode = runHeadlessCli(
+      ["--seed", "5", "--scenario", "pr1-integrated-gamesession", "--ticks", "600"],
+      createIo(lines, errors),
+    );
+    const parsed: unknown = JSON.parse(lines[0] ?? "{}");
+
+    expect(exitCode).toBe(0);
+    expect(errors).toEqual([]);
+    expect(isRecord(parsed) ? parsed["scenarioId"] : undefined).toBe(
+      "post-m8.pr1_integrated_gamesession.v1",
+    );
+    const conservation = isRecord(parsed) ? parsed["conservation"] : undefined;
+    expect(isRecord(conservation) ? conservation["ok"] : undefined).toBe(true);
+
+    expect(
+      parseHeadlessCliOptions([
+        "--seed",
+        "5",
+        "--scenario",
+        "pr1-integrated-gamesession-unknown",
+        "--ticks",
+        "1",
+      ]).ok,
+    ).toBe(false);
+  });
 });
+
+function createIo(
+  lines: string[],
+  errors: string[],
+): {
+  writeLine(line: string): void;
+  writeError(line: string): void;
+} {
+  return {
+    writeLine(line: string): void {
+      lines.push(line);
+    },
+    writeError(line: string): void {
+      errors.push(line);
+    },
+  };
+}
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
