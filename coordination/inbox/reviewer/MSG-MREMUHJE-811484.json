@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MREMUHJE-811484",
+  "from": "systems-architect",
+  "to": "reviewer",
+  "taskId": "WM-0162",
+  "kind": "review-request",
+  "subject": "WM-0162 ready for review",
+  "body": "Defined ADR-0017 and the PR-1 integrated GameSession architecture; inventoried M1-M8 reusable/adapt/test-only assets; created proposed WM-0163..WM-0166 DAG with max write width 2; required checks pass; no implementation, protocol/schema/save mutation or release action.",
+  "artifacts": [
+    "coordination/reports/WM-0162.md",
+    "task/WM-0162-integrated-gamesession-architecture-and-pr-1-rev"
+  ],
+  "createdAt": "2026-07-10T07:47:13.610Z",
+  "acknowledgedAt": "2026-07-10T07:49:13.849Z"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MRENSQJD-4C66E3",
+  "from": "systems-architect",
+  "to": "reviewer",
+  "taskId": "WM-0162",
+  "kind": "review-request",
+  "subject": "WM-0162 ready for review",
+  "body": "Resolved MSG-MREN53JS-7E9ED9: ADR-0017 now approves schema-v3 GameSession projection v1 with explicit Init/Ready negotiation, render/UI fields and fail-closed compatibility; WM-0164 exclusively owns exact sim-protocol files/tests; DAG is serial WM-0162->0163->0164->0165->0166 with write width 1; all candidate tasks remain proposed/unclaimed; required checks and JSON/DAG assertions pass; commit 604dad5.",
+  "artifacts": [
+    "coordination/reports/WM-0162.md",
+    "task/WM-0162-integrated-gamesession-architecture-and-pr-1-rev"
+  ],
+  "createdAt": "2026-07-10T08:13:51.578Z",
+  "acknowledgedAt": "2026-07-10T08:16:25.921Z"
+}

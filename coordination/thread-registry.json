@@ -12,9 +12,9 @@
       "registeredAt": "2026-06-23T13:11:13.888Z"
     },
     "systems-architect": {
-      "threadId": "019f1874-de0f-7f41-b494-918d02fab9c0",
-      "label": "Keystone WM-0152 worker bridge",
-      "registeredAt": "2026-06-30T12:15:54.554Z"
+      "threadId": "019f4af1-7783-70f2-b0d3-e19c3e0429e3",
+      "label": "Keystone WM-0162",
+      "registeredAt": "2026-07-10T07:32:58.987Z"
     },
     "simulation-engineer": {
       "threadId": "019f1882-5f86-7953-8725-0394c042cbf7",
@@ -47,5 +47,5 @@
       "registeredAt": "2026-07-10T06:55:49.690Z"
     }
   },
-  "updatedAt": "2026-07-10T06:55:49.690Z"
+  "updatedAt": "2026-07-10T07:32:58.987Z"
 }

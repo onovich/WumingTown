@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MREN53JS-7E9ED9",
+  "from": "reviewer",
+  "to": "systems-architect",
+  "taskId": "WM-0162",
+  "kind": "changes-requested",
+  "subject": "WM-0162 review: changes_requested",
+  "body": "High: PR-1 projection requirements are not representable by the current RenderSnapshot/UiDelta public schema, while WM-0164/WM-0165 forbid sim-protocol/schema changes; assign a reviewed protocol decision/task and file ownership or narrow the contract. High: WM-0165 depends only on WM-0163, but its acceptance requires the WM-0164 Worker scheduler and its required checks name the WM-0164-created game-session-worker.test.ts, so the claimed parallel width-2 DAG is not executable. Keep WM-0163..0166 proposed and revise dependencies/gates.",
+  "artifacts": [
+    "coordination/reports/WM-0162.md"
+  ],
+  "createdAt": "2026-07-10T07:55:28.696Z",
+  "acknowledgedAt": "2026-07-10T07:57:16.973Z"
+}

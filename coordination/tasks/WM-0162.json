@@ -2,7 +2,7 @@
   "id": "WM-0162",
   "title": "Integrated GameSession architecture and PR-1 reviewed task DAG",
   "summary": "Inventory the reusable M0-M8 simulation assets and define the single authoritative continuously running GameSession contract, migration plan, product projection/save boundaries, and a limited executable PR-1 task DAG without starting implementation.",
-  "state": "in_progress",
+  "state": "verified",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -36,7 +36,7 @@
   ],
   "branch": "task/WM-0162-integrated-gamesession-architecture-and-pr-1-rev",
   "createdAt": "2026-07-10T06:49:29.795Z",
-  "updatedAt": "2026-07-10T08:20:00.000Z",
+  "updatedAt": "2026-07-10T08:19:45.039Z",
   "history": [
     {
       "at": "2026-07-10T06:49:29.796Z",
@@ -85,6 +85,18 @@
       "actor": "systems-architect",
       "action": "changes-requested-fix",
       "details": "Resolved MSG-MREN53JS-7E9ED9: ADR-0017 now approves schema-v3 GameSession projection v1 with fail-closed compatibility; WM-0164 is the sole exact sim-protocol writer; DAG changed to WM-0162 -> WM-0163 -> WM-0164 -> WM-0165 -> WM-0166 with max write width 1. All implementation tasks remain proposed and unclaimed."
+    },
+    {
+      "at": "2026-07-10T08:13:51.575Z",
+      "actor": "systems-architect",
+      "action": "complete",
+      "details": "Resolved MSG-MREN53JS-7E9ED9: ADR-0017 now approves schema-v3 GameSession projection v1 with explicit Init/Ready negotiation, render/UI fields and fail-closed compatibility; WM-0164 exclusively owns exact sim-protocol files/tests; DAG is serial WM-0162->0163->0164->0165->0166 with write width 1; all candidate tasks remain proposed/unclaimed; required checks and JSON/DAG assertions pass; commit 604dad5."
+    },
+    {
+      "at": "2026-07-10T08:19:45.039Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. The two prior High findings are closed: ADR-0017 now approves protocolVersion 1/schemaVersion 3/GameSession projection v1 with sufficient render/UI fields, explicit InitSession/Ready negotiation, strict validation and fail-closed compatibility; WM-0164 is the sole exact sim-protocol writer. The DAG is strictly WM-0162->WM-0163->WM-0164->WM-0165->WM-0166, required checks reference only self/ancestor outputs, all four implementation tasks remain proposed/unclaimed, and no new message family, command/save expansion, release or PR-2+ scope is authorized. All required checks and quality pass."
     }
   ],
   "milestone": "Post-M8",
@@ -137,8 +149,8 @@
   "reportPath": "coordination/reports/WM-0162.md",
   "review": {
     "reviewer": "reviewer",
-    "verdict": "changes_requested",
-    "summary": "High: PR-1 projection requirements are not representable by the current RenderSnapshot/UiDelta public schema, while WM-0164/WM-0165 forbid sim-protocol/schema changes; assign a reviewed protocol decision/task and file ownership or narrow the contract. High: WM-0165 depends only on WM-0163, but its acceptance requires the WM-0164 Worker scheduler and its required checks name the WM-0164-created game-session-worker.test.ts, so the claimed parallel width-2 DAG is not executable. Keep WM-0163..0166 proposed and revise dependencies/gates.",
-    "at": "2026-07-10T07:55:28.694Z"
+    "verdict": "verified",
+    "summary": "No blocking findings. The two prior High findings are closed: ADR-0017 now approves protocolVersion 1/schemaVersion 3/GameSession projection v1 with sufficient render/UI fields, explicit InitSession/Ready negotiation, strict validation and fail-closed compatibility; WM-0164 is the sole exact sim-protocol writer. The DAG is strictly WM-0162->WM-0163->WM-0164->WM-0165->WM-0166, required checks reference only self/ancestor outputs, all four implementation tasks remain proposed/unclaimed, and no new message family, command/save expansion, release or PR-2+ scope is authorized. All required checks and quality pass.",
+    "at": "2026-07-10T08:19:45.038Z"
   }
 }
