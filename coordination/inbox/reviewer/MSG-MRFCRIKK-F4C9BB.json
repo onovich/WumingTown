@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MRFCRIKK-F4C9BB",
+  "from": "qa-performance",
+  "to": "reviewer",
+  "taskId": "WM-0166",
+  "kind": "review-request",
+  "subject": "WM-0166 ready for review",
+  "body": "PR-1 exit gates passed: focused 40/40, Worker smoke 18/18, Web shell 13/13, 18000/100000 ticks zero leaks, quality 458/458; report lists reused stores, unconnected M1-M8 capabilities and residual risks",
+  "artifacts": [
+    "coordination/reports/WM-0166.md",
+    "task/WM-0166-pr-1-integrated-gamesession-exit-gates"
+  ],
+  "createdAt": "2026-07-10T19:52:44.996Z",
+  "acknowledgedAt": "2026-07-10T20:44:57.908Z"
+}

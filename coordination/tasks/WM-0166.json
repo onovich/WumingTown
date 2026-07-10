@@ -2,11 +2,12 @@
   "id": "WM-0166",
   "title": "PR-1 integrated GameSession exit gates",
   "summary": "Run and harden the integrated PR-1 gates for continuous 10-minute runtime, same-session read models, Worker/headless hash parity, 100000-tick leak checks and static-fixture retirement evidence.",
-  "state": "in_progress",
+  "state": "blocked",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
-    "WM-0165"
+    "WM-0165",
+    "WM-0168"
   ],
   "docs": [
     "AGENTS.md",
@@ -16,6 +17,12 @@
     "coordination/reports/WM-0163.md",
     "coordination/reports/WM-0164.md",
     "coordination/reports/WM-0165.md",
+    "coordination/tasks/WM-0167.json",
+    "coordination/reports/WM-0167-plan.md",
+    "coordination/reports/WM-0167.md",
+    "coordination/tasks/WM-0168.json",
+    "coordination/reports/WM-0168-plan.md",
+    "coordination/reports/WM-0168.md",
     "packages/sim-protocol/src/game-session-projection.test.ts",
     "packages/sim-core/src/game-session.test.ts",
     "packages/sim-worker/src/game-session-worker.test.ts",
@@ -51,7 +58,7 @@
   ],
   "branch": "task/WM-0166-pr-1-integrated-gamesession-exit-gates",
   "createdAt": "2026-07-10T07:38:28.861Z",
-  "updatedAt": "2026-07-10T19:45:52.412Z",
+  "updatedAt": "2026-07-10T21:08:22.070Z",
   "history": [
     {
       "at": "2026-07-10T07:38:28.862Z",
@@ -82,6 +89,30 @@
       "actor": "qa-performance",
       "action": "claim",
       "details": "thread=Tally WM-0166"
+    },
+    {
+      "at": "2026-07-10T19:52:44.994Z",
+      "actor": "qa-performance",
+      "action": "complete",
+      "details": "PR-1 exit gates passed: focused 40/40, Worker smoke 18/18, Web shell 13/13, 18000/100000 ticks zero leaks, quality 458/458; report lists reused stores, unconnected M1-M8 capabilities and residual risks"
+    },
+    {
+      "at": "2026-07-10T20:55:07.232Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: the 10-minute Worker-owned scheduler gate is not proven. The real Chromium Worker smoke stops at tick >=9, while the 18000-tick command is headless explicit stepping; the report itself states no browser/Worker ran for 600 wall-clock seconds, so continuous scheduler survival/cadence/backpressure over the required interval remains unverified. High: the moving/working visibility gate fails in current behavior. The scheduler advances 3 ticks per publication; GameSessionJobLifecycle sets moving then working within tick 0 and completes by tick 3. An independent runtime probe observed tick 0 all idle and tick 3+ completed/idle, with no moving or working projection in any publication. Do not lower either gate; route a product/runtime repair plus focused Worker/Web evidence. Other required gates pass, including 100000-tick zero leaks, parity, coherent 8-resident/resource/alert/detail basis, fixture isolation, schema-v3 fail-closed, inventory, Web 13/13, Worker 18/18 and quality 458/458. Reviewer exact 'corepack pnpm exec vitest' failed twice to resolve vitest, but the installed direct Vitest entry passed the same 4 files 40/40."
+    },
+    {
+      "at": "2026-07-10T20:56:57.849Z",
+      "actor": "qa-performance",
+      "action": "block",
+      "details": "Two High PR-1 hard gates require an independent product/runtime repair task before WM-0166 can resume: (1) prove a real Worker-owned scheduler survives and advances continuously for 600 wall-clock seconds at normal speed, with cadence/backpressure evidence and no UI advance/drain/command-drain clock; current Chromium smoke reaches only tick >=9 while 18000 ticks are headless explicit stepping; (2) repair the runtime/publication lifecycle so non-instant work exposes moving and working states across multiple Worker publications under the 3-tick scheduler quantum; current lifecycle transitions within tick 0 and completes by tick 3, so publications observe idle only. Create a focused simulation-engineer/sim-worker product repair task owning required sim-core/sim-worker production paths, followed by qa-performance focused real Worker and default Web evidence. Do not lower thresholds or change protocol/schema/save."
+    },
+    {
+      "at": "2026-07-10T21:08:22.070Z",
+      "actor": "systems-architect",
+      "action": "create-serial-repair-dag",
+      "details": "Created WM-0167 simulation-engineer runtime/lifecycle repair then WM-0168 independent qa-performance real Worker/default Web evidence. WM-0166 now depends on WM-0168 and must remain blocked until both repair tasks are independently verified, integrated and done."
     }
   ],
   "milestone": "Post-M8",
@@ -107,5 +138,29 @@
   ],
   "claimedBy": "qa-performance",
   "threadLabel": "Tally WM-0166",
-  "blocker": null
+  "blocker": {
+    "by": "qa-performance",
+    "to": "systems-architect",
+    "reason": "WM-0166 remains blocked on the strict serial repair chain WM-0167 -> WM-0168. WM-0167 must repair the explicit lifecycle and Worker-owned clock without changing the 100 ms / 3-tick quantum, protocol, schema or save. After WM-0167 is independently verified, integrated and done, WM-0168 must prove a real Chromium module Worker for >=600000 ms and >=18000 ticks plus cadence/backpressure and default Web moving/working evidence. Only after WM-0168 is independently verified, integrated and done may qa-performance run taskctl unblock for WM-0166, rerun every WM-0166 required check, replace the stale pass claim with the new evidence, and request independent review again. No thresholds may be lowered.",
+    "previousState": "changes_requested",
+    "at": "2026-07-10T20:56:57.848Z",
+    "repairTasks": [
+      "WM-0167",
+      "WM-0168"
+    ],
+    "resumeProcedure": [
+      "WM-0167 must be reviewer verified, project-director integrated and done",
+      "WM-0168 is then promoted/claimed by qa-performance and must be reviewer verified, project-director integrated and done",
+      "qa-performance runs taskctl unblock --id WM-0166 --agent qa-performance with both done task ids in the summary",
+      "WM-0166 reruns its complete requiredChecks set, updates its report with real 600-second and moving/working evidence, and runs taskctl complete for a new independent review"
+    ]
+  },
+  "reportPath": "coordination/reports/WM-0166.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "changes_requested",
+    "summary": "High: the 10-minute Worker-owned scheduler gate is not proven. The real Chromium Worker smoke stops at tick >=9, while the 18000-tick command is headless explicit stepping; the report itself states no browser/Worker ran for 600 wall-clock seconds, so continuous scheduler survival/cadence/backpressure over the required interval remains unverified. High: the moving/working visibility gate fails in current behavior. The scheduler advances 3 ticks per publication; GameSessionJobLifecycle sets moving then working within tick 0 and completes by tick 3. An independent runtime probe observed tick 0 all idle and tick 3+ completed/idle, with no moving or working projection in any publication. Do not lower either gate; route a product/runtime repair plus focused Worker/Web evidence. Other required gates pass, including 100000-tick zero leaks, parity, coherent 8-resident/resource/alert/detail basis, fixture isolation, schema-v3 fail-closed, inventory, Web 13/13, Worker 18/18 and quality 458/458. Reviewer exact 'corepack pnpm exec vitest' failed twice to resolve vitest, but the installed direct Vitest entry passed the same 4 files 40/40.",
+    "at": "2026-07-10T20:55:07.231Z"
+  },
+  "singleWriterRule": "Strict width one: only WM-0167 may write product runtime now; WM-0168 remains proposed until WM-0167 done; WM-0166 remains blocked until WM-0168 done."
 }

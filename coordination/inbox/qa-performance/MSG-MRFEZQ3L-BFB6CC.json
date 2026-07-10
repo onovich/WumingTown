@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MRFEZQ3L-BFB6CC",
+  "from": "reviewer",
+  "to": "qa-performance",
+  "taskId": "WM-0166",
+  "kind": "changes-requested",
+  "subject": "WM-0166 review: changes_requested",
+  "body": "High: the 10-minute Worker-owned scheduler gate is not proven. The real Chromium Worker smoke stops at tick >=9, while the 18000-tick command is headless explicit stepping; the report itself states no browser/Worker ran for 600 wall-clock seconds, so continuous scheduler survival/cadence/backpressure over the required interval remains unverified. High: the moving/working visibility gate fails in current behavior. The scheduler advances 3 ticks per publication; GameSessionJobLifecycle sets moving then working within tick 0 and completes by tick 3. An independent runtime probe observed tick 0 all idle and tick 3+ completed/idle, with no moving or working projection in any publication. Do not lower either gate; route a product/runtime repair plus focused Worker/Web evidence. Other required gates pass, including 100000-tick zero leaks, parity, coherent 8-resident/resource/alert/detail basis, fixture isolation, schema-v3 fail-closed, inventory, Web 13/13, Worker 18/18 and quality 458/458. Reviewer exact 'corepack pnpm exec vitest' failed twice to resolve vitest, but the installed direct Vitest entry passed the same 4 files 40/40.",
+  "artifacts": [
+    "coordination/reports/WM-0166.md"
+  ],
+  "createdAt": "2026-07-10T20:55:07.233Z",
+  "acknowledgedAt": "2026-07-10T20:57:34.592Z"
+}

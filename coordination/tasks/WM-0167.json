@@ -1,0 +1,96 @@
+{
+  "id": "WM-0167",
+  "title": "PR-1 runtime lifecycle and Worker clock repair",
+  "summary": "Repair the explicit GameSession job lifecycle and Worker-owned normal-speed scheduler so 3-tick publications expose non-instant work and a real Worker can sustain the full 600-second gate without UI-driven time.",
+  "state": "ready",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0165"
+  ],
+  "docs": [
+    "AGENTS.md",
+    ".agents/skills/wuming-town-agent-workflow/SKILL.md",
+    "coordination/tasks/WM-0166.json",
+    "coordination/reports/WM-0166-plan.md",
+    "coordination/reports/WM-0166.md",
+    "coordination/inbox/qa-performance/MSG-MRFEZQ3L-BFB6CC.json",
+    "coordination/inbox/systems-architect/MSG-MRFF23GA-99369F.json",
+    "coordination/decisions/ADR-0017.md",
+    "docs/05_tech/12_integrated_gamesession_architecture.md",
+    "packages/sim-core/src/game-session-job-lifecycle.ts",
+    "packages/sim-core/src/game-session-tick.ts",
+    "packages/sim-core/src/game-session.test.ts",
+    "packages/sim-worker/src/game-session-scheduler.ts",
+    "packages/sim-worker/src/game-session-worker-host.ts",
+    "packages/sim-worker/src/game-session-worker-outbox.ts",
+    "packages/sim-worker/src/game-session-worker.test.ts",
+    "packages/sim-worker/src/index.ts"
+  ],
+  "acceptance": [
+    "At unchanged normal speed and the unchanged 100 ms / 3-tick publication quantum, the authoritative PR-1 non-instant job exposes moving and working in separate coherent Worker publications, with each state present in at least two consecutive publication pairs before terminal idle",
+    "Movement and interaction progress remain explicit integer-tick JobCore state with serializable step, stepEnteredTick and stepTickCount evidence; no coroutine, Promise chain, closure-only cursor, UI clock or real clock is added to sim-core",
+    "The Worker-owned scheduler reaches at least 18000 authoritative ticks during a passive 600000 ms normal-speed run by using bounded wall-time debt/catch-up outside sim-core, while pause and speeds 0/1/2/3 retain effective 0/30/60/90 TPS semantics and shutdown/disconnect stop scheduling exactly once",
+    "Projection delivery remains latest-wins for render/UI and reliable for command, alert, save and fatal messages; focused backpressure tests prove stale snapshot drops, bounded reliable queue depth and strictly ordered reliable delivery",
+    "Fixed-seed Worker/headless world and read-model hash parity, deterministic phase order, structured lifecycle reasons and the 100000-tick zero job/reservation/queue/resource-leak gate remain passing after the duration repair",
+    "No GameSession protocol, schema, projection payload/version, save format, public compatibility promise, Web authority, test threshold or runtime dependency changes"
+  ],
+  "requiredChecks": [
+    "corepack pnpm typecheck",
+    "corepack pnpm exec vitest run packages/sim-core/src/game-session.test.ts packages/sim-worker/src/game-session-worker.test.ts",
+    "node tools/test-runner.mjs e2e --filter worker-smoke",
+    "corepack pnpm sim:run -- --seed 5 --scenario pr1-integrated-gamesession --ticks 18000",
+    "corepack pnpm sim:run -- --seed 5 --scenario pr1-integrated-gamesession --ticks 100000",
+    "corepack pnpm boundaries:check",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0167-pr-1-runtime-lifecycle-and-worker-clock-repair",
+  "createdAt": "2026-07-10T21:04:33.773Z",
+  "updatedAt": "2026-07-10T21:08:22.070Z",
+  "history": [
+    {
+      "at": "2026-07-10T21:04:33.774Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    },
+    {
+      "at": "2026-07-10T21:08:22.070Z",
+      "actor": "systems-architect",
+      "action": "refine-ready-task",
+      "details": "Added already-done WM-0165 dependency, exact sim-core/sim-worker single-writer paths, unchanged 3-tick publication and 600-second/18000-tick hard gates, deterministic/backpressure checks and protocol/schema/save prohibitions. Task remains ready and unclaimed."
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "pr-1-integrated-gamesession-repair",
+  "architectureDecision": "coordination/decisions/ADR-0017.md",
+  "saveLoadStance": "No save mutation or public compatibility. GameSession save/load remains unsupported and fail-closed.",
+  "allowedPaths": [
+    "packages/sim-core/src/game-session-job-lifecycle.ts",
+    "packages/sim-core/src/game-session-tick.ts",
+    "packages/sim-core/src/game-session.test.ts",
+    "packages/sim-worker/src/game-session-scheduler.ts",
+    "packages/sim-worker/src/game-session-worker-host.ts",
+    "packages/sim-worker/src/game-session-worker-outbox.ts",
+    "packages/sim-worker/src/game-session-worker.test.ts",
+    "packages/sim-worker/src/game-session-worker-test-support.ts",
+    "packages/sim-worker/src/index.ts",
+    "coordination/tasks/WM-0167.json",
+    "coordination/reports/WM-0167*.md"
+  ],
+  "forbiddenPaths": [
+    "packages/sim-protocol/** and any protocol, schema, projection-version, payload, validator or public-export change",
+    "apps/**, including default Web implementation and WM-0168-owned E2E evidence",
+    "generic JobCore, reservation, pathing, store or save-format changes outside the listed GameSession repair files",
+    "changing GAME_SESSION_SCHEDULER_QUANTUM_MS=100 or GAME_SESSION_TICKS_PER_QUANTUM_AT_SPEED_1=3 to hide lifecycle visibility failures",
+    "lowering the 600000 ms, 18000 tick, two-consecutive-publication, parity, conservation or backpressure gates",
+    "UI advance helpers, drain helpers, command-drain loops, scenario runners or static fixtures as the normal product clock/authority",
+    "unbounded scheduler catch-up, sim-core wall-clock access, hot-loop allocation growth, new runtime dependencies or PR-2+ scope"
+  ],
+  "executionLane": "simulation-engineer only; Spark is prohibited because this repair touches Worker scheduling, deterministic lifecycle and concurrency ownership",
+  "singleWriterRule": "WM-0167 is the only ready product-code writer. WM-0168 remains proposed until WM-0167 is independently verified, integrated and done; WM-0166 remains blocked."
+}

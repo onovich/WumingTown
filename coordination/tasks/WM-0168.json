@@ -1,0 +1,86 @@
+{
+  "id": "WM-0168",
+  "title": "PR-1 real Worker and default Web evidence",
+  "summary": "Independently prove the repaired GameSession in a real browser Worker for at least 600 wall-clock seconds and on the default Web route, including cadence, backpressure and moving/working publication evidence.",
+  "state": "proposed",
+  "ownerRole": "qa-performance",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0167"
+  ],
+  "docs": [
+    "AGENTS.md",
+    ".agents/skills/wuming-town-agent-workflow/SKILL.md",
+    "coordination/tasks/WM-0167.json",
+    "coordination/reports/WM-0167.md",
+    "coordination/tasks/WM-0166.json",
+    "coordination/reports/WM-0166-plan.md",
+    "coordination/reports/WM-0166.md",
+    "coordination/inbox/qa-performance/MSG-MRFEZQ3L-BFB6CC.json",
+    "coordination/decisions/ADR-0017.md",
+    "docs/05_tech/12_integrated_gamesession_architecture.md",
+    "packages/sim-worker/src/worker-smoke.e2e.test.ts",
+    "apps/web/src/web-shell.e2e.test.ts"
+  ],
+  "acceptance": [
+    "A real Chromium module Worker, not an in-process HarnessBrowserWorker or fake timer, stays alive at requested speed 1 for at least 600000 browser-monotonic wall-clock ms after Ready and advances from tick 0 by at least 18000 authoritative ticks",
+    "The 600-second run is passive after InitSession: no UI advance, wait, drain, command-drain, direct runScheduledQuantum or repeated command loop drives time; the report records start/end wall time and tick, minute checkpoints, publication count and fatal/closed count",
+    "Cadence evidence has strictly increasing coherent publication ticks, at least one advancing publication in every 60-second checkpoint window and no gap longer than 5000 ms; metrics evidence records droppedSnapshots and queuedReliableMessages, and focused forced-backpressure evidence confirms latest-wins snapshots with ordered reliable delivery",
+    "Under the unchanged 100 ms / 3-tick quantum, real Worker coherent projection pairs show moving in at least two consecutive pairs and working in at least two later consecutive pairs before terminal idle, with matching sequence, tick, world hash and read-model hash basis",
+    "The default Web route at 1424 x 861 passively renders separate moving and working frames from projectionSource=game-session-worker, keeps at least eight residents/resources/details on the same session basis and mechanically excludes fixture, UI advance, wait and drain gameplay authority",
+    "Fixed-seed Worker/headless parity, schema-v3 fail-closed behavior, 18000/100000-tick conservation and prior WM-0166 gates are rerun without changing production code or lowering thresholds",
+    "The report and compact artifact include raw aggregate evidence sufficient for independent review: elapsed ms, initial/final tick, per-minute ticks, publication/lifecycle sequence, maximum publication gap, dropped snapshots, maximum reliable queue depth, fatal count and exact commands/results",
+    "No product implementation, protocol/schema/projection/save change, public compatibility promise, new runtime dependency, PR-2+ feature or release action"
+  ],
+  "requiredChecks": [
+    "corepack pnpm typecheck",
+    "corepack pnpm exec vitest run packages/sim-protocol/src/game-session-projection.test.ts packages/sim-core/src/game-session.test.ts packages/sim-worker/src/game-session-worker.test.ts apps/web/src/simulation-worker-session.test.ts",
+    "node tools/test-runner.mjs e2e --filter worker-smoke",
+    "node tools/test-runner.mjs e2e --filter web-shell",
+    "corepack pnpm sim:run -- --seed 5 --scenario pr1-integrated-gamesession --ticks 18000",
+    "corepack pnpm sim:run -- --seed 5 --scenario pr1-integrated-gamesession --ticks 100000",
+    "corepack pnpm boundaries:check",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0168-pr-1-real-worker-and-default-web-evidence",
+  "createdAt": "2026-07-10T21:04:33.825Z",
+  "updatedAt": "2026-07-10T21:08:22.070Z",
+  "history": [
+    {
+      "at": "2026-07-10T21:04:33.826Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    },
+    {
+      "at": "2026-07-10T21:08:22.070Z",
+      "actor": "systems-architect",
+      "action": "refine-proposed-task",
+      "details": "Scoped as independent QA-only real Worker 600-second and default Web evidence after WM-0167. Added exact cadence, backpressure, lifecycle-publication and no-UI-clock gates; task remains proposed until WM-0167 is done."
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "pr-1-integrated-gamesession-repair-evidence",
+  "architectureDecision": "coordination/decisions/ADR-0017.md",
+  "saveLoadStance": "Evidence-only. No GameSession save mutation or public compatibility; unsupported load remains fail-closed.",
+  "allowedPaths": [
+    "packages/sim-worker/src/worker-smoke.e2e.test.ts",
+    "apps/web/src/web-shell.e2e.test.ts",
+    "coordination/tasks/WM-0168.json",
+    "coordination/reports/WM-0168*.md",
+    "coordination/artifacts/WM-0168/**"
+  ],
+  "forbiddenPaths": [
+    "packages/sim-core/**, packages/sim-worker production files, packages/sim-protocol/** and apps/web production files",
+    "mock Worker, in-process HarnessBrowserWorker, fake timer, explicit runScheduledQuantum, advance, wait, drain or command-drain evidence substituted for the real 600-second gate",
+    "reducing 600000 ms, 18000 ticks, 5000 ms maximum gap, 3-tick quantum or two-consecutive-publication lifecycle requirements",
+    "changing implementation to make evidence pass; product failures must block back to simulation-engineer with structured evidence",
+    "fixture/scenario-runner authority, protocol/schema/projection/save changes, new dependencies, PR-2+ scope or release actions"
+  ],
+  "executionLane": "qa-performance only after WM-0167 done; final review remains independent reviewer",
+  "singleWriterRule": "WM-0168 is the sole evidence writer only after WM-0167 closes. WM-0166 stays blocked until WM-0168 is independently verified, integrated and done."
+}

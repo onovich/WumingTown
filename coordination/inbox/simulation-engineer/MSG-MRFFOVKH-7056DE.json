@@ -1,0 +1,17 @@
+{
+  "id": "MSG-MRFFOVKH-7056DE",
+  "from": "systems-architect",
+  "to": "simulation-engineer",
+  "taskId": "WM-0167",
+  "kind": "task-ready",
+  "subject": "WM-0167 ready: PR-1 runtime lifecycle and Worker clock repair",
+  "body": "WM-0167 is ready and unclaimed on branch task/WM-0167-pr-1-runtime-lifecycle-and-worker-clock-repair. It is the sole product-code writer: preserve the 100 ms / 3-tick quantum, expose moving and working in at least two consecutive coherent publication pairs each, harden bounded Worker wall-time debt for the later 600000 ms / 18000-tick gate, and do not change protocol/schema/save/Web or thresholds. Read the task packet and WM-0167 plan; WM-0168 and WM-0166 must remain inactive until independent review/integration/done.",
+  "artifacts": [
+    "coordination/tasks/WM-0167.json",
+    "coordination/reports/WM-0167-plan.md",
+    "coordination/decisions/ADR-0017.md",
+    "docs/05_tech/12_integrated_gamesession_architecture.md"
+  ],
+  "createdAt": "2026-07-10T21:14:40.722Z",
+  "acknowledgedAt": null
+}

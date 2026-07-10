@@ -1,12 +1,15 @@
 # Integrated GameSession Architecture
 
-Status: ADR-0017 architecture record, validated through the WM-0166 PR-1 exit
-gates. WM-0162 authored the plan; WM-0163 and WM-0164 implemented the runtime,
-schema-v3 projection, and Worker scheduler; WM-0165 consumes those public roots;
-WM-0166 passed the integrated focused, Worker, Web, 18000-tick, 100000-tick,
-boundary and workspace quality gates. This document does not approve PR-2 work
-or public save compatibility. ADR status closure remains a systems-architect /
-project-director action.
+Status: ADR-0017 architecture record; PR-1 exit remains blocked after the first
+WM-0166 review. WM-0162 authored the plan; WM-0163 and WM-0164 implemented the
+runtime, schema-v3 projection, and Worker scheduler; WM-0165 consumes those
+public roots. WM-0166 passed focused parity, Web, 18000-tick, 100000-tick,
+boundary and workspace quality checks, but did not prove a real Worker for 600
+wall-clock seconds and did not expose moving/working across the 3-tick
+publication quantum. WM-0167 and WM-0168 are the strict serial repair/evidence
+chain before WM-0166 may resume. This document does not approve PR-2 work or
+public save compatibility. ADR status closure remains a systems-architect /
+project-director action after all exit gates pass independent review.
 
 ## Scope
 
@@ -332,7 +335,9 @@ work.
    with that validated Worker session projection.
 5. Keep static fixtures and scenario runners available only through tests,
    diagnostics or explicit historical gates.
-6. Run PR-1 exit gates before any PR-2 planning or WM-0154 unblock.
+6. Run PR-1 exit gates before any PR-2 planning or WM-0154 unblock. A headless
+   18000-tick run is deterministic supplement only; it cannot substitute for
+   the real Worker 600-second gate.
 
 ### WM-0165 Web default route status
 
@@ -446,7 +451,7 @@ PR-1 is not complete until all gates are reported by WM-0166:
    fail-closed behavior and legacy-regression exclusion from the product route
    are covered by protocol, Worker and Web tests.
 
-## Proposed PR-1 DAG
+## PR-1 DAG and WM-0166 repair addendum
 
 | Task    | Owner               | Depends on | Write ownership                                                                                                                  | Purpose                                                                                                                                                                      |
 | ------- | ------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -454,12 +459,38 @@ PR-1 is not complete until all gates are reported by WM-0166:
 | WM-0164 | simulation-engineer | WM-0163    | exact `packages/sim-protocol` projection files listed above plus focused `packages/sim-worker` session/scheduler files and tests | Implement the ADR-approved schema-v3 projection contract as sole protocol writer, then host the runtime with continuous scheduling, fail-closed validation and backpressure. |
 | WM-0165 | client-engineer     | WM-0164    | focused `apps/web/src` paths plus exact presentation enum, Pixi resource marker, and HUD localization consumers; wire protocol remains consume-only | Route default Web gameplay truth to the validated Worker session projection and quarantine static fixtures.                                                                  |
 | WM-0166 | qa-performance      | WM-0165    | focused integrated tests/reports; protocol and feature code are consume-only                                                     | Run the PR-1 exit gates and record residual risks.                                                                                                                           |
+| WM-0167 | simulation-engineer | WM-0165    | exact GameSession lifecycle/tick and Worker scheduler/host/outbox/index files plus focused unit tests; no protocol or Web files   | Repair explicit lifecycle duration and bounded Worker wall-time debt while preserving 100 ms / 3 ticks, deterministic parity and reliable delivery.                         |
+| WM-0168 | qa-performance      | WM-0167    | `worker-smoke.e2e.test.ts`, `web-shell.e2e.test.ts`, WM-0168 artifact/report only                                                  | Independently prove a real module Worker for >=600000 ms and >=18000 ticks, cadence/backpressure, and moving/working on Worker and default Web publications.                 |
 
-The critical path is
-`WM-0162 -> WM-0163 -> WM-0164 -> WM-0165 -> WM-0166`. The maximum concurrent
-write-heavy width is one. This makes protocol production, Worker validation and
-Web consumption executable in dependency order and gives every product-code
-surface one active owner.
+The original path was
+`WM-0162 -> WM-0163 -> WM-0164 -> WM-0165 -> WM-0166`. The first WM-0166
+review found two High gaps, so the remaining effective path is
+`WM-0165 -> WM-0167 -> WM-0168 -> WM-0166 resume`. WM-0166 formally depends on
+WM-0168 and stays blocked. The maximum concurrent write-heavy width remains
+one: only WM-0167 is ready now; WM-0168 stays proposed until WM-0167 is done;
+WM-0166 stays blocked until WM-0168 is done.
+
+WM-0167 may not change `GAME_SESSION_SCHEDULER_QUANTUM_MS = 100` or
+`GAME_SESSION_TICKS_PER_QUANTUM_AT_SPEED_1 = 3`. It must use explicit
+integer-tick JobCore steps so both `moving` and `working` occur in at least two
+consecutive coherent publication pairs. Wall-time debt/catch-up belongs only
+to the Worker host boundary, must be bounded per callback, and may never expose
+a real clock to `sim-core`.
+
+WM-0168 must use a real Chromium module Worker after a single `InitSession`,
+remain passive for at least 600000 browser-monotonic milliseconds, advance at
+least 18000 authoritative ticks, show progress in every 60-second checkpoint
+window, and have no coherent-publication gap longer than 5000 ms. It must also
+record publication count, lifecycle sequence, dropped snapshots, maximum
+reliable queue depth and fatal/closed count. Headless stepping, fake timers,
+in-process Worker harnesses and UI advance/wait/drain helpers cannot satisfy
+this gate.
+
+After WM-0167 and WM-0168 are independently verified, integrated and done,
+qa-performance may unblock WM-0166, rerun its complete required-check set,
+replace the stale overall-PASS report conclusion with the new evidence, and
+request a fresh independent review. No old evidence can directly advance
+WM-0166 to integration.
 
 ## Open Decisions
 

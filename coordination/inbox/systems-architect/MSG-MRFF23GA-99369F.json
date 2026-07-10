@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MRFF23GA-99369F",
+  "from": "qa-performance",
+  "to": "systems-architect",
+  "taskId": "WM-0166",
+  "kind": "blocker",
+  "subject": "WM-0166 blocked",
+  "body": "Two High PR-1 hard gates require an independent product/runtime repair task before WM-0166 can resume: (1) prove a real Worker-owned scheduler survives and advances continuously for 600 wall-clock seconds at normal speed, with cadence/backpressure evidence and no UI advance/drain/command-drain clock; current Chromium smoke reaches only tick >=9 while 18000 ticks are headless explicit stepping; (2) repair the runtime/publication lifecycle so non-instant work exposes moving and working states across multiple Worker publications under the 3-tick scheduler quantum; current lifecycle transitions within tick 0 and completes by tick 3, so publications observe idle only. Create a focused simulation-engineer/sim-worker product repair task owning required sim-core/sim-worker production paths, followed by qa-performance focused real Worker and default Web evidence. Do not lower thresholds or change protocol/schema/save.",
+  "artifacts": [
+    "coordination/reports/WM-0166.md"
+  ],
+  "createdAt": "2026-07-10T20:56:57.850Z",
+  "acknowledgedAt": "2026-07-10T20:57:51.085Z"
+}
