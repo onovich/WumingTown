@@ -1,102 +1,42 @@
 import { GAME_SESSION_PROJECTION_VERSION, SIMULATION_PROTOCOL_REASON_CODE } from "./constants";
-import type {
-  GameSessionEntityRefV1,
-  GameSessionProjectionBasisV1,
-  GameSessionProjectionRequestV1,
-  GameSessionRenderProjectionV1,
-  GameSessionUiProjectionV1,
+import {
+  isAlertSeverity,
+  isAnimationState,
+  isDayPhase,
+  isEffectiveTicksPerSecond,
+  isFacing,
+  isGameSessionRecord,
+  isJobState,
+  isNeedValue,
+  isNonEmptyString,
+  isNullablePreviousSequence,
+  isPositiveInteger,
+  isQ16,
+  isReasonSource,
+  isRenderKind,
+  isRequestedSpeed,
+  isResidentActivity,
+  isResourceKind,
+  isScalar,
+  isStructureKind,
+  isUint32,
+  readAlertKey,
+  readEntityKey,
+  readMarkerKey,
+  readResidentKey,
+  readResourceKey,
+  validateGameSessionEntity,
+  type GameSessionInputRecord,
+  type GameSessionProjectionBasisV1,
+  type GameSessionProjectionRequestV1,
+  type GameSessionRenderProjectionV1,
+  type GameSessionUiProjectionV1,
 } from "./game-session-projection";
 import type { ProtocolRejection } from "./types";
-import { isNonNegativeSafeInteger, isRecord } from "./validation-helpers";
+import { isNonNegativeSafeInteger } from "./validation-helpers";
 
-const Q16_ONE = 65_536;
 const MAX_RENDER_ROWS = 65_536;
 const MAX_UI_ROWS = 4_096;
-
-type GameSessionInputField =
-  | "activity"
-  | "alertId"
-  | "alerts"
-  | "animationState"
-  | "available"
-  | "basis"
-  | "buildCompleted"
-  | "buildProgressTicks"
-  | "buildRequiredTicks"
-  | "cellIndex"
-  | "code"
-  | "comfort"
-  | "contentManifestHash"
-  | "currentJobId"
-  | "dayIndex"
-  | "daylightQ16"
-  | "dayPhase"
-  | "defId"
-  | "derivedIndexVersion"
-  | "effectiveTicksPerSecond"
-  | "entities"
-  | "entity"
-  | "facing"
-  | "flags"
-  | "generation"
-  | "hunger"
-  | "index"
-  | "jobId"
-  | "jobs"
-  | "jobState"
-  | "jobVersion"
-  | "kind"
-  | "lampFuel"
-  | "lampStateCode"
-  | "mapHeight"
-  | "mapVersion"
-  | "mapWidth"
-  | "markerId"
-  | "owner"
-  | "ownerVersion"
-  | "parameters"
-  | "paused"
-  | "previousSnapshotSequence"
-  | "progressQ16"
-  | "projectionVersion"
-  | "readModelHash"
-  | "reason"
-  | "renderDefId"
-  | "requestedSpeed"
-  | "reservationVersion"
-  | "reserved"
-  | "resident"
-  | "residentDefId"
-  | "residentId"
-  | "residents"
-  | "resource"
-  | "resourceKind"
-  | "resources"
-  | "rest"
-  | "safety"
-  | "scenarioId"
-  | "selectionDetail"
-  | "severity"
-  | "snapshotSequence"
-  | "social"
-  | "source"
-  | "state"
-  | "stateCode"
-  | "structureDefId"
-  | "structureKind"
-  | "subject"
-  | "target"
-  | "tick"
-  | "tickOfDay"
-  | "ticksPerDay"
-  | "tileSizeQ16"
-  | "total"
-  | "version"
-  | "worldHash"
-  | "xQ16"
-  | "yQ16";
-
-type GameSessionInputRecord = Readonly<Partial<Record<GameSessionInputField, unknown>>>;
 
 export type GameSessionProjectionValidationResult =
   | { readonly ok: true }
@@ -109,7 +49,7 @@ export function validateGameSessionProjectionRequest(
     return invalid("GameSession projection request kind must be game_session");
   }
   if (input.version !== GAME_SESSION_PROJECTION_VERSION) {
-    return invalid("GameSession projection request version is unsupported");
+    return unsupported("GameSession projection request version is unsupported");
   }
   return VALID;
 }
@@ -197,7 +137,7 @@ export function validateGameSessionUiProjectionV1(
   const alerts = validateUniqueRows(input.alerts, validateAlert, readAlertKey);
   if (!alerts.ok) return alerts;
   if (input.selectionDetail !== null) {
-    const detail = validateSelectionDetail(input.selectionDetail);
+    const detail = validateSelectionDetail(input.selectionDetail, input.basis);
     if (!detail.ok) return detail;
   }
   if (
@@ -223,7 +163,7 @@ export function validateCoherentGameSessionProjectionPair(
   render: GameSessionRenderProjectionV1,
   ui: GameSessionUiProjectionV1,
 ): GameSessionProjectionValidationResult {
-  return sameBasis(render.basis, ui.basis)
+  return sameBasisRecord(render.basis, ui.basis)
     ? VALID
     : invalid("GameSession render and UI projection basis is incoherent");
 }
@@ -232,13 +172,15 @@ export function sameGameSessionProjectionBasis(
   left: GameSessionProjectionBasisV1,
   right: GameSessionProjectionBasisV1,
 ): boolean {
-  return sameBasis(left, right);
+  return sameBasisRecord(left, right);
 }
 
 function validateBasis(input: unknown): GameSessionProjectionValidationResult {
   if (!isGameSessionRecord(input)) return invalid("GameSession projection basis must be an object");
+  if (input.projectionVersion !== GAME_SESSION_PROJECTION_VERSION) {
+    return unsupported("GameSession projection basis version is unsupported");
+  }
   if (
-    input.projectionVersion !== GAME_SESSION_PROJECTION_VERSION ||
     !isNonEmptyString(input.scenarioId) ||
     !isNonEmptyString(input.contentManifestHash) ||
     !isNonNegativeSafeInteger(input.tick) ||
@@ -257,7 +199,7 @@ function validateBasis(input: unknown): GameSessionProjectionValidationResult {
 }
 
 function validateRenderEntity(input: unknown): GameSessionProjectionValidationResult {
-  if (!isGameSessionRecord(input) || !validateEntity(input.entity)) {
+  if (!isGameSessionRecord(input) || !validateGameSessionEntity(input.entity)) {
     return invalid("GameSession render entity reference is malformed");
   }
   if (
@@ -275,7 +217,7 @@ function validateRenderEntity(input: unknown): GameSessionProjectionValidationRe
 }
 
 function validateResident(input: unknown): GameSessionProjectionValidationResult {
-  if (!isGameSessionRecord(input) || !validateEntity(input.entity)) {
+  if (!isGameSessionRecord(input) || !validateGameSessionEntity(input.entity)) {
     return invalid("GameSession resident entity is malformed");
   }
   if (
@@ -321,8 +263,8 @@ function validateJob(input: unknown): GameSessionProjectionValidationResult {
     !(input.jobId === null || isNonNegativeSafeInteger(input.jobId)) ||
     !isJobState(input.state) ||
     !isQ16(input.progressQ16) ||
-    (input.owner !== undefined && !validateEntity(input.owner)) ||
-    (input.target !== undefined && !validateEntity(input.target))
+    (input.owner !== undefined && !validateGameSessionEntity(input.owner)) ||
+    (input.target !== undefined && !validateGameSessionEntity(input.target))
   ) {
     return invalid("GameSession job marker row is malformed");
   }
@@ -334,7 +276,7 @@ function validateAlert(input: unknown): GameSessionProjectionValidationResult {
     !isGameSessionRecord(input) ||
     !isNonEmptyString(input.alertId) ||
     !isAlertSeverity(input.severity) ||
-    (input.subject !== undefined && !validateEntity(input.subject))
+    (input.subject !== undefined && !validateGameSessionEntity(input.subject))
   ) {
     return invalid("GameSession alert row is malformed");
   }
@@ -357,23 +299,27 @@ function validateReason(input: unknown): GameSessionProjectionValidationResult {
   return VALID;
 }
 
-function validateSelectionDetail(input: unknown): GameSessionProjectionValidationResult {
+function validateSelectionDetail(
+  input: unknown,
+  containingBasis: unknown,
+): GameSessionProjectionValidationResult {
   if (!isGameSessionRecord(input) || !isGameSessionRecord(input.basis)) {
     return invalid("GameSession selection detail is malformed");
   }
   const basis = input.basis;
-  if (
-    basis.version !== 1 ||
-    !isNonNegativeSafeInteger(basis.snapshotSequence) ||
-    !isNonNegativeSafeInteger(basis.ownerVersion)
-  ) {
+  const projectionBasis = validateBasis(basis);
+  if (!projectionBasis.ok) return projectionBasis;
+  if (basis.version !== 1 || !isNonNegativeSafeInteger(basis.ownerVersion)) {
     return invalid("GameSession selection detail basis is malformed");
+  }
+  if (!isGameSessionRecord(containingBasis) || !sameBasisRecord(basis, containingBasis)) {
+    return invalid("GameSession selection detail basis is stale or foreign");
   }
   if (input.kind === "resident") return validateResident(input.resident);
   if (input.kind === "resource") return validateResource(input.resource);
   if (
     input.kind !== "structure" ||
-    !validateEntity(input.entity) ||
+    !validateGameSessionEntity(input.entity) ||
     !isStructureKind(input.structureKind) ||
     !isNonNegativeSafeInteger(input.structureDefId) ||
     !isNonNegativeSafeInteger(input.cellIndex) ||
@@ -414,11 +360,9 @@ function hasRequiredResourceKinds(rows: readonly unknown[]): boolean {
   return mask === 15;
 }
 
-function sameBasis(
-  left: GameSessionProjectionBasisV1,
-  right: GameSessionProjectionBasisV1,
-): boolean {
+function sameBasisRecord(left: GameSessionInputRecord, right: GameSessionInputRecord): boolean {
   return (
+    left.projectionVersion === right.projectionVersion &&
     left.scenarioId === right.scenarioId &&
     left.contentManifestHash === right.contentManifestHash &&
     left.tick === right.tick &&
@@ -433,141 +377,17 @@ function sameBasis(
   );
 }
 
-function isGameSessionRecord(input: unknown): input is GameSessionInputRecord {
-  return isRecord(input);
-}
-
-function validateEntity(input: unknown): input is GameSessionEntityRefV1 {
-  return (
-    isGameSessionRecord(input) &&
-    isNonNegativeSafeInteger(input.index) &&
-    isNonNegativeSafeInteger(input.generation)
-  );
-}
-
-function readEntityKey(input: unknown): string | undefined {
-  if (!isGameSessionRecord(input) || !validateEntity(input.entity)) return undefined;
-  const entity = input.entity;
-  return `${String(entity.index)}:${String(entity.generation)}`;
-}
-
-function readResidentKey(input: unknown): string | undefined {
-  if (!isGameSessionRecord(input) || !isNonNegativeSafeInteger(input.residentId)) {
-    return undefined;
-  }
-  return String(input.residentId);
-}
-
-function readResourceKey(input: unknown): string | undefined {
-  return isGameSessionRecord(input) && isNonNegativeSafeInteger(input.defId)
-    ? String(input.defId)
-    : undefined;
-}
-
-function readMarkerKey(input: unknown): string | undefined {
-  return isGameSessionRecord(input) && isNonEmptyString(input.markerId)
-    ? input.markerId
-    : undefined;
-}
-
-function readAlertKey(input: unknown): string | undefined {
-  return isGameSessionRecord(input) && isNonEmptyString(input.alertId) ? input.alertId : undefined;
-}
-
-function isNullablePreviousSequence(input: unknown, current: unknown): boolean {
-  return (
-    input === null ||
-    (isNonNegativeSafeInteger(input) && isNonNegativeSafeInteger(current) && input < current)
-  );
-}
-
-function isPositiveInteger(input: unknown): input is number {
-  return isNonNegativeSafeInteger(input) && input > 0;
-}
-
-function isUint32(input: unknown): input is number {
-  return isNonNegativeSafeInteger(input) && input <= 0xffff_ffff;
-}
-
-function isQ16(input: unknown): input is number {
-  return isNonNegativeSafeInteger(input) && input <= Q16_ONE;
-}
-
-function isNeedValue(input: unknown): input is number {
-  return isNonNegativeSafeInteger(input) && input <= 1_000;
-}
-
-function isNonEmptyString(input: unknown): input is string {
-  return typeof input === "string" && input.length > 0;
-}
-
-function isScalar(input: unknown): input is string | number | boolean {
-  return typeof input === "string" || typeof input === "boolean" || Number.isSafeInteger(input);
-}
-
-function isRequestedSpeed(input: unknown): input is 0 | 1 | 2 | 3 {
-  return input === 0 || input === 1 || input === 2 || input === 3;
-}
-
-function isEffectiveTicksPerSecond(input: unknown): input is 0 | 30 | 60 | 90 {
-  return input === 0 || input === 30 || input === 60 || input === 90;
-}
-
-function isFacing(input: unknown): input is 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 {
-  return isNonNegativeSafeInteger(input) && input <= 7;
-}
-
-function isRenderKind(input: unknown): boolean {
-  return ["resident", "resource", "structure", "lamp", "build_site"].includes(String(input));
-}
-
-function isAnimationState(input: unknown): boolean {
-  return ["idle", "moving", "working", "blocked", "completed"].includes(String(input));
-}
-
-function isDayPhase(input: unknown): boolean {
-  return input === "dawn" || input === "day" || input === "dusk" || input === "night";
-}
-
-function isResidentActivity(input: unknown): boolean {
-  return input === "idle" || input === "moving" || input === "working";
-}
-
-function isJobState(input: unknown): boolean {
-  return ["idle", "claiming", "moving", "working", "blocked", "completed", "failed"].includes(
-    String(input),
-  );
-}
-
-function isResourceKind(input: unknown): boolean {
-  return ["food", "wood", "stone", "lamp_oil", "other"].includes(String(input));
-}
-
-function isReasonSource(input: unknown): boolean {
-  return [
-    "session",
-    "resident",
-    "resource",
-    "job",
-    "reservation",
-    "pathing",
-    "lamp",
-    "build",
-  ].includes(String(input));
-}
-
-function isAlertSeverity(input: unknown): boolean {
-  return input === "info" || input === "warning" || input === "critical";
-}
-
-function isStructureKind(input: unknown): boolean {
-  return input === "bed" || input === "lamp" || input === "build_site";
-}
-
 function invalid(detail: string): GameSessionProjectionValidationResult {
   return {
     ok: false,
     reason: { code: SIMULATION_PROTOCOL_REASON_CODE.InvalidPayload, detail },
+  };
+}
+
+function unsupported(detail: string): GameSessionProjectionValidationResult {
+  return {
+    ok: false,
+    reason: { code: SIMULATION_PROTOCOL_REASON_CODE.UnsupportedSchemaVersion, detail },
   };
 }
 

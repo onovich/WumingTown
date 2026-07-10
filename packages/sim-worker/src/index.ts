@@ -255,12 +255,15 @@ export function connectSimulationWorkerPort(
   worker: SimulationWorker = createSimulationWorker(),
 ): SimulationWorkerConnection {
   const outbox = new GameSessionWorkerOutbox();
+  let disconnected = false;
   const flush = (): void => {
     const messages = outbox.drain();
     for (const message of messages) port.postMessage(message);
   };
   const listener = (event: SimulationWorkerMessageEvent): void => {
-    outbox.enqueue(worker.receive(event.data));
+    const responses = worker.receive(event.data);
+    outbox.enqueue(responses);
+    if (didAcceptShutdown(event.data, responses)) scheduler.stop();
     flush();
   };
 
@@ -274,10 +277,29 @@ export function connectSimulationWorkerPort(
 
   return {
     disconnect(): void {
+      if (disconnected) return;
+      disconnected = true;
       scheduler.stop();
       port.removeEventListener?.("message", listener);
     },
   };
+}
+
+function didAcceptShutdown(input: unknown, responses: readonly SimulationToMainMessage[]): boolean {
+  const validation = validateMainToSimulationMessage(input);
+  if (!validation.ok || validation.message.kind !== MAIN_TO_SIMULATION_MESSAGE_KIND.Shutdown) {
+    return false;
+  }
+  for (const response of responses) {
+    if (
+      response.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.CommandResult &&
+      response.payload.accepted &&
+      response.payload.inReplyToSequence === validation.message.sequence
+    ) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function guardLifecycleAndOrdering(

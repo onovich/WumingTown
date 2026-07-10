@@ -98,7 +98,7 @@ describe("validateMainToSimulationMessage", () => {
       }),
     ).toMatchObject({
       ok: false,
-      reason: { code: SIMULATION_PROTOCOL_REASON_CODE.InvalidPayload },
+      reason: { code: SIMULATION_PROTOCOL_REASON_CODE.UnsupportedSchemaVersion },
     });
   });
 

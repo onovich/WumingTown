@@ -80,7 +80,7 @@ export function createGameSessionProjectionPair(
       selectionDetail: createSelectionDetail(
         input.runtime,
         input.selection,
-        basis.snapshotSequence,
+        basis,
         coreUi,
         residents,
         resources,
@@ -246,7 +246,7 @@ function mapAlerts(
 function createSelectionDetail(
   runtime: GameSessionRuntime,
   selection: UiDetailSubject | null,
-  snapshotSequence: number,
+  projectionBasis: GameSessionProjectionBasisV1,
   projection: GameSessionUiProjection,
   residents: readonly GameSessionUiResidentV1[],
   resources: readonly GameSessionUiResourceV1[],
@@ -259,7 +259,7 @@ function createSelectionDetail(
     if (sameEntity(resident.entity, selected)) {
       return {
         kind: "resident",
-        basis: { version: 1, snapshotSequence, ownerVersion: resident.ownerVersion },
+        basis: { ...projectionBasis, version: 1, ownerVersion: resident.ownerVersion },
         resident,
       };
     }
@@ -271,7 +271,7 @@ function createSelectionDetail(
       if (resource === undefined) return null;
       return {
         kind: "resource",
-        basis: { version: 1, snapshotSequence, ownerVersion: resource.ownerVersion },
+        basis: { ...projectionBasis, version: 1, ownerVersion: resource.ownerVersion },
         resource,
       };
     }
@@ -279,8 +279,8 @@ function createSelectionDetail(
     return {
       kind: "structure",
       basis: {
+        ...projectionBasis,
         version: 1,
-        snapshotSequence,
         ownerVersion: readStructureOwnerVersion(runtime, render.kind),
       },
       entity: render.entity,

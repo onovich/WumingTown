@@ -17,11 +17,21 @@ import {
   type PlayerCommand,
   type RequestSavePayload,
   type RequestUiDetailPayload,
-  type SaveReadyMessage,
   type SimulationToMainMessage,
 } from "@wuming-town/sim-protocol";
 
 import { GameSessionBrowserProjectionValidator } from "./game-session-browser-validation";
+import {
+  assertCanPost,
+  assertPlayableAdvanceTargetTick,
+  emitListeners,
+  isReliableSimulationWorkerMessage,
+  isSimulationToMainMessage,
+  subscribe,
+  type ReliableSimulationWorkerMessage,
+} from "./game-session-browser-session-support";
+
+export type { ReliableSimulationWorkerMessage } from "./game-session-browser-session-support";
 
 import {
   drainPlayableCommandsToTerminal as drainPlayableCommandsToTerminalImpl,
@@ -44,21 +54,6 @@ export type BrowserSimulationWorkerSessionState =
   | "shutdown"
   | "fatal"
   | "destroyed";
-
-export type ReliableSimulationWorkerMessage =
-  | Extract<
-      SimulationToMainMessage,
-      { readonly kind: typeof SIMULATION_TO_MAIN_MESSAGE_KIND.CommandResult }
-    >
-  | SaveReadyMessage
-  | Extract<
-      SimulationToMainMessage,
-      { readonly kind: typeof SIMULATION_TO_MAIN_MESSAGE_KIND.AlertBatch }
-    >
-  | Extract<
-      SimulationToMainMessage,
-      { readonly kind: typeof SIMULATION_TO_MAIN_MESSAGE_KIND.FatalSimulationError }
-    >;
 
 export interface BrowserSimulationWorkerMessageEvent {
   readonly data: unknown;
@@ -183,9 +178,9 @@ export function createBrowserSimulationWorkerSession(
       setState("active");
     }
 
-    emitMessage(messageListeners, message);
+    emitListeners(messageListeners, message);
     if (isReliableSimulationWorkerMessage(message)) {
-      emitReliableMessage(reliableListeners, message);
+      emitListeners(reliableListeners, message);
     }
     if (message.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.FatalSimulationError) {
       closeWorker("fatal");
@@ -341,7 +336,7 @@ export function createBrowserSimulationWorkerSession(
 
   function setState(nextState: BrowserSimulationWorkerSessionState): void {
     state = nextState;
-    emitLifecycleMessage(lifecycleListeners, { state });
+    emitListeners(lifecycleListeners, { state });
   }
 
   function failClosed(detail: string): void {
@@ -357,8 +352,8 @@ export function createBrowserSimulationWorkerSession(
       },
     };
     lastWorkerSequence = fatal.sequence;
-    emitMessage(messageListeners, fatal);
-    emitReliableMessage(reliableListeners, fatal);
+    emitListeners(messageListeners, fatal);
+    emitListeners(reliableListeners, fatal);
     closeWorker("fatal");
   }
 
@@ -388,110 +383,4 @@ export function drainPlayableCommandsToTerminal(
   request: PlayableDrainRequest,
 ): Promise<PlayableDrainResult> {
   return session.drainPlayableCommandsToTerminal(request);
-}
-
-function assertCanPost(state: BrowserSimulationWorkerSessionState): void {
-  if (state === "destroyed") {
-    throw new Error("Browser Simulation Worker session has been destroyed.");
-  }
-
-  if (state === "shutdown") {
-    throw new Error("Browser Simulation Worker session has already been shut down.");
-  }
-
-  if (state === "fatal") {
-    throw new Error("Browser Simulation Worker session is closed after a fatal error.");
-  }
-
-  if (state === "initializing") {
-    throw new Error("Browser Simulation Worker session is awaiting Ready negotiation.");
-  }
-}
-
-function assertPlayableAdvanceTargetTick(targetTick: number): void {
-  if (!Number.isSafeInteger(targetTick) || targetTick < 0) {
-    throw new Error("Playable Worker advance target tick must be a non-negative safe integer.");
-  }
-}
-
-function subscribe<T>(listeners: T[], listener: T): () => void {
-  listeners.push(listener);
-  return (): void => {
-    const index = listeners.indexOf(listener);
-    if (index >= 0) {
-      listeners.splice(index, 1);
-    }
-  };
-}
-
-function emitMessage(
-  listeners: readonly BrowserSimulationWorkerMessageListener[],
-  message: SimulationToMainMessage,
-): void {
-  const snapshot = [...listeners];
-  for (const listener of snapshot) {
-    listener(message);
-  }
-}
-
-function emitReliableMessage(
-  listeners: readonly ReliableSimulationWorkerMessageListener[],
-  message: ReliableSimulationWorkerMessage,
-): void {
-  const snapshot = [...listeners];
-  for (const listener of snapshot) {
-    listener(message);
-  }
-}
-
-function emitLifecycleMessage(
-  listeners: readonly BrowserSimulationWorkerLifecycleListener[],
-  event: BrowserSimulationWorkerLifecycleEvent,
-): void {
-  const snapshot = [...listeners];
-  for (const listener of snapshot) {
-    listener(event);
-  }
-}
-
-function isSimulationToMainMessage(value: unknown): value is SimulationToMainMessage {
-  if (!isRecord(value) || !isRecord(value["payload"])) {
-    return false;
-  }
-
-  const kind = value["kind"];
-  if (kind === SIMULATION_TO_MAIN_MESSAGE_KIND.Ready && value["payload"]["status"] !== "ready") {
-    return false;
-  }
-  return (
-    value["protocolVersion"] === SIM_PROTOCOL_VERSION &&
-    value["schemaVersion"] === SIM_SCHEMA_VERSION &&
-    typeof value["sessionId"] === "string" &&
-    Number.isSafeInteger(value["sequence"]) &&
-    typeof value["sequence"] === "number" &&
-    value["sequence"] > 0 &&
-    (kind === SIMULATION_TO_MAIN_MESSAGE_KIND.Ready ||
-      kind === SIMULATION_TO_MAIN_MESSAGE_KIND.RenderSnapshot ||
-      kind === SIMULATION_TO_MAIN_MESSAGE_KIND.UiDelta ||
-      kind === SIMULATION_TO_MAIN_MESSAGE_KIND.CommandResult ||
-      kind === SIMULATION_TO_MAIN_MESSAGE_KIND.AlertBatch ||
-      kind === SIMULATION_TO_MAIN_MESSAGE_KIND.SaveReady ||
-      kind === SIMULATION_TO_MAIN_MESSAGE_KIND.MetricsSample ||
-      kind === SIMULATION_TO_MAIN_MESSAGE_KIND.FatalSimulationError)
-  );
-}
-
-function isReliableSimulationWorkerMessage(
-  message: SimulationToMainMessage,
-): message is ReliableSimulationWorkerMessage {
-  return (
-    message.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.CommandResult ||
-    message.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.SaveReady ||
-    message.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.AlertBatch ||
-    message.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.FatalSimulationError
-  );
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

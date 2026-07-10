@@ -61,6 +61,7 @@ export class GameSessionBrowserProjectionValidator {
       { readonly kind: typeof SIMULATION_TO_MAIN_MESSAGE_KIND.Ready }
     >,
   ): GameSessionBrowserValidationResult {
+    if (this.readyAccepted) return invalid("GameSession Ready was already accepted");
     if (
       message.payload.acceptedProtocolVersion !== SIM_PROTOCOL_VERSION ||
       message.payload.acceptedSchemaVersion !== SIM_SCHEMA_VERSION
@@ -68,9 +69,11 @@ export class GameSessionBrowserProjectionValidator {
       return invalid("Ready accepted versions or status do not match this browser session");
     }
     if (this.request === null) {
-      return message.payload.projectionContract === undefined
-        ? VALID
-        : invalid("Legacy Ready unexpectedly declared a GameSession projection contract");
+      if (message.payload.projectionContract !== undefined) {
+        return invalid("Legacy Ready unexpectedly declared a GameSession projection contract");
+      }
+      this.readyAccepted = true;
+      return VALID;
     }
     const result = validateGameSessionReadyContract(
       message.payload.projectionContract,

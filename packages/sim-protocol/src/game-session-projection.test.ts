@@ -19,13 +19,13 @@ describe("GameSession projection v1 validation", () => {
     const request = projectionRequest();
     expect(validateGameSessionProjectionRequest(request)).toEqual({ ok: true });
     expect(validateGameSessionReadyContract(request, request)).toEqual({ ok: true });
-    expect(validateGameSessionProjectionRequest({ ...request, version: 2 })).toMatchObject({
+    expect(validateGameSessionProjectionRequest({ ...request, version: 99 })).toMatchObject({
       ok: false,
-      reason: { code: SIMULATION_PROTOCOL_REASON_CODE.InvalidPayload },
+      reason: { code: SIMULATION_PROTOCOL_REASON_CODE.UnsupportedSchemaVersion },
     });
-    expect(validateGameSessionReadyContract({ ...request, version: 2 }, request)).toMatchObject({
+    expect(validateGameSessionReadyContract({ ...request, version: 99 }, request)).toMatchObject({
       ok: false,
-      reason: { code: SIMULATION_PROTOCOL_REASON_CODE.InvalidPayload },
+      reason: { code: SIMULATION_PROTOCOL_REASON_CODE.UnsupportedSchemaVersion },
     });
   });
 
@@ -87,11 +87,40 @@ describe("GameSession projection v1 validation", () => {
         ...ui,
         selectionDetail: {
           kind: "resident",
-          basis: { version: 1, snapshotSequence: ui.basis.snapshotSequence },
+          basis: { ...ui.basis, version: 1 },
           resident: ui.residents[0],
         },
       }),
     ).toMatchObject({ ok: false });
+  });
+
+  it("requires selection detail to share the complete containing UI basis", () => {
+    const ui = uiProjection();
+    const resident = ui.residents[0];
+    if (resident === undefined) throw new Error("resident fixture missing");
+    const selectionDetail: NonNullable<GameSessionUiProjectionV1["selectionDetail"]> = {
+      kind: "resident",
+      basis: { ...ui.basis, version: 1, ownerVersion: resident.ownerVersion },
+      resident,
+    };
+    expect(validateGameSessionUiProjectionV1({ ...ui, selectionDetail })).toEqual({ ok: true });
+    for (const basis of [
+      { ...selectionDetail.basis, snapshotSequence: 0 },
+      { ...selectionDetail.basis, worldHash: "0xforeign" },
+      { ...selectionDetail.basis, contentManifestHash: "0xforeign" },
+      { ...selectionDetail.basis, mapVersion: selectionDetail.basis.mapVersion + 1 },
+      {
+        ...selectionDetail.basis,
+        derivedIndexVersion: selectionDetail.basis.derivedIndexVersion + 1,
+      },
+    ]) {
+      expect(
+        validateGameSessionUiProjectionV1({
+          ...ui,
+          selectionDetail: { ...selectionDetail, basis },
+        }),
+      ).toMatchObject({ ok: false });
+    }
   });
 });
 

@@ -1,4 +1,5 @@
 import {
+  GAME_SESSION_COMMAND_QUEUE_CAPACITY,
   PR1_INTEGRATED_GAME_SESSION_ALIAS,
   PR1_INTEGRATED_GAME_SESSION_ID,
   initializeGameSessionRuntime,
@@ -49,6 +50,7 @@ export class GameSessionWorkerHost {
   private pausedValue = false;
   private selection: UiDetailSubject | null = null;
   private lastAlertSignature = "";
+  private queuedCommandCount = 0;
 
   private constructor(runtime: GameSessionRuntime) {
     this.runtime = runtime;
@@ -109,16 +111,10 @@ export class GameSessionWorkerHost {
   }
 
   queueCommands(commands: readonly PlayerCommand[]): GameSessionCommandBatchResult {
+    const preflight = this.preflightCommands(commands);
+    if (!preflight.ok) return preflight;
+
     for (const command of commands) {
-      if (command.kind !== PLAYER_COMMAND_KIND.Noop && command.kind !== PLAYER_COMMAND_KIND.Echo) {
-        return {
-          ok: false,
-          reason: {
-            code: SIMULATION_PROTOCOL_REASON_CODE.LifecycleError,
-            detail: "GameSession PR-1 accepts deterministic Noop/Echo commands only",
-          },
-        };
-      }
       const queued = this.runtime.queueCommand({
         tick: this.runtime.tick,
         commandId: command.commandId,
@@ -130,6 +126,40 @@ export class GameSessionWorkerHost {
           reason: {
             code: SIMULATION_PROTOCOL_REASON_CODE.InvalidPayload,
             detail: `GameSession command rejected: ${queued.reason}`,
+          },
+        };
+      }
+      this.queuedCommandCount += 1;
+    }
+    return { ok: true };
+  }
+
+  private preflightCommands(commands: readonly PlayerCommand[]): GameSessionCommandBatchResult {
+    if (commands.length > GAME_SESSION_COMMAND_QUEUE_CAPACITY - this.queuedCommandCount) {
+      return {
+        ok: false,
+        reason: {
+          code: SIMULATION_PROTOCOL_REASON_CODE.InvalidPayload,
+          detail: "GameSession deterministic command queue capacity would be exceeded",
+        },
+      };
+    }
+    for (const command of commands) {
+      if (command.kind !== PLAYER_COMMAND_KIND.Noop && command.kind !== PLAYER_COMMAND_KIND.Echo) {
+        return {
+          ok: false,
+          reason: {
+            code: SIMULATION_PROTOCOL_REASON_CODE.LifecycleError,
+            detail: "GameSession PR-1 accepts deterministic Noop/Echo commands only",
+          },
+        };
+      }
+      if (command.commandId.length === 0) {
+        return {
+          ok: false,
+          reason: {
+            code: SIMULATION_PROTOCOL_REASON_CODE.InvalidPayload,
+            detail: "GameSession command id must not be empty",
           },
         };
       }
