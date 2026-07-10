@@ -2,7 +2,7 @@
   "id": "WM-0164",
   "title": "PR-1 projection protocol and continuous Simulation Worker session",
   "summary": "Implement ADR-0017's minimum schema-v3 GameSession projection contract as the sole sim-protocol writer, then host the PR-1 GameSessionRuntime with continuous fixed-30-TPS scheduling, fail-closed validation, backpressure and Worker/headless parity.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "systems-architect",
   "dependsOn": [
@@ -63,7 +63,7 @@
   ],
   "branch": "task/WM-0164-pr-1-projection-protocol-continuous-worker",
   "createdAt": "2026-07-10T07:38:28.688Z",
-  "updatedAt": "2026-07-10T14:57:46.134Z",
+  "updatedAt": "2026-07-10T15:08:58.474Z",
   "history": [
     {
       "at": "2026-07-10T07:38:28.689Z",
@@ -130,6 +130,18 @@
       "actor": "systems-architect",
       "action": "review",
       "details": "verified: Re-review verified fix 04c1416. Direct repros confirm rejected [Noop, unsupported] batches are atomic with control-identical hashes 0x0fba7fbb/0x7c1484a3; every selection-detail projection basis field mismatch fails; duplicate Ready produces fatal and one terminate; version 99 returns UnsupportedSchemaVersion; accepted Shutdown clears the interval immediately, queued callbacks add no posts/ticks, and repeated disconnect is idempotent. Preflight accepts empty and exactly 128 append-only commands, rejects 129 atomically with control hashes, and preserves batchAccepted semantics. Selection basis extends the complete schema-v3 projection-v1 basis without protocolVersion/message-family drift. Related GameSession files are all below 400 lines, external imports use package roots, and boundary checks find no cycle/deep import. Required protocol 17, worker/core 22, Web 7, Chromium 18, 18k, typecheck, boundaries, handoff, taskctl, diff checks, extra browser 5, and full quality 78 files/449 tests all pass. No blocking findings remain."
+    },
+    {
+      "at": "2026-07-10T15:08:41.326Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Fast-forwarded main through 2e48358; exact-main typecheck, protocol 17, worker/core 22, browser session 5, Web 7, Chromium 18, 18000-tick deterministic gate, boundaries, handoff, task validation/status, diff check, and full quality 78 files/449 tests passed."
+    },
+    {
+      "at": "2026-07-10T15:08:58.474Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "Post-M8",
@@ -192,5 +204,10 @@
     "verdict": "verified",
     "summary": "Re-review verified fix 04c1416. Direct repros confirm rejected [Noop, unsupported] batches are atomic with control-identical hashes 0x0fba7fbb/0x7c1484a3; every selection-detail projection basis field mismatch fails; duplicate Ready produces fatal and one terminate; version 99 returns UnsupportedSchemaVersion; accepted Shutdown clears the interval immediately, queued callbacks add no posts/ticks, and repeated disconnect is idempotent. Preflight accepts empty and exactly 128 append-only commands, rejects 129 atomically with control hashes, and preserves batchAccepted semantics. Selection basis extends the complete schema-v3 projection-v1 basis without protocolVersion/message-family drift. Related GameSession files are all below 400 lines, external imports use package roots, and boundary checks find no cycle/deep import. Required protocol 17, worker/core 22, Web 7, Chromium 18, 18k, typecheck, boundaries, handoff, taskctl, diff checks, extra browser 5, and full quality 78 files/449 tests all pass. No blocking findings remain.",
     "at": "2026-07-10T14:57:46.133Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Fast-forwarded main through 2e48358; exact-main typecheck, protocol 17, worker/core 22, browser session 5, Web 7, Chromium 18, 18000-tick deterministic gate, boundaries, handoff, task validation/status, diff check, and full quality 78 files/449 tests passed.",
+    "at": "2026-07-10T15:08:41.326Z"
   }
 }

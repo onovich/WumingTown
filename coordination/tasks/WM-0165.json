@@ -2,7 +2,7 @@
   "id": "WM-0165",
   "title": "PR-1 product read-model default GameSession route",
   "summary": "Route the default Web shell to read the PR-1 GameSession Worker projection as gameplay truth and quarantine static product-gate fixtures to diagnostics/tests without UI authority over simulation.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "client-engineer",
   "reviewerRole": "systems-architect",
   "dependsOn": [
@@ -52,7 +52,7 @@
   ],
   "branch": "task/WM-0165-pr-1-product-read-model-default-gamesession-route",
   "createdAt": "2026-07-10T07:38:28.775Z",
-  "updatedAt": "2026-07-10T08:20:00.000Z",
+  "updatedAt": "2026-07-10T15:08:58.507Z",
   "history": [
     {
       "at": "2026-07-10T07:38:28.777Z",
@@ -71,6 +71,12 @@
       "actor": "systems-architect",
       "action": "changes-requested-fix",
       "details": "Changed dependency from WM-0163 to WM-0164 so schema-v3 projection types, validation and continuous Worker scheduling exist before Web consumption; task remains proposed and unclaimed."
+    },
+    {
+      "at": "2026-07-10T15:08:58.507Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "Post-M8",
