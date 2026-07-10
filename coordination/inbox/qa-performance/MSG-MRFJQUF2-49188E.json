@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MRFJQUF2-49188E",
+  "from": "reviewer",
+  "to": "qa-performance",
+  "taskId": "WM-0168",
+  "kind": "changes-requested",
+  "subject": "WM-0168 review: changes_requested",
+  "body": "High: the default-Web moving/working render gate is not proven. apps/web/src/web-shell.e2e.test.ts waits on __wm0168WorkerInbound raw UiDelta messages captured beside the product subscription; WebShellDebugPayload exposes no resident activity, so a broken Web adapter/render path that maps every activity to idle would still pass. Add product-consumed/rendered moving and working observations on the same coherent GameSession basis at 1424x861. Medium: the report says the order-sensitive Worker.prototype.addEventListener wrapper was replaced by a constructor-only read-only proxy, but the test still monkey-patches Worker.prototype.addEventListener, changing listener/removal semantics and duplicating capture; remove the prototype patch or document and prove semantic equivalence. Medium: real-run closedCount is hardcoded to 0 rather than observed; record actual browser-session/Worker lifecycle closure evidence. All required checks otherwise pass, including independently rerun real Chromium Worker 19/19 with 600101.9ms, tick 0->18000, 10 advancing checkpoints, max gap 126ms, Web 13/13, focused 44/44, 18k/100k zero leaks, and quality 462/462.",
+  "artifacts": [
+    "coordination/reports/WM-0168.md"
+  ],
+  "createdAt": "2026-07-10T23:08:11.006Z",
+  "acknowledgedAt": "2026-07-10T23:09:55.735Z"
+}

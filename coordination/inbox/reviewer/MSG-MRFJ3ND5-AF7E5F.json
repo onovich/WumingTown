@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MRFJ3ND5-AF7E5F",
+  "from": "qa-performance",
+  "to": "reviewer",
+  "taskId": "WM-0168",
+  "kind": "review-request",
+  "subject": "WM-0168 ready for review",
+  "body": "Real Chromium Worker PASS: 600010.5ms, tick 0->18000, 10 minute checkpoints, 6001 publications, max gap 127.1ms, moving/working x2, fatal/closed 0; Web 13/13, Worker 19/19, quality 462/462",
+  "artifacts": [
+    "coordination/reports/WM-0168.md",
+    "task/WM-0168-pr-1-real-worker-and-default-web-evidence"
+  ],
+  "createdAt": "2026-07-10T22:50:08.777Z",
+  "acknowledgedAt": "2026-07-10T22:50:59.867Z"
+}

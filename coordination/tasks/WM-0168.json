@@ -2,7 +2,7 @@
   "id": "WM-0168",
   "title": "PR-1 real Worker and default Web evidence",
   "summary": "Independently prove the repaired GameSession in a real browser Worker for at least 600 wall-clock seconds and on the default Web route, including cadence, backpressure and moving/working publication evidence.",
-  "state": "changes_requested",
+  "state": "verified",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -48,7 +48,7 @@
   ],
   "branch": "task/WM-0168-pr-1-real-worker-and-default-web-evidence",
   "createdAt": "2026-07-10T21:04:33.825Z",
-  "updatedAt": "2026-07-10T23:08:11.005Z",
+  "updatedAt": "2026-07-10T23:54:58.960Z",
   "history": [
     {
       "at": "2026-07-10T21:04:33.826Z",
@@ -85,6 +85,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "changes_requested: High: the default-Web moving/working render gate is not proven. apps/web/src/web-shell.e2e.test.ts waits on __wm0168WorkerInbound raw UiDelta messages captured beside the product subscription; WebShellDebugPayload exposes no resident activity, so a broken Web adapter/render path that maps every activity to idle would still pass. Add product-consumed/rendered moving and working observations on the same coherent GameSession basis at 1424x861. Medium: the report says the order-sensitive Worker.prototype.addEventListener wrapper was replaced by a constructor-only read-only proxy, but the test still monkey-patches Worker.prototype.addEventListener, changing listener/removal semantics and duplicating capture; remove the prototype patch or document and prove semantic equivalence. Medium: real-run closedCount is hardcoded to 0 rather than observed; record actual browser-session/Worker lifecycle closure evidence. All required checks otherwise pass, including independently rerun real Chromium Worker 19/19 with 600101.9ms, tick 0->18000, 10 advancing checkpoints, max gap 126ms, Web 13/13, focused 44/44, 18k/100k zero leaks, and quality 462/462."
+    },
+    {
+      "at": "2026-07-10T23:38:41.626Z",
+      "actor": "qa-performance",
+      "action": "complete",
+      "details": "Addressed review: Web proves product-consumed Pixi read models moving@3/6 and working@9/12 on coherent basis; removed all Worker prototype patches; lifecycle subscription observes zero pre-cleanup closures and destroyed cleanup. Exact Worker 19/19, Web 13/13, focused 44/44, quality 462/462."
+    },
+    {
+      "at": "2026-07-10T23:54:58.960Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Verified all prior findings closed: the 1424x861 Web gate now records production-assembled WorldReadModel activities only after the real Pixi activeRenderer.setReadModel call and independently reproduces moving ticks 3/6 plus working ticks 9/12; the raw inbound Worker proxy and Worker.prototype.addEventListener patch are absent; public browser-session lifecycle observation records created->initializing->active with closedCount=0 before cleanup and destroyed only after explicit cleanup. Independently reran real Chromium Worker 19/19: 600002.1ms, tick 0->18000, 10 advancing checkpoints, max gap 126.6ms, lifecycle 2+2 then idle, fatal/drop 0, reliable depth 2. Web 13/13, focused 44/44, 18k/100k zero leaks, boundaries/handoff/control checks and quality 462/462 pass; no production/protocol/schema/save/dependency changes. Low non-blocking report wording: it says no Worker prototype is patched, while the pre-existing outbound-only postMessage audit remains; this does not observe inbound lifecycle or drive authority."
     }
   ],
   "milestone": "Post-M8",
@@ -113,8 +125,8 @@
   "reportPath": "coordination/reports/WM-0168.md",
   "review": {
     "reviewer": "reviewer",
-    "verdict": "changes_requested",
-    "summary": "High: the default-Web moving/working render gate is not proven. apps/web/src/web-shell.e2e.test.ts waits on __wm0168WorkerInbound raw UiDelta messages captured beside the product subscription; WebShellDebugPayload exposes no resident activity, so a broken Web adapter/render path that maps every activity to idle would still pass. Add product-consumed/rendered moving and working observations on the same coherent GameSession basis at 1424x861. Medium: the report says the order-sensitive Worker.prototype.addEventListener wrapper was replaced by a constructor-only read-only proxy, but the test still monkey-patches Worker.prototype.addEventListener, changing listener/removal semantics and duplicating capture; remove the prototype patch or document and prove semantic equivalence. Medium: real-run closedCount is hardcoded to 0 rather than observed; record actual browser-session/Worker lifecycle closure evidence. All required checks otherwise pass, including independently rerun real Chromium Worker 19/19 with 600101.9ms, tick 0->18000, 10 advancing checkpoints, max gap 126ms, Web 13/13, focused 44/44, 18k/100k zero leaks, and quality 462/462.",
-    "at": "2026-07-10T23:08:11.005Z"
+    "verdict": "verified",
+    "summary": "No blocking findings. Verified all prior findings closed: the 1424x861 Web gate now records production-assembled WorldReadModel activities only after the real Pixi activeRenderer.setReadModel call and independently reproduces moving ticks 3/6 plus working ticks 9/12; the raw inbound Worker proxy and Worker.prototype.addEventListener patch are absent; public browser-session lifecycle observation records created->initializing->active with closedCount=0 before cleanup and destroyed only after explicit cleanup. Independently reran real Chromium Worker 19/19: 600002.1ms, tick 0->18000, 10 advancing checkpoints, max gap 126.6ms, lifecycle 2+2 then idle, fatal/drop 0, reliable depth 2. Web 13/13, focused 44/44, 18k/100k zero leaks, boundaries/handoff/control checks and quality 462/462 pass; no production/protocol/schema/save/dependency changes. Low non-blocking report wording: it says no Worker prototype is patched, while the pre-existing outbound-only postMessage audit remains; this does not observe inbound lifecycle or drive authority.",
+    "at": "2026-07-10T23:54:58.960Z"
   }
 }

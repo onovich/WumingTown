@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MRFKU2XO-33F185",
+  "from": "qa-performance",
+  "to": "reviewer",
+  "taskId": "WM-0168",
+  "kind": "review-request",
+  "subject": "WM-0168 ready for review",
+  "body": "Addressed review: Web proves product-consumed Pixi read models moving@3/6 and working@9/12 on coherent basis; removed all Worker prototype patches; lifecycle subscription observes zero pre-cleanup closures and destroyed cleanup. Exact Worker 19/19, Web 13/13, focused 44/44, quality 462/462.",
+  "artifacts": [
+    "coordination/reports/WM-0168.md",
+    "task/WM-0168-pr-1-real-worker-and-default-web-evidence"
+  ],
+  "createdAt": "2026-07-10T23:38:41.628Z",
+  "acknowledgedAt": "2026-07-10T23:39:47.246Z"
+}
