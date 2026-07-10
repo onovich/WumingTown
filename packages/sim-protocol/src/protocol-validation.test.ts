@@ -7,6 +7,7 @@ import {
   SIMULATION_TO_MAIN_MESSAGE_KIND,
   SIM_PROTOCOL_VERSION,
   SIM_SCHEMA_VERSION,
+  GAME_SESSION_PROJECTION_VERSION,
   validateMainToSimulationMessage,
   type MainToSimulationMessage,
   type UiDeltaMessage,
@@ -63,6 +64,41 @@ describe("validateMainToSimulationMessage", () => {
       reason: {
         code: SIMULATION_PROTOCOL_REASON_CODE.UnsupportedSchemaVersion,
       },
+    });
+  });
+
+  it("rejects schema-v2 peers after the schema-v3 cutover", () => {
+    const result = validateMainToSimulationMessage({ ...initMessage, schemaVersion: 2 });
+    expect(result).toMatchObject({
+      ok: false,
+      reason: { code: SIMULATION_PROTOCOL_REASON_CODE.UnsupportedSchemaVersion },
+    });
+  });
+
+  it("accepts only the reviewed GameSession projection request", () => {
+    expect(
+      validateMainToSimulationMessage({
+        ...initMessage,
+        payload: {
+          ...initMessage.payload,
+          projectionRequest: {
+            kind: "game_session",
+            version: GAME_SESSION_PROJECTION_VERSION,
+          },
+        },
+      }).ok,
+    ).toBe(true);
+    expect(
+      validateMainToSimulationMessage({
+        ...initMessage,
+        payload: {
+          ...initMessage.payload,
+          projectionRequest: { kind: "game_session", version: 99 },
+        },
+      }),
+    ).toMatchObject({
+      ok: false,
+      reason: { code: SIMULATION_PROTOCOL_REASON_CODE.InvalidPayload },
     });
   });
 

@@ -1,8 +1,11 @@
 import {
+  GAME_SESSION_PROJECTION_VERSION,
   PLAYER_COMMAND_KIND,
   PLAYABLE_COMMAND_CONTRACT_VERSION,
   SIMULATION_PROTOCOL_REASON_CODE,
 } from "./constants";
+import { validateGameSessionProjectionRequest } from "./game-session-projection-validation";
+import type { GameSessionProjectionRequestV1 } from "./game-session-projection";
 import { isNonNegativeSafeInteger, isPlayerCommandKind, isRecord } from "./validation-helpers";
 
 import type {
@@ -35,11 +38,24 @@ export function validateInitSessionPayload(
     return invalidCommandShape("InitSession.catalogVersion must be a non-empty string");
   }
 
+  let projectionRequest: GameSessionProjectionRequestV1 | undefined;
+  if (payload["projectionRequest"] !== undefined) {
+    const validation = validateGameSessionProjectionRequest(payload["projectionRequest"]);
+    if (!validation.ok) {
+      return validation;
+    }
+    projectionRequest = {
+      kind: "game_session",
+      version: GAME_SESSION_PROJECTION_VERSION,
+    };
+  }
+
   return {
     ok: true,
     payload: {
       seed: payload.seed,
       catalogVersion: payload.catalogVersion,
+      ...(projectionRequest === undefined ? {} : { projectionRequest }),
     },
   };
 }

@@ -5,6 +5,13 @@ import type {
   SIMULATION_PROTOCOL_REASON_CODE,
   SIMULATION_TO_MAIN_MESSAGE_KIND,
 } from "./constants";
+import type {
+  GameSessionProjectionContractV1,
+  GameSessionProjectionRequestV1,
+  GameSessionRenderProjectionV1,
+  GameSessionAlertV1,
+  GameSessionUiProjectionV1,
+} from "./game-session-projection";
 
 export type MainToSimulationMessageKind =
   (typeof MAIN_TO_SIMULATION_MESSAGE_KIND)[keyof typeof MAIN_TO_SIMULATION_MESSAGE_KIND];
@@ -30,6 +37,7 @@ export interface ProtocolEnvelope<K extends string, P> {
 export interface InitSessionPayload {
   readonly seed: string;
   readonly catalogVersion: string;
+  readonly projectionRequest?: GameSessionProjectionRequestV1;
 }
 
 export interface LoadSessionPayload {
@@ -198,6 +206,7 @@ export interface ReadyPayload {
   readonly acceptedProtocolVersion: number;
   readonly acceptedSchemaVersion: number;
   readonly status: "ready";
+  readonly projectionContract?: GameSessionProjectionContractV1;
 }
 
 export interface RenderSnapshotPayload {
@@ -208,6 +217,7 @@ export interface RenderSnapshotPayload {
   readonly worldHash?: string;
   readonly readModelHash?: string;
   readonly readOnly?: true;
+  readonly gameSession?: GameSessionRenderProjectionV1;
 }
 
 export interface UiDeltaPayload {
@@ -218,6 +228,7 @@ export interface UiDeltaPayload {
   readonly detailHash?: string;
   readonly readOnly?: true;
   readonly playable?: PlayableProjectionV1;
+  readonly gameSession?: GameSessionUiProjectionV1;
 }
 
 export interface PlayableProjectionBasisV1 {
@@ -484,6 +495,7 @@ export interface PlayerCommandRejectedResult {
 
 export interface AlertBatchPayload {
   readonly alerts: readonly ProtocolRejection[];
+  readonly gameSession?: readonly GameSessionAlertV1[];
 }
 
 export interface SaveReadyPayload {

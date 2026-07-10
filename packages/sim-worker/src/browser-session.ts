@@ -1,11 +1,14 @@
 import {
   PLAYABLE_COMMAND_SLICE_SCENARIO_ID,
+  PR1_INTEGRATED_GAME_SESSION_ALIAS,
   createPlayableAdvanceCommandId,
 } from "@wuming-town/sim-core";
 import {
+  GAME_SESSION_PROJECTION_VERSION,
   MAIN_TO_SIMULATION_MESSAGE_KIND,
   PLAYER_COMMAND_KIND,
   SIMULATION_TO_MAIN_MESSAGE_KIND,
+  SIMULATION_PROTOCOL_REASON_CODE,
   SIM_PROTOCOL_VERSION,
   SIM_SCHEMA_VERSION,
   type InitSessionPayload,
@@ -18,6 +21,8 @@ import {
   type SimulationToMainMessage,
 } from "@wuming-town/sim-protocol";
 
+import { GameSessionBrowserProjectionValidator } from "./game-session-browser-validation";
+
 import {
   drainPlayableCommandsToTerminal as drainPlayableCommandsToTerminalImpl,
   waitForPlayableProjectionAtOrBeyondTick as waitForPlayableProjectionAtOrBeyondTickImpl,
@@ -29,8 +34,16 @@ import {
 
 export const WM0150_PLAYABLE_COMMAND_SCENARIO_ID = PLAYABLE_COMMAND_SLICE_SCENARIO_ID;
 export const WM0150_PLAYABLE_COMMAND_DEFAULT_SEED = "5";
+export const PR1_GAME_SESSION_SCENARIO_ID = PR1_INTEGRATED_GAME_SESSION_ALIAS;
+export const PR1_GAME_SESSION_DEFAULT_SEED = "5";
 
-export type BrowserSimulationWorkerSessionState = "created" | "active" | "shutdown" | "destroyed";
+export type BrowserSimulationWorkerSessionState =
+  | "created"
+  | "initializing"
+  | "active"
+  | "shutdown"
+  | "fatal"
+  | "destroyed";
 
 export type ReliableSimulationWorkerMessage =
   | Extract<
@@ -38,6 +51,10 @@ export type ReliableSimulationWorkerMessage =
       { readonly kind: typeof SIMULATION_TO_MAIN_MESSAGE_KIND.CommandResult }
     >
   | SaveReadyMessage
+  | Extract<
+      SimulationToMainMessage,
+      { readonly kind: typeof SIMULATION_TO_MAIN_MESSAGE_KIND.AlertBatch }
+    >
   | Extract<
       SimulationToMainMessage,
       { readonly kind: typeof SIMULATION_TO_MAIN_MESSAGE_KIND.FatalSimulationError }
@@ -78,6 +95,10 @@ export interface InitPlayableCommandScenarioInput {
   readonly seed?: string;
 }
 
+export interface InitGameSessionInput {
+  readonly seed?: string;
+}
+
 export interface BrowserSimulationWorkerLifecycleEvent {
   readonly state: BrowserSimulationWorkerSessionState;
 }
@@ -90,6 +111,7 @@ export interface BrowserSimulationWorkerSession {
   subscribeLifecycle(listener: BrowserSimulationWorkerLifecycleListener): () => void;
   initSession(payload: InitSessionPayload): MainToSimulationMessage;
   initPlayableCommandScenario(input?: InitPlayableCommandScenarioInput): MainToSimulationMessage;
+  initGameSession(input?: InitGameSessionInput): MainToSimulationMessage;
   loadSession(payload: LoadSessionPayload): MainToSimulationMessage;
   sendPlayerCommandBatch(commands: readonly PlayerCommand[]): MainToSimulationMessage;
   advancePlayableCommandScenarioToTick(targetTick: number): MainToSimulationMessage;
@@ -127,6 +149,8 @@ export function createBrowserSimulationWorkerSession(
 ): BrowserSimulationWorkerSession {
   let nextSequence = 1;
   let state: BrowserSimulationWorkerSessionState = "created";
+  let lastWorkerSequence = 0;
+  const projectionValidator = new GameSessionBrowserProjectionValidator();
   const messageListeners: BrowserSimulationWorkerMessageListener[] = [];
   const reliableListeners: ReliableSimulationWorkerMessageListener[] = [];
   const lifecycleListeners: BrowserSimulationWorkerLifecycleListener[] = [];
@@ -135,12 +159,36 @@ export function createBrowserSimulationWorkerSession(
 
   const onMessage = (event: BrowserSimulationWorkerMessageEvent): void => {
     if (!isSimulationToMainMessage(event.data)) {
+      failClosed("Worker message envelope or schema is invalid");
       return;
     }
 
-    emitMessage(messageListeners, event.data);
-    if (isReliableSimulationWorkerMessage(event.data)) {
-      emitReliableMessage(reliableListeners, event.data);
+    const message = event.data;
+    if (message.sessionId !== options.sessionId) {
+      failClosed("Worker message session id does not match the browser session");
+      return;
+    }
+    if (projectionValidator.isDroppableStaleRender(message)) return;
+    if (message.sequence <= lastWorkerSequence) {
+      failClosed("Worker message sequence is stale or duplicated");
+      return;
+    }
+    const projectionValidation = projectionValidator.validate(message);
+    if (!projectionValidation.ok) {
+      failClosed(projectionValidation.detail);
+      return;
+    }
+    lastWorkerSequence = message.sequence;
+    if (message.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.Ready && state === "initializing") {
+      setState("active");
+    }
+
+    emitMessage(messageListeners, message);
+    if (isReliableSimulationWorkerMessage(message)) {
+      emitReliableMessage(reliableListeners, message);
+    }
+    if (message.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.FatalSimulationError) {
+      closeWorker("fatal");
     }
   };
 
@@ -181,12 +229,16 @@ export function createBrowserSimulationWorkerSession(
       return subscribe(lifecycleListeners, listener);
     },
     initSession(payload: InitSessionPayload): MainToSimulationMessage {
-      state = "active";
-      return post({
+      assertCanPost(state);
+      projectionValidator.reset(payload.projectionRequest ?? null);
+      const message: MainToSimulationMessage = {
         ...nextBase(),
         kind: MAIN_TO_SIMULATION_MESSAGE_KIND.InitSession,
         payload,
-      });
+      };
+      setState(payload.projectionRequest === undefined ? "active" : "initializing");
+      worker.postMessage(message);
+      return message;
     },
     initPlayableCommandScenario(input?: InitPlayableCommandScenarioInput): MainToSimulationMessage {
       return this.initSession({
@@ -194,13 +246,27 @@ export function createBrowserSimulationWorkerSession(
         catalogVersion: WM0150_PLAYABLE_COMMAND_SCENARIO_ID,
       });
     },
+    initGameSession(input?: InitGameSessionInput): MainToSimulationMessage {
+      return this.initSession({
+        seed: input?.seed ?? PR1_GAME_SESSION_DEFAULT_SEED,
+        catalogVersion: PR1_GAME_SESSION_SCENARIO_ID,
+        projectionRequest: {
+          kind: "game_session",
+          version: GAME_SESSION_PROJECTION_VERSION,
+        },
+      });
+    },
     loadSession(payload: LoadSessionPayload): MainToSimulationMessage {
-      state = "active";
-      return post({
+      assertCanPost(state);
+      projectionValidator.reset(null);
+      const message: MainToSimulationMessage = {
         ...nextBase(),
         kind: MAIN_TO_SIMULATION_MESSAGE_KIND.LoadSession,
         payload,
-      });
+      };
+      setState("active");
+      worker.postMessage(message);
+      return message;
     },
     sendPlayerCommandBatch(commands: readonly PlayerCommand[]): MainToSimulationMessage {
       return post({
@@ -277,6 +343,30 @@ export function createBrowserSimulationWorkerSession(
     state = nextState;
     emitLifecycleMessage(lifecycleListeners, { state });
   }
+
+  function failClosed(detail: string): void {
+    if (state === "fatal" || state === "destroyed") return;
+    const fatal: SimulationToMainMessage = {
+      protocolVersion: SIM_PROTOCOL_VERSION,
+      schemaVersion: SIM_SCHEMA_VERSION,
+      sessionId: options.sessionId,
+      sequence: lastWorkerSequence + 1,
+      kind: SIMULATION_TO_MAIN_MESSAGE_KIND.FatalSimulationError,
+      payload: {
+        reason: { code: SIMULATION_PROTOCOL_REASON_CODE.LifecycleError, detail },
+      },
+    };
+    lastWorkerSequence = fatal.sequence;
+    emitMessage(messageListeners, fatal);
+    emitReliableMessage(reliableListeners, fatal);
+    closeWorker("fatal");
+  }
+
+  function closeWorker(nextState: "fatal"): void {
+    worker.removeEventListener("message", onMessage);
+    worker.terminate();
+    setState(nextState);
+  }
 }
 
 export function advancePlayableCommandScenarioToTick(
@@ -307,6 +397,14 @@ function assertCanPost(state: BrowserSimulationWorkerSessionState): void {
 
   if (state === "shutdown") {
     throw new Error("Browser Simulation Worker session has already been shut down.");
+  }
+
+  if (state === "fatal") {
+    throw new Error("Browser Simulation Worker session is closed after a fatal error.");
+  }
+
+  if (state === "initializing") {
+    throw new Error("Browser Simulation Worker session is awaiting Ready negotiation.");
   }
 }
 
@@ -362,11 +460,16 @@ function isSimulationToMainMessage(value: unknown): value is SimulationToMainMes
   }
 
   const kind = value["kind"];
+  if (kind === SIMULATION_TO_MAIN_MESSAGE_KIND.Ready && value["payload"]["status"] !== "ready") {
+    return false;
+  }
   return (
     value["protocolVersion"] === SIM_PROTOCOL_VERSION &&
     value["schemaVersion"] === SIM_SCHEMA_VERSION &&
     typeof value["sessionId"] === "string" &&
+    Number.isSafeInteger(value["sequence"]) &&
     typeof value["sequence"] === "number" &&
+    value["sequence"] > 0 &&
     (kind === SIMULATION_TO_MAIN_MESSAGE_KIND.Ready ||
       kind === SIMULATION_TO_MAIN_MESSAGE_KIND.RenderSnapshot ||
       kind === SIMULATION_TO_MAIN_MESSAGE_KIND.UiDelta ||
@@ -384,6 +487,7 @@ function isReliableSimulationWorkerMessage(
   return (
     message.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.CommandResult ||
     message.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.SaveReady ||
+    message.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.AlertBatch ||
     message.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.FatalSimulationError
   );
 }

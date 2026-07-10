@@ -61,8 +61,13 @@ import {
 } from "@wuming-town/sim-protocol";
 
 import { createPlayableProjection } from "./playable-projection";
+import { createGameSessionContinuousScheduler } from "./game-session-scheduler";
+import { GameSessionWorkerHost } from "./game-session-worker-host";
+import { GameSessionWorkerOutbox } from "./game-session-worker-outbox";
 
 export {
+  PR1_GAME_SESSION_DEFAULT_SEED,
+  PR1_GAME_SESSION_SCENARIO_ID,
   WM0150_PLAYABLE_COMMAND_DEFAULT_SEED,
   WM0150_PLAYABLE_COMMAND_SCENARIO_ID,
   advancePlayableCommandScenarioToTick,
@@ -80,6 +85,7 @@ export {
   type BrowserSimulationWorkerSessionOptions,
   type BrowserSimulationWorkerSessionState,
   type InitPlayableCommandScenarioInput,
+  type InitGameSessionInput,
   type ReliableSimulationWorkerMessage,
   type ReliableSimulationWorkerMessageListener,
 } from "./browser-session";
@@ -105,6 +111,7 @@ export const SIM_WORKER_PUBLIC_DEPENDENCIES: readonly string[] = [
 
 export interface SimulationWorker {
   receive(input: unknown): readonly SimulationToMainMessage[];
+  runScheduledQuantum(): readonly SimulationToMainMessage[];
 }
 
 export interface SimulationWorkerMessageEvent {
@@ -124,7 +131,7 @@ export interface SimulationWorkerConnection {
   disconnect(): void;
 }
 
-type WorkerLifecycle = "idle" | "ready" | "shutdown";
+type WorkerLifecycle = "idle" | "ready" | "shutdown" | "fatal";
 
 interface SimulationWorkerState {
   lifecycle: WorkerLifecycle;
@@ -142,6 +149,7 @@ interface SimulationWorkerState {
   m4Scenario: M4WorkerScenarioState | undefined;
   m5Scenario: M5WorkerScenarioState | undefined;
   playableScenario: PlayableWorkerScenarioState | undefined;
+  gameSession: GameSessionWorkerHost | undefined;
 }
 
 interface M1WorkerScenarioState {
@@ -208,6 +216,7 @@ export function createSimulationWorker(): SimulationWorker {
     m4Scenario: undefined,
     m5Scenario: undefined,
     playableScenario: undefined,
+    gameSession: undefined,
   };
 
   return {
@@ -235,6 +244,9 @@ export function createSimulationWorker(): SimulationWorker {
       state.lastMainSequence = message.sequence;
       return handleAcceptedMessage(state, message);
     },
+    runScheduledQuantum(): readonly SimulationToMainMessage[] {
+      return runScheduledGameSessionQuantum(state);
+    },
   };
 }
 
@@ -242,18 +254,27 @@ export function connectSimulationWorkerPort(
   port: SimulationWorkerPort,
   worker: SimulationWorker = createSimulationWorker(),
 ): SimulationWorkerConnection {
+  const outbox = new GameSessionWorkerOutbox();
+  const flush = (): void => {
+    const messages = outbox.drain();
+    for (const message of messages) port.postMessage(message);
+  };
   const listener = (event: SimulationWorkerMessageEvent): void => {
-    const responses = worker.receive(event.data);
-
-    for (const response of responses) {
-      port.postMessage(response);
-    }
+    outbox.enqueue(worker.receive(event.data));
+    flush();
   };
 
+  const scheduler = createGameSessionContinuousScheduler((): void => {
+    outbox.enqueue(worker.runScheduledQuantum());
+    flush();
+  });
+
   port.addEventListener("message", listener);
+  scheduler.start();
 
   return {
     disconnect(): void {
+      scheduler.stop();
       port.removeEventListener?.("message", listener);
     },
   };
@@ -277,10 +298,10 @@ function guardLifecycleAndOrdering(
     };
   }
 
-  if (state.lifecycle === "shutdown") {
+  if (state.lifecycle === "shutdown" || state.lifecycle === "fatal") {
     return {
       code: SIMULATION_PROTOCOL_REASON_CODE.LifecycleError,
-      detail: "simulation session is already shut down",
+      detail: `simulation session cannot accept messages while ${state.lifecycle}`,
     };
   }
 
@@ -306,7 +327,9 @@ function handleAcceptedMessage(
   message: MainToSimulationMessage,
 ): readonly SimulationToMainMessage[] {
   switch (message.kind) {
-    case MAIN_TO_SIMULATION_MESSAGE_KIND.InitSession:
+    case MAIN_TO_SIMULATION_MESSAGE_KIND.InitSession: {
+      const gameSessionMessages = initializeGameSessionMode(state, message);
+      if (gameSessionMessages !== undefined) return gameSessionMessages;
       state.lifecycle = "ready";
       state.sessionId = message.sessionId;
       state.tick = 0;
@@ -340,14 +363,26 @@ function handleAcceptedMessage(
               latestCommandResults: [],
             }
           : undefined;
+      state.gameSession = undefined;
       return [
         makeReady(state),
         makeRenderSnapshot(state, message.sequence),
         makeUiDelta(state),
         makeMetricsSample(state),
       ];
+    }
 
     case MAIN_TO_SIMULATION_MESSAGE_KIND.LoadSession:
+      if (message.payload.saveId.startsWith("game-session:")) {
+        state.lifecycle = "fatal";
+        state.sessionId = message.sessionId;
+        return [
+          makeFatalSimulationError(state, {
+            code: SIMULATION_PROTOCOL_REASON_CODE.LifecycleError,
+            detail: "GameSession focused load snapshots are not implemented",
+          }),
+        ];
+      }
       state.lifecycle = "ready";
       state.sessionId = message.sessionId;
       state.tick = message.payload.checkpointSequence;
@@ -357,6 +392,7 @@ function handleAcceptedMessage(
       state.m4Scenario = undefined;
       state.m5Scenario = undefined;
       state.playableScenario = undefined;
+      state.gameSession = undefined;
       return [
         makeReady(state),
         makeRenderSnapshot(state, message.sequence),
@@ -365,7 +401,18 @@ function handleAcceptedMessage(
       ];
 
     case MAIN_TO_SIMULATION_MESSAGE_KIND.PlayerCommandBatch:
-      if (state.m1Scenario !== undefined) {
+      if (state.gameSession !== undefined) {
+        const queued = state.gameSession.queueCommands(message.payload.commands);
+        if (!queued.ok)
+          return [
+            makeRejectedCommandResult(state, state.sessionId, message.sequence, queued.reason),
+          ];
+        state.tick = state.gameSession.tick;
+        return [
+          makeAcceptedCommandResult(state, message.sequence),
+          ...makeGameSessionProjectionMessages(state),
+        ];
+      } else if (state.m1Scenario !== undefined) {
         applyM1Commands(state, message.payload.commands);
       } else if (state.m2Scenario !== undefined) {
         applyM2Commands(state, message.payload.commands);
@@ -393,16 +440,45 @@ function handleAcceptedMessage(
 
     case MAIN_TO_SIMULATION_MESSAGE_KIND.SetSpeed:
       state.speed = message.payload.speed;
+      if (state.gameSession !== undefined) {
+        state.gameSession.setSpeed(message.payload.speed);
+        return [
+          makeAcceptedCommandResult(state, message.sequence),
+          ...makeGameSessionProjectionMessages(state),
+        ];
+      }
       return [makeAcceptedCommandResult(state, message.sequence), makeMetricsSample(state)];
 
     case MAIN_TO_SIMULATION_MESSAGE_KIND.Pause:
       state.paused = message.payload.paused;
+      if (state.gameSession !== undefined) {
+        state.gameSession.setPaused(message.payload.paused);
+        return [
+          makeAcceptedCommandResult(state, message.sequence),
+          ...makeGameSessionProjectionMessages(state),
+        ];
+      }
       return [makeAcceptedCommandResult(state, message.sequence), makeMetricsSample(state)];
 
     case MAIN_TO_SIMULATION_MESSAGE_KIND.RequestUiDetail:
+      if (state.gameSession !== undefined) {
+        state.gameSession.setSelection(message.payload.subject);
+        return [
+          makeAcceptedCommandResult(state, message.sequence),
+          ...makeGameSessionProjectionMessages(state),
+        ];
+      }
       return [makeAcceptedCommandResult(state, message.sequence), makeUiDelta(state)];
 
     case MAIN_TO_SIMULATION_MESSAGE_KIND.RequestSave:
+      if (state.gameSession !== undefined) {
+        return [
+          makeRejectedCommandResult(state, state.sessionId, message.sequence, {
+            code: SIMULATION_PROTOCOL_REASON_CODE.LifecycleError,
+            detail: "GameSession focused save snapshots are not implemented",
+          }),
+        ];
+      }
       return [
         makeAcceptedCommandResult(state, message.sequence),
         makeSaveReady(state, message.sequence),
@@ -423,6 +499,119 @@ function handleAcceptedMessage(
   }
 }
 
+function initializeGameSessionMode(
+  state: SimulationWorkerState,
+  message: Extract<
+    MainToSimulationMessage,
+    { readonly kind: typeof MAIN_TO_SIMULATION_MESSAGE_KIND.InitSession }
+  >,
+): readonly SimulationToMainMessage[] | undefined {
+  const request = message.payload.projectionRequest;
+  const isGameSessionCatalog = GameSessionWorkerHost.isCatalogVersion(
+    message.payload.catalogVersion,
+  );
+  if (request === undefined && !isGameSessionCatalog) return undefined;
+
+  state.sessionId = message.sessionId;
+  if (request === undefined || !isGameSessionCatalog) {
+    state.lifecycle = "fatal";
+    return [
+      makeFatalSimulationError(state, {
+        code: SIMULATION_PROTOCOL_REASON_CODE.InvalidPayload,
+        detail:
+          request === undefined
+            ? "PR-1 GameSession catalog requires projection request version 1"
+            : "GameSession projection request requires the PR-1 GameSession catalog",
+      }),
+    ];
+  }
+
+  const initialized = GameSessionWorkerHost.initialize(message.payload.seed);
+  if (!initialized.ok) {
+    state.lifecycle = "fatal";
+    return [makeFatalSimulationError(state, initialized.reason)];
+  }
+
+  state.lifecycle = "ready";
+  state.tick = initialized.host.tick;
+  state.speed = 1;
+  state.paused = false;
+  state.m1Scenario = undefined;
+  state.m2Scenario = undefined;
+  state.m3Scenario = undefined;
+  state.m4Scenario = undefined;
+  state.m5Scenario = undefined;
+  state.playableScenario = undefined;
+  state.gameSession = initialized.host;
+  return [makeReady(state), ...makeGameSessionProjectionMessages(state)];
+}
+
+function runScheduledGameSessionQuantum(
+  state: SimulationWorkerState,
+): readonly SimulationToMainMessage[] {
+  if (state.lifecycle !== "ready" || state.gameSession === undefined) return [];
+  const advanced = state.gameSession.advanceScheduledQuantum();
+  if (advanced === 0) return [];
+  state.tick = state.gameSession.tick;
+  return makeGameSessionProjectionMessages(state);
+}
+
+function makeGameSessionProjectionMessages(
+  state: SimulationWorkerState,
+): readonly SimulationToMainMessage[] {
+  const host = state.gameSession;
+  if (host === undefined) return [];
+  const publication = host.createPublication();
+  const messages: SimulationToMainMessage[] = [
+    {
+      ...nextEnvelopeBase(state, state.sessionId),
+      kind: SIMULATION_TO_MAIN_MESSAGE_KIND.RenderSnapshot,
+      payload: {
+        snapshotSequence: publication.render.basis.snapshotSequence,
+        tick: publication.render.basis.tick,
+        entityCount: publication.render.entities.length,
+        scenarioId: publication.render.basis.scenarioId,
+        worldHash: publication.render.basis.worldHash,
+        readModelHash: publication.render.basis.readModelHash,
+        readOnly: true,
+        gameSession: publication.render,
+      },
+    },
+    {
+      ...nextEnvelopeBase(state, state.sessionId),
+      kind: SIMULATION_TO_MAIN_MESSAGE_KIND.UiDelta,
+      payload: {
+        tick: publication.ui.basis.tick,
+        summaries: [],
+        scenarioId: publication.ui.basis.scenarioId,
+        readModelHash: publication.ui.basis.readModelHash,
+        readOnly: true,
+        gameSession: publication.ui,
+      },
+    },
+  ];
+  if (publication.changedAlerts.length > 0) {
+    messages.push({
+      ...nextEnvelopeBase(state, state.sessionId),
+      kind: SIMULATION_TO_MAIN_MESSAGE_KIND.AlertBatch,
+      payload: { alerts: [], gameSession: publication.changedAlerts },
+    });
+  }
+  messages.push({
+    ...nextEnvelopeBase(state, state.sessionId),
+    kind: SIMULATION_TO_MAIN_MESSAGE_KIND.MetricsSample,
+    payload: {
+      tick: publication.ui.basis.tick,
+      droppedSnapshots: state.droppedSnapshots,
+      queuedReliableMessages: state.queuedReliableMessages,
+      scenarioId: publication.ui.basis.scenarioId,
+      worldHash: publication.ui.basis.worldHash,
+      checkpointCount: publication.ui.basis.snapshotSequence,
+    },
+  });
+  return messages;
+}
+
 function rejectValidMessage(
   state: SimulationWorkerState,
   message: MainToSimulationMessage,
@@ -440,7 +629,21 @@ function makeReady(state: SimulationWorkerState): SimulationToMainMessage {
       acceptedProtocolVersion: SIM_PROTOCOL_VERSION,
       acceptedSchemaVersion: SIM_SCHEMA_VERSION,
       status: "ready",
+      ...(state.gameSession === undefined
+        ? {}
+        : { projectionContract: state.gameSession.projectionContract }),
     },
+  };
+}
+
+function makeFatalSimulationError(
+  state: SimulationWorkerState,
+  reason: ProtocolRejection,
+): SimulationToMainMessage {
+  return {
+    ...nextEnvelopeBase(state, state.sessionId),
+    kind: SIMULATION_TO_MAIN_MESSAGE_KIND.FatalSimulationError,
+    payload: { reason },
   };
 }
 

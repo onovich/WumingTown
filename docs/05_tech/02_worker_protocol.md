@@ -179,3 +179,51 @@ separate reviewed ADR.
 Normal product time is owned by the Simulation Worker scheduler. The WM-0160
 explicit advance/drain helpers remain valid for tests, tools and command waits,
 but they are not the default game clock.
+
+## WM-0164 schema-v3 GameSession implementation
+
+WM-0164 implements the exact ADR-0017 contract without adding a message family:
+
+- `SIM_PROTOCOL_VERSION` remains `1`, `SIM_SCHEMA_VERSION` is `3`, and
+  `GAME_SESSION_PROJECTION_VERSION` is `1`.
+- The PR-1 route sends `InitSessionPayload.projectionRequest` as
+  `{ kind: "game_session", version: 1 }`. `ReadyPayload.projectionContract`
+  must echo that exact contract before the browser session changes from
+  `initializing` to `active`.
+- `RenderSnapshotPayload.gameSession` is a
+  `GameSessionRenderProjectionV1`; `UiDeltaPayload.gameSession` is a
+  `GameSessionUiProjectionV1`; reliable structured alert rows use
+  `AlertBatchPayload.gameSession`.
+- Both projections carry the same `GameSessionProjectionBasisV1`, including
+  scenario/content identity, tick, current/previous snapshot sequence,
+  world/read-model hashes and map/reservation/job/derived-index versions.
+- Public package-root validation is provided by
+  `validateGameSessionProjectionRequest`, `validateGameSessionReadyContract`,
+  `validateGameSessionRenderProjectionV1`,
+  `validateGameSessionUiProjectionV1`, `validateGameSessionAlertsV1` and
+  `validateCoherentGameSessionProjectionPair`.
+
+`@wuming-town/sim-worker` exports `PR1_GAME_SESSION_SCENARIO_ID`,
+`PR1_GAME_SESSION_DEFAULT_SEED` and
+`BrowserSimulationWorkerSession.initGameSession()`. The Worker owns one
+`GameSessionRuntime` imported from the sim-core package root. A 100 ms Worker
+timer asks that runtime to advance by 3, 6 or 9 integer ticks at requested
+speeds 1, 2 or 3, giving effective rates of 30, 60 or 90 TPS. Pause and speed 0
+advance no ticks; pause preserves the requested speed; speed changes apply only
+to later timer quanta. Sim-core owns no wall clock.
+
+The Worker outbox keeps only the newest pending render, UI and metrics
+publication while preserving `CommandResult`, `AlertBatch`, `SaveReady` and
+`FatalSimulationError` in sequence order. A fatal publication clears stale
+presentation projections, not reliable messages. Browser validation rejects
+schema-v2 envelopes, unknown/mismatched projection contracts, projection rows
+before accepted `Ready`, missing negotiated payloads, malformed fresh rows and
+incoherent basis. A lower stale render snapshot is droppable using only its
+validated outer snapshot sequence; malformed nested data is never dereferenced
+to decide staleness.
+
+Legacy same-build M0-M8 regression modes may still omit `projectionRequest`
+under schema 3, but that route cannot satisfy the PR-1 product contract.
+GameSession `RequestSave` and `LoadSession` currently return structured
+unsupported failures. No save bytes, public save schema, migration or
+compatibility promise is introduced.

@@ -5,9 +5,12 @@ import type {
   BrowserSimulationWorkerMessageEvent,
 } from "@wuming-town/sim-worker";
 import {
+  GAME_SESSION_PROJECTION_VERSION,
   MAIN_TO_SIMULATION_MESSAGE_KIND,
   PLAYER_COMMAND_KIND,
   SIMULATION_TO_MAIN_MESSAGE_KIND,
+  SIM_PROTOCOL_VERSION,
+  SIM_SCHEMA_VERSION,
   type MainToSimulationMessage,
   type SimulationToMainMessage,
 } from "@wuming-town/sim-protocol";
@@ -38,8 +41,8 @@ describe("web Simulation Worker session bridge adapter", () => {
 
     expect(worker.messages.slice(0, 2)).toStrictEqual([
       {
-        protocolVersion: 1,
-        schemaVersion: 2,
+        protocolVersion: SIM_PROTOCOL_VERSION,
+        schemaVersion: SIM_SCHEMA_VERSION,
         sessionId: "web-session",
         sequence: 1,
         kind: MAIN_TO_SIMULATION_MESSAGE_KIND.InitSession,
@@ -49,8 +52,8 @@ describe("web Simulation Worker session bridge adapter", () => {
         },
       },
       {
-        protocolVersion: 1,
-        schemaVersion: 2,
+        protocolVersion: SIM_PROTOCOL_VERSION,
+        schemaVersion: SIM_SCHEMA_VERSION,
         sessionId: "web-session",
         sequence: 2,
         kind: MAIN_TO_SIMULATION_MESSAGE_KIND.PlayerCommandBatch,
@@ -84,7 +87,7 @@ describe("web Simulation Worker session bridge adapter", () => {
         },
       },
     });
-    expect(readWebPlayableProjection(playableReady())).toBeUndefined();
+    expect(readWebPlayableProjection(gameSessionReady())).toBeUndefined();
   });
 
   it("awaits public playable projection ticks through the Web adapter", async () => {
@@ -265,8 +268,8 @@ function playableUiDeltaAt(
   }[],
 ): SimulationToMainMessage {
   return {
-    protocolVersion: 1,
-    schemaVersion: 2,
+    protocolVersion: SIM_PROTOCOL_VERSION,
+    schemaVersion: SIM_SCHEMA_VERSION,
     sessionId: "web-session",
     sequence: 4,
     kind: SIMULATION_TO_MAIN_MESSAGE_KIND.UiDelta,
@@ -319,17 +322,21 @@ function playableUiDeltaAt(
   };
 }
 
-function playableReady(): SimulationToMainMessage {
+function gameSessionReady(): SimulationToMainMessage {
   return {
-    protocolVersion: 1,
-    schemaVersion: 2,
+    protocolVersion: SIM_PROTOCOL_VERSION,
+    schemaVersion: SIM_SCHEMA_VERSION,
     sessionId: "web-session",
     sequence: 3,
     kind: SIMULATION_TO_MAIN_MESSAGE_KIND.Ready,
     payload: {
-      acceptedProtocolVersion: 1,
-      acceptedSchemaVersion: 2,
+      acceptedProtocolVersion: SIM_PROTOCOL_VERSION,
+      acceptedSchemaVersion: SIM_SCHEMA_VERSION,
       status: "ready",
+      projectionContract: {
+        kind: "game_session",
+        version: GAME_SESSION_PROJECTION_VERSION,
+      },
     },
   };
 }

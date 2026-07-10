@@ -1,6 +1,7 @@
 import { defineWorkspaceSmoke, type WorkspaceSmoke } from "@wuming-town/foundation";
 
 export {
+  GAME_SESSION_PROJECTION_VERSION,
   MAIN_TO_SIMULATION_MESSAGE_KIND,
   PLAYER_COMMAND_KIND,
   SIMULATION_PROTOCOL_REASON_CODE,
@@ -8,6 +9,40 @@ export {
   SIM_PROTOCOL_VERSION,
   SIM_SCHEMA_VERSION,
 } from "./constants";
+export {
+  sameGameSessionProjectionBasis,
+  validateCoherentGameSessionProjectionPair,
+  validateGameSessionAlertsV1,
+  validateGameSessionProjectionRequest,
+  validateGameSessionReadyContract,
+  validateGameSessionRenderProjectionV1,
+  validateGameSessionUiProjectionV1,
+} from "./game-session-projection-validation";
+export type {
+  GameSessionAlertV1,
+  GameSessionAnimationStateV1,
+  GameSessionDayPhaseV1,
+  GameSessionEntityRefV1,
+  GameSessionJobMarkerStateV1,
+  GameSessionProjectionBasisV1,
+  GameSessionProjectionContractV1,
+  GameSessionProjectionRequestV1,
+  GameSessionRenderEntityV1,
+  GameSessionRenderKindV1,
+  GameSessionRenderProjectionV1,
+  GameSessionResidentSelectionDetailV1,
+  GameSessionResourceKindV1,
+  GameSessionResourceSelectionDetailV1,
+  GameSessionSelectionBasisV1,
+  GameSessionSelectionDetailV1,
+  GameSessionStructuredReasonV1,
+  GameSessionStructureSelectionDetailV1,
+  GameSessionUiJobMarkerV1,
+  GameSessionUiProjectionV1,
+  GameSessionUiResidentV1,
+  GameSessionUiResourceV1,
+} from "./game-session-projection";
+export type { GameSessionProjectionValidationResult } from "./game-session-projection-validation";
 export { validateMainToSimulationMessage } from "./validation";
 export type {
   AlertBatchMessage,

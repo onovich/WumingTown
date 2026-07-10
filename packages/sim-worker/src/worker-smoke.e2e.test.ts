@@ -16,6 +16,7 @@ import {
   M5_ALPHA_CONTENT_SCENARIO_ID,
   M5_REPLAY_CHECKPOINT_SEQUENCE,
   PLAYABLE_COMMAND_SLICE_SCENARIO_ID,
+  PR1_INTEGRATED_GAME_SESSION_ALIAS,
   createM1AdvanceCommandId,
   createM2AdvanceCommandId,
   createM3AdvanceCommandId,
@@ -35,6 +36,7 @@ import {
   type PlayableCommandBasis,
 } from "@wuming-town/sim-core";
 import {
+  GAME_SESSION_PROJECTION_VERSION,
   MAIN_TO_SIMULATION_MESSAGE_KIND,
   PLAYER_COMMAND_KIND,
   SIMULATION_PROTOCOL_REASON_CODE,
@@ -42,6 +44,7 @@ import {
   SIM_PROTOCOL_VERSION,
   SIM_SCHEMA_VERSION,
   type CommandResultMessage,
+  type GameSessionUiProjectionV1,
   type MetricsSampleMessage,
   type MainToSimulationMessage,
   type PlayerCommand,
@@ -68,6 +71,11 @@ interface BrowserWorkerRunInput {
   readonly expectedCount: number;
   readonly inputMessages: readonly BrowserWorkerInputMessage[];
   readonly modulePath: string;
+  readonly gameSessionTargetTick?: number;
+}
+
+interface BrowserWorkerRunOptions {
+  readonly gameSessionTargetTick?: number;
 }
 
 interface BrowserWorkerPlayableDrainInput {
@@ -666,6 +674,26 @@ describe("worker-smoke simulation Worker protocol", () => {
     expect(saveReady.payload.checkpointTick).toBe(2_400);
     expect(saveReady.payload.worldHash).toMatch(/^0x[0-9a-f]{8}$/);
   });
+
+  it("advances negotiated GameSession projections in a real browser Worker without UI helpers", async () => {
+    const result = await runBrowserWorkerWithRuntime([makeGameSessionInitSession(1)], {
+      gameSessionTargetTick: 9,
+    });
+    const projections: GameSessionUiProjectionV1[] = [];
+    for (const message of result.messages) {
+      if (
+        message.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.UiDelta &&
+        message.payload.gameSession !== undefined
+      ) {
+        projections.push(message.payload.gameSession);
+      }
+    }
+    expect(projections.length).toBeGreaterThanOrEqual(2);
+    expect(projections[0]?.basis.tick).toBe(0);
+    expect(projections.at(-1)?.basis.tick).toBeGreaterThanOrEqual(9);
+    expect(projections.at(-1)?.basis.worldHash).not.toBe(projections[0]?.basis.worldHash);
+    expect(projections.at(-1)?.effectiveTicksPerSecond).toBe(30);
+  });
 });
 
 class MemoryWorkerPort implements SimulationWorkerPort {
@@ -751,6 +779,24 @@ function makeInitSession(sequence: number): MainToSimulationMessage {
     payload: {
       seed: "seed-0005",
       catalogVersion: "catalog-0001",
+    },
+  };
+}
+
+function makeGameSessionInitSession(sequence: number): MainToSimulationMessage {
+  return {
+    protocolVersion: SIM_PROTOCOL_VERSION,
+    schemaVersion: SIM_SCHEMA_VERSION,
+    sessionId: "session-a",
+    sequence,
+    kind: MAIN_TO_SIMULATION_MESSAGE_KIND.InitSession,
+    payload: {
+      seed: "5",
+      catalogVersion: PR1_INTEGRATED_GAME_SESSION_ALIAS,
+      projectionRequest: {
+        kind: "game_session",
+        version: GAME_SESSION_PROJECTION_VERSION,
+      },
     },
   };
 }
@@ -1255,6 +1301,7 @@ async function runBrowserWorker(
 
 async function runBrowserWorkerWithRuntime(
   inputMessages: readonly BrowserWorkerInputMessage[],
+  options: BrowserWorkerRunOptions = {},
 ): Promise<BrowserWorkerRunResult> {
   const server = await createServer({
     configFile: false,
@@ -1279,6 +1326,7 @@ async function runBrowserWorkerWithRuntime(
         expectedCount,
         inputMessages: browserInputMessages,
         modulePath,
+        gameSessionTargetTick,
       }: BrowserWorkerRunInput): Promise<{
         readonly elapsedMs: number;
         readonly messages: readonly unknown[];
@@ -1329,6 +1377,7 @@ async function runBrowserWorkerWithRuntime(
         type PublicWorkerSessionSmokeRunner = (input: {
           readonly expectedCount: number;
           readonly inputMessages: readonly BrowserWorkerInputMessage[];
+          readonly gameSessionTargetTick?: number;
         }) => Promise<{
           readonly elapsedMs: number;
           readonly messages: readonly unknown[];
@@ -1363,6 +1412,7 @@ async function runBrowserWorkerWithRuntime(
         const sessionResult = await runner({
           expectedCount,
           inputMessages: browserInputMessages,
+          ...(gameSessionTargetTick === undefined ? {} : { gameSessionTargetTick }),
         });
         const workerRuntimeFacts = await readDedicatedWorkerRuntimeFacts();
 
@@ -1381,6 +1431,9 @@ async function runBrowserWorkerWithRuntime(
         expectedCount: inputMessages.length * 4,
         inputMessages,
         modulePath: "/wm0157-public-worker-session-smoke.js",
+        ...(options.gameSessionTargetTick === undefined
+          ? {}
+          : { gameSessionTargetTick: options.gameSessionTargetTick }),
       },
     );
 
@@ -1428,7 +1481,14 @@ export function runPublicBrowserSimulationWorkerSession(input) {
     let inputComplete = false;
     let settled = false;
     const finish = () => {
-      if (!settled && inputComplete && received.length >= input.expectedCount) {
+      const gameSessionTargetReached = received.some((message) =>
+        message?.kind === "UiDelta" &&
+        message?.payload?.gameSession?.basis?.tick >= input.gameSessionTargetTick
+      );
+      const complete = input.gameSessionTargetTick === undefined
+        ? received.length >= input.expectedCount
+        : gameSessionTargetReached;
+      if (!settled && inputComplete && complete) {
         settled = true;
         window.clearTimeout(timeout);
         session.destroy();
