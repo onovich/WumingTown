@@ -2,7 +2,7 @@
   "id": "WM-0162",
   "title": "Integrated GameSession architecture and PR-1 reviewed task DAG",
   "summary": "Inventory the reusable M0-M8 simulation assets and define the single authoritative continuously running GameSession contract, migration plan, product projection/save boundaries, and a limited executable PR-1 task DAG without starting implementation.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -36,7 +36,7 @@
   ],
   "branch": "task/WM-0162-integrated-gamesession-architecture-and-pr-1-rev",
   "createdAt": "2026-07-10T06:49:29.795Z",
-  "updatedAt": "2026-07-10T08:19:45.039Z",
+  "updatedAt": "2026-07-10T08:24:03.375Z",
   "history": [
     {
       "at": "2026-07-10T06:49:29.796Z",
@@ -97,6 +97,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings. The two prior High findings are closed: ADR-0017 now approves protocolVersion 1/schemaVersion 3/GameSession projection v1 with sufficient render/UI fields, explicit InitSession/Ready negotiation, strict validation and fail-closed compatibility; WM-0164 is the sole exact sim-protocol writer. The DAG is strictly WM-0162->WM-0163->WM-0164->WM-0165->WM-0166, required checks reference only self/ancestor outputs, all four implementation tasks remain proposed/unclaimed, and no new message family, command/save expansion, release or PR-2+ scope is authorized. All required checks and quality pass."
+    },
+    {
+      "at": "2026-07-10T08:23:57.044Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Fast-forwarded reviewed commits 272218a, 604dad5, and b887219 to main; two High findings were corrected and independently verified; main validate-handoff, taskctl validate/status, git diff --check, and pnpm quality (74 files, 413 tests) passed."
+    },
+    {
+      "at": "2026-07-10T08:24:03.375Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "Post-M8",
@@ -152,5 +164,10 @@
     "verdict": "verified",
     "summary": "No blocking findings. The two prior High findings are closed: ADR-0017 now approves protocolVersion 1/schemaVersion 3/GameSession projection v1 with sufficient render/UI fields, explicit InitSession/Ready negotiation, strict validation and fail-closed compatibility; WM-0164 is the sole exact sim-protocol writer. The DAG is strictly WM-0162->WM-0163->WM-0164->WM-0165->WM-0166, required checks reference only self/ancestor outputs, all four implementation tasks remain proposed/unclaimed, and no new message family, command/save expansion, release or PR-2+ scope is authorized. All required checks and quality pass.",
     "at": "2026-07-10T08:19:45.038Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Fast-forwarded reviewed commits 272218a, 604dad5, and b887219 to main; two High findings were corrected and independently verified; main validate-handoff, taskctl validate/status, git diff --check, and pnpm quality (74 files, 413 tests) passed.",
+    "at": "2026-07-10T08:23:57.044Z"
   }
 }
