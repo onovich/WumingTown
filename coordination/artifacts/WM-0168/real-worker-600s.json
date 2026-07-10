@@ -1,16 +1,16 @@
 {
   "requiredDurationMs": 600000,
-  "elapsedMs": 600010.5,
+  "elapsedMs": 600092.8000000119,
   "initialTick": 0,
   "finalTick": 18000,
   "minuteCheckpoints": [
     {
       "elapsedMs": 60000,
-      "tick": 1803
+      "tick": 1800
     },
     {
       "elapsedMs": 120000,
-      "tick": 3603
+      "tick": 3600
     },
     {
       "elapsedMs": 180000,
@@ -18,7 +18,7 @@
     },
     {
       "elapsedMs": 240000,
-      "tick": 7200
+      "tick": 7203
     },
     {
       "elapsedMs": 300000,
@@ -34,11 +34,11 @@
     },
     {
       "elapsedMs": 480000,
-      "tick": 14400
+      "tick": 14403
     },
     {
       "elapsedMs": 540000,
-      "tick": 16200
+      "tick": 16203
     },
     {
       "elapsedMs": 600000,
@@ -46,13 +46,18 @@
     }
   ],
   "publicationCount": 6001,
-  "maxPublicationGapMs": 127.09999996423721,
+  "maxPublicationGapMs": 128.30000001192093,
   "coherenceFailureCount": 0,
   "movingConsecutivePairs": 2,
   "workingConsecutivePairs": 2,
   "terminalIdleObserved": true,
   "fatalCount": 0,
   "closedCount": 0,
+  "observedLifecycleStates": [
+    "created",
+    "initializing",
+    "active"
+  ],
   "droppedSnapshots": 0,
   "maximumReliableQueueDepth": 2,
   "lifecycleSequence": [
@@ -337,5 +342,6 @@
       "readModelHash": "0x79c7c0e4"
     }
   ],
-  "exactInput": "single InitSession; passive after Ready"
+  "exactInput": "single InitSession; passive after Ready",
+  "cleanupLifecycleState": "destroyed"
 }

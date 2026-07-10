@@ -716,6 +716,8 @@ describe("worker-smoke simulation Worker protocol", () => {
     expect(evidence.maxPublicationGapMs).toBeLessThanOrEqual(5_000);
     expect(evidence.fatalCount).toBe(0);
     expect(evidence.closedCount).toBe(0);
+    expect(evidence.observedLifecycleStates).toEqual(["created", "initializing", "active"]);
+    expect(evidence.cleanupLifecycleState).toBe("destroyed");
     expect(evidence.movingConsecutivePairs).toBeGreaterThanOrEqual(2);
     expect(evidence.workingConsecutivePairs).toBeGreaterThanOrEqual(2);
     expect(evidence.terminalIdleObserved).toBe(true);
@@ -1523,6 +1525,8 @@ export function runPublicBrowserSimulationWorkerSession(input) {
     const sessionId = input.inputMessages[0]?.sessionId ?? "session-a";
     const session = createBrowserSimulationWorkerSession({ sessionId });
     const received = [];
+    const lifecycleStates = [session.getState()];
+    session.subscribeLifecycle((event) => lifecycleStates.push(event.state));
     const publications = [];
     const minuteCheckpoints = [];
     let readyAtMs;
@@ -1547,19 +1551,25 @@ export function runPublicBrowserSimulationWorkerSession(input) {
       if (!settled && inputComplete && complete) {
         settled = true;
         window.clearTimeout(timeout);
-        session.destroy();
-        resolve({
-          elapsedMs: performance.now() - startedAtMs,
-          messages: received,
-          ...(input.passiveDurationMs === undefined ? {} : {
-            passiveEvidence: summarizePassiveEvidence(
+        const passiveEvidence = input.passiveDurationMs === undefined ? undefined
+          : summarizePassiveEvidence(
               input.passiveDurationMs,
               passiveElapsedMs,
               initialTick,
               publications,
               minuteCheckpoints,
               received,
-            ),
+              lifecycleStates,
+            );
+        session.destroy();
+        resolve({
+          elapsedMs: performance.now() - startedAtMs,
+          messages: received,
+          ...(passiveEvidence === undefined ? {} : {
+            passiveEvidence: {
+              ...passiveEvidence,
+              cleanupLifecycleState: session.getState(),
+            },
           }),
         });
       }
@@ -1639,7 +1649,7 @@ export function runPublicBrowserSimulationWorkerSession(input) {
   });
 }
 
-function summarizePassiveEvidence(requiredDurationMs, elapsedMs, initialTick, publications, minuteCheckpoints, received) {
+function summarizePassiveEvidence(requiredDurationMs, elapsedMs, initialTick, publications, minuteCheckpoints, received, lifecycleStates) {
   let maxPublicationGapMs = 0;
   let coherenceFailureCount = 0;
   let movingConsecutivePairs = 0;
@@ -1679,7 +1689,10 @@ function summarizePassiveEvidence(requiredDurationMs, elapsedMs, initialTick, pu
     workingConsecutivePairs,
     terminalIdleObserved: publications.some((row, index) => index > 4 && row.activity === "idle"),
     fatalCount: received.filter((message) => message?.kind === "FatalSimulationError").length,
-    closedCount: 0,
+    closedCount: lifecycleStates.filter((state) =>
+      state === "fatal" || state === "shutdown" || state === "destroyed"
+    ).length,
+    observedLifecycleStates: [...lifecycleStates],
     droppedSnapshots: received.filter((message) => message?.kind === "MetricsSample")
       .at(-1)?.payload?.droppedSnapshots ?? 0,
     maximumReliableQueueDepth: received.filter((message) => message?.kind === "MetricsSample")
@@ -1759,6 +1772,8 @@ interface PassiveWorkerEvidence {
   readonly workingConsecutivePairs: number;
   readonly terminalIdleObserved: boolean;
   readonly coherenceFailureCount: number;
+  readonly observedLifecycleStates: readonly string[];
+  readonly cleanupLifecycleState: string;
   readonly [key: string]: unknown;
 }
 
@@ -1781,6 +1796,15 @@ function readPassiveWorkerEvidence(value: unknown): PassiveWorkerEvidence {
     if (typeof value[key] !== "number") throw new Error(`Invalid passive evidence ${key}.`);
   if (typeof value["terminalIdleObserved"] !== "boolean")
     throw new Error("Invalid terminal idle evidence.");
+  if (
+    !Array.isArray(value["observedLifecycleStates"]) ||
+    typeof value["cleanupLifecycleState"] !== "string"
+  )
+    throw new Error("Invalid lifecycle closure evidence.");
+  const observedLifecycleStates = value["observedLifecycleStates"].map((entry) => {
+    if (typeof entry !== "string") throw new Error("Invalid lifecycle state evidence.");
+    return entry;
+  });
   const minuteCheckpoints = value["minuteCheckpoints"].map((entry) => {
     if (
       !isRecord(entry) ||
@@ -1802,6 +1826,8 @@ function readPassiveWorkerEvidence(value: unknown): PassiveWorkerEvidence {
     workingConsecutivePairs: readNumber(value, "workingConsecutivePairs"),
     terminalIdleObserved: value["terminalIdleObserved"],
     coherenceFailureCount: readNumber(value, "coherenceFailureCount"),
+    observedLifecycleStates,
+    cleanupLifecycleState: value["cleanupLifecycleState"],
     minuteCheckpoints,
   };
 }

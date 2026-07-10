@@ -538,10 +538,23 @@ describe("web shell smoke", () => {
       plugins: [
         {
           name: "wm0165-default-route-module-probe",
-          transform(_source: string, id: string): null {
+          transform(source: string, id: string): string | null {
             const normalizedId = id.replaceAll("\\", "/").split("?", 1)[0];
             if (normalizedId?.includes("/apps/web/src/") === true) {
               runtimeWebModules.add(normalizedId);
+            }
+            if (normalizedId?.endsWith("/apps/web/src/shell-bootstrap.ts") === true) {
+              return source.replace(
+                "activeRenderer.setReadModel(nextReadModel);",
+                `activeRenderer.setReadModel(nextReadModel);
+                globalThis.__wm0168ConsumedFrames?.push({
+                  basis: gameSessionFrame?.basis,
+                  activities: nextReadModel.entities.map((entity) => ({
+                    entityId: entity.entityId,
+                    state: entity.activity?.state ?? "idle",
+                  })),
+                });`,
+              );
             }
             return null;
           },
@@ -2857,30 +2870,13 @@ async function findReachableEntityPointByKind(
 async function installWorkerOutboundProbe(page: import("playwright").Page): Promise<void> {
   await page.addInitScript(() => {
     const outbound: unknown[] = [];
-    const inbound: unknown[] = [];
     Object.defineProperty(globalThis, "__wm0165WorkerOutbound", {
       configurable: true,
       value: outbound,
     });
-    Object.defineProperty(globalThis, "__wm0168WorkerInbound", {
+    Object.defineProperty(globalThis, "__wm0168ConsumedFrames", {
       configurable: true,
-      value: inbound,
-    });
-    const NativeWorker = Worker;
-    const ProbedWorker = new Proxy(NativeWorker, {
-      construct(target, argumentsList): Worker {
-        const worker: unknown = Reflect.construct(target, argumentsList);
-        if (!(worker instanceof NativeWorker)) throw new Error("Worker probe construction failed.");
-        worker.addEventListener("message", (event: MessageEvent<unknown>) => {
-          inbound.push(structuredClone(event.data));
-        });
-        return worker;
-      },
-    });
-    Object.defineProperty(globalThis, "Worker", {
-      configurable: true,
-      value: ProbedWorker,
-      writable: true,
+      value: [],
     });
     const originalPostMessage: unknown = Object.getOwnPropertyDescriptor(
       Worker.prototype,
@@ -2901,29 +2897,6 @@ async function installWorkerOutboundProbe(page: import("playwright").Page): Prom
       },
       writable: true,
     });
-    const originalAddEventListener: unknown = Object.getOwnPropertyDescriptor(
-      Worker.prototype,
-      "addEventListener",
-    )?.value;
-    if (typeof originalAddEventListener !== "function") {
-      throw new Error("Worker addEventListener is unavailable for the inbound probe.");
-    }
-    Worker.prototype.addEventListener = function (
-      type: string,
-      listener: EventListenerOrEventListenerObject,
-      options?: boolean | AddEventListenerOptions,
-    ): void {
-      if (type !== "message") {
-        Reflect.apply(originalAddEventListener, this, [type, listener, options]);
-        return;
-      }
-      const wrapped = (event: Event): void => {
-        if (event instanceof MessageEvent) inbound.push(structuredClone(event.data));
-        if (typeof listener === "function") listener.call(this, event);
-        else listener.handleEvent(event);
-      };
-      Reflect.apply(originalAddEventListener, this, [type, wrapped, options]);
-    };
   });
 }
 
@@ -3079,28 +3052,38 @@ async function waitForWorkerLifecycleEvidence(
 ): Promise<{ readonly movingTicks: readonly number[]; readonly workingTicks: readonly number[] }> {
   for (let attempt = 0; attempt < 100; attempt += 1) {
     const evidence = await page.evaluate(() => {
-      const messages: unknown = Reflect.get(globalThis, "__wm0168WorkerInbound");
-      if (!Array.isArray(messages)) return null;
+      const frames: unknown = Reflect.get(globalThis, "__wm0168ConsumedFrames");
+      if (!Array.isArray(frames)) return null;
       const movingTicks: number[] = [];
       const workingTicks: number[] = [];
-      for (const message of messages) {
-        if (typeof message !== "object" || message === null) continue;
-        if (Reflect.get(message, "kind") !== "UiDelta") continue;
-        const payload: unknown = Reflect.get(message, "payload");
-        if (typeof payload !== "object" || payload === null) continue;
-        const gameSession: unknown = Reflect.get(payload, "gameSession");
-        if (typeof gameSession !== "object" || gameSession === null) continue;
-        const basis: unknown = Reflect.get(gameSession, "basis");
+      for (const frame of frames) {
+        if (typeof frame !== "object" || frame === null) continue;
+        const basis: unknown = Reflect.get(frame, "basis");
         if (typeof basis !== "object" || basis === null) continue;
         const tick: unknown = Reflect.get(basis, "tick");
         if (typeof tick !== "number") continue;
-        const residents: unknown = Reflect.get(gameSession, "residents");
-        if (!Array.isArray(residents)) continue;
-        const first: unknown = residents[0];
-        if (typeof first !== "object" || first === null) continue;
-        const activity: unknown = Reflect.get(first, "activity");
-        if (activity === "moving" && !movingTicks.includes(tick)) movingTicks.push(tick);
-        if (activity === "working" && !workingTicks.includes(tick)) workingTicks.push(tick);
+        const activities: unknown = Reflect.get(frame, "activities");
+        if (!Array.isArray(activities)) continue;
+        if (
+          activities.some(
+            (activity) =>
+              typeof activity === "object" &&
+              activity !== null &&
+              Reflect.get(activity, "state") === "moving",
+          ) &&
+          !movingTicks.includes(tick)
+        )
+          movingTicks.push(tick);
+        if (
+          activities.some(
+            (activity) =>
+              typeof activity === "object" &&
+              activity !== null &&
+              Reflect.get(activity, "state") === "working",
+          ) &&
+          !workingTicks.includes(tick)
+        )
+          workingTicks.push(tick);
       }
       return movingTicks.length >= 2 && workingTicks.length >= 2
         ? { movingTicks: movingTicks.slice(0, 2), workingTicks: workingTicks.slice(0, 2) }
