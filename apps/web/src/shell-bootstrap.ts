@@ -30,16 +30,7 @@ import {
   type ShellState,
 } from "@wuming-town/ui-react";
 
-import {
-  buildShellDiagnosticPackage,
-  createDiagnosticDock,
-  createInitialDiagnosticDebugState,
-  readDiagnosticDebugState,
-  readUnknownReason,
-  recordStructuredError,
-  triggerDiagnosticDownload,
-  type WebDiagnosticDebugState,
-} from "./diagnostic-package-gate";
+import type { WebDiagnosticDebugState } from "./diagnostic-package-gate";
 import {
   createGameSessionLifecycleReadModel,
   createGameSessionWorldReadModel,
@@ -123,9 +114,14 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
   const settingsController = createShellSettingsController();
   const diagnosticsVisible = readDiagnosticsVisibility(window.location.search);
   let historicalStorageModule: typeof import("./web-storage-gate") | undefined;
+  let loadedDiagnosticModule: typeof import("./diagnostic-package-gate") | undefined;
   if (diagnosticsVisible) {
-    historicalStorageModule = await import("./web-storage-gate");
+    [historicalStorageModule, loadedDiagnosticModule] = await Promise.all([
+      import("./web-storage-gate"),
+      import("./diagnostic-package-gate"),
+    ]);
   }
+  const diagnosticModule = loadedDiagnosticModule;
   const workerSession = createWebSimulationWorkerSession({
     sessionId: "wm0165-web-game-session",
   });
@@ -135,7 +131,9 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
   );
   const releaseGate = await readShellReleaseGateInfo(diagnosticsVisible);
   const recentStructuredErrors: M6DiagnosticEntryInput[] = [];
-  let diagnosticState = createInitialDiagnosticDebugState(platformPorts.host);
+  let diagnosticState =
+    diagnosticModule?.createInitialDiagnosticDebugState(platformPorts.host) ??
+    createDisabledDiagnosticDebugState();
   const gameSessionAssembler = createWebGameSessionProjectionAssembler();
   let gameSessionFrame: WebGameSessionProjectionFrame | undefined;
   let gameSessionFailure: { readonly code: string; readonly detail: string } | undefined;
@@ -209,12 +207,12 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
           platformPorts,
           store,
         });
-  const diagnosticDock = createDiagnosticDock();
-  diagnosticDock.button.addEventListener("click", () => {
-    exportDiagnostics();
-  });
-  diagnosticDock.update(diagnosticState);
-  if (diagnosticsVisible) {
+  const diagnosticDock = diagnosticModule?.createDiagnosticDock();
+  if (diagnosticDock !== undefined) {
+    diagnosticDock.button.addEventListener("click", () => {
+      exportDiagnostics();
+    });
+    diagnosticDock.update(diagnosticState);
     shellFrame.append(diagnosticDock.element);
   }
   const reactRoot = createRoot(hudHost);
@@ -244,14 +242,16 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
     ),
   );
   const windowErrorListener = (event: ErrorEvent): void => {
-    recordStructuredError(recentStructuredErrors, "window_error", {
+    diagnosticModule?.recordStructuredError(recentStructuredErrors, "window_error", {
       message: event.message,
     });
   };
   const unhandledRejectionListener = (event: PromiseRejectionEvent): void => {
-    recordStructuredError(recentStructuredErrors, "unhandled_rejection", {
-      message: readUnknownReason(event.reason),
-    });
+    if (diagnosticModule !== undefined) {
+      diagnosticModule.recordStructuredError(recentStructuredErrors, "unhandled_rejection", {
+        message: diagnosticModule.readUnknownReason(event.reason),
+      });
+    }
   };
   window.addEventListener("error", windowErrorListener);
   window.addEventListener("unhandledrejection", unhandledRejectionListener);
@@ -360,11 +360,18 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
   );
 
   function exportDiagnostics(): void {
+    if (diagnosticModule === undefined || diagnosticDock === undefined) {
+      return;
+    }
     const activeRenderer = rendererRef.current;
     if (activeRenderer === undefined) {
-      recordStructuredError(recentStructuredErrors, "diagnostic_renderer_unavailable", {
-        message: "Renderer debug state was unavailable during diagnostic export.",
-      });
+      diagnosticModule.recordStructuredError(
+        recentStructuredErrors,
+        "diagnostic_renderer_unavailable",
+        {
+          message: "Renderer debug state was unavailable during diagnostic export.",
+        },
+      );
       diagnosticState = {
         ...diagnosticState,
         lastActionLabel: "Diagnostic export failed",
@@ -375,14 +382,17 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
       return;
     }
 
-    const diagnosticPackage = buildShellDiagnosticPackage({
+    const diagnosticPackage = diagnosticModule.buildShellDiagnosticPackage({
       platformHost: platformPorts.host,
       recentStructuredErrors,
       rendererDebug: activeRenderer.readDebugState(),
       storageGate: storageController.readDebugState(),
     });
-    triggerDiagnosticDownload(diagnosticPackage);
-    diagnosticState = readDiagnosticDebugState(diagnosticPackage, "Diagnostic package exported");
+    diagnosticModule.triggerDiagnosticDownload(diagnosticPackage);
+    diagnosticState = diagnosticModule.readDiagnosticDebugState(
+      diagnosticPackage,
+      "Diagnostic package exported",
+    );
     diagnosticDock.update(diagnosticState);
     syncDebug(
       activeRenderer.readDebugState(),
@@ -518,7 +528,9 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
     gameSessionFrame = undefined;
     gameSessionAssembler.reset();
     gameSessionLifecycle = "fatal";
-    recordStructuredError(recentStructuredErrors, "game_session_fatal", { message: detail });
+    diagnosticModule?.recordStructuredError(recentStructuredErrors, "game_session_fatal", {
+      message: detail,
+    });
     if (workerSession.getState() !== "fatal" && workerSession.getState() !== "destroyed") {
       workerSession.destroy();
       gameSessionLifecycle = "fatal";
@@ -527,9 +539,13 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
   }
 
   function rejectUnavailablePr1Command(): Promise<void> {
-    recordStructuredError(recentStructuredErrors, "game_session_command_unavailable", {
-      message: "PR-1 GameSession does not expose lamp or build commands.",
-    });
+    diagnosticModule?.recordStructuredError(
+      recentStructuredErrors,
+      "game_session_command_unavailable",
+      {
+        message: "PR-1 GameSession does not expose lamp or build commands.",
+      },
+    );
     return Promise.resolve();
   }
 
@@ -723,6 +739,22 @@ function readBrowserLabel(userAgent: string): string {
   if (userAgent.includes("Edg/")) return "Edge-family browser";
   if (userAgent.includes("Chrome/")) return "Chrome-family browser";
   return "Unknown browser shell";
+}
+
+function createDisabledDiagnosticDebugState(): WebDiagnosticDebugState {
+  return {
+    blockerCodes: [],
+    lastActionLabel: "Diagnostics disabled",
+    lastPackageStatus: "idle",
+    networkUploadEnabled: false,
+    packageKind: "m6-local-diagnostic-package",
+    recentErrorCount: 0,
+    safeLogCount: 0,
+    suggestedFileName: "wuming-town-m6-diagnostics.json",
+    telemetryEnabled: false,
+    webDownloadStatus: "blocked",
+    windowsHostPackageStatus: "blocked",
+  };
 }
 
 function createUnsupportedGameSessionStorageState(): ShellStorageGateState {

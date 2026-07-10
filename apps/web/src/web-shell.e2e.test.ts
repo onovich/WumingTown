@@ -673,15 +673,17 @@ describe("web shell smoke", () => {
             "playable-worker-projection.ts",
           ]),
         );
-        expect(loadedModuleNames).not.toEqual(
-          expect.arrayContaining([
-            "product-gate-fixture.ts",
-            "product-gate-harness.ts",
-            "reviewed-playable-session.ts",
-            "smoke-read-model.ts",
-            "web-storage-gate.ts",
-          ]),
-        );
+        for (const forbiddenModule of [
+          "diagnostic-package-gate.ts",
+          "product-gate-fixture.ts",
+          "product-gate-harness.data.json",
+          "product-gate-harness.ts",
+          "reviewed-playable-session.ts",
+          "smoke-read-model.ts",
+          "web-storage-gate.ts",
+        ]) {
+          expect(loadedModuleNames, forbiddenModule).not.toContain(forbiddenModule);
+        }
 
         for (const viewport of WM0153_PLAYER_COMMAND_VIEWPORTS) {
           await assertTownHudViewportLayout(page, viewport.width, viewport.height, "en", {

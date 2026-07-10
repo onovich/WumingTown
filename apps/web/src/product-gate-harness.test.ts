@@ -54,14 +54,19 @@ describe("web product gate harness", () => {
   it("quarantines non-gameplay sources and APIs through the semantic default graph", () => {
     const graph = readDefaultGameplayGraph("shell-bootstrap.ts");
     const graphFileNames = [...graph.files].map((file) => path.basename(file));
+    const forbiddenDefaultModules = [
+      "diagnostic-package-gate.ts",
+      "product-gate-fixture.ts",
+      "product-gate-harness.data.json",
+      "product-gate-harness.ts",
+      "reviewed-playable-session.ts",
+      "smoke-read-model.ts",
+      "web-storage-gate.ts",
+    ];
 
-    expect(graphFileNames).not.toEqual(
-      expect.arrayContaining([
-        "product-gate-fixture.ts",
-        "reviewed-playable-session.ts",
-        "smoke-read-model.ts",
-      ]),
-    );
+    for (const forbiddenModule of forbiddenDefaultModules) {
+      expect(graphFileNames, forbiddenModule).not.toContain(forbiddenModule);
+    }
     expect([...graph.sessionApiImports].sort()).toStrictEqual(
       [
         "createWebSimulationWorkerSession",
@@ -71,6 +76,7 @@ describe("web product gate harness", () => {
       ].sort(),
     );
     expect(graph.diagnosticsOnlyDynamicEdges).toStrictEqual([
+      "shell-bootstrap.ts -> diagnostic-package-gate.ts",
       "shell-bootstrap.ts -> product-gate-harness.ts",
       "shell-bootstrap.ts -> web-storage-gate.ts",
     ]);
@@ -83,6 +89,23 @@ describe("web product gate harness", () => {
     }
     expect(readCalledPropertyReceivers("web-shell.e2e.test.ts", "dispatchEvent")).toStrictEqual([
       "window",
+    ]);
+  });
+
+  it("keeps mixed imports as value edges while erasing type-only declarations and specifiers", () => {
+    const sourceFile = readTypeScriptSourceText(`
+      import type { DeclarationType } from "./declaration-type";
+      import { type SpecifierType } from "./specifier-type";
+      import { type MixedType, runtimeValue as alias } from "./mixed";
+      import "./side-effect";
+    `);
+    const imports = sourceFile.statements.filter(ts.isImportDeclaration);
+
+    expect(imports.map((statement) => isRuntimeModuleEdge(statement))).toStrictEqual([
+      false,
+      false,
+      true,
+      true,
     ]);
   });
 });
@@ -106,11 +129,12 @@ function readDefaultGameplayGraph(entryFileName: string): DefaultGameplayGraph {
     const file = pending.pop();
     if (file === undefined || graph.files.has(file)) continue;
     graph.files.add(file);
+    if (file.endsWith(".json")) continue;
     const sourceFile = readTypeScriptSource(file);
     collectDynamicImports(sourceFile, graph);
     for (const statement of sourceFile.statements) {
       if (!ts.isImportDeclaration(statement) && !ts.isExportDeclaration(statement)) continue;
-      if (isTypeOnlyModuleEdge(statement)) continue;
+      if (!isRuntimeModuleEdge(statement)) continue;
       const moduleSpecifier = readModuleSpecifier(statement);
       if (moduleSpecifier === undefined) continue;
       if (!moduleSpecifier.startsWith(".")) {
@@ -128,16 +152,33 @@ function readDefaultGameplayGraph(entryFileName: string): DefaultGameplayGraph {
   return graph;
 }
 
-function isTypeOnlyModuleEdge(statement: ts.ImportDeclaration | ts.ExportDeclaration): boolean {
-  return ts.isImportDeclaration(statement)
-    ? statement.importClause?.phaseModifier === ts.SyntaxKind.TypeKeyword
-    : statement.isTypeOnly;
+function isRuntimeModuleEdge(statement: ts.ImportDeclaration | ts.ExportDeclaration): boolean {
+  if (ts.isExportDeclaration(statement)) {
+    if (statement.isTypeOnly) return false;
+    if (statement.exportClause === undefined || ts.isNamespaceExport(statement.exportClause)) {
+      return true;
+    }
+    return statement.exportClause.elements.some((element) => !element.isTypeOnly);
+  }
+
+  const clause = statement.importClause;
+  if (clause === undefined) return true;
+  if (clause.phaseModifier === ts.SyntaxKind.TypeKeyword) return false;
+  if (clause.name !== undefined) return true;
+  if (clause.namedBindings === undefined || ts.isNamespaceImport(clause.namedBindings)) {
+    return true;
+  }
+  return clause.namedBindings.elements.some((element) => !element.isTypeOnly);
 }
 
 function readTypeScriptSource(file: string): ts.SourceFile {
+  return readTypeScriptSourceText(readFileSync(file, "utf8"), file);
+}
+
+function readTypeScriptSourceText(sourceText: string, file = "inline.ts"): ts.SourceFile {
   return ts.createSourceFile(
     file,
-    readFileSync(file, "utf8"),
+    sourceText,
     ts.ScriptTarget.Latest,
     true,
     file.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
@@ -171,6 +212,7 @@ function collectImportedSymbols(
       if (ts.isNamespaceImport(clause.namedBindings)) output.add("<namespace>");
       else {
         for (const element of clause.namedBindings.elements) {
+          if (element.isTypeOnly) continue;
           output.add(element.propertyName?.text ?? element.name.text);
         }
       }
@@ -179,6 +221,7 @@ function collectImportedSymbols(
   }
   if (statement.exportClause !== undefined && ts.isNamedExports(statement.exportClause)) {
     for (const element of statement.exportClause.elements) {
+      if (element.isTypeOnly) continue;
       output.add(element.propertyName?.text ?? element.name.text);
     }
   } else {
