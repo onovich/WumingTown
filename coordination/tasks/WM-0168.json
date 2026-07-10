@@ -2,7 +2,7 @@
   "id": "WM-0168",
   "title": "PR-1 real Worker and default Web evidence",
   "summary": "Independently prove the repaired GameSession in a real browser Worker for at least 600 wall-clock seconds and on the default Web route, including cadence, backpressure and moving/working publication evidence.",
-  "state": "ready",
+  "state": "in_progress",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -48,7 +48,7 @@
   ],
   "branch": "task/WM-0168-pr-1-real-worker-and-default-web-evidence",
   "createdAt": "2026-07-10T21:04:33.825Z",
-  "updatedAt": "2026-07-10T21:47:05.604Z",
+  "updatedAt": "2026-07-10T21:47:56.959Z",
   "history": [
     {
       "at": "2026-07-10T21:04:33.826Z",
@@ -67,6 +67,12 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-07-10T21:47:56.958Z",
+      "actor": "qa-performance",
+      "action": "claim",
+      "details": "thread=Tally WM-0168"
     }
   ],
   "milestone": "Post-M8",
@@ -88,5 +94,8 @@
     "fixture/scenario-runner authority, protocol/schema/projection/save changes, new dependencies, PR-2+ scope or release actions"
   ],
   "executionLane": "qa-performance only after WM-0167 done; final review remains independent reviewer",
-  "singleWriterRule": "WM-0168 is the sole evidence writer only after WM-0167 closes. WM-0166 stays blocked until WM-0168 is independently verified, integrated and done."
+  "singleWriterRule": "WM-0168 is the sole evidence writer only after WM-0167 closes. WM-0166 stays blocked until WM-0168 is independently verified, integrated and done.",
+  "claimedBy": "qa-performance",
+  "threadLabel": "Tally WM-0168",
+  "blocker": null
 }

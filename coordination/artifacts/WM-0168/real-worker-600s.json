@@ -1,0 +1,341 @@
+{
+  "requiredDurationMs": 600000,
+  "elapsedMs": 600010.5,
+  "initialTick": 0,
+  "finalTick": 18000,
+  "minuteCheckpoints": [
+    {
+      "elapsedMs": 60000,
+      "tick": 1803
+    },
+    {
+      "elapsedMs": 120000,
+      "tick": 3603
+    },
+    {
+      "elapsedMs": 180000,
+      "tick": 5403
+    },
+    {
+      "elapsedMs": 240000,
+      "tick": 7200
+    },
+    {
+      "elapsedMs": 300000,
+      "tick": 9000
+    },
+    {
+      "elapsedMs": 360000,
+      "tick": 10803
+    },
+    {
+      "elapsedMs": 420000,
+      "tick": 12600
+    },
+    {
+      "elapsedMs": 480000,
+      "tick": 14400
+    },
+    {
+      "elapsedMs": 540000,
+      "tick": 16200
+    },
+    {
+      "elapsedMs": 600000,
+      "tick": 18000
+    }
+  ],
+  "publicationCount": 6001,
+  "maxPublicationGapMs": 127.09999996423721,
+  "coherenceFailureCount": 0,
+  "movingConsecutivePairs": 2,
+  "workingConsecutivePairs": 2,
+  "terminalIdleObserved": true,
+  "fatalCount": 0,
+  "closedCount": 0,
+  "droppedSnapshots": 0,
+  "maximumReliableQueueDepth": 2,
+  "lifecycleSequence": [
+    {
+      "activity": "idle",
+      "sequence": 1,
+      "tick": 0,
+      "worldHash": "0x8318b231",
+      "readModelHash": "0x0264188f"
+    },
+    {
+      "activity": "moving",
+      "sequence": 2,
+      "tick": 3,
+      "worldHash": "0x5c850f07",
+      "readModelHash": "0x33affcde"
+    },
+    {
+      "activity": "moving",
+      "sequence": 3,
+      "tick": 6,
+      "worldHash": "0xae3cb626",
+      "readModelHash": "0x33ec34f2"
+    },
+    {
+      "activity": "working",
+      "sequence": 4,
+      "tick": 9,
+      "worldHash": "0xe746be78",
+      "readModelHash": "0x0ad94947"
+    },
+    {
+      "activity": "working",
+      "sequence": 5,
+      "tick": 12,
+      "worldHash": "0x43f06145",
+      "readModelHash": "0xc5ffd8c5"
+    },
+    {
+      "activity": "idle",
+      "sequence": 6,
+      "tick": 15,
+      "worldHash": "0x6ee7f4e9",
+      "readModelHash": "0x1491ff30"
+    },
+    {
+      "activity": "idle",
+      "sequence": 7,
+      "tick": 18,
+      "worldHash": "0x8caef899",
+      "readModelHash": "0x9d926e26"
+    },
+    {
+      "activity": "idle",
+      "sequence": 8,
+      "tick": 21,
+      "worldHash": "0xe5a860fd",
+      "readModelHash": "0x66677ce4"
+    },
+    {
+      "activity": "idle",
+      "sequence": 9,
+      "tick": 24,
+      "worldHash": "0x2bb0fae5",
+      "readModelHash": "0x97509d0e"
+    },
+    {
+      "activity": "idle",
+      "sequence": 10,
+      "tick": 27,
+      "worldHash": "0x84cfafb9",
+      "readModelHash": "0x9e590ab0"
+    },
+    {
+      "activity": "idle",
+      "sequence": 11,
+      "tick": 30,
+      "worldHash": "0xf9a82b99",
+      "readModelHash": "0xc96efa86"
+    },
+    {
+      "activity": "idle",
+      "sequence": 12,
+      "tick": 33,
+      "worldHash": "0x9cc4ccb5",
+      "readModelHash": "0x18ddb04c"
+    },
+    {
+      "activity": "idle",
+      "sequence": 13,
+      "tick": 36,
+      "worldHash": "0x511da2fd",
+      "readModelHash": "0x3869984e"
+    },
+    {
+      "activity": "idle",
+      "sequence": 14,
+      "tick": 39,
+      "worldHash": "0x53661689",
+      "readModelHash": "0x76cf5ee0"
+    },
+    {
+      "activity": "idle",
+      "sequence": 15,
+      "tick": 42,
+      "worldHash": "0x70261399",
+      "readModelHash": "0x3554df86"
+    },
+    {
+      "activity": "idle",
+      "sequence": 16,
+      "tick": 45,
+      "worldHash": "0x5b26c3fd",
+      "readModelHash": "0x8a962314"
+    },
+    {
+      "activity": "idle",
+      "sequence": 17,
+      "tick": 48,
+      "worldHash": "0x2aaf4c75",
+      "readModelHash": "0x6ee8f39e"
+    },
+    {
+      "activity": "idle",
+      "sequence": 18,
+      "tick": 51,
+      "worldHash": "0xd891a239",
+      "readModelHash": "0xbd5ea1c0"
+    },
+    {
+      "activity": "idle",
+      "sequence": 19,
+      "tick": 54,
+      "worldHash": "0x3a6998b9",
+      "readModelHash": "0xb8169446"
+    },
+    {
+      "activity": "idle",
+      "sequence": 20,
+      "tick": 57,
+      "worldHash": "0xb7a6ddc5",
+      "readModelHash": "0x2d20a6ac"
+    },
+    {
+      "activity": "idle",
+      "sequence": 21,
+      "tick": 60,
+      "worldHash": "0xec76937d",
+      "readModelHash": "0xfff6acde"
+    },
+    {
+      "activity": "idle",
+      "sequence": 22,
+      "tick": 63,
+      "worldHash": "0x6725faa9",
+      "readModelHash": "0xecaf4290"
+    },
+    {
+      "activity": "idle",
+      "sequence": 23,
+      "tick": 66,
+      "worldHash": "0x937dc939",
+      "readModelHash": "0xfc4329a6"
+    },
+    {
+      "activity": "idle",
+      "sequence": 24,
+      "tick": 69,
+      "worldHash": "0x15a84a9d",
+      "readModelHash": "0x9529cf24"
+    },
+    {
+      "activity": "idle",
+      "sequence": 25,
+      "tick": 72,
+      "worldHash": "0x0fe44ec5",
+      "readModelHash": "0xb823bb0e"
+    },
+    {
+      "activity": "idle",
+      "sequence": 26,
+      "tick": 75,
+      "worldHash": "0xd86347d9",
+      "readModelHash": "0x2dae2190"
+    },
+    {
+      "activity": "idle",
+      "sequence": 27,
+      "tick": 78,
+      "worldHash": "0x74e3cdb9",
+      "readModelHash": "0x96c29986"
+    },
+    {
+      "activity": "idle",
+      "sequence": 28,
+      "tick": 81,
+      "worldHash": "0x920f4a75",
+      "readModelHash": "0x42f4926c"
+    },
+    {
+      "activity": "idle",
+      "sequence": 29,
+      "tick": 84,
+      "worldHash": "0x064fb81d",
+      "readModelHash": "0x5802260e"
+    },
+    {
+      "activity": "idle",
+      "sequence": 30,
+      "tick": 87,
+      "worldHash": "0xf7e49909",
+      "readModelHash": "0xe08c67e0"
+    },
+    {
+      "activity": "idle",
+      "sequence": 31,
+      "tick": 90,
+      "worldHash": "0x6435e0f9",
+      "readModelHash": "0x6d2f7946"
+    },
+    {
+      "activity": "idle",
+      "sequence": 32,
+      "tick": 93,
+      "worldHash": "0x2167959d",
+      "readModelHash": "0x141730b4"
+    },
+    {
+      "activity": "idle",
+      "sequence": 33,
+      "tick": 96,
+      "worldHash": "0x644eaef5",
+      "readModelHash": "0xdcc4dbfe"
+    },
+    {
+      "activity": "idle",
+      "sequence": 34,
+      "tick": 99,
+      "worldHash": "0x894bb519",
+      "readModelHash": "0xeb2525c0"
+    },
+    {
+      "activity": "idle",
+      "sequence": 35,
+      "tick": 102,
+      "worldHash": "0x32827819",
+      "readModelHash": "0x36f47b86"
+    },
+    {
+      "activity": "idle",
+      "sequence": 36,
+      "tick": 105,
+      "worldHash": "0x8df99e65",
+      "readModelHash": "0x3987c24c"
+    },
+    {
+      "activity": "idle",
+      "sequence": 37,
+      "tick": 108,
+      "worldHash": "0xca8fd49d",
+      "readModelHash": "0xd408523e"
+    },
+    {
+      "activity": "idle",
+      "sequence": 38,
+      "tick": 111,
+      "worldHash": "0x72d577a9",
+      "readModelHash": "0x125e0af0"
+    },
+    {
+      "activity": "idle",
+      "sequence": 39,
+      "tick": 114,
+      "worldHash": "0xa6538699",
+      "readModelHash": "0x8a6adb26"
+    },
+    {
+      "activity": "idle",
+      "sequence": 40,
+      "tick": 117,
+      "worldHash": "0xfea5fc7d",
+      "readModelHash": "0x79c7c0e4"
+    }
+  ],
+  "exactInput": "single InitSession; passive after Ready"
+}

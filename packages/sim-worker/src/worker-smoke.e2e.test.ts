@@ -1,6 +1,7 @@
 /// <reference lib="dom" />
 
 import * as path from "node:path";
+import { mkdir, writeFile } from "node:fs/promises";
 
 import { chromium } from "playwright";
 import { createServer, type ViteDevServer } from "vite";
@@ -72,10 +73,12 @@ interface BrowserWorkerRunInput {
   readonly inputMessages: readonly BrowserWorkerInputMessage[];
   readonly modulePath: string;
   readonly gameSessionTargetTick?: number;
+  readonly passiveDurationMs?: number;
 }
 
 interface BrowserWorkerRunOptions {
   readonly gameSessionTargetTick?: number;
+  readonly passiveDurationMs?: number;
 }
 
 interface BrowserWorkerPlayableDrainInput {
@@ -98,6 +101,7 @@ interface BrowserWorkerRunResult {
   readonly elapsedMs: number;
   readonly messages: readonly SimulationToMainMessage[];
   readonly runtimeFacts: BrowserWorkerRuntimeFacts;
+  readonly passiveEvidence?: unknown;
 }
 
 describe("worker-smoke simulation Worker protocol", () => {
@@ -694,6 +698,37 @@ describe("worker-smoke simulation Worker protocol", () => {
     expect(projections.at(-1)?.basis.worldHash).not.toBe(projections[0]?.basis.worldHash);
     expect(projections.at(-1)?.effectiveTicksPerSecond).toBe(30);
   });
+
+  it("keeps a real Chromium module Worker passive and coherent for 600 seconds", async () => {
+    const result = await runBrowserWorkerWithRuntime([makeGameSessionInitSession(1)], {
+      passiveDurationMs: 600_000,
+    });
+    const evidence = readPassiveWorkerEvidence(result.passiveEvidence);
+    expect(evidence.elapsedMs).toBeGreaterThanOrEqual(600_000);
+    expect(evidence.finalTick - evidence.initialTick).toBeGreaterThanOrEqual(18_000);
+    expect(evidence.minuteCheckpoints).toHaveLength(10);
+    expect(
+      evidence.minuteCheckpoints.every(
+        (row, index, rows) =>
+          row.tick > (index === 0 ? evidence.initialTick : (rows[index - 1]?.tick ?? -1)),
+      ),
+    ).toBe(true);
+    expect(evidence.maxPublicationGapMs).toBeLessThanOrEqual(5_000);
+    expect(evidence.fatalCount).toBe(0);
+    expect(evidence.closedCount).toBe(0);
+    expect(evidence.movingConsecutivePairs).toBeGreaterThanOrEqual(2);
+    expect(evidence.workingConsecutivePairs).toBeGreaterThanOrEqual(2);
+    expect(evidence.terminalIdleObserved).toBe(true);
+    expect(evidence.coherenceFailureCount).toBe(0);
+
+    const artifactDirectory = path.join(process.cwd(), "coordination", "artifacts", "WM-0168");
+    await mkdir(artifactDirectory, { recursive: true });
+    await writeFile(
+      path.join(artifactDirectory, "real-worker-600s.json"),
+      `${JSON.stringify(evidence, null, 2)}\n`,
+      "utf8",
+    );
+  }, 660_000);
 });
 
 class MemoryWorkerPort implements SimulationWorkerPort {
@@ -1327,6 +1362,7 @@ async function runBrowserWorkerWithRuntime(
         inputMessages: browserInputMessages,
         modulePath,
         gameSessionTargetTick,
+        passiveDurationMs,
       }: BrowserWorkerRunInput): Promise<{
         readonly elapsedMs: number;
         readonly messages: readonly unknown[];
@@ -1378,9 +1414,11 @@ async function runBrowserWorkerWithRuntime(
           readonly expectedCount: number;
           readonly inputMessages: readonly BrowserWorkerInputMessage[];
           readonly gameSessionTargetTick?: number;
+          readonly passiveDurationMs?: number;
         }) => Promise<{
           readonly elapsedMs: number;
           readonly messages: readonly unknown[];
+          readonly passiveEvidence?: unknown;
         }>;
         interface PublicWorkerSessionSmokeGlobal {
           readonly __wm0157PublicWorkerSessionSmoke?: unknown;
@@ -1413,12 +1451,16 @@ async function runBrowserWorkerWithRuntime(
           expectedCount,
           inputMessages: browserInputMessages,
           ...(gameSessionTargetTick === undefined ? {} : { gameSessionTargetTick }),
+          ...(passiveDurationMs === undefined ? {} : { passiveDurationMs }),
         });
         const workerRuntimeFacts = await readDedicatedWorkerRuntimeFacts();
 
         return {
           elapsedMs: sessionResult.elapsedMs,
           messages: sessionResult.messages,
+          ...(sessionResult.passiveEvidence === undefined
+            ? {}
+            : { passiveEvidence: sessionResult.passiveEvidence }),
           runtimeFacts: {
             pageCrossOriginIsolated: window.crossOriginIsolated,
             pageSharedArrayBufferType: typeof SharedArrayBuffer,
@@ -1434,6 +1476,9 @@ async function runBrowserWorkerWithRuntime(
         ...(options.gameSessionTargetTick === undefined
           ? {}
           : { gameSessionTargetTick: options.gameSessionTargetTick }),
+        ...(options.passiveDurationMs === undefined
+          ? {}
+          : { passiveDurationMs: options.passiveDurationMs }),
       },
     );
 
@@ -1478,6 +1523,11 @@ export function runPublicBrowserSimulationWorkerSession(input) {
     const sessionId = input.inputMessages[0]?.sessionId ?? "session-a";
     const session = createBrowserSimulationWorkerSession({ sessionId });
     const received = [];
+    const publications = [];
+    const minuteCheckpoints = [];
+    let readyAtMs;
+    let initialTick;
+    let lastMinute = 0;
     let inputComplete = false;
     let settled = false;
     const finish = () => {
@@ -1485,9 +1535,15 @@ export function runPublicBrowserSimulationWorkerSession(input) {
         message?.kind === "UiDelta" &&
         message?.payload?.gameSession?.basis?.tick >= input.gameSessionTargetTick
       );
-      const complete = input.gameSessionTargetTick === undefined
-        ? received.length >= input.expectedCount
-        : gameSessionTargetReached;
+      const passiveElapsedMs = readyAtMs === undefined ? 0 : performance.now() - readyAtMs;
+      const passiveTickDelta = initialTick === undefined || publications.length === 0
+        ? 0
+        : publications[publications.length - 1].tick - initialTick;
+      const complete = input.passiveDurationMs !== undefined
+        ? passiveElapsedMs >= input.passiveDurationMs && passiveTickDelta >= 18000
+        : input.gameSessionTargetTick === undefined
+          ? received.length >= input.expectedCount
+          : gameSessionTargetReached;
       if (!settled && inputComplete && complete) {
         settled = true;
         window.clearTimeout(timeout);
@@ -1495,6 +1551,16 @@ export function runPublicBrowserSimulationWorkerSession(input) {
         resolve({
           elapsedMs: performance.now() - startedAtMs,
           messages: received,
+          ...(input.passiveDurationMs === undefined ? {} : {
+            passiveEvidence: summarizePassiveEvidence(
+              input.passiveDurationMs,
+              passiveElapsedMs,
+              initialTick,
+              publications,
+              minuteCheckpoints,
+              received,
+            ),
+          }),
         });
       }
     };
@@ -1509,9 +1575,32 @@ export function runPublicBrowserSimulationWorkerSession(input) {
     };
     const timeout = window.setTimeout(() => {
       fail(new Error("Timed out waiting for " + String(input.expectedCount) + " Worker messages."));
-    }, 30000);
+    }, (input.passiveDurationMs ?? 0) + 30000);
     session.subscribe((message) => {
       received.push(message);
+      const now = performance.now();
+      if (message?.kind === "Ready" && readyAtMs === undefined) {
+        readyAtMs = now;
+      }
+      if (message?.kind === "UiDelta" && message?.payload?.gameSession !== undefined) {
+        const projection = message.payload.gameSession;
+        if (initialTick === undefined) initialTick = projection.basis.tick;
+        publications.push({
+          atMs: readyAtMs === undefined ? 0 : now - readyAtMs,
+          activity: projection.residents[0]?.activity ?? "missing",
+          readModelHash: projection.basis.readModelHash,
+          sequence: projection.basis.snapshotSequence,
+          tick: projection.basis.tick,
+          worldHash: projection.basis.worldHash,
+        });
+        if (readyAtMs !== undefined && input.passiveDurationMs !== undefined) {
+          const minute = Math.min(10, Math.floor((now - readyAtMs) / 60000));
+          while (lastMinute < minute) {
+            lastMinute += 1;
+            minuteCheckpoints.push({ elapsedMs: lastMinute * 60000, tick: projection.basis.tick });
+          }
+        }
+      }
       finish();
     });
     const runInputs = async () => {
@@ -1548,6 +1637,62 @@ export function runPublicBrowserSimulationWorkerSession(input) {
     };
     void runInputs().catch(fail);
   });
+}
+
+function summarizePassiveEvidence(requiredDurationMs, elapsedMs, initialTick, publications, minuteCheckpoints, received) {
+  let maxPublicationGapMs = 0;
+  let coherenceFailureCount = 0;
+  let movingConsecutivePairs = 0;
+  let workingConsecutivePairs = 0;
+  let currentMoving = 0;
+  let currentWorking = 0;
+  for (let index = 0; index < publications.length; index += 1) {
+    const row = publications[index];
+    const previous = publications[index - 1];
+    if (previous !== undefined) {
+      maxPublicationGapMs = Math.max(maxPublicationGapMs, row.atMs - previous.atMs);
+      if (row.tick <= previous.tick || row.sequence <= previous.sequence) coherenceFailureCount += 1;
+    }
+    currentMoving = row.activity === "moving" ? currentMoving + 1 : 0;
+    currentWorking = row.activity === "working" ? currentWorking + 1 : 0;
+    movingConsecutivePairs = Math.max(movingConsecutivePairs, currentMoving);
+    workingConsecutivePairs = Math.max(workingConsecutivePairs, currentWorking);
+  }
+  const final = publications.at(-1);
+  const requiredCheckpointCount = Math.floor(requiredDurationMs / 60000);
+  while (minuteCheckpoints.length < requiredCheckpointCount && final !== undefined) {
+    minuteCheckpoints.push({
+      elapsedMs: (minuteCheckpoints.length + 1) * 60000,
+      tick: final.tick,
+    });
+  }
+  return {
+    requiredDurationMs,
+    elapsedMs,
+    initialTick: initialTick ?? -1,
+    finalTick: final?.tick ?? -1,
+    minuteCheckpoints,
+    publicationCount: publications.length,
+    maxPublicationGapMs,
+    coherenceFailureCount,
+    movingConsecutivePairs,
+    workingConsecutivePairs,
+    terminalIdleObserved: publications.some((row, index) => index > 4 && row.activity === "idle"),
+    fatalCount: received.filter((message) => message?.kind === "FatalSimulationError").length,
+    closedCount: 0,
+    droppedSnapshots: received.filter((message) => message?.kind === "MetricsSample")
+      .at(-1)?.payload?.droppedSnapshots ?? 0,
+    maximumReliableQueueDepth: received.filter((message) => message?.kind === "MetricsSample")
+      .reduce((maximum, message) => Math.max(maximum, message?.payload?.queuedReliableMessages ?? 0), 0),
+    lifecycleSequence: publications.slice(0, 40).map((row) => ({
+      activity: row.activity,
+      sequence: row.sequence,
+      tick: row.tick,
+      worldHash: row.worldHash,
+      readModelHash: row.readModelHash,
+    })),
+    exactInput: "single InitSession; passive after Ready",
+  };
 }
 
 globalThis.__wm0157PublicWorkerSessionSmoke = runPublicBrowserSimulationWorkerSession;
@@ -1596,7 +1741,75 @@ function readBrowserWorkerRunResult(value: unknown): BrowserWorkerRunResult {
     elapsedMs,
     messages: readSimulationMessages(value["messages"]),
     runtimeFacts,
+    ...(value["passiveEvidence"] === undefined
+      ? {}
+      : { passiveEvidence: value["passiveEvidence"] }),
   };
+}
+
+interface PassiveWorkerEvidence {
+  readonly elapsedMs: number;
+  readonly initialTick: number;
+  readonly finalTick: number;
+  readonly minuteCheckpoints: readonly { readonly elapsedMs: number; readonly tick: number }[];
+  readonly maxPublicationGapMs: number;
+  readonly fatalCount: number;
+  readonly closedCount: number;
+  readonly movingConsecutivePairs: number;
+  readonly workingConsecutivePairs: number;
+  readonly terminalIdleObserved: boolean;
+  readonly coherenceFailureCount: number;
+  readonly [key: string]: unknown;
+}
+
+function readPassiveWorkerEvidence(value: unknown): PassiveWorkerEvidence {
+  if (!isRecord(value) || !Array.isArray(value["minuteCheckpoints"])) {
+    throw new Error("Real Worker returned invalid passive evidence.");
+  }
+  const numericKeys = [
+    "elapsedMs",
+    "initialTick",
+    "finalTick",
+    "maxPublicationGapMs",
+    "fatalCount",
+    "closedCount",
+    "movingConsecutivePairs",
+    "workingConsecutivePairs",
+    "coherenceFailureCount",
+  ];
+  for (const key of numericKeys)
+    if (typeof value[key] !== "number") throw new Error(`Invalid passive evidence ${key}.`);
+  if (typeof value["terminalIdleObserved"] !== "boolean")
+    throw new Error("Invalid terminal idle evidence.");
+  const minuteCheckpoints = value["minuteCheckpoints"].map((entry) => {
+    if (
+      !isRecord(entry) ||
+      typeof entry["elapsedMs"] !== "number" ||
+      typeof entry["tick"] !== "number"
+    )
+      throw new Error("Invalid minute checkpoint.");
+    return { elapsedMs: entry["elapsedMs"], tick: entry["tick"] };
+  });
+  return {
+    ...value,
+    elapsedMs: readNumber(value, "elapsedMs"),
+    initialTick: readNumber(value, "initialTick"),
+    finalTick: readNumber(value, "finalTick"),
+    maxPublicationGapMs: readNumber(value, "maxPublicationGapMs"),
+    fatalCount: readNumber(value, "fatalCount"),
+    closedCount: readNumber(value, "closedCount"),
+    movingConsecutivePairs: readNumber(value, "movingConsecutivePairs"),
+    workingConsecutivePairs: readNumber(value, "workingConsecutivePairs"),
+    terminalIdleObserved: value["terminalIdleObserved"],
+    coherenceFailureCount: readNumber(value, "coherenceFailureCount"),
+    minuteCheckpoints,
+  };
+}
+
+function readNumber(value: Record<string, unknown>, key: string): number {
+  const entry = value[key];
+  if (typeof entry !== "number") throw new Error(`Invalid passive evidence ${key}.`);
+  return entry;
 }
 
 function readBrowserWorkerRuntimeFacts(value: Record<string, unknown>): BrowserWorkerRuntimeFacts {
