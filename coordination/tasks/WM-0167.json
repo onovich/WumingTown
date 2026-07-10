@@ -2,7 +2,7 @@
   "id": "WM-0167",
   "title": "PR-1 runtime lifecycle and Worker clock repair",
   "summary": "Repair the explicit GameSession job lifecycle and Worker-owned normal-speed scheduler so 3-tick publications expose non-instant work and a real Worker can sustain the full 600-second gate without UI-driven time.",
-  "state": "ready",
+  "state": "verified",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -50,7 +50,7 @@
   ],
   "branch": "task/WM-0167-pr-1-runtime-lifecycle-and-worker-clock-repair",
   "createdAt": "2026-07-10T21:04:33.773Z",
-  "updatedAt": "2026-07-10T21:08:22.070Z",
+  "updatedAt": "2026-07-10T21:43:57.681Z",
   "history": [
     {
       "at": "2026-07-10T21:04:33.774Z",
@@ -63,6 +63,24 @@
       "actor": "systems-architect",
       "action": "refine-ready-task",
       "details": "Added already-done WM-0165 dependency, exact sim-core/sim-worker single-writer paths, unchanged 3-tick publication and 600-second/18000-tick hard gates, deterministic/backpressure checks and protocol/schema/save prohibitions. Task remains ready and unclaimed."
+    },
+    {
+      "at": "2026-07-10T21:18:38.821Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Tally WM-0167"
+    },
+    {
+      "at": "2026-07-10T21:38:21.716Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Repaired explicit PR-1 moving/working lifecycle and bounded Worker wall-time debt scheduler; coherent publication, passive 18000-tick, backpressure, parity, conservation, Chromium smoke, and quality gates pass"
+    },
+    {
+      "at": "2026-07-10T21:43:57.681Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Verified unchanged 100ms/3-tick cadence; coherent moving publications at ticks 3/6, working at 9/12, terminal completion at 15; serialized JobCore progress and reservation conservation; monotonic bounded scheduler debt with 10-quantum callback and 60000ms debt caps, pause/resume and reentrant stop guards; latest-wins snapshots with ordered bounded reliable delivery; passive fake-clock 600000ms/18000-tick evidence remains unit-only while real Chromium 600s stays WM-0168-owned; 18k/100k, Worker smoke, handoff, boundaries and quality pass; no protocol/schema/save/Web change."
     }
   ],
   "milestone": "Post-M8",
@@ -92,5 +110,15 @@
     "unbounded scheduler catch-up, sim-core wall-clock access, hot-loop allocation growth, new runtime dependencies or PR-2+ scope"
   ],
   "executionLane": "simulation-engineer only; Spark is prohibited because this repair touches Worker scheduling, deterministic lifecycle and concurrency ownership",
-  "singleWriterRule": "WM-0167 is the only ready product-code writer. WM-0168 remains proposed until WM-0167 is independently verified, integrated and done; WM-0166 remains blocked."
+  "singleWriterRule": "WM-0167 is the only ready product-code writer. WM-0168 remains proposed until WM-0167 is independently verified, integrated and done; WM-0166 remains blocked.",
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Tally WM-0167",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0167.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Verified unchanged 100ms/3-tick cadence; coherent moving publications at ticks 3/6, working at 9/12, terminal completion at 15; serialized JobCore progress and reservation conservation; monotonic bounded scheduler debt with 10-quantum callback and 60000ms debt caps, pause/resume and reentrant stop guards; latest-wins snapshots with ordered bounded reliable delivery; passive fake-clock 600000ms/18000-tick evidence remains unit-only while real Chromium 600s stays WM-0168-owned; 18k/100k, Worker smoke, handoff, boundaries and quality pass; no protocol/schema/save/Web change.",
+    "at": "2026-07-10T21:43:57.680Z"
+  }
 }
