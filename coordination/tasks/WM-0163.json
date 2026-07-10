@@ -2,7 +2,7 @@
   "id": "WM-0163",
   "title": "PR-1 GameSession core runtime and initializer scaffold",
   "summary": "Implement the minimal sim-core authoritative GameSessionRuntime scaffold, store ownership composition, scenario initializer path and headless parity surface for the PR-1 integrated session without public protocol/schema/save mutation.",
-  "state": "ready",
+  "state": "blocked",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "systems-architect",
   "dependsOn": [
@@ -30,7 +30,9 @@
     "packages/sim-core/src/build-site.ts",
     "packages/sim-core/src/m3-needs.ts",
     "packages/sim-core/src/m3-environment.ts",
-    "packages/sim-core/src/m4-lamp-network.ts"
+    "packages/sim-core/src/m4-lamp-network.ts",
+    "tools/headless-runner/src/index.ts",
+    "tools/headless-runner/src/index.test.ts"
   ],
   "acceptance": [
     "A package-root-exported sim-core GameSessionRuntime or equivalent focused PR-1 runtime surface owns tick, seed, random streams, command ordering, owner-store composition, metrics and canonical hash input without DOM/React/Pixi/Electron/Node filesystem or real-clock dependencies",
@@ -39,6 +41,7 @@
     "Historical M1-M8 scenario runners are not called as the product runtime; any reused facts are copied through initializer code or explicitly marked regression/test-only",
     "Tick advancement is fixed 30 TPS integer semantics with stable phase ordering, no Math.random/Date/performance access, no global scans, no hidden singletons, no coroutine/Promise job position and no unversioned caches",
     "Headless tests can create the same GameSessionRuntime, step explicit ticks, queue deterministic commands and produce stable world/read-model hashes",
+    "The headless CLI registers only the exact pr1-integrated-gamesession alias in tools/headless-runner/src/index.ts and delegates it to a package-root-exported @wuming-town/sim-core scenario entry; the tool does not copy or own GameSession runtime, tick, store, command, projection or hash logic, and its focused test covers accepted dispatch plus continued rejection of unknown scenarios",
     "The runtime exposes read-only projection builders for RenderSnapshot/UiDelta basis data but does not import protocol, Web, React, Pixi or Electron presentation code",
     "A 100000 tick sim-core leak/conservation test covers jobs, reservations, queues and PR-1 resources, with structured diagnostics for first divergence",
     "Existing M1-M8 regression facts are either unchanged or any fixture/hash update is explicitly justified in the task report; no public save container, schema or compatibility promise is introduced",
@@ -46,7 +49,7 @@
   ],
   "requiredChecks": [
     "corepack pnpm typecheck",
-    "corepack pnpm exec vitest run packages/sim-core/src/game-session.test.ts packages/sim-core/src/runner.test.ts packages/sim-core/src/entity-store.invariants.test.ts packages/sim-core/src/reservation-ledger.test.ts packages/sim-core/src/job-core.test.ts packages/sim-core/src/work-offers.test.ts packages/sim-core/src/pathing.test.ts",
+    "corepack pnpm exec vitest run packages/sim-core/src/game-session.test.ts packages/sim-core/src/runner.test.ts packages/sim-core/src/entity-store.invariants.test.ts packages/sim-core/src/reservation-ledger.test.ts packages/sim-core/src/job-core.test.ts packages/sim-core/src/work-offers.test.ts packages/sim-core/src/pathing.test.ts tools/headless-runner/src/index.test.ts",
     "corepack pnpm sim:run -- --seed 5 --scenario pr1-integrated-gamesession --ticks 18000",
     "node tools/validate-handoff.mjs",
     "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
@@ -56,7 +59,7 @@
   ],
   "branch": "task/WM-0163-pr-1-gamesession-core-runtime-initializer",
   "createdAt": "2026-07-10T07:38:28.621Z",
-  "updatedAt": "2026-07-10T08:24:03.386Z",
+  "updatedAt": "2026-07-10T08:31:37.662Z",
   "history": [
     {
       "at": "2026-07-10T07:38:28.623Z",
@@ -81,6 +84,18 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-07-10T08:29:33.260Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Tally/WM-0163"
+    },
+    {
+      "at": "2026-07-10T08:31:37.662Z",
+      "actor": "simulation-engineer",
+      "action": "block",
+      "details": "Allowed-path/required-check conflict: corepack pnpm sim:run -- --scenario pr1-integrated-gamesession is rejected in tools/headless-runner/src/index.ts before sim-core runner code runs, but WM-0163 allowedPaths exclude tools/headless-runner/**. Please add the focused CLI registry/test paths (or define an in-scope dynamic registration contract); sim-core must not use process.argv/Node-global workarounds."
     }
   ],
   "milestone": "Post-M8",
@@ -96,6 +111,8 @@
     "packages/sim-core/src/runner.ts",
     "packages/sim-core/src/runner.test.ts",
     "packages/sim-core/src/index.ts",
+    "tools/headless-runner/src/index.ts",
+    "tools/headless-runner/src/index.test.ts",
     "coordination/reports/WM-0163*.md",
     "coordination/tasks/WM-0163.json",
     "docs/05_tech/12_integrated_gamesession_architecture.md"
@@ -103,8 +120,19 @@
   "forbiddenPaths": [
     "packages/sim-core depending on DOM, React, PixiJS, Electron, Node filesystem or real clocks",
     "apps/**, packages/sim-worker/**, packages/sim-protocol/**, packages/persistence/** or Electron/Web implementation changes",
+    "tools/** except the exact tools/headless-runner/src/index.ts registry and tools/headless-runner/src/index.test.ts focused test paths",
+    "tools/headless-runner/src/cli.ts, package metadata, dynamic registration infrastructure, Node-global/process.argv access from sim-core, or any CLI-owned GameSession authority/logic copy",
     "public protocol/schema/save format mutation",
     "whole-world pawn work scans, unversioned caches, hidden global singleton session state, Promise/coroutine job position or UI-owned authority",
     "public release, Early Access, store, signing, telemetry, accounts, paid services or public save compatibility actions"
-  ]
+  ],
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Tally/WM-0163",
+  "blocker": {
+    "by": "simulation-engineer",
+    "to": "systems-architect",
+    "reason": "Allowed-path/required-check conflict: corepack pnpm sim:run -- --scenario pr1-integrated-gamesession is rejected in tools/headless-runner/src/index.ts before sim-core runner code runs, but WM-0163 allowedPaths exclude tools/headless-runner/**. Please add the focused CLI registry/test paths (or define an in-scope dynamic registration contract); sim-core must not use process.argv/Node-global workarounds.",
+    "previousState": "in_progress",
+    "at": "2026-07-10T08:31:37.662Z"
+  }
 }
