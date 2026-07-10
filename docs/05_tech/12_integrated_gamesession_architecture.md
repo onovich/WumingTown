@@ -2,8 +2,9 @@
 
 Status: WM-0162 PR-1 planning output. This document defines the architecture
 and candidate task DAG only. It does not implement `GameSession`, mutate public
-protocol/schema/save formats, promote PR-1 implementation tasks, or create PR-2
-work.
+protocol/schema/save files, promote PR-1 implementation tasks, or create PR-2
+work. It does approve the minimum projection protocol/schema change assigned to
+proposed task WM-0164.
 
 ## Scope
 
@@ -16,7 +17,7 @@ Non-goals for PR-1 planning:
 
 - no product feature implementation in WM-0162;
 - no public save compatibility promise;
-- no new protocol message family or schema bump in WM-0162;
+- no new protocol message family and no protocol code change in WM-0162;
 - no PR-2+ autonomous-life, command-building expansion or product UX task;
 - no release, telemetry, account, store, signing or public distribution action.
 
@@ -36,7 +37,7 @@ Non-goals for PR-1 planning:
 | Scenario runners | `runHaulingBuildingScenario`, `runM2WorkLogisticsScenario`, `runM3OrdinaryLifeScenario`, `runM4CoreVerticalSliceScenario`, `runM5AlphaContentScenario`, `runM8FactionEndgameScenario`, `runPlayableCommandSliceScenario` | Adapt/test-only. Mine initialization data and regression facts, but do not keep them as product runtimes. |
 | Worker modes | `sim-worker` catalogVersion switches for M1-M5 and playable command slice | Retire for default product. Keep as parity/regression modes; PR-1 product route hosts a long-lived session instead of rerunning scenario summaries. |
 | Worker browser/session helpers | root `@wuming-town/sim-worker` browser session, reliable subscriptions, explicit advance/wait/drain helpers | Adapt. Browser session remains transport; drain helpers stay tests/tools only, not normal product time. |
-| Projections | M1-M5 read-only projections, M5 Worker projection, `PlayableProjectionV1`, Web projection adapter | Adapt. Build PR-1 render/UI projections from the session owner graph with basis hashes and structured reasons. |
+| Projections | schema-v2 `RenderSnapshotPayload`/`UiDeltaPayload`, M1-M5 read-only projections, M5 Worker projection, `PlayableProjectionV1`, Web projection adapter | Adapt with reviewed schema bump. Existing render payloads cannot carry positions and the focused playable model cannot carry the integrated resident/resource/time/alert/detail surface. WM-0164 alone owns schema-v3 `GameSession*ProjectionV1` protocol files and tests. |
 | Save/replay | M1-M5/M8 focused save envelopes, focused command tails, `RequestSave` smoke, web storage gate | Test-only/boundary. PR-1 defines `GameSessionSaveSnapshot` authority but does not promise public compatibility. Existing focused saves remain regression harnesses. |
 | Web product state | `WEB_PRODUCT_GATE_READ_MODEL`, `reviewed-playable-session`, `playable-worker-projection`, `shell-bootstrap` | Retire/adapt. Static fixture and reviewed playback are diagnostics/tests only; default gameplay reads Worker session projection. |
 
@@ -56,7 +57,7 @@ Compiled Content + ScenarioDefinition
                  |
        +---------+----------+
        |                    |
- RenderSnapshot/UiDelta   GameSessionSaveSnapshot
+ schema-v3 projection v1 GameSessionSaveSnapshot
        |                    |
  Pixi interpolation       OPFS/Electron adapters later
  React HUD read model
@@ -176,6 +177,104 @@ The PR-1 read model must expose:
 React may localize labels from reason codes and parameters. It may not invent
 action availability, blocked reasons, resource counts or job state.
 
+## Minimum Versioned Projection Protocol
+
+ADR-0017 approves one protocol change for PR-1. The existing message families
+remain unchanged, `protocolVersion` stays at 1, envelope `schemaVersion` moves
+from 2 to 3, and the nested GameSession projection contract starts at version
+1. Schema and projection versions are separate so future payload evolution does
+not overload transport-family identity.
+
+### Negotiation
+
+- `InitSessionPayload.projectionRequest` is optional for legacy regression
+  sessions and exactly `{ kind: "game_session", version: 1 }` for the PR-1
+  product route.
+- `ReadyPayload.projectionContract` must echo that exact pair before the
+  GameSession client enters running state.
+- A negotiated GameSession session must include a version-1 GameSession payload
+  on every applicable `RenderSnapshot` and `UiDelta`; legacy payloads are not a
+  product fallback.
+
+### Shared basis
+
+Both GameSession payloads carry a coherent basis with:
+
+- `projectionVersion = 1`;
+- `tick`, `snapshotSequence` and `previousSnapshotSequence` where applicable;
+- `worldHash`, `readModelHash` and `contentManifestHash`;
+- `mapVersion`, `reservationVersion` and `jobVersion` needed to reject stale
+  detail/action facts.
+
+Render and UI publications may arrive independently, but a UI projection may
+only reference a known current or newer bounded-pending render snapshot. When a
+pair names the same snapshot sequence, tick and shared hashes must agree.
+
+### RenderSnapshot.gameSession
+
+`GameSessionRenderProjectionV1` contains map width/height/tile size plus a
+bounded stable-id render lane. Every row contains:
+
+- `EntityId(index,generation)` and kind: resident, resource, structure, lamp or
+  build site;
+- numeric render-def id;
+- authoritative X/Y Q16 world position for the snapshot tick;
+- facing, animation-state enum and numeric render flags.
+
+The client retains the preceding accepted snapshot for interpolation. It may
+smooth only presentation position/animation and must snap to the newest
+authoritative row after a dropped snapshot or entity-generation change.
+
+### UiDelta.gameSession
+
+`GameSessionUiProjectionV1` contains only structured, localizable facts:
+
+- session pause/requested-speed state;
+- day index, tick-of-day, ticks-per-day, day phase and daylight Q16;
+- resident rows keyed by `EntityId`, including def ids, cell, activity/job
+  state, progress and optional structured reason;
+- resource rows keyed by def id with total, available and reserved integer
+  quantities, including food, wood, stone and lamp oil;
+- job markers and alerts with stable ids, severity, reason code, source,
+  optional subject and ordered scalar parameters;
+- `selectionDetail = null` or a versioned resident/resource/structure detail
+  for the latest `RequestUiDetail`, with its own owner-version basis. The Web
+  owns which id is selected; the Worker owns every displayed detail fact.
+
+No localized label, prose summary, camera, hover state, selected-id state or
+Pixi interpolation value becomes protocol authority.
+
+### Compatibility And Failure Closure
+
+- Schema 3 accepts only envelope schema 3. Schema 2 peers are rejected with
+  `UnsupportedSchemaVersion`; mixed-build hot connections and down-conversion
+  are unsupported.
+- An unknown requested projection version is rejected during initialization.
+- Missing or mismatched `Ready` contract, missing negotiated render/UI payload,
+  malformed entity/version lanes, wrong session id, or incoherent basis closes
+  the browser session as a structured fatal/lifecycle error. The default route
+  must remain blocked and must not read `WEB_PRODUCT_GATE_READ_MODEL`.
+- A lower stale render sequence may be dropped by latest-wins backpressure. A
+  newer malformed or contract-incompatible message must not be ignored.
+- M0-M8 scenario modes may omit `projectionRequest` and continue as same-build
+  regression/test sessions under schema 3. They are ineligible for the default
+  PR-1 route.
+
+WM-0164 is the sole writer for these exact protocol surfaces:
+
+- `packages/sim-protocol/src/constants.ts`;
+- `packages/sim-protocol/src/types.ts`;
+- `packages/sim-protocol/src/payload-validation.ts`;
+- `packages/sim-protocol/src/protocol-validation.test.ts`;
+- `packages/sim-protocol/src/game-session-projection.ts`;
+- `packages/sim-protocol/src/game-session-projection-validation.ts`;
+- `packages/sim-protocol/src/game-session-projection.test.ts`;
+- `packages/sim-protocol/src/index.ts`.
+
+WM-0163, WM-0165 and WM-0166 are forbidden from editing
+`packages/sim-protocol/**`; they consume the package public root after their
+declared dependency completes.
+
 ## Presentation Interpolation
 
 Pixi receives read-only snapshots with enough basis to interpolate between two
@@ -220,8 +319,10 @@ work.
    and platform gates stay regression facts.
 2. Add `GameSessionRuntime` in `sim-core` as a state-composition and tick-runner
    surface with a PR-1 initializer.
-3. Host the runtime in Worker and headless through the same advance surface.
-4. Replace default Web gameplay truth with Worker session projection.
+3. Implement schema-v3 GameSession projection v1 and host the runtime in Worker
+   through the same advance surface.
+4. After the protocol/Worker task completes, replace default Web gameplay truth
+   with that validated Worker session projection.
 5. Keep static fixtures and scenario runners available only through tests,
    diagnostics or explicit historical gates.
 6. Run PR-1 exit gates before any PR-2 planning or WM-0154 unblock.
@@ -233,7 +334,9 @@ work.
 - After core scaffold: revert `GameSessionRuntime` files and keep historical
   scenario runners unchanged.
 - After Worker host: switch default product route to a blocked diagnostic page
-  or explicitly labeled fixture; do not use drain helpers as a normal clock.
+  or explicitly labeled fixture and revert Worker/Web consumers together to
+  schema 2; mixed schema 2/3 components are not supported. Do not use drain
+  helpers as a normal clock.
 - After Web route: revert to test-only fixture route and keep the product gate
   failed until PR-1 is reworked.
 
@@ -273,18 +376,24 @@ PR-1 is not complete until all gates are reported by WM-0166:
    codes and actionable parameters.
 8. The implementation report lists every reused store and every historical
    capability still unconnected to the product runtime.
+9. Schema-v3 negotiation, exact projection-version acceptance, malformed/newer
+   fail-closed behavior and legacy-regression exclusion from the product route
+   are covered by protocol, Worker and Web tests.
 
 ## Proposed PR-1 DAG
 
 | Task | Owner | Depends on | Write ownership | Purpose |
 | --- | --- | --- | --- | --- |
 | WM-0163 | simulation-engineer | WM-0162 | `packages/sim-core/src/game-session*`, `runner`, sim-core tests | Create the authoritative runtime scaffold, PR-1 initializer and headless parity surface. |
-| WM-0164 | simulation-engineer | WM-0163 | `packages/sim-worker/src/**` focused session/scheduler files and Worker tests | Host the runtime in Worker with continuous 30 TPS scheduling, pause/speed and snapshot backpressure. |
-| WM-0165 | client-engineer | WM-0163 | `apps/web/src/**` focused session/projection/bootstrap paths | Route default Web gameplay truth to Worker session projection and quarantine static fixtures. |
-| WM-0166 | qa-performance | WM-0164, WM-0165 | focused tests/reports for integrated gates | Run the PR-1 exit gates and record residual risks. |
+| WM-0164 | simulation-engineer | WM-0163 | exact `packages/sim-protocol` projection files listed above plus focused `packages/sim-worker` session/scheduler files and tests | Implement the ADR-approved schema-v3 projection contract as sole protocol writer, then host the runtime with continuous scheduling, fail-closed validation and backpressure. |
+| WM-0165 | client-engineer | WM-0164 | focused `apps/web/src` session/projection/bootstrap paths; protocol is consume-only | Route default Web gameplay truth to the validated Worker session projection and quarantine static fixtures. |
+| WM-0166 | qa-performance | WM-0165 | focused integrated tests/reports; protocol and feature code are consume-only | Run the PR-1 exit gates and record residual risks. |
 
-The maximum concurrent write-heavy width is two after WM-0163 completes
-(WM-0164 and WM-0165). It never exceeds the project cap of three.
+The critical path is
+`WM-0162 -> WM-0163 -> WM-0164 -> WM-0165 -> WM-0166`. The maximum concurrent
+write-heavy width is one. This makes protocol production, Worker validation and
+Web consumption executable in dependency order and gives every product-code
+surface one active owner.
 
 ## Open Decisions
 
@@ -292,7 +401,8 @@ The maximum concurrent write-heavy width is two after WM-0163 completes
   bounded by the roadmap minimum: at least 64 x 64 navigable map, eight
   residents, food/wood/stone/lamp oil, inventory, beds, lamp post and one
   buildable structure.
-- Public protocol/schema changes are not approved. If implementation needs
-  them, it must block for a new ADR.
+- ADR-0017 approves only schema 3 and `GameSession*ProjectionV1` in WM-0164.
+  Any new message family, projection v2, command-contract change or additional
+  protocol surface must block for another reviewed ADR.
 - Public save compatibility is not approved. PR-1 may define and test internal
   snapshot authority only if the task keeps it versioned and non-public.

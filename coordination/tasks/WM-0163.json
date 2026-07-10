@@ -56,7 +56,7 @@
   ],
   "branch": "task/WM-0163-pr-1-gamesession-core-runtime-initializer",
   "createdAt": "2026-07-10T07:38:28.621Z",
-  "updatedAt": "2026-07-10T07:45:00.000Z",
+  "updatedAt": "2026-07-10T08:20:00.000Z",
   "history": [
     {
       "at": "2026-07-10T07:38:28.623Z",
@@ -69,14 +69,19 @@
       "actor": "systems-architect",
       "action": "refine-proposed-task",
       "details": "Scoped as the first PR-1 critical-path sim-core task from WM-0162 architecture; remains proposed until WM-0162 is verified and done."
+    },
+    {
+      "at": "2026-07-10T08:20:00.000Z",
+      "actor": "systems-architect",
+      "action": "changes-requested-fix",
+      "details": "Kept WM-0163 protocol-neutral and changed its sole downstream edge to WM-0164; protocol and Web consumers now follow serially. Task remains proposed and unclaimed."
     }
   ],
   "milestone": "Post-M8",
   "phase": "pr-1-integrated-gamesession",
   "architectureDecision": "coordination/decisions/ADR-0017.md",
   "unblocks": [
-    "WM-0164",
-    "WM-0165"
+    "WM-0164"
   ],
   "saveLoadStance": "No public save compatibility is introduced. Any internal GameSession snapshot in this task must be versioned, tested as focused PR-1 evidence and kept out of platform player-save promises.",
   "allowedPaths": [

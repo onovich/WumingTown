@@ -6,7 +6,6 @@
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
-    "WM-0164",
     "WM-0165"
   ],
   "docs": [
@@ -17,6 +16,7 @@
     "coordination/reports/WM-0163.md",
     "coordination/reports/WM-0164.md",
     "coordination/reports/WM-0165.md",
+    "packages/sim-protocol/src/game-session-projection.test.ts",
     "packages/sim-core/src/game-session.test.ts",
     "packages/sim-worker/src/game-session-worker.test.ts",
     "packages/sim-worker/src/worker-smoke.e2e.test.ts",
@@ -30,13 +30,14 @@
     "Default product route does not read WEB_PRODUCT_GATE_READ_MODEL or reviewed-playable-session as gameplay truth; remaining fixture paths are test/diagnostic-only and mechanically checked where feasible",
     "Non-instant work produces observable moving and working projections across multiple publications; no resident work chain completes entirely within one visible frame",
     "Idle, blocked and failed states in the PR-1 path carry structured reason codes and parameters rather than prose-only strings",
+    "Schema-v3 GameSession projection negotiation, exact version acceptance, malformed/newer fail-closed behavior and exclusion of legacy regression projections from the default product route are independently verified",
     "The report lists every store reused in PR-1 and every historical M1-M8 capability still not connected to the product runtime",
     "Existing M1-M8 deterministic, save/replay, Worker parity, package-boundary, platform-security and quality gates are either passing or any reviewed exception is explicitly recorded",
-    "No PR-2+ implementation, public protocol/schema/save mutation, release action, telemetry/account surface or public save compatibility promise is added"
+    "No PR-2+ implementation, protocol/schema change beyond ADR-0017, save mutation, release action, telemetry/account surface or public save compatibility promise is added"
   ],
   "requiredChecks": [
     "corepack pnpm typecheck",
-    "corepack pnpm exec vitest run packages/sim-core/src/game-session.test.ts packages/sim-worker/src/game-session-worker.test.ts apps/web/src/simulation-worker-session.test.ts",
+    "corepack pnpm exec vitest run packages/sim-protocol/src/game-session-projection.test.ts packages/sim-core/src/game-session.test.ts packages/sim-worker/src/game-session-worker.test.ts apps/web/src/simulation-worker-session.test.ts",
     "node tools/test-runner.mjs e2e --filter worker-smoke",
     "node tools/test-runner.mjs e2e --filter web-shell",
     "corepack pnpm sim:run -- --seed 5 --scenario pr1-integrated-gamesession --ticks 18000",
@@ -50,7 +51,7 @@
   ],
   "branch": "task/WM-0166-pr-1-integrated-gamesession-exit-gates",
   "createdAt": "2026-07-10T07:38:28.861Z",
-  "updatedAt": "2026-07-10T07:45:00.000Z",
+  "updatedAt": "2026-07-10T08:20:00.000Z",
   "history": [
     {
       "at": "2026-07-10T07:38:28.862Z",
@@ -63,6 +64,12 @@
       "actor": "systems-architect",
       "action": "refine-proposed-task",
       "details": "Scoped as the PR-1 integrated gate task after Worker/Web routing; remains proposed and owned by qa-performance for independent evidence."
+    },
+    {
+      "at": "2026-07-10T08:20:00.000Z",
+      "actor": "systems-architect",
+      "action": "changes-requested-fix",
+      "details": "Made WM-0165 the sole direct dependency on the serial critical path and added independent schema-v3 projection negotiation/failure-closure evidence; task remains proposed and unclaimed."
     }
   ],
   "milestone": "Post-M8",
@@ -82,7 +89,7 @@
   "forbiddenPaths": [
     "feature implementation beyond focused gates, tests, diagnostics and reports",
     "lowering PR-1 exit gates to pass a partial implementation",
-    "public protocol/schema/save format mutation",
+    "packages/sim-protocol/** changes or any protocol/schema/save format mutation",
     "PR-2+ autonomous-life, command/building expansion, product UX redesign or content-scale implementation",
     "public release, Early Access, store, signing, telemetry, accounts, paid services, public feedback or public save compatibility actions"
   ]

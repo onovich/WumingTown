@@ -1,7 +1,7 @@
 {
   "id": "WM-0164",
-  "title": "PR-1 continuous Simulation Worker session scheduler",
-  "summary": "Adapt sim-worker to host the PR-1 GameSessionRuntime with continuous fixed-30-TPS scheduling, pause/speed semantics, snapshot backpressure and Worker/headless parity using existing message families.",
+  "title": "PR-1 projection protocol and continuous Simulation Worker session",
+  "summary": "Implement ADR-0017's minimum schema-v3 GameSession projection contract as the sole sim-protocol writer, then host the PR-1 GameSessionRuntime with continuous fixed-30-TPS scheduling, fail-closed validation, backpressure and Worker/headless parity.",
   "state": "proposed",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "systems-architect",
@@ -19,10 +19,23 @@
     "packages/sim-worker/src/worker-smoke.e2e.test.ts",
     "packages/sim-core/src/index.ts",
     "packages/sim-core/src/runner.ts",
-    "packages/sim-protocol/src/types.ts"
+    "packages/sim-protocol/src/constants.ts",
+    "packages/sim-protocol/src/types.ts",
+    "packages/sim-protocol/src/payload-validation.ts",
+    "packages/sim-protocol/src/protocol-validation.test.ts",
+    "packages/sim-protocol/src/game-session-projection.ts",
+    "packages/sim-protocol/src/game-session-projection-validation.ts",
+    "packages/sim-protocol/src/game-session-projection.test.ts",
+    "packages/sim-protocol/src/index.ts"
   ],
   "acceptance": [
-    "Simulation Worker can initialize and host the PR-1 GameSessionRuntime from WM-0163 through existing InitSession/LoadSession/PlayerCommandBatch/SetSpeed/Pause/RequestUiDetail/RequestSave/Shutdown families without public schema drift",
+    "The existing Worker message families and protocolVersion 1 are retained, SIM_SCHEMA_VERSION is bumped from 2 to 3, and GAME_SESSION_PROJECTION_VERSION 1 is exported from the sim-protocol public root exactly as approved by ADR-0017",
+    "InitSession can explicitly request { kind: game_session, version: 1 }, Ready echoes the accepted contract, and negotiated RenderSnapshot.gameSession plus UiDelta.gameSession payloads carry one coherent tick/snapshot/world/content/map/version basis",
+    "GameSessionRenderProjectionV1 represents stable entity refs, resident/resource/structure/lamp/build-site render kinds, render def ids, authoritative Q16 positions, facing, animation and flags needed for presentation interpolation",
+    "GameSessionUiProjectionV1 represents pause/speed, day index/tick/phase/daylight, at least eight resident summaries, food/wood/stone/lamp-oil quantities, job markers, structured alerts and requested resident/resource/structure selection detail without localized authority prose",
+    "Protocol/runtime tests reject schema-v2 peers, unknown projection versions, mismatched Ready contracts, missing negotiated payloads, malformed rows and incoherent basis; the browser session enters a structured fatal/closed state and never falls back to static fixtures, while lower stale render sequences remain droppable",
+    "Legacy M0-M8 scenario modes may omit the projection request for same-build regression use under schema 3 but are mechanically ineligible for the default PR-1 product route",
+    "Simulation Worker initializes and hosts the PR-1 GameSessionRuntime from WM-0163 through InitSession/LoadSession/PlayerCommandBatch/SetSpeed/Pause/RequestUiDetail/RequestSave/Shutdown without adding a message family",
     "Worker owns normal product scheduling: fixed 30 TPS at speed 1, 60 at speed 2, 90 at speed 3, and 0 when paused or speed 0; sim-core receives only integer tick advancement",
     "Pause preserves requested speed while stopping automatic ticks, SetSpeed affects future scheduling only, and command results remain reliable around pause/speed changes",
     "RenderSnapshot/UiDelta publication is latest-wins under backpressure, while CommandResult, SaveReady, FatalSimulationError and structured alerts are not dropped",
@@ -30,12 +43,13 @@
     "Worker and Node headless produce matching checkpoint world/read-model hashes for the same seed, scenario definition and fixed command stream",
     "RequestSave/LoadSession for GameSession either use an explicitly versioned focused PR-1 snapshot or fail closed with structured unsupported reasons; no public save compatibility promise is added",
     "Browser Worker smoke proves real Chromium Worker scheduling emits advancing PR-1 GameSession projections without UI dispatching advance helper commands as normal time",
-    "No apps/web product UI, renderer-pixi, ui-react, Electron preload, public protocol/schema/save, new runtime dependency or release action is changed",
-    "The report records scheduler policy, backpressure behavior, reliable-message evidence, parity hashes and any residual PR-1 blockers"
+    "No apps/web product UI, renderer-pixi, ui-react, Electron preload, save format, new runtime dependency or release action is changed",
+    "The report records schema/projection compatibility evidence, scheduler policy, backpressure behavior, reliable-message evidence, parity hashes and any residual PR-1 blockers"
   ],
   "requiredChecks": [
     "corepack pnpm typecheck",
-    "corepack pnpm exec vitest run packages/sim-worker/src/game-session-worker.test.ts packages/sim-worker/src/worker-smoke.e2e.test.ts packages/sim-core/src/game-session.test.ts",
+    "corepack pnpm exec vitest run packages/sim-protocol/src/protocol-validation.test.ts packages/sim-protocol/src/game-session-projection.test.ts",
+    "corepack pnpm exec vitest run packages/sim-worker/src/game-session-worker.test.ts packages/sim-core/src/game-session.test.ts",
     "node tools/test-runner.mjs e2e --filter worker-smoke",
     "corepack pnpm sim:run -- --seed 5 --scenario pr1-integrated-gamesession --ticks 18000",
     "corepack pnpm boundaries:check",
@@ -45,9 +59,9 @@
     "git diff --check",
     "corepack pnpm quality"
   ],
-  "branch": "task/WM-0164-pr-1-continuous-simulation-worker-session",
+  "branch": "task/WM-0164-pr-1-projection-protocol-continuous-worker",
   "createdAt": "2026-07-10T07:38:28.688Z",
-  "updatedAt": "2026-07-10T07:45:00.000Z",
+  "updatedAt": "2026-07-10T08:20:00.000Z",
   "history": [
     {
       "at": "2026-07-10T07:38:28.689Z",
@@ -60,13 +74,44 @@
       "actor": "systems-architect",
       "action": "refine-proposed-task",
       "details": "Scoped as the Worker host/scheduler task after WM-0163; remains proposed and must not introduce protocol/schema/save drift without a new gate."
+    },
+    {
+      "at": "2026-07-10T08:20:00.000Z",
+      "actor": "systems-architect",
+      "action": "changes-requested-fix",
+      "details": "Expanded under ADR-0017 to be the sole schema-v3 GameSession projection protocol writer plus continuous Worker scheduler; assigned exact sim-protocol files/tests and a serial edge to WM-0165. Task remains proposed and unclaimed."
     }
   ],
   "milestone": "Post-M8",
   "phase": "pr-1-integrated-gamesession",
   "architectureDecision": "coordination/decisions/ADR-0017.md",
+  "protocolFileOwnership": {
+    "exclusive": true,
+    "schemaChange": "SIM_SCHEMA_VERSION 2 -> 3; GAME_SESSION_PROJECTION_VERSION = 1; no new message family",
+    "files": [
+      "packages/sim-protocol/src/constants.ts",
+      "packages/sim-protocol/src/types.ts",
+      "packages/sim-protocol/src/payload-validation.ts",
+      "packages/sim-protocol/src/protocol-validation.test.ts",
+      "packages/sim-protocol/src/game-session-projection.ts",
+      "packages/sim-protocol/src/game-session-projection-validation.ts",
+      "packages/sim-protocol/src/game-session-projection.test.ts",
+      "packages/sim-protocol/src/index.ts"
+    ]
+  },
+  "unblocks": [
+    "WM-0165"
+  ],
   "saveLoadStance": "No public save compatibility is introduced. RequestSave/LoadSession behavior for GameSession must be versioned focused evidence or fail-closed unsupported behavior.",
   "allowedPaths": [
+    "packages/sim-protocol/src/constants.ts",
+    "packages/sim-protocol/src/types.ts",
+    "packages/sim-protocol/src/payload-validation.ts",
+    "packages/sim-protocol/src/protocol-validation.test.ts",
+    "packages/sim-protocol/src/game-session-projection.ts",
+    "packages/sim-protocol/src/game-session-projection-validation.ts",
+    "packages/sim-protocol/src/game-session-projection.test.ts",
+    "packages/sim-protocol/src/index.ts",
     "packages/sim-worker/src/game-session*.ts",
     "packages/sim-worker/src/game-session*.test.ts",
     "packages/sim-worker/src/index.ts",
@@ -79,7 +124,8 @@
     "docs/05_tech/02_worker_protocol.md"
   ],
   "forbiddenPaths": [
-    "new public Worker message family or incompatible protocol/schema payload without a new reviewed ADR",
+    "packages/sim-protocol/** outside the exact allowedPaths list; WM-0164 is the only protocol writer in the PR-1 DAG",
+    "new Worker message family, projection version other than GameSession v1, command-contract change or schema change beyond ADR-0017 schema 3 without a new reviewed ADR",
     "apps/** product UI implementation, renderer-pixi/ui-react changes or Electron preload changes",
     "sim-core runtime ownership changes beyond consuming WM-0163 public root exports",
     "using WM-0160 drain/advance helpers as the default gameplay clock",

@@ -23,6 +23,7 @@
     "Inventory maps existing M1-M8 stores, scenario runners, Worker modes, projections and save surfaces into reuse, adapt, retire or test-only categories",
     "Architecture defines one authoritative GameSession lifecycle, continuous fixed-30-TPS Worker scheduling, pause/speed semantics and Headless/Worker parity without UI authority",
     "Architecture defines scenario initialization, product read-model, presentation interpolation and authoritative save/load boundaries that remove static product-gate fixtures from default gameplay",
+    "Architecture approves a minimum versioned GameSession projection contract with explicit schema/version negotiation, compatibility and fail-closed rules, and assigns exact sim-protocol files to one proposed task owner",
     "Reviewed PR-1 task DAG is limited to the smallest integrated-session tranche, identifies file ownership and allows no more than three concurrent write-heavy tasks",
     "Planning records migration and rollback risks, protected regression facts and measurable PR-1 exit gates",
     "No GameSession implementation, public protocol/schema/save mutation, product UI implementation or release action is executed"
@@ -35,7 +36,7 @@
   ],
   "branch": "task/WM-0162-integrated-gamesession-architecture-and-pr-1-rev",
   "createdAt": "2026-07-10T06:49:29.795Z",
-  "updatedAt": "2026-07-10T07:46:00.000Z",
+  "updatedAt": "2026-07-10T08:20:00.000Z",
   "history": [
     {
       "at": "2026-07-10T06:49:29.796Z",
@@ -60,6 +61,30 @@
       "actor": "systems-architect",
       "action": "plan",
       "details": "Recorded ADR-0017, integrated GameSession architecture doc, execution plan and proposed WM-0163..WM-0166 PR-1 DAG; implementation tasks remain proposed."
+    },
+    {
+      "at": "2026-07-10T07:47:13.607Z",
+      "actor": "systems-architect",
+      "action": "complete",
+      "details": "Defined ADR-0017 and the PR-1 integrated GameSession architecture; inventoried M1-M8 reusable/adapt/test-only assets; created proposed WM-0163..WM-0166 DAG with max write width 2; required checks pass; no implementation, protocol/schema/save mutation or release action."
+    },
+    {
+      "at": "2026-07-10T07:55:28.695Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: PR-1 projection requirements are not representable by the current RenderSnapshot/UiDelta public schema, while WM-0164/WM-0165 forbid sim-protocol/schema changes; assign a reviewed protocol decision/task and file ownership or narrow the contract. High: WM-0165 depends only on WM-0163, but its acceptance requires the WM-0164 Worker scheduler and its required checks name the WM-0164-created game-session-worker.test.ts, so the claimed parallel width-2 DAG is not executable. Keep WM-0163..0166 proposed and revise dependencies/gates."
+    },
+    {
+      "at": "2026-07-10T07:59:11.161Z",
+      "actor": "systems-architect",
+      "action": "claim",
+      "details": "thread=Keystone/WM-0162"
+    },
+    {
+      "at": "2026-07-10T08:20:00.000Z",
+      "actor": "systems-architect",
+      "action": "changes-requested-fix",
+      "details": "Resolved MSG-MREN53JS-7E9ED9: ADR-0017 now approves schema-v3 GameSession projection v1 with fail-closed compatibility; WM-0164 is the sole exact sim-protocol writer; DAG changed to WM-0162 -> WM-0163 -> WM-0164 -> WM-0165 -> WM-0166 with max write width 1. All implementation tasks remain proposed and unclaimed."
     }
   ],
   "milestone": "Post-M8",
@@ -73,6 +98,17 @@
     "WM-0165",
     "WM-0166"
   ],
+  "proposedDagEdges": [
+    "WM-0162 -> WM-0163",
+    "WM-0163 -> WM-0164",
+    "WM-0164 -> WM-0165",
+    "WM-0165 -> WM-0166"
+  ],
+  "proposedDagMaxConcurrentWriteTasks": 1,
+  "proposedProtocolOwner": {
+    "taskId": "WM-0164",
+    "scope": "ADR-0017 schema-v3 GameSession projection v1 exact sim-protocol files and tests"
+  },
   "saveLoadStance": "WM-0162 defines the GameSession save/load authority boundary only. It does not create a public save container, public migration promise, platform save UI or compatibility claim.",
   "allowedPaths": [
     "coordination/decisions/**",
@@ -97,5 +133,12 @@
   ],
   "claimedBy": "systems-architect",
   "threadLabel": "Keystone/WM-0162",
-  "blocker": null
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0162.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "changes_requested",
+    "summary": "High: PR-1 projection requirements are not representable by the current RenderSnapshot/UiDelta public schema, while WM-0164/WM-0165 forbid sim-protocol/schema changes; assign a reviewed protocol decision/task and file ownership or narrow the contract. High: WM-0165 depends only on WM-0163, but its acceptance requires the WM-0164 Worker scheduler and its required checks name the WM-0164-created game-session-worker.test.ts, so the claimed parallel width-2 DAG is not executable. Keep WM-0163..0166 proposed and revise dependencies/gates.",
+    "at": "2026-07-10T07:55:28.694Z"
+  }
 }

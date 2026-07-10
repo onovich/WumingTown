@@ -71,4 +71,9 @@ Post-M8 product work now routes through one integrated authoritative
 scenario runners remain regression evidence and initializer references, not
 the default product runtime. Simulation Worker and Node headless must host the
 same deterministic runtime; React, Pixi, Electron and Web adapters remain
-read-only projection consumers and explicit command senders.
+read-only projection consumers and explicit command senders. ADR-0017 also
+approves the minimum PR-1 projection boundary: existing Worker message families,
+envelope schema 3, and nested `GameSessionRenderProjectionV1` /
+`GameSessionUiProjectionV1` with fail-closed negotiation. Proposed WM-0164 is
+the sole `sim-protocol` writer; later Web and gate tasks consume that public
+package surface in serial dependency order.

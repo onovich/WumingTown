@@ -6,7 +6,7 @@
   "ownerRole": "client-engineer",
   "reviewerRole": "systems-architect",
   "dependsOn": [
-    "WM-0163"
+    "WM-0164"
   ],
   "docs": [
     "AGENTS.md",
@@ -21,7 +21,9 @@
     "apps/web/src/reviewed-playable-session.ts",
     "apps/web/src/web-shell.e2e.test.ts",
     "packages/sim-worker/src/browser-session.ts",
-    "packages/sim-protocol/src/types.ts"
+    "packages/sim-protocol/src/types.ts",
+    "packages/sim-protocol/src/game-session-projection.ts",
+    "packages/sim-protocol/src/game-session-projection-validation.ts"
   ],
   "acceptance": [
     "Default Web gameplay initializes or connects to the PR-1 GameSession Worker route and treats its projection as gameplay truth for residents, resources, alerts, job markers and selected-object details",
@@ -30,14 +32,15 @@
     "No Web, React, Pixi or Electron code creates jobs, reservations, resource counts, resident positions, build progress, blocked reasons or command outcomes",
     "The product read model carries a single GameSession basis: tick, snapshot sequence, scenario/content id, world hash and read-model hash, and all visible PR-1 residents/resources/alerts/details come from that basis",
     "Presentation interpolation uses RenderSnapshot basis only and cannot mutate authoritative cell, path progress, job step, resource quantity or build state",
-    "The default route no longer uses WM-0160 drain helpers or explicit advance command batches as normal game time; time progression comes from the Worker scheduler once WM-0164 is available",
+    "The default route no longer uses WM-0160 drain helpers or explicit advance command batches as normal game time; time progression comes from the completed WM-0164 Worker scheduler",
+    "The client requests GameSession projection v1, enters running only after the exact schema-v3 Ready contract, validates negotiated RenderSnapshot/UiDelta payloads through the sim-protocol public root and fails closed without fixture fallback on mismatch or malformed newer data",
     "E2E or focused Web tests prove the default route can observe advancing GameSession projection state without synthetic canvas dispatch as gameplay evidence",
     "No broad product UX redesign, new final art, localization rewrite, public save UI, Electron preload expansion, public release action or telemetry/account surface is added",
     "The report identifies every fixture/debug path left behind and how reviewers can confirm it is not the default gameplay source"
   ],
   "requiredChecks": [
     "corepack pnpm typecheck",
-    "corepack pnpm exec vitest run apps/web/src/simulation-worker-session.test.ts apps/web/src/product-gate-harness.test.ts packages/sim-worker/src/game-session-worker.test.ts",
+    "corepack pnpm exec vitest run apps/web/src/simulation-worker-session.test.ts apps/web/src/product-gate-harness.test.ts packages/sim-protocol/src/game-session-projection.test.ts packages/sim-worker/src/game-session-worker.test.ts",
     "node tools/test-runner.mjs e2e --filter web-shell",
     "node tools/test-runner.mjs e2e --filter worker-smoke",
     "corepack pnpm boundaries:check",
@@ -49,7 +52,7 @@
   ],
   "branch": "task/WM-0165-pr-1-product-read-model-default-gamesession-route",
   "createdAt": "2026-07-10T07:38:28.775Z",
-  "updatedAt": "2026-07-10T07:45:00.000Z",
+  "updatedAt": "2026-07-10T08:20:00.000Z",
   "history": [
     {
       "at": "2026-07-10T07:38:28.777Z",
@@ -62,11 +65,20 @@
       "actor": "systems-architect",
       "action": "refine-proposed-task",
       "details": "Scoped as the Web default-route/read-model task after WM-0163; remains proposed and must not implement broader PR-2/PR-4 UX."
+    },
+    {
+      "at": "2026-07-10T08:20:00.000Z",
+      "actor": "systems-architect",
+      "action": "changes-requested-fix",
+      "details": "Changed dependency from WM-0163 to WM-0164 so schema-v3 projection types, validation and continuous Worker scheduling exist before Web consumption; task remains proposed and unclaimed."
     }
   ],
   "milestone": "Post-M8",
   "phase": "pr-1-integrated-gamesession",
   "architectureDecision": "coordination/decisions/ADR-0017.md",
+  "unblocks": [
+    "WM-0166"
+  ],
   "saveLoadStance": "No public save UI or compatibility promise is introduced. Web may expose only fail-closed or diagnostic GameSession save status until a later reviewed save task.",
   "allowedPaths": [
     "apps/web/src/shell-bootstrap.ts",
