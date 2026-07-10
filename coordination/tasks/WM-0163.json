@@ -2,7 +2,7 @@
   "id": "WM-0163",
   "title": "PR-1 GameSession core runtime and initializer scaffold",
   "summary": "Implement the minimal sim-core authoritative GameSessionRuntime scaffold, store ownership composition, scenario initializer path and headless parity surface for the PR-1 integrated session without public protocol/schema/save mutation.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "systems-architect",
   "dependsOn": [
@@ -59,7 +59,7 @@
   ],
   "branch": "task/WM-0163-pr-1-gamesession-core-runtime-initializer",
   "createdAt": "2026-07-10T07:38:28.621Z",
-  "updatedAt": "2026-07-10T12:10:43.085Z",
+  "updatedAt": "2026-07-10T12:18:57.133Z",
   "history": [
     {
       "at": "2026-07-10T07:38:28.623Z",
@@ -126,6 +126,18 @@
       "actor": "systems-architect",
       "action": "review",
       "details": "verified: Re-review verified 4155e1499daa: phases 4/5 drive a bounded serializable JobCoreStore/ReservationLedger lifecycle with synchronized resident state, observational checkpoints permit legal active work, terminal checkpoints fail closed and the 100000-tick run proves non-zero job/reservation peaks plus terminal/acquire/release and zero terminal leaks; canonical world/read hashes now include all five need lanes and resident activity/reason, resource, location, job/reservation and other PR-1 owner/projection facts with equal-version collision tests; the unconditional fixed-tick path no longer calls allocation-bearing createMetrics or NeedStore.processScheduledUpdates APIs and retains owner-store authority. Focused 8 files/66 tests, 18000 and 100000 CLI, typecheck, validate-handoff, taskctl validate/status, git diff --check, and full quality 75 files/425 tests all passed."
+    },
+    {
+      "at": "2026-07-10T12:18:46.701Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Fast-forwarded main through 961b8f0; exact-main handoff, task validation/status, diff check, typecheck, 8-file/66-test focused suite, 18000/100000 deterministic GameSession CLI gates, and full quality 75 files/425 tests passed."
+    },
+    {
+      "at": "2026-07-10T12:18:57.132Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "Post-M8",
@@ -165,5 +177,10 @@
     "verdict": "verified",
     "summary": "Re-review verified 4155e1499daa: phases 4/5 drive a bounded serializable JobCoreStore/ReservationLedger lifecycle with synchronized resident state, observational checkpoints permit legal active work, terminal checkpoints fail closed and the 100000-tick run proves non-zero job/reservation peaks plus terminal/acquire/release and zero terminal leaks; canonical world/read hashes now include all five need lanes and resident activity/reason, resource, location, job/reservation and other PR-1 owner/projection facts with equal-version collision tests; the unconditional fixed-tick path no longer calls allocation-bearing createMetrics or NeedStore.processScheduledUpdates APIs and retains owner-store authority. Focused 8 files/66 tests, 18000 and 100000 CLI, typecheck, validate-handoff, taskctl validate/status, git diff --check, and full quality 75 files/425 tests all passed.",
     "at": "2026-07-10T12:10:43.085Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Fast-forwarded main through 961b8f0; exact-main handoff, task validation/status, diff check, typecheck, 8-file/66-test focused suite, 18000/100000 deterministic GameSession CLI gates, and full quality 75 files/425 tests passed.",
+    "at": "2026-07-10T12:18:46.701Z"
   }
 }

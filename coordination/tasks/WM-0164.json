@@ -2,7 +2,7 @@
   "id": "WM-0164",
   "title": "PR-1 projection protocol and continuous Simulation Worker session",
   "summary": "Implement ADR-0017's minimum schema-v3 GameSession projection contract as the sole sim-protocol writer, then host the PR-1 GameSessionRuntime with continuous fixed-30-TPS scheduling, fail-closed validation, backpressure and Worker/headless parity.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "systems-architect",
   "dependsOn": [
@@ -61,7 +61,7 @@
   ],
   "branch": "task/WM-0164-pr-1-projection-protocol-continuous-worker",
   "createdAt": "2026-07-10T07:38:28.688Z",
-  "updatedAt": "2026-07-10T08:20:00.000Z",
+  "updatedAt": "2026-07-10T12:18:57.173Z",
   "history": [
     {
       "at": "2026-07-10T07:38:28.689Z",
@@ -80,6 +80,12 @@
       "actor": "systems-architect",
       "action": "changes-requested-fix",
       "details": "Expanded under ADR-0017 to be the sole schema-v3 GameSession projection protocol writer plus continuous Worker scheduler; assigned exact sim-protocol files/tests and a serial edge to WM-0165. Task remains proposed and unclaimed."
+    },
+    {
+      "at": "2026-07-10T12:18:57.173Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "Post-M8",
