@@ -34,7 +34,11 @@ export type GameSessionResidentActivity = "idle" | "moving" | "working";
 export type GameSessionStructuredReason =
   | "game_session.awaiting_job_driver"
   | "game_session.indexed_work_available"
-  | "game_session.no_indexed_work";
+  | "game_session.no_indexed_work"
+  | "game_session.job_reserved"
+  | "game_session.job_working"
+  | "game_session.job_completed"
+  | "game_session.job_failed";
 
 export interface GameSessionResidentStart {
   readonly defId: number;
@@ -198,8 +202,13 @@ export interface GameSessionUiResident {
   readonly currentJobId: number;
   readonly hunger: number;
   readonly rest: number;
+  readonly comfort: number;
+  readonly social: number;
+  readonly safety: number;
   readonly reason: GameSessionStructuredReason;
 }
+
+export type GameSessionConservationCheckpoint = "observational" | "terminal";
 
 export interface GameSessionUiResource {
   readonly defId: number;
@@ -280,14 +289,21 @@ export interface GameSessionMetrics {
   readonly pathStaleRejectedCount: number;
   readonly pathNodeExpansions: number;
   readonly activeJobCount: number;
+  readonly activeJobPeak: number;
   readonly jobTerminalCount: number;
   readonly activeReservationCount: number;
+  readonly activeReservationPeak: number;
+  readonly reservationAcquiredCount: number;
+  readonly reservationReleasedCount: number;
   readonly reservationConflictCount: number;
   readonly resourceConservationDelta: number;
   readonly projectionBuildCount: number;
   readonly projectionBacklog: 0;
   readonly phaseViolationCount: number;
   readonly fullWorldPawnScanCount: 0;
+  readonly unconditionalResultObjectCallCount: 0;
+  readonly needScheduledUpdateCallCount: 0;
+  readonly eventResultObjectCallCount: number;
 }
 
 export interface Pr1IntegratedGameSessionScenarioOptions {

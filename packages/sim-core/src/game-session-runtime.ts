@@ -23,6 +23,7 @@ import {
   GAME_SESSION_PROJECTION_BASIS_VERSION,
   type GameSessionAdvanceResult,
   type GameSessionCommandInput,
+  type GameSessionConservationCheckpoint,
   type GameSessionConservationReport,
   type GameSessionDerivedIndexBasis,
   type GameSessionMetrics,
@@ -90,7 +91,6 @@ export class GameSessionRuntime {
       owners,
       this.commandQueue,
       this.randomStreams,
-      this.diagnostics,
       this.pathBasis,
     );
   }
@@ -232,8 +232,10 @@ export class GameSessionRuntime {
     );
   }
 
-  createConservationReport(): GameSessionConservationReport {
-    return this.diagnostics.createReport(this.currentTick);
+  createConservationReport(
+    checkpoint: GameSessionConservationCheckpoint = "observational",
+  ): GameSessionConservationReport {
+    return this.diagnostics.createReport(this.currentTick, checkpoint);
   }
 
   private createHashContext(): GameSessionHashContext {

@@ -901,6 +901,7 @@ export type {
   GameSessionBedStart,
   GameSessionBuildSiteStart,
   GameSessionCommandInput,
+  GameSessionConservationCheckpoint,
   GameSessionConservationDivergence,
   GameSessionConservationDivergenceCode,
   GameSessionConservationReport,

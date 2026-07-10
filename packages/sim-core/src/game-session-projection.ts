@@ -62,7 +62,7 @@ export function buildGameSessionUiProjection(
     tickOfDay: context.tick % TICKS_PER_DAY,
     residents: Object.freeze(residents),
     resources: Object.freeze(resources),
-    activeJobCount: context.owners.jobs.activeJobCount,
+    activeJobCount: context.owners.jobs.createMetrics().runningCount,
     activeReservationCount: context.owners.reservations.activeCount,
     lampFuel: lamp?.fuel ?? 0,
     lampMaintenanceState: lamp?.maintenanceState ?? 0,
@@ -179,6 +179,9 @@ function buildUiResidents(context: GameSessionProjectionContext): GameSessionUiR
       currentJobId: resident.currentJobId,
       hunger: needs.hunger,
       rest: needs.rest,
+      comfort: needs.comfort,
+      social: needs.social,
+      safety: needs.safety,
       reason: resident.reason,
     });
   }

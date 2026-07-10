@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   GAME_SESSION_PHASE_ORDER,
+  GAME_SESSION_NO_JOB,
+  NEED_LANE_COMFORT,
+  NEED_LANE_SOCIAL,
   PR1_INTEGRATED_GAME_SESSION_ID,
   PR1_RESOURCE_FOOD,
   PR1_RESOURCE_LAMP_OIL,
@@ -86,6 +89,139 @@ describe("PR-1 authoritative GameSessionRuntime", () => {
     expect(reordered.createWorldHash()).not.toBe(first.createWorldHash());
   });
 
+  it("runs one explicit serializable job and reservation lifecycle through phases 4 and 5", () => {
+    const runtime = createRuntime("job-lifecycle");
+    runtime.advanceTicks(1);
+
+    expect(runtime.owners.jobs.readJob(0)).toMatchObject({
+      status: "running",
+      step: "interact",
+      progressQ16: 0,
+      requiredWorkQ16: 131_072,
+    });
+    expect(runtime.owners.reservations.activeCount).toBe(1);
+    expect(runtime.owners.residents.read(0)).toMatchObject({
+      activity: "working",
+      currentJobId: 0,
+      reason: "game_session.job_working",
+    });
+    expect(JSON.parse(JSON.stringify(runtime.owners.jobs.createSnapshot()))).toMatchObject({
+      activeCount: 1,
+      records: [{ jobId: 0, status: "running", step: "interact" }],
+    });
+    expect(JSON.parse(JSON.stringify(runtime.owners.reservations.createSnapshot()))).toMatchObject({
+      activeCount: 1,
+      records: [{ jobId: 0, channel: "cell" }],
+    });
+    expect(runtime.createConservationReport()).toMatchObject({
+      activeJobs: 1,
+      activeReservations: 1,
+      firstDivergence: null,
+    });
+    expect(runtime.createConservationReport("terminal").firstDivergence).toMatchObject({
+      code: "game_session.jobs_leaked",
+      actual: 1,
+    });
+
+    runtime.advanceTicks(2);
+    expect(runtime.owners.jobs.readJob(0)).toMatchObject({
+      status: "completed",
+      step: "complete",
+      progressQ16: 131_072,
+    });
+    expect(runtime.owners.reservations.activeCount).toBe(0);
+    expect(runtime.owners.residents.read(0)).toMatchObject({
+      activity: "idle",
+      currentJobId: GAME_SESSION_NO_JOB,
+      reason: "game_session.job_completed",
+    });
+    expect(runtime.createMetrics()).toMatchObject({
+      activeJobCount: 0,
+      activeJobPeak: 1,
+      jobTerminalCount: 1,
+      activeReservationCount: 0,
+      activeReservationPeak: 1,
+      reservationAcquiredCount: 1,
+      reservationReleasedCount: 1,
+    });
+  });
+
+  it("distinguishes equal-version comfort and social owner mutations in both hashes", () => {
+    const comfort = createRuntime("need-collision");
+    const social = createRuntime("need-collision");
+    expect(
+      comfort.owners.needs.applyLaneDelta(
+        { actorId: 0, lane: NEED_LANE_COMFORT, tick: 0, reason: "need.manual_set" },
+        -1,
+      ),
+    ).toMatchObject({ ok: true, changed: true });
+    expect(
+      social.owners.needs.applyLaneDelta(
+        { actorId: 0, lane: NEED_LANE_SOCIAL, tick: 0, reason: "need.manual_set" },
+        -1,
+      ),
+    ).toMatchObject({ ok: true, changed: true });
+    expect(comfort.owners.needs.version).toBe(social.owners.needs.version);
+    expectCanonicalHashesToDiffer(comfort, social);
+  });
+
+  it("distinguishes equal-version resident, resource, and location owner mutations", () => {
+    const moving = createRuntime("resident-collision");
+    const working = createRuntime("resident-collision");
+    moving.owners.residents.setJobState(0, 7, "moving", "game_session.job_reserved");
+    working.owners.residents.setJobState(0, 7, "working", "game_session.job_working");
+    expect(moving.owners.residents.version).toBe(working.owners.residents.version);
+    expectCanonicalHashesToDiffer(moving, working);
+
+    const food = createRuntime("resource-collision");
+    const wood = createRuntime("resource-collision");
+    expect(food.owners.items.removeQuantity(0, 1, PR1_RESOURCE_FOOD).ok).toBe(true);
+    expect(wood.owners.items.removeQuantity(1, 1, PR1_RESOURCE_WOOD).ok).toBe(true);
+    expect(food.owners.items.version).toBe(wood.owners.items.version);
+    expectCanonicalHashesToDiffer(food, wood);
+
+    const west = createRuntime("location-collision");
+    const east = createRuntime("location-collision");
+    const westResident = west.owners.residents.read(0);
+    const eastResident = east.owners.residents.read(0);
+    if (westResident === undefined || eastResident === undefined)
+      throw new Error("resident missing");
+    expect(
+      west.owners.locations.placeOnMap(
+        westResident.entity,
+        west.owners.entities,
+        west.owners.map,
+        10,
+        10,
+      ).ok,
+    ).toBe(true);
+    expect(
+      east.owners.locations.placeOnMap(
+        eastResident.entity,
+        east.owners.entities,
+        east.owners.map,
+        11,
+        10,
+      ).ok,
+    ).toBe(true);
+    expect(west.owners.locations.version).toBe(east.owners.locations.version);
+    expectCanonicalHashesToDiffer(west, east);
+  });
+
+  it("keeps a quiet fixed tick free of allocation-bearing result API calls", () => {
+    const runtime = createRuntime("quiet-tick-allocation");
+    runtime.advanceTicks(100);
+    const before = runtime.createMetrics();
+    runtime.advanceTicks(1);
+    const after = runtime.createMetrics();
+
+    expect(after.eventResultObjectCallCount).toBe(before.eventResultObjectCallCount);
+    expect(after).toMatchObject({
+      unconditionalResultObjectCallCount: 0,
+      needScheduledUpdateCallCount: 0,
+    });
+  });
+
   it("keeps explicit pause/speed state and coherent read-only projection bases", () => {
     const runtime = createRuntime("projection");
     runtime.setRequestedSpeed(3);
@@ -158,7 +294,7 @@ describe("PR-1 authoritative GameSessionRuntime", () => {
     queueOrThrow(runtime, 99_999, "finish");
 
     runtime.advanceTicks(100_000);
-    const conservation = runtime.createConservationReport();
+    const conservation = runtime.createConservationReport("terminal");
     const metrics = runtime.createMetrics();
     expect(runtime.tick).toBe(100_000);
     expect(conservation).toMatchObject({
@@ -184,14 +320,21 @@ describe("PR-1 authoritative GameSessionRuntime", () => {
       pathAcceptedCount: 334,
       pathStaleRejectedCount: 0,
       activeJobCount: 0,
-      jobTerminalCount: 0,
+      activeJobPeak: 1,
+      jobTerminalCount: 1,
       activeReservationCount: 0,
+      activeReservationPeak: 1,
+      reservationAcquiredCount: 1,
+      reservationReleasedCount: 1,
       reservationConflictCount: 0,
       resourceConservationDelta: 0,
       projectionBacklog: 0,
       phaseViolationCount: 0,
       fullWorldPawnScanCount: 0,
+      unconditionalResultObjectCallCount: 0,
+      needScheduledUpdateCallCount: 0,
     });
+    expect(metrics.eventResultObjectCallCount).toBeGreaterThan(0);
     expect(metrics.pathNodeExpansions).toBeGreaterThan(0);
     expect(runtime.createWorldHash()).toMatch(/^0x[0-9a-f]{8}$/u);
     expect(runtime.createReadModelHash()).toMatch(/^0x[0-9a-f]{8}$/u);
@@ -230,4 +373,12 @@ function createRuntime(seed: string): GameSessionRuntime {
 function queueOrThrow(runtime: GameSessionRuntime, tick: number, commandId: string): void {
   const result = runtime.queueCommand({ tick, commandId, kind: "noop" });
   if (!result.ok) throw new Error(result.reason);
+}
+
+function expectCanonicalHashesToDiffer(
+  first: GameSessionRuntime,
+  second: GameSessionRuntime,
+): void {
+  expect(first.createWorldHash()).not.toBe(second.createWorldHash());
+  expect(first.createReadModelHash()).not.toBe(second.createReadModelHash());
 }

@@ -4,6 +4,7 @@ import type {
   GameSessionScenarioReferences,
 } from "./game-session-initializer";
 import type {
+  GameSessionConservationCheckpoint,
   GameSessionConservationDivergence,
   GameSessionConservationReport,
 } from "./game-session-types";
@@ -27,30 +28,10 @@ export class GameSessionDiagnostics {
     this.initialResourceQuantities = this.captureInitialResourceQuantities();
   }
 
-  auditTransientLeaks(tick: Tick): void {
-    if (this.firstDivergenceValue !== null) return;
-    if (this.owners.jobs.activeJobCount > 0) {
-      this.firstDivergenceValue = createDivergence(
-        "game_session.jobs_leaked",
-        tick,
-        this.owners.jobs.activeJobCount,
-      );
-    } else if (this.owners.reservations.activeCount > 0) {
-      this.firstDivergenceValue = createDivergence(
-        "game_session.reservations_leaked",
-        tick,
-        this.owners.reservations.activeCount,
-      );
-    } else if (this.owners.pathRequests.queuedCount > 0) {
-      this.firstDivergenceValue = createDivergence(
-        "game_session.path_queue_leaked",
-        tick,
-        this.owners.pathRequests.queuedCount,
-      );
-    }
-  }
-
-  createReport(tick: Tick): GameSessionConservationReport {
+  createReport(
+    tick: Tick,
+    checkpoint: GameSessionConservationCheckpoint,
+  ): GameSessionConservationReport {
     const resources = [];
     let divergence = this.firstDivergenceValue;
     for (let slot = 0; slot < this.references.resourceStackIds.length; slot += 1) {
@@ -71,7 +52,10 @@ export class GameSessionDiagnostics {
       }
     }
 
-    divergence = divergence ?? this.createTerminalLeakDivergence(tick);
+    const jobMetrics = this.owners.jobs.createMetrics();
+    if (checkpoint === "terminal") {
+      divergence = divergence ?? this.createTerminalLeakDivergence(tick, jobMetrics.runningCount);
+    }
     const needMetrics = this.owners.needUrgency.createMetrics();
     const restMetrics = this.owners.restCandidates.createMetrics(this.owners.restFixtures);
     const storageMetrics = this.owners.storage.createMetrics();
@@ -88,7 +72,7 @@ export class GameSessionDiagnostics {
         environmentMetrics.dirtyBacklog === 0 &&
         workMetrics.backlogCount === 0,
       tick,
-      activeJobs: this.owners.jobs.activeJobCount,
+      activeJobs: jobMetrics.runningCount,
       activeReservations: this.owners.reservations.activeCount,
       pendingCommands: this.commandQueue.pendingCount,
       pendingPaths: this.owners.pathRequests.queuedCount,
@@ -115,9 +99,12 @@ export class GameSessionDiagnostics {
     return absoluteDelta;
   }
 
-  private createTerminalLeakDivergence(tick: Tick): GameSessionConservationDivergence | null {
-    if (this.owners.jobs.activeJobCount > 0) {
-      return createDivergence("game_session.jobs_leaked", tick, this.owners.jobs.activeJobCount);
+  private createTerminalLeakDivergence(
+    tick: Tick,
+    runningJobCount: number,
+  ): GameSessionConservationDivergence | null {
+    if (runningJobCount > 0) {
+      return createDivergence("game_session.jobs_leaked", tick, runningJobCount);
     }
     if (this.owners.reservations.activeCount > 0) {
       return createDivergence(
@@ -133,8 +120,7 @@ export class GameSessionDiagnostics {
         this.owners.pathRequests.queuedCount,
       );
     }
-    const nextPendingTick = this.commandQueue.nextPendingTick;
-    if (nextPendingTick !== undefined && nextPendingTick <= tick) {
+    if (this.commandQueue.pendingCount > 0) {
       return createDivergence(
         "game_session.command_queue_not_drained",
         tick,

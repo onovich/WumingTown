@@ -13,6 +13,10 @@ const ACTIVITY_WORKING = 2;
 const REASON_AWAITING_DRIVER = 0;
 const REASON_INDEXED_WORK = 1;
 const REASON_NO_INDEXED_WORK = 2;
+const REASON_JOB_RESERVED = 3;
+const REASON_JOB_WORKING = 4;
+const REASON_JOB_COMPLETED = 5;
+const REASON_JOB_FAILED = 6;
 
 export type GameSessionResidentMutationResult =
   | { readonly ok: true; readonly residentId: number; readonly version: number }
@@ -111,6 +115,41 @@ export class GameSessionResidentStore {
     return this.finish(residentId);
   }
 
+  setJobState(
+    residentId: number,
+    currentJobId: number,
+    activity: GameSessionResidentActivity,
+    reason: Extract<
+      GameSessionStructuredReason,
+      | "game_session.job_reserved"
+      | "game_session.job_working"
+      | "game_session.job_completed"
+      | "game_session.job_failed"
+    >,
+  ): GameSessionResidentMutationResult {
+    if (!isIndexInRange(residentId, this.capacity) || (this.active[residentId] ?? 0) !== 1) {
+      return { ok: false, reason: "game_session.resident_id_out_of_range" };
+    }
+    if (!isUint32(currentJobId)) {
+      return { ok: false, reason: "game_session.resident_id_out_of_range" };
+    }
+
+    const activityCode = encodeActivity(activity);
+    const reasonCode = encodeReason(reason);
+    if (
+      (this.currentJobIds[residentId] ?? GAME_SESSION_NO_JOB) === currentJobId &&
+      (this.activityCodes[residentId] ?? ACTIVITY_IDLE) === activityCode &&
+      (this.reasonCodes[residentId] ?? REASON_AWAITING_DRIVER) === reasonCode
+    ) {
+      return { ok: true, residentId, version: this.storeVersion };
+    }
+
+    this.currentJobIds[residentId] = currentJobId;
+    this.activityCodes[residentId] = activityCode;
+    this.reasonCodes[residentId] = reasonCode;
+    return this.finish(residentId);
+  }
+
   read(residentId: number): GameSessionResidentView | undefined {
     if (!isIndexInRange(residentId, this.capacity) || (this.active[residentId] ?? 0) !== 1) {
       return undefined;
@@ -153,6 +192,12 @@ function decodeActivity(code: number): GameSessionResidentActivity {
   return "idle";
 }
 
+function encodeActivity(activity: GameSessionResidentActivity): number {
+  if (activity === "moving") return ACTIVITY_MOVING;
+  if (activity === "working") return ACTIVITY_WORKING;
+  return ACTIVITY_IDLE;
+}
+
 function decodeReason(code: number): GameSessionStructuredReason {
   if (code === REASON_INDEXED_WORK) {
     return "game_session.indexed_work_available";
@@ -162,7 +207,22 @@ function decodeReason(code: number): GameSessionStructuredReason {
     return "game_session.no_indexed_work";
   }
 
+  if (code === REASON_JOB_RESERVED) return "game_session.job_reserved";
+  if (code === REASON_JOB_WORKING) return "game_session.job_working";
+  if (code === REASON_JOB_COMPLETED) return "game_session.job_completed";
+  if (code === REASON_JOB_FAILED) return "game_session.job_failed";
+
   return "game_session.awaiting_job_driver";
+}
+
+function encodeReason(reason: GameSessionStructuredReason): number {
+  if (reason === "game_session.job_reserved") return REASON_JOB_RESERVED;
+  if (reason === "game_session.job_working") return REASON_JOB_WORKING;
+  if (reason === "game_session.job_completed") return REASON_JOB_COMPLETED;
+  if (reason === "game_session.job_failed") return REASON_JOB_FAILED;
+  if (reason === "game_session.indexed_work_available") return REASON_INDEXED_WORK;
+  if (reason === "game_session.no_indexed_work") return REASON_NO_INDEXED_WORK;
+  return REASON_AWAITING_DRIVER;
 }
 
 function isIndexInRange(value: number, upperBound: number): boolean {

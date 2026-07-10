@@ -21,7 +21,7 @@ export function runPr1IntegratedGameSessionScenario(
   runtime.advanceTicks(options.ticks);
   const worldHash = runtime.createWorldHash();
   const readModelHash = runtime.createReadModelHash();
-  const conservation = runtime.createConservationReport();
+  const conservation = runtime.createConservationReport("terminal");
   return {
     version: GAME_SESSION_RUNTIME_VERSION,
     scenarioId: PR1_INTEGRATED_GAME_SESSION_ID,
