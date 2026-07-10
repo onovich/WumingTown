@@ -1,0 +1,12 @@
+{
+  "id": "MSG-MREKVIIG-2F6028",
+  "from": "qa-performance",
+  "to": "project-director",
+  "taskId": "WM-0154",
+  "kind": "blocker",
+  "subject": "WM-0154 blocked",
+  "body": "Must wait for WM-0161 roadmap to reach verified/done and for WM-0162 reconciliation of the integrated GameSession recovery plan before any WM-0154 closeout semantics continue. Confirmed product facts show the old visual-evidence task cannot self-repair product implementation: real 1280x720 mouse hits on the East Market lamp are covered by HUD, existing E2E clickCanvasPoint dispatches PointerEvent directly to canvas instead of real input, normal speed has no sustained game clock, lamp refill completes in under 100 ms and is not player-perceptible, and the current product is still a static fixture plus two Pawn Worker slices.",
+  "artifacts": [],
+  "createdAt": "2026-07-10T06:52:02.296Z",
+  "acknowledgedAt": "2026-07-10T06:52:47.513Z"
+}

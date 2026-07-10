@@ -1,5 +1,11 @@
 # M8 1.0 Readiness Matrix
 
+Product-readiness status: historical evidence matrix. WM-0161 preserves every
+accepted M8 hash, benchmark, security boundary and scoped capability below,
+but supersedes this document as the current product-readiness authority with
+`docs/07_roadmap/12_playable_product_recovery_roadmap.md`. M8 remains internal
+readiness evidence and must not be interpreted as a playable 1.0 product.
+
 Status: WM-0127 M8 closeout readiness artifact with WM-0141 post-M8 owner UI
 remediation verdict addendum. This document consolidates verified M8 evidence
 for internal 1.0 readiness review, including WM-0128's benchmark stop-sign

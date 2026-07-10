@@ -1,0 +1,97 @@
+{
+  "id": "WM-0161",
+  "title": "Formal playable product recovery roadmap",
+  "summary": "Replace milestone-count progress with a capability-gated product recovery roadmap that turns the existing simulation foundation into one understandable, continuously running, saveable colony-sim vertical slice before any release-readiness closeout.",
+  "state": "verified",
+  "ownerRole": "project-director",
+  "reviewerRole": "reviewer",
+  "dependsOn": [],
+  "docs": [
+    "AGENTS.md",
+    "docs/01_design/00_game_design_overview.md",
+    "docs/01_design/12_post_m8_playable_product_acceptance.md",
+    "docs/05_tech/01_technical_architecture.md",
+    "docs/05_tech/02_worker_protocol.md",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/07_roadmap/00_roadmap.md",
+    "docs/07_roadmap/11_m8_1_0_readiness_matrix.md",
+    "coordination/project-state.json",
+    "coordination/tasks/WM-0154.json",
+    "coordination/tasks/WM-0155.json",
+    "coordination/tasks/WM-0156.json"
+  ],
+  "acceptance": [
+    "Roadmap formally distinguishes historical M0-M8 capability evidence from current product playability and release readiness",
+    "Roadmap defines ordered product-recovery phases with player outcome, architecture scope, dependencies, non-goals, measurable exit gates and stop signs",
+    "Roadmap requires one continuously running authoritative GameSession, perceptible autonomous residents, real input, general build/order flow, authoritative save/load and a reviewer-observed 30-minute vertical slice before release-gate re-entry",
+    "Roadmap defines evidence policy that real user input and player-observable behavior cannot be substituted by synthetic canvas dispatch, debug payloads or static fixture prose",
+    "Roadmap records disposition of WM-0154 through WM-0156 and prevents legacy closeout semantics from overriding the new product gates",
+    "No product implementation, public release, EA, store, signing, telemetry, account, paid-service, public save-compatibility or platform-verdict change is executed"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0161-formal-playable-product-recovery-roadmap",
+  "createdAt": "2026-07-10T06:42:41.587Z",
+  "updatedAt": "2026-07-10T06:59:36.135Z",
+  "history": [
+    {
+      "at": "2026-07-10T06:42:41.588Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    },
+    {
+      "at": "2026-07-10T06:43:02.496Z",
+      "actor": "project-director",
+      "action": "claim",
+      "details": "thread=Beacon formal playable product recovery roadmap"
+    },
+    {
+      "at": "2026-07-10T06:55:14.327Z",
+      "actor": "project-director",
+      "action": "complete",
+      "details": "Drafted the authoritative PR-0 through PR-7 playable-product recovery roadmap; preserved M0-M8 as historical evidence; blocked legacy WM-0154 evidence closeout; kept WM-0155/0156 behind the blocker; created only proposed WM-0162 for integrated GameSession architecture planning; handoff, taskctl, diff and full quality gates pass."
+    },
+    {
+      "at": "2026-07-10T06:59:36.135Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Verified PR-0 roadmap preserves M0-M8 as historical evidence, hard-gates PR-1..PR-7 on integrated GameSession, real input, continuous 30 TPS, perceptible NPCs, general building, authoritative save/load and 30-minute observed play, keeps WM-0154 blocked and WM-0155/0156 plus WM-0162 non-executing, and preserves Web demo-only, Windows controlled-test and Owner gates. validate/status/handoff/diff/quality pass."
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "playable-product-recovery-rebaseline",
+  "allowedPaths": [
+    "coordination/project-state.json",
+    "coordination/inbox/project-director/MSG-MREKVIIG-2F6028.json",
+    "coordination/reports/WM-0161*.md",
+    "coordination/tasks/WM-0154.json",
+    "coordination/tasks/WM-0161.json",
+    "coordination/tasks/WM-0162.json",
+    "docs/07_roadmap/**"
+  ],
+  "forbiddenPaths": [
+    "product implementation code",
+    "Simulation Worker or public protocol changes",
+    "save schema or persistence implementation changes",
+    "React, Pixi or Electron implementation changes",
+    "bulk creation of downstream implementation task packets beyond the single next-phase planning entry",
+    "public release, Early Access, store, signing, telemetry, accounts, paid services or public save compatibility actions",
+    "changing Web demo-only or Windows controlled-test verdicts without Owner approval"
+  ],
+  "claimedBy": "project-director",
+  "threadLabel": "Beacon formal playable product recovery roadmap",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0161.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Verified PR-0 roadmap preserves M0-M8 as historical evidence, hard-gates PR-1..PR-7 on integrated GameSession, real input, continuous 30 TPS, perceptible NPCs, general building, authoritative save/load and 30-minute observed play, keeps WM-0154 blocked and WM-0155/0156 plus WM-0162 non-executing, and preserves Web demo-only, Windows controlled-test and Owner gates. validate/status/handoff/diff/quality pass.",
+    "at": "2026-07-10T06:59:36.135Z"
+  }
+}

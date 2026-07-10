@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MREKZMOO-32C493",
+  "from": "project-director",
+  "to": "reviewer",
+  "taskId": "WM-0161",
+  "kind": "review-request",
+  "subject": "WM-0161 ready for review",
+  "body": "Drafted the authoritative PR-0 through PR-7 playable-product recovery roadmap; preserved M0-M8 as historical evidence; blocked legacy WM-0154 evidence closeout; kept WM-0155/0156 behind the blocker; created only proposed WM-0162 for integrated GameSession architecture planning; handoff, taskctl, diff and full quality gates pass.",
+  "artifacts": [
+    "coordination/reports/WM-0161.md",
+    "task/WM-0161-formal-playable-product-recovery-roadmap"
+  ],
+  "createdAt": "2026-07-10T06:55:14.329Z",
+  "acknowledgedAt": "2026-07-10T06:55:49.876Z"
+}

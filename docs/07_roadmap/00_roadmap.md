@@ -2,6 +2,29 @@
 
 Roadmap 以能力门禁而非日期承诺组织。任何阶段未过门禁，不得用更多内容掩盖基础问题。
 
+## 当前产品路线权威
+
+M0-M8 保留为已经评审的历史能力与工程证据，但不再表示当前产品完成度。
+M8 closeout 是内部 1.0 readiness evidence，不是可玩的 1.0 产品、公开发布批准或
+Early Access 准备完成。
+
+Post-M8 产品工作以
+`docs/07_roadmap/12_playable_product_recovery_roadmap.md` 为权威入口：
+
+- PR-0：产品事实与门禁重置。
+- PR-1：统一权威 `GameSession`。
+- PR-2：自主且可感知的城镇生活。
+- PR-3：真实玩家命令、工作与建造。
+- PR-4：地图优先的产品 UX。
+- PR-5：可保存的 30 分钟核心垂直切片。
+- PR-6：产品与平台硬化。
+- PR-7：内容扩展与 Owner 发布决策。
+
+当前没有任何 PR-1 及以后阶段被判定完成。WM-0154 至 WM-0156 的旧版可玩证据、
+verdict 和 closeout 语义不得越过新的产品门禁。Web 仍为 `demo-only`，Windows
+仍为 unsigned `ready-for-controlled-external-test`，所有公开发布决定仍需 Owner
+批准。
+
 ## M0 — Agent-ready 工程骨架
 
 目标：仓库、CI、任务协调、技术 Spike 和规范可执行。

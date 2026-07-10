@@ -1,0 +1,70 @@
+{
+  "id": "WM-0162",
+  "title": "Integrated GameSession architecture and PR-1 reviewed task DAG",
+  "summary": "Inventory the reusable M0-M8 simulation assets and define the single authoritative continuously running GameSession contract, migration plan, product projection/save boundaries, and a limited executable PR-1 task DAG without starting implementation.",
+  "state": "proposed",
+  "ownerRole": "systems-architect",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0161"
+  ],
+  "docs": [
+    "AGENTS.md",
+    "docs/07_roadmap/12_playable_product_recovery_roadmap.md",
+    "docs/05_tech/01_technical_architecture.md",
+    "docs/05_tech/02_worker_protocol.md",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "docs/02_systems/13_save_replay_migration.md",
+    "packages/sim-core/src/index.ts",
+    "packages/sim-worker/src/index.ts",
+    "apps/web/src/shell-bootstrap.ts"
+  ],
+  "acceptance": [
+    "Inventory maps existing M1-M8 stores, scenario runners, Worker modes, projections and save surfaces into reuse, adapt, retire or test-only categories",
+    "Architecture defines one authoritative GameSession lifecycle, continuous fixed-30-TPS Worker scheduling, pause/speed semantics and Headless/Worker parity without UI authority",
+    "Architecture defines scenario initialization, product read-model, presentation interpolation and authoritative save/load boundaries that remove static product-gate fixtures from default gameplay",
+    "Reviewed PR-1 task DAG is limited to the smallest integrated-session tranche, identifies file ownership and allows no more than three concurrent write-heavy tasks",
+    "Planning records migration and rollback risks, protected regression facts and measurable PR-1 exit gates",
+    "No GameSession implementation, public protocol/schema/save mutation, product UI implementation or release action is executed"
+  ],
+  "requiredChecks": [
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0162-integrated-gamesession-architecture-and-pr-1-rev",
+  "createdAt": "2026-07-10T06:49:29.795Z",
+  "updatedAt": "2026-07-10T06:49:29.796Z",
+  "history": [
+    {
+      "at": "2026-07-10T06:49:29.796Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "pr-1-integrated-gamesession-planning",
+  "allowedPaths": [
+    "coordination/decisions/**",
+    "coordination/project-state.json",
+    "coordination/reports/WM-0162*.md",
+    "coordination/tasks/WM-0162.json",
+    "coordination/tasks/WM-0163.json",
+    "coordination/tasks/WM-0164.json",
+    "coordination/tasks/WM-0165.json",
+    "coordination/tasks/WM-0166.json",
+    "docs/02_systems/**",
+    "docs/05_tech/**",
+    "docs/07_roadmap/**"
+  ],
+  "forbiddenPaths": [
+    "apps/** product implementation",
+    "packages/** product implementation",
+    "tools/** implementation",
+    "claiming or promoting PR-1 implementation tasks before this planning task is verified and done",
+    "creating PR-2 or later implementation task packets",
+    "public release, Early Access, store, signing, telemetry, accounts, paid services or public save compatibility actions"
+  ]
+}
