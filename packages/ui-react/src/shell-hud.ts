@@ -2249,6 +2249,8 @@ function formatEntityKind(kind: WorldEntityReadModel["kind"], locale: LocaleId):
       return formatMessage(locale, "ui.entityKind.lanternKeeper");
     case "resident":
       return formatMessage(locale, "ui.entityKind.resident");
+    case "resource":
+      return formatMessage(locale, "ui.entityKind.resource");
     case "structure":
       return formatMessage(locale, "ui.entityKind.structure");
     case "visitor":

@@ -37,33 +37,6 @@ export interface WebGameSessionProjectionAssembler {
   reset(): void;
 }
 
-export interface ProjectedGameSessionDebugState {
-  readonly basis: GameSessionProjectionBasisV1;
-  readonly build: {
-    readonly completed: boolean;
-    readonly progressTicks: number;
-    readonly requiredTicks: number;
-  };
-  readonly jobMarkers: readonly {
-    readonly markerId: string;
-    readonly progressQ16: number;
-    readonly state: string;
-  }[];
-  readonly renderEntities: readonly {
-    readonly entityId: string;
-    readonly kind: GameSessionRenderEntityV1["kind"];
-  }[];
-  readonly lamp: {
-    readonly fuel: number;
-    readonly stateCode: number;
-  };
-  readonly projectionSource: "game-session-worker";
-  readonly renderEntityCount: number;
-  readonly residentCount: number;
-  readonly resourceCount: number;
-  readonly selectionDetailKind: GameSessionSelectionDetailV1["kind"] | null;
-}
-
 export function createWebGameSessionProjectionAssembler(): WebGameSessionProjectionAssembler {
   let pendingRender: GameSessionRenderProjectionV1 | undefined;
   let pendingUi: GameSessionUiProjectionV1 | undefined;
@@ -185,37 +158,6 @@ export function createGameSessionWorldReadModel(input: {
     entities,
     focusMarkers: createJobFocusMarkers(input.frame.ui.jobs, tiles),
     selectedEntityId,
-  };
-}
-
-export function createProjectedGameSessionDebugState(
-  frame: WebGameSessionProjectionFrame,
-): ProjectedGameSessionDebugState {
-  return {
-    basis: frame.basis,
-    build: {
-      completed: frame.ui.buildCompleted,
-      progressTicks: frame.ui.buildProgressTicks,
-      requiredTicks: frame.ui.buildRequiredTicks,
-    },
-    jobMarkers: frame.ui.jobs.map((job) => ({
-      markerId: job.markerId,
-      progressQ16: job.progressQ16,
-      state: job.state,
-    })),
-    lamp: {
-      fuel: frame.ui.lampFuel,
-      stateCode: frame.ui.lampStateCode,
-    },
-    projectionSource: "game-session-worker",
-    renderEntities: frame.render.entities.map((entity) => ({
-      entityId: entityKey(entity.entity),
-      kind: entity.kind,
-    })),
-    renderEntityCount: frame.render.entities.length,
-    residentCount: frame.ui.residents.length,
-    resourceCount: frame.ui.resources.length,
-    selectionDetailKind: frame.ui.selectionDetail?.kind ?? null,
   };
 }
 
@@ -402,11 +344,8 @@ function readSelectedEntityId(
   selectedEntityId: string | null | undefined,
 ): string {
   if (selectedEntityId === null) return "";
-  if (
-    selectedEntityId !== undefined &&
-    entities.some((entity) => entity.entityId === selectedEntityId)
-  ) {
-    return selectedEntityId;
+  if (selectedEntityId !== undefined) {
+    return entities.some((entity) => entity.entityId === selectedEntityId) ? selectedEntityId : "";
   }
   return (
     entities.find((entity) => entity.kind === "resident")?.entityId ?? entities[0]?.entityId ?? ""
@@ -422,7 +361,8 @@ function readPresentationTileSize(tileSizeQ16: number): number {
 }
 
 function mapEntityKind(kind: GameSessionRenderEntityV1["kind"]): WorldEntityKind {
-  return kind === "resident" ? "resident" : "structure";
+  if (kind === "resident" || kind === "resource") return kind;
+  return "structure";
 }
 
 function formatEntityKind(kind: GameSessionRenderEntityV1["kind"]): string {

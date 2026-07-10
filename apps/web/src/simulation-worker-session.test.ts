@@ -99,21 +99,43 @@ describe("web Simulation Worker session bridge adapter", () => {
       sessionId: "web-session",
       workerFactory: () => worker,
     });
+    const assembler = createWebGameSessionProjectionAssembler();
     const received: SimulationToMainMessage[] = [];
-    session.subscribe((message) => received.push(message));
-    startWebGameSession(session);
-    worker.dispatch({ ...gameSessionReady(), sequence: 1 });
+    let visibleFrame: WebGameSessionProjectionFrame | undefined;
+    session.subscribe((message) => {
+      received.push(message);
+      if (message.kind === SIMULATION_TO_MAIN_MESSAGE_KIND.FatalSimulationError) {
+        visibleFrame = undefined;
+        assembler.reset();
+        return;
+      }
+      const render = readWebGameSessionRenderProjection(message);
+      const ui = readWebGameSessionUiProjection(message);
+      const update =
+        render !== undefined
+          ? assembler.pushRender(render)
+          : ui === undefined
+            ? undefined
+            : assembler.pushUi(ui);
+      if (update === undefined) return;
+      if (update.status === "ready") visibleFrame = update.frame;
+    });
+    const initialMessages = createSimulationWorker().receive(startWebGameSession(session));
+    for (const message of initialMessages) worker.dispatch(message);
+    expect(visibleFrame).toBeDefined();
     worker.dispatch({
       protocolVersion: SIM_PROTOCOL_VERSION,
       schemaVersion: SIM_SCHEMA_VERSION,
       sessionId: "web-session",
-      sequence: 2,
+      sequence: Math.max(...initialMessages.map((message) => message.sequence)) + 1,
       kind: SIMULATION_TO_MAIN_MESSAGE_KIND.UiDelta,
       payload: { tick: 0, summaries: ["must-not-be-used"] },
     });
 
     expect(session.getState()).toBe("fatal");
     expect(worker.terminated).toBe(true);
+    expect(visibleFrame).toBeUndefined();
+    expect(createGameSessionLifecycleReadModel("web-session", "fatal").entities).toStrictEqual([]);
     expect(received.at(-1)).toMatchObject({
       kind: SIMULATION_TO_MAIN_MESSAGE_KIND.FatalSimulationError,
       payload: {
@@ -148,6 +170,14 @@ describe("web Simulation Worker session bridge adapter", () => {
     });
     const frame = assembleGameSessionFrame(detailMessages);
     const readModel = createGameSessionWorldReadModel({ frame, selectedEntityId });
+    const initialDefault = createGameSessionWorldReadModel({
+      frame: initialFrame,
+      selectedEntityId: undefined,
+    });
+    const unavailable = createGameSessionWorldReadModel({
+      frame,
+      selectedEntityId: "999:1",
+    });
 
     expect(frame.render.basis).toStrictEqual(frame.ui.basis);
     expect(frame.ui.selectionDetail?.basis).toMatchObject(frame.basis);
@@ -159,6 +189,8 @@ describe("web Simulation Worker session bridge adapter", () => {
     expect(readModel.focusMarkers).toHaveLength(frame.ui.jobs.length);
     expect(readModel.jobMarkers).toBeUndefined();
     expect(readModel.selectedEntityId).toBe(selectedEntityId);
+    expect(initialDefault.selectedEntityId).toBe(selectedEntityId);
+    expect(unavailable.selectedEntityId).toBe("");
     expect(
       readModel.entities.find((entity) => entity.entityId === selectedEntityId)?.tile,
     ).toStrictEqual({
@@ -185,6 +217,17 @@ describe("web Simulation Worker session bridge adapter", () => {
     const resourceRender = frame.render.entities.find((entity) => entity.kind === "resource");
     if (resourceRender === undefined) throw new Error("Expected a projected resource.");
     const resourceEntityId = `${String(resourceRender.entity.index)}:${String(resourceRender.entity.generation)}`;
+    const rapidResourceSwitch = createGameSessionWorldReadModel({
+      frame,
+      selectedEntityId: resourceEntityId,
+    });
+    const rapidResourceEntity = rapidResourceSwitch.entities.find(
+      (entity) => entity.entityId === resourceEntityId,
+    );
+    expect(rapidResourceSwitch.selectedEntityId).toBe(resourceEntityId);
+    expect(rapidResourceEntity?.kind).toBe("resource");
+    expect(rapidResourceEntity?.inspector.lastDecision).toBe("\u2014");
+
     const resourceFrame = assembleGameSessionFrame(
       worker.receive({
         protocolVersion: SIM_PROTOCOL_VERSION,
@@ -200,9 +243,11 @@ describe("web Simulation Worker session bridge adapter", () => {
       selectedEntityId: resourceEntityId,
     });
     expect(resourceFrame.ui.selectionDetail?.kind).toBe("resource");
-    expect(
-      resourceReadModel.entities.find((entity) => entity.entityId === resourceEntityId)?.summary,
-    ).toContain("available");
+    const selectedResource = resourceReadModel.entities.find(
+      (entity) => entity.entityId === resourceEntityId,
+    );
+    expect(selectedResource?.kind).toBe("resource");
+    expect(selectedResource?.summary).toBe("80 available, 0 reserved, 80 total");
     browserSession.destroy();
   });
 
@@ -234,6 +279,8 @@ describe("web Simulation Worker session bridge adapter", () => {
     expect(fatal.town.resources).toStrictEqual([]);
     expect(fatal.town.alerts).toStrictEqual([]);
     expect(fatal.focusMarkers).toStrictEqual([]);
+    assembler.reset();
+    expect(assembler.pushUi(frame.ui)).toStrictEqual({ status: "pending" });
     browserSession.destroy();
   });
 

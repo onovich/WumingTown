@@ -11,13 +11,22 @@ import {
   createPixiWorldRenderer,
   type PixiWorldRendererDebugState,
 } from "@wuming-town/renderer-pixi";
-import { SIMULATION_TO_MAIN_MESSAGE_KIND } from "@wuming-town/sim-protocol";
+import {
+  SIMULATION_TO_MAIN_MESSAGE_KIND,
+  type GameSessionProjectionBasisV1,
+  type GameSessionRenderEntityV1,
+  type GameSessionSelectionDetailV1,
+  type GameSessionUiResourceV1,
+} from "@wuming-town/sim-protocol";
 import {
   createShellHudElement,
   createShellStore,
   getEntityTile,
   type ShellOnboardingState,
   type ShellLocaleState,
+  type ShellReleaseGateInfo,
+  type ShellStorageActions,
+  type ShellStorageGateState,
   type ShellState,
 } from "@wuming-town/ui-react";
 
@@ -34,13 +43,10 @@ import {
 import {
   createGameSessionLifecycleReadModel,
   createGameSessionWorldReadModel,
-  createProjectedGameSessionDebugState,
   createWebGameSessionProjectionAssembler,
-  type ProjectedGameSessionDebugState,
   type WebGameSessionFrameUpdate,
   type WebGameSessionProjectionFrame,
 } from "./playable-worker-projection";
-import { createShellReleaseGateInfo, readShellBrowserLabel } from "./product-gate-harness";
 import { createShellSettingsController, readDiagnosticsVisibility } from "./shell-locale";
 import {
   createWebSimulationWorkerSession,
@@ -48,11 +54,33 @@ import {
   readWebGameSessionUiProjection,
   startWebGameSession,
 } from "./simulation-worker-session";
-import {
-  createInitialStorageGateState,
-  createWebStorageGateController,
-  type WebStorageDebugState,
-} from "./web-storage-gate";
+import type { WebStorageDebugState } from "./web-storage-gate";
+
+interface ProjectedGameSessionDebugState {
+  readonly basis: GameSessionProjectionBasisV1;
+  readonly jobMarkerCount: number;
+  readonly renderEntities: readonly {
+    readonly entityId: string;
+    readonly kind: GameSessionRenderEntityV1["kind"];
+  }[];
+  readonly projectionSource: "game-session-worker";
+  readonly renderEntityCount: number;
+  readonly residentCount: number;
+  readonly resourceCount: number;
+  readonly selectionDetailKind: GameSessionSelectionDetailV1["kind"] | null;
+  readonly selectedResource?: {
+    readonly available: number;
+    readonly reserved: number;
+    readonly resourceKind: GameSessionUiResourceV1["resourceKind"];
+    readonly total: number;
+  };
+}
+
+interface ShellStorageController {
+  readonly actions: ShellStorageActions;
+  readDebugState(): WebStorageDebugState;
+  refresh(): Promise<void>;
+}
 
 export interface WebShellDebugPayload extends PixiWorldRendererDebugState {
   readonly browserTargets: readonly string[];
@@ -94,6 +122,10 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
   const platformPorts = resolvePlatformPorts();
   const settingsController = createShellSettingsController();
   const diagnosticsVisible = readDiagnosticsVisibility(window.location.search);
+  let historicalStorageModule: typeof import("./web-storage-gate") | undefined;
+  if (diagnosticsVisible) {
+    historicalStorageModule = await import("./web-storage-gate");
+  }
   const workerSession = createWebSimulationWorkerSession({
     sessionId: "wm0165-web-game-session",
   });
@@ -101,10 +133,7 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
     workerSession.sessionId,
     "connecting",
   );
-  const releaseGate = createShellReleaseGateInfo({
-    browserLabel: readShellBrowserLabel(navigator.userAgent),
-    crossOriginIsolated: window.crossOriginIsolated,
-  });
+  const releaseGate = await readShellReleaseGateInfo(diagnosticsVisible);
   const recentStructuredErrors: M6DiagnosticEntryInput[] = [];
   let diagnosticState = createInitialDiagnosticDebugState(platformPorts.host);
   const gameSessionAssembler = createWebGameSessionProjectionAssembler();
@@ -112,6 +141,7 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
   let gameSessionFailure: { readonly code: string; readonly detail: string } | undefined;
   let gameSessionLifecycle = workerSession.getState();
   let localSelectionInitialized = false;
+  let initialCameraFramed = false;
   let lastRequestedSelectionId: string | null | undefined;
 
   const shellFrame = document.createElement("div");
@@ -141,7 +171,9 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
   const initialState: ShellState = {
     readModel: initialReadModel,
     releaseGate,
-    storageGate: createInitialStorageGateState(),
+    storageGate:
+      historicalStorageModule?.createInitialStorageGateState() ??
+      createUnsupportedGameSessionStorageState(),
     onboarding: createM8OnboardingState(),
     locale: settingsState.locale,
     uiScale: settingsState.uiScale,
@@ -156,27 +188,27 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
     buildMode: "inactive",
   };
   const store = createShellStore(initialState);
-  const storageController = createWebStorageGateController({
-    onStorageGateStateChange: () => {
-      const activeRenderer = rendererRef.current;
-      if (activeRenderer === undefined) {
-        return;
-      }
-
-      syncDebug(
-        activeRenderer.readDebugState(),
-        store.getSnapshot(),
-        readGameSessionDebugState(),
-        gameSessionLifecycle,
-        gameSessionFailure,
-        platformPorts.host,
-        storageController.readDebugState(),
-        diagnosticState,
-      );
-    },
-    platformPorts,
-    store,
-  });
+  const storageController: ShellStorageController =
+    historicalStorageModule === undefined
+      ? createUnsupportedGameSessionStorageController()
+      : historicalStorageModule.createWebStorageGateController({
+          onStorageGateStateChange: () => {
+            const activeRenderer = rendererRef.current;
+            if (activeRenderer === undefined) return;
+            syncDebug(
+              activeRenderer.readDebugState(),
+              store.getSnapshot(),
+              readGameSessionDebugState(),
+              gameSessionLifecycle,
+              gameSessionFailure,
+              platformPorts.host,
+              storageController.readDebugState(),
+              diagnosticState,
+            );
+          },
+          platformPorts,
+          store,
+        });
   const diagnosticDock = createDiagnosticDock();
   diagnosticDock.button.addEventListener("click", () => {
     exportDiagnostics();
@@ -445,6 +477,14 @@ export async function mountWebClientShell(rootElement: HTMLElement): Promise<Mou
       try {
         activeRenderer.setReadModel(nextReadModel);
         activeRenderer.setSelectedEntityId(nextSelectedEntityId);
+        if (
+          !initialCameraFramed &&
+          gameSessionFrame !== undefined &&
+          nextState.inspectedTile !== undefined
+        ) {
+          activeRenderer.frameInitialView(nextState.inspectedTile, 2);
+          initialCameraFramed = true;
+        }
       } finally {
         isSyncingRendererProjection = false;
       }
@@ -572,9 +612,39 @@ function shouldIgnoreCameraInputTarget(target: EventTarget | null, hudHost: HTML
   return false;
 }
 
+function createProjectedGameSessionDebugState(
+  frame: WebGameSessionProjectionFrame,
+): ProjectedGameSessionDebugState {
+  const selectedResource =
+    frame.ui.selectionDetail?.kind === "resource" ? frame.ui.selectionDetail.resource : undefined;
+  return {
+    basis: frame.basis,
+    jobMarkerCount: frame.ui.jobs.length,
+    projectionSource: "game-session-worker",
+    renderEntities: frame.render.entities.map((entity) => ({
+      entityId: `${String(entity.entity.index)}:${String(entity.entity.generation)}`,
+      kind: entity.kind,
+    })),
+    renderEntityCount: frame.render.entities.length,
+    residentCount: frame.ui.residents.length,
+    resourceCount: frame.ui.resources.length,
+    selectionDetailKind: frame.ui.selectionDetail?.kind ?? null,
+    ...(selectedResource === undefined
+      ? {}
+      : {
+          selectedResource: {
+            available: selectedResource.available,
+            reserved: selectedResource.reserved,
+            resourceKind: selectedResource.resourceKind,
+            total: selectedResource.total,
+          },
+        }),
+  };
+}
+
 function syncDebug(
   debugState: PixiWorldRendererDebugState,
-  shellState: Pick<ShellState, "diagnosticsVisible" | "locale" | "uiScale">,
+  shellState: Pick<ShellState, "diagnosticsVisible" | "locale" | "releaseGate" | "uiScale">,
   gameSessionState: ProjectedGameSessionDebugState | undefined,
   gameSessionLifecycle: string,
   gameSessionFailure: { readonly code: string; readonly detail: string } | undefined,
@@ -582,10 +652,7 @@ function syncDebug(
   storageGate: WebStorageDebugState,
   diagnostics: WebDiagnosticDebugState,
 ): void {
-  const releaseGate = createShellReleaseGateInfo({
-    browserLabel: readShellBrowserLabel(navigator.userAgent),
-    crossOriginIsolated: window.crossOriginIsolated,
-  });
+  const releaseGate = shellState.releaseGate;
   const debugPayload: WebShellDebugPayload = {
     ...debugState,
     browserTargets: releaseGate.browserTargets,
@@ -618,4 +685,90 @@ function syncDebug(
   if (debugNode !== null) {
     debugNode.textContent = JSON.stringify(debugPayload);
   }
+}
+
+async function readShellReleaseGateInfo(
+  diagnosticsVisible: boolean,
+): Promise<ShellReleaseGateInfo> {
+  const browserLabel = readBrowserLabel(navigator.userAgent);
+  if (diagnosticsVisible) {
+    const { createShellReleaseGateInfo } = await import("./product-gate-harness");
+    return createShellReleaseGateInfo({
+      browserLabel,
+      crossOriginIsolated: window.crossOriginIsolated,
+    });
+  }
+  return {
+    fixtureId: "pr1-game-session-worker",
+    title: "PR-1 GameSession",
+    browserTargets: ["Chrome Stable", "Edge Stable"],
+    runtimeBrowser: browserLabel,
+    runtimeCrossOriginIsolated: window.crossOriginIsolated,
+    sections: [
+      {
+        label: "Authority",
+        value: "Simulation Worker",
+        detail: "Schema-v3 GameSession projection v1; Web is a read-only presentation consumer.",
+      },
+      {
+        label: "Save",
+        value: "Authoritative restore unsupported",
+        detail: "Local shell evidence does not restore runtime state, jobs, resources, or time.",
+      },
+    ],
+  };
+}
+
+function readBrowserLabel(userAgent: string): string {
+  if (userAgent.includes("Edg/")) return "Edge-family browser";
+  if (userAgent.includes("Chrome/")) return "Chrome-family browser";
+  return "Unknown browser shell";
+}
+
+function createUnsupportedGameSessionStorageState(): ShellStorageGateState {
+  return {
+    diagnostic: undefined,
+    interoperabilityDetail:
+      "No reviewed GameSession runtime snapshot bridge exists for Web or Windows.",
+    interoperabilityVerdict: "blocked",
+    lastActionLabel: "Authoritative restore unavailable",
+    quotaAvailableBytes: null,
+    quotaBytes: null,
+    saveId: "game-session-runtime-unsupported",
+    saveSlots: [],
+    scopeNote: "Default gameplay does not load historical gate envelopes as town state.",
+    statusDetail: "Authoritative GameSession save/load is outside the reviewed PR-1 contract.",
+    statusTone: "warning",
+    storageKindLabel: "Runtime restore unavailable",
+    usageBytes: null,
+    userMessage: "No gameplay runtime was saved or restored.",
+  };
+}
+
+function createUnsupportedGameSessionStorageController(): ShellStorageController {
+  const noAction = (): Promise<void> => Promise.resolve();
+  return {
+    actions: {
+      onDeleteSave: noAction,
+      onExportSave: noAction,
+      onImportFile: noAction,
+      onLoadSave: noAction,
+      onRefreshStorage: noAction,
+      onSaveFixture: noAction,
+    },
+    readDebugState(): WebStorageDebugState {
+      return {
+        diagnosticCode: "game_session_runtime_restore_unsupported",
+        interoperabilityVerdict: "blocked",
+        lastActionLabel: "Authoritative restore unavailable",
+        quotaAvailableBytes: null,
+        quotaBytes: null,
+        saveSlotCount: 0,
+        statusTone: "warning",
+        storageKindLabel: "Runtime restore unavailable",
+        usageBytes: null,
+      };
+    },
+    refresh: noAction,
+  };
 }

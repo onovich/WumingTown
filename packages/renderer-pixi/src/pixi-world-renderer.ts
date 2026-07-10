@@ -61,6 +61,7 @@ export interface CreatePixiWorldRendererOptions {
 export interface PixiWorldRenderer {
   readonly canvas: HTMLCanvasElement;
   resize(width: number, height: number, devicePixelRatio: number): void;
+  frameInitialView(focusTile: TileCoordinate, zoom: number): void;
   setReadModel(readModel: WorldReadModel): void;
   setSelectedEntityId(entityId: string | undefined): void;
   readDebugState(): PixiWorldRendererDebugState;
@@ -102,6 +103,11 @@ interface StaticLayerSignature {
   readonly mapWidth: number;
   readonly semanticAreas: WorldReadModel["semanticAreas"];
   readonly tileSize: number;
+}
+
+interface InitialViewportFraming {
+  readonly focusTile: TileCoordinate;
+  readonly zoom: number;
 }
 
 export async function createPixiWorldRenderer(
@@ -164,6 +170,7 @@ export async function createPixiWorldRenderer(
   );
   let lastInputLabel = "Ready";
   let userAdjustedViewport = false;
+  let initialViewportFraming: InitialViewportFraming | undefined;
   let dragState: CameraDragState | undefined;
   let currentStaticLayerSignature = readStaticLayerSignature(currentReadModel);
 
@@ -391,7 +398,7 @@ export async function createPixiWorldRenderer(
     resize(width: number, height: number, nextDevicePixelRatio: number): void {
       viewport = userAdjustedViewport
         ? resizeViewport(viewport, currentReadModel, width, height)
-        : createFittedViewport(currentReadModel, width, height);
+        : createDefaultViewport(currentReadModel, width, height, initialViewportFraming);
       applyViewport(app, worldRoot, viewport, nextDevicePixelRatio);
       drawSelectionGraphic(selectionGraphic, selectedEntityId, inspectedTile, currentReadModel);
       drawHoverGraphic(hoverGraphic, hoverTile, currentReadModel);
@@ -406,7 +413,12 @@ export async function createPixiWorldRenderer(
       currentReadModel = readModel;
       currentStaticLayerSignature = nextStaticLayerSignature;
       if (!userAdjustedViewport) {
-        viewport = createFittedViewport(readModel, viewport.canvasWidth, viewport.canvasHeight);
+        viewport = createDefaultViewport(
+          readModel,
+          viewport.canvasWidth,
+          viewport.canvasHeight,
+          initialViewportFraming,
+        );
         applyViewport(app, worldRoot, viewport, devicePixelRatio);
       } else {
         viewport = resizeViewport(viewport, readModel, viewport.canvasWidth, viewport.canvasHeight);
@@ -419,6 +431,20 @@ export async function createPixiWorldRenderer(
         rebuildStaticReadModelGraphics();
       }
       rebuildDynamicReadModelGraphics();
+      drawSelectionGraphic(selectionGraphic, selectedEntityId, inspectedTile, currentReadModel);
+      drawHoverGraphic(hoverGraphic, hoverTile, currentReadModel);
+      emitStateChange();
+    },
+    frameInitialView(focusTile: TileCoordinate, zoom: number): void {
+      initialViewportFraming = { focusTile: { ...focusTile }, zoom };
+      userAdjustedViewport = false;
+      viewport = createDefaultViewport(
+        currentReadModel,
+        viewport.canvasWidth,
+        viewport.canvasHeight,
+        initialViewportFraming,
+      );
+      applyViewport(app, worldRoot, viewport, devicePixelRatio);
       drawSelectionGraphic(selectionGraphic, selectedEntityId, inspectedTile, currentReadModel);
       drawHoverGraphic(hoverGraphic, hoverTile, currentReadModel);
       emitStateChange();
@@ -491,7 +517,12 @@ export async function createPixiWorldRenderer(
 
   function resetCamera(): void {
     userAdjustedViewport = false;
-    viewport = createFittedViewport(currentReadModel, viewport.canvasWidth, viewport.canvasHeight);
+    viewport = createDefaultViewport(
+      currentReadModel,
+      viewport.canvasWidth,
+      viewport.canvasHeight,
+      initialViewportFraming,
+    );
     lastInputLabel = "Camera reset";
     applyViewport(app, worldRoot, viewport, devicePixelRatio);
     drawSelectionGraphic(selectionGraphic, selectedEntityId, inspectedTile, currentReadModel);
@@ -774,6 +805,10 @@ function captureCanvasPointer(element: HTMLElement, pointerId: number): void {
 
 function drawEntityMarker(graphic: Graphics, entity: WorldEntityReadModel): void {
   switch (entity.kind) {
+    case "resource":
+      graphic.rect(-10, -8, 20, 16);
+      graphic.rect(-5, -12, 10, 4);
+      break;
     case "structure":
       graphic.rect(-11, -11, 22, 22);
       break;
@@ -858,6 +893,9 @@ function drawEntitySelectionOutline(
   worldY: number,
 ): void {
   switch (entity.kind) {
+    case "resource":
+      graphic.rect(worldX - 14, worldY - 12, 28, 24);
+      break;
     case "structure":
       graphic.rect(worldX - 15, worldY - 15, 30, 30);
       break;
@@ -886,6 +924,33 @@ function drawEntitySelectionOutline(
     pixelLine: true,
     width: 3,
   });
+}
+
+function createDefaultViewport(
+  readModel: WorldReadModel,
+  canvasWidth: number,
+  canvasHeight: number,
+  framing: InitialViewportFraming | undefined,
+): RendererViewportState {
+  const fitted = createFittedViewport(readModel, canvasWidth, canvasHeight);
+  if (framing === undefined) return fitted;
+  const zoomed = zoomViewportAtPoint(
+    fitted,
+    readModel,
+    {
+      x: fitted.canvasWidth / 2,
+      y: fitted.canvasHeight / 2,
+    },
+    framing.zoom,
+  );
+  const focusWorldX = (framing.focusTile.x + 0.5) * readModel.tileSize;
+  const focusWorldY = (framing.focusTile.y + 0.5) * readModel.tileSize;
+  return panViewport(
+    zoomed,
+    readModel,
+    focusWorldX - zoomed.centerWorldX,
+    focusWorldY - zoomed.centerWorldY,
+  );
 }
 
 function drawTerrainTile(

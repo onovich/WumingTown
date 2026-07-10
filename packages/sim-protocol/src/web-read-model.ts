@@ -81,7 +81,7 @@ export interface EntityInspectorReadModel {
   readonly task?: EntityTaskReadModel;
 }
 
-export type WorldEntityKind = "resident" | "visitor" | "lantern-keeper" | "structure";
+export type WorldEntityKind = "resident" | "resource" | "visitor" | "lantern-keeper" | "structure";
 
 export interface WorldEntityActivityReadModel {
   readonly state: WorldEntityActivityState;

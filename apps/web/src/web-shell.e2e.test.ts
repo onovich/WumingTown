@@ -4,6 +4,7 @@ import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
 
+import { MAIN_TO_SIMULATION_MESSAGE_KIND } from "@wuming-town/sim-protocol";
 import { chromium } from "playwright";
 import { describe, expect, it } from "vitest";
 import { createServer, type ViteDevServer } from "vite";
@@ -25,20 +26,7 @@ interface WebShellDebugPayload {
       readonly tick: number;
       readonly worldHash: string;
     };
-    readonly build: {
-      readonly completed: boolean;
-      readonly progressTicks: number;
-      readonly requiredTicks: number;
-    };
-    readonly jobMarkers: readonly {
-      readonly markerId: string;
-      readonly progressQ16: number;
-      readonly state: string;
-    }[];
-    readonly lamp: {
-      readonly fuel: number;
-      readonly stateCode: number;
-    };
+    readonly jobMarkerCount: number;
     readonly projectionSource: "game-session-worker";
     readonly renderEntities: readonly {
       readonly entityId: string;
@@ -48,6 +36,12 @@ interface WebShellDebugPayload {
     readonly residentCount: number;
     readonly resourceCount: number;
     readonly selectionDetailKind: "resident" | "resource" | "structure" | null;
+    readonly selectedResource?: {
+      readonly available: number;
+      readonly reserved: number;
+      readonly resourceKind: string;
+      readonly total: number;
+    };
   };
   readonly gameSessionFailure?: {
     readonly code: string;
@@ -97,6 +91,11 @@ interface WebDiagnosticDebugState {
   readonly telemetryEnabled: false;
   readonly webDownloadStatus: "available" | "blocked";
   readonly windowsHostPackageStatus: "available" | "blocked";
+}
+
+interface WorkerOutboundProbeMessage {
+  readonly kind: string;
+  readonly payload: unknown;
 }
 
 interface ResponsiveViewport {
@@ -532,9 +531,22 @@ describe("web shell smoke", () => {
 
   it("observes advancing PR-1 GameSession truth without UI advance, drain, or canvas dispatch", async () => {
     const appRoot = path.join(process.cwd(), "apps", "web");
+    const runtimeWebModules = new Set<string>();
     const server = await createServer({
       configFile: false,
       logLevel: "error",
+      plugins: [
+        {
+          name: "wm0165-default-route-module-probe",
+          transform(_source: string, id: string): null {
+            const normalizedId = id.replaceAll("\\", "/").split("?", 1)[0];
+            if (normalizedId?.includes("/apps/web/src/") === true) {
+              runtimeWebModules.add(normalizedId);
+            }
+            return null;
+          },
+        },
+      ],
       root: appRoot,
       server: {
         host: "127.0.0.1",
@@ -559,6 +571,7 @@ describe("web shell smoke", () => {
 
       try {
         const page = await context.newPage();
+        await installWorkerOutboundProbe(page);
         await page.goto(serverUrl, { waitUntil: "networkidle" });
         await page.waitForSelector("[data-shell-ready='true']");
         await waitForLocale(page, "en", "system");
@@ -574,7 +587,7 @@ describe("web shell smoke", () => {
           residentCount: 8,
           resourceCount: 4,
         });
-        expect(baseline.gameSession?.jobMarkers).toHaveLength(8);
+        expect(baseline.gameSession?.jobMarkerCount).toBe(8);
         expect(baseline.entityScreenPositions).toHaveLength(22);
         expect(await page.getByTestId("player-command-lamp").getAttribute("aria-disabled")).toBe(
           "true",
@@ -594,13 +607,80 @@ describe("web shell smoke", () => {
           baseline.gameSession?.basis.worldHash,
         );
 
-        const residentId = findFirstEntityIdByKind(advanced, "resident");
-        await clickCanvasPoint(page, findRequiredEntity(advanced, residentId));
-        await waitForSelectedEntity(page, residentId);
-        const detailed = await waitForSelectionDetailKind(page, "resident");
-        expect(detailed.gameSession?.basis.scenarioId).toBe(advanced.gameSession?.basis.scenarioId);
+        const residentPoint = await findReachableEntityPointByKind(
+          page,
+          advanced,
+          "resident",
+          advanced.selectedEntityId,
+        );
+        await clickCanvasViewportPoint(page, residentPoint);
+        await waitForSelectedEntity(page, residentPoint.entityId);
+        const residentDetail = await waitForSelectionDetailKind(page, "resident");
+        expect(residentDetail.gameSession?.basis.scenarioId).toBe(
+          advanced.gameSession?.basis.scenarioId,
+        );
         expect((await page.getByTestId("player-selected-detail").textContent()) ?? "").toContain(
           "Resident",
+        );
+
+        const resourcePoint = await findReachableEntityPointByKind(
+          page,
+          residentDetail,
+          "resource",
+        );
+        await clickCanvasViewportPoint(page, resourcePoint);
+        await waitForSelectedEntity(page, resourcePoint.entityId);
+        const resourceDetail = await waitForSelectionDetailKind(page, "resource");
+        const selectedResource = resourceDetail.gameSession?.selectedResource;
+        if (selectedResource === undefined) {
+          throw new Error("Expected same-basis resource selection quantities.");
+        }
+        const resourceInspectorText =
+          (await page.getByTestId("player-selected-detail").textContent()) ?? "";
+        expect(resourceInspectorText).toContain("resource");
+        expect(resourceInspectorText).not.toContain("structure");
+        expect(resourceInspectorText).toContain(
+          `${String(selectedResource.available)} available, ${String(selectedResource.reserved)} reserved, ${String(selectedResource.total)} total`,
+        );
+
+        const outbound = await readWorkerOutboundProbe(page);
+        expect(
+          outbound.some((message) => message.kind === MAIN_TO_SIMULATION_MESSAGE_KIND.InitSession),
+        ).toBe(true);
+        expect(
+          outbound.every(
+            (message) =>
+              message.kind === MAIN_TO_SIMULATION_MESSAGE_KIND.InitSession ||
+              message.kind === MAIN_TO_SIMULATION_MESSAGE_KIND.RequestUiDetail,
+          ),
+        ).toBe(true);
+        expect(
+          outbound.some(
+            (message) => message.kind === MAIN_TO_SIMULATION_MESSAGE_KIND.PlayerCommandBatch,
+          ),
+        ).toBe(false);
+        const initPayload = outbound.find(
+          (message) => message.kind === MAIN_TO_SIMULATION_MESSAGE_KIND.InitSession,
+        )?.payload;
+        expect(
+          expectRecord(initPayload, "InitSession outbound")["projectionRequest"],
+        ).toStrictEqual({ kind: "game_session", version: 1 });
+        const loadedModuleNames = [...runtimeWebModules].map((file) => path.basename(file));
+        expect(loadedModuleNames).toEqual(
+          expect.arrayContaining([
+            "shell-bootstrap.ts",
+            "simulation-worker-session.ts",
+            "playable-worker-projection.ts",
+          ]),
+        );
+        expect(loadedModuleNames).not.toEqual(
+          expect.arrayContaining([
+            "product-gate-fixture.ts",
+            "product-gate-harness.ts",
+            "reviewed-playable-session.ts",
+            "smoke-read-model.ts",
+            "web-storage-gate.ts",
+          ]),
         );
 
         for (const viewport of WM0153_PLAYER_COMMAND_VIEWPORTS) {
@@ -657,8 +737,8 @@ describe("web shell smoke", () => {
       const dragStart = await readMapFocusViewportPoint(page, 0.48, 0.48);
       await assertViewportPointHitsCanvas(page, dragStart);
       await dragCanvasViewportPoint(page, dragStart, {
-        x: dragStart.x + 180,
-        y: dragStart.y + 72,
+        x: dragStart.x - 180,
+        y: dragStart.y - 72,
       });
       await waitForHudText(page, "Drag pan");
       const dragged = await readDebugPayload(page);
@@ -2725,6 +2805,95 @@ async function findReachableEntityPoint(
   }, payload.entityScreenPositions);
 }
 
+async function findReachableEntityPointByKind(
+  page: import("playwright").Page,
+  payload: WebShellDebugPayload,
+  kind: string,
+  excludedEntityId?: string,
+): Promise<{ readonly entityId: string; readonly x: number; readonly y: number }> {
+  const ids = new Set(
+    payload.gameSession?.renderEntities
+      .filter((entity) => entity.kind === kind && entity.entityId !== excludedEntityId)
+      .map((entity) => entity.entityId) ?? [],
+  );
+  const candidates = payload.entityScreenPositions.filter((entity) => ids.has(entity.entityId));
+  return page.evaluate((entityScreenPositions) => {
+    const canvas = document.querySelector("[data-testid='world-canvas']");
+    if (!(canvas instanceof HTMLCanvasElement)) throw new Error("Expected world canvas.");
+    const rect = canvas.getBoundingClientRect();
+    for (const entity of entityScreenPositions) {
+      const x = rect.left + entity.x;
+      const y = rect.top + entity.y;
+      const hit = document.elementFromPoint(x, y);
+      const interactiveHudAncestor =
+        hit instanceof HTMLElement
+          ? hit.closest(
+              "button,input,select,textarea,a,[role='button'],[data-ui-slot],[data-testid='main-menu-panel'],[data-testid='locale-settings'],[data-testid='ui-scale-settings'],[data-testid='storage-panel']",
+            )
+          : null;
+      if (
+        x >= rect.left + 18 &&
+        y >= rect.top + 18 &&
+        x <= rect.right - 18 &&
+        y <= rect.bottom - 18 &&
+        interactiveHudAncestor === null
+      ) {
+        return { entityId: entity.entityId, x, y };
+      }
+    }
+    throw new Error("Unable to find a reachable projected entity for the requested kind.");
+  }, candidates);
+}
+
+async function installWorkerOutboundProbe(page: import("playwright").Page): Promise<void> {
+  await page.addInitScript(() => {
+    const outbound: unknown[] = [];
+    Object.defineProperty(globalThis, "__wm0165WorkerOutbound", {
+      configurable: true,
+      value: outbound,
+    });
+    const originalPostMessage: unknown = Object.getOwnPropertyDescriptor(
+      Worker.prototype,
+      "postMessage",
+    )?.value;
+    if (typeof originalPostMessage !== "function") {
+      throw new Error("Worker postMessage is unavailable for the outbound probe.");
+    }
+    Object.defineProperty(Worker.prototype, "postMessage", {
+      configurable: true,
+      value(this: Worker, message: unknown, transferOrOptions?: unknown): void {
+        outbound.push(structuredClone(message));
+        Reflect.apply(
+          originalPostMessage,
+          this,
+          transferOrOptions === undefined ? [message] : [message, transferOrOptions],
+        );
+      },
+      writable: true,
+    });
+  });
+}
+
+async function readWorkerOutboundProbe(
+  page: import("playwright").Page,
+): Promise<readonly WorkerOutboundProbeMessage[]> {
+  const value: unknown = await page.evaluate((): unknown => {
+    const descriptorValue: unknown = Object.getOwnPropertyDescriptor(
+      globalThis,
+      "__wm0165WorkerOutbound",
+    )?.value;
+    return descriptorValue;
+  });
+  if (!Array.isArray(value)) throw new Error("Expected Worker outbound probe messages.");
+  return value.map((entry) => {
+    const message = expectRecord(entry, "Worker outbound message");
+    if (typeof message["kind"] !== "string") {
+      throw new Error("Worker outbound message kind is invalid.");
+    }
+    return { kind: message["kind"], payload: message["payload"] };
+  });
+}
+
 async function findInspectableCanvasPoint(
   page: import("playwright").Page,
   payload: WebShellDebugPayload,
@@ -3208,8 +3377,6 @@ function readGameSessionDebugPayload(
   }
   const gameSession = expectRecord(value, "GameSession debug projection");
   const basis = expectRecord(gameSession["basis"], "GameSession basis");
-  const build = expectRecord(gameSession["build"], "GameSession build");
-  const lamp = expectRecord(gameSession["lamp"], "GameSession lamp");
   if (
     typeof basis["contentManifestHash"] !== "string" ||
     typeof basis["readModelHash"] !== "string" ||
@@ -3217,12 +3384,7 @@ function readGameSessionDebugPayload(
     typeof basis["snapshotSequence"] !== "number" ||
     typeof basis["tick"] !== "number" ||
     typeof basis["worldHash"] !== "string" ||
-    typeof build["completed"] !== "boolean" ||
-    typeof build["progressTicks"] !== "number" ||
-    typeof build["requiredTicks"] !== "number" ||
-    !Array.isArray(gameSession["jobMarkers"]) ||
-    typeof lamp["fuel"] !== "number" ||
-    typeof lamp["stateCode"] !== "number" ||
+    typeof gameSession["jobMarkerCount"] !== "number" ||
     gameSession["projectionSource"] !== "game-session-worker" ||
     !Array.isArray(gameSession["renderEntities"]) ||
     typeof gameSession["renderEntityCount"] !== "number" ||
@@ -3240,27 +3402,7 @@ function readGameSessionDebugPayload(
       tick: basis["tick"],
       worldHash: basis["worldHash"],
     },
-    build: {
-      completed: build["completed"],
-      progressTicks: build["progressTicks"],
-      requiredTicks: build["requiredTicks"],
-    },
-    jobMarkers: gameSession["jobMarkers"].map((entry) => {
-      const marker = expectRecord(entry, "GameSession job marker");
-      if (
-        typeof marker["markerId"] !== "string" ||
-        typeof marker["progressQ16"] !== "number" ||
-        typeof marker["state"] !== "string"
-      ) {
-        throw new Error("Unexpected GameSession marker payload.");
-      }
-      return {
-        markerId: marker["markerId"],
-        progressQ16: marker["progressQ16"],
-        state: marker["state"],
-      };
-    }),
-    lamp: { fuel: lamp["fuel"], stateCode: lamp["stateCode"] },
+    jobMarkerCount: gameSession["jobMarkerCount"],
     projectionSource: "game-session-worker",
     renderEntities: gameSession["renderEntities"].map((entry) => {
       const entity = expectRecord(entry, "GameSession render entity");
@@ -3273,6 +3415,30 @@ function readGameSessionDebugPayload(
     residentCount: gameSession["residentCount"],
     resourceCount: gameSession["resourceCount"],
     selectionDetailKind: readSelectionDetailKind(gameSession["selectionDetailKind"]),
+    ...readSelectedResourceDebugState(gameSession["selectedResource"]),
+  };
+}
+
+function readSelectedResourceDebugState(
+  value: unknown,
+): Pick<NonNullable<WebShellDebugPayload["gameSession"]>, "selectedResource"> {
+  if (value === undefined) return {};
+  const resource = expectRecord(value, "selected GameSession resource");
+  if (
+    typeof resource["available"] !== "number" ||
+    typeof resource["reserved"] !== "number" ||
+    typeof resource["resourceKind"] !== "string" ||
+    typeof resource["total"] !== "number"
+  ) {
+    throw new Error("Unexpected selected GameSession resource payload.");
+  }
+  return {
+    selectedResource: {
+      available: resource["available"],
+      reserved: resource["reserved"],
+      resourceKind: resource["resourceKind"],
+      total: resource["total"],
+    },
   };
 }
 

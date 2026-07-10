@@ -146,4 +146,9 @@ describe("localization", () => {
       }),
     ).toBe("First season | Town Basin | Paused");
   });
+
+  it("localizes the additive resource presentation kind", () => {
+    expect(formatMessage("en", "ui.entityKind.resource")).toBe("resource");
+    expect(formatMessage("zh-CN", "ui.entityKind.resource")).toBe("\u8d44\u6e90");
+  });
 });

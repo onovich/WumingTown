@@ -382,6 +382,48 @@ describe("shell-hud", () => {
     expect(markup).toContain('data-testid="player-selected-detail"');
   });
 
+  it("renders authoritative resource inspector semantics in en and zh-CN", () => {
+    const resourceReadModel = {
+      ...READ_MODEL,
+      entities: [
+        {
+          entityId: "resource-food",
+          displayName: "Food",
+          kind: "resource",
+          tile: { x: 10, y: 13 },
+          colorHex: 0x90be6d,
+          summary: "80 available, 0 reserved, 80 total",
+          inspector: {
+            roleLabel: "resource def 1",
+            currentJob: "—",
+            currentStep: "—",
+            moodLabel: "—",
+            healthLabel: "—",
+            lastDecision: "—",
+            explainers: [],
+            thoughts: [],
+            needs: [],
+          },
+        },
+      ],
+      selectedEntityId: "resource-food",
+    } satisfies WorldReadModel;
+    const enMarkup = renderShell({
+      ...createShellState(createDefaultShellLocaleState(["en-US"]), resourceReadModel),
+      diagnosticsVisible: true,
+    });
+    const zhMarkup = renderShell({
+      ...createShellState(createDefaultShellLocaleState(["zh-CN"]), resourceReadModel),
+      diagnosticsVisible: true,
+    });
+
+    expect(enMarkup).toContain("resource · tile 10,13");
+    expect(enMarkup).toContain("80 available, 0 reserved, 80 total");
+    expect(enMarkup).not.toContain("structure · tile 10,13");
+    expect(zhMarkup).toContain("\u8d44\u6e90 · \u5730\u5757 10,13");
+    expect(zhMarkup).not.toContain("\u8bbe\u65bd · \u5730\u5757 10,13");
+  });
+
   it("selects desktop, medium, and compact HUD layout modes from viewport size", () => {
     const baseState = createShellState(createDefaultShellLocaleState(["en-US"]));
 
