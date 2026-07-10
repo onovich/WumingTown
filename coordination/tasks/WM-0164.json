@@ -2,7 +2,7 @@
   "id": "WM-0164",
   "title": "PR-1 projection protocol and continuous Simulation Worker session",
   "summary": "Implement ADR-0017's minimum schema-v3 GameSession projection contract as the sole sim-protocol writer, then host the PR-1 GameSessionRuntime with continuous fixed-30-TPS scheduling, fail-closed validation, backpressure and Worker/headless parity.",
-  "state": "in_progress",
+  "state": "verified",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "systems-architect",
   "dependsOn": [
@@ -63,7 +63,7 @@
   ],
   "branch": "task/WM-0164-pr-1-projection-protocol-continuous-worker",
   "createdAt": "2026-07-10T07:38:28.688Z",
-  "updatedAt": "2026-07-10T13:22:06.416Z",
+  "updatedAt": "2026-07-10T14:57:46.134Z",
   "history": [
     {
       "at": "2026-07-10T07:38:28.689Z",
@@ -106,6 +106,30 @@
       "actor": "systems-architect",
       "action": "unblock",
       "details": "Resolved MSG-MREYCOIN-DC0D8D by adding only apps/web/src/simulation-worker-session.test.ts to allowedPaths and required focused checks. That test may update schema-2 consumer assertions/fixtures to schema 3 and a negotiated GameSession-compatible fixture only; apps/web production source, product routing and UI remain forbidden. ADR-0017 schema-v2 fail-closed behavior remains unchanged."
+    },
+    {
+      "at": "2026-07-10T13:33:55.396Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented schema-v3 GameSession projection v1 and public validation, continuous 0/30/60/90 TPS Simulation Worker hosting, latest-wins projection outbox with reliable messages, fail-closed browser negotiation, Chromium autonomous scheduling smoke, Worker/headless parity, schema-3 Web consumer fixtures, and documented save/load limitations; all WM-0164 required checks and 445-test quality gate pass"
+    },
+    {
+      "at": "2026-07-10T14:10:10.181Z",
+      "actor": "systems-architect",
+      "action": "review",
+      "details": "changes_requested: High: packages/sim-worker/src/game-session-worker-host.ts:111-137 mutates the authoritative command queue before validating the whole batch; a [Noop, PrioritizeLampWork] batch returns batchAccepted=false at packages/sim-worker/src/index.ts:403-409 but the leaked Noop changes the next checkpoint hashes (control 0x0fba7fbb/0x7c1484a3 versus rejected mixed batch 0x1e21d503/0xd4ad21ee). Preflight all commands or provide per-command results without reporting a rejected batch that already mutated authority. High: packages/sim-protocol/src/game-session-projection-validation.ts:199-201,360-385 validates selectionDetail.basis only structurally and never requires its snapshotSequence to equal the containing UI basis; a projection at snapshot 2 with selection snapshot 0 returns {ok:true}, so stale/foreign requested detail is accepted as coherent. Medium: packages/sim-worker/src/game-session-browser-validation.ts:58-81 accepts a second matching Ready after activation; repro remains active, emits two Ready messages and does not terminate. Medium: packages/sim-protocol/src/game-session-projection-validation.ts:105-113 returns InvalidPayload for projection version 99, contrary to ADR-0017:210-211 requiring UnsupportedSchemaVersion. Medium: packages/sim-worker/src/index.ts:253-280,496-498 leaves the 100ms interval live after Shutdown until disconnect; state guards prevent extra ticks, but the dedicated Worker continues callback wakeups/resource retention. Add focused regressions for each. All WM-0164 required checks passed (protocol 16, worker/core 24, Web 7, Chromium 18, 18k, boundaries/handoff/taskctl/diff, quality 77 files/445 tests), confirming coverage gaps rather than incidental gate failures."
+    },
+    {
+      "at": "2026-07-10T14:43:55.615Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Addressed MSG-MRF0IYDJ-4855D8: atomic PlayerCommandBatch preflight preserves control hashes, selection detail carries and validates the full UI basis, duplicate Ready fails closed, projection version 99 returns UnsupportedSchemaVersion, accepted Shutdown clears the scheduler immediately with callback/disconnect safety, and oversized validator/browser/test files are split below 400 lines; all focused, Chromium, 18k, boundary, handoff, taskctl, diff, and 449-test quality gates pass"
+    },
+    {
+      "at": "2026-07-10T14:57:46.134Z",
+      "actor": "systems-architect",
+      "action": "review",
+      "details": "verified: Re-review verified fix 04c1416. Direct repros confirm rejected [Noop, unsupported] batches are atomic with control-identical hashes 0x0fba7fbb/0x7c1484a3; every selection-detail projection basis field mismatch fails; duplicate Ready produces fatal and one terminate; version 99 returns UnsupportedSchemaVersion; accepted Shutdown clears the interval immediately, queued callbacks add no posts/ticks, and repeated disconnect is idempotent. Preflight accepts empty and exactly 128 append-only commands, rejects 129 atomically with control hashes, and preserves batchAccepted semantics. Selection basis extends the complete schema-v3 projection-v1 basis without protocolVersion/message-family drift. Related GameSession files are all below 400 lines, external imports use package roots, and boundary checks find no cycle/deep import. Required protocol 17, worker/core 22, Web 7, Chromium 18, 18k, typecheck, boundaries, handoff, taskctl, diff checks, extra browser 5, and full quality 78 files/449 tests all pass. No blocking findings remain."
     }
   ],
   "milestone": "Post-M8",
@@ -161,5 +185,12 @@
   ],
   "claimedBy": "simulation-engineer",
   "threadLabel": "Tally/WM-0164",
-  "blocker": null
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0164.md",
+  "review": {
+    "reviewer": "systems-architect",
+    "verdict": "verified",
+    "summary": "Re-review verified fix 04c1416. Direct repros confirm rejected [Noop, unsupported] batches are atomic with control-identical hashes 0x0fba7fbb/0x7c1484a3; every selection-detail projection basis field mismatch fails; duplicate Ready produces fatal and one terminate; version 99 returns UnsupportedSchemaVersion; accepted Shutdown clears the interval immediately, queued callbacks add no posts/ticks, and repeated disconnect is idempotent. Preflight accepts empty and exactly 128 append-only commands, rejects 129 atomically with control hashes, and preserves batchAccepted semantics. Selection basis extends the complete schema-v3 projection-v1 basis without protocolVersion/message-family drift. Related GameSession files are all below 400 lines, external imports use package roots, and boundary checks find no cycle/deep import. Required protocol 17, worker/core 22, Web 7, Chromium 18, 18k, typecheck, boundaries, handoff, taskctl, diff checks, extra browser 5, and full quality 78 files/449 tests all pass. No blocking findings remain.",
+    "at": "2026-07-10T14:57:46.133Z"
+  }
 }

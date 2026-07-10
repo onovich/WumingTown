@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MRF0IYDJ-4855D8",
+  "from": "systems-architect",
+  "to": "simulation-engineer",
+  "taskId": "WM-0164",
+  "kind": "changes-requested",
+  "subject": "WM-0164 review: changes_requested",
+  "body": "High: packages/sim-worker/src/game-session-worker-host.ts:111-137 mutates the authoritative command queue before validating the whole batch; a [Noop, PrioritizeLampWork] batch returns batchAccepted=false at packages/sim-worker/src/index.ts:403-409 but the leaked Noop changes the next checkpoint hashes (control 0x0fba7fbb/0x7c1484a3 versus rejected mixed batch 0x1e21d503/0xd4ad21ee). Preflight all commands or provide per-command results without reporting a rejected batch that already mutated authority. High: packages/sim-protocol/src/game-session-projection-validation.ts:199-201,360-385 validates selectionDetail.basis only structurally and never requires its snapshotSequence to equal the containing UI basis; a projection at snapshot 2 with selection snapshot 0 returns {ok:true}, so stale/foreign requested detail is accepted as coherent. Medium: packages/sim-worker/src/game-session-browser-validation.ts:58-81 accepts a second matching Ready after activation; repro remains active, emits two Ready messages and does not terminate. Medium: packages/sim-protocol/src/game-session-projection-validation.ts:105-113 returns InvalidPayload for projection version 99, contrary to ADR-0017:210-211 requiring UnsupportedSchemaVersion. Medium: packages/sim-worker/src/index.ts:253-280,496-498 leaves the 100ms interval live after Shutdown until disconnect; state guards prevent extra ticks, but the dedicated Worker continues callback wakeups/resource retention. Add focused regressions for each. All WM-0164 required checks passed (protocol 16, worker/core 24, Web 7, Chromium 18, 18k, boundaries/handoff/taskctl/diff, quality 77 files/445 tests), confirming coverage gaps rather than incidental gate failures.",
+  "artifacts": [
+    "coordination/reports/WM-0164.md"
+  ],
+  "createdAt": "2026-07-10T14:10:10.183Z",
+  "acknowledgedAt": "2026-07-10T14:12:46.315Z"
+}

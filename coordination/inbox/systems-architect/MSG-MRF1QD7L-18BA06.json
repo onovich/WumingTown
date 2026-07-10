@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MRF1QD7L-18BA06",
+  "from": "simulation-engineer",
+  "to": "systems-architect",
+  "taskId": "WM-0164",
+  "kind": "review-request",
+  "subject": "WM-0164 ready for review",
+  "body": "Addressed MSG-MRF0IYDJ-4855D8: atomic PlayerCommandBatch preflight preserves control hashes, selection detail carries and validates the full UI basis, duplicate Ready fails closed, projection version 99 returns UnsupportedSchemaVersion, accepted Shutdown clears the scheduler immediately with callback/disconnect safety, and oversized validator/browser/test files are split below 400 lines; all focused, Chromium, 18k, boundary, handoff, taskctl, diff, and 449-test quality gates pass",
+  "artifacts": [
+    "coordination/reports/WM-0164.md",
+    "task/WM-0164-pr-1-projection-protocol-continuous-worker"
+  ],
+  "createdAt": "2026-07-10T14:43:55.617Z",
+  "acknowledgedAt": "2026-07-10T14:46:14.526Z"
+}

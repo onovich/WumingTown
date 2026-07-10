@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MRF2861K-0C2B74",
+  "from": "systems-architect",
+  "to": "simulation-engineer",
+  "taskId": "WM-0164",
+  "kind": "review-approved",
+  "subject": "WM-0164 review: verified",
+  "body": "Re-review verified fix 04c1416. Direct repros confirm rejected [Noop, unsupported] batches are atomic with control-identical hashes 0x0fba7fbb/0x7c1484a3; every selection-detail projection basis field mismatch fails; duplicate Ready produces fatal and one terminate; version 99 returns UnsupportedSchemaVersion; accepted Shutdown clears the interval immediately, queued callbacks add no posts/ticks, and repeated disconnect is idempotent. Preflight accepts empty and exactly 128 append-only commands, rejects 129 atomically with control hashes, and preserves batchAccepted semantics. Selection basis extends the complete schema-v3 projection-v1 basis without protocolVersion/message-family drift. Related GameSession files are all below 400 lines, external imports use package roots, and boundary checks find no cycle/deep import. Required protocol 17, worker/core 22, Web 7, Chromium 18, 18k, typecheck, boundaries, handoff, taskctl, diff checks, extra browser 5, and full quality 78 files/449 tests all pass. No blocking findings remain.",
+  "artifacts": [
+    "coordination/reports/WM-0164.md"
+  ],
+  "createdAt": "2026-07-10T14:57:46.136Z",
+  "acknowledgedAt": "2026-07-10T15:00:21.311Z"
+}

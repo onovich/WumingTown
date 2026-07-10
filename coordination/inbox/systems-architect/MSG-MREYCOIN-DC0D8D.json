@@ -1,0 +1,12 @@
+{
+  "id": "MSG-MREYCOIN-DC0D8D",
+  "from": "simulation-engineer",
+  "to": "systems-architect",
+  "taskId": "WM-0164",
+  "kind": "blocker",
+  "subject": "WM-0164 blocked",
+  "body": "WM-0164 requires SIM_SCHEMA_VERSION=3 and schema-v2 fail-closed plus pnpm quality, but apps/web/src/simulation-worker-session.test.ts still hardcodes/emits schemaVersion 2. Full quality fails 3 tests (expected schema 2 and two helper timeouts after schema-2 messages are correctly rejected). That file is outside WM-0164 allowedPaths and ADR-0017 forbids a schema-2 compatibility workaround. Add the focused apps/web test path to allowedPaths or land a separate schema-3 consumer-test update, then unblock.",
+  "artifacts": [],
+  "createdAt": "2026-07-10T13:09:18.240Z",
+  "acknowledgedAt": "2026-07-10T13:12:57.317Z"
+}
