@@ -2,7 +2,7 @@
   "id": "WM-0164",
   "title": "PR-1 projection protocol and continuous Simulation Worker session",
   "summary": "Implement ADR-0017's minimum schema-v3 GameSession projection contract as the sole sim-protocol writer, then host the PR-1 GameSessionRuntime with continuous fixed-30-TPS scheduling, fail-closed validation, backpressure and Worker/headless parity.",
-  "state": "ready",
+  "state": "in_progress",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "systems-architect",
   "dependsOn": [
@@ -34,6 +34,7 @@
     "GameSessionRenderProjectionV1 represents stable entity refs, resident/resource/structure/lamp/build-site render kinds, render def ids, authoritative Q16 positions, facing, animation and flags needed for presentation interpolation",
     "GameSessionUiProjectionV1 represents pause/speed, day index/tick/phase/daylight, at least eight resident summaries, food/wood/stone/lamp-oil quantities, job markers, structured alerts and requested resident/resource/structure selection detail without localized authority prose",
     "Protocol/runtime tests reject schema-v2 peers, unknown projection versions, mismatched Ready contracts, missing negotiated payloads, malformed rows and incoherent basis; the browser session enters a structured fatal/closed state and never falls back to static fixtures, while lower stale render sequences remain droppable",
+    "The only apps/web change permitted by WM-0164 is apps/web/src/simulation-worker-session.test.ts: update consumer-side assertions and fixtures from schema 2 to schema 3 and, where negotiation is exercised, use a GameSession-compatible negotiated fixture; apps/web production source, product routing and UI behavior remain forbidden",
     "Legacy M0-M8 scenario modes may omit the projection request for same-build regression use under schema 3 but are mechanically ineligible for the default PR-1 product route",
     "Simulation Worker initializes and hosts the PR-1 GameSessionRuntime from WM-0163 through InitSession/LoadSession/PlayerCommandBatch/SetSpeed/Pause/RequestUiDetail/RequestSave/Shutdown without adding a message family",
     "Worker owns normal product scheduling: fixed 30 TPS at speed 1, 60 at speed 2, 90 at speed 3, and 0 when paused or speed 0; sim-core receives only integer tick advancement",
@@ -50,6 +51,7 @@
     "corepack pnpm typecheck",
     "corepack pnpm exec vitest run packages/sim-protocol/src/protocol-validation.test.ts packages/sim-protocol/src/game-session-projection.test.ts",
     "corepack pnpm exec vitest run packages/sim-worker/src/game-session-worker.test.ts packages/sim-core/src/game-session.test.ts",
+    "corepack pnpm exec vitest run apps/web/src/simulation-worker-session.test.ts",
     "node tools/test-runner.mjs e2e --filter worker-smoke",
     "corepack pnpm sim:run -- --seed 5 --scenario pr1-integrated-gamesession --ticks 18000",
     "corepack pnpm boundaries:check",
@@ -61,7 +63,7 @@
   ],
   "branch": "task/WM-0164-pr-1-projection-protocol-continuous-worker",
   "createdAt": "2026-07-10T07:38:28.688Z",
-  "updatedAt": "2026-07-10T12:18:57.173Z",
+  "updatedAt": "2026-07-10T13:22:06.416Z",
   "history": [
     {
       "at": "2026-07-10T07:38:28.689Z",
@@ -86,6 +88,24 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-07-10T12:25:17.497Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Tally/WM-0164"
+    },
+    {
+      "at": "2026-07-10T13:09:18.238Z",
+      "actor": "simulation-engineer",
+      "action": "block",
+      "details": "WM-0164 requires SIM_SCHEMA_VERSION=3 and schema-v2 fail-closed plus pnpm quality, but apps/web/src/simulation-worker-session.test.ts still hardcodes/emits schemaVersion 2. Full quality fails 3 tests (expected schema 2 and two helper timeouts after schema-2 messages are correctly rejected). That file is outside WM-0164 allowedPaths and ADR-0017 forbids a schema-2 compatibility workaround. Add the focused apps/web test path to allowedPaths or land a separate schema-3 consumer-test update, then unblock."
+    },
+    {
+      "at": "2026-07-10T13:22:06.415Z",
+      "actor": "systems-architect",
+      "action": "unblock",
+      "details": "Resolved MSG-MREYCOIN-DC0D8D by adding only apps/web/src/simulation-worker-session.test.ts to allowedPaths and required focused checks. That test may update schema-2 consumer assertions/fixtures to schema 3 and a negotiated GameSession-compatible fixture only; apps/web production source, product routing and UI remain forbidden. ADR-0017 schema-v2 fail-closed behavior remains unchanged."
     }
   ],
   "milestone": "Post-M8",
@@ -125,6 +145,7 @@
     "packages/sim-worker/src/browser-worker-entry.ts",
     "packages/sim-worker/src/worker-smoke.e2e.test.ts",
     "packages/sim-worker/src/*worker-parity.test.ts",
+    "apps/web/src/simulation-worker-session.test.ts",
     "coordination/reports/WM-0164*.md",
     "coordination/tasks/WM-0164.json",
     "docs/05_tech/02_worker_protocol.md"
@@ -132,10 +153,13 @@
   "forbiddenPaths": [
     "packages/sim-protocol/** outside the exact allowedPaths list; WM-0164 is the only protocol writer in the PR-1 DAG",
     "new Worker message family, projection version other than GameSession v1, command-contract change or schema change beyond ADR-0017 schema 3 without a new reviewed ADR",
-    "apps/** product UI implementation, renderer-pixi/ui-react changes or Electron preload changes",
+    "apps/** except the exact apps/web/src/simulation-worker-session.test.ts consumer-test path; no apps/web production source, product route, UI behavior, renderer-pixi/ui-react or Electron preload changes",
     "sim-core runtime ownership changes beyond consuming WM-0163 public root exports",
     "using WM-0160 drain/advance helpers as the default gameplay clock",
     "hidden global Worker/session singleton, timer authority inside sim-core, dropped reliable messages or UI-owned simulation state",
     "public save compatibility, migration, release, telemetry, accounts, paid services or public feedback surfaces"
-  ]
+  ],
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Tally/WM-0164",
+  "blocker": null
 }

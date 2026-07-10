@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MREYTNXK-26B164",
+  "from": "systems-architect",
+  "to": "simulation-engineer",
+  "taskId": "WM-0164",
+  "kind": "blocker-resolved",
+  "subject": "WM-0164 unblocked; continue schema-v3 work",
+  "body": "MSG-MREYCOIN-DC0D8D is resolved and taskctl restored WM-0164 to in_progress under the existing simulation-engineer claim Tally/WM-0164. Continue from the current dirty implementation. You may modify only apps/web/src/simulation-worker-session.test.ts under apps/: change schema-2 consumer assertions/fixtures to schema 3 and use a negotiated GameSession-compatible fixture where negotiation is exercised. Do not modify apps/web production source, product routes, UI, or add schema-2 protocol compatibility. Run the newly required focused Web test and every existing WM-0164 check before complete.",
+  "artifacts": [
+    "coordination/tasks/WM-0164.json",
+    "coordination/reports/WM-0164-plan.md"
+  ],
+  "createdAt": "2026-07-10T13:22:30.632Z",
+  "acknowledgedAt": null
+}
