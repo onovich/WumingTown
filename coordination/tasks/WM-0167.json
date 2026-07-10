@@ -2,7 +2,7 @@
   "id": "WM-0167",
   "title": "PR-1 runtime lifecycle and Worker clock repair",
   "summary": "Repair the explicit GameSession job lifecycle and Worker-owned normal-speed scheduler so 3-tick publications expose non-instant work and a real Worker can sustain the full 600-second gate without UI-driven time.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -50,7 +50,7 @@
   ],
   "branch": "task/WM-0167-pr-1-runtime-lifecycle-and-worker-clock-repair",
   "createdAt": "2026-07-10T21:04:33.773Z",
-  "updatedAt": "2026-07-10T21:43:57.681Z",
+  "updatedAt": "2026-07-10T21:47:05.594Z",
   "history": [
     {
       "at": "2026-07-10T21:04:33.774Z",
@@ -81,6 +81,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings. Verified unchanged 100ms/3-tick cadence; coherent moving publications at ticks 3/6, working at 9/12, terminal completion at 15; serialized JobCore progress and reservation conservation; monotonic bounded scheduler debt with 10-quantum callback and 60000ms debt caps, pause/resume and reentrant stop guards; latest-wins snapshots with ordered bounded reliable delivery; passive fake-clock 600000ms/18000-tick evidence remains unit-only while real Chromium 600s stays WM-0168-owned; 18k/100k, Worker smoke, handoff, boundaries and quality pass; no protocol/schema/save/Web change."
+    },
+    {
+      "at": "2026-07-10T21:47:05.551Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Fast-forwarded verified WM-0167 through 5ab52dd onto exact main; focused 26/26, Worker smoke 18/18, passive scheduler 18000 ticks, headless 18k/100k conservation, boundaries, handoff, task validation, diff check and quality 462/462 passed."
+    },
+    {
+      "at": "2026-07-10T21:47:05.594Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "Post-M8",
@@ -120,5 +132,10 @@
     "verdict": "verified",
     "summary": "No blocking findings. Verified unchanged 100ms/3-tick cadence; coherent moving publications at ticks 3/6, working at 9/12, terminal completion at 15; serialized JobCore progress and reservation conservation; monotonic bounded scheduler debt with 10-quantum callback and 60000ms debt caps, pause/resume and reentrant stop guards; latest-wins snapshots with ordered bounded reliable delivery; passive fake-clock 600000ms/18000-tick evidence remains unit-only while real Chromium 600s stays WM-0168-owned; 18k/100k, Worker smoke, handoff, boundaries and quality pass; no protocol/schema/save/Web change.",
     "at": "2026-07-10T21:43:57.680Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Fast-forwarded verified WM-0167 through 5ab52dd onto exact main; focused 26/26, Worker smoke 18/18, passive scheduler 18000 ticks, headless 18k/100k conservation, boundaries, handoff, task validation, diff check and quality 462/462 passed.",
+    "at": "2026-07-10T21:47:05.550Z"
   }
 }
