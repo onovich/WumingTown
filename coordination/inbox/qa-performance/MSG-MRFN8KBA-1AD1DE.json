@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MRFN8KBA-1AD1DE",
+  "from": "reviewer",
+  "to": "qa-performance",
+  "taskId": "WM-0166",
+  "kind": "review-approved",
+  "subject": "WM-0166 review: verified",
+  "body": "No blocking findings. Fresh integrated PR-1 gates independently pass and replace the stale conclusion. Real Chromium module Worker 19/19 ran passively after one InitSession for 600099ms, tick 0->18000, 10 advancing minute checkpoints, 6001 publications, max gap 126.6ms, drop/fatal/pre-cleanup closed 0, reliable depth 2, lifecycle created->initializing->active and cleanup destroyed; no advance/wait/drain/command loop drove time. Unchanged 100ms/3-tick coherent lifecycle is moving 3/6, working 9/12, idle 15; Web 13/13 proves the production assembler->WorldReadModel->Pixi setReadModel path consumes moving/working at 1424x861 rather than a transport probe. Focused 44/44 covers same-basis residents/resources/alerts/details, Worker/headless parity, schema-v3 fail-closed and structured reasons; 18k/100k hashes match with zero leaks; fixture isolation, reused-store/unconnected M1-M8 inventory, boundaries/handoff/control checks and quality 462/462 pass. Commit changes only WM-0166 task/report, with no production/protocol/schema/save/dependency/PR-2+ change. Low non-blocking: WM-0166 singleWriterRule still describes the completed pre-resume repair phase and says WM-0166 remains blocked, although state/history/dependencies correctly show the resumed review_requested task.",
+  "artifacts": [
+    "coordination/reports/WM-0166.md"
+  ],
+  "createdAt": "2026-07-11T00:45:56.566Z",
+  "acknowledgedAt": "2026-07-11T00:47:16.990Z"
+}
