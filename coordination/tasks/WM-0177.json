@@ -1,0 +1,113 @@
+{
+  "id": "WM-0177",
+  "title": "PR-2 sim-core owner version and caller-owned output surfaces",
+  "summary": "Add version-bound and caller-owned allocation-free public surfaces for WorkOfferIndex, GridPathfinder, ReservationLedger and M3AbilityCacheStore so WM-0170 can resume unchanged.",
+  "state": "ready",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0169"
+  ],
+  "docs": [
+    "AGENTS.md",
+    ".agents/skills/wuming-town-agent-workflow/SKILL.md",
+    "coordination/tasks/WM-0169.json",
+    "coordination/reports/WM-0169.md",
+    "coordination/tasks/WM-0170.json",
+    "coordination/reports/WM-0170-plan.md",
+    "coordination/reports/WM-0170.md",
+    "coordination/inbox/systems-architect/MSG-MRG8ESEA-55926B.json",
+    "coordination/decisions/ADR-0018.md",
+    "docs/05_tech/13_autonomous_town_life_architecture.md",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "packages/sim-core/src/work-offers.ts",
+    "packages/sim-core/src/pathing.ts",
+    "packages/sim-core/src/reservation-ledger.ts",
+    "packages/sim-core/src/m3-health.ts",
+    "packages/sim-core/src/index.ts"
+  ],
+  "acceptance": [
+    "WorkOfferIndex adds typed ownerVersion, per-row version and monotonic indexVersion lanes. Successful version-bound register/update/remove changes the exact versions once, failed mutation changes none, and owner/index versions remain bound to the selected row rather than supplied as unrelated caller metadata",
+    "WorkOfferIndex exposes caller-owned registerOfferInto, updateOfferInto, readOfferInto and selectTopOffersInto (or equivalently reviewed names) whose reusable mutation/read/selection outputs include offer id, owner version, row version, index version, target, score and existing cap metrics without per-call result/array allocation",
+    "GridPathfinder exposes findPathInto using a caller-owned bounded Uint32Array route lane plus reusable result output for success and every structured failure; it preserves request/basis/start/goal/cost/node-expansion facts, reports output-capacity failure without partial route publication and allocates no result path",
+    "ReservationLedger exposes acquireInto with typed caller-owned prepared-claim scratch, claim-id output and reusable result output. It validates the complete transaction and pending-claim contention first, then commits all claims atomically; every header/claim/conflict/capacity/output failure leaves ledger state, version and outputs deterministically unchanged or reset",
+    "M3AbilityCacheStore exposes queryAbilityInto with a caller-owned result lane containing the existing success/failure reason, value/threshold, condition/base versions and visited count for cache hit, rebuild, stale, invalid actor/lane and denied-threshold paths without a per-query result object",
+    "Focused allocation probes reuse the exact same scratch/output identities across success and failure loops for all four Into surfaces and record no per-call object, array, typed-array, closure or string construction in their hot implementations; legacy allocating wrappers are explicitly outside this hot-path proof",
+    "All existing register/update/read/selectTopOffers, findPath, ReservationLedger.acquire and queryAbility signatures and behavior remain available as compatibility wrappers. Existing snapshots, deterministic hashes, selection order, path results, atomic reservation reasons/cleanup and ability-cache semantics do not change",
+    "Every new type and Into surface is exported from the @wuming-town/sim-core package root and focused tests import the public root; no consumer may use an internal-file bypass",
+    "M2 work/logistics and M3 ordinary-life 100000-tick hashes/invariants, capacity exhaustion, stale-version rejection, candidate caps, path node/output caps, all reservation channels and ability cache invalidation remain passing",
+    "No GameSession/autonomy implementation, sim-protocol, Worker, Web/Pixi/HUD, save/load, runtime dependency, PR-3 command, content or release surface changes"
+  ],
+  "requiredChecks": [
+    "corepack pnpm typecheck",
+    "corepack pnpm exec vitest run packages/sim-core/src/work-offers.test.ts packages/sim-core/src/pathing.test.ts packages/sim-core/src/reservation-ledger.test.ts packages/sim-core/src/m3-health.test.ts packages/sim-core/src/owner-hot-path-surfaces.test.ts",
+    "corepack pnpm sim:run -- --seed 5 --scenario m2-work-logistics --ticks 100000",
+    "corepack pnpm sim:run -- --seed 3 --scenario m3-ordinary-life --ticks 100000",
+    "corepack pnpm bench",
+    "corepack pnpm boundaries:check",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0177-pr-2-sim-core-owner-version-and-caller-owned-out",
+  "createdAt": "2026-07-11T10:43:48.256Z",
+  "updatedAt": "2026-07-11T10:45:00.000Z",
+  "history": [
+    {
+      "at": "2026-07-11T10:43:48.256Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    },
+    {
+      "at": "2026-07-11T10:45:00.000Z",
+      "actor": "systems-architect",
+      "action": "refine-ready-prerequisite",
+      "details": "WM-0169 is done. Scoped one additive compatibility repair for the four generic owner public surfaces blocking WM-0170; legacy wrappers/hashes remain, Spark is prohibited, and the task is ready/unclaimed."
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "pr-2-autonomous-town-life-owner-surface-repair",
+  "planningTask": "WM-0169",
+  "blockedTask": "WM-0170",
+  "architectureDecision": "coordination/decisions/ADR-0018.md",
+  "writeOwnership": [
+    "packages/sim-core/src/work-offers.ts",
+    "packages/sim-core/src/work-offers.test.ts",
+    "packages/sim-core/src/pathing.ts",
+    "packages/sim-core/src/pathing.test.ts",
+    "packages/sim-core/src/reservation-ledger.ts",
+    "packages/sim-core/src/reservation-ledger.test.ts",
+    "packages/sim-core/src/m3-health.ts",
+    "packages/sim-core/src/m3-health.test.ts",
+    "packages/sim-core/src/owner-hot-path-surfaces.test.ts",
+    "packages/sim-core/src/index.ts"
+  ],
+  "saveLoadStance": "Additive runtime API compatibility only. Existing snapshots remain byte/semantic compatible and no GameSession save/load format, codec, migration or public promise changes.",
+  "allowedPaths": [
+    "packages/sim-core/src/work-offers.ts",
+    "packages/sim-core/src/work-offers.test.ts",
+    "packages/sim-core/src/pathing.ts",
+    "packages/sim-core/src/pathing.test.ts",
+    "packages/sim-core/src/reservation-ledger.ts",
+    "packages/sim-core/src/reservation-ledger.test.ts",
+    "packages/sim-core/src/m3-health.ts",
+    "packages/sim-core/src/m3-health.test.ts",
+    "packages/sim-core/src/owner-hot-path-surfaces.test.ts",
+    "packages/sim-core/src/index.ts",
+    "coordination/tasks/WM-0177.json",
+    "coordination/reports/WM-0177*.md"
+  ],
+  "forbiddenPaths": [
+    "packages/sim-core/src/game-session* or any WM-0170 autonomy implementation",
+    "removing, narrowing or behavior-changing legacy allocating wrappers; changing existing snapshots, hashes, stable order, caps, reservation atomicity/reasons or ability semantics",
+    "allocating objects, arrays, typed arrays, closures or constructed strings inside the new Into hot paths",
+    "packages/sim-protocol/**, packages/sim-worker/**, apps/**, packages/renderer-pixi/**, packages/ui-react/** or Electron/platform files",
+    "save/load format or compatibility, new runtime dependency, PR-3 command/building/priority, content expansion or release action",
+    "claiming or unblocking WM-0170 before WM-0177 is independently verified, integrated and done"
+  ],
+  "executionLane": "simulation-engineer only; Spark is prohibited because the task changes generic deterministic owner APIs, allocation behavior and reservation atomicity",
+  "singleWriterRule": "WM-0177 is the sole ready product-code writer. WM-0170 remains blocked with its original owner and thresholds; WM-0171..WM-0175 retain their existing dependencies and remain unavailable behind WM-0170."
+}
