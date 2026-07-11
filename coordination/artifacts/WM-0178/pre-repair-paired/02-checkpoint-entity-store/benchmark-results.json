@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-11T14:16:41.652Z",
+  "baselinePath": "packages/benchmarks/baseline.json",
+  "artifactPath": "C:/Users/ADMINI~1/AppData/Local/Temp/WumingTown-WM0178/pre/02-checkpoint-entity-store/benchmark-results.json",
+  "sampleCount": 9,
+  "warmupCount": 2,
+  "environment": {
+    "nodeVersion": "v24.13.1",
+    "pnpmVersion": "11.8.0",
+    "osRelease": "10.0.26200",
+    "platform": "win32",
+    "arch": "x64",
+    "cpuModel": "AMD Ryzen 7 9700X 8-Core Processor             ",
+    "cpuCount": 16,
+    "gitCommit": "054d5017df3015faf63446929530a9d88c0b539d"
+  },
+  "results": [
+    {
+      "name": "entity-store",
+      "report": {
+        "name": "entity-store",
+        "capacity": 8192,
+        "queuedCommands": 8192,
+        "commitResultCount": 8192,
+        "appliedCommands": 8192,
+        "failedCommands": 0,
+        "attachedComponents": 8192,
+        "iterationChecksum": 134209536,
+        "elapsedMs": 494.0654999999997,
+        "heapUsedBeforeBytes": 16407000,
+        "heapUsedAfterBytes": 19200040,
+        "heapDeltaBytes": 2793040
+      },
+      "sampleElapsedMs": [
+        413.29639999999995,
+        449.39580000000024,
+        396.7908000000002,
+        440.5729000000001,
+        472.67530000000033,
+        457.2319999999995,
+        456.9323000000004,
+        495.20859999999993,
+        494.0654999999997
+      ],
+      "stats": {
+        "sampleCount": 9,
+        "minElapsedMs": 396.7908000000002,
+        "medianElapsedMs": 456.9323000000004,
+        "maxElapsedMs": 495.20859999999993,
+        "meanElapsedMs": 452.90773333333334
+      },
+      "invariants": {
+        "capacity": 8192,
+        "queuedCommands": 8192,
+        "commitResultCount": 8192,
+        "appliedCommands": 8192,
+        "failedCommands": 0,
+        "attachedComponents": 8192,
+        "iterationChecksum": 134209536
+      },
+      "comparison": {
+        "name": "entity-store",
+        "status": "fail",
+        "actualMedianElapsedMs": 456.9323000000004,
+        "baselineMedianElapsedMs": 244.507,
+        "regressionPercent": 86.87902595835718,
+        "warnRegressionPercent": 10,
+        "failRegressionPercent": 20,
+        "invariantMismatches": []
+      }
+    }
+  ],
+  "hashing": {
+    "schemaVersion": 1,
+    "canonicalPayloadSha256": "641A77CAF610CE29D9E13A2879DE6D0A99912C964569A5CD8BC66AF0CDDC68C2",
+    "canonicalPayloadDescription": "SHA-256 of benchmark-results.json payload before hashing metadata is added.",
+    "artifactFileSha256Path": "C:/Users/ADMINI~1/AppData/Local/Temp/WumingTown-WM0178/pre/02-checkpoint-entity-store/benchmark-results.json.sha256",
+    "artifactFileSha256Description": "Actual SHA-256 of benchmark-results.json is written to this sidecar after the JSON artifact is written."
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-11T14:53:19.916Z",
+  "baselinePath": "packages/benchmarks/baseline.json",
+  "artifactPath": "C:/Users/ADMINI~1/AppData/Local/Temp/WumingTown-WM0178/repaired-main/spatial-index/benchmarks/benchmark-results.json",
+  "sampleCount": 9,
+  "warmupCount": 2,
+  "invocation": {
+    "command": "corepack pnpm bench --filter spatial-index",
+    "exitCode": 0
+  },
+  "execution": {
+    "mode": "isolated-node-per-suite",
+    "suiteProcessCount": 1
+  },
+  "environment": {
+    "nodeVersion": "v24.13.1",
+    "pnpmVersion": "11.8.0",
+    "osRelease": "10.0.26200",
+    "platform": "win32",
+    "arch": "x64",
+    "cpuModel": "AMD Ryzen 7 9700X 8-Core Processor             ",
+    "cpuCount": 16,
+    "hostKeySha256": "55442F953FEA3046AA652002ACBA5F947F40C7B767FBE51A63885BCC49E95912",
+    "processId": 36780,
+    "gitCommit": "7434d6f83952724f2d75c493663c95134515bf52"
+  },
+  "results": [
+    {
+      "name": "spatial-index",
+      "report": {
+        "name": "spatial-index",
+        "entityCount": 50000,
+        "capacity": 50000,
+        "width": 256,
+        "height": 256,
+        "chunkSize": 32,
+        "queryCount": 145,
+        "movedEntities": 1024,
+        "cleanupCount": 512,
+        "finalMapMemberships": 49488,
+        "finalIndexedEntities": 49488,
+        "finalBacklogCount": 0,
+        "occupancySetCount": 51024,
+        "occupancyClearedCount": 1536,
+        "indexAddedCount": 51024,
+        "indexRemovedCount": 1536,
+        "queryChecksum": 1919598032,
+        "movementChecksum": 2674197504,
+        "cleanupChecksum": 308407296,
+        "elapsedMs": 1593.2870000000003,
+        "heapUsedBeforeBytes": 46725328,
+        "heapUsedAfterBytes": 52486736,
+        "heapDeltaBytes": 5761408
+      },
+      "invariants": {
+        "entityCount": 50000,
+        "capacity": 50000,
+        "width": 256,
+        "height": 256,
+        "chunkSize": 32,
+        "queryCount": 145,
+        "movedEntities": 1024,
+        "cleanupCount": 512,
+        "finalMapMemberships": 49488,
+        "finalIndexedEntities": 49488,
+        "finalBacklogCount": 0,
+        "occupancySetCount": 51024,
+        "occupancyClearedCount": 1536,
+        "indexAddedCount": 51024,
+        "indexRemovedCount": 1536,
+        "queryChecksum": 1919598032,
+        "movementChecksum": 2674197504,
+        "cleanupChecksum": 308407296
+      },
+      "sampleElapsedMs": [
+        2082.9202999999998,
+        2106.9842,
+        1876.9843999999994,
+        1597.1239999999998,
+        1582.3667999999998,
+        1702.5636999999988,
+        1645.7167000000009,
+        1574.8220999999976,
+        1593.2870000000003
+      ],
+      "stats": {
+        "sampleCount": 9,
+        "minElapsedMs": 1574.8220999999976,
+        "medianElapsedMs": 1645.7167000000009,
+        "maxElapsedMs": 2106.9842,
+        "meanElapsedMs": 1751.4187999999995
+      },
+      "comparison": {
+        "name": "spatial-index",
+        "status": "warn",
+        "actualMedianElapsedMs": 1645.7167000000009,
+        "baselineMedianElapsedMs": 1436.717,
+        "regressionPercent": 14.547033270992182,
+        "warnRegressionPercent": 10,
+        "failRegressionPercent": 20,
+        "invariantMismatches": []
+      },
+      "suiteProcess": {
+        "processId": 31164,
+        "exitCode": 0,
+        "command": "corepack pnpm bench --filter spatial-index --samples 9 --warmup 2 --baseline D:\\WebProjects\\WumingTown\\packages\\benchmarks\\baseline.json --artifacts-dir C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\wuming-town-benchmark-iznA7p",
+        "artifactFileSha256": "BEC6FCE6D117A5EF9800048A0DB21AD8D7DE1B2DCED1AE6805731E18E7C95F35",
+        "artifactSidecarSha256": "D0ADF9A0BC0E814928444DAE94379EC3D800A75557D0597F450554237E3F4A7A",
+        "canonicalPayloadSha256": "9BD4FCC1F61035B99F9D139E9F2C111C72B8F858F8D3C78F9D203F4F7D9F64E0"
+      }
+    }
+  ],
+  "hashing": {
+    "schemaVersion": 1,
+    "canonicalPayloadSha256": "27A489E1FB723CA8BF0E29F3BB7D4B300B2FFD69E544CA3789B41D096C95CEF4",
+    "canonicalPayloadDescription": "SHA-256 of benchmark-results.json payload before hashing metadata is added.",
+    "artifactFileSha256Path": "C:/Users/ADMINI~1/AppData/Local/Temp/WumingTown-WM0178/repaired-main/spatial-index/benchmarks/benchmark-results.json.sha256",
+    "artifactFileSha256Description": "Actual SHA-256 of benchmark-results.json is written to this sidecar after the JSON artifact is written."
+  }
+}

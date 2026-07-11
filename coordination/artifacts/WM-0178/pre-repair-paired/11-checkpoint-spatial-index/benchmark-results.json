@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-11T14:18:58.523Z",
+  "baselinePath": "packages/benchmarks/baseline.json",
+  "artifactPath": "C:/Users/ADMINI~1/AppData/Local/Temp/WumingTown-WM0178/pre/11-checkpoint-spatial-index/benchmark-results.json",
+  "sampleCount": 9,
+  "warmupCount": 2,
+  "environment": {
+    "nodeVersion": "v24.13.1",
+    "pnpmVersion": "11.8.0",
+    "osRelease": "10.0.26200",
+    "platform": "win32",
+    "arch": "x64",
+    "cpuModel": "AMD Ryzen 7 9700X 8-Core Processor             ",
+    "cpuCount": 16,
+    "gitCommit": "054d5017df3015faf63446929530a9d88c0b539d"
+  },
+  "results": [
+    {
+      "name": "spatial-index",
+      "report": {
+        "name": "spatial-index",
+        "entityCount": 50000,
+        "capacity": 50000,
+        "width": 256,
+        "height": 256,
+        "chunkSize": 32,
+        "queryCount": 145,
+        "movedEntities": 1024,
+        "cleanupCount": 512,
+        "finalMapMemberships": 49488,
+        "finalIndexedEntities": 49488,
+        "finalBacklogCount": 0,
+        "occupancySetCount": 51024,
+        "occupancyClearedCount": 1536,
+        "indexAddedCount": 51024,
+        "indexRemovedCount": 1536,
+        "queryChecksum": 1919598032,
+        "movementChecksum": 2674197504,
+        "cleanupChecksum": 308407296,
+        "elapsedMs": 1566.804,
+        "heapUsedBeforeBytes": 26706880,
+        "heapUsedAfterBytes": 32528096,
+        "heapDeltaBytes": 5821216
+      },
+      "sampleElapsedMs": [
+        1784.1834,
+        1788.6247000000003,
+        1705.8400000000001,
+        1536.1216999999997,
+        1573.6895999999997,
+        1555.0645000000004,
+        1608.7247000000007,
+        1610.2088999999996,
+        1566.804
+      ],
+      "stats": {
+        "sampleCount": 9,
+        "minElapsedMs": 1536.1216999999997,
+        "medianElapsedMs": 1608.7247000000007,
+        "maxElapsedMs": 1788.6247000000003,
+        "meanElapsedMs": 1636.5846111111111
+      },
+      "invariants": {
+        "entityCount": 50000,
+        "capacity": 50000,
+        "width": 256,
+        "height": 256,
+        "chunkSize": 32,
+        "queryCount": 145,
+        "movedEntities": 1024,
+        "cleanupCount": 512,
+        "finalMapMemberships": 49488,
+        "finalIndexedEntities": 49488,
+        "finalBacklogCount": 0,
+        "occupancySetCount": 51024,
+        "occupancyClearedCount": 1536,
+        "indexAddedCount": 51024,
+        "indexRemovedCount": 1536,
+        "queryChecksum": 1919598032,
+        "movementChecksum": 2674197504,
+        "cleanupChecksum": 308407296
+      },
+      "comparison": {
+        "name": "spatial-index",
+        "status": "warn",
+        "actualMedianElapsedMs": 1608.7247000000007,
+        "baselineMedianElapsedMs": 1436.717,
+        "regressionPercent": 11.972274289230276,
+        "warnRegressionPercent": 10,
+        "failRegressionPercent": 20,
+        "invariantMismatches": []
+      }
+    }
+  ],
+  "hashing": {
+    "schemaVersion": 1,
+    "canonicalPayloadSha256": "340944D678ECD67CDC48006311368C7594D3BAA7E1AD80CC395D2F0179BFD62B",
+    "canonicalPayloadDescription": "SHA-256 of benchmark-results.json payload before hashing metadata is added.",
+    "artifactFileSha256Path": "C:/Users/ADMINI~1/AppData/Local/Temp/WumingTown-WM0178/pre/11-checkpoint-spatial-index/benchmark-results.json.sha256",
+    "artifactFileSha256Description": "Actual SHA-256 of benchmark-results.json is written to this sidecar after the JSON artifact is written."
+  }
+}
