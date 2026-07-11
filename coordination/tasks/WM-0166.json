@@ -2,7 +2,7 @@
   "id": "WM-0166",
   "title": "PR-1 integrated GameSession exit gates",
   "summary": "Run and harden the integrated PR-1 gates for continuous 10-minute runtime, same-session read models, Worker/headless hash parity, 100000-tick leak checks and static-fixture retirement evidence.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -58,7 +58,7 @@
   ],
   "branch": "task/WM-0166-pr-1-integrated-gamesession-exit-gates",
   "createdAt": "2026-07-10T07:38:28.861Z",
-  "updatedAt": "2026-07-11T00:45:56.564Z",
+  "updatedAt": "2026-07-11T01:03:23.917Z",
   "history": [
     {
       "at": "2026-07-10T07:38:28.862Z",
@@ -131,6 +131,24 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings. Fresh integrated PR-1 gates independently pass and replace the stale conclusion. Real Chromium module Worker 19/19 ran passively after one InitSession for 600099ms, tick 0->18000, 10 advancing minute checkpoints, 6001 publications, max gap 126.6ms, drop/fatal/pre-cleanup closed 0, reliable depth 2, lifecycle created->initializing->active and cleanup destroyed; no advance/wait/drain/command loop drove time. Unchanged 100ms/3-tick coherent lifecycle is moving 3/6, working 9/12, idle 15; Web 13/13 proves the production assembler->WorldReadModel->Pixi setReadModel path consumes moving/working at 1424x861 rather than a transport probe. Focused 44/44 covers same-basis residents/resources/alerts/details, Worker/headless parity, schema-v3 fail-closed and structured reasons; 18k/100k hashes match with zero leaks; fixture isolation, reused-store/unconnected M1-M8 inventory, boundaries/handoff/control checks and quality 462/462 pass. Commit changes only WM-0166 task/report, with no production/protocol/schema/save/dependency/PR-2+ change. Low non-blocking: WM-0166 singleWriterRule still describes the completed pre-resume repair phase and says WM-0166 remains blocked, although state/history/dependencies correctly show the resumed review_requested task."
+    },
+    {
+      "at": "2026-07-11T01:02:59.935Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Fast-forwarded verified PR-1 gates to exact main 67e25d1; exact-main Worker 19/19 (600001.9ms, tick 0->18000, 10 checkpoints, max gap 131.8ms), Web 13/13, focused 44/44, 18k/100k zero-leak conservation and quality 462/462 all passed; generated drift restored."
+    },
+    {
+      "at": "2026-07-11T01:03:07.341Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
+    },
+    {
+      "at": "2026-07-11T01:03:23.917Z",
+      "actor": "project-director",
+      "action": "closeout-metadata-cleanup",
+      "details": "Resolved the reviewer-noted Low control-plane inconsistency: the WM-0167 -> WM-0168 repair chain is complete and WM-0166 is integrated/done, so no implementation or evidence writer remains active for this task."
     }
   ],
   "milestone": "Post-M8",
@@ -164,5 +182,10 @@
     "summary": "No blocking findings. Fresh integrated PR-1 gates independently pass and replace the stale conclusion. Real Chromium module Worker 19/19 ran passively after one InitSession for 600099ms, tick 0->18000, 10 advancing minute checkpoints, 6001 publications, max gap 126.6ms, drop/fatal/pre-cleanup closed 0, reliable depth 2, lifecycle created->initializing->active and cleanup destroyed; no advance/wait/drain/command loop drove time. Unchanged 100ms/3-tick coherent lifecycle is moving 3/6, working 9/12, idle 15; Web 13/13 proves the production assembler->WorldReadModel->Pixi setReadModel path consumes moving/working at 1424x861 rather than a transport probe. Focused 44/44 covers same-basis residents/resources/alerts/details, Worker/headless parity, schema-v3 fail-closed and structured reasons; 18k/100k hashes match with zero leaks; fixture isolation, reused-store/unconnected M1-M8 inventory, boundaries/handoff/control checks and quality 462/462 pass. Commit changes only WM-0166 task/report, with no production/protocol/schema/save/dependency/PR-2+ change. Low non-blocking: WM-0166 singleWriterRule still describes the completed pre-resume repair phase and says WM-0166 remains blocked, although state/history/dependencies correctly show the resumed review_requested task.",
     "at": "2026-07-11T00:45:56.564Z"
   },
-  "singleWriterRule": "Strict width one: only WM-0167 may write product runtime now; WM-0168 remains proposed until WM-0167 done; WM-0166 remains blocked until WM-0168 done."
+  "singleWriterRule": "Closed width-one chain: WM-0167 product repair, WM-0168 independent evidence and WM-0166 integrated exit gates are all done; no implementation or evidence writer remains active for this task.",
+  "integration": {
+    "by": "project-director",
+    "summary": "Fast-forwarded verified PR-1 gates to exact main 67e25d1; exact-main Worker 19/19 (600001.9ms, tick 0->18000, 10 checkpoints, max gap 131.8ms), Web 13/13, focused 44/44, 18k/100k zero-leak conservation and quality 462/462 all passed; generated drift restored.",
+    "at": "2026-07-11T01:02:59.935Z"
+  }
 }
