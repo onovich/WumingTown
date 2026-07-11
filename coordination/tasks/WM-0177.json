@@ -2,7 +2,7 @@
   "id": "WM-0177",
   "title": "PR-2 sim-core owner version and caller-owned output surfaces",
   "summary": "Add version-bound and caller-owned allocation-free public surfaces for MapGrid-assisted GridPathfinder, WorkOfferIndex, ReservationLedger and M3AbilityCacheStore so WM-0170 can resume unchanged.",
-  "state": "blocked",
+  "state": "in_progress",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -59,7 +59,7 @@
   ],
   "branch": "task/WM-0177-pr-2-sim-core-owner-version-and-caller-owned-out",
   "createdAt": "2026-07-11T10:43:48.256Z",
-  "updatedAt": "2026-07-11T10:58:30.000Z",
+  "updatedAt": "2026-07-11T11:03:37.313Z",
   "history": [
     {
       "at": "2026-07-11T10:43:48.256Z",
@@ -90,6 +90,12 @@
       "actor": "systems-architect",
       "action": "approve-map-grid-scope-expansion",
       "details": "Approved one cohesive additive WM-0177 expansion for exact map-grid.ts/map-grid.test.ts caller-owned movement facts. Product/test/export ownership is capped at 12 files; legacy MapGrid APIs, versions, dirty state, snapshots and hashes remain unchanged. WM-0177 stays blocked/claimed until the original simulation-engineer follows the exact resume procedure."
+    },
+    {
+      "at": "2026-07-11T11:03:37.313Z",
+      "actor": "simulation-engineer",
+      "action": "unblock",
+      "details": "Architect approved additive MapGrid caller-owned scope in 4175afd; exact 12-file cap and original thresholds preserved."
     }
   ],
   "milestone": "Post-M8",
@@ -149,21 +155,5 @@
   "singleWriterRule": "WM-0177 remains the sole scoped repair owner and stays blocked/claimed by the original simulation-engineer until the exact resume procedure is executed. WM-0170 remains blocked with unchanged thresholds; WM-0171..WM-0175 retain their existing dependencies.",
   "claimedBy": "simulation-engineer",
   "threadLabel": "Tally WM-0177",
-  "blocker": {
-    "by": "simulation-engineer",
-    "to": "systems-architect",
-    "reason": "Allocation-free GridPathfinder.findPathInto cannot be implemented within current allowedPaths: MapGrid.isCellPassableByIndex, canMoveBetweenCardinalNeighbors and readCellByIndex materialize result/cell objects per path node/neighbor, while map-grid.ts/tests are outside WM-0177 ownership. Removing only the final path/result allocation would leave WM-0170 blocked. Revise WM-0177 or add a strict predecessor for additive caller-owned/primitive MapGrid path facts. Evidence: coordination/reports/WM-0177-plan.md and coordination/reports/WM-0177.md.",
-    "previousState": "in_progress",
-    "at": "2026-07-11T10:53:53.015Z",
-    "approvedAdditionalFiles": [
-      "packages/sim-core/src/map-grid.ts",
-      "packages/sim-core/src/map-grid.test.ts"
-    ],
-    "resumeProcedure": [
-      "This architect-approved packet revision must be present on the WM-0177 execution base with the exact 12-file maximum and unchanged original acceptance thresholds.",
-      "The original simulation-engineer must run: node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs unblock --id WM-0177 --agent simulation-engineer --summary \"Architect approved additive MapGrid caller-owned movement surfaces inside the existing max-12-file WM-0177 scope; rerun the pre-code API audit and resume without lowering acceptance.\"",
-      "Immediately after unblock, rerun the complete pre-code public API audit from coordination/reports/WM-0177-plan.md across MapGrid, GridPathfinder, WorkOfferIndex, ReservationLedger, M3AbilityCacheStore and package-root exports.",
-      "Only if that audit passes may the original simulation-engineer implement the complete original WM-0177 acceptance plus the added MapGrid gates and run every required check; any thirteenth file, hidden allocation or semantic change blocks again instead of lowering acceptance."
-    ]
-  }
+  "blocker": null
 }

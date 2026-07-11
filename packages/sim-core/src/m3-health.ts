@@ -117,6 +117,25 @@ export type M3AbilityQueryResult =
       readonly visitedConditionCount: number;
     };
 
+export interface M3AbilityPenaltyIntoOutput {
+  penalty: number;
+  visited: number;
+}
+
+export interface M3AbilityQueryIntoOutput {
+  ok: boolean;
+  reason: M3AbilityReason;
+  actorId: number;
+  ability: number;
+  value: number;
+  threshold: number;
+  baseValue: number;
+  conditionPenalty: number;
+  actorConditionVersion: number;
+  baseAbilityVersion: number;
+  visitedConditionCount: number;
+}
+
 export interface M3HealthConditionStoreOptions {
   readonly actorCapacity: number;
   readonly conditionCapacity: number;
@@ -402,6 +421,34 @@ export class M3HealthConditionStore {
     return { penalty: clampAbilityValue(penalty), visited };
   }
 
+  computeAbilityPenaltyInto(
+    actorId: number,
+    ability: number,
+    output: M3AbilityPenaltyIntoOutput,
+  ): void {
+    output.penalty = 0;
+    output.visited = 0;
+    if (!isIndexInRange(actorId, this.actorCapacity) || !isAbilityLane(ability)) return;
+
+    const abilityMask = abilityMaskFor(ability);
+    let current = this.actorHeads[actorId] ?? -1;
+    let penalty = 0;
+    let visited = 0;
+    while (current >= 0) {
+      visited += 1;
+      const terminalState = this.terminalStates[current] ?? M3_HEALTH_CONDITION_REMOVED;
+      if (
+        terminalState <= M3_HEALTH_CONDITION_RECOVERING &&
+        ((this.affectedAbilityMasks[current] ?? 0) & abilityMask) !== 0
+      ) {
+        penalty += this.severities[current] ?? 0;
+      }
+      current = this.nextByActor[current] ?? -1;
+    }
+    output.penalty = clampAbilityValue(penalty);
+    output.visited = visited;
+  }
+
   drainAbilityInvalidations(cache: M3AbilityCacheStore, maxCount: number): number {
     if (!isPositiveSafeInteger(maxCount)) {
       return 0;
@@ -626,6 +673,8 @@ export class M3AbilityCacheStore {
   private dirtyWriteCursor = 0;
   private dirtyCount = 0;
   private dirtyPeak = 0;
+  private readonly penaltyIntoOutput: M3AbilityPenaltyIntoOutput;
+  private readonly legacyQueryIntoOutput: M3AbilityQueryIntoOutput;
 
   constructor(options: M3AbilityCacheStoreOptions) {
     assertValidCapacity(options.actorCapacity, "M3 ability actor capacity");
@@ -643,6 +692,20 @@ export class M3AbilityCacheStore {
     this.dirtyAbilities = new Uint8Array(options.dirtyCapacity);
     this.dirtyReasons = new Uint8Array(options.dirtyCapacity);
     this.baseValues.fill(1000);
+    this.penaltyIntoOutput = { penalty: 0, visited: 0 };
+    this.legacyQueryIntoOutput = {
+      ok: false,
+      reason: "ability.actor_out_of_range",
+      actorId: 0,
+      ability: 0,
+      value: 0,
+      threshold: 0,
+      baseValue: 0,
+      conditionPenalty: 0,
+      actorConditionVersion: 0,
+      baseAbilityVersion: 0,
+      visitedConditionCount: 0,
+    };
   }
 
   setBaseAbility(
@@ -669,50 +732,74 @@ export class M3AbilityCacheStore {
     conditionStore: M3HealthConditionStore,
     minimumValue: number,
   ): M3AbilityQueryResult {
-    const validation = this.validateActorAbility(actorId, ability);
-    if (!validation.ok) {
-      return this.createAbilityFailure(
-        actorId,
-        ability,
-        validation.reason,
-        0,
-        minimumValue,
-        0,
-        0,
-        0,
-      );
+    const output = this.legacyQueryIntoOutput;
+    this.queryAbilityInto(actorId, ability, conditionStore, minimumValue, output);
+    if (output.ok) {
+      return {
+        ok: true,
+        reason:
+          output.reason === "ability.cache_rebuilt" ? "ability.cache_rebuilt" : "ability.cache_hit",
+        actorId: output.actorId,
+        ability: output.ability,
+        value: output.value,
+        baseValue: output.baseValue,
+        conditionPenalty: output.conditionPenalty,
+        actorConditionVersion: output.actorConditionVersion,
+        baseAbilityVersion: output.baseAbilityVersion,
+        visitedConditionCount: output.visitedConditionCount,
+      };
+    }
+    return {
+      ok: false,
+      reason: output.reason,
+      actorId: output.actorId,
+      ability: output.ability,
+      value: output.value,
+      threshold: output.threshold,
+      actorConditionVersion: output.actorConditionVersion,
+      baseAbilityVersion: output.baseAbilityVersion,
+      visitedConditionCount: output.visitedConditionCount,
+    };
+  }
+
+  queryAbilityInto(
+    actorId: number,
+    ability: number,
+    conditionStore: M3HealthConditionStore,
+    minimumValue: number,
+    output: M3AbilityQueryIntoOutput,
+  ): void {
+    this.resetAbilityIntoOutput(actorId, ability, minimumValue, output);
+    if (!isIndexInRange(actorId, this.actorCapacity)) {
+      output.reason = "ability.actor_out_of_range";
+      return;
+    }
+    if (!isAbilityLane(ability)) {
+      output.reason = "ability.lane_out_of_range";
+      return;
     }
     if (!isSeverity(minimumValue)) {
+      output.reason = "ability.value_out_of_range";
       this.failureCount += 1;
-      return this.createAbilityFailure(
-        actorId,
-        ability,
-        "ability.value_out_of_range",
-        0,
-        minimumValue,
-        0,
-        0,
-        0,
-      );
+      return;
     }
+
     this.queryCount += 1;
     const lane = laneIndex(actorId, ability);
     let visited = 0;
-    let reason: "ability.cache_rebuilt" | "ability.cache_hit" = "ability.cache_hit";
+    let reason: M3AbilityReason = "ability.cache_hit";
     const conditionVersion = conditionStore.actorConditionVersion(actorId);
     if (
       this.valid[lane] !== 1 ||
       this.dirty[lane] === 1 ||
       this.sourceConditionVersions[lane] !== conditionVersion
     ) {
-      if (this.valid[lane] === 1) {
-        this.staleRejectCount += 1;
-      }
-      const rebuild = conditionStore.computeAbilityPenalty(actorId, ability);
-      visited = rebuild.visited;
+      if (this.valid[lane] === 1) this.staleRejectCount += 1;
+      conditionStore.computeAbilityPenaltyInto(actorId, ability, this.penaltyIntoOutput);
+      visited = this.penaltyIntoOutput.visited;
       this.visitedRows += visited;
       const baseValue = this.baseValues[lane] ?? 1000;
-      this.cachedValues[lane] = clampAbilityValue(baseValue - rebuild.penalty);
+      this.cachedValues[lane] = clampAbilityValue(baseValue - this.penaltyIntoOutput.penalty);
       this.sourceConditionVersions[lane] = conditionVersion;
       this.valid[lane] = 1;
       this.dirty[lane] = 0;
@@ -721,33 +808,22 @@ export class M3AbilityCacheStore {
     } else {
       this.hitCount += 1;
     }
+
     const value = this.cachedValues[lane] ?? 0;
-    const baseVersion = this.baseVersions[lane] ?? 0;
+    const baseValue = this.baseValues[lane] ?? 1000;
+    output.reason = reason;
+    output.value = value;
+    output.baseValue = baseValue;
+    output.conditionPenalty = baseValue - value;
+    output.actorConditionVersion = conditionVersion;
+    output.baseAbilityVersion = this.baseVersions[lane] ?? 0;
+    output.visitedConditionCount = visited;
     if (value < minimumValue) {
+      output.reason = "ability.rejected_below_threshold";
       this.failureCount += 1;
-      return this.createAbilityFailure(
-        actorId,
-        ability,
-        "ability.rejected_below_threshold",
-        value,
-        minimumValue,
-        conditionVersion,
-        baseVersion,
-        visited,
-      );
+      return;
     }
-    return {
-      ok: true,
-      reason,
-      actorId,
-      ability,
-      value,
-      baseValue: this.baseValues[lane] ?? 1000,
-      conditionPenalty: (this.baseValues[lane] ?? 1000) - value,
-      actorConditionVersion: conditionVersion,
-      baseAbilityVersion: baseVersion,
-      visitedConditionCount: visited,
-    };
+    output.ok = true;
   }
 
   invalidateConditionAbilityLane(
@@ -841,27 +917,23 @@ export class M3AbilityCacheStore {
     return { ok: true };
   }
 
-  private createAbilityFailure(
+  private resetAbilityIntoOutput(
     actorId: number,
     ability: number,
-    reason: M3AbilityReason,
-    value: number,
     threshold: number,
-    actorConditionVersion: number,
-    baseAbilityVersion: number,
-    visitedConditionCount: number,
-  ): M3AbilityQueryResult {
-    return {
-      ok: false,
-      reason,
-      actorId,
-      ability,
-      value,
-      threshold,
-      actorConditionVersion,
-      baseAbilityVersion,
-      visitedConditionCount,
-    };
+    output: M3AbilityQueryIntoOutput,
+  ): void {
+    output.ok = false;
+    output.reason = "ability.actor_out_of_range";
+    output.actorId = actorId;
+    output.ability = ability;
+    output.value = 0;
+    output.threshold = threshold;
+    output.baseValue = 0;
+    output.conditionPenalty = 0;
+    output.actorConditionVersion = 0;
+    output.baseAbilityVersion = 0;
+    output.visitedConditionCount = 0;
   }
 }
 

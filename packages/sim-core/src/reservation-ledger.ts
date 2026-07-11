@@ -9,6 +9,7 @@ export const RESERVATION_CELL = 2;
 export const RESERVATION_ITEM_QUANTITY = 3;
 export const RESERVATION_INTERACTION_SPOT = 4;
 export const RESERVATION_CAPACITY = 5;
+export const RESERVATION_CLAIM_NONE = 0xffff_ffff;
 
 export type ReservationChannel =
   | "entity"
@@ -49,6 +50,8 @@ export type ReservationReason =
   | "reservation_item_quantity_conflict"
   | "reservation_capacity_conflict"
   | "reservation_duplicate_target"
+  | "reservation_scratch_capacity_exhausted"
+  | "reservation_claim_output_too_small"
   | "reservation_claim_id_invalid"
   | "reservation_claim_not_active"
   | "reservation_snapshot_version_unsupported";
@@ -94,6 +97,27 @@ export interface ReservationTransactionRequest {
   readonly createdTick: Tick;
   readonly leaseExpiryTick: Tick;
   readonly claims: readonly ReservationClaimRequest[];
+}
+
+export interface ReservationAcquireIntoScratch {
+  readonly channelCodes: Uint8Array;
+  readonly keys: Float64Array;
+  readonly amounts: Uint32Array;
+  readonly limits: Uint32Array;
+  readonly targetIndexes: Uint32Array;
+  readonly targetGenerations: Uint32Array;
+  readonly hasTargets: Uint8Array;
+  readonly slots: Uint32Array;
+}
+
+export interface ReservationAcquireIntoOutput {
+  ok: boolean;
+  reason: ReservationReason | undefined;
+  claimIndex: number;
+  conflictingClaimId: number;
+  claimCount: number;
+  version: number;
+  activeCount: number;
 }
 
 export type ReservationClaimRequest =
@@ -403,6 +427,62 @@ export class ReservationLedger implements LocationLifecycleHooks {
     };
   }
 
+  acquireInto(
+    request: ReservationTransactionRequest,
+    registry: EntityRegistry,
+    scratch: ReservationAcquireIntoScratch,
+    claimIdOutput: Uint32Array,
+    output: ReservationAcquireIntoOutput,
+  ): void {
+    this.resetAcquireIntoOutput(claimIdOutput, output);
+    const claimCount = request.claims.length;
+    if (!this.hasAcquireScratchCapacity(scratch, claimCount)) {
+      output.reason = "reservation_scratch_capacity_exhausted";
+      return;
+    }
+    if (claimIdOutput.length < claimCount) {
+      output.reason = "reservation_claim_output_too_small";
+      return;
+    }
+    if (!this.validateTransactionHeaderInto(request, registry, output)) return;
+
+    for (let claimIndex = 0; claimIndex < claimCount; claimIndex += 1) {
+      const claim = request.claims[claimIndex];
+      if (claim === undefined) {
+        output.reason = "reservation_transaction_empty";
+        output.claimIndex = claimIndex;
+        this.conflictTotal += 1;
+        return;
+      }
+      if (!this.prepareClaimInto(claim, claimIndex, registry, scratch, output)) {
+        output.claimIndex = claimIndex;
+        this.conflictTotal += 1;
+        return;
+      }
+    }
+
+    if (this.currentActiveCount + claimCount > this.capacity) {
+      output.reason = "reservation_ledger_capacity_exhausted";
+      this.conflictTotal += 1;
+      return;
+    }
+
+    for (let claimIndex = 0; claimIndex < claimCount; claimIndex += 1) {
+      const claimId = this.allocateClaimId();
+      this.writePreparedClaimInto(claimId, request, scratch, claimIndex);
+      claimIdOutput[claimIndex] = claimId;
+    }
+    this.ledgerVersion += 1;
+    this.acquiredTotal += claimCount;
+    output.ok = true;
+    output.reason = undefined;
+    output.claimIndex = RESERVATION_CLAIM_NONE;
+    output.conflictingClaimId = RESERVATION_CLAIM_NONE;
+    output.claimCount = claimCount;
+    output.version = this.ledgerVersion;
+    output.activeCount = this.currentActiveCount;
+  }
+
   releaseClaims(claimIds: readonly number[]): ReservationReleaseResult {
     for (const claimId of claimIds) {
       if (!this.isValidClaimId(claimId)) {
@@ -648,6 +728,311 @@ export class ReservationLedger implements LocationLifecycleHooks {
       version: this.ledgerVersion,
       activeCount: this.currentActiveCount,
     };
+  }
+
+  private resetAcquireIntoOutput(
+    claimIdOutput: Uint32Array,
+    output: ReservationAcquireIntoOutput,
+  ): void {
+    claimIdOutput.fill(RESERVATION_CLAIM_NONE);
+    output.ok = false;
+    output.reason = undefined;
+    output.claimIndex = RESERVATION_CLAIM_NONE;
+    output.conflictingClaimId = RESERVATION_CLAIM_NONE;
+    output.claimCount = 0;
+    output.version = this.ledgerVersion;
+    output.activeCount = this.currentActiveCount;
+  }
+
+  private hasAcquireScratchCapacity(
+    scratch: ReservationAcquireIntoScratch,
+    claimCount: number,
+  ): boolean {
+    return (
+      scratch.channelCodes.length >= claimCount &&
+      scratch.keys.length >= claimCount &&
+      scratch.amounts.length >= claimCount &&
+      scratch.limits.length >= claimCount &&
+      scratch.targetIndexes.length >= claimCount &&
+      scratch.targetGenerations.length >= claimCount &&
+      scratch.hasTargets.length >= claimCount &&
+      scratch.slots.length >= claimCount
+    );
+  }
+
+  private validateTransactionHeaderInto(
+    request: ReservationTransactionRequest,
+    registry: EntityRegistry,
+    output: ReservationAcquireIntoOutput,
+  ): boolean {
+    const ownerReason = this.validateEntityReason(request.owner, registry, true);
+    if (ownerReason !== undefined) {
+      output.reason = ownerReason;
+      this.conflictTotal += 1;
+      return false;
+    }
+    if (!isSafeUint32(request.jobId)) {
+      output.reason = "reservation_job_id_invalid";
+      this.conflictTotal += 1;
+      return false;
+    }
+    if (!isSafeTick(request.createdTick)) {
+      output.reason = "reservation_created_tick_invalid";
+      this.conflictTotal += 1;
+      return false;
+    }
+    if (!isSafeTick(request.leaseExpiryTick) || request.leaseExpiryTick < request.createdTick) {
+      output.reason = "reservation_lease_expiry_invalid";
+      this.conflictTotal += 1;
+      return false;
+    }
+    if (request.claims.length === 0) {
+      output.reason = "reservation_transaction_empty";
+      this.conflictTotal += 1;
+      return false;
+    }
+    return true;
+  }
+
+  private validateEntityReason(
+    entity: EntityId,
+    registry: EntityRegistry,
+    owner: boolean,
+  ): ReservationReason | undefined {
+    if (!isIndexInRange(entity.index, this.entityCapacity)) {
+      return owner
+        ? "reservation_owner_index_out_of_range"
+        : "reservation_target_index_out_of_range";
+    }
+    if (!isSafeUint32(entity.generation)) {
+      return owner
+        ? "reservation_owner_generation_mismatch"
+        : "reservation_target_generation_mismatch";
+    }
+    if (!registry.isIndexActive(entity.index)) {
+      return owner ? "reservation_owner_not_alive" : "reservation_target_not_alive";
+    }
+    if (registry.generationAt(entity.index) !== entity.generation) {
+      return owner
+        ? "reservation_owner_generation_mismatch"
+        : "reservation_target_generation_mismatch";
+    }
+    return undefined;
+  }
+
+  private prepareClaimInto(
+    request: ReservationClaimRequest,
+    claimIndex: number,
+    registry: EntityRegistry,
+    scratch: ReservationAcquireIntoScratch,
+    output: ReservationAcquireIntoOutput,
+  ): boolean {
+    let channelCode: ReservationChannelCode;
+    let key: number;
+    let amount = 1;
+    let limit = 1;
+    let targetIndex = 0;
+    let targetGeneration = 0;
+    let hasTarget = 0;
+    let slot = 0;
+    let existingAmount = 0;
+
+    if (request.channel === "entity") {
+      const reason = this.validateEntityReason(request.target, registry, false);
+      if (reason !== undefined) {
+        output.reason = reason;
+        return false;
+      }
+      channelCode = RESERVATION_ENTITY;
+      key = request.target.index;
+      targetIndex = request.target.index;
+      targetGeneration = request.target.generation;
+      hasTarget = 1;
+      const conflict = this.entityClaims.get(key);
+      if (conflict !== undefined) {
+        output.reason = "reservation_entity_conflict";
+        output.conflictingClaimId = conflict;
+        return false;
+      }
+    } else if (request.channel === "cell") {
+      if (!isIndexInRange(request.cellIndex, this.cellCount)) {
+        output.reason = "reservation_cell_out_of_range";
+        return false;
+      }
+      channelCode = RESERVATION_CELL;
+      key = request.cellIndex;
+      const conflict = this.cellClaims.get(key);
+      if (conflict !== undefined) {
+        output.reason = "reservation_cell_conflict";
+        output.conflictingClaimId = conflict;
+        return false;
+      }
+    } else if (request.channel === "item_quantity") {
+      const reason = this.validateEntityReason(request.item, registry, false);
+      if (reason !== undefined) {
+        output.reason = reason;
+        return false;
+      }
+      if (!isPositiveUint32(request.amount)) {
+        output.reason = "reservation_amount_invalid";
+        return false;
+      }
+      if (!isSafeUint32(request.availableAmount)) {
+        output.reason = "reservation_available_amount_invalid";
+        return false;
+      }
+      channelCode = RESERVATION_ITEM_QUANTITY;
+      key = request.item.index;
+      amount = request.amount;
+      limit = request.availableAmount;
+      targetIndex = request.item.index;
+      targetGeneration = request.item.generation;
+      hasTarget = 1;
+      existingAmount = this.itemQuantityAmounts.get(key) ?? 0;
+      if (amount > limit) {
+        output.reason = "reservation_insufficient_amount";
+        return false;
+      }
+      if (existingAmount + amount > limit) {
+        output.reason = "reservation_item_quantity_conflict";
+        return false;
+      }
+    } else if (request.channel === "interaction_spot") {
+      const reason = this.validateEntityReason(request.target, registry, false);
+      if (reason !== undefined) {
+        output.reason = reason;
+        return false;
+      }
+      key = this.encodeSlotKey(request.target.index, request.spotId, this.interactionSpotLimit);
+      if (key < 0) {
+        output.reason = "reservation_slot_out_of_range";
+        return false;
+      }
+      channelCode = RESERVATION_INTERACTION_SPOT;
+      targetIndex = request.target.index;
+      targetGeneration = request.target.generation;
+      hasTarget = 1;
+      slot = request.spotId;
+      const conflict = this.interactionClaims.get(key);
+      if (conflict !== undefined) {
+        output.reason = "reservation_interaction_conflict";
+        output.conflictingClaimId = conflict;
+        return false;
+      }
+    } else {
+      const reason = this.validateEntityReason(request.target, registry, false);
+      if (reason !== undefined) {
+        output.reason = reason;
+        return false;
+      }
+      if (!isPositiveUint32(request.amount)) {
+        output.reason = "reservation_amount_invalid";
+        return false;
+      }
+      if (!isPositiveUint32(request.capacity)) {
+        output.reason = "reservation_capacity_invalid";
+        return false;
+      }
+      key = this.encodeSlotKey(request.target.index, request.capacityId, this.capacitySlotLimit);
+      if (key < 0) {
+        output.reason = "reservation_slot_out_of_range";
+        return false;
+      }
+      channelCode = RESERVATION_CAPACITY;
+      amount = request.amount;
+      limit = request.capacity;
+      targetIndex = request.target.index;
+      targetGeneration = request.target.generation;
+      hasTarget = 1;
+      slot = request.capacityId;
+      existingAmount = this.capacityAmounts.get(key) ?? 0;
+      if (amount > limit) {
+        output.reason = "reservation_insufficient_capacity";
+        return false;
+      }
+      if (existingAmount + amount > limit) {
+        output.reason = "reservation_capacity_conflict";
+        return false;
+      }
+    }
+
+    let pendingAmount = 0;
+    for (let index = 0; index < claimIndex; index += 1) {
+      if (
+        (scratch.channelCodes[index] ?? 0) === channelCode &&
+        (scratch.keys[index] ?? 0) === key
+      ) {
+        if (
+          channelCode === RESERVATION_ENTITY ||
+          channelCode === RESERVATION_CELL ||
+          channelCode === RESERVATION_INTERACTION_SPOT
+        ) {
+          output.reason = "reservation_duplicate_target";
+          return false;
+        }
+        pendingAmount += scratch.amounts[index] ?? 0;
+      }
+    }
+    if (pendingAmount + amount > limit) {
+      output.reason =
+        channelCode === RESERVATION_ITEM_QUANTITY
+          ? "reservation_insufficient_amount"
+          : "reservation_insufficient_capacity";
+      return false;
+    }
+    if (existingAmount + pendingAmount + amount > limit) {
+      output.reason =
+        channelCode === RESERVATION_ITEM_QUANTITY
+          ? "reservation_item_quantity_conflict"
+          : "reservation_capacity_conflict";
+      return false;
+    }
+
+    scratch.channelCodes[claimIndex] = channelCode;
+    scratch.keys[claimIndex] = key;
+    scratch.amounts[claimIndex] = amount;
+    scratch.limits[claimIndex] = limit;
+    scratch.targetIndexes[claimIndex] = targetIndex;
+    scratch.targetGenerations[claimIndex] = targetGeneration;
+    scratch.hasTargets[claimIndex] = hasTarget;
+    scratch.slots[claimIndex] = slot;
+    return true;
+  }
+
+  private writePreparedClaimInto(
+    claimId: number,
+    request: ReservationTransactionRequest,
+    scratch: ReservationAcquireIntoScratch,
+    claimIndex: number,
+  ): void {
+    const code = readPreparedChannelCode(scratch.channelCodes[claimIndex] ?? 0);
+    const key = scratch.keys[claimIndex] ?? 0;
+    const amount = scratch.amounts[claimIndex] ?? 0;
+    this.active[claimId] = 1;
+    this.channelCode[claimId] = code;
+    this.ownerIndex[claimId] = request.owner.index;
+    this.ownerGeneration[claimId] = request.owner.generation;
+    this.jobId[claimId] = request.jobId;
+    this.amount[claimId] = amount;
+    this.createdTick[claimId] = request.createdTick;
+    this.leaseExpiryTick[claimId] = request.leaseExpiryTick;
+    this.key[claimId] = key;
+    this.slot[claimId] = scratch.slots[claimIndex] ?? 0;
+    if ((scratch.hasTargets[claimIndex] ?? 0) === 1) {
+      const targetIndex = scratch.targetIndexes[claimIndex] ?? 0;
+      this.hasTarget[claimId] = 1;
+      this.targetIndex[claimId] = targetIndex;
+      this.targetGeneration[claimId] = scratch.targetGenerations[claimIndex] ?? 0;
+      this.linkTarget(claimId, targetIndex);
+    } else {
+      this.hasTarget[claimId] = 0;
+      this.targetIndex[claimId] = 0;
+      this.targetGeneration[claimId] = 0;
+    }
+    this.linkOwner(claimId, request.owner.index);
+    this.addToTargetIndexInto(claimId, code, key, amount);
+    this.currentActiveCount += 1;
+    this.incrementChannelCount(code, 1);
   }
 
   private prepareClaim(
@@ -1120,6 +1505,25 @@ export class ReservationLedger implements LocationLifecycleHooks {
     this.capacityAmounts.set(claim.key, (this.capacityAmounts.get(claim.key) ?? 0) + claim.amount);
   }
 
+  private addToTargetIndexInto(
+    claimId: number,
+    code: ReservationChannelCode,
+    key: number,
+    amount: number,
+  ): void {
+    if (code === RESERVATION_ENTITY) {
+      this.entityClaims.set(key, claimId);
+    } else if (code === RESERVATION_CELL) {
+      this.cellClaims.set(key, claimId);
+    } else if (code === RESERVATION_INTERACTION_SPOT) {
+      this.interactionClaims.set(key, claimId);
+    } else if (code === RESERVATION_ITEM_QUANTITY) {
+      this.itemQuantityAmounts.set(key, (this.itemQuantityAmounts.get(key) ?? 0) + amount);
+    } else {
+      this.capacityAmounts.set(key, (this.capacityAmounts.get(key) ?? 0) + amount);
+    }
+  }
+
   private releaseClaimNoVersion(claimId: number): boolean {
     if (!this.isValidClaimId(claimId) || (this.active[claimId] ?? 0) !== 1) {
       return false;
@@ -1570,6 +1974,14 @@ function channelNameFromCode(code: ReservationChannelCode): ReservationChannel {
   }
 
   return "capacity";
+}
+
+function readPreparedChannelCode(code: number): ReservationChannelCode {
+  if (code === RESERVATION_ENTITY) return RESERVATION_ENTITY;
+  if (code === RESERVATION_CELL) return RESERVATION_CELL;
+  if (code === RESERVATION_ITEM_QUANTITY) return RESERVATION_ITEM_QUANTITY;
+  if (code === RESERVATION_INTERACTION_SPOT) return RESERVATION_INTERACTION_SPOT;
+  return RESERVATION_CAPACITY;
 }
 
 function requirePositiveSafeInteger(value: number, label: string): number {

@@ -79,3 +79,45 @@ expansion. Implementation therefore stops before product code. The systems
 architect must revise WM-0177 (or create a strict predecessor) to own additive
 allocation-free MapGrid passability/movement/walk-cost reads and their public
 root tests, while retaining all legacy MapGrid results and hashes.
+
+## Architect-approved resume audit
+
+Commit `4175afd` expanded the same task to the exact MapGrid product/test files
+and retained the 12-file product/test/export cap and every original threshold.
+The original owner followed the task unblock procedure, then repeated the
+public API audit.
+
+The revised scope is sufficient without a thirteenth file:
+
+- MapGrid can write passability, walk cost, cell version and cardinal movement
+  directly from its existing private lanes into caller-owned outputs without
+  touching mutation/version/dirty/snapshot/hash code.
+- GridPathfinder can own two reusable MapGrid output lanes and publish paths
+  only after the caller route capacity is known.
+- WorkOffer version lanes and Into outputs fit wholly in `work-offers.ts`.
+- Reservation validation can use primitive `EntityRegistry.isIndexActive` and
+  `generationAt`, avoiding the allocating `validate` wrapper, and its complete
+  prepared transaction fits caller-owned typed lanes.
+- Ability penalty scanning and query output both fit in `m3-health.ts` with
+  constructor-owned reusable scratch.
+- All additions can be exported from the already-owned package root and tested
+  in the exact six owned test files.
+
+No non-additive consumer, snapshot/hash mutation, schema change or hidden
+owner surface is required. Product implementation may therefore resume.
+
+## Final checkpoint and blocker
+
+The implementation, public-root focused tests, fixed-seed M1/M2/M3 100000-tick
+runs, boundary/handoff/control-plane checks and full quality gate pass. The
+source/allocation audit covers the Into methods plus their class and free
+helpers; the diff contains 7 product/test/export files against the maximum 12
+and no forbidden surface.
+
+The mandatory full benchmark cannot be accepted. Three sandboxed attempts and
+one root-approved unsandboxed attempt failed only existing aggregate suites,
+although the directly relevant `work-offers`, `pathing-100` and `reservations`
+owner-local suites pass. This is not waivable. Preserve the implementation as
+a checkpoint, then block WM-0177 to `systems-architect` for an exact-main,
+same-environment baseline comparison and independently reviewed performance
+decision. WM-0170 remains blocked throughout.

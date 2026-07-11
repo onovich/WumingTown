@@ -29,7 +29,10 @@ export type WorkOfferReason =
   | "work_offer_pawn_query_buffer_too_small"
   | "work_offer_selection_buffer_too_small"
   | "work_offer_multi_output_buffer_too_small"
-  | "work_offer_trace_capacity_invalid";
+  | "work_offer_trace_capacity_invalid"
+  | "work_offer_owner_version_out_of_range"
+  | "work_offer_row_version_mismatch"
+  | "work_offer_index_version_exhausted";
 
 export type WorkOfferTraceReason =
   | "work_offer_trace_none"
@@ -175,6 +178,58 @@ export interface WorkOfferInput {
   readonly targetId: number;
   readonly targetCellIndex: number;
   readonly scoreMilli: number;
+}
+
+export interface WorkOfferVersionedInput extends WorkOfferInput {
+  readonly ownerVersion: number;
+}
+
+export interface WorkOfferMutationIntoOutput {
+  ok: boolean;
+  reason: WorkOfferReason | undefined;
+  offerId: number;
+  ownerVersion: number;
+  rowVersion: number;
+  indexVersion: number;
+}
+
+export interface WorkOfferReadIntoOutput extends WorkOfferMutationIntoOutput {
+  workType: number;
+  regionId: number;
+  defId: number;
+  urgencyBucket: number;
+  permissionId: number;
+  targetId: number;
+  targetCellIndex: number;
+  scoreMilli: number;
+}
+
+export interface WorkOfferSelectionIntoScratch {
+  readonly candidateOfferIds: Uint32Array;
+  readonly selectedOfferIds: Uint32Array;
+  readonly selectedScoresMilli: Int32Array;
+  readonly selectedOwnerVersions: Uint32Array;
+  readonly selectedRowVersions: Uint32Array;
+  readonly selectedTargetIds: Uint32Array;
+  readonly selectedTargetCellIndexes: Uint32Array;
+}
+
+export interface WorkOfferSelectionIntoOutput {
+  ok: boolean;
+  reason: WorkOfferReason | undefined;
+  selectedCount: number;
+  bucketCandidateCount: number;
+  visitedCount: number;
+  scoredCount: number;
+  rejectedByCandidateCap: number;
+  rejectedBySelectedCap: number;
+  selectedOfferId: number;
+  selectedOwnerVersion: number;
+  selectedRowVersion: number;
+  selectedIndexVersion: number;
+  selectedTargetId: number;
+  selectedTargetCellIndex: number;
+  selectedScoreMilli: number;
 }
 
 export interface WorkOfferQuery {
@@ -333,11 +388,14 @@ export class WorkOfferIndex {
   private readonly targetIds: Uint32Array;
   private readonly targetCellIndexes: Uint32Array;
   private readonly scoresMilli: Int32Array;
+  private readonly ownerVersions: Uint32Array;
+  private readonly rowVersions: Uint32Array;
   private readonly bucketHeads: Int32Array;
   private readonly bucketCounts: Uint32Array;
   private readonly nextOffer: Int32Array;
   private readonly previousOffer: Int32Array;
   private activeCount = 0;
+  private indexVersionValue = 0;
 
   constructor(options: WorkOfferIndexOptions) {
     assertValidCapacity(options.capacity, "work offer capacity");
@@ -363,6 +421,8 @@ export class WorkOfferIndex {
     this.targetIds = new Uint32Array(options.capacity);
     this.targetCellIndexes = new Uint32Array(options.capacity);
     this.scoresMilli = new Int32Array(options.capacity);
+    this.ownerVersions = new Uint32Array(options.capacity);
+    this.rowVersions = new Uint32Array(options.capacity);
     this.bucketHeads = createEmptyLinks(this.compositeBucketCount);
     this.bucketCounts = new Uint32Array(this.compositeBucketCount);
     this.nextOffer = createEmptyLinks(options.capacity);
@@ -371,6 +431,10 @@ export class WorkOfferIndex {
 
   get activeOfferCount(): number {
     return this.activeCount;
+  }
+
+  get indexVersion(): number {
+    return this.indexVersionValue;
   }
 
   registerOffer(input: WorkOfferInput): WorkOfferMutationResult {
@@ -385,8 +449,10 @@ export class WorkOfferIndex {
     }
 
     this.writeOffer(input);
+    this.ownerVersions[input.offerId] = 0;
     this.insertOffer(input.offerId);
     this.activeCount += 1;
+    this.advanceVersions(input.offerId);
     return { ok: true };
   }
 
@@ -404,6 +470,7 @@ export class WorkOfferIndex {
     this.removeOfferFromCurrentBucket(input.offerId);
     this.writeOffer(input);
     this.insertOffer(input.offerId);
+    this.advanceVersions(input.offerId);
     return { ok: true };
   }
 
@@ -419,7 +486,204 @@ export class WorkOfferIndex {
     this.removeOfferFromCurrentBucket(offerId);
     this.active[offerId] = 0;
     this.activeCount -= 1;
+    this.advanceVersions(offerId);
     return { ok: true };
+  }
+
+  registerOfferInto(input: WorkOfferVersionedInput, output: WorkOfferMutationIntoOutput): void {
+    this.resetMutationInto(input.offerId, output);
+    const reason = this.validateVersionedInputReason(input);
+    if (reason !== undefined) {
+      output.reason = reason;
+      return;
+    }
+    if (this.active[input.offerId] === 1) {
+      output.reason = "work_offer_already_registered";
+      return;
+    }
+    if (!this.canAdvanceVersions(input.offerId)) {
+      output.reason = "work_offer_index_version_exhausted";
+      return;
+    }
+
+    this.writeOffer(input);
+    this.ownerVersions[input.offerId] = input.ownerVersion;
+    this.insertOffer(input.offerId);
+    this.activeCount += 1;
+    this.advanceVersions(input.offerId);
+    this.writeMutationSuccess(input.offerId, output);
+  }
+
+  updateOfferInto(
+    input: WorkOfferVersionedInput,
+    expectedOwnerVersion: number,
+    expectedRowVersion: number,
+    output: WorkOfferMutationIntoOutput,
+  ): void {
+    this.resetMutationInto(input.offerId, output);
+    const reason = this.validateVersionedInputReason(input);
+    if (reason !== undefined) {
+      output.reason = reason;
+      return;
+    }
+    if (this.active[input.offerId] !== 1) {
+      output.reason = "work_offer_not_registered";
+      return;
+    }
+    if (
+      this.ownerVersions[input.offerId] !== expectedOwnerVersion ||
+      this.rowVersions[input.offerId] !== expectedRowVersion
+    ) {
+      output.reason = "work_offer_row_version_mismatch";
+      return;
+    }
+    if (!this.canAdvanceVersions(input.offerId)) {
+      output.reason = "work_offer_index_version_exhausted";
+      return;
+    }
+
+    this.removeOfferFromCurrentBucket(input.offerId);
+    this.writeOffer(input);
+    this.ownerVersions[input.offerId] = input.ownerVersion;
+    this.insertOffer(input.offerId);
+    this.advanceVersions(input.offerId);
+    this.writeMutationSuccess(input.offerId, output);
+  }
+
+  removeOfferInto(
+    offerId: number,
+    expectedOwnerVersion: number,
+    expectedRowVersion: number,
+    output: WorkOfferMutationIntoOutput,
+  ): void {
+    this.resetMutationInto(offerId, output);
+    if (!isIndexInRange(offerId, this.capacity)) {
+      output.reason = "work_offer_id_out_of_range";
+      return;
+    }
+    if (this.active[offerId] !== 1) {
+      output.reason = "work_offer_not_registered";
+      return;
+    }
+    if (
+      this.ownerVersions[offerId] !== expectedOwnerVersion ||
+      this.rowVersions[offerId] !== expectedRowVersion
+    ) {
+      output.reason = "work_offer_row_version_mismatch";
+      return;
+    }
+    if (!this.canAdvanceVersions(offerId)) {
+      output.reason = "work_offer_index_version_exhausted";
+      return;
+    }
+
+    this.removeOfferFromCurrentBucket(offerId);
+    this.active[offerId] = 0;
+    this.activeCount -= 1;
+    this.advanceVersions(offerId);
+    this.writeMutationSuccess(offerId, output);
+  }
+
+  readOfferInto(offerId: number, output: WorkOfferReadIntoOutput): void {
+    this.resetReadInto(offerId, output);
+    if (!isIndexInRange(offerId, this.capacity)) {
+      output.reason = "work_offer_id_out_of_range";
+      return;
+    }
+    if (this.active[offerId] !== 1) {
+      output.reason = "work_offer_not_registered";
+      return;
+    }
+
+    output.ok = true;
+    output.ownerVersion = this.ownerVersions[offerId] ?? 0;
+    output.rowVersion = this.rowVersions[offerId] ?? 0;
+    output.indexVersion = this.indexVersionValue;
+    output.workType = this.workTypes[offerId] ?? 0;
+    output.regionId = this.regionIds[offerId] ?? 0;
+    output.defId = this.defIds[offerId] ?? 0;
+    output.urgencyBucket = this.urgencyBuckets[offerId] ?? 0;
+    output.permissionId = this.permissionIds[offerId] ?? 0;
+    output.targetId = this.targetIds[offerId] ?? 0;
+    output.targetCellIndex = this.targetCellIndexes[offerId] ?? 0;
+    output.scoreMilli = this.scoresMilli[offerId] ?? 0;
+  }
+
+  selectTopOffersInto(
+    options: WorkOfferSelectionOptions,
+    scratch: WorkOfferSelectionIntoScratch,
+    output: WorkOfferSelectionIntoOutput,
+  ): void {
+    this.resetSelectionInto(output);
+    const reason = this.validateSelectionIntoReason(options, scratch);
+    if (reason !== undefined) {
+      output.reason = reason;
+      return;
+    }
+
+    clearSelection(
+      scratch.selectedOfferIds,
+      scratch.selectedScoresMilli,
+      options.maxSelectedOffers,
+    );
+    const key = createCompositeKey(
+      options.workType,
+      options.regionId,
+      options.defId,
+      options.urgencyBucket,
+      options.permissionId,
+      this,
+    );
+    const bucketCandidateCount = this.bucketCounts[key] ?? 0;
+    let current = this.bucketHeads[key] ?? -1;
+    let visitedCount = 0;
+    let candidateCount = 0;
+    while (current >= 0 && visitedCount < options.candidateCap) {
+      scratch.candidateOfferIds[candidateCount] = current;
+      candidateCount += 1;
+      visitedCount += 1;
+      current = this.nextOffer[current] ?? -1;
+    }
+
+    let selectedCount = 0;
+    for (let index = 0; index < candidateCount; index += 1) {
+      const offerId = scratch.candidateOfferIds[index] ?? WORK_OFFER_NONE;
+      if (offerId !== WORK_OFFER_NONE) {
+        selectedCount = insertTopOffer(
+          scratch.selectedOfferIds,
+          scratch.selectedScoresMilli,
+          selectedCount,
+          options.maxSelectedOffers,
+          offerId,
+          this.scoresMilli[offerId] ?? 0,
+        );
+      }
+    }
+
+    for (let index = 0; index < selectedCount; index += 1) {
+      const offerId = scratch.selectedOfferIds[index] ?? WORK_OFFER_NONE;
+      scratch.selectedOwnerVersions[index] = this.ownerVersions[offerId] ?? 0;
+      scratch.selectedRowVersions[index] = this.rowVersions[offerId] ?? 0;
+      scratch.selectedTargetIds[index] = this.targetIds[offerId] ?? 0;
+      scratch.selectedTargetCellIndexes[index] = this.targetCellIndexes[offerId] ?? 0;
+    }
+
+    output.ok = true;
+    output.selectedCount = selectedCount;
+    output.bucketCandidateCount = bucketCandidateCount;
+    output.visitedCount = visitedCount;
+    output.scoredCount = candidateCount;
+    output.rejectedByCandidateCap = bucketCandidateCount - visitedCount;
+    output.rejectedBySelectedCap = candidateCount - selectedCount;
+    output.selectedIndexVersion = this.indexVersionValue;
+    if (selectedCount > 0) {
+      output.selectedOfferId = scratch.selectedOfferIds[0] ?? WORK_OFFER_NONE;
+      output.selectedOwnerVersion = scratch.selectedOwnerVersions[0] ?? 0;
+      output.selectedRowVersion = scratch.selectedRowVersions[0] ?? 0;
+      output.selectedTargetId = scratch.selectedTargetIds[0] ?? 0;
+      output.selectedTargetCellIndex = scratch.selectedTargetCellIndexes[0] ?? 0;
+      output.selectedScoreMilli = scratch.selectedScoresMilli[0] ?? 0;
+    }
   }
 
   queryCandidates(query: WorkOfferQuery, outputOfferIds: Uint32Array): WorkOfferQueryResult {
@@ -607,6 +871,127 @@ export class WorkOfferIndex {
       compositeBucketCount: this.compositeBucketCount,
       backlogCount: 0,
     };
+  }
+
+  private validateVersionedInputReason(
+    input: WorkOfferVersionedInput,
+  ): WorkOfferReason | undefined {
+    if (!isIndexInRange(input.offerId, this.capacity)) return "work_offer_id_out_of_range";
+    const keyReason = this.validateKeyReason(input);
+    if (keyReason !== undefined) return keyReason;
+    if (!isSafeNonNegativeInteger(input.targetId) || input.targetId >= WORK_OFFER_NONE) {
+      return "work_offer_target_out_of_range";
+    }
+    if (
+      !isSafeNonNegativeInteger(input.targetCellIndex) ||
+      input.targetCellIndex >= WORK_OFFER_NONE
+    ) {
+      return "work_offer_target_out_of_range";
+    }
+    if (!isInt32(input.scoreMilli)) return "work_offer_score_out_of_range";
+    if (!isUint32(input.ownerVersion)) return "work_offer_owner_version_out_of_range";
+    return undefined;
+  }
+
+  private validateKeyReason(
+    key: Omit<WorkOfferQuery, "candidateCap">,
+  ): WorkOfferReason | undefined {
+    if (!isIndexInRange(key.workType, this.workTypeCapacity)) {
+      return "work_offer_work_type_out_of_range";
+    }
+    if (!isIndexInRange(key.regionId, this.regionCapacity)) {
+      return "work_offer_region_out_of_range";
+    }
+    if (!isIndexInRange(key.defId, this.defCapacity)) return "work_offer_def_out_of_range";
+    if (!isIndexInRange(key.urgencyBucket, this.urgencyBucketCount)) {
+      return "work_offer_urgency_out_of_range";
+    }
+    if (!isIndexInRange(key.permissionId, this.permissionCapacity)) {
+      return "work_offer_permission_out_of_range";
+    }
+    return undefined;
+  }
+
+  private validateSelectionIntoReason(
+    options: WorkOfferSelectionOptions,
+    scratch: WorkOfferSelectionIntoScratch,
+  ): WorkOfferReason | undefined {
+    const keyReason = this.validateKeyReason(options);
+    if (keyReason !== undefined) return keyReason;
+    if (!isPositiveSafeInteger(options.candidateCap)) return "work_offer_candidate_cap_invalid";
+    if (!isPositiveSafeInteger(options.maxSelectedOffers)) {
+      return "work_offer_selected_cap_invalid";
+    }
+    if (scratch.candidateOfferIds.length < options.candidateCap) {
+      return "work_offer_candidate_buffer_too_small";
+    }
+    if (
+      scratch.selectedOfferIds.length < options.maxSelectedOffers ||
+      scratch.selectedScoresMilli.length < options.maxSelectedOffers ||
+      scratch.selectedOwnerVersions.length < options.maxSelectedOffers ||
+      scratch.selectedRowVersions.length < options.maxSelectedOffers ||
+      scratch.selectedTargetIds.length < options.maxSelectedOffers ||
+      scratch.selectedTargetCellIndexes.length < options.maxSelectedOffers
+    ) {
+      return "work_offer_selection_buffer_too_small";
+    }
+    return undefined;
+  }
+
+  private resetMutationInto(offerId: number, output: WorkOfferMutationIntoOutput): void {
+    output.ok = false;
+    output.reason = undefined;
+    output.offerId = offerId;
+    output.ownerVersion = 0;
+    output.rowVersion = 0;
+    output.indexVersion = this.indexVersionValue;
+  }
+
+  private resetReadInto(offerId: number, output: WorkOfferReadIntoOutput): void {
+    this.resetMutationInto(offerId, output);
+    output.workType = 0;
+    output.regionId = 0;
+    output.defId = 0;
+    output.urgencyBucket = 0;
+    output.permissionId = 0;
+    output.targetId = 0;
+    output.targetCellIndex = 0;
+    output.scoreMilli = 0;
+  }
+
+  private resetSelectionInto(output: WorkOfferSelectionIntoOutput): void {
+    output.ok = false;
+    output.reason = undefined;
+    output.selectedCount = 0;
+    output.bucketCandidateCount = 0;
+    output.visitedCount = 0;
+    output.scoredCount = 0;
+    output.rejectedByCandidateCap = 0;
+    output.rejectedBySelectedCap = 0;
+    output.selectedOfferId = WORK_OFFER_NONE;
+    output.selectedOwnerVersion = 0;
+    output.selectedRowVersion = 0;
+    output.selectedIndexVersion = this.indexVersionValue;
+    output.selectedTargetId = 0;
+    output.selectedTargetCellIndex = 0;
+    output.selectedScoreMilli = 0;
+  }
+
+  private writeMutationSuccess(offerId: number, output: WorkOfferMutationIntoOutput): void {
+    output.ok = true;
+    output.reason = undefined;
+    output.ownerVersion = this.ownerVersions[offerId] ?? 0;
+    output.rowVersion = this.rowVersions[offerId] ?? 0;
+    output.indexVersion = this.indexVersionValue;
+  }
+
+  private canAdvanceVersions(offerId: number): boolean {
+    return this.indexVersionValue < 0xffff_ffff && (this.rowVersions[offerId] ?? 0) < 0xffff_ffff;
+  }
+
+  private advanceVersions(offerId: number): void {
+    this.indexVersionValue += 1;
+    this.rowVersions[offerId] = (this.rowVersions[offerId] ?? 0) + 1;
   }
 
   private writeOffer(input: WorkOfferInput): void {
@@ -1695,6 +2080,10 @@ function isPositiveSafeInteger(value: number): boolean {
 
 function isSafeNonNegativeInteger(value: number): boolean {
   return Number.isSafeInteger(value) && value >= 0;
+}
+
+function isUint32(value: number): boolean {
+  return Number.isSafeInteger(value) && value >= 0 && value <= 0xffff_ffff;
 }
 
 function isInt32(value: number): boolean {

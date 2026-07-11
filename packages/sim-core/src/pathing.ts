@@ -4,7 +4,9 @@ import {
   MAP_DIRECTION_NORTH,
   MAP_DIRECTION_SOUTH,
   MAP_DIRECTION_WEST,
+  type MapCardinalMovementIntoOutput,
   type MapGrid,
+  type MapMovementCellIntoOutput,
 } from "./map-grid";
 import type { Tick } from "./time";
 
@@ -21,7 +23,8 @@ export type PathReason =
   | "path_queue_full"
   | "path_queue_empty"
   | "path_stale_result"
-  | "path_candidate_limit_invalid";
+  | "path_candidate_limit_invalid"
+  | "path_output_capacity_exceeded";
 
 export interface PathVersionBasis {
   readonly mapVersion: number;
@@ -61,6 +64,22 @@ export type PathSearchResult =
       readonly reason: PathReason;
       readonly nodeExpansions: number;
     };
+
+export interface PathSearchIntoOutput {
+  ok: boolean;
+  reason: PathReason | undefined;
+  requestSequence: number;
+  startCellIndex: number;
+  goalCellIndex: number;
+  mapVersion: number;
+  navigationVersion: number;
+  regionVersion: number;
+  roomVersion: number;
+  regionGraphVersion: number;
+  pathCellCount: number;
+  pathCostMilli: number;
+  nodeExpansions: number;
+}
 
 export type PathEnqueueResult =
   | {
@@ -157,6 +176,8 @@ export class GridPathfinder {
   private readonly seenEpoch: Uint32Array;
   private readonly closedEpoch: Uint32Array;
   private readonly pathScratch: Uint32Array;
+  private readonly movementCellOutput: MapMovementCellIntoOutput;
+  private readonly cardinalMovementOutput: MapCardinalMovementIntoOutput;
   private searchEpoch = 0;
 
   constructor(cellCapacity: number) {
@@ -168,6 +189,14 @@ export class GridPathfinder {
     this.seenEpoch = new Uint32Array(cellCapacity);
     this.closedEpoch = new Uint32Array(cellCapacity);
     this.pathScratch = new Uint32Array(cellCapacity);
+    this.movementCellOutput = {
+      ok: false,
+      reason: undefined,
+      passable: false,
+      walkCostMilli: 0,
+      cellVersion: 0,
+    };
+    this.cardinalMovementOutput = { ok: false, reason: undefined, passable: false };
   }
 
   findPath(grid: MapGrid, request: PathRequest): PathSearchResult {
@@ -255,6 +284,195 @@ export class GridPathfinder {
     }
 
     return this.createFailure(request, "path_no_route", nodeExpansions);
+  }
+
+  findPathInto(
+    grid: MapGrid,
+    request: PathRequest,
+    routeOutput: Uint32Array,
+    output: PathSearchIntoOutput,
+  ): void {
+    this.resetIntoOutput(request, output);
+    const invalidReason = this.validateRequestReason(grid, request);
+    if (invalidReason !== undefined) {
+      output.reason = invalidReason;
+      return;
+    }
+
+    if (request.startCellIndex === request.goalCellIndex) {
+      if (routeOutput.length < 1) {
+        output.reason = "path_output_capacity_exceeded";
+        return;
+      }
+      routeOutput[0] = request.startCellIndex;
+      output.ok = true;
+      output.pathCellCount = 1;
+      return;
+    }
+
+    if (!this.readPassableMovementCellInto(grid, request.startCellIndex)) {
+      output.reason = "path_start_blocked";
+      return;
+    }
+
+    if (!this.readPassableMovementCellInto(grid, request.goalCellIndex)) {
+      output.reason = "path_goal_blocked";
+      return;
+    }
+
+    const maxNodeExpansions = request.maxNodeExpansions ?? this.cellCapacity;
+    if (!isPositiveSafeInteger(maxNodeExpansions)) {
+      output.reason = "path_node_budget_exhausted";
+      return;
+    }
+
+    const epoch = this.nextSearchEpoch();
+    let openCount = 1;
+    let nodeExpansions = 0;
+    this.openCells[0] = request.startCellIndex;
+    this.parentCell[request.startCellIndex] = request.startCellIndex;
+    this.gCostMilli[request.startCellIndex] = 0;
+    this.fCostMilli[request.startCellIndex] = this.heuristicMilli(
+      grid,
+      request.startCellIndex,
+      request.goalCellIndex,
+    );
+    this.seenEpoch[request.startCellIndex] = epoch;
+
+    while (openCount > 0) {
+      const selectedOpenIndex = this.selectBestOpenIndex(openCount);
+      const current = this.openCells[selectedOpenIndex] ?? 0;
+      openCount -= 1;
+      this.openCells[selectedOpenIndex] = this.openCells[openCount] ?? 0;
+
+      if ((this.closedEpoch[current] ?? 0) === epoch) {
+        continue;
+      }
+      if (current === request.goalCellIndex) {
+        this.writeFoundPathInto(request, nodeExpansions, routeOutput, output);
+        return;
+      }
+      if (nodeExpansions >= maxNodeExpansions) {
+        output.reason = "path_node_budget_exhausted";
+        output.nodeExpansions = nodeExpansions;
+        return;
+      }
+
+      this.closedEpoch[current] = epoch;
+      nodeExpansions += 1;
+      for (let direction = 0; direction < 4; direction += 1) {
+        const neighbor = this.neighborIndex(grid, current, direction);
+        if (
+          neighbor >= 0 &&
+          this.tryRelaxNeighborInto(grid, request.goalCellIndex, current, neighbor, epoch) &&
+          openCount < this.openCells.length
+        ) {
+          this.openCells[openCount] = neighbor;
+          openCount += 1;
+        }
+      }
+    }
+
+    output.reason = "path_no_route";
+    output.nodeExpansions = nodeExpansions;
+  }
+
+  private resetIntoOutput(request: PathRequest, output: PathSearchIntoOutput): void {
+    output.ok = false;
+    output.reason = undefined;
+    output.requestSequence = request.requestSequence;
+    output.startCellIndex = request.startCellIndex;
+    output.goalCellIndex = request.goalCellIndex;
+    output.mapVersion = request.basis.mapVersion;
+    output.navigationVersion = request.basis.navigationVersion;
+    output.regionVersion = request.basis.regionVersion;
+    output.roomVersion = request.basis.roomVersion;
+    output.regionGraphVersion = request.basis.regionGraphVersion;
+    output.pathCellCount = 0;
+    output.pathCostMilli = 0;
+    output.nodeExpansions = 0;
+  }
+
+  private validateRequestReason(grid: MapGrid, request: PathRequest): PathReason | undefined {
+    if (grid.cellCount > this.cellCapacity) return "path_cell_capacity_exceeded";
+    if (!isSafeNonNegativeInteger(request.requestSequence)) return "path_request_sequence_invalid";
+    if (!isSafeNonNegativeInteger(request.issuedTick)) return "path_tick_invalid";
+    if (!isCellIndexInRange(request.startCellIndex, grid.cellCount))
+      return "path_start_out_of_range";
+    if (!isCellIndexInRange(request.goalCellIndex, grid.cellCount)) return "path_goal_out_of_range";
+    return undefined;
+  }
+
+  private tryRelaxNeighborInto(
+    grid: MapGrid,
+    goalCellIndex: number,
+    current: number,
+    neighbor: number,
+    epoch: number,
+  ): boolean {
+    if ((this.closedEpoch[neighbor] ?? 0) === epoch) return false;
+    grid.canMoveBetweenCardinalNeighborsInto(current, neighbor, this.cardinalMovementOutput);
+    if (!this.cardinalMovementOutput.ok || !this.cardinalMovementOutput.passable) return false;
+    grid.readMovementCellByIndexInto(neighbor, this.movementCellOutput);
+    if (!this.movementCellOutput.ok) return false;
+
+    const previousSeen = (this.seenEpoch[neighbor] ?? 0) === epoch;
+    const tentativeG = (this.gCostMilli[current] ?? 0) + this.movementCellOutput.walkCostMilli;
+    if (
+      tentativeG >= UINT32_INFINITY ||
+      (previousSeen && tentativeG >= (this.gCostMilli[neighbor] ?? UINT32_INFINITY))
+    ) {
+      return false;
+    }
+
+    this.parentCell[neighbor] = current;
+    this.gCostMilli[neighbor] = tentativeG;
+    this.fCostMilli[neighbor] = tentativeG + this.heuristicMilli(grid, neighbor, goalCellIndex);
+    this.seenEpoch[neighbor] = epoch;
+    return true;
+  }
+
+  private readPassableMovementCellInto(grid: MapGrid, cellIndex: number): boolean {
+    grid.readMovementCellByIndexInto(cellIndex, this.movementCellOutput);
+    return this.movementCellOutput.ok && this.movementCellOutput.passable;
+  }
+
+  private writeFoundPathInto(
+    request: PathRequest,
+    nodeExpansions: number,
+    routeOutput: Uint32Array,
+    output: PathSearchIntoOutput,
+  ): void {
+    let cursor = request.goalCellIndex;
+    let pathCount = 0;
+    let reachedStart = false;
+    while (pathCount < this.pathScratch.length) {
+      this.pathScratch[pathCount] = cursor;
+      pathCount += 1;
+      if (cursor === request.startCellIndex) {
+        reachedStart = true;
+        break;
+      }
+      cursor = this.parentCell[cursor] ?? request.startCellIndex;
+    }
+
+    output.nodeExpansions = nodeExpansions;
+    if (!reachedStart) {
+      output.reason = "path_no_route";
+      return;
+    }
+    if (routeOutput.length < pathCount) {
+      output.reason = "path_output_capacity_exceeded";
+      return;
+    }
+
+    for (let index = 0; index < pathCount; index += 1) {
+      routeOutput[index] = this.pathScratch[pathCount - 1 - index] ?? 0;
+    }
+    output.ok = true;
+    output.reason = undefined;
+    output.pathCellCount = pathCount;
+    output.pathCostMilli = this.gCostMilli[request.goalCellIndex] ?? 0;
   }
 
   private validateRequest(

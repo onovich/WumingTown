@@ -93,6 +93,22 @@ export type MapMovementResult =
       >;
     };
 
+export interface MapMovementCellIntoOutput {
+  ok: boolean;
+  reason: Extract<MapGridReason, "map_cell_index_out_of_range"> | undefined;
+  passable: boolean;
+  walkCostMilli: number;
+  cellVersion: number;
+}
+
+export interface MapCardinalMovementIntoOutput {
+  ok: boolean;
+  reason:
+    | Extract<MapGridReason, "map_cell_index_out_of_range" | "map_cells_not_cardinal_neighbors">
+    | undefined;
+  passable: boolean;
+}
+
 export type MapCellUpdateResult =
   | {
       readonly ok: true;
@@ -262,6 +278,24 @@ export class MapGrid {
     };
   }
 
+  readMovementCellByIndexInto(cellIndex: number, output: MapMovementCellIntoOutput): void {
+    output.ok = false;
+    output.reason = undefined;
+    output.passable = false;
+    output.walkCostMilli = 0;
+    output.cellVersion = 0;
+
+    if (!this.isCellIndexInRange(cellIndex)) {
+      output.reason = "map_cell_index_out_of_range";
+      return;
+    }
+
+    output.ok = true;
+    output.passable = this.isCellPassableUnchecked(cellIndex);
+    output.walkCostMilli = this.walkCostMilli[cellIndex] ?? 0;
+    output.cellVersion = this.cellVersion[cellIndex] ?? 0;
+  }
+
   canMoveCardinalByIndex(cellIndex: number, direction: number): MapMovementResult {
     if (!this.isCellIndexInRange(cellIndex)) {
       return { ok: false, reason: "map_cell_index_out_of_range" };
@@ -301,6 +335,30 @@ export class MapGrid {
       ok: true,
       passable: this.canMoveBetweenUnchecked(fromCellIndex, toCellIndex, direction),
     };
+  }
+
+  canMoveBetweenCardinalNeighborsInto(
+    fromCellIndex: number,
+    toCellIndex: number,
+    output: MapCardinalMovementIntoOutput,
+  ): void {
+    output.ok = false;
+    output.reason = undefined;
+    output.passable = false;
+
+    if (!this.isCellIndexInRange(fromCellIndex) || !this.isCellIndexInRange(toCellIndex)) {
+      output.reason = "map_cell_index_out_of_range";
+      return;
+    }
+
+    const direction = this.directionBetweenCardinalNeighbors(fromCellIndex, toCellIndex);
+    if (direction < 0) {
+      output.reason = "map_cells_not_cardinal_neighbors";
+      return;
+    }
+
+    output.ok = true;
+    output.passable = this.canMoveBetweenUnchecked(fromCellIndex, toCellIndex, direction);
   }
 
   processDirtyChunks(budget: number, processedChunks: Uint32Array): MapDirtyProcessResult {

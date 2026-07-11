@@ -760,6 +760,7 @@ export {
 export {
   RESERVATION_CAPACITY,
   RESERVATION_CELL,
+  RESERVATION_CLAIM_NONE,
   RESERVATION_ENTITY,
   RESERVATION_INTERACTION_SPOT,
   RESERVATION_ITEM_QUANTITY,
@@ -1027,6 +1028,7 @@ export type {
   CanonicalWorldHashInput,
 } from "./world-hash";
 export type {
+  MapCardinalMovementIntoOutput,
   MapCellReadResult,
   MapCellIndexReadResult,
   MapCellUpdate,
@@ -1036,6 +1038,7 @@ export type {
   MapGridOptions,
   MapGridReason,
   MapGridSnapshot,
+  MapMovementCellIntoOutput,
   MapMovementResult,
 } from "./map-grid";
 export type {
@@ -1056,6 +1059,7 @@ export type {
   PathEnqueueResult,
   PathReason,
   PathRequest,
+  PathSearchIntoOutput,
   PathSearchResult,
   PathVersionBasis,
   TopKPathResolutionOptions,
@@ -1066,15 +1070,20 @@ export type {
   WorkOfferIndexMetrics,
   WorkOfferIndexOptions,
   WorkOfferInput,
+  WorkOfferMutationIntoOutput,
   WorkOfferMutationResult,
   WorkOfferQuery,
   WorkOfferQueryResult,
   WorkOfferReason,
   WorkOfferReasonTraceInput,
   WorkOfferReasonTraceView,
+  WorkOfferReadIntoOutput,
+  WorkOfferSelectionIntoOutput,
+  WorkOfferSelectionIntoScratch,
   WorkOfferSelectionOptions,
   WorkOfferSelectionResult,
   WorkOfferTraceReason,
+  WorkOfferVersionedInput,
 } from "./work-offers";
 export type {
   M4LampChangeReason,
@@ -1663,6 +1672,8 @@ export type {
   M8FactionEndgameScenarioSummary,
 } from "./m8-faction-endgame-scenario";
 export type {
+  M3AbilityPenaltyIntoOutput,
+  M3AbilityQueryIntoOutput,
   M3AbilityMetrics,
   M3AbilityQueryResult,
   M3AbilityReason,
@@ -1713,6 +1724,8 @@ export type {
   LocationView,
 } from "./location-store";
 export type {
+  ReservationAcquireIntoOutput,
+  ReservationAcquireIntoScratch,
   ReservationAcquireResult,
   ReservationChannel,
   ReservationChannelCode,
