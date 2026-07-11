@@ -1,0 +1,192 @@
+{
+  "id": "WM-0178",
+  "title": "Canonical benchmark gate repair and paired attribution",
+  "summary": "Restore the canonical fixed-baseline full benchmark gate on clean main, pair exact-main and WM-0177 checkpoint evidence, and identify any exact sim/product repair scope without waiving or weakening performance requirements.",
+  "state": "ready",
+  "ownerRole": "qa-performance",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0169"
+  ],
+  "docs": [
+    "AGENTS.md",
+    ".agents/skills/wuming-town-agent-workflow/SKILL.md",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "packages/benchmarks/baseline.json",
+    "packages/benchmarks/src/cli.ts",
+    "packages/benchmarks/src/cli-lib.ts",
+    "packages/benchmarks/src/benchmarks.ts",
+    "coordination/tasks/WM-0177.json",
+    "coordination/reports/WM-0177-plan.md",
+    "coordination/reports/WM-0177.md",
+    "coordination/reports/WM-0178-plan.md"
+  ],
+  "acceptance": [
+    "The benchmark workload, fixtures, invariant payloads, packages/benchmarks/baseline.json medians, 10 percent warning threshold, 20 percent failure threshold, default 9 samples and 2 warmups remain immutable; no suite may be skipped, softened, retried-until-pass or reported through a waiver",
+    "Record raw per-sample evidence for clean main at 4175afd and WM-0177 checkpoint 054d501, including exact commit, Node and pnpm versions, Windows/architecture, CPU model/count, host identity or stable anonymized host key, sample/warmup counts, command, exit code and artifact hash",
+    "Run every comparison in an isolated Node process and alternate clean-main versus WM-0177 checkpoint runs for each filtered failing suite and for the full suite. Use the single existing worktree with serial clean checkouts or a reviewed equivalent; do not create a linked worktree and do not compare dirty trees",
+    "Reproduce and resolve the reviewed attribution: entity-store is a pre-existing clean-main gate failure; M3 ordinary-life, M5 alpha-content and spatial-index are WM-0177 task-associated regressions; M4 and map-dirty are mixed clean-main failures with additional task-branch worsening. Owner-local work-offers, pathing and reservations evidence may support attribution but cannot replace the aggregate gate",
+    "Repair only explicitly owned benchmark harness or benchmark-environment surfaces. The repair must preserve benchmark meaning and measured workload while making the clean-main lineage pass the exact corepack pnpm bench command against the unchanged canonical baseline",
+    "The final clean-main-lineage corepack pnpm bench run exits zero with every invariant matching and no comparison above the unchanged 20 percent failure threshold; warnings above 10 percent are documented with raw evidence and do not conceal a failure",
+    "If diagnosis requires any packages/sim-core, product, scenario-authority or other non-harness file, stop and taskctl block with exact files, call paths, suite evidence and reason. Systems architecture may create WM-0179 only from that structured blocker; WM-0179 does not exist and is not pre-approved by this packet",
+    "Historical benchmark artifacts, including coordination/artifacts/WM-0083, remain byte-identical to HEAD after each comparison. New raw and comparison evidence is written only under coordination/artifacts/WM-0178 and is covered by hashes",
+    "WM-0177 and WM-0170 remain blocked throughout WM-0178. WM-0177 may resume only after WM-0178 is independently verified, integrated and done and the repaired main full benchmark gate passes without a waiver"
+  ],
+  "requiredChecks": [
+    "corepack pnpm typecheck",
+    "corepack pnpm exec vitest run packages/benchmarks/src/baseline.test.ts packages/benchmarks/src/map-dirty-benchmark.test.ts",
+    "corepack pnpm bench --filter entity-store",
+    "corepack pnpm bench --filter m3-ordinary-life-long-run",
+    "corepack pnpm bench --filter m4-core-vertical-slice-long-run",
+    "corepack pnpm bench --filter m5-alpha-content-long-run",
+    "corepack pnpm bench --filter map-dirty",
+    "corepack pnpm bench --filter spatial-index",
+    "corepack pnpm bench",
+    "corepack pnpm boundaries:check",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0178-canonical-benchmark-gate-repair",
+  "createdAt": "2026-07-11T13:56:48.314Z",
+  "updatedAt": "2026-07-11T13:57:04.228Z",
+  "history": [
+    {
+      "at": "2026-07-11T13:56:48.315Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    },
+    {
+      "at": "2026-07-11T13:57:04.228Z",
+      "actor": "systems-architect",
+      "action": "refine-ready-canonical-benchmark-gate-repair",
+      "details": "Approved a mandatory qa-performance predecessor for fixed-baseline canonical gate repair and isolated paired attribution. Workload, baseline, warning/failure thresholds and full-suite required check remain immutable; no waiver or product edit is authorized."
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "pr-2-canonical-benchmark-gate-repair",
+  "planningTask": "WM-0169",
+  "blockedTask": "WM-0177",
+  "baselineCommit": "4175afd560fa228203bc31f1861dfea27bf48b77",
+  "checkpointCommit": "054d5017df3015faf63446929530a9d88c0b539d",
+  "benchmarkBaseline": "packages/benchmarks/baseline.json",
+  "reviewedDisposition": {
+    "environment": "Same approved unsandboxed Windows x64 host, Node v24.13.1, AMD Ryzen 7 9700X 8-Core Processor, 9 samples and 2 warmups",
+    "noWaiver": true,
+    "reason": "A documented exception can explain attribution but cannot satisfy the required corepack pnpm bench command or Definition of Done while the command exits non-zero.",
+    "suites": [
+      {
+        "name": "entity-store",
+        "baselineMedianMs": 244.507,
+        "mainMedianMs": 373.1679,
+        "mainRegressionPercent": 52.62,
+        "checkpointMedianMs": 371.4461,
+        "checkpointRegressionPercent": 51.92,
+        "checkpointVsMainPercent": -0.46,
+        "attribution": "pre_existing_clean_main_failure"
+      },
+      {
+        "name": "m3-ordinary-life-long-run",
+        "baselineMedianMs": 24.456,
+        "mainMedianMs": 27.1061,
+        "mainRegressionPercent": 10.84,
+        "checkpointMedianMs": 39.2472,
+        "checkpointRegressionPercent": 60.48,
+        "checkpointVsMainPercent": 44.79,
+        "attribution": "wm_0177_task_regression"
+      },
+      {
+        "name": "m4-core-vertical-slice-long-run",
+        "baselineMedianMs": 4.6112,
+        "mainMedianMs": 5.8341,
+        "mainRegressionPercent": 26.52,
+        "checkpointMedianMs": 6.6062,
+        "checkpointRegressionPercent": 43.26,
+        "checkpointVsMainPercent": 13.24,
+        "attribution": "mixed_main_failure_and_task_worsening"
+      },
+      {
+        "name": "m5-alpha-content-long-run",
+        "baselineMedianMs": 74.6344,
+        "mainMedianMs": 76.8893,
+        "mainRegressionPercent": 3.02,
+        "checkpointMedianMs": 106.3368,
+        "checkpointRegressionPercent": 42.48,
+        "checkpointVsMainPercent": 38.3,
+        "attribution": "wm_0177_task_regression"
+      },
+      {
+        "name": "map-dirty",
+        "baselineMedianMs": 1,
+        "mainMedianMs": 1.25174375,
+        "mainRegressionPercent": 25.17,
+        "checkpointMedianMs": 1.4998,
+        "checkpointRegressionPercent": 49.98,
+        "checkpointVsMainPercent": 19.82,
+        "attribution": "mixed_main_failure_and_task_worsening"
+      },
+      {
+        "name": "spatial-index",
+        "baselineMedianMs": 1436.717,
+        "mainMedianMs": 1572.6804,
+        "mainRegressionPercent": 9.46,
+        "checkpointMedianMs": 1952.994,
+        "checkpointRegressionPercent": 35.93,
+        "checkpointVsMainPercent": 24.19,
+        "attribution": "wm_0177_task_associated_regression"
+      }
+    ]
+  },
+  "writeOwnership": [
+    "packages/benchmarks/src/cli.ts",
+    "packages/benchmarks/src/cli-lib.ts",
+    "packages/benchmarks/src/benchmarks.ts",
+    "packages/benchmarks/src/index.ts",
+    "packages/benchmarks/src/baseline.ts",
+    "packages/benchmarks/src/baseline.test.ts",
+    "packages/benchmarks/src/entity-store-benchmark.ts",
+    "packages/benchmarks/src/m3-ordinary-life-long-run-benchmark.ts",
+    "packages/benchmarks/src/m4-core-vertical-slice-long-run-benchmark.ts",
+    "packages/benchmarks/src/m5-alpha-content-long-run-benchmark.ts",
+    "packages/benchmarks/src/map-dirty-benchmark.ts",
+    "packages/benchmarks/src/map-dirty-benchmark.test.ts",
+    "packages/benchmarks/src/spatial-index-benchmark.ts"
+  ],
+  "allowedPaths": [
+    "packages/benchmarks/src/cli.ts",
+    "packages/benchmarks/src/cli-lib.ts",
+    "packages/benchmarks/src/benchmarks.ts",
+    "packages/benchmarks/src/index.ts",
+    "packages/benchmarks/src/baseline.ts",
+    "packages/benchmarks/src/baseline.test.ts",
+    "packages/benchmarks/src/entity-store-benchmark.ts",
+    "packages/benchmarks/src/m3-ordinary-life-long-run-benchmark.ts",
+    "packages/benchmarks/src/m4-core-vertical-slice-long-run-benchmark.ts",
+    "packages/benchmarks/src/m5-alpha-content-long-run-benchmark.ts",
+    "packages/benchmarks/src/map-dirty-benchmark.ts",
+    "packages/benchmarks/src/map-dirty-benchmark.test.ts",
+    "packages/benchmarks/src/spatial-index-benchmark.ts",
+    "coordination/artifacts/WM-0178/**",
+    "coordination/tasks/WM-0178.json",
+    "coordination/reports/WM-0178*.md",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/05_tech/05_testing_observability_ci.md"
+  ],
+  "forbiddenPaths": [
+    "packages/benchmarks/baseline.json or any change to canonical medians, invariants, warning threshold or failure threshold",
+    "packages/sim-core/**, packages/sim-protocol/**, packages/sim-worker/**, apps/**, renderer, UI, Electron, GameSession, content or other product/scenario-authority files",
+    "package.json, lockfiles, runtime dependencies, release, deploy or distribution files",
+    "coordination/artifacts/WM-0083/** or any historical benchmark artifact",
+    "benchmark workload, fixture size, invariant payload, default 9-sample/2-warmup count, suite omission, failure suppression, retry-until-pass or exception/waiver behavior",
+    "linked worktrees, concurrent dirty checkout comparisons or host/commit metadata omission",
+    "creating WM-0179 before a structured WM-0178 blocker names exact sim/product files, call paths, evidence and reason",
+    "claiming or unblocking WM-0177 or WM-0170 before the predecessor and review gates are complete"
+  ],
+  "executionLane": "qa-performance only; Spark is prohibited because cross-commit performance attribution, benchmark semantics and gate integrity require full evidence and independent review",
+  "conditionalProductRepair": "WM-0179 may be architect-created only after WM-0178 blocks with exact non-harness files, call paths, suite evidence and reason. Until then it does not exist, is not a dependency and is not authorized.",
+  "singleWriterRule": "WM-0178 is ready and unclaimed. Once claimed, qa-performance is the sole harness/evidence writer; reviewer remains read-only and independent. WM-0177 stays blocked and claimed by its original simulation-engineer, and WM-0170 stays blocked behind WM-0177."
+}
