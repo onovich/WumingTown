@@ -2,10 +2,12 @@
   "id": "WM-0170",
   "title": "PR-2 autonomous decision state and indexed work selection",
   "summary": "Implement explicit serializable resident autonomy state, structured reasons, schedule/need/capability arbitration and bounded indexed Top-K offer/path/reservation selection in sim-core without product projection changes.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
-  "dependsOn": ["WM-0169"],
+  "dependsOn": [
+    "WM-0169"
+  ],
   "docs": [
     "AGENTS.md",
     ".agents/skills/wuming-town-agent-workflow/SKILL.md",
@@ -42,7 +44,7 @@
   ],
   "branch": "task/WM-0170-pr-2-autonomous-decision-state-and-indexed-work-",
   "createdAt": "2026-07-11T07:53:17.870Z",
-  "updatedAt": "2026-07-11T07:56:00.000Z",
+  "updatedAt": "2026-07-11T09:06:17.040Z",
   "history": [
     {
       "at": "2026-07-11T07:53:17.871Z",
@@ -55,6 +57,12 @@
       "actor": "systems-architect",
       "action": "refine-proposed-task",
       "details": "Bounded protocol-neutral autonomy state/reason/indexed-selection tranche after WM-0169; remains proposed and unclaimed."
+    },
+    {
+      "at": "2026-07-11T09:06:17.040Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "Post-M8",

@@ -2,7 +2,7 @@
   "id": "WM-0169",
   "title": "PR-2 autonomous town life architecture and reviewed task DAG",
   "summary": "Rebaseline post-PR-1 product truth, define autonomous resident behavior and presentation contracts, reconcile legacy control-plane wording, and create a finite reviewed PR-2 implementation/integration/product-acceptance DAG without product code.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -48,7 +48,7 @@
   ],
   "branch": "task/WM-0169-pr-2-autonomous-town-life-architecture-and-revie",
   "createdAt": "2026-07-11T07:39:45.655Z",
-  "updatedAt": "2026-07-11T08:48:03.820Z",
+  "updatedAt": "2026-07-11T09:06:17.023Z",
   "history": [
     {
       "at": "2026-07-11T07:39:45.656Z",
@@ -85,6 +85,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings. PR-1 truth is accurately rebaselined at integrated prototype only: WM-0163..WM-0168/WM-0166 evidence is closed, GameSession save/internal-playable/release remain unearned, WM-0154 stays blocked, and WM-0155/WM-0156 stay frozen. ADR-0018 correctly records existing speed 3 as a real 90-TPS multiplier and limits future WM-0172 to protocolVersion 1/schema4/projection-v2, separate Pause plus 1x/2x/4x=30/60/120 TPS, strict fail closure, default-route v1 isolation, unchanged save boundaries and no PR-3 command surface. The architecture covers eight residents over 36000 ticks with indexed capped Top-K selection, versioned pathing, atomic reservations, explicit serializable activity/driver state, structured reasons, Worker authority and read-only Pixi/HUD presentation. Simulation, real interaction/continuous WebM and independent human evidence are all required; debug/fixture evidence cannot pass alone. WM-0170..WM-0175 are exact serial proposed/unclaimed tasks with write width one, self/ancestor-only check outputs, sole protocol writer WM-0172, automated integration evidence WM-0174 and independent product acceptance WM-0175. Diff contains 15 planning/control files and no apps/packages/tools implementation. validate-handoff, taskctl validate/status, diff-check, ownership/path/state/scope audits and quality 78 files/462 tests pass."
+    },
+    {
+      "at": "2026-07-11T09:06:12.005Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Fast-forwarded verified PR-2 planning commits 3216cda and 1daed74 to exact main; validate-handoff, taskctl validate/status, git diff --check, DAG/state/path/scope audits and quality 78 files/462 tests passed; no product/protocol/schema/save implementation or release action."
+    },
+    {
+      "at": "2026-07-11T09:06:17.022Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "Post-M8",
@@ -147,5 +159,10 @@
     "verdict": "verified",
     "summary": "No blocking findings. PR-1 truth is accurately rebaselined at integrated prototype only: WM-0163..WM-0168/WM-0166 evidence is closed, GameSession save/internal-playable/release remain unearned, WM-0154 stays blocked, and WM-0155/WM-0156 stay frozen. ADR-0018 correctly records existing speed 3 as a real 90-TPS multiplier and limits future WM-0172 to protocolVersion 1/schema4/projection-v2, separate Pause plus 1x/2x/4x=30/60/120 TPS, strict fail closure, default-route v1 isolation, unchanged save boundaries and no PR-3 command surface. The architecture covers eight residents over 36000 ticks with indexed capped Top-K selection, versioned pathing, atomic reservations, explicit serializable activity/driver state, structured reasons, Worker authority and read-only Pixi/HUD presentation. Simulation, real interaction/continuous WebM and independent human evidence are all required; debug/fixture evidence cannot pass alone. WM-0170..WM-0175 are exact serial proposed/unclaimed tasks with write width one, self/ancestor-only check outputs, sole protocol writer WM-0172, automated integration evidence WM-0174 and independent product acceptance WM-0175. Diff contains 15 planning/control files and no apps/packages/tools implementation. validate-handoff, taskctl validate/status, diff-check, ownership/path/state/scope audits and quality 78 files/462 tests pass.",
     "at": "2026-07-11T08:48:03.819Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Fast-forwarded verified PR-2 planning commits 3216cda and 1daed74 to exact main; validate-handoff, taskctl validate/status, git diff --check, DAG/state/path/scope audits and quality 78 files/462 tests passed; no product/protocol/schema/save implementation or release action.",
+    "at": "2026-07-11T09:06:12.004Z"
   }
 }
