@@ -1,0 +1,12 @@
+{
+  "id": "MSG-MRGEE5Y5-1D50EA",
+  "from": "simulation-engineer",
+  "to": "systems-architect",
+  "taskId": "WM-0177",
+  "kind": "blocker",
+  "subject": "WM-0177 blocked",
+  "body": "Required full bench remains failing and cannot be waived: three sandboxed attempts plus one root-approved unsandboxed 2-warmup/9-sample run failed entity-store 371.4461/244.5070ms (+51.92%), m3-ordinary-life 39.2472/24.4560ms (+60.48%), m4 6.6062/4.6112ms (+43.26%), m5 106.3368/74.6344ms (+42.48%), map-dirty 1.4998/1.0000ms (+49.98%), and spatial-index 1952.9940/1436.7170ms (+35.93%). Owner-local work-offers/pathing/reservations pass, but that cannot waive the aggregate gate. Compare the exact same command on exact main in the same unsandboxed environment and obtain an independently reviewed performance decision before resume; keep WM-0170 blocked. Evidence: coordination/reports/WM-0177.md; checkpoint 054d501.",
+  "artifacts": [],
+  "createdAt": "2026-07-11T13:26:07.517Z",
+  "acknowledgedAt": "2026-07-11T13:27:30.778Z"
+}

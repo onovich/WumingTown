@@ -2,7 +2,7 @@
   "id": "WM-0177",
   "title": "PR-2 sim-core owner version and caller-owned output surfaces",
   "summary": "Add version-bound and caller-owned allocation-free public surfaces for MapGrid-assisted GridPathfinder, WorkOfferIndex, ReservationLedger and M3AbilityCacheStore so WM-0170 can resume unchanged.",
-  "state": "in_progress",
+  "state": "blocked",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -59,7 +59,7 @@
   ],
   "branch": "task/WM-0177-pr-2-sim-core-owner-version-and-caller-owned-out",
   "createdAt": "2026-07-11T10:43:48.256Z",
-  "updatedAt": "2026-07-11T11:03:37.313Z",
+  "updatedAt": "2026-07-11T13:26:07.516Z",
   "history": [
     {
       "at": "2026-07-11T10:43:48.256Z",
@@ -96,6 +96,12 @@
       "actor": "simulation-engineer",
       "action": "unblock",
       "details": "Architect approved additive MapGrid caller-owned scope in 4175afd; exact 12-file cap and original thresholds preserved."
+    },
+    {
+      "at": "2026-07-11T13:26:07.516Z",
+      "actor": "simulation-engineer",
+      "action": "block",
+      "details": "Required full bench remains failing and cannot be waived: three sandboxed attempts plus one root-approved unsandboxed 2-warmup/9-sample run failed entity-store 371.4461/244.5070ms (+51.92%), m3-ordinary-life 39.2472/24.4560ms (+60.48%), m4 6.6062/4.6112ms (+43.26%), m5 106.3368/74.6344ms (+42.48%), map-dirty 1.4998/1.0000ms (+49.98%), and spatial-index 1952.9940/1436.7170ms (+35.93%). Owner-local work-offers/pathing/reservations pass, but that cannot waive the aggregate gate. Compare the exact same command on exact main in the same unsandboxed environment and obtain an independently reviewed performance decision before resume; keep WM-0170 blocked. Evidence: coordination/reports/WM-0177.md; checkpoint 054d501."
     }
   ],
   "milestone": "Post-M8",
@@ -155,5 +161,11 @@
   "singleWriterRule": "WM-0177 remains the sole scoped repair owner and stays blocked/claimed by the original simulation-engineer until the exact resume procedure is executed. WM-0170 remains blocked with unchanged thresholds; WM-0171..WM-0175 retain their existing dependencies.",
   "claimedBy": "simulation-engineer",
   "threadLabel": "Tally WM-0177",
-  "blocker": null
+  "blocker": {
+    "by": "simulation-engineer",
+    "to": "systems-architect",
+    "reason": "Required full bench remains failing and cannot be waived: three sandboxed attempts plus one root-approved unsandboxed 2-warmup/9-sample run failed entity-store 371.4461/244.5070ms (+51.92%), m3-ordinary-life 39.2472/24.4560ms (+60.48%), m4 6.6062/4.6112ms (+43.26%), m5 106.3368/74.6344ms (+42.48%), map-dirty 1.4998/1.0000ms (+49.98%), and spatial-index 1952.9940/1436.7170ms (+35.93%). Owner-local work-offers/pathing/reservations pass, but that cannot waive the aggregate gate. Compare the exact same command on exact main in the same unsandboxed environment and obtain an independently reviewed performance decision before resume; keep WM-0170 blocked. Evidence: coordination/reports/WM-0177.md; checkpoint 054d501.",
+    "previousState": "in_progress",
+    "at": "2026-07-11T13:26:07.516Z"
+  }
 }
