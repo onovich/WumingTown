@@ -2,7 +2,7 @@
   "id": "WM-0178",
   "title": "Canonical benchmark gate repair and paired attribution",
   "summary": "Restore the canonical fixed-baseline full benchmark gate on clean main, pair exact-main and WM-0177 checkpoint evidence, and identify any exact sim/product repair scope without waiving or weakening performance requirements.",
-  "state": "ready",
+  "state": "in_progress",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -52,7 +52,7 @@
   ],
   "branch": "task/WM-0178-canonical-benchmark-gate-repair",
   "createdAt": "2026-07-11T13:56:48.314Z",
-  "updatedAt": "2026-07-11T13:57:04.228Z",
+  "updatedAt": "2026-07-11T14:12:58.859Z",
   "history": [
     {
       "at": "2026-07-11T13:56:48.315Z",
@@ -65,6 +65,12 @@
       "actor": "systems-architect",
       "action": "refine-ready-canonical-benchmark-gate-repair",
       "details": "Approved a mandatory qa-performance predecessor for fixed-baseline canonical gate repair and isolated paired attribution. Workload, baseline, warning/failure thresholds and full-suite required check remain immutable; no waiver or product edit is authorized."
+    },
+    {
+      "at": "2026-07-11T14:12:58.858Z",
+      "actor": "qa-performance",
+      "action": "claim",
+      "details": "thread=Sentinel WM-0178"
     }
   ],
   "milestone": "Post-M8",
@@ -188,5 +194,8 @@
   ],
   "executionLane": "qa-performance only; Spark is prohibited because cross-commit performance attribution, benchmark semantics and gate integrity require full evidence and independent review",
   "conditionalProductRepair": "WM-0179 may be architect-created only after WM-0178 blocks with exact non-harness files, call paths, suite evidence and reason. Until then it does not exist, is not a dependency and is not authorized.",
-  "singleWriterRule": "WM-0178 is ready and unclaimed. Once claimed, qa-performance is the sole harness/evidence writer; reviewer remains read-only and independent. WM-0177 stays blocked and claimed by its original simulation-engineer, and WM-0170 stays blocked behind WM-0177."
+  "singleWriterRule": "WM-0178 is ready and unclaimed. Once claimed, qa-performance is the sole harness/evidence writer; reviewer remains read-only and independent. WM-0177 stays blocked and claimed by its original simulation-engineer, and WM-0170 stays blocked behind WM-0177.",
+  "claimedBy": "qa-performance",
+  "threadLabel": "Sentinel WM-0178",
+  "blocker": null
 }

@@ -97,3 +97,58 @@ WM-0177 and WM-0170 remain blocked during every WM-0178 path. A failed full
 benchmark, a missing raw sample, a dirty comparison tree, a baseline/threshold
 change, a product-file requirement or a waiver request is a stop condition,
 not permission to broaden WM-0178.
+
+## QA-performance execution plan (claimed 2026-07-11)
+
+### Goal
+
+Make the canonical fixed-baseline benchmark gate reproducible and zero-exit on
+the current main lineage by repairing harness isolation only, while preserving
+all measured workloads, invariant payloads, baseline medians, 10/20 percent
+thresholds, and the default 9 samples / 2 warmups.
+
+### Verified starting facts
+
+- `main`, `origin/main`, and the task branch start at `4c1299a`; the worktree is
+  clean and is the repository's only worktree.
+- Baseline commit `4175afd` and checkpoint `054d501` are available locally.
+- The current CLI samples every suite in one long-lived Node process and its
+  default artifact routing can rewrite historical task artifacts. Both are
+  harness concerns owned by WM-0178 and require direct paired evidence before
+  repair.
+
+### Procedure
+
+1. Commit only the claim and this plan so every historical comparison can start
+   from a clean detached checkout. Record immutable baseline and WM-0083 hashes.
+2. For each of the six reviewed filters, run one fresh process at `4175afd` and
+   one at `054d501`, alternating which commit runs first by suite. Repeat the
+   same paired process for the full suite. Route ephemeral generated artifacts
+   outside the repository during comparison so the checked-out source remains
+   clean; preserve every raw JSON, sidecar hash, command, exit code and checkout
+   audit, then copy them under `coordination/artifacts/WM-0178/**` on the owner
+   branch.
+3. Attribute common and checkpoint-only deltas using only packet-owned
+   benchmark harness call paths. If a necessary change reaches sim-core,
+   product, or scenario authority, stop and block with exact files, call paths,
+   paired samples and reason.
+4. Implement the smallest harness repair that gives every suite an isolated
+   Node measurement process under fixed conditions. Do not change suite order,
+   workload, fixtures, invariant projection, baseline, thresholds, sample count,
+   warmups, or failure behavior. Add focused tests for isolation, aggregation,
+   fail-closed child results and artifact metadata.
+5. On the repaired main lineage, run all six filtered gates and exact full
+   `corepack pnpm bench`, then typecheck, focused benchmark tests, boundaries,
+   handoff validation, taskctl validation/status, diff check and quality.
+6. Audit allowed paths, canonical baseline bytes and every historical artifact
+   hash; write the work report, commit owner evidence/repair, and call
+   `taskctl complete` for independent review. Do not review, integrate, merge,
+   push, or unblock WM-0177/WM-0170.
+
+### Rollback and stop lines
+
+The repair is confined to the task's listed benchmark sources and can be
+reverted without save, protocol, product, or simulation-state migration. Any
+product-file dependency, invariant drift, missing suite, retry-until-pass,
+threshold/baseline change, dirty comparison, or historical artifact drift is a
+hard stop rather than a reason to widen scope.
