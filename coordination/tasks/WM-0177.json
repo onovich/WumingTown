@@ -2,7 +2,7 @@
   "id": "WM-0177",
   "title": "PR-2 sim-core owner version and caller-owned output surfaces",
   "summary": "Add version-bound and caller-owned allocation-free public surfaces for WorkOfferIndex, GridPathfinder, ReservationLedger and M3AbilityCacheStore so WM-0170 can resume unchanged.",
-  "state": "ready",
+  "state": "blocked",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -53,7 +53,7 @@
   ],
   "branch": "task/WM-0177-pr-2-sim-core-owner-version-and-caller-owned-out",
   "createdAt": "2026-07-11T10:43:48.256Z",
-  "updatedAt": "2026-07-11T10:45:00.000Z",
+  "updatedAt": "2026-07-11T10:53:53.016Z",
   "history": [
     {
       "at": "2026-07-11T10:43:48.256Z",
@@ -66,6 +66,18 @@
       "actor": "systems-architect",
       "action": "refine-ready-prerequisite",
       "details": "WM-0169 is done. Scoped one additive compatibility repair for the four generic owner public surfaces blocking WM-0170; legacy wrappers/hashes remain, Spark is prohibited, and the task is ready/unclaimed."
+    },
+    {
+      "at": "2026-07-11T10:50:44.717Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Tally WM-0177"
+    },
+    {
+      "at": "2026-07-11T10:53:53.016Z",
+      "actor": "simulation-engineer",
+      "action": "block",
+      "details": "Allocation-free GridPathfinder.findPathInto cannot be implemented within current allowedPaths: MapGrid.isCellPassableByIndex, canMoveBetweenCardinalNeighbors and readCellByIndex materialize result/cell objects per path node/neighbor, while map-grid.ts/tests are outside WM-0177 ownership. Removing only the final path/result allocation would leave WM-0170 blocked. Revise WM-0177 or add a strict predecessor for additive caller-owned/primitive MapGrid path facts. Evidence: coordination/reports/WM-0177-plan.md and coordination/reports/WM-0177.md."
     }
   ],
   "milestone": "Post-M8",
@@ -109,5 +121,14 @@
     "claiming or unblocking WM-0170 before WM-0177 is independently verified, integrated and done"
   ],
   "executionLane": "simulation-engineer only; Spark is prohibited because the task changes generic deterministic owner APIs, allocation behavior and reservation atomicity",
-  "singleWriterRule": "WM-0177 is the sole ready product-code writer. WM-0170 remains blocked with its original owner and thresholds; WM-0171..WM-0175 retain their existing dependencies and remain unavailable behind WM-0170."
+  "singleWriterRule": "WM-0177 is the sole ready product-code writer. WM-0170 remains blocked with its original owner and thresholds; WM-0171..WM-0175 retain their existing dependencies and remain unavailable behind WM-0170.",
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Tally WM-0177",
+  "blocker": {
+    "by": "simulation-engineer",
+    "to": "systems-architect",
+    "reason": "Allocation-free GridPathfinder.findPathInto cannot be implemented within current allowedPaths: MapGrid.isCellPassableByIndex, canMoveBetweenCardinalNeighbors and readCellByIndex materialize result/cell objects per path node/neighbor, while map-grid.ts/tests are outside WM-0177 ownership. Removing only the final path/result allocation would leave WM-0170 blocked. Revise WM-0177 or add a strict predecessor for additive caller-owned/primitive MapGrid path facts. Evidence: coordination/reports/WM-0177-plan.md and coordination/reports/WM-0177.md.",
+    "previousState": "in_progress",
+    "at": "2026-07-11T10:53:53.015Z"
+  }
 }

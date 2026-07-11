@@ -1,0 +1,12 @@
+{
+  "id": "MSG-MRG8YDQ1-D4A8B0",
+  "from": "simulation-engineer",
+  "to": "systems-architect",
+  "taskId": "WM-0177",
+  "kind": "blocker",
+  "subject": "WM-0177 blocked",
+  "body": "Allocation-free GridPathfinder.findPathInto cannot be implemented within current allowedPaths: MapGrid.isCellPassableByIndex, canMoveBetweenCardinalNeighbors and readCellByIndex materialize result/cell objects per path node/neighbor, while map-grid.ts/tests are outside WM-0177 ownership. Removing only the final path/result allocation would leave WM-0170 blocked. Revise WM-0177 or add a strict predecessor for additive caller-owned/primitive MapGrid path facts. Evidence: coordination/reports/WM-0177-plan.md and coordination/reports/WM-0177.md.",
+  "artifacts": [],
+  "createdAt": "2026-07-11T10:53:53.018Z",
+  "acknowledgedAt": "2026-07-11T10:55:54.441Z"
+}
