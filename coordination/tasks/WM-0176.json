@@ -1,0 +1,65 @@
+{
+  "id": "WM-0176",
+  "title": "Document safe taskctl stale-lock recovery",
+  "summary": "Document a narrowly scoped, approval-gated recovery procedure for an abandoned per-task lock after the same taskctl transition fails twice, without weakening active lock protection or adding automatic deletion.",
+  "state": "ready",
+  "ownerRole": "project-director",
+  "reviewerRole": "reviewer",
+  "dependsOn": [],
+  "docs": [
+    "AGENTS.md",
+    ".agents/skills/wuming-town-agent-workflow/SKILL.md",
+    ".agents/skills/wuming-town-agent-workflow/references/protocol.md",
+    ".agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs"
+  ],
+  "acceptance": [
+    "Workflow documents that the same lock failure must occur twice before stale-lock recovery is considered",
+    "Recovery requires confirming all task agents are inactive, the exact lock is inside coordination/tasks, the file is zero-byte/old enough, and no taskctl transition is running",
+    "Only the exact verified lock may be removed after explicit approval; globbing, recursive deletion and automatic lock eviction are forbidden",
+    "Active task locks remain fail-closed and taskctl transition semantics are unchanged",
+    "No product code, task state shortcut, protocol/schema/save/release change or unrelated workflow initialization"
+  ],
+  "requiredChecks": [
+    "node --check .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check"
+  ],
+  "branch": "task/WM-0176-document-safe-taskctl-stale-lock-recovery",
+  "createdAt": "2026-07-11T09:08:13.792Z",
+  "updatedAt": "2026-07-11T09:08:39.986Z",
+  "history": [
+    {
+      "at": "2026-07-11T09:08:13.792Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    },
+    {
+      "at": "2026-07-11T09:08:39.986Z",
+      "actor": "project-director",
+      "action": "refine-ready-task",
+      "details": "Scoped after two consecutive WM-0169 taskctl lock failures to documentation-only, exact-path, approval-gated stale-lock recovery; active lock semantics remain unchanged."
+    }
+  ],
+  "milestone": "Coordination",
+  "phase": "workflow-reliability",
+  "allowedPaths": [
+    ".agents/skills/wuming-town-agent-workflow/SKILL.md",
+    ".agents/skills/wuming-town-agent-workflow/references/protocol.md",
+    "coordination/tasks/WM-0176.json",
+    "coordination/reports/WM-0176*.md"
+  ],
+  "forbiddenPaths": [
+    ".agents/skills/wuming-town-agent-workflow/scripts/** implementation changes",
+    "apps/**",
+    "packages/**",
+    "tools/**",
+    "automatic lock expiry or deletion",
+    "globbed, recursive or multi-lock removal",
+    "task state mutation outside taskctl",
+    "protocol/schema/save/release changes"
+  ],
+  "singleWriterRule": "Only project-director may edit this documentation-only workflow task; final review remains independent reviewer."
+}
