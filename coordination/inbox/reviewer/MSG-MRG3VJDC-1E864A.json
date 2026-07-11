@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MRG3VJDC-1E864A",
+  "from": "systems-architect",
+  "to": "reviewer",
+  "taskId": "WM-0169",
+  "kind": "review-request",
+  "subject": "WM-0169 ready for review",
+  "body": "Commit 3216cda rebaselines completed PR-1 truth, accepts ADR-0017, proposes ADR-0018 schema4/projection-v2 plus explicit pause/1x/2x/4x, defines the eight-resident full-day architecture, creates strict serial proposed/unclaimed WM-0170..WM-0175, and reconciles WM-0154; handoff/task/DAG/scope/quality gates pass (78 files/462 tests), with no product/protocol/save/release implementation.",
+  "artifacts": [
+    "coordination/reports/WM-0169.md",
+    "task/WM-0169-pr-2-autonomous-town-life-architecture-and-revie"
+  ],
+  "createdAt": "2026-07-11T08:31:42.288Z",
+  "acknowledgedAt": "2026-07-11T08:35:36.172Z"
+}
