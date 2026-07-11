@@ -2,7 +2,7 @@
   "id": "WM-0168",
   "title": "PR-1 real Worker and default Web evidence",
   "summary": "Independently prove the repaired GameSession in a real browser Worker for at least 600 wall-clock seconds and on the default Web route, including cadence, backpressure and moving/working publication evidence.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -48,7 +48,7 @@
   ],
   "branch": "task/WM-0168-pr-1-real-worker-and-default-web-evidence",
   "createdAt": "2026-07-10T21:04:33.825Z",
-  "updatedAt": "2026-07-10T23:54:58.960Z",
+  "updatedAt": "2026-07-11T00:13:01.229Z",
   "history": [
     {
       "at": "2026-07-10T21:04:33.826Z",
@@ -97,6 +97,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings. Verified all prior findings closed: the 1424x861 Web gate now records production-assembled WorldReadModel activities only after the real Pixi activeRenderer.setReadModel call and independently reproduces moving ticks 3/6 plus working ticks 9/12; the raw inbound Worker proxy and Worker.prototype.addEventListener patch are absent; public browser-session lifecycle observation records created->initializing->active with closedCount=0 before cleanup and destroyed only after explicit cleanup. Independently reran real Chromium Worker 19/19: 600002.1ms, tick 0->18000, 10 advancing checkpoints, max gap 126.6ms, lifecycle 2+2 then idle, fatal/drop 0, reliable depth 2. Web 13/13, focused 44/44, 18k/100k zero leaks, boundaries/handoff/control checks and quality 462/462 pass; no production/protocol/schema/save/dependency changes. Low non-blocking report wording: it says no Worker prototype is patched, while the pre-existing outbound-only postMessage audit remains; this does not observe inbound lifecycle or drive authority."
+    },
+    {
+      "at": "2026-07-11T00:12:55.610Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Fast-forwarded verified evidence to exact main e367516; exact-main Worker 19/19 (600000.6ms, tick 0->18000, 10 checkpoints, max gap 129.2ms), Web 13/13, focused 44/44, 18k/100k conservation and quality 462/462 all passed; generated drift restored."
+    },
+    {
+      "at": "2026-07-11T00:13:01.229Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "Post-M8",
@@ -128,5 +140,10 @@
     "verdict": "verified",
     "summary": "No blocking findings. Verified all prior findings closed: the 1424x861 Web gate now records production-assembled WorldReadModel activities only after the real Pixi activeRenderer.setReadModel call and independently reproduces moving ticks 3/6 plus working ticks 9/12; the raw inbound Worker proxy and Worker.prototype.addEventListener patch are absent; public browser-session lifecycle observation records created->initializing->active with closedCount=0 before cleanup and destroyed only after explicit cleanup. Independently reran real Chromium Worker 19/19: 600002.1ms, tick 0->18000, 10 advancing checkpoints, max gap 126.6ms, lifecycle 2+2 then idle, fatal/drop 0, reliable depth 2. Web 13/13, focused 44/44, 18k/100k zero leaks, boundaries/handoff/control checks and quality 462/462 pass; no production/protocol/schema/save/dependency changes. Low non-blocking report wording: it says no Worker prototype is patched, while the pre-existing outbound-only postMessage audit remains; this does not observe inbound lifecycle or drive authority.",
     "at": "2026-07-10T23:54:58.960Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Fast-forwarded verified evidence to exact main e367516; exact-main Worker 19/19 (600000.6ms, tick 0->18000, 10 checkpoints, max gap 129.2ms), Web 13/13, focused 44/44, 18k/100k conservation and quality 462/462 all passed; generated drift restored.",
+    "at": "2026-07-11T00:12:55.609Z"
   }
 }
