@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MRG83C5E-F6A741",
+  "from": "reviewer",
+  "to": "project-director",
+  "taskId": "WM-0176",
+  "kind": "review-approved",
+  "subject": "WM-0176 review: verified",
+  "body": "No blocking findings. The workflow requires the exact same taskctl transition and lock failure twice with a wait, then a 60-second quiet interval; all task worker/reviewer/director operations and taskctl transitions must be idle. Recovery validates the resolved absolute path as exactly repo/coordination/tasks/<TASK-ID>.json.lock, rejects traversal/symlinks/wildcards/out-of-directory paths, requires the current zero-byte lock format, records creation/last-write/current UTC times and proves the lock predates both failures, and rechecks expected pre-transition task state plus scoped worktree drift. Any uncertainty stops with a blocker. Only explicit user approval permits one Remove-Item -LiteralPath on the exact verified file, with no wildcard, recursion, computed list, multi-lock removal or automatic expiry; the original transition is retried once, and another failure blocks for a separate reviewed repair without manual state mutation. Source inspection confirms taskctl still creates the lock with openSync wx and retains fail-closed transition semantics. All required checks pass: node --check, validate-handoff 1643 files/176 tasks/10 roles, taskctl validate/status and diff-check. Commit cfc77b2..6d33c91 changes exactly the workflow skill/reference plus WM-0176 task/report; taskctl implementation and product/simulation protocol/schema/save/release files are unchanged.",
+  "artifacts": [
+    "coordination/reports/WM-0176.md"
+  ],
+  "createdAt": "2026-07-11T10:29:44.642Z",
+  "acknowledgedAt": "2026-07-11T10:30:14.526Z"
+}

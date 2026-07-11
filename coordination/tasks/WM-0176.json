@@ -2,7 +2,7 @@
   "id": "WM-0176",
   "title": "Document safe taskctl stale-lock recovery",
   "summary": "Document a narrowly scoped, approval-gated recovery procedure for an abandoned per-task lock after the same taskctl transition fails twice, without weakening active lock protection or adding automatic deletion.",
-  "state": "in_progress",
+  "state": "verified",
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [],
@@ -28,7 +28,7 @@
   ],
   "branch": "task/WM-0176-document-safe-taskctl-stale-lock-recovery",
   "createdAt": "2026-07-11T09:08:13.792Z",
-  "updatedAt": "2026-07-11T09:09:34.487Z",
+  "updatedAt": "2026-07-11T10:29:44.641Z",
   "history": [
     {
       "at": "2026-07-11T09:08:13.792Z",
@@ -47,6 +47,18 @@
       "actor": "project-director",
       "action": "claim",
       "details": "thread=Beacon WM-0176"
+    },
+    {
+      "at": "2026-07-11T10:26:40.944Z",
+      "actor": "project-director",
+      "action": "complete",
+      "details": "Documented two-failure, exact-path, 60-second quiet, approval-gated stale task lock recovery; active locks remain fail-closed, automatic/wildcard deletion is forbidden, taskctl implementation is unchanged, and all required checks pass."
+    },
+    {
+      "at": "2026-07-11T10:29:44.641Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. The workflow requires the exact same taskctl transition and lock failure twice with a wait, then a 60-second quiet interval; all task worker/reviewer/director operations and taskctl transitions must be idle. Recovery validates the resolved absolute path as exactly repo/coordination/tasks/<TASK-ID>.json.lock, rejects traversal/symlinks/wildcards/out-of-directory paths, requires the current zero-byte lock format, records creation/last-write/current UTC times and proves the lock predates both failures, and rechecks expected pre-transition task state plus scoped worktree drift. Any uncertainty stops with a blocker. Only explicit user approval permits one Remove-Item -LiteralPath on the exact verified file, with no wildcard, recursion, computed list, multi-lock removal or automatic expiry; the original transition is retried once, and another failure blocks for a separate reviewed repair without manual state mutation. Source inspection confirms taskctl still creates the lock with openSync wx and retains fail-closed transition semantics. All required checks pass: node --check, validate-handoff 1643 files/176 tasks/10 roles, taskctl validate/status and diff-check. Commit cfc77b2..6d33c91 changes exactly the workflow skill/reference plus WM-0176 task/report; taskctl implementation and product/simulation protocol/schema/save/release files are unchanged."
     }
   ],
   "milestone": "Coordination",
@@ -70,5 +82,12 @@
   "singleWriterRule": "Only project-director may edit this documentation-only workflow task; final review remains independent reviewer.",
   "claimedBy": "project-director",
   "threadLabel": "Beacon WM-0176",
-  "blocker": null
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0176.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. The workflow requires the exact same taskctl transition and lock failure twice with a wait, then a 60-second quiet interval; all task worker/reviewer/director operations and taskctl transitions must be idle. Recovery validates the resolved absolute path as exactly repo/coordination/tasks/<TASK-ID>.json.lock, rejects traversal/symlinks/wildcards/out-of-directory paths, requires the current zero-byte lock format, records creation/last-write/current UTC times and proves the lock predates both failures, and rechecks expected pre-transition task state plus scoped worktree drift. Any uncertainty stops with a blocker. Only explicit user approval permits one Remove-Item -LiteralPath on the exact verified file, with no wildcard, recursion, computed list, multi-lock removal or automatic expiry; the original transition is retried once, and another failure blocks for a separate reviewed repair without manual state mutation. Source inspection confirms taskctl still creates the lock with openSync wx and retains fail-closed transition semantics. All required checks pass: node --check, validate-handoff 1643 files/176 tasks/10 roles, taskctl validate/status and diff-check. Commit cfc77b2..6d33c91 changes exactly the workflow skill/reference plus WM-0176 task/report; taskctl implementation and product/simulation protocol/schema/save/release files are unchanged.",
+    "at": "2026-07-11T10:29:44.640Z"
+  }
 }
