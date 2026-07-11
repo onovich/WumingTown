@@ -1,0 +1,12 @@
+{
+  "id": "MSG-MRG8ESEA-55926B",
+  "from": "simulation-engineer",
+  "to": "systems-architect",
+  "taskId": "WM-0170",
+  "kind": "blocker",
+  "subject": "WM-0170 blocked",
+  "body": "Public owner APIs cannot satisfy the reviewed owner-version and zero-allocation contract within allowedPaths: WorkOfferIndex has no row/index owner version and materializes read/selection objects; GridPathfinder allocates result paths; ReservationLedger.acquire allocates prepared/claim-id arrays; M3AbilityCacheStore.queryAbility materializes results. A reviewed prerequisite must add version-bound, caller-owned output/scratch surfaces or revise the acceptance contract. Evidence: coordination/reports/WM-0170-plan.md and coordination/reports/WM-0170.md.",
+  "artifacts": [],
+  "createdAt": "2026-07-11T10:38:38.914Z",
+  "acknowledgedAt": "2026-07-11T10:41:55.512Z"
+}

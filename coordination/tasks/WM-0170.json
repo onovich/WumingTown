@@ -2,7 +2,7 @@
   "id": "WM-0170",
   "title": "PR-2 autonomous decision state and indexed work selection",
   "summary": "Implement explicit serializable resident autonomy state, structured reasons, schedule/need/capability arbitration and bounded indexed Top-K offer/path/reservation selection in sim-core without product projection changes.",
-  "state": "ready",
+  "state": "blocked",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -44,7 +44,7 @@
   ],
   "branch": "task/WM-0170-pr-2-autonomous-decision-state-and-indexed-work-",
   "createdAt": "2026-07-11T07:53:17.870Z",
-  "updatedAt": "2026-07-11T09:06:17.040Z",
+  "updatedAt": "2026-07-11T10:38:38.913Z",
   "history": [
     {
       "at": "2026-07-11T07:53:17.871Z",
@@ -63,6 +63,18 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-07-11T10:34:55.188Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Tally WM-0170"
+    },
+    {
+      "at": "2026-07-11T10:38:38.913Z",
+      "actor": "simulation-engineer",
+      "action": "block",
+      "details": "Public owner APIs cannot satisfy the reviewed owner-version and zero-allocation contract within allowedPaths: WorkOfferIndex has no row/index owner version and materializes read/selection objects; GridPathfinder allocates result paths; ReservationLedger.acquire allocates prepared/claim-id arrays; M3AbilityCacheStore.queryAbility materializes results. A reviewed prerequisite must add version-bound, caller-owned output/scratch surfaces or revise the acceptance contract. Evidence: coordination/reports/WM-0170-plan.md and coordination/reports/WM-0170.md."
     }
   ],
   "milestone": "Post-M8",
@@ -90,5 +102,14 @@
     "save format/load implementation, new runtime dependency, PR-3 command/building/priority scope or release action"
   ],
   "executionLane": "simulation-engineer; Spark is prohibited because the task defines deterministic AI state, path/reservation ownership and hot-loop behavior",
-  "singleWriterRule": "WM-0170 is the only implementation writer after WM-0169 is done. WM-0171..WM-0175 remain proposed and unclaimed until each direct predecessor is independently verified, integrated and done."
+  "singleWriterRule": "WM-0170 is the only implementation writer after WM-0169 is done. WM-0171..WM-0175 remain proposed and unclaimed until each direct predecessor is independently verified, integrated and done.",
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Tally WM-0170",
+  "blocker": {
+    "by": "simulation-engineer",
+    "to": "systems-architect",
+    "reason": "Public owner APIs cannot satisfy the reviewed owner-version and zero-allocation contract within allowedPaths: WorkOfferIndex has no row/index owner version and materializes read/selection objects; GridPathfinder allocates result paths; ReservationLedger.acquire allocates prepared/claim-id arrays; M3AbilityCacheStore.queryAbility materializes results. A reviewed prerequisite must add version-bound, caller-owned output/scratch surfaces or revise the acceptance contract. Evidence: coordination/reports/WM-0170-plan.md and coordination/reports/WM-0170.md.",
+    "previousState": "in_progress",
+    "at": "2026-07-11T10:38:38.912Z"
+  }
 }
