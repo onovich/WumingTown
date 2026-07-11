@@ -2,29 +2,38 @@
   "id": "WM-0169",
   "title": "PR-2 autonomous town life architecture and reviewed task DAG",
   "summary": "Rebaseline post-PR-1 product truth, define autonomous resident behavior and presentation contracts, reconcile legacy control-plane wording, and create a finite reviewed PR-2 implementation/integration/product-acceptance DAG without product code.",
-  "state": "ready",
+  "state": "in_progress",
   "ownerRole": "systems-architect",
   "reviewerRole": "reviewer",
-  "dependsOn": [
-    "WM-0166"
-  ],
+  "dependsOn": ["WM-0166"],
   "docs": [
     "AGENTS.md",
+    ".agents/skills/wuming-town-agent-workflow/SKILL.md",
     "docs/07_roadmap/12_playable_product_recovery_roadmap.md",
     "coordination/project-state.json",
+    "coordination/tasks/WM-0162.json",
+    "coordination/reports/WM-0162-plan.md",
+    "coordination/reports/WM-0162.md",
     "coordination/tasks/WM-0166.json",
     "coordination/reports/WM-0166.md",
+    "coordination/tasks/WM-0167.json",
+    "coordination/reports/WM-0167.md",
+    "coordination/tasks/WM-0168.json",
+    "coordination/reports/WM-0168.md",
     "coordination/decisions/ADR-0017.md",
+    "coordination/decisions/ADR-0018.md",
     "docs/05_tech/12_integrated_gamesession_architecture.md",
+    "docs/05_tech/13_autonomous_town_life_architecture.md",
     "docs/02_systems/04_ai_jobs_reservations_pathing.md"
   ],
   "acceptance": [
-    "Project truth and scorecard are updated from PR-0/PR-1 to reviewed PR-2 planning without overstating playable or release readiness",
-    "Architecture defines authoritative autonomous behavior for at least eight residents across a full game day using needs, schedules, capabilities, indexed Top-K work selection, reservations and pathing",
-    "Architecture defines explicit serializable resident/job states, structured reason codes, pause and 1x/2x/4x semantics, projection/interpolation ownership and player-visible progress",
-    "Evidence plan combines deterministic simulation, real Web interaction/continuous behavior capture and independent human/reviewer observation; debug payload alone cannot pass",
-    "Inventory classifies reusable PR-1 and historical M1-M8 stores plus missing product integration, performance and save boundaries",
-    "A finite executable PR-2 DAG has exact dependencies, file ownership, allowed/forbidden paths, required gates, integration and independent product-acceptance tasks, with at most three concurrent write-heavy tasks",
+    "Project truth and a structured scorecard record PR-1 as independently verified/integrated/done and PR-2 as planning-only; integrated prototype is the highest earned label, while autonomous prototype, internal playable, save and release readiness remain unearned",
+    "Architecture defines one authoritative eight-resident 64x64 minimum scenario across a 36000-tick full game day using needs, staggered schedules, capabilities, indexed Top-K work selection, versioned pathing, atomic reservations and explicit reusable life/work drivers",
+    "Architecture defines serializable idle/claiming/moving/working/blocked/completed/failed/interrupted states, structured reason/suggestion taxonomy, separate pause plus honest 1x/2x/4x=30/60/120 TPS Worker semantics, and read-only projection/interpolation/HUD ownership",
+    "ADR-0018 documents why schema3/projection-v1 and actual 0/1/2/3 multiplier semantics are insufficient; it approves only future schema4/projection-v2 implementation by WM-0172 with exact fields, compatibility/fail-closed rules, default-module v1 isolation and unchanged save boundary",
+    "Evidence plan combines deterministic 36000/100000-tick simulation, real module Worker/default Web interaction and uninterrupted behavior capture, performance/conservation metrics, and independent gameplay-designer plus reviewer observation; debug payload alone cannot pass",
+    "Inventory classifies PR-1 and historical M1-M8 stores, drivers, fixtures, projections and save surfaces into reuse/adapt/retire/test-only, with missing product integration and performance boundaries explicit",
+    "A finite executable WM-0170..WM-0175 PR-2 DAG has strict serial dependencies, exact file ownership, complete task packets, integration/automated evidence and independent product acceptance; maximum concurrent write-heavy width is one",
     "WM-0154 blocker wording is reconciled to current PR-1 facts while WM-0154 remains blocked and WM-0155/WM-0156 remain frozen until their roadmap gates",
     "No product implementation, protocol/schema/save mutation, implementation claim, release action or PR-3+ implementation is executed"
   ],
@@ -32,11 +41,12 @@
     "node tools/validate-handoff.mjs",
     "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
     "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
-    "git diff --check"
+    "git diff --check",
+    "corepack pnpm quality"
   ],
   "branch": "task/WM-0169-pr-2-autonomous-town-life-architecture-and-revie",
   "createdAt": "2026-07-11T07:39:45.655Z",
-  "updatedAt": "2026-07-11T07:40:02.305Z",
+  "updatedAt": "2026-07-11T07:56:06.000Z",
   "history": [
     {
       "at": "2026-07-11T07:39:45.656Z",
@@ -49,6 +59,18 @@
       "actor": "project-director",
       "action": "seed-ready-dependency",
       "details": "Recorded WM-0166 as the completed PR-1 predecessor. WM-0169 remains ready because that dependency was already independently verified, integrated and done before task creation."
+    },
+    {
+      "at": "2026-07-11T07:47:49.882Z",
+      "actor": "systems-architect",
+      "action": "claim",
+      "details": "thread=Keystone WM-0169"
+    },
+    {
+      "at": "2026-07-11T07:56:06.000Z",
+      "actor": "systems-architect",
+      "action": "plan",
+      "details": "Recorded ADR-0018 and the autonomous-town architecture; proposed strict serial WM-0170..WM-0175 core/integration/protocol/presentation/evidence/product-acceptance DAG with maximum write width one. All implementation tasks remain proposed and unclaimed."
     }
   ],
   "milestone": "Post-M8",
@@ -56,6 +78,21 @@
   "predecessorTask": "WM-0166",
   "planningDoc": "docs/05_tech/13_autonomous_town_life_architecture.md",
   "executionPlan": "coordination/reports/WM-0169-plan.md",
+  "architectureDecision": "coordination/decisions/ADR-0018.md",
+  "proposedDag": ["WM-0170", "WM-0171", "WM-0172", "WM-0173", "WM-0174", "WM-0175"],
+  "proposedDagEdges": [
+    "WM-0169 -> WM-0170",
+    "WM-0170 -> WM-0171",
+    "WM-0171 -> WM-0172",
+    "WM-0172 -> WM-0173",
+    "WM-0173 -> WM-0174",
+    "WM-0174 -> WM-0175"
+  ],
+  "proposedDagMaxConcurrentWriteTasks": 1,
+  "proposedProtocolOwner": {
+    "taskId": "WM-0172",
+    "scope": "ADR-0018 envelope schema4, GameSession projection v2, explicit speedMultiplier and default schema4/v2 negotiation"
+  },
   "planningOnly": true,
   "saveLoadStance": "PR-2 planning may preserve and classify the authoritative save boundary, but it does not implement GameSession save/load, mutate a save format or make a public compatibility promise.",
   "allowedPaths": [
@@ -79,5 +116,8 @@
     "protocol/schema/save mutation without a separate explicit reviewed decision and exclusive task ownership",
     "public release, Early Access, store, signing, telemetry, accounts, paid services or public save compatibility actions"
   ],
-  "singleWriterRule": "WM-0169 is the sole PR-2 planning writer. Every proposed implementation, integration and product-acceptance task must remain proposed and unclaimed until this planning task is independently verified, integrated and done."
+  "singleWriterRule": "WM-0169 is the sole PR-2 planning writer. Every proposed implementation, integration and product-acceptance task must remain proposed and unclaimed until this planning task is independently verified, integrated and done.",
+  "claimedBy": "systems-architect",
+  "threadLabel": "Keystone WM-0169",
+  "blocker": null
 }

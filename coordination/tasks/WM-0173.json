@@ -1,0 +1,108 @@
+{
+  "id": "WM-0173",
+  "title": "PR-2 Pixi interpolation and focused resident HUD",
+  "summary": "Consume projection v2 in the default Web route, add snapshot interpolation and player-visible target/path/work/progress/reason presentation without client authority.",
+  "state": "proposed",
+  "ownerRole": "client-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": ["WM-0172"],
+  "docs": [
+    "AGENTS.md",
+    ".agents/skills/wuming-town-agent-workflow/SKILL.md",
+    "coordination/tasks/WM-0172.json",
+    "coordination/reports/WM-0172.md",
+    "coordination/decisions/ADR-0018.md",
+    "docs/05_tech/13_autonomous_town_life_architecture.md",
+    "packages/sim-protocol/src/game-session-projection.ts",
+    "packages/sim-protocol/src/web-read-model.ts",
+    "apps/web/src/simulation-worker-session.ts",
+    "apps/web/src/shell-bootstrap.ts",
+    "packages/renderer-pixi/src/pixi-world-renderer.ts",
+    "packages/ui-react/src/shell-hud.ts",
+    "packages/ui-react/src/shell-read-model-localization.ts"
+  ],
+  "acceptance": [
+    "The default Web route consumes only the already-negotiated schema4/GameSession projection v2 public roots and never imports or falls back to projection v1, WEB_PRODUCT_GATE_READ_MODEL, reviewed playback or an advance/wait/drain clock",
+    "Pixi retains previous/current coherent authoritative snapshots and interpolates visual X/Y and animation phase only; it clamps the interval, freezes while paused and snaps on generation change, teleport/route discontinuity or invalid previous basis without writing position, route, job or progress authority",
+    "At 1x, an authoritative route longer than four tiles is visible across multiple real render frames, route/target markers follow the v2 route window, and working shows at least two changing product-consumed progress projections before completion",
+    "Resident/job badges distinguish idle, claiming, moving, working, blocked, completed, failed and interrupted plus the approved work kinds without static fixture prose or test-only pawn filtering",
+    "The focused HUD shows global time/pause/requested 1x/2x/4x state, no more than concise relevant alerts, and selected-resident work kind, target, priority need, schedule/capability context, progress, structured reason and read-only inspection suggestion; it does not dump all resident diagnostics",
+    "Pause, 1x, 2x and 4x controls use real keyboard/mouse events and send only public Pause/SetSpeed messages. They never tick the world directly, use zero as a speed, create jobs, change priorities or introduce PR-3 selection/build commands",
+    "Eight visible residents, resources, jobs, alerts and selection details retain one coherent v2 basis through the Web assembler, WorldReadModel, Pixi setReadModel and HUD; wrong/newer/malformed data clears the product frame and fails closed",
+    "zh-CN/en labels, keyboard focus, non-color state cues and 1280x720 plus 1424x861 hit targets pass; main-thread frame P95 is <=16ms for the eight-resident PR-2 scene",
+    "No sim-core/Worker/protocol/schema/save/dependency, renderer authority, PR-3 command or release surface changes"
+  ],
+  "requiredChecks": [
+    "corepack pnpm typecheck",
+    "corepack pnpm exec vitest run apps/web/src/simulation-worker-session.test.ts packages/renderer-pixi/src/pixi-world-renderer.test.ts packages/renderer-pixi/src/render-geometry.test.ts packages/ui-react/src/shell-hud.test.ts packages/ui-react/src/localization.test.ts",
+    "node tools/test-runner.mjs e2e --filter web-shell",
+    "corepack pnpm boundaries:check",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0173-pr-2-pixi-interpolation-and-focused-resident-hud",
+  "createdAt": "2026-07-11T07:53:19.285Z",
+  "updatedAt": "2026-07-11T07:56:03.000Z",
+  "history": [
+    {
+      "at": "2026-07-11T07:53:19.285Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    },
+    {
+      "at": "2026-07-11T07:56:03.000Z",
+      "actor": "systems-architect",
+      "action": "refine-proposed-task",
+      "details": "Scoped the v2 consume-only default Web/Pixi/HUD presentation tranche after WM-0172; remains proposed and unclaimed."
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "pr-2-autonomous-town-life-presentation",
+  "planningTask": "WM-0169",
+  "architectureDecision": "coordination/decisions/ADR-0018.md",
+  "writeOwnership": [
+    "apps/web/src/game-session-world-read-model.ts",
+    "apps/web/src/shell-bootstrap.ts",
+    "apps/web/src/web-shell.e2e.test.ts",
+    "packages/renderer-pixi/src/pixi-world-renderer.ts",
+    "packages/renderer-pixi/src/pixi-world-renderer.test.ts",
+    "packages/renderer-pixi/src/render-geometry.ts",
+    "packages/renderer-pixi/src/render-geometry.test.ts",
+    "packages/renderer-pixi/src/index.ts",
+    "packages/ui-react/src/shell-hud.ts",
+    "packages/ui-react/src/shell-hud.test.ts",
+    "packages/ui-react/src/shell-read-model-localization.ts",
+    "packages/ui-react/src/localization.ts",
+    "packages/ui-react/src/localization.test.ts",
+    "packages/ui-react/src/index.ts"
+  ],
+  "saveLoadStance": "Presentation state, interpolation, selection and speed controls are never save authority. GameSession save/load remains unsupported.",
+  "allowedPaths": [
+    "apps/web/src/game-session-world-read-model.ts",
+    "apps/web/src/shell-bootstrap.ts",
+    "apps/web/src/web-shell.e2e.test.ts",
+    "apps/web/src/shell-locale.ts",
+    "apps/web/src/shell-locale.test.ts",
+    "packages/renderer-pixi/src/**",
+    "packages/ui-react/src/shell-hud.ts",
+    "packages/ui-react/src/shell-hud.test.ts",
+    "packages/ui-react/src/shell-read-model-localization.ts",
+    "packages/ui-react/src/localization.ts",
+    "packages/ui-react/src/localization.test.ts",
+    "packages/ui-react/src/index.ts",
+    "coordination/tasks/WM-0173.json",
+    "coordination/reports/WM-0173*.md"
+  ],
+  "forbiddenPaths": [
+    "packages/sim-protocol/**, packages/sim-worker/**, packages/sim-core/** or WM-0172-owned Web session negotiation files",
+    "static fixture/reviewed-playback authority, projection-v1 default import, UI time advancement, client pathfinding or client-synthesized job/reason/progress facts",
+    "React-rendered world entities, artificial delays after authoritative completion, direct canvas dispatch as real-input acceptance or debug-payload-only evidence",
+    "work priority/direct job/generic selection/blueprint/build command, save/load, runtime dependency, release or public compatibility scope"
+  ],
+  "executionLane": "client-engineer; Spark is prohibited because this spans Web/Pixi/React presentation ownership, real input and product-visible behavior",
+  "singleWriterRule": "WM-0173 starts only after WM-0172 is independently verified, integrated and done. WM-0174 and WM-0175 remain proposed and unclaimed."
+}

@@ -1,15 +1,13 @@
 # Integrated GameSession Architecture
 
-Status: ADR-0017 architecture record; PR-1 exit remains blocked after the first
-WM-0166 review. WM-0162 authored the plan; WM-0163 and WM-0164 implemented the
-runtime, schema-v3 projection, and Worker scheduler; WM-0165 consumes those
-public roots. WM-0166 passed focused parity, Web, 18000-tick, 100000-tick,
-boundary and workspace quality checks, but did not prove a real Worker for 600
-wall-clock seconds and did not expose moving/working across the 3-tick
-publication quantum. WM-0167 and WM-0168 are the strict serial repair/evidence
-chain before WM-0166 may resume. This document does not approve PR-2 work or
-public save compatibility. ADR status closure remains a systems-architect /
-project-director action after all exit gates pass independent review.
+Status: Accepted ADR-0017 architecture record. PR-1 is independently verified,
+integrated and done: WM-0163/WM-0164 implemented the runtime, schema-v3
+projection and Worker scheduler; WM-0165 routed the default Web product;
+WM-0167 repaired lifecycle/clock behavior; WM-0168 proved the real Worker and
+product-consumed route; and resumed WM-0166 passed the full exit gate. The
+repair sections below remain historical audit evidence. This document does not
+approve PR-2 implementation or public save compatibility; WM-0169 and proposed
+ADR-0018 govern the next planning boundary.
 
 ## Scope
 

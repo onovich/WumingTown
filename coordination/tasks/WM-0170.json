@@ -1,0 +1,86 @@
+{
+  "id": "WM-0170",
+  "title": "PR-2 autonomous decision state and indexed work selection",
+  "summary": "Implement explicit serializable resident autonomy state, structured reasons, schedule/need/capability arbitration and bounded indexed Top-K offer/path/reservation selection in sim-core without product projection changes.",
+  "state": "proposed",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": ["WM-0169"],
+  "docs": [
+    "AGENTS.md",
+    ".agents/skills/wuming-town-agent-workflow/SKILL.md",
+    "coordination/tasks/WM-0169.json",
+    "coordination/reports/WM-0169.md",
+    "coordination/decisions/ADR-0018.md",
+    "docs/05_tech/13_autonomous_town_life_architecture.md",
+    "docs/07_roadmap/12_playable_product_recovery_roadmap.md",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "packages/sim-core/src/work-offers.ts",
+    "packages/sim-core/src/pathing.ts",
+    "packages/sim-core/src/reservation-ledger.ts",
+    "packages/sim-core/src/m3-needs.ts",
+    "packages/sim-core/src/m3-health.ts"
+  ],
+  "acceptance": [
+    "A ResidentAutonomyStore or equivalent typed-lane owner records exactly idle, claiming, moving, working, blocked, completed, failed and interrupted with current offer/job/target references, state-entered tick, retry tick, version basis and structured reason; snapshot round-trip preserves execution state without Promise, coroutine, generator, closure cursor or object-reference identity",
+    "Deterministic arbitration applies hard safety/health, active non-interruptible work, schedule window, need urgency, capability/permission and indexed ordinary work in the reviewed order; emergency needs request interruption through the existing driver policy and no player work-priority or direct-job command is introduced",
+    "Work discovery reads exact WorkOffer or owner-index buckets with candidateCap 24, retained/scored cap 12, exact path cap 4, at most two new resident decisions per tick and stable score/offer-id/target-id tie breaks; tests mechanically reject global entity/cell scans and report cap metrics",
+    "Claiming revalidates need/schedule/capability/offer/path owner versions before one atomic ReservationLedger transaction; failed acquisition leaves no partial claim and stale path/owner basis cannot mutate jobs, routes, positions, items or targets",
+    "Structured reasons cover idle, need, capability, offer, path, reservation, blocked, failed and interrupted families with code, source, subject/target, no more than six ordered scalar parameters and a read-only inspection suggestion; generic prose-only failure is rejected",
+    "Hot decision paths use reusable typed scratch lanes and make no per-resident per-tick object, array, closure or string allocation; metrics expose visited/scored/selected candidates, exact paths, node expansions, stale rejects, reservation conflicts and decision deferrals",
+    "The task is protocol-neutral and product-neutral: it does not modify GameSession integration, Worker/Web/Pixi/HUD, schema/projection, save/load, runtime dependencies, PR-3 commands or release surfaces"
+  ],
+  "requiredChecks": [
+    "corepack pnpm typecheck",
+    "corepack pnpm exec vitest run packages/sim-core/src/game-session-autonomy.test.ts packages/sim-core/src/work-offers.test.ts packages/sim-core/src/pathing.test.ts packages/sim-core/src/reservation-ledger.test.ts packages/sim-core/src/m3-needs.test.ts",
+    "corepack pnpm boundaries:check",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0170-pr-2-autonomous-decision-state-and-indexed-work-",
+  "createdAt": "2026-07-11T07:53:17.870Z",
+  "updatedAt": "2026-07-11T07:56:00.000Z",
+  "history": [
+    {
+      "at": "2026-07-11T07:53:17.871Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    },
+    {
+      "at": "2026-07-11T07:56:00.000Z",
+      "actor": "systems-architect",
+      "action": "refine-proposed-task",
+      "details": "Bounded protocol-neutral autonomy state/reason/indexed-selection tranche after WM-0169; remains proposed and unclaimed."
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "pr-2-autonomous-town-life-core",
+  "planningTask": "WM-0169",
+  "architectureDecision": "coordination/decisions/ADR-0018.md",
+  "writeOwnership": [
+    "packages/sim-core/src/game-session-autonomy-types.ts",
+    "packages/sim-core/src/game-session-autonomy-store.ts",
+    "packages/sim-core/src/game-session-autonomy-reasons.ts",
+    "packages/sim-core/src/game-session-autonomy-selection.ts",
+    "packages/sim-core/src/game-session-autonomy.test.ts"
+  ],
+  "saveLoadStance": "Internal typed snapshot/restore evidence is required for explicit execution state, but no GameSession save format, load path or compatibility promise is created.",
+  "allowedPaths": [
+    "packages/sim-core/src/game-session-autonomy*.ts",
+    "coordination/tasks/WM-0170.json",
+    "coordination/reports/WM-0170*.md"
+  ],
+  "forbiddenPaths": [
+    "packages/sim-core/src/game-session-runtime.ts, game-session-tick.ts, game-session-initializer.ts or other default GameSession integration files owned by WM-0171",
+    "modifying generic WorkOffer, pathing, ReservationLedger, needs, schedule, ability or historical driver owner stores instead of composing their public surfaces",
+    "packages/sim-protocol/**, packages/sim-worker/**, apps/**, packages/renderer-pixi/** or packages/ui-react/**",
+    "global pawn/world/map scans, unbounded candidate/path work, Promise/coroutine/closure execution state, UI or real-clock authority",
+    "save format/load implementation, new runtime dependency, PR-3 command/building/priority scope or release action"
+  ],
+  "executionLane": "simulation-engineer; Spark is prohibited because the task defines deterministic AI state, path/reservation ownership and hot-loop behavior",
+  "singleWriterRule": "WM-0170 is the only implementation writer after WM-0169 is done. WM-0171..WM-0175 remain proposed and unclaimed until each direct predecessor is independently verified, integrated and done."
+}

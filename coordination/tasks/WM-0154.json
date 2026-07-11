@@ -37,7 +37,7 @@
   ],
   "branch": "task/WM-0154-playable-product-visual-evidence-and-e2e-gate",
   "createdAt": "2026-06-29T18:59:47.659Z",
-  "updatedAt": "2026-07-10T06:52:02.295Z",
+  "updatedAt": "2026-07-11T07:56:08.000Z",
   "history": [
     {
       "at": "2026-06-29T18:59:47.659Z",
@@ -56,6 +56,12 @@
       "actor": "qa-performance",
       "action": "block",
       "details": "Must wait for WM-0161 roadmap to reach verified/done and for WM-0162 reconciliation of the integrated GameSession recovery plan before any WM-0154 closeout semantics continue. Confirmed product facts show the old visual-evidence task cannot self-repair product implementation: real 1280x720 mouse hits on the East Market lamp are covered by HUD, existing E2E clickCanvasPoint dispatches PointerEvent directly to canvas instead of real input, normal speed has no sustained game clock, lamp refill completes in under 100 ms and is not player-perceptible, and the current product is still a static fixture plus two Pawn Worker slices."
+    },
+    {
+      "at": "2026-07-11T07:56:08.000Z",
+      "actor": "systems-architect",
+      "action": "reconcile-blocker-after-pr1",
+      "details": "PR-1 facts supersede the old no-clock/static-product wording: WM-0166/WM-0167/WM-0168 now prove one default authoritative GameSession, eight same-basis residents, a real Worker-owned 600-second clock and product-consumed moving/working publications. WM-0154 remains blocked because its historical screenshot/debug/synthetic-input evidence scope cannot implement or independently accept PR-2 autonomous life, PR-4 real-input UX or PR-5 playability. Do not claim or unblock it; WM-0174/WM-0175 own the new PR-2 evidence path, while WM-0155/WM-0156 remain proposed and frozen."
     }
   ],
   "milestone": "Post-M8",
@@ -76,7 +82,7 @@
   "blocker": {
     "by": "qa-performance",
     "to": "project-director",
-    "reason": "Must wait for WM-0161 roadmap to reach verified/done and for WM-0162 reconciliation of the integrated GameSession recovery plan before any WM-0154 closeout semantics continue. Confirmed product facts show the old visual-evidence task cannot self-repair product implementation: real 1280x720 mouse hits on the East Market lamp are covered by HUD, existing E2E clickCanvasPoint dispatches PointerEvent directly to canvas instead of real input, normal speed has no sustained game clock, lamp refill completes in under 100 ms and is not player-perceptible, and the current product is still a static fixture plus two Pawn Worker slices.",
+    "reason": "PR-1 is complete and the old no-clock/static-product blocker facts are superseded: WM-0166/WM-0167/WM-0168 prove one default authoritative GameSession, eight same-basis residents, a real Worker-owned 600-second clock and product-consumed moving/working publications. WM-0154 nevertheless remains blocked because its historical screenshot/debug/synthetic-input evidence scope cannot implement or independently accept PR-2 autonomous life, PR-4 real-input UX or PR-5 playability. Do not claim or unblock it; WM-0174/WM-0175 own the new PR-2 evidence path, while WM-0155/WM-0156 remain proposed and frozen.",
     "previousState": "ready",
     "at": "2026-07-10T06:52:02.295Z"
   }

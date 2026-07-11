@@ -1,23 +1,40 @@
 {
   "schemaVersion": 1,
   "project": "Wuming Town / Wuming Town",
-  "phase": "PR-0 playable product recovery rebaseline; WM-0161 in progress; legacy WM-0154 through WM-0156 closeout semantics frozen pending roadmap reconciliation",
-  "activeMilestone": "Formal playable product recovery roadmap: historical M0-M8 evidence is preserved, but product progress now requires one integrated authoritative GameSession, autonomous perceptible residents, real commands and input, authoritative save/load, and a reviewer-observed 30-minute vertical slice",
+  "phase": "PR-2 autonomous town life planning only; PR-1 WM-0163 through WM-0168 and WM-0166 are independently verified, integrated and done; WM-0169 is in progress and no PR-2 implementation is claimed",
+  "activeMilestone": "Review the eight-resident full-day autonomous-life architecture, minimum projection/speed decision and finite WM-0170..WM-0175 implementation/evidence/product-acceptance DAG before any PR-2 writer starts",
+  "productStateLabel": "integrated prototype",
   "releaseTarget": "undated",
-  "updatedAt": "2026-07-10T06:50:00.000Z",
+  "updatedAt": "2026-07-11T07:56:07.000Z",
   "lockedDecisions": [
     "TypeScript-first authoritative simulation in a dedicated Worker",
-    "PixiJS world rendering + React DOM UI + Electron Windows shell",
-    "Web remains a gated target; native macOS is deferred",
-    "30 fixed simulation ticks per second",
-    "Lantern / Chronicle / Obligation are the three product pillars"
+    "One GameSessionRuntime is the default product authority in Worker/headless; static product fixtures and focused historical scenario runners are test/diagnostics only",
+    "PixiJS world rendering + React DOM UI + Electron Windows shell remain read-only clients and explicit command senders",
+    "Web remains a gated demo target; native macOS is deferred and Windows remains unsigned ready-for-controlled-external-test only",
+    "Simulation uses fixed 30 logical ticks per second, seeded streams, stable iteration and integer/fixed-point authority",
+    "ADR-0017 schema3 GameSession projection v1 is the reviewed PR-1 contract; unknown or incoherent sessions fail closed",
+    "Lantern / Chronicle / Obligation remain the three product pillars"
   ],
+  "pendingReviewedDecisions": [
+    "ADR-0018 proposes envelope schema4/GameSession projection v2 and explicit pause plus 1x/2x/4x multipliers for future WM-0172 implementation; it is not implemented or the default until independently reviewed and integrated"
+  ],
+  "productScorecard": {
+    "pr1IntegratedGameSession": "passed: one authoritative default GameSession, eight same-basis residents/resources/alerts/details, schema3 projection v1, real Worker 600-second clock and 100000-tick zero-leak evidence",
+    "continuousClock": "passed for PR-1: real Chromium Worker 600001.9ms on exact main, tick 0 to 18000, no UI advance/wait/drain clock",
+    "perceptibleMinimumLifecycle": "passed for PR-1 only: one bounded authoritative lifecycle exposes moving and working across multiple product-consumed publications",
+    "pr2AutonomousTownLife": "not yet passed: architecture/DAG planning is active; no reviewed eight-resident full-day autonomous behavior, three concurrent work kinds, path interpolation or human acceptance",
+    "playerAgencyAndBuilding": "not started under PR-3; historical focused lamp/build command slices do not satisfy the roadmap commandable-product gate",
+    "mapFirstComprehensibility": "not passed; PR-4 has not started",
+    "authoritativeGameSave": "unsupported and fail-closed; no public GameSession save container or compatibility promise",
+    "internalPlayable": "not earned; requires PR-5 reviewed 30-minute save/resume vertical slice and independent player evidence",
+    "platformAndRelease": "Web remains demo-only and Windows remains unsigned controlled-test evidence; public release, EA, store, signing, telemetry, accounts, hosted/paid services and public save compatibility remain Owner-gated"
+  },
   "humanApprovalNeeded": [
     "Public release, Early Access launch, public Web launch or store submission",
     "Signing, installer, updater or distribution beyond unsigned controlled external test",
     "Telemetry, accounts, hosted services, paid services, crash upload or public feedback system",
     "Final privacy, legal, store or public save compatibility commitments",
-    "Any post-M8 public release, release-candidate distribution or external commitment beyond the reviewed controlled-test/demo verdicts"
+    "Any public release-candidate distribution or external commitment beyond the reviewed controlled-test/demo verdicts"
   ],
-  "notes": "Task JSON, reports and inbox files remain the durable execution control plane. Historical M0-M8 closeouts preserve reviewed deterministic simulation, content, platform, localization, security, benchmark and scoped save evidence, but M8 is internal readiness evidence rather than a playable 1.0 product. Owner feedback and the 2026-07-10 product audit found that the default Web path still combines a static product-gate world with a two-pawn lamp/build Worker slice, lacks a continuously running integrated town, does not restore authoritative gameplay from save, and can pass synthetic canvas E2E while real viewport input remains blocked. WM-0161 therefore establishes PR-0 through PR-7 in docs/07_roadmap/12_playable_product_recovery_roadmap.md. WM-0154 is formally blocked by qa-performance, and WM-0155/WM-0156 must not close product readiness until a reviewed reconciliation aligns them with the new roadmap. WM-0157 through WM-0160 remain reusable Worker session/projection/drain infrastructure, but drain is not the normal game clock. After WM-0161 is verified and done, only WM-0162 may promote: it plans the integrated GameSession architecture and a limited PR-1 task DAG without implementation. Web remains demo-only; Windows remains unsigned ready-for-controlled-external-test; all public release, EA, store, signing, telemetry, account, paid-service and public save commitments remain Owner-gated."
+  "notes": "Historical M0-M8 closeouts remain valid local capability evidence, not product readiness. PR-1 is now complete: WM-0163 composed the minimum GameSession, WM-0164 added schema3 projection v1 and Worker hosting, WM-0165 routed the default Web product to the Worker, WM-0167 repaired lifecycle/clock behavior, WM-0168 supplied real Worker/default-Web evidence, and WM-0166 reran and closed all exit gates. PR-2 has not started implementation. WM-0169 is the only active planning writer and proposes ADR-0018 plus strict serial WM-0170..WM-0175; those tasks must remain proposed/unclaimed until planning is independently verified, integrated and done. WM-0154 remains a blocked historical evidence packet because its old static/focused/synthetic-input scope cannot serve as current product acceptance; WM-0155 and WM-0156 remain proposed and frozen. GameSession save/load is unsupported. No autonomous-prototype, internal-playable, release, platform or public compatibility status is advanced by planning."
 }

@@ -1,0 +1,95 @@
+{
+  "id": "WM-0174",
+  "title": "PR-2 integrated full-day and continuous behavior gates",
+  "summary": "Run and harden deterministic, real Worker/Web, performance, conservation and continuous behavior-capture gates for the integrated PR-2 path without product implementation.",
+  "state": "proposed",
+  "ownerRole": "qa-performance",
+  "reviewerRole": "reviewer",
+  "dependsOn": ["WM-0173"],
+  "docs": [
+    "AGENTS.md",
+    ".agents/skills/wuming-town-agent-workflow/SKILL.md",
+    "coordination/tasks/WM-0173.json",
+    "coordination/reports/WM-0173.md",
+    "coordination/decisions/ADR-0018.md",
+    "docs/05_tech/13_autonomous_town_life_architecture.md",
+    "docs/07_roadmap/12_playable_product_recovery_roadmap.md",
+    "packages/sim-core/src/game-session-autonomous-life.test.ts",
+    "packages/sim-worker/src/worker-smoke.e2e.test.ts",
+    "apps/web/src/web-shell.e2e.test.ts"
+  ],
+  "acceptance": [
+    "Two seed-5 and one seed-46 36000-tick headless runs cover a full day with matching repeat checkpoint world/read-model hashes, all eight residents autonomous, at least three concurrent different work kinds, complete state/reason coverage and deterministic first-divergence diagnostics",
+    "A 100000-tick integrated run has zero active terminal jobs/reservations/routes, path/command/dirty/reliable backlog and resource conservation delta; stale offer/path/ability/schedule basis, contention, interruption and cleanup probes pass",
+    "A real Chromium module Worker initializes once and the default Web product advances the same session by at least 36000 ticks. The capture includes at least 30 seconds at 1x, a real pause/resume, a 2x segment and then 4x to full-day completion; after deliberate controls no advance/wait/drain/direct-quantum/repeated-command loop drives time",
+    "Cadence evidence records browser-monotonic time/tick checkpoints at least every 60 seconds, strictly increasing coherent publications, no gap over 5000ms, scheduler debt without monotonic growth, dropped snapshots, maximum reliable depth and fatal/closed lifecycle count",
+    "The product-consumed Web/Pixi/HUD timeline shows a route longer than four tiles over multiple real frames, moving and working across at least two coherent projections with changing progress, all eight residents and at least three simultaneous different work kinds on one v2 basis",
+    "Idle, blocked and failed/interrupted cases expose localized structured reason, target and read-only inspection suggestion through the actual HUD; debug payload, raw Worker side channel, screenshots or fixture prose alone cannot satisfy the gate",
+    "A single uninterrupted compressed WebM plus manifest/checksum and compact raw JSON timeline are stored under coordination/artifacts/WM-0174, including exact inputs, elapsed/ticks, resident transitions, work kinds, reasons, cadence/backpressure and performance aggregates",
+    "Measured reference-host budgets pass: headless tick P95 <=4ms/P99 <=8ms, Web main-thread frame P95 <=16ms, bounded candidate/path caps, no hot-loop allocation regression and no monotonic heap/queue growth beyond recorded warm-up",
+    "This QA task changes tests/artifacts/reports only. A product failure is blocked back for a separate repair; no threshold reduction, product/protocol/schema/save/dependency/PR-3/release change is allowed"
+  ],
+  "requiredChecks": [
+    "corepack pnpm typecheck",
+    "corepack pnpm exec vitest run packages/sim-protocol/src/game-session-projection.test.ts packages/sim-core/src/game-session-autonomy.test.ts packages/sim-core/src/game-session-autonomous-life.test.ts packages/sim-core/src/game-session-autonomous-life.integration.test.ts packages/sim-worker/src/game-session-worker.test.ts apps/web/src/simulation-worker-session.test.ts packages/renderer-pixi/src/pixi-world-renderer.test.ts packages/ui-react/src/shell-hud.test.ts",
+    "node tools/test-runner.mjs e2e --filter worker-smoke",
+    "node tools/test-runner.mjs e2e --filter web-shell",
+    "corepack pnpm sim:run -- --seed 5 --scenario pr2-autonomous-town-life --ticks 36000",
+    "corepack pnpm sim:run -- --seed 46 --scenario pr2-autonomous-town-life --ticks 36000",
+    "corepack pnpm sim:run -- --seed 5 --scenario pr2-autonomous-town-life --ticks 100000",
+    "corepack pnpm bench",
+    "corepack pnpm boundaries:check",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0174-pr-2-integrated-full-day-and-continuous-behavior",
+  "createdAt": "2026-07-11T07:53:19.705Z",
+  "updatedAt": "2026-07-11T07:56:04.000Z",
+  "history": [
+    {
+      "at": "2026-07-11T07:53:19.705Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    },
+    {
+      "at": "2026-07-11T07:56:04.000Z",
+      "actor": "systems-architect",
+      "action": "refine-proposed-task",
+      "details": "Scoped the test/artifact-only deterministic, real Worker/Web, performance and continuous full-day evidence gate after WM-0173; remains proposed and unclaimed."
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "pr-2-autonomous-town-life-integration-gates",
+  "planningTask": "WM-0169",
+  "architectureDecision": "coordination/decisions/ADR-0018.md",
+  "writeOwnership": [
+    "packages/sim-core/src/game-session-autonomous-life.integration.test.ts",
+    "packages/sim-worker/src/worker-smoke.e2e.test.ts",
+    "apps/web/src/web-shell.e2e.test.ts",
+    "coordination/artifacts/WM-0174/**",
+    "coordination/reports/WM-0174*.md",
+    "coordination/tasks/WM-0174.json"
+  ],
+  "saveLoadStance": "Evidence may inspect internal snapshots for invariants only. It does not implement or claim GameSession save/load or public compatibility.",
+  "allowedPaths": [
+    "packages/sim-core/src/game-session-autonomous-life.integration.test.ts",
+    "packages/sim-worker/src/worker-smoke.e2e.test.ts",
+    "apps/web/src/web-shell.e2e.test.ts",
+    "coordination/artifacts/WM-0174/**",
+    "coordination/tasks/WM-0174.json",
+    "coordination/reports/WM-0174*.md"
+  ],
+  "forbiddenPaths": [
+    "any production implementation file in packages/** or apps/**",
+    "mock/in-process Worker, fake timer, headless stepping, advance/wait/drain/direct quantum or repeated commands substituted for the real full-day Worker/Web gate",
+    "raw Worker/debug payload, synthetic canvas dispatch, screenshot or fixture prose substituted for product-consumed behavior evidence",
+    "lowering 36000 ticks, candidate/path caps, cadence, lifecycle, performance, conservation or human-visible gates",
+    "protocol/schema/projection/save/dependency/product repair, new runtime dependency, PR-3 commands or release actions"
+  ],
+  "executionLane": "qa-performance; product failures must block to a separately scoped owner and may not be repaired inside this evidence task",
+  "singleWriterRule": "WM-0174 starts only after WM-0173 is independently verified, integrated and done. WM-0175 remains proposed and unclaimed until WM-0174 closes."
+}

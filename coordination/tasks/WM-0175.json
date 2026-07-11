@@ -1,0 +1,84 @@
+{
+  "id": "WM-0175",
+  "title": "PR-2 independent autonomous-town product acceptance",
+  "summary": "Independently observe the real default product, continuous behavior evidence and real controls to decide whether PR-2 is an autonomous prototype; debug payload alone cannot pass.",
+  "state": "proposed",
+  "ownerRole": "gameplay-designer",
+  "reviewerRole": "reviewer",
+  "dependsOn": ["WM-0174"],
+  "docs": [
+    "AGENTS.md",
+    ".agents/skills/wuming-town-agent-workflow/SKILL.md",
+    "coordination/tasks/WM-0174.json",
+    "coordination/reports/WM-0174.md",
+    "coordination/artifacts/WM-0174/behavior-capture-manifest.json",
+    "coordination/decisions/ADR-0018.md",
+    "docs/05_tech/13_autonomous_town_life_architecture.md",
+    "docs/07_roadmap/12_playable_product_recovery_roadmap.md",
+    "docs/06_engineering/03_definition_of_done.md"
+  ],
+  "acceptance": [
+    "A gameplay-designer who did not implement WM-0170..WM-0174 observes a fresh default Web product session and the uninterrupted WM-0174 capture without repository-internal debug guidance; the separate read-only reviewer remains the final verifier",
+    "The observer correctly identifies what at least three simultaneous residents are doing, distinguishes at least three work kinds, follows one resident's target and route longer than four tiles, and sees changing work progress rather than an instant or fixture-authored result",
+    "The observer selects idle, blocked and failed/interrupted examples and can explain each structured reason, target and suggested inspection entry from localized player UI without reading raw reason JSON or debug payload",
+    "Real mouse/keyboard controls pause and resume the same session and select 1x, 2x and 4x; visible time/cadence changes agree with 30/60/120 TPS evidence and no synthetic canvas dispatch or UI-driven tick path is accepted",
+    "The observer confirms all eight default residents, resources, alerts, jobs and selection details remain one schema4/v2 GameSession and that a protocol/session failure does not expose stale or fixture gameplay",
+    "The WM-0174 WebM, manifest/checksum and compact timeline are internally coherent and show at least 36000 ticks, the full-day state/work-kind/reason evidence, cadence/backpressure health and the exact limited input sequence",
+    "Only after all gates pass may the report recommend the roadmap label autonomous prototype. It must explicitly state that PR-3 commands, PR-4 comprehensibility, PR-5 internal playable/save, PR-6 platform hardening and any release readiness are not achieved",
+    "If any behavior is not perceptible or understandable, the owner blocks with exact reproduction and requests a separate repair task; automation, screenshot, implementer narration or debug payload cannot override the human failure",
+    "This task edits no product code, protocol/schema/save, tests, dependencies, WM-0154/0155/0156 state, project release verdict or PR-3+ implementation"
+  ],
+  "requiredChecks": [
+    "corepack pnpm typecheck",
+    "node tools/test-runner.mjs e2e --filter worker-smoke",
+    "node tools/test-runner.mjs e2e --filter web-shell",
+    "corepack pnpm sim:run -- --seed 5 --scenario pr2-autonomous-town-life --ticks 36000",
+    "corepack pnpm boundaries:check",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0175-pr-2-independent-autonomous-town-product-accepta",
+  "createdAt": "2026-07-11T07:53:20.190Z",
+  "updatedAt": "2026-07-11T07:56:05.000Z",
+  "history": [
+    {
+      "at": "2026-07-11T07:53:20.191Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    },
+    {
+      "at": "2026-07-11T07:56:05.000Z",
+      "actor": "systems-architect",
+      "action": "refine-proposed-task",
+      "details": "Scoped independent live-product and continuous-capture acceptance after WM-0174; remains proposed and unclaimed."
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "pr-2-autonomous-town-life-product-acceptance",
+  "planningTask": "WM-0169",
+  "architectureDecision": "coordination/decisions/ADR-0018.md",
+  "writeOwnership": [
+    "coordination/artifacts/WM-0175/**",
+    "coordination/reports/WM-0175*.md",
+    "coordination/tasks/WM-0175.json"
+  ],
+  "saveLoadStance": "Acceptance must state GameSession save/load remains unsupported; no save or compatibility claim can be inferred from a full-day uninterrupted run.",
+  "allowedPaths": [
+    "coordination/artifacts/WM-0175/**",
+    "coordination/tasks/WM-0175.json",
+    "coordination/reports/WM-0175*.md"
+  ],
+  "forbiddenPaths": [
+    "any product, protocol, schema, save, test, dependency or build configuration edit",
+    "implementer-only demonstration, debug/raw payload, screenshot or prerecorded clip without a fresh live product observation",
+    "synthetic canvas event, internal handler call, advance/wait/drain/direct quantum or fixture state used as player interaction/authority",
+    "marking autonomous prototype when a human gate fails or claiming internal playable/save/release readiness",
+    "unblocking or changing WM-0154, WM-0155 or WM-0156, creating PR-3+ implementation or performing release actions"
+  ],
+  "executionLane": "gameplay-designer independent of WM-0170..WM-0174 implementers; final verification is a separate reviewer",
+  "singleWriterRule": "WM-0175 starts only after WM-0174 is independently verified, integrated and done. It is the sole PR-2 product-acceptance writer and may not implement repairs."
+}
