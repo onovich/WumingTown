@@ -2,7 +2,7 @@
   "id": "WM-0166",
   "title": "PR-1 integrated GameSession exit gates",
   "summary": "Run and harden the integrated PR-1 gates for continuous 10-minute runtime, same-session read models, Worker/headless hash parity, 100000-tick leak checks and static-fixture retirement evidence.",
-  "state": "blocked",
+  "state": "in_progress",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -58,7 +58,7 @@
   ],
   "branch": "task/WM-0166-pr-1-integrated-gamesession-exit-gates",
   "createdAt": "2026-07-10T07:38:28.861Z",
-  "updatedAt": "2026-07-10T21:08:22.070Z",
+  "updatedAt": "2026-07-11T00:14:43.194Z",
   "history": [
     {
       "at": "2026-07-10T07:38:28.862Z",
@@ -113,6 +113,12 @@
       "actor": "systems-architect",
       "action": "create-serial-repair-dag",
       "details": "Created WM-0167 simulation-engineer runtime/lifecycle repair then WM-0168 independent qa-performance real Worker/default Web evidence. WM-0166 now depends on WM-0168 and must remain blocked until both repair tasks are independently verified, integrated and done."
+    },
+    {
+      "at": "2026-07-11T00:14:43.194Z",
+      "actor": "qa-performance",
+      "action": "unblock",
+      "details": "Resume procedure satisfied: WM-0167 runtime/lifecycle repair and WM-0168 real Chromium Worker/default Web evidence are independently verified, integrated, and done."
     }
   ],
   "milestone": "Post-M8",
@@ -138,23 +144,7 @@
   ],
   "claimedBy": "qa-performance",
   "threadLabel": "Tally WM-0166",
-  "blocker": {
-    "by": "qa-performance",
-    "to": "systems-architect",
-    "reason": "WM-0166 remains blocked on the strict serial repair chain WM-0167 -> WM-0168. WM-0167 must repair the explicit lifecycle and Worker-owned clock without changing the 100 ms / 3-tick quantum, protocol, schema or save. After WM-0167 is independently verified, integrated and done, WM-0168 must prove a real Chromium module Worker for >=600000 ms and >=18000 ticks plus cadence/backpressure and default Web moving/working evidence. Only after WM-0168 is independently verified, integrated and done may qa-performance run taskctl unblock for WM-0166, rerun every WM-0166 required check, replace the stale pass claim with the new evidence, and request independent review again. No thresholds may be lowered.",
-    "previousState": "changes_requested",
-    "at": "2026-07-10T20:56:57.848Z",
-    "repairTasks": [
-      "WM-0167",
-      "WM-0168"
-    ],
-    "resumeProcedure": [
-      "WM-0167 must be reviewer verified, project-director integrated and done",
-      "WM-0168 is then promoted/claimed by qa-performance and must be reviewer verified, project-director integrated and done",
-      "qa-performance runs taskctl unblock --id WM-0166 --agent qa-performance with both done task ids in the summary",
-      "WM-0166 reruns its complete requiredChecks set, updates its report with real 600-second and moving/working evidence, and runs taskctl complete for a new independent review"
-    ]
-  },
+  "blocker": null,
   "reportPath": "coordination/reports/WM-0166.md",
   "review": {
     "reviewer": "reviewer",
