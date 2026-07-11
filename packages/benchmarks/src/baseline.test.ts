@@ -1,6 +1,15 @@
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import * as path from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import { compareBenchmarkToBaseline } from "./baseline";
+import {
+  parseIsolatedBenchmarkChildReport,
+  runBenchmarksCli,
+  type BenchmarkCliReport,
+} from "./cli-lib";
 import type { SampledEmptyTickBenchmark, SampledEntityStoreBenchmark } from "./benchmarks";
 
 describe("benchmark baseline comparison", () => {
@@ -58,6 +67,66 @@ describe("benchmark baseline comparison", () => {
     expect(comparison.invariantMismatches).toStrictEqual([
       "worldHash: expected 0xdeadbeef, received 0x74d843e0",
     ]);
+  });
+
+  it("runs a filtered suite in one isolated Node child and records process metadata", () => {
+    const artifactDirectory = mkdtempSync(path.join(tmpdir(), "wuming-town-cli-test-"));
+
+    try {
+      const exitCode = runBenchmarksCli([
+        "--filter",
+        "empty-tick",
+        "--samples",
+        "1",
+        "--warmup",
+        "0",
+        "--artifacts-dir",
+        artifactDirectory,
+      ]);
+      const artifactText = readFileSync(
+        path.join(artifactDirectory, "benchmark-results.json"),
+        "utf8",
+      );
+      const parsed: unknown = JSON.parse(artifactText);
+
+      // The artifact was produced by runBenchmarksCli in this test; retain its
+      // public schema type after checking the root discriminator.
+      if (
+        typeof parsed !== "object" ||
+        parsed === null ||
+        !("schemaVersion" in parsed) ||
+        parsed.schemaVersion !== 1
+      ) {
+        throw new Error("benchmark CLI test expected schema version 1");
+      }
+      const report = parsed as BenchmarkCliReport;
+      const result = report.results[0];
+
+      expect(exitCode).toBe(0);
+      expect(report.invocation.exitCode).toBe(0);
+      expect(report.execution).toStrictEqual({
+        mode: "isolated-node-per-suite",
+        suiteProcessCount: 1,
+      });
+      expect(report.environment.hostKeySha256).toMatch(/^[A-F0-9]{64}$/u);
+      expect(result?.name).toBe("empty-tick");
+      expect(result?.sampleElapsedMs).toHaveLength(1);
+      expect(result?.suiteProcess.processId).not.toBe(process.pid);
+      expect(result?.suiteProcess.exitCode).toBe(0);
+      expect(result?.suiteProcess.artifactFileSha256).toMatch(/^[A-F0-9]{64}$/u);
+    } finally {
+      rmSync(artifactDirectory, { force: true, recursive: true });
+    }
+  });
+
+  it("fails closed on a malformed isolated child artifact", () => {
+    expect(() =>
+      parseIsolatedBenchmarkChildReport("{}", {
+        name: "empty-tick",
+        sampleCount: 1,
+        warmupCount: 0,
+      }),
+    ).toThrow("invalid schema");
   });
 });
 

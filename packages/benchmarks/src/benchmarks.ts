@@ -147,6 +147,24 @@ export type BenchmarkName =
   | "spatial-index"
   | "work-offers";
 
+export const DEFAULT_BENCHMARK_NAMES: readonly BenchmarkName[] = [
+  "empty-tick",
+  "entity-store",
+  "logistics-10k",
+  "m1-hauling-building-long-run",
+  "m2-pathing-invalidation",
+  "m2-work-logistics-long-run",
+  "m3-ordinary-life-long-run",
+  "m4-core-vertical-slice-long-run",
+  "m5-alpha-content-long-run",
+  "map-dirty",
+  "pathing-100",
+  "reservations",
+  "region-room",
+  "spatial-index",
+  "work-offers",
+];
+
 export interface EmptyTickBenchmarkOptions {
   readonly seed: string;
   readonly ticks: number;
