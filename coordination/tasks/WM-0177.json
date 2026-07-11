@@ -1,7 +1,7 @@
 {
   "id": "WM-0177",
   "title": "PR-2 sim-core owner version and caller-owned output surfaces",
-  "summary": "Add version-bound and caller-owned allocation-free public surfaces for WorkOfferIndex, GridPathfinder, ReservationLedger and M3AbilityCacheStore so WM-0170 can resume unchanged.",
+  "summary": "Add version-bound and caller-owned allocation-free public surfaces for MapGrid-assisted GridPathfinder, WorkOfferIndex, ReservationLedger and M3AbilityCacheStore so WM-0170 can resume unchanged.",
   "state": "blocked",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
@@ -17,30 +17,36 @@
     "coordination/reports/WM-0170-plan.md",
     "coordination/reports/WM-0170.md",
     "coordination/inbox/systems-architect/MSG-MRG8ESEA-55926B.json",
+    "coordination/inbox/systems-architect/MSG-MRG8YDQ1-D4A8B0.json",
     "coordination/decisions/ADR-0018.md",
     "docs/05_tech/13_autonomous_town_life_architecture.md",
     "docs/02_systems/04_ai_jobs_reservations_pathing.md",
     "packages/sim-core/src/work-offers.ts",
+    "packages/sim-core/src/map-grid.ts",
     "packages/sim-core/src/pathing.ts",
     "packages/sim-core/src/reservation-ledger.ts",
     "packages/sim-core/src/m3-health.ts",
+    "packages/sim-core/src/map-grid.test.ts",
     "packages/sim-core/src/index.ts"
   ],
   "acceptance": [
     "WorkOfferIndex adds typed ownerVersion, per-row version and monotonic indexVersion lanes. Successful version-bound register/update/remove changes the exact versions once, failed mutation changes none, and owner/index versions remain bound to the selected row rather than supplied as unrelated caller metadata",
     "WorkOfferIndex exposes caller-owned registerOfferInto, updateOfferInto, readOfferInto and selectTopOffersInto (or equivalently reviewed names) whose reusable mutation/read/selection outputs include offer id, owner version, row version, index version, target, score and existing cap metrics without per-call result/array allocation",
     "GridPathfinder exposes findPathInto using a caller-owned bounded Uint32Array route lane plus reusable result output for success and every structured failure; it preserves request/basis/start/goal/cost/node-expansion facts, reports output-capacity failure without partial route publication and allocates no result path",
+    "MapGrid additively exposes readMovementCellByIndexInto and canMoveBetweenCardinalNeighborsInto (or equivalently reviewed names) with caller-owned reusable outputs. Movement-cell output includes ok/reason/passable/walkCostMilli/cellVersion; cardinal output includes ok/reason/passable. Both reset every field deterministically for success, invalid index, non-neighbor, wall, blocked terrain, closed door and zero-walk-cost cases without per-call allocation",
+    "GridPathfinder.findPathInto uses only the new caller-owned/primitive MapGrid movement facts in its hot search. A focused probe replaces legacy isCellPassableByIndex, canMoveBetweenCardinalNeighbors and readCellByIndex with throw stubs and still resolves the exact path, proving the allocation-free path does not call legacy materializing APIs",
     "ReservationLedger exposes acquireInto with typed caller-owned prepared-claim scratch, claim-id output and reusable result output. It validates the complete transaction and pending-claim contention first, then commits all claims atomically; every header/claim/conflict/capacity/output failure leaves ledger state, version and outputs deterministically unchanged or reset",
     "M3AbilityCacheStore exposes queryAbilityInto with a caller-owned result lane containing the existing success/failure reason, value/threshold, condition/base versions and visited count for cache hit, rebuild, stale, invalid actor/lane and denied-threshold paths without a per-query result object",
-    "Focused allocation probes reuse the exact same scratch/output identities across success and failure loops for all four Into surfaces and record no per-call object, array, typed-array, closure or string construction in their hot implementations; legacy allocating wrappers are explicitly outside this hot-path proof",
-    "All existing register/update/read/selectTopOffers, findPath, ReservationLedger.acquire and queryAbility signatures and behavior remain available as compatibility wrappers. Existing snapshots, deterministic hashes, selection order, path results, atomic reservation reasons/cleanup and ability-cache semantics do not change",
+    "Focused allocation probes reuse the exact same scratch/output identities across success and failure loops for every new Into surface and record no per-call object, array, typed-array, closure or string construction in their hot implementations; legacy allocating wrappers are explicitly outside this hot-path proof",
+    "All existing MapGrid reads/movement methods, register/update/read/selectTopOffers, findPath, ReservationLedger.acquire and queryAbility signatures and behavior remain available as compatibility wrappers. New MapGrid reads do not mutate global/cell/chunk versions, dirty queue, snapshot bytes or canonical hash; existing snapshots, deterministic hashes, selection order, path results, atomic reservation reasons/cleanup and ability-cache semantics do not change",
     "Every new type and Into surface is exported from the @wuming-town/sim-core package root and focused tests import the public root; no consumer may use an internal-file bypass",
-    "M2 work/logistics and M3 ordinary-life 100000-tick hashes/invariants, capacity exhaustion, stale-version rejection, candidate caps, path node/output caps, all reservation channels and ability cache invalidation remain passing",
+    "M1 hauling/building, M2 work/logistics and M3 ordinary-life 100000-tick hashes/invariants, capacity exhaustion, stale-version rejection, candidate caps, path node/output caps, all reservation channels and ability cache invalidation remain passing",
     "No GameSession/autonomy implementation, sim-protocol, Worker, Web/Pixi/HUD, save/load, runtime dependency, PR-3 command, content or release surface changes"
   ],
   "requiredChecks": [
     "corepack pnpm typecheck",
-    "corepack pnpm exec vitest run packages/sim-core/src/work-offers.test.ts packages/sim-core/src/pathing.test.ts packages/sim-core/src/reservation-ledger.test.ts packages/sim-core/src/m3-health.test.ts packages/sim-core/src/owner-hot-path-surfaces.test.ts",
+    "corepack pnpm exec vitest run packages/sim-core/src/work-offers.test.ts packages/sim-core/src/map-grid.test.ts packages/sim-core/src/pathing.test.ts packages/sim-core/src/reservation-ledger.test.ts packages/sim-core/src/m3-health.test.ts packages/sim-core/src/owner-hot-path-surfaces.test.ts",
+    "corepack pnpm sim:run -- --seed 1 --scenario hauling-building --ticks 100000",
     "corepack pnpm sim:run -- --seed 5 --scenario m2-work-logistics --ticks 100000",
     "corepack pnpm sim:run -- --seed 3 --scenario m3-ordinary-life --ticks 100000",
     "corepack pnpm bench",
@@ -53,7 +59,7 @@
   ],
   "branch": "task/WM-0177-pr-2-sim-core-owner-version-and-caller-owned-out",
   "createdAt": "2026-07-11T10:43:48.256Z",
-  "updatedAt": "2026-07-11T10:53:53.016Z",
+  "updatedAt": "2026-07-11T10:58:30.000Z",
   "history": [
     {
       "at": "2026-07-11T10:43:48.256Z",
@@ -78,6 +84,12 @@
       "actor": "simulation-engineer",
       "action": "block",
       "details": "Allocation-free GridPathfinder.findPathInto cannot be implemented within current allowedPaths: MapGrid.isCellPassableByIndex, canMoveBetweenCardinalNeighbors and readCellByIndex materialize result/cell objects per path node/neighbor, while map-grid.ts/tests are outside WM-0177 ownership. Removing only the final path/result allocation would leave WM-0170 blocked. Revise WM-0177 or add a strict predecessor for additive caller-owned/primitive MapGrid path facts. Evidence: coordination/reports/WM-0177-plan.md and coordination/reports/WM-0177.md."
+    },
+    {
+      "at": "2026-07-11T10:58:30.000Z",
+      "actor": "systems-architect",
+      "action": "approve-map-grid-scope-expansion",
+      "details": "Approved one cohesive additive WM-0177 expansion for exact map-grid.ts/map-grid.test.ts caller-owned movement facts. Product/test/export ownership is capped at 12 files; legacy MapGrid APIs, versions, dirty state, snapshots and hashes remain unchanged. WM-0177 stays blocked/claimed until the original simulation-engineer follows the exact resume procedure."
     }
   ],
   "milestone": "Post-M8",
@@ -88,6 +100,8 @@
   "writeOwnership": [
     "packages/sim-core/src/work-offers.ts",
     "packages/sim-core/src/work-offers.test.ts",
+    "packages/sim-core/src/map-grid.ts",
+    "packages/sim-core/src/map-grid.test.ts",
     "packages/sim-core/src/pathing.ts",
     "packages/sim-core/src/pathing.test.ts",
     "packages/sim-core/src/reservation-ledger.ts",
@@ -97,10 +111,13 @@
     "packages/sim-core/src/owner-hot-path-surfaces.test.ts",
     "packages/sim-core/src/index.ts"
   ],
+  "maximumModifiedProductFiles": 12,
   "saveLoadStance": "Additive runtime API compatibility only. Existing snapshots remain byte/semantic compatible and no GameSession save/load format, codec, migration or public promise changes.",
   "allowedPaths": [
     "packages/sim-core/src/work-offers.ts",
     "packages/sim-core/src/work-offers.test.ts",
+    "packages/sim-core/src/map-grid.ts",
+    "packages/sim-core/src/map-grid.test.ts",
     "packages/sim-core/src/pathing.ts",
     "packages/sim-core/src/pathing.test.ts",
     "packages/sim-core/src/reservation-ledger.ts",
@@ -114,14 +131,22 @@
   ],
   "forbiddenPaths": [
     "packages/sim-core/src/game-session* or any WM-0170 autonomy implementation",
+    "changing MapGrid mutation, version increment, dirty queue, snapshot, restore or canonical hash semantics; exposing/casting private MapGrid lanes instead of using reviewed public Into methods",
     "removing, narrowing or behavior-changing legacy allocating wrappers; changing existing snapshots, hashes, stable order, caps, reservation atomicity/reasons or ability semantics",
     "allocating objects, arrays, typed arrays, closures or constructed strings inside the new Into hot paths",
     "packages/sim-protocol/**, packages/sim-worker/**, apps/**, packages/renderer-pixi/**, packages/ui-react/** or Electron/platform files",
     "save/load format or compatibility, new runtime dependency, PR-3 command/building/priority, content expansion or release action",
+    "modifying more than the 12 exact product/test/export files in writeOwnership; requiring a thirteenth file, a non-additive consumer change or another missing public owner surface must stop and block for a separately reviewed split",
     "claiming or unblocking WM-0170 before WM-0177 is independently verified, integrated and done"
   ],
   "executionLane": "simulation-engineer only; Spark is prohibited because the task changes generic deterministic owner APIs, allocation behavior and reservation atomicity",
-  "singleWriterRule": "WM-0177 is the sole ready product-code writer. WM-0170 remains blocked with its original owner and thresholds; WM-0171..WM-0175 retain their existing dependencies and remain unavailable behind WM-0170.",
+  "resumeProcedure": [
+    "This architect-approved packet revision must be present on the WM-0177 execution base with the exact 12-file maximum and unchanged original acceptance thresholds.",
+    "The original simulation-engineer must run: node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs unblock --id WM-0177 --agent simulation-engineer --summary \"Architect approved additive MapGrid caller-owned movement surfaces inside the existing max-12-file WM-0177 scope; rerun the pre-code API audit and resume without lowering acceptance.\"",
+    "Immediately after unblock, rerun the complete pre-code public API audit from coordination/reports/WM-0177-plan.md across MapGrid, GridPathfinder, WorkOfferIndex, ReservationLedger, M3AbilityCacheStore and package-root exports.",
+    "Only if that audit passes may the original simulation-engineer implement the complete original WM-0177 acceptance plus the added MapGrid gates and run every required check; any thirteenth file, hidden allocation or semantic change blocks again instead of lowering acceptance."
+  ],
+  "singleWriterRule": "WM-0177 remains the sole scoped repair owner and stays blocked/claimed by the original simulation-engineer until the exact resume procedure is executed. WM-0170 remains blocked with unchanged thresholds; WM-0171..WM-0175 retain their existing dependencies.",
   "claimedBy": "simulation-engineer",
   "threadLabel": "Tally WM-0177",
   "blocker": {
@@ -129,6 +154,16 @@
     "to": "systems-architect",
     "reason": "Allocation-free GridPathfinder.findPathInto cannot be implemented within current allowedPaths: MapGrid.isCellPassableByIndex, canMoveBetweenCardinalNeighbors and readCellByIndex materialize result/cell objects per path node/neighbor, while map-grid.ts/tests are outside WM-0177 ownership. Removing only the final path/result allocation would leave WM-0170 blocked. Revise WM-0177 or add a strict predecessor for additive caller-owned/primitive MapGrid path facts. Evidence: coordination/reports/WM-0177-plan.md and coordination/reports/WM-0177.md.",
     "previousState": "in_progress",
-    "at": "2026-07-11T10:53:53.015Z"
+    "at": "2026-07-11T10:53:53.015Z",
+    "approvedAdditionalFiles": [
+      "packages/sim-core/src/map-grid.ts",
+      "packages/sim-core/src/map-grid.test.ts"
+    ],
+    "resumeProcedure": [
+      "This architect-approved packet revision must be present on the WM-0177 execution base with the exact 12-file maximum and unchanged original acceptance thresholds.",
+      "The original simulation-engineer must run: node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs unblock --id WM-0177 --agent simulation-engineer --summary \"Architect approved additive MapGrid caller-owned movement surfaces inside the existing max-12-file WM-0177 scope; rerun the pre-code API audit and resume without lowering acceptance.\"",
+      "Immediately after unblock, rerun the complete pre-code public API audit from coordination/reports/WM-0177-plan.md across MapGrid, GridPathfinder, WorkOfferIndex, ReservationLedger, M3AbilityCacheStore and package-root exports.",
+      "Only if that audit passes may the original simulation-engineer implement the complete original WM-0177 acceptance plus the added MapGrid gates and run every required check; any thirteenth file, hidden allocation or semantic change blocks again instead of lowering acceptance."
+    ]
   }
 }
