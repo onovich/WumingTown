@@ -2,7 +2,7 @@
   "id": "WM-0176",
   "title": "Document safe taskctl stale-lock recovery",
   "summary": "Document a narrowly scoped, approval-gated recovery procedure for an abandoned per-task lock after the same taskctl transition fails twice, without weakening active lock protection or adding automatic deletion.",
-  "state": "ready",
+  "state": "in_progress",
   "ownerRole": "project-director",
   "reviewerRole": "reviewer",
   "dependsOn": [],
@@ -28,7 +28,7 @@
   ],
   "branch": "task/WM-0176-document-safe-taskctl-stale-lock-recovery",
   "createdAt": "2026-07-11T09:08:13.792Z",
-  "updatedAt": "2026-07-11T09:08:39.986Z",
+  "updatedAt": "2026-07-11T09:09:34.487Z",
   "history": [
     {
       "at": "2026-07-11T09:08:13.792Z",
@@ -41,6 +41,12 @@
       "actor": "project-director",
       "action": "refine-ready-task",
       "details": "Scoped after two consecutive WM-0169 taskctl lock failures to documentation-only, exact-path, approval-gated stale-lock recovery; active lock semantics remain unchanged."
+    },
+    {
+      "at": "2026-07-11T09:09:34.486Z",
+      "actor": "project-director",
+      "action": "claim",
+      "details": "thread=Beacon WM-0176"
     }
   ],
   "milestone": "Coordination",
@@ -61,5 +67,8 @@
     "task state mutation outside taskctl",
     "protocol/schema/save/release changes"
   ],
-  "singleWriterRule": "Only project-director may edit this documentation-only workflow task; final review remains independent reviewer."
+  "singleWriterRule": "Only project-director may edit this documentation-only workflow task; final review remains independent reviewer.",
+  "claimedBy": "project-director",
+  "threadLabel": "Beacon WM-0176",
+  "blocker": null
 }

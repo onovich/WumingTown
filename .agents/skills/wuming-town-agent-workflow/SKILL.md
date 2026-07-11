@@ -121,7 +121,7 @@ If Spark is unavailable, queued, or not accessible in the current account/sessio
 - Messages contain summaries and repository paths, not giant logs or secrets.
 - File inbox is the reliable fallback; do not assume arbitrary standalone Codex app threads have a stable public messaging API.
 - A completion message is not approval. A verified review is not integration. A merged branch is not done until task state is closed.
-- If the same workflow failure happens twice, update this skill, a reference, or `AGENTS.md`.
+- If the same workflow failure happens twice, update this skill, a reference, or `AGENTS.md`. For repeated per-task lock failures, follow the approval-gated abandoned-lock procedure in `references/protocol.md`; never add automatic lock eviction or delete a lock on the first failure.
 
 ## References
 
