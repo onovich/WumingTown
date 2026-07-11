@@ -8,5 +8,5 @@
   "body": "Harness checkpoint 7434d6f now runs every suite in one fail-closed Node child and preserves the fixed baseline, 10/20 thresholds, workloads, invariants and 9-sample/2-warmup counts. One permitted repaired-lineage run still exits 1: entity-store 436.246ms (+78.42%), M4 6.965ms (+51.05%) and map-dirty 1.436ms (+43.61%) fail; M3/spatial warn and all invariants match. The host was persistently non-quiescent (roughly 75-94% aggregate CPU; Codex/ACShadows/control-plane load, no residual benchmark Node), so exact product attribution is not honest. Candidate diagnostic boundaries only: entity-store-benchmark -> sim-core entity-id.ts/component-store.ts/structural-commands.ts; M4 benchmark -> m4-core-vertical-slice-scenario.ts/m4-save-replay.ts; map-dirty -> map-grid.ts updateCell/processDirtyChunks/createHashFields. Evidence: coordination/reports/WM-0178.md and coordination/artifacts/WM-0178. Do not create WM-0179, change the gate or resume WM-0177/WM-0170. User must first pause ACShadows and other CPU-heavy processes and provide a controlled quiet-host rerun window.",
   "artifacts": [],
   "createdAt": "2026-07-11T14:59:04.773Z",
-  "acknowledgedAt": null
+  "acknowledgedAt": "2026-07-11T15:08:11.984Z"
 }
