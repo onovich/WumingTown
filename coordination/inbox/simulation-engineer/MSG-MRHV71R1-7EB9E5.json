@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MRHV71R1-7EB9E5",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0177",
+  "kind": "review-approved",
+  "subject": "WM-0177 review: verified",
+  "body": "No blocking findings on re-review. The prior High is closed: ordinary and start-equals-goal output-capacity failures preserve request, five basis fields, required path count, known cost and node expansions while route bytes stay untouched; sufficient-output success statement order remains measurement-identical. The prior Medium is closed by an independently checked 80-label 11+42+27 TypeScript call-graph and AST audit: all 80 declarations are genuinely reachable with zero gaps, 39 forbidden/7 allowed/5 closure regressions pass, the native allowlist is receiver-exact, failInternal is excluded only from ReservationLedger.allocateClaimId, and all 27 free-helper bodies match 3ca83d while audit-only exports remain absent from the package root. Repair d6ee7f5 is exactly seven authorized files; the 17-file evidence tree, comparison manifest, canonical baseline and WM-0083 are unchanged. Durable systems-architect approval MSG-MRHV3D01-F6A7C2 authorizes provenance-preserving evidence reuse without relabeling or waiver. Typecheck, six focused files/52 tests, exact M1/M2/M3 100000-tick hashes, scoped lint, 16-workspace boundaries, handoff, task control, diff checks and quality 79 files/482 tests pass. No admission or benchmark was rerun. WM-0170 remains blocked pending WM-0177 integration and done.",
+  "artifacts": [
+    "coordination/reports/WM-0177.md"
+  ],
+  "createdAt": "2026-07-12T14:04:15.133Z",
+  "acknowledgedAt": null
+}
