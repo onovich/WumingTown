@@ -2,7 +2,7 @@
   "id": "WM-0170",
   "title": "PR-2 autonomous decision state and indexed work selection",
   "summary": "Implement explicit serializable resident autonomy state, structured reasons, schedule/need/capability arbitration and bounded indexed Top-K offer/path/reservation selection in sim-core without product projection changes.",
-  "state": "blocked",
+  "state": "in_progress",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -47,7 +47,7 @@
   ],
   "branch": "task/WM-0170-pr-2-autonomous-decision-state-and-indexed-work-",
   "createdAt": "2026-07-11T07:53:17.870Z",
-  "updatedAt": "2026-07-11T10:45:01.000Z",
+  "updatedAt": "2026-07-12T14:15:49.916Z",
   "history": [
     {
       "at": "2026-07-11T07:53:17.871Z",
@@ -84,6 +84,12 @@
       "actor": "systems-architect",
       "action": "route-prerequisite-repair",
       "details": "Created ready/unclaimed WM-0177 as the sole additive generic owner-surface repair. WM-0170 now depends on WM-0177 and remains blocked/claimed by its original simulation-engineer until the exact resume procedure is satisfied; no acceptance threshold or implementation scope is lowered."
+    },
+    {
+      "at": "2026-07-12T14:15:49.915Z",
+      "actor": "simulation-engineer",
+      "action": "unblock",
+      "details": "WM-0177 owner-version and caller-owned output prerequisite is verified, integrated and done; resume the unchanged WM-0170 contract."
     }
   ],
   "milestone": "Post-M8",
@@ -123,20 +129,5 @@
   "singleWriterRule": "WM-0177 is the sole ready repair writer. WM-0170 remains blocked and keeps its original simulation-engineer owner until WM-0177 is verified/integrated/done and the exact resume procedure passes; WM-0171..WM-0175 retain their existing dependencies.",
   "claimedBy": "simulation-engineer",
   "threadLabel": "Tally WM-0170",
-  "blocker": {
-    "by": "simulation-engineer",
-    "to": "systems-architect",
-    "reason": "Public owner APIs cannot satisfy the reviewed owner-version and zero-allocation contract within allowedPaths: WorkOfferIndex has no row/index owner version and materializes read/selection objects; GridPathfinder allocates result paths; ReservationLedger.acquire allocates prepared/claim-id arrays; M3AbilityCacheStore.queryAbility materializes results. A reviewed prerequisite must add version-bound, caller-owned output/scratch surfaces or revise the acceptance contract. Evidence: coordination/reports/WM-0170-plan.md and coordination/reports/WM-0170.md.",
-    "previousState": "in_progress",
-    "at": "2026-07-11T10:38:38.912Z",
-    "repairTasks": [
-      "WM-0177"
-    ],
-    "resumeProcedure": [
-      "WM-0177 must be independently reviewed as verified, integrated and marked done.",
-      "The original simulation-engineer must run: node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs unblock --id WM-0170 --agent simulation-engineer --summary \"WM-0177 owner-version and caller-owned output prerequisite is verified, integrated and done; resume the unchanged WM-0170 contract.\"",
-      "After unblock, rerun the complete public owner API audit from coordination/reports/WM-0170-plan.md against the integrated WM-0177 public package-root surfaces.",
-      "Only if that audit passes may WM-0170 resume its original acceptance and required checks without lowering allocation, owner-version, cap, atomicity, path, determinism or scope thresholds."
-    ]
-  }
+  "blocker": null
 }
