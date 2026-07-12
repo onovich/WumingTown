@@ -65,6 +65,30 @@ export interface M3FoodPortionView extends M3FoodPortionInput {
   readonly linkedCandidate: boolean;
 }
 
+export interface M3FoodPortionIntoOutput {
+  ok: boolean;
+  reason: M3FoodReason | undefined;
+  stackId: number;
+  foodDefId: number;
+  regionId: number;
+  storageSlotId: number;
+  targetCellIndex: number;
+  interactionSpotId: number;
+  scoreMilli: number;
+  permissionId: number;
+  mealWindowId: number;
+  mealWindowVersion: number;
+  safe: boolean;
+  permissionAllowed: boolean;
+  scheduleAllowed: boolean;
+  availableAmount: number;
+  itemStoreVersion: number;
+  foodAvailabilityVersion: number;
+  active: boolean;
+  linkedCandidate: boolean;
+  dirtyBacklog: number;
+}
+
 export interface M3FoodCandidateQuery {
   readonly foodDefId: number;
   readonly regionId: number;
@@ -334,6 +358,36 @@ export class M3FoodAvailabilityStore {
     };
   }
 
+  readPortionInto(stackId: number, output: M3FoodPortionIntoOutput): void {
+    this.resetPortionInto(stackId, output);
+    if (!isIndexInRange(stackId, this.stackCapacity)) {
+      output.reason = "food_stack_id_out_of_range";
+      return;
+    }
+    if ((this.active[stackId] ?? 0) !== 1) {
+      output.reason = "food_stack_not_registered";
+      return;
+    }
+
+    output.ok = true;
+    output.active = true;
+    output.foodDefId = this.foodDefIds[stackId] ?? 0;
+    output.regionId = this.regionIds[stackId] ?? 0;
+    output.storageSlotId = this.storageSlotIds[stackId] ?? 0;
+    output.targetCellIndex = this.targetCellIndexes[stackId] ?? 0;
+    output.interactionSpotId = this.interactionSpotIds[stackId] ?? 0;
+    output.scoreMilli = this.scoreMillis[stackId] ?? 0;
+    output.permissionId = this.permissionIds[stackId] ?? 0;
+    output.mealWindowId = this.mealWindowIds[stackId] ?? 0;
+    output.mealWindowVersion = this.mealWindowVersions[stackId] ?? 0;
+    output.safe = (this.safeFlags[stackId] ?? 0) === 1;
+    output.permissionAllowed = (this.permissionAllowedFlags[stackId] ?? 0) === 1;
+    output.scheduleAllowed = (this.scheduleAllowedFlags[stackId] ?? 0) === 1;
+    output.availableAmount = this.availableAmounts[stackId] ?? 0;
+    output.itemStoreVersion = this.itemStoreVersions[stackId] ?? 0;
+    output.linkedCandidate = (this.linked[stackId] ?? 0) === 1;
+  }
+
   selectCandidates(
     query: M3FoodCandidateQuery,
     outputStackIds: Uint32Array,
@@ -581,6 +635,30 @@ export class M3FoodAvailabilityStore {
     this.lastSelectedCount = selectedCount;
     this.lastExactPathCount = exactPathCount;
     this.lastCandidateCapHit = candidateCapHit;
+  }
+
+  private resetPortionInto(stackId: number, output: M3FoodPortionIntoOutput): void {
+    output.ok = false;
+    output.reason = undefined;
+    output.stackId = stackId;
+    output.foodDefId = 0;
+    output.regionId = 0;
+    output.storageSlotId = 0;
+    output.targetCellIndex = 0;
+    output.interactionSpotId = 0;
+    output.scoreMilli = 0;
+    output.permissionId = 0;
+    output.mealWindowId = 0;
+    output.mealWindowVersion = 0;
+    output.safe = false;
+    output.permissionAllowed = false;
+    output.scheduleAllowed = false;
+    output.availableAmount = 0;
+    output.itemStoreVersion = 0;
+    output.foodAvailabilityVersion = this.versionValue;
+    output.active = false;
+    output.linkedCandidate = false;
+    output.dirtyBacklog = this.dirtyCount;
   }
 
   private isActiveStack(stackId: number): boolean {

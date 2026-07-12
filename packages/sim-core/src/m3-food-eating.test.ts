@@ -28,6 +28,115 @@ import {
 } from "./index";
 
 describe("M3 food availability and eating logistics", () => {
+  it("reads reusable flat portion facts and exposes dirty backlog without a version advance", () => {
+    const fixture = createFoodFixture(1, 3);
+    fixture.food.rebuildFromStores(fixture.items, fixture.ledger);
+    const output = createFoodPortionIntoOutput();
+    const identity = output;
+    const legacy = fixture.food.readPortion(0) ?? failMissingPortion();
+
+    fixture.food.readPortionInto(0, output);
+    expect(output).toEqual({
+      ok: true,
+      reason: undefined,
+      ...legacy,
+      active: true,
+      dirtyBacklog: 0,
+    });
+    expect(output).toBe(identity);
+
+    const versionBeforeDirty = fixture.food.version;
+    expect(fixture.food.markStackDirty(0)).toEqual({
+      ok: true,
+      stackId: 0,
+      version: versionBeforeDirty,
+    });
+    expect(fixture.food.version).toBe(versionBeforeDirty);
+    fixture.food.readPortionInto(0, output);
+    expect(output).toMatchObject({
+      ok: true,
+      reason: undefined,
+      stackId: 0,
+      foodAvailabilityVersion: versionBeforeDirty,
+      active: true,
+      linkedCandidate: true,
+      dirtyBacklog: 1,
+    });
+    expect(output).toBe(identity);
+
+    const dirtyStore = createM3FoodAvailabilityStore(2, 4, 4);
+    expect(
+      dirtyStore.configurePortion({
+        stackId: 0,
+        foodDefId: GRAIN_BOWL,
+        regionId: REGION_YARD,
+        storageSlotId: 0,
+        targetCellIndex: 0,
+        interactionSpotId: 20,
+        scoreMilli: 10_000,
+        permissionId: PUBLIC_PERMISSION,
+        mealWindowId: MIDDAY_MEAL,
+        mealWindowVersion: 1,
+        safe: true,
+        permissionAllowed: true,
+        scheduleAllowed: true,
+      }),
+    ).toEqual({ ok: true, stackId: 0, version: 1 });
+    expect(dirtyStore.createMetrics()).toMatchObject({ version: 1, dirtyBacklog: 1 });
+
+    dirtyStore.readPortionInto(1, output);
+    expect(output).toEqual({
+      ok: false,
+      reason: "food_stack_not_registered",
+      stackId: 1,
+      foodDefId: 0,
+      regionId: 0,
+      storageSlotId: 0,
+      targetCellIndex: 0,
+      interactionSpotId: 0,
+      scoreMilli: 0,
+      permissionId: 0,
+      mealWindowId: 0,
+      mealWindowVersion: 0,
+      safe: false,
+      permissionAllowed: false,
+      scheduleAllowed: false,
+      availableAmount: 0,
+      itemStoreVersion: 0,
+      foodAvailabilityVersion: 1,
+      active: false,
+      linkedCandidate: false,
+      dirtyBacklog: 1,
+    });
+    expect(output).toBe(identity);
+
+    dirtyStore.readPortionInto(-1, output);
+    expect(output).toEqual({
+      ok: false,
+      reason: "food_stack_id_out_of_range",
+      stackId: -1,
+      foodDefId: 0,
+      regionId: 0,
+      storageSlotId: 0,
+      targetCellIndex: 0,
+      interactionSpotId: 0,
+      scoreMilli: 0,
+      permissionId: 0,
+      mealWindowId: 0,
+      mealWindowVersion: 0,
+      safe: false,
+      permissionAllowed: false,
+      scheduleAllowed: false,
+      availableAmount: 0,
+      itemStoreVersion: 0,
+      foodAvailabilityVersion: 1,
+      active: false,
+      linkedCandidate: false,
+      dirtyBacklog: 1,
+    });
+    expect(output).toBe(identity);
+  });
+
   it("selects edible resources through bounded indexed candidates and Top-K path evidence", () => {
     const fixture = createFoodFixture(30);
     const grid = createMapGrid({ width: 8, height: 4, chunkSize: 4 });
@@ -330,6 +439,10 @@ const REGION_YARD = 0;
 const PUBLIC_PERMISSION = 0;
 const MIDDAY_MEAL = 1;
 
+type FoodPortionIntoOutput = Parameters<
+  ReturnType<typeof createM3FoodAvailabilityStore>["readPortionInto"]
+>[1];
+
 interface FoodFixture {
   readonly registry: ReturnType<typeof createEntityRegistry>;
   readonly items: ReturnType<typeof createItemStackStore>;
@@ -342,6 +455,32 @@ interface FoodFixture {
   readonly needs: ReturnType<typeof createNeedStore>;
   readonly needIndex: ReturnType<typeof createNeedUrgencyIndex>;
   readonly actors: readonly EntityId[];
+}
+
+function createFoodPortionIntoOutput(): FoodPortionIntoOutput {
+  return {
+    ok: true,
+    reason: "food_score_invalid",
+    stackId: 99,
+    foodDefId: 99,
+    regionId: 99,
+    storageSlotId: 99,
+    targetCellIndex: 99,
+    interactionSpotId: 99,
+    scoreMilli: 99,
+    permissionId: 99,
+    mealWindowId: 99,
+    mealWindowVersion: 99,
+    safe: true,
+    permissionAllowed: true,
+    scheduleAllowed: true,
+    availableAmount: 99,
+    itemStoreVersion: 99,
+    foodAvailabilityVersion: 99,
+    active: true,
+    linkedCandidate: true,
+    dirtyBacklog: 99,
+  };
 }
 
 function createFoodFixture(
