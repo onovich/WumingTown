@@ -1,0 +1,12 @@
+{
+  "id": "MSG-MRHCJZWY-DEE57E",
+  "from": "simulation-engineer",
+  "to": "systems-architect",
+  "taskId": "WM-0179",
+  "kind": "blocker",
+  "subject": "WM-0179 blocked",
+  "body": "The sole two-window Get-Process admission pair executed on clean checkpoint 0882988, but PowerShell Write-Output was captured by assignment into process-local arrays; array truthiness made exit 0 non-evidentiary and only GIT_CLEAN_AFTER=True survived. CPU thresholds cannot be audited. Per the two-window/no-retry policy, benchmark invocation count is 0 and no additional sampling or benchmark was run. Functional/typecheck/focused/quality/M1-M3 evidence passes; see coordination/reports/WM-0179.md.",
+  "artifacts": [],
+  "createdAt": "2026-07-12T05:22:26.578Z",
+  "acknowledgedAt": null
+}
