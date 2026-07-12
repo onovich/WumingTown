@@ -2,7 +2,7 @@
   "id": "WM-0181",
   "title": "M3 need-driven exact-index caller-owned surfaces",
   "summary": "Add caller-owned version-bound Into selection and read surfaces for food, rest, and medical exact indexes before WM-0170 resumes.",
-  "state": "ready",
+  "state": "in_progress",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -43,7 +43,7 @@
   ],
   "branch": "task/WM-0181-m3-need-driven-exact-index-caller-owned-surfaces",
   "createdAt": "2026-07-12T19:50:48.315Z",
-  "updatedAt": "2026-07-12T19:55:00.000Z",
+  "updatedAt": "2026-07-12T19:58:05.031Z",
   "history": [
     {
       "at": "2026-07-12T19:50:48.315Z",
@@ -62,6 +62,12 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "WM-0177 is done and the independent systems-architect packet fully refined the strict owner-index repair."
+    },
+    {
+      "at": "2026-07-12T19:58:05.031Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Tally WM-0181"
     }
   ],
   "milestone": "Post-M8",
@@ -99,5 +105,8 @@
     "runtime dependencies, benchmark/admission changes, PR-3 commands or release actions"
   ],
   "executionLane": "simulation-engineer; Spark is prohibited because this task repairs generic owner-version and allocation boundaries consumed by deterministic autonomy",
-  "singleWriterRule": "WM-0181 is the sole ready repair writer. WM-0170 remains blocked with its Phase A/B1 checkpoint until WM-0181 is independently verified, integrated and done; WM-0171 remains proposed behind WM-0170."
+  "singleWriterRule": "WM-0181 is the sole ready repair writer. WM-0170 remains blocked with its Phase A/B1 checkpoint until WM-0181 is independently verified, integrated and done; WM-0171 remains proposed behind WM-0170.",
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Tally WM-0181",
+  "blocker": null
 }
