@@ -2,7 +2,7 @@
   "id": "WM-0180",
   "title": "Windows PowerShell quiet-host admission tool",
   "summary": "Add a reusable Windows PowerShell 5.1-compatible fail-closed quiet-host admission script, synthetic self-test and workflow quality-gate reference so benchmark tasks no longer rely on unreviewed inline sampling scripts.",
-  "state": "ready",
+  "state": "in_progress",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -43,7 +43,7 @@
   ],
   "branch": "task/WM-0180-windows-powershell-quiet-host-admission-tool",
   "createdAt": "2026-07-12T05:31:19.650Z",
-  "updatedAt": "2026-07-12T05:31:23.711Z",
+  "updatedAt": "2026-07-12T05:36:18.407Z",
   "history": [
     {
       "at": "2026-07-12T05:31:19.650Z",
@@ -56,6 +56,12 @@
       "actor": "systems-architect",
       "action": "refine-ready-powershell-admission-tool-repair",
       "details": "Two same-class inline admission failures on WM-0179 trigger the workflow repeated-failure rule. Approved one independently reviewed PowerShell 5.1 tooling/reference predecessor; no further WM-0179 admission or benchmark is authorized until this task is integrated and done."
+    },
+    {
+      "at": "2026-07-12T05:36:18.407Z",
+      "actor": "qa-performance",
+      "action": "claim",
+      "details": "thread=Sentinel WM-0180"
     }
   ],
   "milestone": "Post-M8",
@@ -107,5 +113,8 @@
     "Only a process exit 0 plus one valid evidenceKind=measured PASS JSON permits the original owner to invoke corepack pnpm bench --filter entity-store exactly once. This is benchmark attempt one because the recorded benchmark invocation count remains zero.",
     "Any script failure or lost/malformed evidence re-blocks WM-0179 without another inline replacement. WM-0178, WM-0177 and WM-0170 remain blocked until their existing closure DAG is satisfied."
   ],
-  "singleWriterRule": "WM-0180 is the sole workflow-tool/reference writer while active. WM-0179 remains blocked and claimed by its simulation-engineer with no product, admission or benchmark work; WM-0178 and WM-0177 remain blocked/claimed with no writes; WM-0170 remains blocked."
+  "singleWriterRule": "WM-0180 is the sole workflow-tool/reference writer while active. WM-0179 remains blocked and claimed by its simulation-engineer with no product, admission or benchmark work; WM-0178 and WM-0177 remain blocked/claimed with no writes; WM-0170 remains blocked.",
+  "claimedBy": "qa-performance",
+  "threadLabel": "Sentinel WM-0180",
+  "blocker": null
 }
