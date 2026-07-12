@@ -2,7 +2,7 @@
   "id": "WM-0180",
   "title": "Windows PowerShell quiet-host admission tool",
   "summary": "Add a reusable Windows PowerShell 5.1-compatible fail-closed quiet-host admission script, synthetic self-test and workflow quality-gate reference so benchmark tasks no longer rely on unreviewed inline sampling scripts.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -43,7 +43,7 @@
   ],
   "branch": "task/WM-0180-windows-powershell-quiet-host-admission-tool",
   "createdAt": "2026-07-12T05:31:19.650Z",
-  "updatedAt": "2026-07-12T06:24:47.266Z",
+  "updatedAt": "2026-07-12T06:27:52.871Z",
   "history": [
     {
       "at": "2026-07-12T05:31:19.650Z",
@@ -86,6 +86,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings. Prior Mediums are closed: PS5.1 probes show logicalProcessorCount 1.5 and Int32 overflow fail with evidence_shape_invalid/exit 20 and empty stderr; the actual raw-stdout helper rejects extra CRLF, extra LF and duplicate JSON. The 30-case PS5.1 self-test, both parser checks, final diff check and forbidden-command scan pass; scope remains limited and no live admission or benchmark ran."
+    },
+    {
+      "at": "2026-07-12T06:27:47.460Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Fast-forward merged verified commit 4b664b7 to main; PS5.1 30-case admission self-test, handoff, taskctl, diff and full quality 78 files/462 tests passed; no live admission or benchmark ran."
+    },
+    {
+      "at": "2026-07-12T06:27:52.871Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "Post-M8",
@@ -147,5 +159,10 @@
     "verdict": "verified",
     "summary": "No blocking findings. Prior Mediums are closed: PS5.1 probes show logicalProcessorCount 1.5 and Int32 overflow fail with evidence_shape_invalid/exit 20 and empty stderr; the actual raw-stdout helper rejects extra CRLF, extra LF and duplicate JSON. The 30-case PS5.1 self-test, both parser checks, final diff check and forbidden-command scan pass; scope remains limited and no live admission or benchmark ran.",
     "at": "2026-07-12T06:24:47.266Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Fast-forward merged verified commit 4b664b7 to main; PS5.1 30-case admission self-test, handoff, taskctl, diff and full quality 78 files/462 tests passed; no live admission or benchmark ran.",
+    "at": "2026-07-12T06:27:47.460Z"
   }
 }
