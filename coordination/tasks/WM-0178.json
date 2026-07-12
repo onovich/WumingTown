@@ -2,11 +2,12 @@
   "id": "WM-0178",
   "title": "Canonical benchmark gate repair and paired attribution",
   "summary": "Restore the canonical fixed-baseline full benchmark gate on clean main, pair exact-main and WM-0177 checkpoint evidence, and identify any exact sim/product repair scope without waiving or weakening performance requirements.",
-  "state": "ready",
+  "state": "blocked",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
-    "WM-0169"
+    "WM-0169",
+    "WM-0179"
   ],
   "docs": [
     "AGENTS.md",
@@ -20,7 +21,9 @@
     "coordination/tasks/WM-0177.json",
     "coordination/reports/WM-0177-plan.md",
     "coordination/reports/WM-0177.md",
-    "coordination/reports/WM-0178-plan.md"
+    "coordination/reports/WM-0178-plan.md",
+    "coordination/tasks/WM-0179.json",
+    "coordination/reports/WM-0179-plan.md"
   ],
   "acceptance": [
     "The benchmark workload, fixtures, invariant payloads, packages/benchmarks/baseline.json medians, 10 percent warning threshold, 20 percent failure threshold, default 9 samples and 2 warmups remain immutable; no suite may be skipped, softened, retried-until-pass or reported through a waiver",
@@ -29,7 +32,7 @@
     "Reproduce and resolve the reviewed attribution: entity-store is a pre-existing clean-main gate failure; M3 ordinary-life, M5 alpha-content and spatial-index are WM-0177 task-associated regressions; M4 and map-dirty are mixed clean-main failures with additional task-branch worsening. Owner-local work-offers, pathing and reservations evidence may support attribution but cannot replace the aggregate gate",
     "Repair only explicitly owned benchmark harness or benchmark-environment surfaces. The repair must preserve benchmark meaning and measured workload while making the clean-main lineage pass the exact corepack pnpm bench command against the unchanged canonical baseline",
     "The final clean-main-lineage corepack pnpm bench run exits zero with every invariant matching and no comparison above the unchanged 20 percent failure threshold; warnings above 10 percent are documented with raw evidence and do not conceal a failure",
-    "If diagnosis requires any packages/sim-core, product, scenario-authority or other non-harness file, stop and taskctl block with exact files, call paths, suite evidence and reason. Systems architecture may create WM-0179 only from that structured blocker; WM-0179 does not exist and is not pre-approved by this packet",
+    "Quiet-host evidence commit 0b89918 isolates one persistent entity-store failure and names the exact non-harness call chain. Systems architecture authorized WM-0179 as the sole conditional product repair; WM-0179 must be independently verified, integrated and done before WM-0178 resumes on repaired main",
     "Historical benchmark artifacts, including coordination/artifacts/WM-0083, remain byte-identical to HEAD after each comparison. New raw and comparison evidence is written only under coordination/artifacts/WM-0178 and is covered by hashes",
     "WM-0177 and WM-0170 remain blocked throughout WM-0178. WM-0177 may resume only after WM-0178 is independently verified, integrated and done and the repaired main full benchmark gate passes without a waiver"
   ],
@@ -52,7 +55,7 @@
   ],
   "branch": "task/WM-0178-canonical-benchmark-gate-repair",
   "createdAt": "2026-07-11T13:56:48.314Z",
-  "updatedAt": "2026-07-11T13:57:04.228Z",
+  "updatedAt": "2026-07-12T05:07:43.355Z",
   "history": [
     {
       "at": "2026-07-11T13:56:48.315Z",
@@ -65,6 +68,12 @@
       "actor": "systems-architect",
       "action": "refine-ready-canonical-benchmark-gate-repair",
       "details": "Approved a mandatory qa-performance predecessor for fixed-baseline canonical gate repair and isolated paired attribution. Workload, baseline, warning/failure thresholds and full-suite required check remain immutable; no waiver or product edit is authorized."
+    },
+    {
+      "at": "2026-07-12T05:07:43.355Z",
+      "actor": "systems-architect",
+      "action": "record-quiet-host-blocker-and-authorize-WM-0179",
+      "details": "WM-0178 owner evidence commit 0b89918, acknowledged at 2c283d9, records admission at 24.41/22.53 percent host busy and one unchanged-harness full-suite run with only entity-store failing at 355.852 ms (+45.54 percent), all invariants matching. Exact product call paths satisfy the conditional gate; WM-0179 is the sole authorized product repair and WM-0178 remains blocked."
     }
   ],
   "milestone": "Post-M8",
@@ -183,10 +192,32 @@
     "coordination/artifacts/WM-0083/** or any historical benchmark artifact",
     "benchmark workload, fixture size, invariant payload, default 9-sample/2-warmup count, suite omission, failure suppression, retry-until-pass or exception/waiver behavior",
     "linked worktrees, concurrent dirty checkout comparisons or host/commit metadata omission",
-    "creating WM-0179 before a structured WM-0178 blocker names exact sim/product files, call paths, evidence and reason",
+    "creating another product-repair task or expanding WM-0179 beyond its reviewed structural-ordering scope without a new structured blocker and systems-architecture decision",
     "claiming or unblocking WM-0177 or WM-0170 before the predecessor and review gates are complete"
   ],
   "executionLane": "qa-performance only; Spark is prohibited because cross-commit performance attribution, benchmark semantics and gate integrity require full evidence and independent review",
-  "conditionalProductRepair": "WM-0179 may be architect-created only after WM-0178 blocks with exact non-harness files, call paths, suite evidence and reason. Until then it does not exist, is not a dependency and is not authorized.",
-  "singleWriterRule": "WM-0178 is ready and unclaimed. Once claimed, qa-performance is the sole harness/evidence writer; reviewer remains read-only and independent. WM-0177 stays blocked and claimed by its original simulation-engineer, and WM-0170 stays blocked behind WM-0177."
+  "conditionalProductRepair": "WM-0179 is authorized from the structured quiet-host blocker at evidence commit 0b89918. It owns only structural-commands.ts, a new internal structural-command-order.ts helper and entity-store.invariants.test.ts; entity-id.ts and component-store.ts remain forbidden absent a new blocker.",
+  "repairTasks": [
+    "WM-0179"
+  ],
+  "claimedBy": "qa-performance",
+  "threadLabel": "Sentinel WM-0178",
+  "singleWriterRule": "WM-0178 remains blocked and claimed by qa-performance with no harness/evidence writes while WM-0179 is the sole active product writer. WM-0177 remains blocked and claimed by its original simulation-engineer with no product writes; WM-0170 remains blocked behind WM-0177.",
+  "blocker": {
+    "by": "qa-performance",
+    "to": "systems-architect",
+    "reason": "Quiet-host admission passed at 24.41/22.53 percent host busy with maximum process shares 6.18/6.14 percent, ACShadows absent, no benchmark Node and clean git. The single authorized unchanged-harness full corepack pnpm bench at fe4e8f exited 1 only for entity-store: 355.852 ms, +45.54 percent against the unchanged 244.507 ms baseline, all invariants matching. Exact boundary: entity-store-benchmark runEntityStoreBenchmark -> EntityRegistry.allocate, Int32ComponentStore attach/forEachAttachedAscending and StructuralCommandBuffer queueSetInt32/commit. Evidence commit 0b89918; acknowledgment 2c283d9. WM-0179 is the sole authorized product repair; do not resume WM-0178, WM-0177 or WM-0170 yet.",
+    "previousState": "in_progress",
+    "at": "2026-07-12T05:00:55.409Z",
+    "reviewedAt": "2026-07-12T05:07:43.355Z",
+    "repairTasks": [
+      "WM-0179"
+    ],
+    "resumeProcedure": [
+      "WM-0179 must be independently verified, integrated and done on main.",
+      "The project director refreshes the existing WM-0178 branch from repaired main while preserving and auditing only its reviewed harness/evidence diff; no linked worktree or unrelated artifact import.",
+      "Systems architecture unblocks WM-0178 for the original qa-performance owner, which runs each of the six explicit filters once and the exact full canonical gate once without retry or waiver, then completes all remaining checks and independent review.",
+      "Only after WM-0178 is integrated and done may WM-0177 resume; WM-0170 remains blocked until WM-0177 is independently verified, integrated and done."
+    ]
+  }
 }
