@@ -40,12 +40,12 @@ scope.
    atomic-conflict tests; run all WM-0170 checks, report, commit and request
    independent review.
 
-## Post-WM-0177 public API audit: ordinary surfaces PASS; need-driven indexes BLOCKED
+## Public API audit history: WM-0177 ordinary PASS, WM-0181 need-driven PASS
 
 Commit `2ac4416` resumed WM-0170 after reviewed prerequisite WM-0177 was
 integrated. Its audit proved the ordinary WorkOffer, path, reservation and
-ability surfaces below, but the later independent B1 review showed that this
-was not the complete WM-0170 owner audit required by the architecture:
+ability surfaces below. The later independent B1 review correctly required the
+same audit for the architecture-mandated Food, Rest and Medical sources:
 
 - `WorkOfferIndex.registerOfferInto`, `updateOfferInto`, `removeOfferInto`,
   `readOfferInto` and `selectTopOffersInto` bind every selected row to its
@@ -74,41 +74,52 @@ was not the complete WM-0170 owner audit required by the architecture:
 The legacy materializing APIs remain available for compatibility. They cannot
 be called by the WM-0170 hot path.
 
-### Second stop-line decision
+### Historical second stop-line and resolution
 
-Canvas independently found that `M3FoodAvailabilityStore.selectCandidates`,
-`RestCandidateIndex.selectCandidates` and
-`M3MedicalCareStore.selectTreatmentRequests` still materialize result objects
-and lack reviewed caller-owned row reads. Architecture section 6 requires
-need-driven food, rest and treatment to use those exact indexes, while ordinary
-hauling/lamp work uses `WorkOfferIndex`. Therefore the public API audit is
-blocked for the three need-driven sources even though the ordinary-owner audit
-passes.
+Canvas independently found that the old Food, Rest and Medical selection
+surfaces materialized result objects and lacked reviewed caller-owned row
+reads. An independent systems-architect rejected mirroring those sources into
+generic WorkOffer rows because that would duplicate owner truth and lose
+meal-window, rest schedule/weather, patient-condition and caregiver basis.
 
-An independent systems-architect rejected mirroring food/rest/treatment into
-generic WorkOffer rows because that would duplicate owner truth, create
-non-atomic dual publication, and lose meal-window, rest schedule/weather and
-patient/caregiver basis. The approved repair is strict prerequisite WM-0181,
-limited to caller-owned, version-bound `Into` surfaces on the three generic
-owners plus their tests and package-root exports.
+WM-0181 repaired the exact generic owners and was independently reviewed,
+integrated and marked done before this resume. The resumed audit now passes for
+`selectCandidatesInto`/`readPortionInto`,
+`selectCandidatesInto`/`readFixtureInto`, and
+`selectTreatmentRequestsInto`/`readPatientRequestInto`/
+`readCaregiverStateInto`, including complete source versions, dirty backlog and
+24/12 cap enforcement. WM-0170 did not modify those owners.
 
-WM-0170 stopped immediately after this decision. The current Phase A/B1
-checkpoint contains the typed state/reason store, snapshot guards, durable
-terminal policy/job basis, serializable `pendingJobId`, and an interface-only
-selection draft. It does not contain a coordinator body. The selection draft
-is explicitly not approved: after WM-0181 it must add a numeric candidate
-source discriminator, generic source-local row/index basis, fixed five-lane
-arbitration, and caller-owned mutable claim-plan header/transaction/claim-slot
-scratch before B1 can pass independent review.
+## Exact resumed B1 repair sequence
+
+1. Re-audit every public owner `Into` surface and package-root export. Stop if
+   any required fact cannot be read allocation-free and version-bound.
+2. Replace offer-only autonomy identity with current and terminal
+   `candidateSourceCode` plus `candidateId`; persist the complete generic and
+   source-specific basis and reject cross-source residue.
+3. Keep idle-to-idle illegal in the transition table while adding the narrow
+   `refreshIdleInto` store path for WAIT. NONE remains initial-only; active and
+   terminal rows require a real source.
+4. Freeze exactly five coordinator-owned candidate lanes (Food, Rest, Medical,
+   Ordinary, Wait), one shared 24/12/4 budget and the already-approved two-new-
+   decisions-per-tick contract. Do not implement arbitration in B1.
+5. Replace the flat claim-plan output with a caller-preallocated mutable header,
+   owner/target/item refs, transaction, claims array and eight fixed claim-slot
+   objects. Reset and bind only in place; preserve the `pendingJobId === jobId`
+   handoff and exact-claim rollback obligation.
+6. Prove only mechanical B1 contracts: source/basis/pending snapshot roundtrip,
+   atomic rejection, WAIT refresh, and output/array/ref/slot identity. Leave
+   five-source arbitration/acquire/rollback/closure behavior to the next
+   coordinator phase and independent review.
 
 ## Frozen API and state-lane design
 
 - `ResidentAutonomyStore` owns one fixed typed-lane row per resident. The exact
   states are `idle`, `claiming`, `moving`, `working`, `blocked`, `completed`,
   `failed` and `interrupted`. Rows contain only scalar resident/source-local
-  candidate/offer/job/pending-job/target references, state/retry ticks, bounded
+  candidate/job/pending-job/target references, state/retry ticks, bounded
   route/claim references and the
-  complete need/schedule/capability/offer/path/reservation/job version basis;
+  complete need/schedule/capability/candidate/path/reservation/job version basis;
   they never duplicate owner quantities, position, progress or claim truth.
 - Legal transitions are table-validated. Caller-owned read and transition
   outputs are reset on every call. A separate last-terminal record preserves
@@ -129,10 +140,10 @@ scratch before B1 can pass independent review.
   calls `ReservationLedger.acquireInto` exactly once. Only successful atomic
   acquisition publishes the already-prevalidated bounded route/claim refs and
   next state.
-- Fixed caps are 24 visited, 12 retained/scored, 4 exact paths, 2 new decisions
+- Fixed caps are one shared 24 visited, 12 retained/scored, 4 exact paths and 2 new decisions
   per tick, 128 route cells and 6 reason parameters. Ordering is score
-  descending, then source-row id ascending, then target id ascending. Metrics expose
-  totals, each cap hit, exact paths, node expansions, stale classes,
+  descending, then source-row id ascending, target id ascending and fixed source-slot
+  order. Metrics expose totals, each cap hit, exact paths, node expansions, stale classes,
   reservation conflicts and decision deferrals.
 
 ## Implementation stop lines

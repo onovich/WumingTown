@@ -40,6 +40,12 @@ import {
   type AutonomySuggestion,
 } from "./game-session-autonomy-reasons";
 import {
+  AUTONOMY_CANDIDATE_SOURCE_FOOD,
+  AUTONOMY_CANDIDATE_SOURCE_MEDICAL,
+  AUTONOMY_CANDIDATE_SOURCE_NONE,
+  AUTONOMY_CANDIDATE_SOURCE_ORDINARY,
+  AUTONOMY_CANDIDATE_SOURCE_REST,
+  AUTONOMY_CANDIDATE_SOURCE_WAIT,
   AUTONOMY_MAX_CLAIM_REFS,
   AUTONOMY_MAX_ROUTE_CELLS,
   AUTONOMY_INTERRUPTION_POLICY_NONE,
@@ -75,6 +81,7 @@ import {
   AutonomySnapshotReasonParameterLane,
   AutonomySnapshotTickLane,
   RESIDENT_AUTONOMY_SNAPSHOT_VERSION,
+  type AutonomyCandidateSourceCode,
   type AutonomyState,
   type AutonomyInterruptionPolicyCode,
   type AutonomyStoreCode,
@@ -88,7 +95,8 @@ import { isSafeTick } from "./time";
 
 const L_GENERATION = AutonomySnapshotLane.residentGeneration,
   L_STATE = AutonomySnapshotLane.state,
-  L_OFFER = AutonomySnapshotLane.offerId,
+  L_CANDIDATE = AutonomySnapshotLane.candidateId,
+  L_CANDIDATE_SOURCE = AutonomySnapshotLane.candidateSourceCode,
   L_JOB = AutonomySnapshotLane.jobId,
   L_TARGET_INDEX = AutonomySnapshotLane.targetEntityIndex,
   L_TARGET_GENERATION = AutonomySnapshotLane.targetEntityGeneration,
@@ -100,12 +108,12 @@ const L_GENERATION = AutonomySnapshotLane.residentGeneration,
   L_NEED_VALUE = AutonomySnapshotLane.needValue,
   L_ABILITY = AutonomySnapshotLane.ability,
   L_SCHEDULE = AutonomySnapshotLane.scheduleCode,
-  L_BASIS = AutonomySnapshotLane.needOwnerVersion,
   L_ROW_VERSION = AutonomySnapshotLane.rowVersion,
   L_REASON = AutonomySnapshotLane.reasonCode,
   L_TERMINAL_PRESENT = AutonomySnapshotLane.terminalPresent,
   L_TERMINAL_STATE = AutonomySnapshotLane.terminalState,
-  L_TERMINAL_OFFER = AutonomySnapshotLane.terminalOfferId,
+  L_TERMINAL_CANDIDATE = AutonomySnapshotLane.terminalCandidateId,
+  L_TERMINAL_CANDIDATE_SOURCE = AutonomySnapshotLane.terminalCandidateSourceCode,
   L_TERMINAL_JOB = AutonomySnapshotLane.terminalJobId,
   L_TERMINAL_TARGET_INDEX = AutonomySnapshotLane.terminalTargetEntityIndex,
   L_TERMINAL_TARGET_GENERATION = AutonomySnapshotLane.terminalTargetEntityGeneration,
@@ -235,7 +243,7 @@ export class ResidentAutonomyStore {
     if (!output.ok) return;
     const base = input.residentIndex * LANE_COUNT;
     writeExecutionLanes(this.lanes, base, input);
-    writeBasis(this.lanes, base + L_BASIS, input.basis);
+    writeBasis(this.lanes, base, input.basis);
     writeStoredReason(
       this.lanes,
       this.reasonParameters,
@@ -253,6 +261,32 @@ export class ResidentAutonomyStore {
     if (isTerminalState(input.nextState)) this.writeTerminal(input, base);
     this.storeVersion += 1;
     finishStoreOutput(output, input.nextState, rowVersion, this.storeVersion);
+  }
+
+  /** Persists the reviewed WAIT fallback without making idle -> idle a legal state transition. */
+  refreshIdleInto(input: AutonomyTransitionInput, output: AutonomyStoreOutput): void {
+    resetStoreOutput(output, input.residentIndex, input.residentGeneration, this.storeVersion);
+    this.validateIdleRefresh(input, output);
+    if (!output.ok) return;
+    const base = input.residentIndex * LANE_COUNT;
+    writeExecutionLanes(this.lanes, base, input);
+    writeBasis(this.lanes, base, input.basis);
+    writeStoredReason(
+      this.lanes,
+      this.reasonParameters,
+      base + L_REASON,
+      input.residentIndex,
+      P_CURRENT,
+      input.reason,
+    );
+    this.writeRouteAndClaims(input);
+    const tickBase = input.residentIndex * TICK_LANE_COUNT;
+    this.ticks[tickBase + T_STATE_ENTERED] = input.stateEnteredTick;
+    this.ticks[tickBase + T_RETRY] = input.retryTick;
+    const rowVersion = input.expectedRowVersion + 1;
+    this.lanes[base + L_ROW_VERSION] = rowVersion;
+    this.storeVersion += 1;
+    finishStoreOutput(output, AUTONOMY_STATE_IDLE, rowVersion, this.storeVersion);
   }
 
   readResidentInto(
@@ -285,7 +319,7 @@ export class ResidentAutonomyStore {
       return;
     }
     readExecutionLanes(this.lanes, this.ticks, base, residentIndex, output);
-    readBasis(this.lanes, base + L_BASIS, output.basis);
+    readBasis(this.lanes, base, output.basis);
     readStoredReason(
       this.lanes,
       this.reasonParameters,
@@ -372,7 +406,7 @@ export class ResidentAutonomyStore {
       const referenceCode = validateTransitionReferences(input);
       if (referenceCode !== AUTONOMY_STORE_OK) output.code = referenceCode;
       else if (
-        !isValidBasis(input.basis) ||
+        !isValidBasisForSource(input.candidateSourceCode, input.candidateId, input.basis) ||
         !isValidJobPolicyBinding(
           input.jobId,
           input.interruptionPolicyCode,
@@ -384,6 +418,48 @@ export class ResidentAutonomyStore {
       else if (this.storeVersion >= 0xffff_ffff || rowVersion >= 0xffff_ffff) {
         output.code = AUTONOMY_STORE_VERSION_EXHAUSTED;
       } else output.ok = true;
+    }
+  }
+
+  private validateIdleRefresh(input: AutonomyTransitionInput, output: AutonomyStoreOutput): void {
+    const residentCode = this.validateResident(input);
+    if (residentCode !== AUTONOMY_STORE_OK) {
+      output.code = residentCode;
+      return;
+    }
+    const base = input.residentIndex * LANE_COUNT;
+    const state = readState(this.lanes[base + L_STATE] ?? AUTONOMY_STATE_IDLE);
+    const rowVersion = this.lanes[base + L_ROW_VERSION] ?? 0;
+    const stateTick = this.ticks[input.residentIndex * TICK_LANE_COUNT + T_STATE_ENTERED] ?? 0;
+    output.previousState = state;
+    output.nextState = input.nextState;
+    output.rowVersion = rowVersion;
+    if (
+      state !== AUTONOMY_STATE_IDLE ||
+      input.expectedState !== AUTONOMY_STATE_IDLE ||
+      input.nextState !== AUTONOMY_STATE_IDLE ||
+      input.candidateSourceCode !== AUTONOMY_CANDIDATE_SOURCE_WAIT
+    )
+      output.code = AUTONOMY_STORE_ILLEGAL_TRANSITION;
+    else if (rowVersion !== input.expectedRowVersion)
+      output.code = AUTONOMY_STORE_ROW_VERSION_MISMATCH;
+    else if (!isSafeTick(input.stateEnteredTick) || input.stateEnteredTick < stateTick)
+      output.code = AUTONOMY_STORE_TICK_INVALID;
+    else if (!isValidRetryTick(input.stateEnteredTick, input.retryTick))
+      output.code = AUTONOMY_STORE_RETRY_TICK_INVALID;
+    else if (!isValidAutonomyReason(input.reason) || !validateTransitionReasonSemantics(input))
+      output.code = AUTONOMY_STORE_REASON_INVALID;
+    else {
+      const referenceCode = validateTransitionReferences(input);
+      if (referenceCode !== AUTONOMY_STORE_OK) output.code = referenceCode;
+      else if (
+        !isValidBasisForSource(input.candidateSourceCode, input.candidateId, input.basis) ||
+        !isValidJobPolicyBinding(input.jobId, input.interruptionPolicyCode, input.basis.jobVersion)
+      )
+        output.code = AUTONOMY_STORE_BASIS_INVALID;
+      else if (this.storeVersion >= 0xffff_ffff || rowVersion >= 0xffff_ffff)
+        output.code = AUTONOMY_STORE_VERSION_EXHAUSTED;
+      else output.ok = true;
     }
   }
 
@@ -412,7 +488,8 @@ export class ResidentAutonomyStore {
     this.lanes[base + L_ROW_VERSION] = 1;
     writeInitialReason(this.lanes, base + L_REASON, residentIndex, residentGeneration);
     this.lanes[base + L_TERMINAL_STATE] = AUTONOMY_STATE_IDLE;
-    this.lanes[base + L_TERMINAL_OFFER] = AUTONOMY_REF_NONE;
+    this.lanes[base + L_TERMINAL_CANDIDATE] = AUTONOMY_REF_NONE;
+    this.lanes[base + L_TERMINAL_CANDIDATE_SOURCE] = AUTONOMY_CANDIDATE_SOURCE_NONE;
     this.lanes[base + L_TERMINAL_JOB] = AUTONOMY_REF_NONE;
     this.lanes[base + L_TERMINAL_TARGET_INDEX] = AUTONOMY_REF_NONE;
     this.lanes[base + L_TERMINAL_TARGET_GENERATION] = AUTONOMY_REF_NONE;
@@ -458,7 +535,8 @@ export class ResidentAutonomyStore {
   private writeTerminal(input: AutonomyTransitionInput, base: number): void {
     this.lanes[base + L_TERMINAL_PRESENT] = 1;
     this.lanes[base + L_TERMINAL_STATE] = input.nextState;
-    this.lanes[base + L_TERMINAL_OFFER] = input.offerId;
+    this.lanes[base + L_TERMINAL_CANDIDATE] = input.candidateId;
+    this.lanes[base + L_TERMINAL_CANDIDATE_SOURCE] = input.candidateSourceCode;
     this.lanes[base + L_TERMINAL_JOB] = input.jobId;
     this.lanes[base + L_TERMINAL_INTERRUPTION_POLICY] = input.interruptionPolicyCode;
     this.lanes[base + L_TERMINAL_JOB_VERSION] = input.basis.jobVersion;
@@ -501,7 +579,8 @@ function validateTransitionReferences(input: AutonomyTransitionInput): AutonomyS
 
 function validateTransitionScalarReferences(input: AutonomyTransitionInput): AutonomyStoreCode {
   if (
-    !isOptionalScalar(input.offerId) ||
+    !isCandidateSourceCode(input.candidateSourceCode) ||
+    !isOptionalScalar(input.candidateId) ||
     !isOptionalScalar(input.jobId) ||
     !isOptionalScalar(input.pendingJobId) ||
     !isOptionalEntityRef(input.targetEntityIndex, input.targetEntityGeneration) ||
@@ -550,11 +629,14 @@ function validateTransitionRouteClaims(input: AutonomyTransitionInput): Autonomy
 function validateTransitionStateSemantics(input: AutonomyTransitionInput): AutonomyStoreCode {
   const hasTarget =
     input.targetEntityIndex !== AUTONOMY_REF_NONE || input.targetCellIndex !== AUTONOMY_REF_NONE;
+  if (!isCandidateSourceValidForState(input.candidateSourceCode, input.nextState, false))
+    return AUTONOMY_STORE_REFERENCE_INVALID;
   if (input.nextState !== AUTONOMY_STATE_IDLE && !hasTarget)
     return AUTONOMY_STORE_REFERENCE_INVALID;
   if (
     input.nextState === AUTONOMY_STATE_IDLE &&
-    (input.offerId !== AUTONOMY_REF_NONE ||
+    (input.candidateSourceCode !== AUTONOMY_CANDIDATE_SOURCE_WAIT ||
+      input.candidateId !== AUTONOMY_REF_NONE ||
       input.jobId !== AUTONOMY_REF_NONE ||
       input.pendingJobId !== AUTONOMY_REF_NONE ||
       hasTarget ||
@@ -564,7 +646,7 @@ function validateTransitionStateSemantics(input: AutonomyTransitionInput): Auton
     return AUTONOMY_STORE_REFERENCE_INVALID;
   if (
     input.nextState === AUTONOMY_STATE_CLAIMING &&
-    (input.offerId === AUTONOMY_REF_NONE ||
+    (input.candidateId === AUTONOMY_REF_NONE ||
       input.jobId !== AUTONOMY_REF_NONE ||
       !hasPairedRouteClaims(input.routeCellCount, input.claimCount) ||
       !hasValidPendingJobBinding(input.pendingJobId, input.routeCellCount))
@@ -595,19 +677,25 @@ function validateTransitionStateSemantics(input: AutonomyTransitionInput): Auton
     )
   )
     return AUTONOMY_STORE_REFERENCE_INVALID;
+  if (isTerminalState(input.nextState)) return validateTerminalTransitionStateSemantics(input);
+  return AUTONOMY_STORE_OK;
+}
+
+function validateTerminalTransitionStateSemantics(
+  input: AutonomyTransitionInput,
+): AutonomyStoreCode {
   if (input.nextState === AUTONOMY_STATE_COMPLETED && input.jobId === AUTONOMY_REF_NONE)
     return AUTONOMY_STORE_REFERENCE_INVALID;
   if (
-    isTerminalState(input.nextState) &&
-    (input.pendingJobId !== AUTONOMY_REF_NONE ||
-      input.routeCellCount !== 0 ||
-      input.claimCount !== 0)
+    input.pendingJobId !== AUTONOMY_REF_NONE ||
+    input.routeCellCount !== 0 ||
+    input.claimCount !== 0
   )
     return AUTONOMY_STORE_REFERENCE_INVALID;
   if (
     (input.nextState === AUTONOMY_STATE_FAILED || input.nextState === AUTONOMY_STATE_INTERRUPTED) &&
     input.jobId === AUTONOMY_REF_NONE &&
-    input.offerId === AUTONOMY_REF_NONE
+    input.candidateId === AUTONOMY_REF_NONE
   )
     return AUTONOMY_STORE_REFERENCE_INVALID;
   return AUTONOMY_STORE_OK;
@@ -688,7 +776,7 @@ function reasonTargetMatches(
 
 function readReasonOwnerBasis(code: AutonomyReasonCode, basis: AutonomyVersionBasis): number {
   if (code === AUTONOMY_REASON_IDLE_OFF_SHIFT) return basis.scheduleVersion;
-  if (code === AUTONOMY_REASON_IDLE_NO_INDEXED_OFFER) return basis.offerIndexVersion;
+  if (code === AUTONOMY_REASON_IDLE_NO_INDEXED_OFFER) return basis.candidateIndexVersion;
   if (
     code === AUTONOMY_REASON_IDLE_RETRY_BACKOFF ||
     code === AUTONOMY_REASON_IDLE_DECISION_DEFERRED
@@ -706,8 +794,8 @@ function readReasonOwnerBasis(code: AutonomyReasonCode, basis: AutonomyVersionBa
     return basis.capabilityConditionVersion;
   if (code >= AUTONOMY_REASON_OFFER_EMPTY_BUCKET && code <= AUTONOMY_REASON_OFFER_SELECTED)
     return code === AUTONOMY_REASON_OFFER_SELECTED
-      ? basis.offerOwnerVersion
-      : basis.offerIndexVersion;
+      ? basis.candidateOwnerVersion
+      : basis.candidateIndexVersion;
   if (code >= AUTONOMY_REASON_PATH_NO_ROUTE && code <= AUTONOMY_REASON_PATH_SELECTED)
     return basis.pathMapVersion;
   if (code >= AUTONOMY_REASON_RESERVATION_CONFLICT && code <= AUTONOMY_REASON_RESERVATION_ACQUIRED)
@@ -715,7 +803,7 @@ function readReasonOwnerBasis(code: AutonomyReasonCode, basis: AutonomyVersionBa
   if (code === AUTONOMY_REASON_BLOCKED_SCHEDULE_CLOSED) return basis.scheduleVersion;
   if (code === AUTONOMY_REASON_INTERRUPTED_NEED_EMERGENCY) return basis.needOwnerVersion;
   if (code === AUTONOMY_REASON_INTERRUPTED_SHIFT_END) return basis.scheduleVersion;
-  return basis.jobVersion > 0 ? basis.jobVersion : basis.offerOwnerVersion;
+  return basis.jobVersion > 0 ? basis.jobVersion : basis.candidateOwnerVersion;
 }
 
 function writeExecutionLanes(
@@ -724,7 +812,8 @@ function writeExecutionLanes(
   input: AutonomyTransitionInput,
 ): void {
   lanes[base + L_STATE] = input.nextState;
-  lanes[base + L_OFFER] = input.offerId;
+  lanes[base + L_CANDIDATE] = input.candidateId;
+  lanes[base + L_CANDIDATE_SOURCE] = input.candidateSourceCode;
   lanes[base + L_JOB] = input.jobId;
   lanes[base + L_PENDING_JOB] = input.pendingJobId;
   lanes[base + L_INTERRUPTION_POLICY] = input.interruptionPolicyCode;
@@ -749,7 +838,10 @@ function readExecutionLanes(
 ): void {
   output.residentGeneration = lanes[base + L_GENERATION] ?? AUTONOMY_REF_NONE;
   output.state = readState(lanes[base + L_STATE] ?? 0);
-  output.offerId = lanes[base + L_OFFER] ?? AUTONOMY_REF_NONE;
+  output.candidateSourceCode = readCandidateSourceCode(
+    lanes[base + L_CANDIDATE_SOURCE] ?? AUTONOMY_CANDIDATE_SOURCE_NONE,
+  );
+  output.candidateId = lanes[base + L_CANDIDATE] ?? AUTONOMY_REF_NONE;
   output.jobId = lanes[base + L_JOB] ?? AUTONOMY_REF_NONE;
   output.pendingJobId = lanes[base + L_PENDING_JOB] ?? AUTONOMY_REF_NONE;
   output.interruptionPolicyCode = readInterruptionPolicyCode(
@@ -772,37 +864,140 @@ function readExecutionLanes(
 }
 
 function writeBasis(lanes: Uint32Array, base: number, basis: AutonomyVersionBasis): void {
-  lanes[base] = basis.needOwnerVersion;
-  lanes[base + 1] = basis.scheduleVersion;
-  lanes[base + 2] = basis.capabilityConditionVersion;
-  lanes[base + 3] = basis.capabilityBaseVersion;
-  lanes[base + 4] = basis.offerOwnerVersion;
-  lanes[base + 5] = basis.offerRowVersion;
-  lanes[base + 6] = basis.offerIndexVersion;
-  lanes[base + 7] = basis.pathMapVersion;
-  lanes[base + 8] = basis.pathNavigationVersion;
-  lanes[base + 9] = basis.pathRegionVersion;
-  lanes[base + 10] = basis.pathRoomVersion;
-  lanes[base + 11] = basis.pathRegionGraphVersion;
-  lanes[base + 12] = basis.reservationVersion;
-  lanes[base + 13] = basis.jobVersion;
+  lanes[base + AutonomySnapshotLane.candidateId] = basis.candidateId;
+  lanes[base + AutonomySnapshotLane.candidateOwnerVersion] = basis.candidateOwnerVersion;
+  lanes[base + AutonomySnapshotLane.candidateRowVersion] = basis.candidateRowVersion;
+  lanes[base + AutonomySnapshotLane.candidateIndexVersion] = basis.candidateIndexVersion;
+  lanes[base + AutonomySnapshotLane.candidateBacklog] = basis.candidateBacklog;
+  lanes[base + AutonomySnapshotLane.needOwnerVersion] = basis.needOwnerVersion;
+  lanes[base + AutonomySnapshotLane.scheduleVersion] = basis.scheduleVersion;
+  lanes[base + AutonomySnapshotLane.capabilityConditionVersion] = basis.capabilityConditionVersion;
+  lanes[base + AutonomySnapshotLane.capabilityBaseVersion] = basis.capabilityBaseVersion;
+  writeFoodBasis(lanes, base, basis);
+  writeRestBasis(lanes, base, basis);
+  writeMedicalBasis(lanes, base, basis);
+  lanes[base + AutonomySnapshotLane.pathMapVersion] = basis.pathMapVersion;
+  lanes[base + AutonomySnapshotLane.pathNavigationVersion] = basis.pathNavigationVersion;
+  lanes[base + AutonomySnapshotLane.pathRegionVersion] = basis.pathRegionVersion;
+  lanes[base + AutonomySnapshotLane.pathRoomVersion] = basis.pathRoomVersion;
+  lanes[base + AutonomySnapshotLane.pathRegionGraphVersion] = basis.pathRegionGraphVersion;
+  lanes[base + AutonomySnapshotLane.reservationVersion] = basis.reservationVersion;
+  lanes[base + AutonomySnapshotLane.jobVersion] = basis.jobVersion;
 }
 
 function readBasis(lanes: Uint32Array, base: number, basis: AutonomyVersionBasis): void {
-  basis.needOwnerVersion = lanes[base] ?? 0;
-  basis.scheduleVersion = lanes[base + 1] ?? 0;
-  basis.capabilityConditionVersion = lanes[base + 2] ?? 0;
-  basis.capabilityBaseVersion = lanes[base + 3] ?? 0;
-  basis.offerOwnerVersion = lanes[base + 4] ?? 0;
-  basis.offerRowVersion = lanes[base + 5] ?? 0;
-  basis.offerIndexVersion = lanes[base + 6] ?? 0;
-  basis.pathMapVersion = lanes[base + 7] ?? 0;
-  basis.pathNavigationVersion = lanes[base + 8] ?? 0;
-  basis.pathRegionVersion = lanes[base + 9] ?? 0;
-  basis.pathRoomVersion = lanes[base + 10] ?? 0;
-  basis.pathRegionGraphVersion = lanes[base + 11] ?? 0;
-  basis.reservationVersion = lanes[base + 12] ?? 0;
-  basis.jobVersion = lanes[base + 13] ?? 0;
+  basis.candidateId = lanes[base + AutonomySnapshotLane.candidateId] ?? AUTONOMY_REF_NONE;
+  basis.candidateOwnerVersion = lanes[base + AutonomySnapshotLane.candidateOwnerVersion] ?? 0;
+  basis.candidateRowVersion = lanes[base + AutonomySnapshotLane.candidateRowVersion] ?? 0;
+  basis.candidateIndexVersion = lanes[base + AutonomySnapshotLane.candidateIndexVersion] ?? 0;
+  basis.candidateBacklog = lanes[base + AutonomySnapshotLane.candidateBacklog] ?? 0;
+  basis.needOwnerVersion = lanes[base + AutonomySnapshotLane.needOwnerVersion] ?? 0;
+  basis.scheduleVersion = lanes[base + AutonomySnapshotLane.scheduleVersion] ?? 0;
+  basis.capabilityConditionVersion =
+    lanes[base + AutonomySnapshotLane.capabilityConditionVersion] ?? 0;
+  basis.capabilityBaseVersion = lanes[base + AutonomySnapshotLane.capabilityBaseVersion] ?? 0;
+  readFoodBasis(lanes, base, basis);
+  readRestBasis(lanes, base, basis);
+  readMedicalBasis(lanes, base, basis);
+  basis.pathMapVersion = lanes[base + AutonomySnapshotLane.pathMapVersion] ?? 0;
+  basis.pathNavigationVersion = lanes[base + AutonomySnapshotLane.pathNavigationVersion] ?? 0;
+  basis.pathRegionVersion = lanes[base + AutonomySnapshotLane.pathRegionVersion] ?? 0;
+  basis.pathRoomVersion = lanes[base + AutonomySnapshotLane.pathRoomVersion] ?? 0;
+  basis.pathRegionGraphVersion = lanes[base + AutonomySnapshotLane.pathRegionGraphVersion] ?? 0;
+  basis.reservationVersion = lanes[base + AutonomySnapshotLane.reservationVersion] ?? 0;
+  basis.jobVersion = lanes[base + AutonomySnapshotLane.jobVersion] ?? 0;
+}
+
+function writeFoodBasis(lanes: Uint32Array, base: number, basis: AutonomyVersionBasis): void {
+  lanes[base + AutonomySnapshotLane.foodAvailabilityVersion] = basis.foodAvailabilityVersion;
+  lanes[base + AutonomySnapshotLane.foodItemVersion] = basis.foodItemVersion;
+  lanes[base + AutonomySnapshotLane.foodMealWindowId] = basis.foodMealWindowId;
+  lanes[base + AutonomySnapshotLane.foodMealWindowVersion] = basis.foodMealWindowVersion;
+  lanes[base + AutonomySnapshotLane.foodDirtyBacklog] = basis.foodDirtyBacklog;
+}
+
+function readFoodBasis(lanes: Uint32Array, base: number, basis: AutonomyVersionBasis): void {
+  basis.foodAvailabilityVersion = lanes[base + AutonomySnapshotLane.foodAvailabilityVersion] ?? 0;
+  basis.foodItemVersion = lanes[base + AutonomySnapshotLane.foodItemVersion] ?? 0;
+  basis.foodMealWindowId = lanes[base + AutonomySnapshotLane.foodMealWindowId] ?? 0;
+  basis.foodMealWindowVersion = lanes[base + AutonomySnapshotLane.foodMealWindowVersion] ?? 0;
+  basis.foodDirtyBacklog = lanes[base + AutonomySnapshotLane.foodDirtyBacklog] ?? 0;
+}
+
+function writeRestBasis(lanes: Uint32Array, base: number, basis: AutonomyVersionBasis): void {
+  lanes[base + AutonomySnapshotLane.restStoreVersion] = basis.restStoreVersion;
+  lanes[base + AutonomySnapshotLane.restCachedRowVersion] = basis.restCachedRowVersion;
+  lanes[base + AutonomySnapshotLane.restCurrentRowVersion] = basis.restCurrentRowVersion;
+  lanes[base + AutonomySnapshotLane.restSourceVersion] = basis.restSourceVersion;
+  lanes[base + AutonomySnapshotLane.restIndexVersion] = basis.restIndexVersion;
+  lanes[base + AutonomySnapshotLane.restDirtyBacklog] = basis.restDirtyBacklog;
+  lanes[base + AutonomySnapshotLane.restScheduleWindowCode] = basis.restScheduleWindowCode;
+  lanes[base + AutonomySnapshotLane.restScheduleWindowVersion] = basis.restScheduleWindowVersion;
+  lanes[base + AutonomySnapshotLane.restWeatherExposureCode] = basis.restWeatherExposureCode;
+  lanes[base + AutonomySnapshotLane.restWeatherVersion] = basis.restWeatherVersion;
+  lanes[base + AutonomySnapshotLane.restWeatherSourceVersion] = basis.restWeatherSourceVersion;
+  lanes[base + AutonomySnapshotLane.restOutdoorWorkAllowed] = basis.restOutdoorWorkAllowed;
+}
+
+function readRestBasis(lanes: Uint32Array, base: number, basis: AutonomyVersionBasis): void {
+  basis.restStoreVersion = lanes[base + AutonomySnapshotLane.restStoreVersion] ?? 0;
+  basis.restCachedRowVersion = lanes[base + AutonomySnapshotLane.restCachedRowVersion] ?? 0;
+  basis.restCurrentRowVersion = lanes[base + AutonomySnapshotLane.restCurrentRowVersion] ?? 0;
+  basis.restSourceVersion = lanes[base + AutonomySnapshotLane.restSourceVersion] ?? 0;
+  basis.restIndexVersion = lanes[base + AutonomySnapshotLane.restIndexVersion] ?? 0;
+  basis.restDirtyBacklog = lanes[base + AutonomySnapshotLane.restDirtyBacklog] ?? 0;
+  basis.restScheduleWindowCode = lanes[base + AutonomySnapshotLane.restScheduleWindowCode] ?? 0;
+  basis.restScheduleWindowVersion =
+    lanes[base + AutonomySnapshotLane.restScheduleWindowVersion] ?? 0;
+  basis.restWeatherExposureCode = lanes[base + AutonomySnapshotLane.restWeatherExposureCode] ?? 0;
+  basis.restWeatherVersion = lanes[base + AutonomySnapshotLane.restWeatherVersion] ?? 0;
+  basis.restWeatherSourceVersion = lanes[base + AutonomySnapshotLane.restWeatherSourceVersion] ?? 0;
+  basis.restOutdoorWorkAllowed = lanes[base + AutonomySnapshotLane.restOutdoorWorkAllowed] ?? 0;
+}
+
+function writeMedicalBasis(lanes: Uint32Array, base: number, basis: AutonomyVersionBasis): void {
+  lanes[base + AutonomySnapshotLane.medicalStoreVersion] = basis.medicalStoreVersion;
+  lanes[base + AutonomySnapshotLane.medicalHealthStoreVersion] = basis.medicalHealthStoreVersion;
+  lanes[base + AutonomySnapshotLane.medicalConditionVersion] = basis.medicalConditionVersion;
+  lanes[base + AutonomySnapshotLane.medicalActorVersion] = basis.medicalActorVersion;
+  lanes[base + AutonomySnapshotLane.medicalCaregiverId] = basis.medicalCaregiverId;
+  lanes[base + AutonomySnapshotLane.medicalCaregiverRegionId] = basis.medicalCaregiverRegionId;
+  lanes[base + AutonomySnapshotLane.medicalCaregiverPermissionId] =
+    basis.medicalCaregiverPermissionId;
+  lanes[base + AutonomySnapshotLane.medicalCaregiverAbility] = basis.medicalCaregiverAbility;
+  lanes[base + AutonomySnapshotLane.medicalCaregiverMinimumAbility] =
+    basis.medicalCaregiverMinimumAbility;
+  lanes[base + AutonomySnapshotLane.medicalCaregiverAbilityValue] =
+    basis.medicalCaregiverAbilityValue;
+  lanes[base + AutonomySnapshotLane.medicalCaregiverActorConditionVersion] =
+    basis.medicalCaregiverActorConditionVersion;
+  lanes[base + AutonomySnapshotLane.medicalCaregiverBaseAbilityVersion] =
+    basis.medicalCaregiverBaseAbilityVersion;
+  lanes[base + AutonomySnapshotLane.medicalCaregiverValid] = basis.medicalCaregiverValid;
+  lanes[base + AutonomySnapshotLane.medicalCaregiverAllowed] = basis.medicalCaregiverAllowed;
+}
+
+function readMedicalBasis(lanes: Uint32Array, base: number, basis: AutonomyVersionBasis): void {
+  basis.medicalStoreVersion = lanes[base + AutonomySnapshotLane.medicalStoreVersion] ?? 0;
+  basis.medicalHealthStoreVersion =
+    lanes[base + AutonomySnapshotLane.medicalHealthStoreVersion] ?? 0;
+  basis.medicalConditionVersion = lanes[base + AutonomySnapshotLane.medicalConditionVersion] ?? 0;
+  basis.medicalActorVersion = lanes[base + AutonomySnapshotLane.medicalActorVersion] ?? 0;
+  basis.medicalCaregiverId = lanes[base + AutonomySnapshotLane.medicalCaregiverId] ?? 0;
+  basis.medicalCaregiverRegionId = lanes[base + AutonomySnapshotLane.medicalCaregiverRegionId] ?? 0;
+  basis.medicalCaregiverPermissionId =
+    lanes[base + AutonomySnapshotLane.medicalCaregiverPermissionId] ?? 0;
+  basis.medicalCaregiverAbility = lanes[base + AutonomySnapshotLane.medicalCaregiverAbility] ?? 0;
+  basis.medicalCaregiverMinimumAbility =
+    lanes[base + AutonomySnapshotLane.medicalCaregiverMinimumAbility] ?? 0;
+  basis.medicalCaregiverAbilityValue =
+    lanes[base + AutonomySnapshotLane.medicalCaregiverAbilityValue] ?? 0;
+  basis.medicalCaregiverActorConditionVersion =
+    lanes[base + AutonomySnapshotLane.medicalCaregiverActorConditionVersion] ?? 0;
+  basis.medicalCaregiverBaseAbilityVersion =
+    lanes[base + AutonomySnapshotLane.medicalCaregiverBaseAbilityVersion] ?? 0;
+  basis.medicalCaregiverValid = lanes[base + AutonomySnapshotLane.medicalCaregiverValid] ?? 0;
+  basis.medicalCaregiverAllowed = lanes[base + AutonomySnapshotLane.medicalCaregiverAllowed] ?? 0;
 }
 
 function writeStoredReason(
@@ -868,7 +1063,10 @@ function readTerminal(
 ): void {
   output.terminal.present = (lanes[base + L_TERMINAL_PRESENT] ?? 0) === 1;
   output.terminal.state = readState(lanes[base + L_TERMINAL_STATE] ?? 0);
-  output.terminal.offerId = lanes[base + L_TERMINAL_OFFER] ?? AUTONOMY_REF_NONE;
+  output.terminal.candidateSourceCode = readCandidateSourceCode(
+    lanes[base + L_TERMINAL_CANDIDATE_SOURCE] ?? AUTONOMY_CANDIDATE_SOURCE_NONE,
+  );
+  output.terminal.candidateId = lanes[base + L_TERMINAL_CANDIDATE] ?? AUTONOMY_REF_NONE;
   output.terminal.jobId = lanes[base + L_TERMINAL_JOB] ?? AUTONOMY_REF_NONE;
   output.terminal.interruptionPolicyCode = readInterruptionPolicyCode(
     lanes[base + L_TERMINAL_INTERRUPTION_POLICY] ?? AUTONOMY_INTERRUPTION_POLICY_NONE,
@@ -931,7 +1129,8 @@ function resetReadOutput(
   output.state = AUTONOMY_STATE_IDLE;
   output.stateEnteredTick = 0;
   output.retryTick = 0;
-  output.offerId = AUTONOMY_REF_NONE;
+  output.candidateSourceCode = AUTONOMY_CANDIDATE_SOURCE_NONE;
+  output.candidateId = AUTONOMY_REF_NONE;
   output.jobId = AUTONOMY_REF_NONE;
   output.pendingJobId = AUTONOMY_REF_NONE;
   output.interruptionPolicyCode = AUTONOMY_INTERRUPTION_POLICY_NONE;
@@ -954,7 +1153,8 @@ function resetReadOutput(
   output.terminal.present = false;
   output.terminal.state = AUTONOMY_STATE_IDLE;
   output.terminal.tick = 0;
-  output.terminal.offerId = AUTONOMY_REF_NONE;
+  output.terminal.candidateSourceCode = AUTONOMY_CANDIDATE_SOURCE_NONE;
+  output.terminal.candidateId = AUTONOMY_REF_NONE;
   output.terminal.jobId = AUTONOMY_REF_NONE;
   output.terminal.interruptionPolicyCode = AUTONOMY_INTERRUPTION_POLICY_NONE;
   output.terminal.jobVersion = 0;
@@ -965,13 +1165,46 @@ function resetReadOutput(
 }
 
 function resetBasis(basis: AutonomyVersionBasis): void {
+  basis.candidateId = AUTONOMY_REF_NONE;
+  basis.candidateOwnerVersion = 0;
+  basis.candidateRowVersion = 0;
+  basis.candidateIndexVersion = 0;
+  basis.candidateBacklog = 0;
   basis.needOwnerVersion = 0;
   basis.scheduleVersion = 0;
   basis.capabilityConditionVersion = 0;
   basis.capabilityBaseVersion = 0;
-  basis.offerOwnerVersion = 0;
-  basis.offerRowVersion = 0;
-  basis.offerIndexVersion = 0;
+  basis.foodAvailabilityVersion = 0;
+  basis.foodItemVersion = 0;
+  basis.foodMealWindowId = 0;
+  basis.foodMealWindowVersion = 0;
+  basis.foodDirtyBacklog = 0;
+  basis.restStoreVersion = 0;
+  basis.restCachedRowVersion = 0;
+  basis.restCurrentRowVersion = 0;
+  basis.restSourceVersion = 0;
+  basis.restIndexVersion = 0;
+  basis.restDirtyBacklog = 0;
+  basis.restScheduleWindowCode = 0;
+  basis.restScheduleWindowVersion = 0;
+  basis.restWeatherExposureCode = 0;
+  basis.restWeatherVersion = 0;
+  basis.restWeatherSourceVersion = 0;
+  basis.restOutdoorWorkAllowed = 0;
+  basis.medicalStoreVersion = 0;
+  basis.medicalHealthStoreVersion = 0;
+  basis.medicalConditionVersion = 0;
+  basis.medicalActorVersion = 0;
+  basis.medicalCaregiverId = 0;
+  basis.medicalCaregiverRegionId = 0;
+  basis.medicalCaregiverPermissionId = 0;
+  basis.medicalCaregiverAbility = 0;
+  basis.medicalCaregiverMinimumAbility = 0;
+  basis.medicalCaregiverAbilityValue = 0;
+  basis.medicalCaregiverActorConditionVersion = 0;
+  basis.medicalCaregiverBaseAbilityVersion = 0;
+  basis.medicalCaregiverValid = 0;
+  basis.medicalCaregiverAllowed = 0;
   basis.pathMapVersion = 0;
   basis.pathNavigationVersion = 0;
   basis.pathRegionVersion = 0;
@@ -982,7 +1215,8 @@ function resetBasis(basis: AutonomyVersionBasis): void {
 }
 
 function setExecutionRefsNone(lanes: Uint32Array, base: number): void {
-  lanes[base + L_OFFER] = AUTONOMY_REF_NONE;
+  lanes[base + L_CANDIDATE] = AUTONOMY_REF_NONE;
+  lanes[base + L_CANDIDATE_SOURCE] = AUTONOMY_CANDIDATE_SOURCE_NONE;
   lanes[base + L_JOB] = AUTONOMY_REF_NONE;
   lanes[base + L_PENDING_JOB] = AUTONOMY_REF_NONE;
   lanes[base + L_INTERRUPTION_POLICY] = AUTONOMY_INTERRUPTION_POLICY_NONE;
@@ -1025,13 +1259,18 @@ function writeEmptyReason(lanes: Uint32Array, base: number): void {
 
 function isValidBasis(basis: AutonomyVersionBasis): boolean {
   return (
+    isOptionalScalar(basis.candidateId) &&
+    isUint32(basis.candidateOwnerVersion) &&
+    isUint32(basis.candidateRowVersion) &&
+    isUint32(basis.candidateIndexVersion) &&
+    isUint32(basis.candidateBacklog) &&
     isUint32(basis.needOwnerVersion) &&
     isUint32(basis.scheduleVersion) &&
     isUint32(basis.capabilityConditionVersion) &&
     isUint32(basis.capabilityBaseVersion) &&
-    isUint32(basis.offerOwnerVersion) &&
-    isUint32(basis.offerRowVersion) &&
-    isUint32(basis.offerIndexVersion) &&
+    isValidFoodBasisFields(basis) &&
+    isValidRestBasisFields(basis) &&
+    isValidMedicalBasisFields(basis) &&
     isUint32(basis.pathMapVersion) &&
     isUint32(basis.pathNavigationVersion) &&
     isUint32(basis.pathRegionVersion) &&
@@ -1039,6 +1278,193 @@ function isValidBasis(basis: AutonomyVersionBasis): boolean {
     isUint32(basis.pathRegionGraphVersion) &&
     isUint32(basis.reservationVersion) &&
     isUint32(basis.jobVersion)
+  );
+}
+
+function isValidBasisForSource(
+  source: AutonomyCandidateSourceCode,
+  candidateId: number,
+  basis: AutonomyVersionBasis,
+): boolean {
+  if (!isCandidateSourceCode(source) || !isValidBasis(basis) || basis.candidateId !== candidateId)
+    return false;
+  if (source === AUTONOMY_CANDIDATE_SOURCE_NONE || source === AUTONOMY_CANDIDATE_SOURCE_WAIT)
+    return (
+      candidateId === AUTONOMY_REF_NONE && hasZeroGenericBasis(basis) && hasZeroSourceBasis(basis)
+    );
+  if (candidateId === AUTONOMY_REF_NONE) return false;
+  if (source === AUTONOMY_CANDIDATE_SOURCE_ORDINARY)
+    return (
+      basis.candidateOwnerVersion > 0 &&
+      basis.candidateRowVersion > 0 &&
+      basis.candidateIndexVersion > 0 &&
+      basis.candidateBacklog === 0 &&
+      hasZeroSourceBasis(basis)
+    );
+  if (source === AUTONOMY_CANDIDATE_SOURCE_FOOD) return isMappedFoodBasis(basis);
+  if (source === AUTONOMY_CANDIDATE_SOURCE_REST) return isMappedRestBasis(basis);
+  return isMappedMedicalBasis(basis);
+}
+
+function isValidFoodBasisFields(basis: AutonomyVersionBasis): boolean {
+  return (
+    isUint32(basis.foodAvailabilityVersion) &&
+    isUint32(basis.foodItemVersion) &&
+    isUint32(basis.foodMealWindowId) &&
+    isUint32(basis.foodMealWindowVersion) &&
+    isUint32(basis.foodDirtyBacklog)
+  );
+}
+
+function isValidRestBasisFields(basis: AutonomyVersionBasis): boolean {
+  return (
+    isUint32(basis.restStoreVersion) &&
+    isUint32(basis.restCachedRowVersion) &&
+    isUint32(basis.restCurrentRowVersion) &&
+    isUint32(basis.restSourceVersion) &&
+    isUint32(basis.restIndexVersion) &&
+    isUint32(basis.restDirtyBacklog) &&
+    isUint32(basis.restScheduleWindowCode) &&
+    basis.restScheduleWindowCode < 4 &&
+    isUint32(basis.restScheduleWindowVersion) &&
+    isUint32(basis.restWeatherExposureCode) &&
+    basis.restWeatherExposureCode < 2 &&
+    isUint32(basis.restWeatherVersion) &&
+    isUint32(basis.restWeatherSourceVersion) &&
+    isBinaryFlag(basis.restOutdoorWorkAllowed)
+  );
+}
+
+function isValidMedicalBasisFields(basis: AutonomyVersionBasis): boolean {
+  return (
+    isUint32(basis.medicalStoreVersion) &&
+    isUint32(basis.medicalHealthStoreVersion) &&
+    isUint32(basis.medicalConditionVersion) &&
+    isUint32(basis.medicalActorVersion) &&
+    isUint32(basis.medicalCaregiverId) &&
+    isUint32(basis.medicalCaregiverRegionId) &&
+    isUint32(basis.medicalCaregiverPermissionId) &&
+    isOptionalBounded(basis.medicalCaregiverAbility, 6) &&
+    isUint32(basis.medicalCaregiverMinimumAbility) &&
+    basis.medicalCaregiverMinimumAbility <= 1_000 &&
+    isUint32(basis.medicalCaregiverAbilityValue) &&
+    basis.medicalCaregiverAbilityValue <= 1_000 &&
+    isUint32(basis.medicalCaregiverActorConditionVersion) &&
+    isUint32(basis.medicalCaregiverBaseAbilityVersion) &&
+    isBinaryFlag(basis.medicalCaregiverValid) &&
+    isBinaryFlag(basis.medicalCaregiverAllowed)
+  );
+}
+
+function isMappedFoodBasis(basis: AutonomyVersionBasis): boolean {
+  return (
+    basis.foodAvailabilityVersion > 0 &&
+    basis.foodItemVersion > 0 &&
+    basis.foodMealWindowVersion > 0 &&
+    basis.candidateOwnerVersion === basis.foodAvailabilityVersion &&
+    basis.candidateRowVersion === basis.foodItemVersion &&
+    basis.candidateIndexVersion === basis.foodAvailabilityVersion &&
+    basis.candidateBacklog === basis.foodDirtyBacklog &&
+    hasZeroRestBasis(basis) &&
+    hasZeroMedicalBasis(basis)
+  );
+}
+
+function isMappedRestBasis(basis: AutonomyVersionBasis): boolean {
+  return (
+    basis.restStoreVersion > 0 &&
+    basis.restCachedRowVersion > 0 &&
+    basis.restCurrentRowVersion > 0 &&
+    basis.restSourceVersion > 0 &&
+    basis.restIndexVersion > 0 &&
+    basis.restScheduleWindowVersion > 0 &&
+    basis.restWeatherVersion > 0 &&
+    basis.restWeatherSourceVersion > 0 &&
+    basis.candidateOwnerVersion === basis.restStoreVersion &&
+    basis.candidateRowVersion === basis.restCurrentRowVersion &&
+    basis.candidateIndexVersion === basis.restIndexVersion &&
+    basis.candidateBacklog === basis.restDirtyBacklog &&
+    hasZeroFoodBasis(basis) &&
+    hasZeroMedicalBasis(basis)
+  );
+}
+
+function isMappedMedicalBasis(basis: AutonomyVersionBasis): boolean {
+  return (
+    basis.medicalStoreVersion > 0 &&
+    basis.medicalHealthStoreVersion > 0 &&
+    basis.medicalConditionVersion > 0 &&
+    basis.medicalActorVersion > 0 &&
+    basis.medicalCaregiverAbility < 6 &&
+    basis.medicalCaregiverActorConditionVersion > 0 &&
+    basis.medicalCaregiverBaseAbilityVersion > 0 &&
+    basis.medicalCaregiverValid === 1 &&
+    basis.medicalCaregiverAllowed === 1 &&
+    basis.candidateOwnerVersion === basis.medicalStoreVersion &&
+    basis.candidateRowVersion === basis.medicalConditionVersion &&
+    basis.candidateIndexVersion === basis.medicalStoreVersion &&
+    basis.candidateBacklog === 0 &&
+    hasZeroFoodBasis(basis) &&
+    hasZeroRestBasis(basis)
+  );
+}
+
+function hasZeroGenericBasis(basis: AutonomyVersionBasis): boolean {
+  return (
+    basis.candidateOwnerVersion === 0 &&
+    basis.candidateRowVersion === 0 &&
+    basis.candidateIndexVersion === 0 &&
+    basis.candidateBacklog === 0
+  );
+}
+
+function hasZeroSourceBasis(basis: AutonomyVersionBasis): boolean {
+  return hasZeroFoodBasis(basis) && hasZeroRestBasis(basis) && hasZeroMedicalBasis(basis);
+}
+
+function hasZeroFoodBasis(basis: AutonomyVersionBasis): boolean {
+  return (
+    basis.foodAvailabilityVersion === 0 &&
+    basis.foodItemVersion === 0 &&
+    basis.foodMealWindowId === 0 &&
+    basis.foodMealWindowVersion === 0 &&
+    basis.foodDirtyBacklog === 0
+  );
+}
+
+function hasZeroRestBasis(basis: AutonomyVersionBasis): boolean {
+  return (
+    basis.restStoreVersion === 0 &&
+    basis.restCachedRowVersion === 0 &&
+    basis.restCurrentRowVersion === 0 &&
+    basis.restSourceVersion === 0 &&
+    basis.restIndexVersion === 0 &&
+    basis.restDirtyBacklog === 0 &&
+    basis.restScheduleWindowCode === 0 &&
+    basis.restScheduleWindowVersion === 0 &&
+    basis.restWeatherExposureCode === 0 &&
+    basis.restWeatherVersion === 0 &&
+    basis.restWeatherSourceVersion === 0 &&
+    basis.restOutdoorWorkAllowed === 0
+  );
+}
+
+function hasZeroMedicalBasis(basis: AutonomyVersionBasis): boolean {
+  return (
+    basis.medicalStoreVersion === 0 &&
+    basis.medicalHealthStoreVersion === 0 &&
+    basis.medicalConditionVersion === 0 &&
+    basis.medicalActorVersion === 0 &&
+    basis.medicalCaregiverId === 0 &&
+    basis.medicalCaregiverRegionId === 0 &&
+    basis.medicalCaregiverPermissionId === 0 &&
+    basis.medicalCaregiverAbility === 0 &&
+    basis.medicalCaregiverMinimumAbility === 0 &&
+    basis.medicalCaregiverAbilityValue === 0 &&
+    basis.medicalCaregiverActorConditionVersion === 0 &&
+    basis.medicalCaregiverBaseAbilityVersion === 0 &&
+    basis.medicalCaregiverValid === 0 &&
+    basis.medicalCaregiverAllowed === 0
   );
 }
 
@@ -1158,7 +1584,8 @@ function validateStoredExecution(
   routeCount: number,
   claimCount: number,
 ): boolean {
-  const offerId = lanes[base + L_OFFER] ?? AUTONOMY_REF_NONE;
+  const candidateSource = lanes[base + L_CANDIDATE_SOURCE] ?? AUTONOMY_CANDIDATE_SOURCE_NONE;
+  const candidateId = lanes[base + L_CANDIDATE] ?? AUTONOMY_REF_NONE;
   const jobId = lanes[base + L_JOB] ?? AUTONOMY_REF_NONE;
   const pendingJobId = lanes[base + L_PENDING_JOB] ?? AUTONOMY_REF_NONE;
   const targetIndex = lanes[base + L_TARGET_INDEX] ?? AUTONOMY_REF_NONE;
@@ -1166,7 +1593,7 @@ function validateStoredExecution(
   const targetCell = lanes[base + L_TARGET_CELL] ?? AUTONOMY_REF_NONE;
   if (
     !validateStoredScalarReferences(
-      offerId,
+      candidateId,
       jobId,
       pendingJobId,
       targetIndex,
@@ -1175,12 +1602,16 @@ function validateStoredExecution(
     )
   )
     return false;
-  if (!validateStoredBasis(lanes, base + L_BASIS)) return false;
+  if (
+    !isCandidateSourceCode(candidateSource) ||
+    !validateStoredBasis(lanes, base, candidateSource, candidateId)
+  )
+    return false;
   if (
     !isValidJobPolicyBinding(
       jobId,
       lanes[base + L_INTERRUPTION_POLICY] ?? AUTONOMY_INTERRUPTION_POLICY_NONE,
-      lanes[base + L_BASIS + 13] ?? 0,
+      lanes[base + AutonomySnapshotLane.jobVersion] ?? 0,
     )
   )
     return false;
@@ -1188,23 +1619,170 @@ function validateStoredExecution(
   const hasTarget = targetIndex !== AUTONOMY_REF_NONE || targetCell !== AUTONOMY_REF_NONE;
   return validateStoredStateSemantics(
     state,
-    offerId,
+    candidateSource,
+    candidateId,
     jobId,
     pendingJobId,
     hasTarget,
     routeCount,
     claimCount,
+    lanes[base + L_ROW_VERSION] ?? 0,
   );
 }
 
-function validateStoredBasis(lanes: Uint32Array, base: number): boolean {
-  for (let index = 0; index < 14; index += 1)
-    if (!isUint32(lanes[base + index] ?? -1)) return false;
+function validateStoredBasis(
+  lanes: Uint32Array,
+  base: number,
+  source: AutonomyCandidateSourceCode,
+  candidateId: number,
+): boolean {
+  if ((lanes[base + AutonomySnapshotLane.candidateId] ?? AUTONOMY_REF_NONE) !== candidateId)
+    return false;
+  if (source === AUTONOMY_CANDIDATE_SOURCE_NONE || source === AUTONOMY_CANDIDATE_SOURCE_WAIT)
+    return (
+      candidateId === AUTONOMY_REF_NONE &&
+      hasZeroStoredGenericBasis(lanes, base) &&
+      hasZeroStoredSourceBasis(lanes, base)
+    );
+  if (candidateId === AUTONOMY_REF_NONE) return false;
+  if (source === AUTONOMY_CANDIDATE_SOURCE_ORDINARY)
+    return hasStoredOrdinaryBasis(lanes, base) && hasZeroStoredSourceBasis(lanes, base);
+  if (source === AUTONOMY_CANDIDATE_SOURCE_FOOD) return hasStoredFoodBasis(lanes, base);
+  if (source === AUTONOMY_CANDIDATE_SOURCE_REST) return hasStoredRestBasis(lanes, base);
+  return hasStoredMedicalBasis(lanes, base);
+}
+
+function hasZeroStoredGenericBasis(lanes: Uint32Array, base: number): boolean {
+  return (
+    (lanes[base + AutonomySnapshotLane.candidateOwnerVersion] ?? 0) === 0 &&
+    (lanes[base + AutonomySnapshotLane.candidateRowVersion] ?? 0) === 0 &&
+    (lanes[base + AutonomySnapshotLane.candidateIndexVersion] ?? 0) === 0 &&
+    (lanes[base + AutonomySnapshotLane.candidateBacklog] ?? 0) === 0
+  );
+}
+
+function hasZeroStoredSourceBasis(lanes: Uint32Array, base: number): boolean {
+  return hasZeroStoredLaneRange(
+    lanes,
+    base,
+    AutonomySnapshotLane.foodAvailabilityVersion,
+    AutonomySnapshotLane.medicalCaregiverAllowed,
+  );
+}
+
+function hasZeroStoredFoodBasis(lanes: Uint32Array, base: number): boolean {
+  return hasZeroStoredLaneRange(
+    lanes,
+    base,
+    AutonomySnapshotLane.foodAvailabilityVersion,
+    AutonomySnapshotLane.foodDirtyBacklog,
+  );
+}
+
+function hasZeroStoredRestBasis(lanes: Uint32Array, base: number): boolean {
+  return hasZeroStoredLaneRange(
+    lanes,
+    base,
+    AutonomySnapshotLane.restStoreVersion,
+    AutonomySnapshotLane.restOutdoorWorkAllowed,
+  );
+}
+
+function hasZeroStoredMedicalBasis(lanes: Uint32Array, base: number): boolean {
+  return hasZeroStoredLaneRange(
+    lanes,
+    base,
+    AutonomySnapshotLane.medicalStoreVersion,
+    AutonomySnapshotLane.medicalCaregiverAllowed,
+  );
+}
+
+function hasZeroStoredLaneRange(
+  lanes: Uint32Array,
+  base: number,
+  first: number,
+  last: number,
+): boolean {
+  for (let lane = first; lane <= last; lane += 1) if ((lanes[base + lane] ?? 0) !== 0) return false;
   return true;
 }
 
+function hasStoredOrdinaryBasis(lanes: Uint32Array, base: number): boolean {
+  return (
+    (lanes[base + AutonomySnapshotLane.candidateOwnerVersion] ?? 0) > 0 &&
+    (lanes[base + AutonomySnapshotLane.candidateRowVersion] ?? 0) > 0 &&
+    (lanes[base + AutonomySnapshotLane.candidateIndexVersion] ?? 0) > 0 &&
+    (lanes[base + AutonomySnapshotLane.candidateBacklog] ?? 0) === 0
+  );
+}
+
+function hasStoredFoodBasis(lanes: Uint32Array, base: number): boolean {
+  const owner = lanes[base + AutonomySnapshotLane.foodAvailabilityVersion] ?? 0;
+  const row = lanes[base + AutonomySnapshotLane.foodItemVersion] ?? 0;
+  const backlog = lanes[base + AutonomySnapshotLane.foodDirtyBacklog] ?? 0;
+  return (
+    owner > 0 &&
+    row > 0 &&
+    (lanes[base + AutonomySnapshotLane.foodMealWindowVersion] ?? 0) > 0 &&
+    lanes[base + AutonomySnapshotLane.candidateOwnerVersion] === owner &&
+    lanes[base + AutonomySnapshotLane.candidateRowVersion] === row &&
+    lanes[base + AutonomySnapshotLane.candidateIndexVersion] === owner &&
+    lanes[base + AutonomySnapshotLane.candidateBacklog] === backlog &&
+    hasZeroStoredRestBasis(lanes, base) &&
+    hasZeroStoredMedicalBasis(lanes, base)
+  );
+}
+
+function hasStoredRestBasis(lanes: Uint32Array, base: number): boolean {
+  const owner = lanes[base + AutonomySnapshotLane.restStoreVersion] ?? 0;
+  const row = lanes[base + AutonomySnapshotLane.restCurrentRowVersion] ?? 0;
+  const index = lanes[base + AutonomySnapshotLane.restIndexVersion] ?? 0;
+  const backlog = lanes[base + AutonomySnapshotLane.restDirtyBacklog] ?? 0;
+  return (
+    owner > 0 &&
+    row > 0 &&
+    index > 0 &&
+    (lanes[base + AutonomySnapshotLane.restCachedRowVersion] ?? 0) > 0 &&
+    (lanes[base + AutonomySnapshotLane.restSourceVersion] ?? 0) > 0 &&
+    (lanes[base + AutonomySnapshotLane.restScheduleWindowVersion] ?? 0) > 0 &&
+    (lanes[base + AutonomySnapshotLane.restWeatherVersion] ?? 0) > 0 &&
+    (lanes[base + AutonomySnapshotLane.restWeatherSourceVersion] ?? 0) > 0 &&
+    isBinaryFlag(lanes[base + AutonomySnapshotLane.restOutdoorWorkAllowed] ?? 2) &&
+    lanes[base + AutonomySnapshotLane.candidateOwnerVersion] === owner &&
+    lanes[base + AutonomySnapshotLane.candidateRowVersion] === row &&
+    lanes[base + AutonomySnapshotLane.candidateIndexVersion] === index &&
+    lanes[base + AutonomySnapshotLane.candidateBacklog] === backlog &&
+    hasZeroStoredFoodBasis(lanes, base) &&
+    hasZeroStoredMedicalBasis(lanes, base)
+  );
+}
+
+function hasStoredMedicalBasis(lanes: Uint32Array, base: number): boolean {
+  const owner = lanes[base + AutonomySnapshotLane.medicalStoreVersion] ?? 0;
+  const row = lanes[base + AutonomySnapshotLane.medicalConditionVersion] ?? 0;
+  return (
+    owner > 0 &&
+    row > 0 &&
+    (lanes[base + AutonomySnapshotLane.medicalHealthStoreVersion] ?? 0) > 0 &&
+    (lanes[base + AutonomySnapshotLane.medicalActorVersion] ?? 0) > 0 &&
+    (lanes[base + AutonomySnapshotLane.medicalCaregiverActorConditionVersion] ?? 0) > 0 &&
+    (lanes[base + AutonomySnapshotLane.medicalCaregiverBaseAbilityVersion] ?? 0) > 0 &&
+    (lanes[base + AutonomySnapshotLane.medicalCaregiverAbility] ?? 6) < 6 &&
+    (lanes[base + AutonomySnapshotLane.medicalCaregiverMinimumAbility] ?? 1_001) <= 1_000 &&
+    (lanes[base + AutonomySnapshotLane.medicalCaregiverAbilityValue] ?? 1_001) <= 1_000 &&
+    lanes[base + AutonomySnapshotLane.medicalCaregiverValid] === 1 &&
+    lanes[base + AutonomySnapshotLane.medicalCaregiverAllowed] === 1 &&
+    lanes[base + AutonomySnapshotLane.candidateOwnerVersion] === owner &&
+    lanes[base + AutonomySnapshotLane.candidateRowVersion] === row &&
+    lanes[base + AutonomySnapshotLane.candidateIndexVersion] === owner &&
+    lanes[base + AutonomySnapshotLane.candidateBacklog] === 0 &&
+    hasZeroStoredFoodBasis(lanes, base) &&
+    hasZeroStoredRestBasis(lanes, base)
+  );
+}
+
 function validateStoredScalarReferences(
-  offerId: number,
+  candidateId: number,
   jobId: number,
   pendingJobId: number,
   targetIndex: number,
@@ -1212,7 +1790,7 @@ function validateStoredScalarReferences(
   targetCell: number,
 ): boolean {
   return (
-    isOptionalScalar(offerId) &&
+    isOptionalScalar(candidateId) &&
     isOptionalScalar(jobId) &&
     isOptionalScalar(pendingJobId) &&
     isOptionalEntityRef(targetIndex, targetGeneration) &&
@@ -1231,17 +1809,21 @@ function validateStoredContext(lanes: Uint32Array, base: number): boolean {
 
 function validateStoredStateSemantics(
   state: number,
-  offerId: number,
+  candidateSource: AutonomyCandidateSourceCode,
+  candidateId: number,
   jobId: number,
   pendingJobId: number,
   hasTarget: boolean,
   routeCount: number,
   claimCount: number,
+  rowVersion: number,
 ): boolean {
+  if (!isCandidateSourceValidForState(candidateSource, readState(state), rowVersion === 1))
+    return false;
   if (state !== AUTONOMY_STATE_IDLE && !hasTarget) return false;
   if (state === AUTONOMY_STATE_IDLE)
     return (
-      offerId === AUTONOMY_REF_NONE &&
+      candidateId === AUTONOMY_REF_NONE &&
       jobId === AUTONOMY_REF_NONE &&
       pendingJobId === AUTONOMY_REF_NONE &&
       !hasTarget &&
@@ -1250,7 +1832,7 @@ function validateStoredStateSemantics(
     );
   if (state === AUTONOMY_STATE_CLAIMING)
     return (
-      offerId !== AUTONOMY_REF_NONE &&
+      candidateId !== AUTONOMY_REF_NONE &&
       jobId === AUTONOMY_REF_NONE &&
       hasPairedRouteClaims(routeCount, claimCount) &&
       hasValidPendingJobBinding(pendingJobId, routeCount)
@@ -1275,7 +1857,7 @@ function validateStoredStateSemantics(
     );
   if (state === AUTONOMY_STATE_FAILED || state === AUTONOMY_STATE_INTERRUPTED)
     return (
-      (jobId !== AUTONOMY_REF_NONE || offerId !== AUTONOMY_REF_NONE) &&
+      (jobId !== AUTONOMY_REF_NONE || candidateId !== AUTONOMY_REF_NONE) &&
       pendingJobId === AUTONOMY_REF_NONE &&
       routeCount === 0 &&
       claimCount === 0
@@ -1292,7 +1874,9 @@ function validateStoredTerminal(
   const terminalStateValue = snapshot.lanes[base + L_TERMINAL_STATE] ?? 0;
   if (!isAutonomyState(terminalStateValue)) return false;
   const terminalState = terminalStateValue;
-  const offerId = snapshot.lanes[base + L_TERMINAL_OFFER] ?? AUTONOMY_REF_NONE;
+  const candidateSource =
+    snapshot.lanes[base + L_TERMINAL_CANDIDATE_SOURCE] ?? AUTONOMY_CANDIDATE_SOURCE_NONE;
+  const candidateId = snapshot.lanes[base + L_TERMINAL_CANDIDATE] ?? AUTONOMY_REF_NONE;
   const jobId = snapshot.lanes[base + L_TERMINAL_JOB] ?? AUTONOMY_REF_NONE;
   const interruptionPolicyCode =
     snapshot.lanes[base + L_TERMINAL_INTERRUPTION_POLICY] ?? AUTONOMY_INTERRUPTION_POLICY_NONE;
@@ -1302,7 +1886,7 @@ function validateStoredTerminal(
   const targetCell = snapshot.lanes[base + L_TERMINAL_TARGET_CELL] ?? AUTONOMY_REF_NONE;
   if (
     !validateStoredScalarReferences(
-      offerId,
+      candidateId,
       jobId,
       AUTONOMY_REF_NONE,
       targetIndex,
@@ -1313,13 +1897,15 @@ function validateStoredTerminal(
     return false;
   if (!validateStoredReason(snapshot, residentIndex, base + L_TERMINAL_REASON, P_TERMINAL))
     return false;
+  if (!isCandidateSourceCode(candidateSource)) return false;
   if (!validateStoredTerminalReasonSemantics(snapshot, residentIndex, base, terminalState, present))
     return false;
   const terminalTick = snapshot.ticks[residentIndex * TICK_LANE_COUNT + T_TERMINAL] ?? -1;
   if (present === 1)
     return validatePresentTerminal(
       terminalState,
-      offerId,
+      candidateSource,
+      candidateId,
       jobId,
       interruptionPolicyCode,
       jobVersion,
@@ -1329,7 +1915,8 @@ function validateStoredTerminal(
     );
   return validateEmptyTerminal(
     terminalState,
-    offerId,
+    candidateSource,
+    candidateId,
     jobId,
     interruptionPolicyCode,
     jobVersion,
@@ -1341,7 +1928,8 @@ function validateStoredTerminal(
 
 function validatePresentTerminal(
   state: AutonomyState,
-  offerId: number,
+  candidateSource: AutonomyCandidateSourceCode,
+  candidateId: number,
   jobId: number,
   interruptionPolicyCode: number,
   jobVersion: number,
@@ -1350,9 +1938,10 @@ function validatePresentTerminal(
   tick: number,
 ): boolean {
   const hasTarget = targetIndex !== AUTONOMY_REF_NONE || targetCell !== AUTONOMY_REF_NONE;
-  const hasEventRef = jobId !== AUTONOMY_REF_NONE || offerId !== AUTONOMY_REF_NONE;
+  const hasEventRef = jobId !== AUTONOMY_REF_NONE || candidateId !== AUTONOMY_REF_NONE;
   return (
     isTerminalState(state) &&
+    isCandidateSourceValidForState(candidateSource, state, false) &&
     hasTarget &&
     hasEventRef &&
     isValidJobPolicyBinding(jobId, interruptionPolicyCode, jobVersion) &&
@@ -1363,7 +1952,8 @@ function validatePresentTerminal(
 
 function validateEmptyTerminal(
   state: AutonomyState,
-  offerId: number,
+  candidateSource: AutonomyCandidateSourceCode,
+  candidateId: number,
   jobId: number,
   interruptionPolicyCode: number,
   jobVersion: number,
@@ -1373,7 +1963,8 @@ function validateEmptyTerminal(
 ): boolean {
   return (
     state === AUTONOMY_STATE_IDLE &&
-    offerId === AUTONOMY_REF_NONE &&
+    candidateSource === AUTONOMY_CANDIDATE_SOURCE_NONE &&
+    candidateId === AUTONOMY_REF_NONE &&
     jobId === AUTONOMY_REF_NONE &&
     interruptionPolicyCode === AUTONOMY_INTERRUPTION_POLICY_NONE &&
     jobVersion === 0 &&
@@ -1412,10 +2003,11 @@ function validateCurrentTerminalBinding(
 function sameTerminalExecutionLanes(lanes: Uint32Array, base: number): boolean {
   return (
     lanes[base + L_STATE] === lanes[base + L_TERMINAL_STATE] &&
-    lanes[base + L_OFFER] === lanes[base + L_TERMINAL_OFFER] &&
+    lanes[base + L_CANDIDATE_SOURCE] === lanes[base + L_TERMINAL_CANDIDATE_SOURCE] &&
+    lanes[base + L_CANDIDATE] === lanes[base + L_TERMINAL_CANDIDATE] &&
     lanes[base + L_JOB] === lanes[base + L_TERMINAL_JOB] &&
     lanes[base + L_INTERRUPTION_POLICY] === lanes[base + L_TERMINAL_INTERRUPTION_POLICY] &&
-    lanes[base + L_BASIS + 13] === lanes[base + L_TERMINAL_JOB_VERSION] &&
+    lanes[base + AutonomySnapshotLane.jobVersion] === lanes[base + L_TERMINAL_JOB_VERSION] &&
     lanes[base + L_TARGET_INDEX] === lanes[base + L_TERMINAL_TARGET_INDEX] &&
     lanes[base + L_TARGET_GENERATION] === lanes[base + L_TERMINAL_TARGET_GENERATION] &&
     lanes[base + L_TARGET_CELL] === lanes[base + L_TERMINAL_TARGET_CELL]
@@ -1516,7 +2108,7 @@ function validateStoredCurrentReasonSemantics(
     return false;
   return (
     (snapshot.lanes[reasonBase + R_OWNER_BASIS] ?? 0) ===
-    readStoredReasonOwnerBasis(codeValue, snapshot.lanes, base + L_BASIS)
+    readStoredReasonOwnerBasis(codeValue, snapshot.lanes, base)
   );
 }
 
@@ -1576,10 +2168,12 @@ function storedReasonTargetMatches(
 function readStoredReasonOwnerBasis(
   code: AutonomyReasonCode,
   lanes: Uint32Array,
-  basisBase: number,
+  base: number,
 ): number {
-  if (code === AUTONOMY_REASON_IDLE_OFF_SHIFT) return lanes[basisBase + 1] ?? 0;
-  if (code === AUTONOMY_REASON_IDLE_NO_INDEXED_OFFER) return lanes[basisBase + 6] ?? 0;
+  if (code === AUTONOMY_REASON_IDLE_OFF_SHIFT)
+    return lanes[base + AutonomySnapshotLane.scheduleVersion] ?? 0;
+  if (code === AUTONOMY_REASON_IDLE_NO_INDEXED_OFFER)
+    return lanes[base + AutonomySnapshotLane.candidateIndexVersion] ?? 0;
   if (
     code === AUTONOMY_REASON_IDLE_RETRY_BACKOFF ||
     code === AUTONOMY_REASON_IDLE_DECISION_DEFERRED
@@ -1589,23 +2183,35 @@ function readStoredReasonOwnerBasis(
     code >= AUTONOMY_REASON_NEED_HUNGER_EMERGENCY &&
     code <= AUTONOMY_REASON_NEED_HEALTH_EMERGENCY
   )
-    return lanes[basisBase] ?? 0;
+    return lanes[base + AutonomySnapshotLane.needOwnerVersion] ?? 0;
   if (
     code >= AUTONOMY_REASON_CAPABILITY_MOVEMENT_DENIED &&
     code <= AUTONOMY_REASON_CAPABILITY_ALLOWED
   )
-    return lanes[basisBase + 2] ?? 0;
+    return lanes[base + AutonomySnapshotLane.capabilityConditionVersion] ?? 0;
   if (code >= AUTONOMY_REASON_OFFER_EMPTY_BUCKET && code <= AUTONOMY_REASON_OFFER_SELECTED)
-    return lanes[basisBase + (code === AUTONOMY_REASON_OFFER_SELECTED ? 4 : 6)] ?? 0;
+    return (
+      lanes[
+        base +
+          (code === AUTONOMY_REASON_OFFER_SELECTED
+            ? AutonomySnapshotLane.candidateOwnerVersion
+            : AutonomySnapshotLane.candidateIndexVersion)
+      ] ?? 0
+    );
   if (code >= AUTONOMY_REASON_PATH_NO_ROUTE && code <= AUTONOMY_REASON_PATH_SELECTED)
-    return lanes[basisBase + 7] ?? 0;
+    return lanes[base + AutonomySnapshotLane.pathMapVersion] ?? 0;
   if (code >= AUTONOMY_REASON_RESERVATION_CONFLICT && code <= AUTONOMY_REASON_RESERVATION_ACQUIRED)
-    return lanes[basisBase + 12] ?? 0;
-  if (code === AUTONOMY_REASON_BLOCKED_SCHEDULE_CLOSED) return lanes[basisBase + 1] ?? 0;
-  if (code === AUTONOMY_REASON_INTERRUPTED_NEED_EMERGENCY) return lanes[basisBase] ?? 0;
-  if (code === AUTONOMY_REASON_INTERRUPTED_SHIFT_END) return lanes[basisBase + 1] ?? 0;
-  const jobVersion = lanes[basisBase + 13] ?? 0;
-  return jobVersion > 0 ? jobVersion : (lanes[basisBase + 4] ?? 0);
+    return lanes[base + AutonomySnapshotLane.reservationVersion] ?? 0;
+  if (code === AUTONOMY_REASON_BLOCKED_SCHEDULE_CLOSED)
+    return lanes[base + AutonomySnapshotLane.scheduleVersion] ?? 0;
+  if (code === AUTONOMY_REASON_INTERRUPTED_NEED_EMERGENCY)
+    return lanes[base + AutonomySnapshotLane.needOwnerVersion] ?? 0;
+  if (code === AUTONOMY_REASON_INTERRUPTED_SHIFT_END)
+    return lanes[base + AutonomySnapshotLane.scheduleVersion] ?? 0;
+  const jobVersion = lanes[base + AutonomySnapshotLane.jobVersion] ?? 0;
+  return jobVersion > 0
+    ? jobVersion
+    : (lanes[base + AutonomySnapshotLane.candidateOwnerVersion] ?? 0);
 }
 
 function countActive(active: Uint8Array): number {
@@ -1620,6 +2226,40 @@ function isTerminalState(state: AutonomyState): boolean {
     state === AUTONOMY_STATE_FAILED ||
     state === AUTONOMY_STATE_INTERRUPTED
   );
+}
+
+function isCandidateSourceCode(value: number): value is AutonomyCandidateSourceCode {
+  return (
+    Number.isInteger(value) &&
+    value >= AUTONOMY_CANDIDATE_SOURCE_NONE &&
+    value <= AUTONOMY_CANDIDATE_SOURCE_WAIT
+  );
+}
+
+function readCandidateSourceCode(value: number): AutonomyCandidateSourceCode {
+  return isCandidateSourceCode(value) ? value : AUTONOMY_CANDIDATE_SOURCE_NONE;
+}
+
+function isCandidateSourceValidForState(
+  source: AutonomyCandidateSourceCode,
+  state: AutonomyState,
+  allowInitialNone: boolean,
+): boolean {
+  if (state === AUTONOMY_STATE_IDLE)
+    return (
+      source === AUTONOMY_CANDIDATE_SOURCE_WAIT ||
+      (allowInitialNone && source === AUTONOMY_CANDIDATE_SOURCE_NONE)
+    );
+  return (
+    source === AUTONOMY_CANDIDATE_SOURCE_FOOD ||
+    source === AUTONOMY_CANDIDATE_SOURCE_REST ||
+    source === AUTONOMY_CANDIDATE_SOURCE_MEDICAL ||
+    source === AUTONOMY_CANDIDATE_SOURCE_ORDINARY
+  );
+}
+
+function isBinaryFlag(value: number): boolean {
+  return value === 0 || value === 1;
 }
 
 function isAutonomyState(value: number): value is AutonomyState {
@@ -1670,7 +2310,7 @@ function isValidJobPolicyContinuity(
   return (
     input.jobId === currentJobId &&
     input.interruptionPolicyCode === (lanes[base + L_INTERRUPTION_POLICY] ?? 0) &&
-    input.basis.jobVersion >= (lanes[base + L_BASIS + 13] ?? 0)
+    input.basis.jobVersion >= (lanes[base + AutonomySnapshotLane.jobVersion] ?? 0)
   );
 }
 

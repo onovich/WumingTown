@@ -41,6 +41,19 @@ import {
 import { ResidentAutonomyStore } from "./game-session-autonomy-store";
 import { isLegalAutonomyTransition } from "./game-session-autonomy-store";
 import {
+  bindAutonomyClaimSlotInto,
+  resetAutonomyClaimPlanInto,
+  type AutonomyClaimPlanIntoOutput,
+  type AutonomyClaimSlotScratch,
+  type AutonomyClaimSlotScratchTuple,
+} from "./game-session-autonomy-selection";
+import {
+  AUTONOMY_CANDIDATE_SOURCE_NONE,
+  AUTONOMY_CANDIDATE_SOURCE_FOOD,
+  AUTONOMY_CANDIDATE_SOURCE_MEDICAL,
+  AUTONOMY_CANDIDATE_SOURCE_ORDINARY,
+  AUTONOMY_CANDIDATE_SOURCE_REST,
+  AUTONOMY_CANDIDATE_SOURCE_WAIT,
   AUTONOMY_INTERRUPTION_POLICY_AT_SAFE_POINT,
   AUTONOMY_INTERRUPTION_POLICY_IMMEDIATE,
   AUTONOMY_INTERRUPTION_POLICY_NONE,
@@ -79,6 +92,7 @@ import {
   type ResidentAutonomyReadOutput,
   type ResidentAutonomySnapshot,
 } from "./game-session-autonomy-types";
+import type { ReservationTransactionRequest } from "./reservation-ledger";
 
 interface ReasonCase {
   readonly code: AutonomyReasonCode;
@@ -487,6 +501,7 @@ it("copies bounded authoritative route and claims and rejects every capacity ove
     routeCursor: 1,
     claimCount: 2,
   });
+  expect(readOutput.basis).toEqual(input.basis);
   expect(Array.from(readOutput.routeCells.slice(0, 3))).toEqual([4, 5, 6]);
   expect(Array.from(readOutput.routeCells.slice(3))).toEqual(
     Array.from({ length: AUTONOMY_MAX_ROUTE_CELLS - 3 }, () => AUTONOMY_REF_NONE),
@@ -566,7 +581,8 @@ it("allows claiming to publish only acquired route and claim pairs before a job 
   expect(readOutput).toMatchObject({
     ok: true,
     state: AUTONOMY_STATE_CLAIMING,
-    offerId: 3,
+    candidateSourceCode: AUTONOMY_CANDIDATE_SOURCE_ORDINARY,
+    candidateId: 3,
     jobId: AUTONOMY_REF_NONE,
     pendingJobId: 11,
     interruptionPolicyCode: AUTONOMY_INTERRUPTION_POLICY_NONE,
@@ -776,7 +792,8 @@ it("retains a completed terminal across idle and roundtrips every snapshot lane 
     present: true,
     state: AUTONOMY_STATE_COMPLETED,
     tick: 3,
-    offerId: 3,
+    candidateSourceCode: AUTONOMY_CANDIDATE_SOURCE_ORDINARY,
+    candidateId: 3,
     jobId: 11,
     interruptionPolicyCode: AUTONOMY_INTERRUPTION_POLICY_AT_SAFE_POINT,
     jobVersion: 17,
@@ -823,7 +840,9 @@ it("retains a completed terminal across idle and roundtrips every snapshot lane 
   input.nextState = AUTONOMY_STATE_IDLE;
   input.stateEnteredTick = 4;
   input.retryTick = 5;
-  input.offerId = AUTONOMY_REF_NONE;
+  input.candidateSourceCode = AUTONOMY_CANDIDATE_SOURCE_WAIT;
+  input.candidateId = AUTONOMY_REF_NONE;
+  writeWaitBasis(input.basis);
   input.jobId = AUTONOMY_REF_NONE;
   input.interruptionPolicyCode = AUTONOMY_INTERRUPTION_POLICY_NONE;
   input.basis.jobVersion = 0;
@@ -859,7 +878,8 @@ it("retains a completed terminal across idle and roundtrips every snapshot lane 
   expect(idleRead).toMatchObject({
     ok: true,
     state: AUTONOMY_STATE_IDLE,
-    offerId: AUTONOMY_REF_NONE,
+    candidateSourceCode: AUTONOMY_CANDIDATE_SOURCE_WAIT,
+    candidateId: AUTONOMY_REF_NONE,
     jobId: AUTONOMY_REF_NONE,
     pendingJobId: AUTONOMY_REF_NONE,
     interruptionPolicyCode: AUTONOMY_INTERRUPTION_POLICY_NONE,
@@ -890,7 +910,7 @@ it("retains a completed terminal across idle and roundtrips every snapshot lane 
   const guard = new ResidentAutonomyStore(2);
   guard.registerResidentInto(1, 2, 8, output);
   const badVersion = cloneSnapshot(snapshot);
-  Reflect.set(badVersion, "snapshotVersion", 2);
+  Reflect.set(badVersion, "snapshotVersion", 3);
   expectAtomicRestoreFailure(guard, badVersion, AUTONOMY_STORE_SNAPSHOT_VERSION);
   const badShape = cloneSnapshot(snapshot);
   Reflect.set(badShape, "active", new Uint8Array(1));
@@ -988,6 +1008,295 @@ it("restores exhausted row and store versions but rejects the next transition wi
   expect(restored.createSnapshot()).toEqual(before);
 });
 
+it("roundtrips each approved candidate source basis and rejects cross-source residue atomically", () => {
+  const foodInput = createClaimingInput();
+  writeFoodCandidateBasis(foodInput);
+  expectCandidateBasisRoundTrip(foodInput);
+
+  const restInput = createClaimingInput();
+  writeRestCandidateBasis(restInput);
+  expectCandidateBasisRoundTrip(restInput);
+
+  const medicalInput = createClaimingInput();
+  writeMedicalCandidateBasis(medicalInput);
+  expectCandidateBasisRoundTrip(medicalInput);
+
+  const ordinaryInput = createClaimingInput();
+  const ordinaryStore = new ResidentAutonomyStore(2);
+  const output = createStoreOutput();
+  ordinaryStore.registerResidentInto(0, 1, 0, output);
+  ordinaryStore.transitionInto(ordinaryInput, output);
+  expect(output.ok).toBe(true);
+  const ordinarySnapshot = ordinaryStore.createSnapshot();
+  const guard = new ResidentAutonomyStore(2);
+  const badSource = cloneSnapshot(ordinarySnapshot);
+  badSource.lanes[AutonomySnapshotLane.candidateSourceCode] = 99;
+  expectAtomicRestoreFailure(guard, badSource, AUTONOMY_STORE_SNAPSHOT_STATE);
+  const badSourceShape = cloneSnapshot(ordinarySnapshot);
+  badSourceShape.lanes[AutonomySnapshotLane.candidateSourceCode] = AUTONOMY_CANDIDATE_SOURCE_FOOD;
+  expectAtomicRestoreFailure(guard, badSourceShape, AUTONOMY_STORE_SNAPSHOT_STATE);
+  const badResidue = cloneSnapshot(ordinarySnapshot);
+  badResidue.lanes[AutonomySnapshotLane.foodAvailabilityVersion] = 1;
+  expectAtomicRestoreFailure(guard, badResidue, AUTONOMY_STORE_SNAPSHOT_STATE);
+});
+
+it("persists WAIT through the reviewed idle refresh without legalizing idle to idle transition", () => {
+  const store = new ResidentAutonomyStore(2);
+  const output = createStoreOutput();
+  store.registerResidentInto(0, 1, 0, output);
+  const waitInput = createWaitRefreshInput();
+  store.transitionInto(waitInput, output);
+  expect(output).toMatchObject({ ok: false, code: AUTONOMY_STORE_ILLEGAL_TRANSITION });
+
+  store.refreshIdleInto(waitInput, output);
+  expect(output).toMatchObject({ ok: true, rowVersion: 2, storeVersion: 2 });
+  const read = createReadOutput();
+  store.readResidentInto(0, 1, read);
+  expect(read).toMatchObject({
+    state: AUTONOMY_STATE_IDLE,
+    candidateSourceCode: AUTONOMY_CANDIDATE_SOURCE_WAIT,
+    candidateId: AUTONOMY_REF_NONE,
+    basis: {
+      candidateId: AUTONOMY_REF_NONE,
+      candidateOwnerVersion: 0,
+      candidateRowVersion: 0,
+      candidateIndexVersion: 0,
+      candidateBacklog: 0,
+    },
+  });
+
+  waitInput.expectedRowVersion = 2;
+  waitInput.candidateSourceCode = AUTONOMY_CANDIDATE_SOURCE_NONE;
+  const stable = store.createSnapshot();
+  store.refreshIdleInto(waitInput, output);
+  expect(output).toMatchObject({ ok: false, code: AUTONOMY_STORE_ILLEGAL_TRANSITION });
+  expect(store.createSnapshot()).toEqual(stable);
+});
+
+it("resets and rebinds only caller-preallocated claim plan identities", () => {
+  const plan = createClaimPlanOutput();
+  const transaction = plan.transaction;
+  const claims = transaction.claims;
+  const owner = plan.owner;
+  const header = plan.header;
+  const slots = plan.claimSlots;
+  const entityClaim = slots[0].entityClaim;
+  const cellClaim = slots[1].cellClaim;
+  const itemClaim = slots[2].itemQuantityClaim;
+  const spotClaim = slots[3].interactionSpotClaim;
+  const capacityClaim = slots[4].capacityClaim;
+  expect(bindAutonomyClaimSlotInto(plan, 0, "entity")).toBe(true);
+  expect(bindAutonomyClaimSlotInto(plan, 1, "cell")).toBe(true);
+  plan.header.pendingJobId = 41;
+  plan.transaction.jobId = 41;
+
+  resetAutonomyClaimPlanInto(plan);
+  expect(plan.transaction).toBe(transaction);
+  expect(plan.transaction.claims).toBe(claims);
+  expect(plan.transaction.owner).toBe(owner);
+  expect(plan.header).toBe(header);
+  expect(plan.claimSlots).toBe(slots);
+  expect(plan.transaction.claims).toHaveLength(0);
+  expect(plan.header).toMatchObject({
+    ok: false,
+    candidateSourceCode: AUTONOMY_CANDIDATE_SOURCE_NONE,
+    candidateId: AUTONOMY_REF_NONE,
+    pendingJobId: AUTONOMY_REF_NONE,
+    claimCount: 0,
+  });
+  expect(plan.owner).toEqual({ index: AUTONOMY_REF_NONE, generation: AUTONOMY_REF_NONE });
+
+  expect(bindAutonomyClaimSlotInto(plan, 0, "entity")).toBe(true);
+  expect(bindAutonomyClaimSlotInto(plan, 1, "cell")).toBe(true);
+  expect(bindAutonomyClaimSlotInto(plan, 2, "item_quantity")).toBe(true);
+  expect(bindAutonomyClaimSlotInto(plan, 3, "interaction_spot")).toBe(true);
+  expect(bindAutonomyClaimSlotInto(plan, 4, "capacity")).toBe(true);
+  expect(plan.transaction.claims).toBe(claims);
+  expect(plan.transaction.claims[0]).toBe(entityClaim);
+  expect(plan.transaction.claims[1]).toBe(cellClaim);
+  expect(plan.transaction.claims[2]).toBe(itemClaim);
+  expect(plan.transaction.claims[3]).toBe(spotClaim);
+  expect(plan.transaction.claims[4]).toBe(capacityClaim);
+  expect(plan.header.claimCount).toBe(5);
+  plan.header.pendingJobId = 51;
+  plan.transaction.jobId = 51;
+  expect(plan.header.pendingJobId).toBe(plan.transaction.jobId);
+  const acquireRequest: ReservationTransactionRequest = plan.transaction;
+  expect(acquireRequest).toBe(transaction);
+});
+
+function expectCandidateBasisRoundTrip(input: AutonomyTransitionInput): void {
+  const store = new ResidentAutonomyStore(2);
+  const output = createStoreOutput();
+  store.registerResidentInto(0, 1, 0, output);
+  store.transitionInto(input, output);
+  expect(output.ok).toBe(true);
+  const read = createReadOutput();
+  store.readResidentInto(0, 1, read);
+  expect(read.candidateSourceCode).toBe(input.candidateSourceCode);
+  expect(read.candidateId).toBe(input.candidateId);
+  expect(read.basis).toEqual(input.basis);
+  const snapshot = store.createSnapshot();
+  const restored = new ResidentAutonomyStore(2);
+  restored.restoreFromSnapshot(snapshot, output);
+  expect(output.ok).toBe(true);
+  expect(restored.createSnapshot()).toEqual(snapshot);
+}
+
+function writeFoodCandidateBasis(input: AutonomyTransitionInput): void {
+  input.candidateSourceCode = AUTONOMY_CANDIDATE_SOURCE_FOOD;
+  input.basis.candidateOwnerVersion = 10;
+  input.basis.candidateRowVersion = 11;
+  input.basis.candidateIndexVersion = 10;
+  input.basis.candidateBacklog = 2;
+  input.basis.foodAvailabilityVersion = 10;
+  input.basis.foodItemVersion = 11;
+  input.basis.foodMealWindowId = 3;
+  input.basis.foodMealWindowVersion = 12;
+  input.basis.foodDirtyBacklog = 2;
+  input.reason.ownerBasis = 10;
+}
+
+function writeRestCandidateBasis(input: AutonomyTransitionInput): void {
+  input.candidateSourceCode = AUTONOMY_CANDIDATE_SOURCE_REST;
+  input.basis.candidateOwnerVersion = 20;
+  input.basis.candidateRowVersion = 22;
+  input.basis.candidateIndexVersion = 24;
+  input.basis.candidateBacklog = 1;
+  input.basis.restStoreVersion = 20;
+  input.basis.restCachedRowVersion = 21;
+  input.basis.restCurrentRowVersion = 22;
+  input.basis.restSourceVersion = 23;
+  input.basis.restIndexVersion = 24;
+  input.basis.restDirtyBacklog = 1;
+  input.basis.restScheduleWindowCode = 1;
+  input.basis.restScheduleWindowVersion = 25;
+  input.basis.restWeatherExposureCode = 1;
+  input.basis.restWeatherVersion = 26;
+  input.basis.restWeatherSourceVersion = 27;
+  input.basis.restOutdoorWorkAllowed = 1;
+  input.reason.ownerBasis = 20;
+}
+
+function writeMedicalCandidateBasis(input: AutonomyTransitionInput): void {
+  input.candidateSourceCode = AUTONOMY_CANDIDATE_SOURCE_MEDICAL;
+  input.basis.candidateOwnerVersion = 30;
+  input.basis.candidateRowVersion = 32;
+  input.basis.candidateIndexVersion = 30;
+  input.basis.candidateBacklog = 0;
+  input.basis.medicalStoreVersion = 30;
+  input.basis.medicalHealthStoreVersion = 31;
+  input.basis.medicalConditionVersion = 32;
+  input.basis.medicalActorVersion = 33;
+  input.basis.medicalCaregiverId = 4;
+  input.basis.medicalCaregiverRegionId = 5;
+  input.basis.medicalCaregiverPermissionId = 6;
+  input.basis.medicalCaregiverAbility = 1;
+  input.basis.medicalCaregiverMinimumAbility = 200;
+  input.basis.medicalCaregiverAbilityValue = 500;
+  input.basis.medicalCaregiverActorConditionVersion = 34;
+  input.basis.medicalCaregiverBaseAbilityVersion = 35;
+  input.basis.medicalCaregiverValid = 1;
+  input.basis.medicalCaregiverAllowed = 1;
+  input.reason.ownerBasis = 30;
+}
+
+function createWaitRefreshInput(): AutonomyTransitionInput {
+  const input = createClaimingInput();
+  input.nextState = AUTONOMY_STATE_IDLE;
+  input.retryTick = 2;
+  input.candidateSourceCode = AUTONOMY_CANDIDATE_SOURCE_WAIT;
+  input.candidateId = AUTONOMY_REF_NONE;
+  input.targetEntityIndex = AUTONOMY_REF_NONE;
+  input.targetEntityGeneration = AUTONOMY_REF_NONE;
+  input.targetCellIndex = AUTONOMY_REF_NONE;
+  input.needLane = AUTONOMY_REF_NONE;
+  input.ability = AUTONOMY_REF_NONE;
+  input.scheduleCode = AUTONOMY_REF_NONE;
+  writeWaitBasis(input.basis);
+  writeAutonomyReason(
+    input.reason,
+    AUTONOMY_REASON_IDLE_RETRY_BACKOFF,
+    AUTONOMY_REASON_SOURCE_IDLE,
+    0,
+    1,
+    AUTONOMY_REASON_REF_NONE,
+    AUTONOMY_REASON_REF_NONE,
+    0,
+    0,
+    AUTONOMY_SUGGESTION_INSPECT_RESIDENT,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+  );
+  return input;
+}
+
+function createClaimPlanOutput(): AutonomyClaimPlanIntoOutput {
+  const owner = { index: 1, generation: 2 };
+  const claimSlots: AutonomyClaimSlotScratchTuple = [
+    createClaimSlotScratch(),
+    createClaimSlotScratch(),
+    createClaimSlotScratch(),
+    createClaimSlotScratch(),
+    createClaimSlotScratch(),
+    createClaimSlotScratch(),
+    createClaimSlotScratch(),
+    createClaimSlotScratch(),
+  ];
+  return {
+    header: {
+      ok: true,
+      reasonCode: AUTONOMY_REASON_OFFER_SELECTED,
+      candidateSourceCode: AUTONOMY_CANDIDATE_SOURCE_ORDINARY,
+      candidateId: 3,
+      pendingJobId: 41,
+      targetId: 5,
+      targetCellIndex: 7,
+      claimCount: 0,
+    },
+    owner,
+    target: { index: 5, generation: 6 },
+    item: { index: 7, generation: 8 },
+    transaction: {
+      owner,
+      jobId: 41,
+      createdTick: 9,
+      leaseExpiryTick: 10,
+      claims: [],
+    },
+    claimSlots,
+  };
+}
+
+function createClaimSlotScratch(): AutonomyClaimSlotScratch {
+  const entityTarget = { index: 5, generation: 6 };
+  const itemTarget = { index: 7, generation: 8 };
+  return {
+    entityTarget,
+    itemTarget,
+    entityClaim: { channel: "entity", target: entityTarget },
+    cellClaim: { channel: "cell", cellIndex: 9 },
+    itemQuantityClaim: {
+      channel: "item_quantity",
+      item: itemTarget,
+      amount: 2,
+      availableAmount: 3,
+    },
+    interactionSpotClaim: { channel: "interaction_spot", target: entityTarget, spotId: 4 },
+    capacityClaim: {
+      channel: "capacity",
+      target: entityTarget,
+      capacityId: 5,
+      amount: 1,
+      capacity: 2,
+    },
+  };
+}
+
 function createStoreOutput(): AutonomyStoreOutput {
   return {
     ok: false,
@@ -1013,7 +1322,8 @@ function createReadOutput(
     state: AUTONOMY_STATE_IDLE,
     stateEnteredTick: 0,
     retryTick: 0,
-    offerId: AUTONOMY_REF_NONE,
+    candidateSourceCode: AUTONOMY_CANDIDATE_SOURCE_NONE,
+    candidateId: AUTONOMY_REF_NONE,
     jobId: AUTONOMY_REF_NONE,
     pendingJobId: AUTONOMY_REF_NONE,
     interruptionPolicyCode: AUTONOMY_INTERRUPTION_POLICY_NONE,
@@ -1069,7 +1379,8 @@ function createClaimingInput(): AutonomyTransitionInput {
     nextState: AUTONOMY_STATE_CLAIMING,
     stateEnteredTick: 1,
     retryTick: 0,
-    offerId: 3,
+    candidateSourceCode: AUTONOMY_CANDIDATE_SOURCE_ORDINARY,
+    candidateId: 3,
     jobId: AUTONOMY_REF_NONE,
     pendingJobId: AUTONOMY_REF_NONE,
     interruptionPolicyCode: AUTONOMY_INTERRUPTION_POLICY_NONE,
@@ -1092,13 +1403,46 @@ function createClaimingInput(): AutonomyTransitionInput {
 
 function createBasis(): AutonomyVersionBasis {
   return {
+    candidateId: 3,
+    candidateOwnerVersion: 99,
+    candidateRowVersion: 99,
+    candidateIndexVersion: 99,
+    candidateBacklog: 0,
     needOwnerVersion: 99,
     scheduleVersion: 99,
     capabilityConditionVersion: 99,
     capabilityBaseVersion: 99,
-    offerOwnerVersion: 99,
-    offerRowVersion: 99,
-    offerIndexVersion: 99,
+    foodAvailabilityVersion: 0,
+    foodItemVersion: 0,
+    foodMealWindowId: 0,
+    foodMealWindowVersion: 0,
+    foodDirtyBacklog: 0,
+    restStoreVersion: 0,
+    restCachedRowVersion: 0,
+    restCurrentRowVersion: 0,
+    restSourceVersion: 0,
+    restIndexVersion: 0,
+    restDirtyBacklog: 0,
+    restScheduleWindowCode: 0,
+    restScheduleWindowVersion: 0,
+    restWeatherExposureCode: 0,
+    restWeatherVersion: 0,
+    restWeatherSourceVersion: 0,
+    restOutdoorWorkAllowed: 0,
+    medicalStoreVersion: 0,
+    medicalHealthStoreVersion: 0,
+    medicalConditionVersion: 0,
+    medicalActorVersion: 0,
+    medicalCaregiverId: 0,
+    medicalCaregiverRegionId: 0,
+    medicalCaregiverPermissionId: 0,
+    medicalCaregiverAbility: 0,
+    medicalCaregiverMinimumAbility: 0,
+    medicalCaregiverAbilityValue: 0,
+    medicalCaregiverActorConditionVersion: 0,
+    medicalCaregiverBaseAbilityVersion: 0,
+    medicalCaregiverValid: 0,
+    medicalCaregiverAllowed: 0,
     pathMapVersion: 99,
     pathNavigationVersion: 99,
     pathRegionVersion: 99,
@@ -1107,6 +1451,14 @@ function createBasis(): AutonomyVersionBasis {
     reservationVersion: 99,
     jobVersion: 0,
   };
+}
+
+function writeWaitBasis(basis: AutonomyVersionBasis): void {
+  basis.candidateId = AUTONOMY_REF_NONE;
+  basis.candidateOwnerVersion = 0;
+  basis.candidateRowVersion = 0;
+  basis.candidateIndexVersion = 0;
+  basis.candidateBacklog = 0;
 }
 
 function writeAcquiredReason(input: AutonomyTransitionInput): void {
@@ -1176,7 +1528,8 @@ function createTerminal(): AutonomyTerminalOutput {
     present: true,
     state: AUTONOMY_STATE_IDLE,
     tick: 99,
-    offerId: AUTONOMY_REF_NONE,
+    candidateSourceCode: AUTONOMY_CANDIDATE_SOURCE_NONE,
+    candidateId: AUTONOMY_REF_NONE,
     jobId: AUTONOMY_REF_NONE,
     interruptionPolicyCode: AUTONOMY_INTERRUPTION_POLICY_NONE,
     jobVersion: 0,

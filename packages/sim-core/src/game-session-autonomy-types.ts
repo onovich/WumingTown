@@ -1,19 +1,34 @@
 import type { Tick } from "./time";
 import type { AutonomyReasonOutput } from "./game-session-autonomy-reasons";
 
-export const RESIDENT_AUTONOMY_SNAPSHOT_VERSION = 1;
+export const RESIDENT_AUTONOMY_SNAPSHOT_VERSION = 2;
 export const AUTONOMY_REF_NONE = 0xffff_ffff;
-export const AUTONOMY_MAX_VISITED_OFFERS = 24;
-export const AUTONOMY_MAX_RETAINED_OFFERS = 12;
+export const AUTONOMY_MAX_VISITED_CANDIDATES = 24;
+export const AUTONOMY_MAX_RETAINED_CANDIDATES = 12;
 export const AUTONOMY_MAX_EXACT_PATHS = 4;
 export const AUTONOMY_MAX_NEW_DECISIONS_PER_TICK = 2;
 export const AUTONOMY_MAX_ROUTE_CELLS = 128;
 export const AUTONOMY_MAX_CLAIM_REFS = 8;
 
+export const AUTONOMY_CANDIDATE_SOURCE_NONE = 0;
+export const AUTONOMY_CANDIDATE_SOURCE_FOOD = 1;
+export const AUTONOMY_CANDIDATE_SOURCE_REST = 2;
+export const AUTONOMY_CANDIDATE_SOURCE_MEDICAL = 3;
+export const AUTONOMY_CANDIDATE_SOURCE_ORDINARY = 4;
+export const AUTONOMY_CANDIDATE_SOURCE_WAIT = 5;
+export type AutonomyCandidateSourceCode = 0 | 1 | 2 | 3 | 4 | 5;
+
+export const AUTONOMY_CANDIDATE_SLOT_FOOD = 0;
+export const AUTONOMY_CANDIDATE_SLOT_REST = 1;
+export const AUTONOMY_CANDIDATE_SLOT_MEDICAL = 2;
+export const AUTONOMY_CANDIDATE_SLOT_ORDINARY = 3;
+export const AUTONOMY_CANDIDATE_SLOT_WAIT = 4;
+export const AUTONOMY_CANDIDATE_SLOT_COUNT = 5;
+
 export enum AutonomySnapshotLane {
   residentGeneration = 0,
   state = 1,
-  offerId = 2,
+  candidateId = 2,
   jobId = 3,
   targetEntityIndex = 4,
   targetEntityGeneration = 5,
@@ -29,9 +44,9 @@ export enum AutonomySnapshotLane {
   scheduleVersion = 15,
   capabilityConditionVersion = 16,
   capabilityBaseVersion = 17,
-  offerOwnerVersion = 18,
-  offerRowVersion = 19,
-  offerIndexVersion = 20,
+  candidateOwnerVersion = 18,
+  candidateRowVersion = 19,
+  candidateIndexVersion = 20,
   pathMapVersion = 21,
   pathNavigationVersion = 22,
   pathRegionVersion = 23,
@@ -51,7 +66,7 @@ export enum AutonomySnapshotLane {
   reasonSuggestion = 37,
   terminalPresent = 38,
   terminalState = 39,
-  terminalOfferId = 40,
+  terminalCandidateId = 40,
   terminalJobId = 41,
   terminalTargetEntityIndex = 42,
   terminalTargetEntityGeneration = 43,
@@ -69,7 +84,41 @@ export enum AutonomySnapshotLane {
   terminalInterruptionPolicyCode = 55,
   terminalJobVersion = 56,
   pendingJobId = 57,
-  count = 58,
+  candidateSourceCode = 58,
+  terminalCandidateSourceCode = 59,
+  candidateBacklog = 60,
+  foodAvailabilityVersion = 61,
+  foodItemVersion = 62,
+  foodMealWindowId = 63,
+  foodMealWindowVersion = 64,
+  foodDirtyBacklog = 65,
+  restStoreVersion = 66,
+  restCachedRowVersion = 67,
+  restCurrentRowVersion = 68,
+  restSourceVersion = 69,
+  restIndexVersion = 70,
+  restDirtyBacklog = 71,
+  restScheduleWindowCode = 72,
+  restScheduleWindowVersion = 73,
+  restWeatherExposureCode = 74,
+  restWeatherVersion = 75,
+  restWeatherSourceVersion = 76,
+  restOutdoorWorkAllowed = 77,
+  medicalStoreVersion = 78,
+  medicalHealthStoreVersion = 79,
+  medicalConditionVersion = 80,
+  medicalActorVersion = 81,
+  medicalCaregiverId = 82,
+  medicalCaregiverRegionId = 83,
+  medicalCaregiverPermissionId = 84,
+  medicalCaregiverAbility = 85,
+  medicalCaregiverMinimumAbility = 86,
+  medicalCaregiverAbilityValue = 87,
+  medicalCaregiverActorConditionVersion = 88,
+  medicalCaregiverBaseAbilityVersion = 89,
+  medicalCaregiverValid = 90,
+  medicalCaregiverAllowed = 91,
+  count = 92,
 }
 
 export enum AutonomySnapshotReasonParameterLane {
@@ -162,13 +211,46 @@ export const AUTONOMY_DECISION_FAILED = 6;
 export type AutonomyDecisionKind = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 export interface AutonomyVersionBasis {
+  candidateId: number;
+  candidateOwnerVersion: number;
+  candidateRowVersion: number;
+  candidateIndexVersion: number;
+  candidateBacklog: number;
   needOwnerVersion: number;
   scheduleVersion: number;
   capabilityConditionVersion: number;
   capabilityBaseVersion: number;
-  offerOwnerVersion: number;
-  offerRowVersion: number;
-  offerIndexVersion: number;
+  foodAvailabilityVersion: number;
+  foodItemVersion: number;
+  foodMealWindowId: number;
+  foodMealWindowVersion: number;
+  foodDirtyBacklog: number;
+  restStoreVersion: number;
+  restCachedRowVersion: number;
+  restCurrentRowVersion: number;
+  restSourceVersion: number;
+  restIndexVersion: number;
+  restDirtyBacklog: number;
+  restScheduleWindowCode: number;
+  restScheduleWindowVersion: number;
+  restWeatherExposureCode: number;
+  restWeatherVersion: number;
+  restWeatherSourceVersion: number;
+  restOutdoorWorkAllowed: number;
+  medicalStoreVersion: number;
+  medicalHealthStoreVersion: number;
+  medicalConditionVersion: number;
+  medicalActorVersion: number;
+  medicalCaregiverId: number;
+  medicalCaregiverRegionId: number;
+  medicalCaregiverPermissionId: number;
+  medicalCaregiverAbility: number;
+  medicalCaregiverMinimumAbility: number;
+  medicalCaregiverAbilityValue: number;
+  medicalCaregiverActorConditionVersion: number;
+  medicalCaregiverBaseAbilityVersion: number;
+  medicalCaregiverValid: number;
+  medicalCaregiverAllowed: number;
   pathMapVersion: number;
   pathNavigationVersion: number;
   pathRegionVersion: number;
@@ -186,7 +268,8 @@ export interface AutonomyTransitionInput {
   nextState: AutonomyState;
   stateEnteredTick: Tick;
   retryTick: Tick;
-  offerId: number;
+  candidateSourceCode: AutonomyCandidateSourceCode;
+  candidateId: number;
   jobId: number;
   pendingJobId: number;
   interruptionPolicyCode: AutonomyInterruptionPolicyCode;
@@ -221,7 +304,8 @@ export interface AutonomyTerminalOutput {
   present: boolean;
   state: AutonomyState;
   tick: Tick;
-  offerId: number;
+  candidateSourceCode: AutonomyCandidateSourceCode;
+  candidateId: number;
   jobId: number;
   interruptionPolicyCode: AutonomyInterruptionPolicyCode;
   jobVersion: number;
@@ -239,7 +323,8 @@ export interface ResidentAutonomyReadOutput {
   state: AutonomyState;
   stateEnteredTick: Tick;
   retryTick: Tick;
-  offerId: number;
+  candidateSourceCode: AutonomyCandidateSourceCode;
+  candidateId: number;
   jobId: number;
   pendingJobId: number;
   interruptionPolicyCode: AutonomyInterruptionPolicyCode;
