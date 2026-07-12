@@ -1,0 +1,12 @@
+{
+  "id": "MSG-MRI7PVG5-1FB364",
+  "from": "simulation-engineer",
+  "to": "systems-architect",
+  "taskId": "WM-0170",
+  "kind": "blocker",
+  "subject": "WM-0170 blocked",
+  "body": "Independent B1 review proved that WM-0177 repaired ordinary WorkOffer/path/reservation/ability owners but not the architecture-required food/rest/medical exact indexes: their selection/read APIs still materialize results and cannot provide same-call owner/row/index/backlog/caregiver-basis revalidation. Systems-architect selected strict prerequisite WM-0181 and rejected derived WorkOffer mirroring. Preserve the Phase A/B1 non-complete checkpoint; do not resume coordinator implementation until WM-0181 is verified, integrated and done and the exact resume procedure passes.",
+  "artifacts": [],
+  "createdAt": "2026-07-12T19:54:48.821Z",
+  "acknowledgedAt": null
+}

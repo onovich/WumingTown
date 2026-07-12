@@ -2,12 +2,13 @@
   "id": "WM-0170",
   "title": "PR-2 autonomous decision state and indexed work selection",
   "summary": "Implement explicit serializable resident autonomy state, structured reasons, schedule/need/capability arbitration and bounded indexed Top-K offer/path/reservation selection in sim-core without product projection changes.",
-  "state": "in_progress",
+  "state": "blocked",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
     "WM-0169",
-    "WM-0177"
+    "WM-0177",
+    "WM-0181"
   ],
   "docs": [
     "AGENTS.md",
@@ -16,6 +17,8 @@
     "coordination/reports/WM-0169.md",
     "coordination/tasks/WM-0177.json",
     "coordination/reports/WM-0177.md",
+    "coordination/tasks/WM-0181.json",
+    "coordination/reports/WM-0181.md",
     "coordination/decisions/ADR-0018.md",
     "docs/05_tech/13_autonomous_town_life_architecture.md",
     "docs/07_roadmap/12_playable_product_recovery_roadmap.md",
@@ -47,7 +50,7 @@
   ],
   "branch": "task/WM-0170-pr-2-autonomous-decision-state-and-indexed-work-",
   "createdAt": "2026-07-11T07:53:17.870Z",
-  "updatedAt": "2026-07-12T14:15:49.916Z",
+  "updatedAt": "2026-07-12T19:54:48.820Z",
   "history": [
     {
       "at": "2026-07-11T07:53:17.871Z",
@@ -90,6 +93,18 @@
       "actor": "simulation-engineer",
       "action": "unblock",
       "details": "WM-0177 owner-version and caller-owned output prerequisite is verified, integrated and done; resume the unchanged WM-0170 contract."
+    },
+    {
+      "at": "2026-07-12T19:52:00.000Z",
+      "actor": "systems-architect",
+      "action": "route-owner-index-prerequisite",
+      "details": "Independent B1 review proved the WM-0177 audit covered ordinary WorkOffer/path/reservation/ability owners but not allocation-free food/rest/medical exact indexes. Selected strict prerequisite WM-0181 and rejected derived WorkOffer mirroring."
+    },
+    {
+      "at": "2026-07-12T19:54:48.820Z",
+      "actor": "simulation-engineer",
+      "action": "block",
+      "details": "Independent B1 review proved that WM-0177 repaired ordinary WorkOffer/path/reservation/ability owners but not the architecture-required food/rest/medical exact indexes: their selection/read APIs still materialize results and cannot provide same-call owner/row/index/backlog/caregiver-basis revalidation. Systems-architect selected strict prerequisite WM-0181 and rejected derived WorkOffer mirroring. Preserve the Phase A/B1 non-complete checkpoint; do not resume coordinator implementation until WM-0181 is verified, integrated and done and the exact resume procedure passes."
     }
   ],
   "milestone": "Post-M8",
@@ -118,16 +133,24 @@
   ],
   "executionLane": "simulation-engineer; Spark is prohibited because the task defines deterministic AI state, path/reservation ownership and hot-loop behavior",
   "repairTasks": [
-    "WM-0177"
+    "WM-0177",
+    "WM-0181"
   ],
   "resumeProcedure": [
-    "WM-0177 must be independently reviewed as verified, integrated and marked done.",
-    "The original simulation-engineer must run: node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs unblock --id WM-0170 --agent simulation-engineer --summary \"WM-0177 owner-version and caller-owned output prerequisite is verified, integrated and done; resume the unchanged WM-0170 contract.\"",
-    "After unblock, rerun the complete public owner API audit from coordination/reports/WM-0170-plan.md against the integrated WM-0177 public package-root surfaces.",
-    "Only if that audit passes may WM-0170 resume its original acceptance and required checks without lowering allocation, owner-version, cap, atomicity, path, determinism or scope thresholds."
+    "WM-0181 must be independently reviewed as verified, integrated and marked done after its WM-0177 dependency.",
+    "The original simulation-engineer must run: node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs unblock --id WM-0170 --agent simulation-engineer --summary \"WM-0181 food/rest/medical caller-owned exact-index prerequisite is verified, integrated and done; resume the unchanged WM-0170 contract.\"",
+    "After unblock, rerun the complete public owner API audit from coordination/reports/WM-0170-plan.md against ordinary WorkOffer/path/reservation/ability surfaces and the integrated food/rest/medical Into surfaces, including owner/row/index/backlog and caregiver ability bases.",
+    "Revise the dirty B1 selection contract to persist numeric candidateSourceCode, pendingJobId and a generic source-local candidate basis; provide explicit caller-owned claim-plan header/transaction/claim-slot scratch and coordinator-owned five-lane arbitration.",
+    "Only if that audit and the repaired B1 review pass may WM-0170 resume coordinator implementation under the original acceptance without lowering allocation, owner-version, cap, atomicity, path, determinism or scope thresholds."
   ],
-  "singleWriterRule": "WM-0177 is the sole ready repair writer. WM-0170 remains blocked and keeps its original simulation-engineer owner until WM-0177 is verified/integrated/done and the exact resume procedure passes; WM-0171..WM-0175 retain their existing dependencies.",
+  "singleWriterRule": "WM-0181 is the sole ready repair writer. WM-0170 remains blocked with its original simulation-engineer owner and Phase A/B1 checkpoint until WM-0181 is verified/integrated/done and the exact resume procedure passes; WM-0171..WM-0175 retain their existing dependencies.",
   "claimedBy": "simulation-engineer",
   "threadLabel": "Tally WM-0170",
-  "blocker": null
+  "blocker": {
+    "by": "simulation-engineer",
+    "to": "systems-architect",
+    "reason": "Independent B1 review proved that WM-0177 repaired ordinary WorkOffer/path/reservation/ability owners but not the architecture-required food/rest/medical exact indexes: their selection/read APIs still materialize results and cannot provide same-call owner/row/index/backlog/caregiver-basis revalidation. Systems-architect selected strict prerequisite WM-0181 and rejected derived WorkOffer mirroring. Preserve the Phase A/B1 non-complete checkpoint; do not resume coordinator implementation until WM-0181 is verified, integrated and done and the exact resume procedure passes.",
+    "previousState": "in_progress",
+    "at": "2026-07-12T19:54:48.819Z"
+  }
 }
