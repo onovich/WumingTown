@@ -2,10 +2,12 @@
   "id": "WM-0181",
   "title": "M3 need-driven exact-index caller-owned surfaces",
   "summary": "Add caller-owned version-bound Into selection and read surfaces for food, rest, and medical exact indexes before WM-0170 resumes.",
-  "state": "in_progress",
+  "state": "review_requested",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
-  "dependsOn": ["WM-0177"],
+  "dependsOn": [
+    "WM-0177"
+  ],
   "docs": [
     "AGENTS.md",
     ".agents/skills/wuming-town-agent-workflow/SKILL.md",
@@ -41,7 +43,7 @@
   ],
   "branch": "task/WM-0181-m3-need-driven-exact-index-caller-owned-surfaces",
   "createdAt": "2026-07-12T19:50:48.315Z",
-  "updatedAt": "2026-07-12T20:22:00.000Z",
+  "updatedAt": "2026-07-12T21:49:19.619Z",
   "history": [
     {
       "at": "2026-07-12T19:50:48.315Z",
@@ -72,6 +74,12 @@
       "actor": "project-director",
       "action": "refine-plan-after-independent-review",
       "details": "Locked Rest cached/current row plus schedule/weather owner tuples, exact Medical bucket totals and caregiver output, bounded Into caps, and collision-safe hot-path module identities."
+    },
+    {
+      "at": "2026-07-12T21:49:19.618Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented seven caller-owned food/rest/medical exact-index roots with 24/12 bounds, explicit owner/row/backlog/environment/caregiver revalidation, exact medical bucket totals, 161-entry allocation closure, 46 focused and 499 full tests passing; report coordination/reports/WM-0181.md."
     }
   ],
   "milestone": "Post-M8",
@@ -112,5 +120,6 @@
   "singleWriterRule": "WM-0181 is the sole repair writer. WM-0170 remains blocked with its Phase A/B1 checkpoint until WM-0181 is independently verified, integrated and done; WM-0171 remains proposed behind WM-0170.",
   "claimedBy": "simulation-engineer",
   "threadLabel": "Tally WM-0181",
-  "blocker": null
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0181.md"
 }
