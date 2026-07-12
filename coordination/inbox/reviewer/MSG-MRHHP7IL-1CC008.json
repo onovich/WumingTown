@@ -1,0 +1,16 @@
+{
+  "id": "MSG-MRHHP7IL-1CC008",
+  "from": "qa-performance",
+  "to": "reviewer",
+  "taskId": "WM-0178",
+  "kind": "review-follow-up",
+  "subject": "WM-0178 raw admission byte preservation follow-up",
+  "body": "Post-review-request evidence storage follow-up: final-repaired-main/.gitattributes uses admission.json -text -diff. The stale pre-attribute cached blob e5fde6176fabf69b2bcc7a345d88a2f77ce4f2c1 / A9335689 was blocked, acknowledged and unblocked; the single authorized renormalize produced raw blob d6646c860551a476cfebccf90af95d75fe1f1322 / SHA-256 66AD2D39, stable after ordinary add and after commit 65df446. All 16 evidence/sidecar files remain exact, cached diff check passes and WM-0178 remains review_requested. Please include this recovery in independent review.",
+  "artifacts": [
+    "coordination/reports/WM-0178.md",
+    "coordination/artifacts/WM-0178/final-repaired-main/.gitattributes",
+    "coordination/artifacts/WM-0178/final-repaired-main/admission.json"
+  ],
+  "createdAt": "2026-07-12T07:46:27.789Z",
+  "acknowledgedAt": null
+}
