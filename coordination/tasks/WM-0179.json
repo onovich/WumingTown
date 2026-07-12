@@ -6,7 +6,8 @@
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
-    "WM-0169"
+    "WM-0169",
+    "WM-0180"
   ],
   "docs": [
     "AGENTS.md",
@@ -16,6 +17,8 @@
     "coordination/tasks/WM-0178.json",
     "coordination/reports/WM-0178-plan.md",
     "coordination/reports/WM-0179-plan.md",
+    "coordination/tasks/WM-0180.json",
+    "coordination/reports/WM-0180-plan.md",
     "packages/benchmarks/baseline.json",
     "packages/benchmarks/src/entity-store-benchmark.ts",
     "packages/sim-core/src/structural-commands.ts",
@@ -29,6 +32,7 @@
     "Focused tests cover mixed priorities, reverse indexes, repeated same-index commands, signed/invalid stored indexes, capacity boundaries and consecutive buffer reuse while proving the exact historical priority/index/sequence result order",
     "The unchanged entity-store workload retains capacity 8192, queuedCommands 8192, commitResultCount 8192, appliedCommands 8192, failedCommands 0, attachedComponents 8192 and iterationChecksum 134209536",
     "After one approved quiet-host admission, corepack pnpm bench --filter entity-store runs exactly once with the unchanged 244.507 ms baseline, 10/20 percent thresholds, 9 samples and 2 warmups; every invariant matches and the median is at most 293.4084 ms so the gate does not fail",
+    "The quiet-host admission must use the independently reviewed and integrated WM-0180 PowerShell 5.1 script. Inline admission scripts and further dry probes are prohibited; only one valid evidenceKind=measured PASS JSON plus exit zero permits the benchmark",
     "M1 hauling/building, M2 work/logistics and M3 ordinary-life 100000-tick runs retain hashes 0xf7815189, 0x6943dad4 and 0x7eb81a69 and report no invariant drift",
     "packages/sim-core/src/entity-id.ts and packages/sim-core/src/component-store.ts remain unchanged. If the structural ordering repair does not make the single authorized entity-store run pass, stop and taskctl block with new exact evidence instead of widening this task",
     "No benchmark workload, baseline, threshold, sample/warmup count, benchmark harness, sim-protocol, Worker, GameSession, application, dependency, release or WM-0177/WM-0170 surface changes"
@@ -49,7 +53,7 @@
   ],
   "branch": "task/WM-0179-entity-store-structural-command-ordering-repair",
   "createdAt": "2026-07-12T05:07:29.890Z",
-  "updatedAt": "2026-07-12T05:26:34.739Z",
+  "updatedAt": "2026-07-12T05:31:23.711Z",
   "history": [
     {
       "at": "2026-07-12T05:07:29.891Z",
@@ -86,6 +90,12 @@
       "actor": "simulation-engineer",
       "action": "block",
       "details": "The sole authorized synthetic dry output-shape check failed before replacement admission because current Windows PowerShell/.NET does not provide System.Double.IsFinite. It emitted a method-invocation error and fail-closed throw with no DRY_OUTPUT_OK line. Per the any-issue/no-retry recovery procedure, dry retry count is 0, replacement admission pair count is 0, benchmark invocation count remains 0, and product checkpoint 0882988 is unchanged. See coordination/reports/WM-0179.md."
+    },
+    {
+      "at": "2026-07-12T05:31:23.711Z",
+      "actor": "systems-architect",
+      "action": "require-WM-0180-reviewed-admission-tool",
+      "details": "WM-0179 checkpoint 0882988 passes its non-benchmark gates and has benchmark invocation count zero, but two same-class inline admission failures lost evidence and used a PowerShell 7-only finite API. The workflow repeated-failure rule requires WM-0180 to add and independently verify a reusable Windows PowerShell 5.1 admission tool/reference before WM-0179 may resume."
     }
   ],
   "milestone": "Post-M8",
@@ -116,25 +126,43 @@
     "Array.sort, unbounded comparison sorting, inversion-dependent insertion shifting, per-commit scratch allocation, failure suppression, warm-up retry or retry-until-pass",
     "packages/sim-protocol/**, packages/sim-worker/**, apps/**, renderer, UI, Electron, GameSession, save/load, content, dependencies, release or deployment files",
     "coordination/artifacts/WM-0083/** or any historical benchmark artifact",
+    "inline quiet-host admission scripts, another synthetic dry probe or any admission/benchmark invocation before WM-0180 is independently verified, integrated and done",
     "unblocking, claiming or editing WM-0178, WM-0177 or WM-0170 from the WM-0179 worker lane"
   ],
   "executionLane": "simulation-engineer only; Spark is prohibited because deterministic structural ordering, hot-path allocation behavior and canonical performance attribution require full implementation evidence and independent review",
-  "performanceRunPolicy": "After implementation and non-benchmark checks, use only Get-Process CPU deltas for two consecutive six-second windows. Both windows must be at most 40 percent normalized host busy, every single-process host share at most 8 percent, ACShadows absent, no active benchmark Node and git clean. Then run the entity-store filter exactly once. Do not use Get-Counter, CIM or WMI for admission; do not pre-warm, retry or run a second performance attempt.",
+  "performanceRunPolicy": "WM-0179 may use only the WM-0180 reviewed quiet-host-admission.ps1 after WM-0180 is integrated and done. It must receive one exit-zero, one-line evidenceKind=measured PASS JSON for the fixed two-six-second, 40/8 thresholds before invoking the entity-store filter exactly once. Inline scripts, additional dry probes, pre-warm and retries are prohibited.",
   "fullGateOwner": "WM-0178 retains the isolated canonical full-suite gate. WM-0179 proves only the exact product-bound entity-store filter; after integration WM-0178 must verify every filtered and full canonical gate on the repaired main lineage.",
   "resumeClosure": [
-    "WM-0179 must receive independent reviewer verification, project-director integration and done on main.",
+    "WM-0180 must receive independent reviewer verification, project-director integration and done on main.",
+    "The project director refreshes the existing WM-0179 branch from repaired main and audits that checkpoint 0882988 remains its only product/test diff.",
+    "Systems architecture unblocks WM-0179 and authorizes exactly one measured invocation of the reviewed WM-0180 production script. Only exit zero plus one valid measured PASS JSON permits the single entity-store benchmark attempt; script failure blocks without inline replacement.",
+    "WM-0179 must then receive independent reviewer verification, project-director integration and done on main.",
     "Under project-director control, refresh the existing WM-0178 branch from repaired main while preserving only its reviewed harness/evidence diff and auditing conflicts; do not create a linked worktree.",
     "Systems architecture may then unblock WM-0178 for the original qa-performance owner. WM-0178 must run its six explicit filters once each and the exact full corepack pnpm bench once, with no retries or waiver, then pass all remaining checks and independent review.",
     "Only after WM-0178 is integrated and done may the original simulation-engineer resume WM-0177 under its existing paired-attribution procedure; WM-0170 remains blocked until WM-0177 is independently verified, integrated and done."
   ],
-  "singleWriterRule": "WM-0179 is the sole product writer while active. WM-0178 remains blocked and claimed by qa-performance with no harness/evidence writes; WM-0177 remains blocked and claimed by its original simulation-engineer with no product writes; WM-0170 remains blocked.",
+  "repairTasks": [
+    "WM-0180"
+  ],
   "claimedBy": "simulation-engineer",
   "threadLabel": "Tally WM-0179",
+  "singleWriterRule": "WM-0180 is the sole workflow-tool/reference writer while active. WM-0179 remains blocked and claimed by its simulation-engineer with no product, admission or benchmark writes; WM-0178 and WM-0177 remain blocked/claimed with no writes; WM-0170 remains blocked.",
   "blocker": {
     "by": "simulation-engineer",
     "to": "systems-architect",
-    "reason": "The sole authorized synthetic dry output-shape check failed before replacement admission because current Windows PowerShell/.NET does not provide System.Double.IsFinite. It emitted a method-invocation error and fail-closed throw with no DRY_OUTPUT_OK line. Per the any-issue/no-retry recovery procedure, dry retry count is 0, replacement admission pair count is 0, benchmark invocation count remains 0, and product checkpoint 0882988 is unchanged. See coordination/reports/WM-0179.md.",
+    "reason": "Product checkpoint 0882988 and all non-benchmark gates pass, while benchmark invocation count remains zero. The first inline two-window admission lost its CPU evidence through captured Write-Output; the authorized synthetic recovery check then failed because Windows PowerShell lacks System.Double.IsFinite, so no replacement admission ran. This is the second same-class workflow failure. WM-0180 must provide an independently reviewed Windows PowerShell 5.1 fail-closed admission script/self-test and update the workflow quality-gate reference before WM-0179 may resume.",
     "previousState": "in_progress",
-    "at": "2026-07-12T05:26:34.738Z"
+    "at": "2026-07-12T05:26:34.738Z",
+    "reviewedAt": "2026-07-12T05:31:23.711Z",
+    "repairTasks": [
+      "WM-0180"
+    ],
+    "resumeProcedure": [
+      "WM-0180 must be independently verified, integrated and done on main.",
+      "The project director refreshes the existing WM-0179 branch from repaired main and confirms checkpoint 0882988 is still the only product/test diff and its non-benchmark evidence remains valid.",
+      "Systems architecture unblocks WM-0179 and authorizes exactly one production invocation of the reviewed quiet-host-admission.ps1; no inline script or further dry probe is allowed.",
+      "Only exit zero plus exactly one valid evidenceKind=measured PASS JSON permits corepack pnpm bench --filter entity-store to run once. That command is benchmark attempt one because the recorded invocation count is zero.",
+      "Any admission-script failure or malformed/lost evidence re-blocks without another replacement. WM-0178, WM-0177 and WM-0170 remain blocked until the existing closure DAG is satisfied."
+    ]
   }
 }
