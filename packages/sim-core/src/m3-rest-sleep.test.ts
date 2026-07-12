@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  M3_REST_DEFAULT_CANDIDATE_CAP,
+  M3_REST_DEFAULT_SELECTED_CAP,
   M3_REST_FIXTURE_NONE,
   MAP_TERRAIN_BLOCKED,
   NEED_LANE_REST,
@@ -120,6 +122,344 @@ describe("M3 rest and sleep indexed selection", () => {
     expect(output).toBe(identity);
     expect(legacyRead).not.toHaveBeenCalled();
     expect(legacyEntityRead).not.toHaveBeenCalled();
+  });
+
+  it("selects caller-owned rest candidates with coherent row and environment bases", () => {
+    const fixture = createFixture(16, 3);
+    registerFixture(fixture, 0, {
+      kind: "bedroll",
+      restKind: "sleep",
+      regionId: 1,
+      targetCellIndex: 9,
+      interactionSpotId: 20,
+      scheduleWindow: "night",
+      weatherExposure: "outdoor",
+      permissionId: 1,
+      recoveryPerTickQ16: 5 << 16,
+      baseScoreMilli: 900,
+    });
+    registerFixture(fixture, 1, {
+      kind: "clinic_mat",
+      restKind: "sleep",
+      regionId: 1,
+      targetCellIndex: 1,
+      interactionSpotId: 21,
+      scheduleWindow: "night",
+      weatherExposure: "outdoor",
+      permissionId: 1,
+      recoveryPerTickQ16: 6 << 16,
+      baseScoreMilli: 900,
+    });
+    registerFixture(fixture, 2, {
+      kind: "bedroll",
+      restKind: "sleep",
+      regionId: 1,
+      targetCellIndex: 7,
+      interactionSpotId: 22,
+      scheduleWindow: "night",
+      weatherExposure: "outdoor",
+      permissionId: 1,
+      recoveryPerTickQ16: 7 << 16,
+      baseScoreMilli: 1_000,
+    });
+    fixture.index.rebuildFromStore(fixture.rest);
+    const query = createRestCandidateQuery({
+      regionId: 1,
+      restKind: "sleep",
+      scheduleWindow: "night",
+      weatherExposure: "outdoor",
+      permissionId: 1,
+    });
+    const environment = createRestEnvironmentBasis({
+      scheduleWindow: "night",
+      scheduleWindowVersion: 11,
+      weatherExposure: "outdoor",
+      outdoorWorkAllowed: true,
+      weatherVersion: 12,
+      weatherSourceVersion: 13,
+    });
+    const legacyIds = new Uint32Array(M3_REST_DEFAULT_SELECTED_CAP);
+    const legacy = fixture.index.selectCandidates(query, legacyIds);
+    if (!legacy.ok) {
+      throw new Error(`unexpected legacy rest selection failure: ${legacy.reason}`);
+    }
+    const scratch = createRestSelectionScratch();
+    const output = createRestSelectionOutput();
+    const outputIdentity = output;
+    const scratchIdentity = scratch;
+    const fixtureReadIdentity = scratch.fixtureReadOutput;
+
+    fixture.index.selectCandidatesInto(query, environment, fixture.rest, scratch, output);
+    const first = fixture.rest.readFixture(2) ?? failMissingFixture();
+    expect(output).toEqual({
+      ok: true,
+      reason: legacy.reason,
+      queryRegionId: query.regionId,
+      queryRestKind: query.restKind,
+      queryScheduleWindow: query.scheduleWindow,
+      queryWeatherExposure: query.weatherExposure,
+      queryPermissionId: query.permissionId,
+      candidateCap: query.candidateCap,
+      maxSelectedFixtures: query.maxSelectedFixtures,
+      environmentScheduleWindow: environment.scheduleWindow,
+      scheduleWindowVersion: environment.scheduleWindowVersion,
+      environmentWeatherExposure: environment.weatherExposure,
+      outdoorWorkAllowed: environment.outdoorWorkAllowed,
+      weatherVersion: environment.weatherVersion,
+      weatherSourceVersion: environment.weatherSourceVersion,
+      candidateTotal: legacy.candidateTotal,
+      visitedCount: legacy.visitedCount,
+      selectedCount: legacy.selectedCount,
+      candidateCapHit: legacy.candidateCapHit,
+      selectedCapHit: legacy.selectedCapHit,
+      selectedFixtureId: first.fixtureId,
+      selectedEntityIndex: first.entity.index,
+      selectedEntityGeneration: first.entity.generation,
+      selectedFixtureKind: first.kind,
+      selectedRestKind: first.restKind,
+      selectedRegionId: first.regionId,
+      selectedTargetCellIndex: first.targetCellIndex,
+      selectedInteractionSpotId: first.interactionSpotId,
+      selectedScheduleWindow: first.scheduleWindow,
+      selectedWeatherExposure: first.weatherExposure,
+      selectedPermissionId: first.permissionId,
+      selectedRecoveryPerTickQ16: first.recoveryPerTickQ16,
+      selectedScoreMilli: first.baseScoreMilli,
+      selectedCachedFixtureVersion: first.ownerVersion,
+      selectedCurrentFixtureOwnerVersion: first.ownerVersion,
+      selectedLinkedCandidate: true,
+      restStoreVersion: fixture.rest.version,
+      sourceVersion: legacy.sourceVersion,
+      indexVersion: legacy.indexVersion,
+      dirtyBacklog: 0,
+    });
+    expect(Array.from(legacyIds.subarray(0, 3))).toEqual([2, 0, 1]);
+    expect(Array.from(scratch.fixtureIds.subarray(0, 3))).toEqual([2, 0, 1]);
+    expect(Array.from(scratch.scoreMillis.subarray(0, 3))).toEqual([1_000, 900, 900]);
+    expect(Array.from(scratch.targetCellIndexes.subarray(0, 3))).toEqual([7, 9, 1]);
+    for (let index = 0; index < output.selectedCount; index += 1) {
+      const fixtureId = scratch.fixtureIds[index] ?? M3_REST_FIXTURE_NONE;
+      const row = fixture.rest.readFixture(fixtureId) ?? failMissingFixture();
+      expectRestSelectionScratchRow(scratch, index, row);
+    }
+    expect(output).toBe(outputIdentity);
+    expect(scratch).toBe(scratchIdentity);
+    expect(scratch.fixtureReadOutput).toBe(fixtureReadIdentity);
+  });
+
+  it("honors smaller rest caps and the fixed 24/12 bounds", () => {
+    const fixture = createFixture(64, 30);
+    for (let fixtureId = 0; fixtureId < 30; fixtureId += 1) {
+      registerFixture(fixture, fixtureId, { baseScoreMilli: 10_000 - fixtureId });
+    }
+    fixture.index.rebuildFromStore(fixture.rest);
+    const environment = createRestEnvironmentBasis();
+    const scratch = createRestSelectionScratch();
+    const output = createRestSelectionOutput();
+    const fullQuery = createRestCandidateQuery();
+
+    fixture.index.selectCandidatesInto(fullQuery, environment, fixture.rest, scratch, output);
+    expect(output).toMatchObject({
+      ok: true,
+      reason: "trace.candidate_cap_reached",
+      candidateTotal: 30,
+      visitedCount: 24,
+      selectedCount: 12,
+      candidateCapHit: true,
+      selectedCapHit: true,
+      selectedFixtureId: 0,
+      dirtyBacklog: 0,
+    });
+    expect(Array.from(scratch.fixtureIds)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+
+    const smallQuery = createRestCandidateQuery({ candidateCap: 3, maxSelectedFixtures: 2 });
+    const legacyIds = new Uint32Array(M3_REST_DEFAULT_SELECTED_CAP);
+    const legacy = fixture.index.selectCandidates(smallQuery, legacyIds);
+    if (!legacy.ok) {
+      throw new Error(`unexpected legacy rest selection failure: ${legacy.reason}`);
+    }
+    fixture.index.selectCandidatesInto(smallQuery, environment, fixture.rest, scratch, output);
+    expect(output).toMatchObject({
+      ok: true,
+      reason: legacy.reason,
+      candidateTotal: legacy.candidateTotal,
+      visitedCount: legacy.visitedCount,
+      selectedCount: legacy.selectedCount,
+      candidateCapHit: legacy.candidateCapHit,
+      selectedCapHit: legacy.selectedCapHit,
+      candidateCap: 3,
+      maxSelectedFixtures: 2,
+    });
+    expect(Array.from(scratch.fixtureIds.subarray(0, 4))).toEqual([
+      legacyIds[0],
+      legacyIds[1],
+      M3_REST_FIXTURE_NONE,
+      M3_REST_FIXTURE_NONE,
+    ]);
+    expect(scratch.scoreMillis[2]).toBe(0);
+    expect(scratch.cachedFixtureVersions[11]).toBe(0);
+  });
+
+  it("rejects invalid rest inputs and every undersized aligned lane before traversal", () => {
+    const fixture = createFixture(16, 1);
+    registerFixture(fixture, 0, {});
+    fixture.index.rebuildFromStore(fixture.rest);
+    const metricsBefore = fixture.index.createMetrics(fixture.rest);
+    const environment = createRestEnvironmentBasis();
+    const invalidQueries = [
+      createRestCandidateQuery({ candidateCap: 0 }),
+      createRestCandidateQuery({ candidateCap: 25 }),
+      createRestCandidateQuery({ maxSelectedFixtures: 0 }),
+      createRestCandidateQuery({ maxSelectedFixtures: 13 }),
+    ];
+    for (const query of invalidQueries) {
+      const scratch = createRestSelectionScratch();
+      const output = createRestSelectionOutput();
+      fixture.index.selectCandidatesInto(query, environment, fixture.rest, scratch, output);
+      expect(output).toEqual(
+        createRestSelectionResetOutput(query, environment, fixture, "rest.fixture_input_invalid"),
+      );
+      expectRestSelectionScratchReset(scratch, fixture.rest.version);
+    }
+    for (const lane of REST_SELECTION_SCRATCH_LANES) {
+      const query = createRestCandidateQuery();
+      const scratch = createRestSelectionScratch(lane);
+      const output = createRestSelectionOutput();
+      fixture.index.selectCandidatesInto(query, environment, fixture.rest, scratch, output);
+      expect(output).toEqual(
+        createRestSelectionResetOutput(query, environment, fixture, "rest.fixture_input_invalid"),
+      );
+      expectRestSelectionScratchReset(scratch, fixture.rest.version);
+    }
+    expect(fixture.index.createMetrics(fixture.rest)).toEqual(metricsBefore);
+  });
+
+  it("rejects mismatched schedule/weather bases and a dirty rest index", () => {
+    const fixture = createFixture(16, 1);
+    registerFixture(fixture, 0, { weatherExposure: "outdoor" });
+    fixture.index.rebuildFromStore(fixture.rest);
+    const query = createRestCandidateQuery({ weatherExposure: "outdoor" });
+    const cases = [
+      {
+        environment: createRestEnvironmentBasis({ scheduleWindow: "night" }),
+        reason: "rest.rejected_schedule_window" as const,
+      },
+      {
+        environment: createRestEnvironmentBasis({ weatherExposure: "indoor" }),
+        reason: "rest.rejected_weather_exposure" as const,
+      },
+      {
+        environment: createRestEnvironmentBasis({
+          weatherExposure: "outdoor",
+          outdoorWorkAllowed: false,
+        }),
+        reason: "rest.rejected_weather_exposure" as const,
+      },
+    ];
+    for (const item of cases) {
+      const scratch = createRestSelectionScratch();
+      const output = createRestSelectionOutput();
+      fixture.index.selectCandidatesInto(query, item.environment, fixture.rest, scratch, output);
+      expect(output).toEqual(
+        createRestSelectionResetOutput(query, item.environment, fixture, item.reason),
+      );
+      expectRestSelectionScratchReset(scratch, fixture.rest.version);
+    }
+
+    const versionBeforeDirty = fixture.index.createMetrics(fixture.rest).version;
+    expect(fixture.index.markFixtureDirty(0)).toEqual({
+      ok: true,
+      id: 0,
+      version: versionBeforeDirty,
+    });
+    const environment = createRestEnvironmentBasis({
+      weatherExposure: "outdoor",
+      outdoorWorkAllowed: true,
+    });
+    const scratch = createRestSelectionScratch();
+    const output = createRestSelectionOutput();
+    fixture.index.selectCandidatesInto(query, environment, fixture.rest, scratch, output);
+    expect(output).toEqual(
+      createRestSelectionResetOutput(query, environment, fixture, "rest.fixture_input_invalid", 1),
+    );
+    expectRestSelectionScratchReset(scratch, fixture.rest.version);
+    expect(fixture.index.createMetrics(fixture.rest)).toMatchObject({
+      version: versionBeforeDirty,
+      dirtyBacklog: 1,
+      selectionCount: 0,
+      candidateVisitedCount: 0,
+    });
+  });
+
+  it("fails closed when any explicit environment owner version changes mid-selection", () => {
+    const versionFields = [
+      "scheduleWindowVersion",
+      "weatherVersion",
+      "weatherSourceVersion",
+    ] as const;
+
+    for (const versionField of versionFields) {
+      const fixture = createFixture(16, 1);
+      registerFixture(fixture, 0, {});
+      fixture.index.rebuildFromStore(fixture.rest);
+      const query = createRestCandidateQuery();
+      const environment = { ...createRestEnvironmentBasis() };
+      const scratch = createRestSelectionScratch();
+      const output = createRestSelectionOutput();
+      const originalRead = fixture.rest.readFixtureInto.bind(fixture.rest);
+      let versionAdvanced = false;
+      const readSpy = vi
+        .spyOn(fixture.rest, "readFixtureInto")
+        .mockImplementation((fixtureId, readOutput) => {
+          originalRead(fixtureId, readOutput);
+          if (fixtureId === 0 && !versionAdvanced) {
+            environment[versionField] += 1;
+            versionAdvanced = true;
+          }
+        });
+
+      fixture.index.selectCandidatesInto(query, environment, fixture.rest, scratch, output);
+      readSpy.mockRestore();
+      expect(versionAdvanced).toBe(true);
+      expect(output).toEqual(
+        createRestSelectionResetOutput(query, environment, fixture, "rest.fixture_input_invalid"),
+      );
+      expectRestSelectionScratchReset(scratch, fixture.rest.version);
+      expect(fixture.index.createMetrics(fixture.rest)).toMatchObject({
+        selectionCount: 0,
+        candidateVisitedCount: 0,
+      });
+    }
+  });
+
+  it("rejects a missed dirty fixture after another refresh catches sourceVersion up", () => {
+    const fixture = createFixture(16, 2);
+    registerFixture(fixture, 0, { baseScoreMilli: 1_000, targetCellIndex: 3 });
+    registerFixture(fixture, 1, { baseScoreMilli: 900, targetCellIndex: 4 });
+    fixture.index.rebuildFromStore(fixture.rest);
+    const cachedA = fixture.rest.readFixture(0)?.ownerVersion ?? 0;
+    expect(fixture.rest.removeFixture(0)).toMatchObject({ ok: true });
+    registerFixture(fixture, 0, { baseScoreMilli: 1_100, targetCellIndex: 5 });
+    const currentA = fixture.rest.readFixture(0)?.ownerVersion ?? 0;
+    expect(currentA).toBeGreaterThan(cachedA);
+    expect(fixture.index.markFixtureDirty(1)).toMatchObject({ ok: true });
+    expect(fixture.index.refreshDirty(fixture.rest, 1)).toMatchObject({ ok: true, id: 1 });
+    expect(fixture.index.createMetrics(fixture.rest)).toMatchObject({
+      dirtyBacklog: 0,
+      version: 2,
+    });
+
+    const query = createRestCandidateQuery();
+    const environment = createRestEnvironmentBasis();
+    const scratch = createRestSelectionScratch();
+    const output = createRestSelectionOutput();
+    fixture.index.selectCandidatesInto(query, environment, fixture.rest, scratch, output);
+    expect(output).toEqual(
+      createRestSelectionResetOutput(query, environment, fixture, "rest.fixture_input_invalid"),
+    );
+    expect(output.sourceVersion).toBe(fixture.rest.version);
+    expect(output.dirtyBacklog).toBe(0);
+    expectRestSelectionScratchReset(scratch, fixture.rest.version);
   });
 
   it("selects tired actors through bounded indexed candidates and Top-K exact paths", () => {
@@ -558,6 +898,31 @@ interface Fixture {
 }
 
 type RestFixtureIntoOutputForTest = Parameters<Fixture["rest"]["readFixtureInto"]>[1];
+type RestCandidateQueryForTest = Parameters<Fixture["index"]["selectCandidatesInto"]>[0];
+type RestEnvironmentBasisForTest = Parameters<Fixture["index"]["selectCandidatesInto"]>[1];
+type RestSelectionScratchForTest = Parameters<Fixture["index"]["selectCandidatesInto"]>[3];
+type RestSelectionOutputForTest = Parameters<Fixture["index"]["selectCandidatesInto"]>[4];
+type RestSelectionScratchLane = Exclude<keyof RestSelectionScratchForTest, "fixtureReadOutput">;
+type RestFixtureViewForTest = NonNullable<ReturnType<Fixture["rest"]["readFixture"]>>;
+
+const REST_SELECTION_SCRATCH_LANES: readonly RestSelectionScratchLane[] = [
+  "fixtureIds",
+  "entityIndexes",
+  "entityGenerations",
+  "fixtureKindCodes",
+  "restKindCodes",
+  "regionIds",
+  "targetCellIndexes",
+  "interactionSpotIds",
+  "scheduleCodes",
+  "weatherCodes",
+  "permissionIds",
+  "recoveryPerTickQ16s",
+  "scoreMillis",
+  "cachedFixtureVersions",
+  "currentFixtureOwnerVersions",
+  "linkedCandidateFlags",
+];
 
 function createRestFixtureIntoOutput(): RestFixtureIntoOutputForTest {
   return {
@@ -580,6 +945,246 @@ function createRestFixtureIntoOutput(): RestFixtureIntoOutputForTest {
     ownerVersion: 99,
     storeVersion: 99,
   };
+}
+
+function createRestCandidateQuery(
+  overrides: Partial<RestCandidateQueryForTest> = {},
+): RestCandidateQueryForTest {
+  return {
+    regionId: 0,
+    restKind: "rest",
+    scheduleWindow: "dawn",
+    weatherExposure: "indoor",
+    permissionId: 0,
+    candidateCap: M3_REST_DEFAULT_CANDIDATE_CAP,
+    maxSelectedFixtures: M3_REST_DEFAULT_SELECTED_CAP,
+    ...overrides,
+  };
+}
+
+function createRestEnvironmentBasis(
+  overrides: Partial<RestEnvironmentBasisForTest> = {},
+): RestEnvironmentBasisForTest {
+  return {
+    scheduleWindow: "dawn",
+    scheduleWindowVersion: 7,
+    weatherExposure: "indoor",
+    outdoorWorkAllowed: false,
+    weatherVersion: 8,
+    weatherSourceVersion: 9,
+    ...overrides,
+  };
+}
+
+function createRestSelectionScratch(
+  undersizedLane?: RestSelectionScratchLane,
+): RestSelectionScratchForTest {
+  return {
+    fixtureReadOutput: createRestFixtureIntoOutput(),
+    fixtureIds: createPoisonedRestUint32Lane("fixtureIds", undersizedLane),
+    entityIndexes: createPoisonedRestUint32Lane("entityIndexes", undersizedLane),
+    entityGenerations: createPoisonedRestUint32Lane("entityGenerations", undersizedLane),
+    fixtureKindCodes: createPoisonedRestUint8Lane("fixtureKindCodes", undersizedLane),
+    restKindCodes: createPoisonedRestUint8Lane("restKindCodes", undersizedLane),
+    regionIds: createPoisonedRestUint32Lane("regionIds", undersizedLane),
+    targetCellIndexes: createPoisonedRestUint32Lane("targetCellIndexes", undersizedLane),
+    interactionSpotIds: createPoisonedRestUint32Lane("interactionSpotIds", undersizedLane),
+    scheduleCodes: createPoisonedRestUint8Lane("scheduleCodes", undersizedLane),
+    weatherCodes: createPoisonedRestUint8Lane("weatherCodes", undersizedLane),
+    permissionIds: createPoisonedRestUint32Lane("permissionIds", undersizedLane),
+    recoveryPerTickQ16s: createPoisonedRestUint32Lane("recoveryPerTickQ16s", undersizedLane),
+    scoreMillis: createPoisonedRestUint32Lane("scoreMillis", undersizedLane),
+    cachedFixtureVersions: createPoisonedRestUint32Lane("cachedFixtureVersions", undersizedLane),
+    currentFixtureOwnerVersions: createPoisonedRestUint32Lane(
+      "currentFixtureOwnerVersions",
+      undersizedLane,
+    ),
+    linkedCandidateFlags: createPoisonedRestUint8Lane("linkedCandidateFlags", undersizedLane),
+  };
+}
+
+function createPoisonedRestUint32Lane(
+  lane: RestSelectionScratchLane,
+  undersizedLane: RestSelectionScratchLane | undefined,
+): Uint32Array {
+  const capacity = lane === undersizedLane ? M3_REST_DEFAULT_SELECTED_CAP - 1 : 12;
+  return new Uint32Array(capacity).fill(99);
+}
+
+function createPoisonedRestUint8Lane(
+  lane: RestSelectionScratchLane,
+  undersizedLane: RestSelectionScratchLane | undefined,
+): Uint8Array {
+  const capacity = lane === undersizedLane ? M3_REST_DEFAULT_SELECTED_CAP - 1 : 12;
+  return new Uint8Array(capacity).fill(1);
+}
+
+function createRestSelectionOutput(): RestSelectionOutputForTest {
+  return {
+    ok: true,
+    reason: "rest.fixture_input_invalid",
+    queryRegionId: 99,
+    queryRestKind: "sleep",
+    queryScheduleWindow: "night",
+    queryWeatherExposure: "outdoor",
+    queryPermissionId: 99,
+    candidateCap: 99,
+    maxSelectedFixtures: 99,
+    environmentScheduleWindow: "night",
+    scheduleWindowVersion: 99,
+    environmentWeatherExposure: "outdoor",
+    outdoorWorkAllowed: true,
+    weatherVersion: 99,
+    weatherSourceVersion: 99,
+    candidateTotal: 99,
+    visitedCount: 99,
+    selectedCount: 99,
+    candidateCapHit: true,
+    selectedCapHit: true,
+    selectedFixtureId: 99,
+    selectedEntityIndex: 99,
+    selectedEntityGeneration: 99,
+    selectedFixtureKind: "bedroll",
+    selectedRestKind: "sleep",
+    selectedRegionId: 99,
+    selectedTargetCellIndex: 99,
+    selectedInteractionSpotId: 99,
+    selectedScheduleWindow: "night",
+    selectedWeatherExposure: "outdoor",
+    selectedPermissionId: 99,
+    selectedRecoveryPerTickQ16: 99,
+    selectedScoreMilli: 99,
+    selectedCachedFixtureVersion: 99,
+    selectedCurrentFixtureOwnerVersion: 99,
+    selectedLinkedCandidate: true,
+    restStoreVersion: 99,
+    sourceVersion: 99,
+    indexVersion: 99,
+    dirtyBacklog: 99,
+  };
+}
+
+function createRestSelectionResetOutput(
+  query: RestCandidateQueryForTest,
+  environment: RestEnvironmentBasisForTest,
+  fixture: Fixture,
+  reason: RestSelectionOutputForTest["reason"],
+  dirtyBacklog = fixture.index.createMetrics(fixture.rest).dirtyBacklog,
+): RestSelectionOutputForTest {
+  return {
+    ok: false,
+    reason,
+    queryRegionId: query.regionId,
+    queryRestKind: query.restKind,
+    queryScheduleWindow: query.scheduleWindow,
+    queryWeatherExposure: query.weatherExposure,
+    queryPermissionId: query.permissionId,
+    candidateCap: query.candidateCap,
+    maxSelectedFixtures: query.maxSelectedFixtures,
+    environmentScheduleWindow: environment.scheduleWindow,
+    scheduleWindowVersion: environment.scheduleWindowVersion,
+    environmentWeatherExposure: environment.weatherExposure,
+    outdoorWorkAllowed: environment.outdoorWorkAllowed,
+    weatherVersion: environment.weatherVersion,
+    weatherSourceVersion: environment.weatherSourceVersion,
+    candidateTotal: 0,
+    visitedCount: 0,
+    selectedCount: 0,
+    candidateCapHit: false,
+    selectedCapHit: false,
+    selectedFixtureId: M3_REST_FIXTURE_NONE,
+    selectedEntityIndex: 0,
+    selectedEntityGeneration: 0,
+    selectedFixtureKind: undefined,
+    selectedRestKind: undefined,
+    selectedRegionId: 0,
+    selectedTargetCellIndex: 0,
+    selectedInteractionSpotId: 0,
+    selectedScheduleWindow: undefined,
+    selectedWeatherExposure: undefined,
+    selectedPermissionId: 0,
+    selectedRecoveryPerTickQ16: 0,
+    selectedScoreMilli: 0,
+    selectedCachedFixtureVersion: 0,
+    selectedCurrentFixtureOwnerVersion: 0,
+    selectedLinkedCandidate: false,
+    restStoreVersion: fixture.rest.version,
+    sourceVersion: fixture.rest.version,
+    indexVersion: fixture.index.createMetrics(fixture.rest).version,
+    dirtyBacklog,
+  };
+}
+
+function expectRestSelectionScratchReset(
+  scratch: RestSelectionScratchForTest,
+  storeVersion: number,
+): void {
+  for (const laneName of REST_SELECTION_SCRATCH_LANES) {
+    const lane = scratch[laneName];
+    const expected = laneName === "fixtureIds" ? M3_REST_FIXTURE_NONE : 0;
+    for (const value of lane) {
+      expect(value).toBe(expected);
+    }
+  }
+  expect(scratch.fixtureReadOutput).toEqual(
+    createRestFixtureResetOutput(M3_REST_FIXTURE_NONE, storeVersion),
+  );
+}
+
+function createRestFixtureResetOutput(
+  fixtureId: number,
+  storeVersion: number,
+): RestFixtureIntoOutputForTest {
+  return {
+    ok: false,
+    reason: "rest.fixture_id_out_of_range",
+    fixtureId,
+    active: false,
+    entityIndex: 0,
+    entityGeneration: 0,
+    kind: undefined,
+    restKind: undefined,
+    regionId: 0,
+    targetCellIndex: 0,
+    interactionSpotId: 0,
+    scheduleWindow: undefined,
+    weatherExposure: undefined,
+    permissionId: 0,
+    recoveryPerTickQ16: 0,
+    baseScoreMilli: 0,
+    ownerVersion: 0,
+    storeVersion,
+  };
+}
+
+function expectRestSelectionScratchRow(
+  scratch: RestSelectionScratchForTest,
+  index: number,
+  fixture: RestFixtureViewForTest,
+): void {
+  expect(scratch.fixtureIds[index]).toBe(fixture.fixtureId);
+  expect(scratch.entityIndexes[index]).toBe(fixture.entity.index);
+  expect(scratch.entityGenerations[index]).toBe(fixture.entity.generation);
+  expect(scratch.fixtureKindCodes[index]).toBe(fixture.kind === "bedroll" ? 1 : 0);
+  expect(scratch.restKindCodes[index]).toBe(fixture.restKind === "sleep" ? 1 : 0);
+  expect(scratch.regionIds[index]).toBe(fixture.regionId);
+  expect(scratch.targetCellIndexes[index]).toBe(fixture.targetCellIndex);
+  expect(scratch.interactionSpotIds[index]).toBe(fixture.interactionSpotId);
+  expect(scratch.scheduleCodes[index]).toBe(restScheduleCode(fixture.scheduleWindow));
+  expect(scratch.weatherCodes[index]).toBe(fixture.weatherExposure === "outdoor" ? 1 : 0);
+  expect(scratch.permissionIds[index]).toBe(fixture.permissionId);
+  expect(scratch.recoveryPerTickQ16s[index]).toBe(fixture.recoveryPerTickQ16);
+  expect(scratch.scoreMillis[index]).toBe(fixture.baseScoreMilli);
+  expect(scratch.cachedFixtureVersions[index]).toBe(fixture.ownerVersion);
+  expect(scratch.currentFixtureOwnerVersions[index]).toBe(fixture.ownerVersion);
+  expect(scratch.linkedCandidateFlags[index]).toBe(1);
+}
+
+function restScheduleCode(window: RestFixtureViewForTest["scheduleWindow"]): number {
+  if (window === "daytime") return 1;
+  if (window === "evening") return 2;
+  if (window === "night") return 3;
+  return 0;
 }
 
 function createFixture(entityCapacity: number, fixtureCapacity: number): Fixture {
