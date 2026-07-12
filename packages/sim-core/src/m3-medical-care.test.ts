@@ -6,6 +6,8 @@ import {
   M3_ABILITY_STAMINA,
   M3_HEALTH_CONDITION_ACTIVE,
   M3_HEALTH_CONDITION_KIND_INJURY,
+  M3_MEDICAL_DEFAULT_CANDIDATE_CAP,
+  M3_MEDICAL_DEFAULT_SELECTED_CAP,
   M3_MEDICAL_NO_REQUEST,
   createEntityRegistry,
   createGridPathfinder,
@@ -158,6 +160,348 @@ describe("m3-medical-care", () => {
     expect(caregiverOutput).toBe(caregiverIdentity);
     expect(legacyPatientRead).not.toHaveBeenCalled();
     expect(legacyCaregiverRead).not.toHaveBeenCalled();
+  });
+
+  it("selects coherent caller-owned medical rows without materializing owner views", () => {
+    const fixture = createMedicalFixture();
+    const requestInputs = [
+      { ...createRequestFor(CONDITION_YAO_SPRAIN, 0, 900), targetCellIndex: 9 },
+      { ...createRequestFor(CONDITION_YAO_SPRAIN, 1, 900), targetCellIndex: 1 },
+      { ...createRequestFor(CONDITION_YAO_SPRAIN, 2, 1_000), targetCellIndex: 7 },
+    ];
+    for (const input of requestInputs) {
+      expect(
+        fixture.medical.upsertPatientRequestFromCondition(input, fixture.health),
+      ).toMatchObject({ ok: true });
+    }
+    allowCaregiver(fixture);
+    const options = createMedicalSelectionOptions();
+    const legacyScratch = createSelectionScratch();
+    const legacy = fixture.medical.selectTreatmentRequests(options, fixture.health, legacyScratch);
+    if (!legacy.ok) {
+      throw new Error(`unexpected legacy medical selection failure: ${legacy.reason}`);
+    }
+    const first = fixture.medical.readPatientRequest(2) ?? failMissingMedicalPatient();
+    const caregiver = fixture.medical.readCaregiverState(ACTOR_MIN) ?? failMissingCaregiver();
+    const scratch = createMedicalSelectionIntoScratch();
+    const output = createMedicalSelectionIntoOutput();
+    const outputIdentity = output;
+    const scratchIdentity = scratch;
+    const patientReadIdentity = scratch.patientReadOutput;
+    const caregiverReadIdentity = scratch.caregiverReadOutput;
+    const abilityOutputIdentity = scratch.abilityQueryOutput;
+    const patientReadSpy = vi
+      .spyOn(fixture.medical, "readPatientRequest")
+      .mockImplementation(() => {
+        throw new Error("materializing medical patient read called");
+      });
+    const caregiverReadSpy = vi
+      .spyOn(fixture.medical, "readCaregiverState")
+      .mockImplementation(() => {
+        throw new Error("materializing caregiver read called");
+      });
+    const conditionReadSpy = vi.spyOn(fixture.health, "readCondition").mockImplementation(() => {
+      throw new Error("materializing condition read called");
+    });
+    const abilityReadSpy = vi.spyOn(fixture.abilities, "queryAbility").mockImplementation(() => {
+      throw new Error("materializing ability query called");
+    });
+
+    fixture.medical.selectTreatmentRequestsInto(
+      options,
+      fixture.health,
+      fixture.abilities,
+      scratch,
+      output,
+    );
+    expect(output).toEqual({
+      ok: true,
+      reason: legacy.reason,
+      queryCaregiverId: options.caregiverId,
+      queryRegionId: options.regionId,
+      queryUrgencyBucket: options.urgencyBucket,
+      queryPermissionId: options.permissionId,
+      candidateCap: options.candidateCap,
+      maxSelectedRequests: options.maxSelectedRequests,
+      bucketCandidateCount: 3,
+      visitedCount: legacy.visitedCount,
+      scoredCount: legacy.scoredCount,
+      selectedCount: legacy.selectedCount,
+      candidateCapHit: false,
+      selectedCapHit: false,
+      rejectedByCandidateCap: legacy.rejectedByCandidateCap,
+      rejectedByPermission: legacy.rejectedByPermission,
+      rejectedByAbility: legacy.rejectedByAbility,
+      rejectedByCondition: legacy.rejectedByCondition,
+      rejectedByStaleBasis: legacy.rejectedByStaleBasis,
+      selectedRequestId: first.requestId,
+      selectedPatientId: first.patientId,
+      selectedConditionId: first.conditionId,
+      selectedRegionId: first.regionId,
+      selectedUrgencyBucket: first.urgencyBucket,
+      selectedPermissionId: first.permissionId,
+      selectedTreatmentDefId: first.treatmentDefId,
+      selectedStockDefId: first.stockDefId,
+      selectedStockAmount: first.stockAmount,
+      selectedTargetCellIndex: first.targetCellIndex,
+      selectedScoreMilli: first.scoreMilli,
+      selectedConditionVersion: first.conditionVersion,
+      selectedActorConditionVersion: first.actorConditionVersion,
+      selectedHealthStoreVersion: first.healthStoreVersion,
+      selectedSeverity: first.severity,
+      selectedClueRef: first.clueRef,
+      selectedCounterevidenceRef: first.counterevidenceRef,
+      selectedCaregiverId: caregiver.caregiverId,
+      caregiverRegionId: caregiver.regionId,
+      caregiverPermissionId: caregiver.permissionId,
+      caregiverAbility: caregiver.ability,
+      caregiverMinimumValue: caregiver.minimumValue,
+      caregiverAbilityValue: caregiver.abilityValue,
+      caregiverActorConditionVersion: caregiver.actorConditionVersion,
+      caregiverBaseAbilityVersion: caregiver.baseAbilityVersion,
+      caregiverValid: caregiver.valid,
+      caregiverAllowed: caregiver.allowed,
+      medicalStoreVersion: fixture.medical.version,
+      healthStoreVersion: fixture.health.storeVersion,
+    });
+    expect(Array.from(legacyScratch.selectedRequestIds.subarray(0, 3))).toEqual([2, 0, 1]);
+    expect(Array.from(scratch.requestIds.subarray(0, 3))).toEqual([2, 0, 1]);
+    expect(Array.from(scratch.scoresMilli.subarray(0, 3))).toEqual([1_000, 900, 900]);
+    expect(Array.from(scratch.targetCellIndexes.subarray(0, 3))).toEqual([7, 9, 1]);
+    for (let index = 0; index < output.selectedCount; index += 1) {
+      const requestId = scratch.requestIds[index] ?? M3_MEDICAL_NO_REQUEST;
+      expectMedicalSelectionScratchRow(scratch, index, requestId, fixture);
+    }
+    expect(output).toBe(outputIdentity);
+    expect(scratch).toBe(scratchIdentity);
+    expect(scratch.patientReadOutput).toBe(patientReadIdentity);
+    expect(scratch.caregiverReadOutput).toBe(caregiverReadIdentity);
+    expect(scratch.abilityQueryOutput).toBe(abilityOutputIdentity);
+    expect(patientReadSpy).not.toHaveBeenCalled();
+    expect(caregiverReadSpy).not.toHaveBeenCalled();
+    expect(conditionReadSpy).not.toHaveBeenCalled();
+    expect(abilityReadSpy).not.toHaveBeenCalled();
+  });
+
+  it("reports exact medical bucket totals beyond the 24/12 bounded traversal", () => {
+    const fixture = createMedicalFixture(30);
+    for (let requestId = 0; requestId < 30; requestId += 1) {
+      expect(
+        fixture.medical.upsertPatientRequestFromCondition(
+          {
+            ...createRequestFor(CONDITION_YAO_SPRAIN, requestId, 10_000 - requestId),
+            targetCellIndex: requestId,
+          },
+          fixture.health,
+        ),
+      ).toMatchObject({ ok: true });
+    }
+    allowCaregiver(fixture);
+    const scratch = createMedicalSelectionIntoScratch();
+    const output = createMedicalSelectionIntoOutput();
+    const options = createMedicalSelectionOptions();
+    const legacyScratch = createSelectionScratch();
+    const legacy = fixture.medical.selectTreatmentRequests(options, fixture.health, legacyScratch);
+    if (!legacy.ok) {
+      throw new Error(`unexpected legacy medical selection failure: ${legacy.reason}`);
+    }
+
+    fixture.medical.selectTreatmentRequestsInto(
+      options,
+      fixture.health,
+      fixture.abilities,
+      scratch,
+      output,
+    );
+    expect(legacy.bucketCandidateCount).toBe(24);
+    expect(output).toMatchObject({
+      ok: true,
+      reason: "medical.candidate_cap_reached",
+      bucketCandidateCount: 30,
+      visitedCount: 24,
+      scoredCount: 24,
+      selectedCount: 12,
+      candidateCapHit: true,
+      selectedCapHit: true,
+      rejectedByCandidateCap: 1,
+      selectedRequestId: 0,
+    });
+    expect(Array.from(scratch.requestIds)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+
+    const smallOptions = createMedicalSelectionOptions({ candidateCap: 3, maxSelectedRequests: 2 });
+    fixture.medical.selectTreatmentRequestsInto(
+      smallOptions,
+      fixture.health,
+      fixture.abilities,
+      scratch,
+      output,
+    );
+    expect(output).toMatchObject({
+      ok: true,
+      bucketCandidateCount: 30,
+      visitedCount: 3,
+      scoredCount: 3,
+      selectedCount: 2,
+      candidateCapHit: true,
+      selectedCapHit: true,
+      candidateCap: 3,
+      maxSelectedRequests: 2,
+    });
+    expect(Array.from(scratch.requestIds.subarray(0, 4))).toEqual([
+      0,
+      1,
+      M3_MEDICAL_NO_REQUEST,
+      M3_MEDICAL_NO_REQUEST,
+    ]);
+  });
+
+  it("rejects invalid medical caps and every undersized Into lane before traversal", () => {
+    const fixture = createReadyTreatmentFixture();
+    const metricsBefore = fixture.medical.createMetrics();
+    const invalidOptions = [
+      createMedicalSelectionOptions({ candidateCap: 0 }),
+      createMedicalSelectionOptions({ candidateCap: 25 }),
+      createMedicalSelectionOptions({ maxSelectedRequests: 0 }),
+      createMedicalSelectionOptions({ maxSelectedRequests: 13 }),
+    ];
+    for (const options of invalidOptions) {
+      const scratch = createMedicalSelectionIntoScratch();
+      const output = createMedicalSelectionIntoOutput();
+      fixture.medical.selectTreatmentRequestsInto(
+        options,
+        fixture.health,
+        fixture.abilities,
+        scratch,
+        output,
+      );
+      expect(output).toEqual(
+        createMedicalSelectionResetOutput(options, fixture, "medical.value_out_of_range"),
+      );
+      expectMedicalSelectionScratchReset(scratch, fixture);
+    }
+    for (const lane of MEDICAL_SELECTION_SCRATCH_LANES) {
+      const options = createMedicalSelectionOptions();
+      const scratch = createMedicalSelectionIntoScratch(lane);
+      const output = createMedicalSelectionIntoOutput();
+      fixture.medical.selectTreatmentRequestsInto(
+        options,
+        fixture.health,
+        fixture.abilities,
+        scratch,
+        output,
+      );
+      expect(output).toEqual(
+        createMedicalSelectionResetOutput(options, fixture, "medical.selected_buffer_too_small"),
+      );
+      expectMedicalSelectionScratchReset(scratch, fixture);
+    }
+    expect(fixture.medical.createMetrics()).toEqual(metricsBefore);
+  });
+
+  it("rejects caregiver and patient staleness without trusting medical version alone", () => {
+    const caregiverFixture = createReadyTreatmentFixture();
+    const medicalVersion = caregiverFixture.medical.version;
+    expect(
+      caregiverFixture.abilities.setBaseAbility(ACTOR_MIN, M3_ABILITY_MANIPULATION, 800),
+    ).toEqual({ ok: true });
+    const caregiverScratch = createMedicalSelectionIntoScratch();
+    const caregiverOutput = createMedicalSelectionIntoOutput();
+    caregiverFixture.medical.selectTreatmentRequestsInto(
+      createMedicalSelectionOptions(),
+      caregiverFixture.health,
+      caregiverFixture.abilities,
+      caregiverScratch,
+      caregiverOutput,
+    );
+    expect(caregiverFixture.medical.version).toBe(medicalVersion);
+    expect(caregiverOutput).toMatchObject({
+      ok: false,
+      reason: "medical.rejected_stale_owner_state",
+      rejectedByStaleBasis: 1,
+      medicalStoreVersion: medicalVersion,
+      visitedCount: 0,
+    });
+
+    const finalFixture = createReadyTreatmentFixture();
+    const finalMedicalVersion = finalFixture.medical.version;
+    const finalScratch = createMedicalSelectionIntoScratch();
+    const finalOutput = createMedicalSelectionIntoOutput();
+    const originalPatientRead = finalFixture.medical.readPatientRequestInto.bind(
+      finalFixture.medical,
+    );
+    let abilityVersionAdvanced = false;
+    const patientReadSpy = vi
+      .spyOn(finalFixture.medical, "readPatientRequestInto")
+      .mockImplementation((requestId, readOutput) => {
+        originalPatientRead(requestId, readOutput);
+        if (requestId === REQUEST_YAO_SPRAIN && !abilityVersionAdvanced) {
+          expect(
+            finalFixture.abilities.setBaseAbility(ACTOR_MIN, M3_ABILITY_MANIPULATION, 800),
+          ).toEqual({ ok: true });
+          abilityVersionAdvanced = true;
+        }
+      });
+    const finalOptions = createMedicalSelectionOptions();
+    finalFixture.medical.selectTreatmentRequestsInto(
+      finalOptions,
+      finalFixture.health,
+      finalFixture.abilities,
+      finalScratch,
+      finalOutput,
+    );
+    patientReadSpy.mockRestore();
+    expect(abilityVersionAdvanced).toBe(true);
+    expect(finalFixture.medical.version).toBe(finalMedicalVersion);
+    expect(finalOutput).toEqual({
+      ...createMedicalSelectionResetOutput(
+        finalOptions,
+        finalFixture,
+        "medical.rejected_stale_owner_state",
+      ),
+      rejectedByStaleBasis: 1,
+    });
+    expectMedicalSelectionScratchReset(finalScratch, finalFixture);
+    expect(finalFixture.medical.createMetrics()).toMatchObject({
+      selectionCount: 0,
+      candidateVisitedCount: 0,
+      staleBasisRejectCount: 1,
+    });
+
+    const patientFixture = createReadyTreatmentFixture();
+    const patientMedicalVersion = patientFixture.medical.version;
+    expect(
+      patientFixture.health.updateCondition({
+        conditionId: CONDITION_YAO_SPRAIN,
+        severity: 300,
+      }),
+    ).toMatchObject({ ok: true });
+    const patientScratch = createMedicalSelectionIntoScratch();
+    const patientOutput = createMedicalSelectionIntoOutput();
+    const conditionReadSpy = vi
+      .spyOn(patientFixture.health, "readCondition")
+      .mockImplementation(() => {
+        throw new Error("materializing condition read called");
+      });
+    patientFixture.medical.selectTreatmentRequestsInto(
+      createMedicalSelectionOptions(),
+      patientFixture.health,
+      patientFixture.abilities,
+      patientScratch,
+      patientOutput,
+    );
+    expect(patientFixture.medical.version).toBe(patientMedicalVersion);
+    expect(patientOutput).toMatchObject({
+      ok: false,
+      reason: "medical.no_patient",
+      bucketCandidateCount: 1,
+      visitedCount: 1,
+      scoredCount: 0,
+      selectedCount: 0,
+      rejectedByStaleBasis: 1,
+      medicalStoreVersion: patientMedicalVersion,
+      healthStoreVersion: patientFixture.health.storeVersion,
+    });
+    expect(conditionReadSpy).not.toHaveBeenCalled();
   });
 
   it("selects treatment offers from patient owner state and caregiver ability state", () => {
@@ -739,6 +1083,39 @@ interface MedicalFixture {
 
 type PatientRequestIntoOutput = Parameters<MedicalFixture["medical"]["readPatientRequestInto"]>[1];
 type CaregiverStateIntoOutput = Parameters<MedicalFixture["medical"]["readCaregiverStateInto"]>[1];
+type MedicalSelectionOptionsForTest = Parameters<
+  MedicalFixture["medical"]["selectTreatmentRequestsInto"]
+>[0];
+type MedicalSelectionIntoScratchForTest = Parameters<
+  MedicalFixture["medical"]["selectTreatmentRequestsInto"]
+>[3];
+type MedicalSelectionIntoOutputForTest = Parameters<
+  MedicalFixture["medical"]["selectTreatmentRequestsInto"]
+>[4];
+type MedicalSelectionScratchLane = Exclude<
+  keyof MedicalSelectionIntoScratchForTest,
+  "patientReadOutput" | "caregiverReadOutput" | "abilityQueryOutput"
+>;
+
+const MEDICAL_SELECTION_SCRATCH_LANES: readonly MedicalSelectionScratchLane[] = [
+  "requestIds",
+  "patientIds",
+  "conditionIds",
+  "regionIds",
+  "urgencyBuckets",
+  "permissionIds",
+  "treatmentDefIds",
+  "stockDefIds",
+  "stockAmounts",
+  "targetCellIndexes",
+  "scoresMilli",
+  "conditionVersions",
+  "actorConditionVersions",
+  "healthStoreVersions",
+  "severities",
+  "clueRefs",
+  "counterevidenceRefs",
+];
 
 function createPatientRequestIntoOutput(): PatientRequestIntoOutput {
   return {
@@ -784,7 +1161,315 @@ function createCaregiverStateIntoOutput(): CaregiverStateIntoOutput {
   };
 }
 
-function createMedicalFixture(): MedicalFixture {
+function createMedicalSelectionOptions(
+  overrides: Partial<MedicalSelectionOptionsForTest> = {},
+): MedicalSelectionOptionsForTest {
+  return {
+    caregiverId: ACTOR_MIN,
+    regionId: REGION_CLINIC,
+    urgencyBucket: URGENCY_HIGH,
+    permissionId: PERMISSION_CLINIC,
+    candidateCap: M3_MEDICAL_DEFAULT_CANDIDATE_CAP,
+    maxSelectedRequests: M3_MEDICAL_DEFAULT_SELECTED_CAP,
+    ...overrides,
+  };
+}
+
+function createMedicalSelectionIntoScratch(
+  undersizedLane?: MedicalSelectionScratchLane,
+): MedicalSelectionIntoScratchForTest {
+  return {
+    patientReadOutput: createPatientRequestIntoOutput(),
+    caregiverReadOutput: createCaregiverStateIntoOutput(),
+    abilityQueryOutput: createMedicalAbilityQueryOutput(),
+    requestIds: createPoisonedMedicalUint32Lane("requestIds", undersizedLane),
+    patientIds: createPoisonedMedicalUint32Lane("patientIds", undersizedLane),
+    conditionIds: createPoisonedMedicalUint32Lane("conditionIds", undersizedLane),
+    regionIds: createPoisonedMedicalUint32Lane("regionIds", undersizedLane),
+    urgencyBuckets: createPoisonedMedicalUint32Lane("urgencyBuckets", undersizedLane),
+    permissionIds: createPoisonedMedicalUint32Lane("permissionIds", undersizedLane),
+    treatmentDefIds: createPoisonedMedicalUint32Lane("treatmentDefIds", undersizedLane),
+    stockDefIds: createPoisonedMedicalUint32Lane("stockDefIds", undersizedLane),
+    stockAmounts: createPoisonedMedicalUint32Lane("stockAmounts", undersizedLane),
+    targetCellIndexes: createPoisonedMedicalUint32Lane("targetCellIndexes", undersizedLane),
+    scoresMilli: createPoisonedMedicalInt32Lane("scoresMilli", undersizedLane),
+    conditionVersions: createPoisonedMedicalUint32Lane("conditionVersions", undersizedLane),
+    actorConditionVersions: createPoisonedMedicalUint32Lane(
+      "actorConditionVersions",
+      undersizedLane,
+    ),
+    healthStoreVersions: createPoisonedMedicalUint32Lane("healthStoreVersions", undersizedLane),
+    severities: createPoisonedMedicalUint16Lane("severities", undersizedLane),
+    clueRefs: createPoisonedMedicalUint32Lane("clueRefs", undersizedLane),
+    counterevidenceRefs: createPoisonedMedicalUint32Lane("counterevidenceRefs", undersizedLane),
+  };
+}
+
+function medicalLaneCapacity(
+  lane: MedicalSelectionScratchLane,
+  undersizedLane: MedicalSelectionScratchLane | undefined,
+): number {
+  return lane === undersizedLane ? M3_MEDICAL_DEFAULT_SELECTED_CAP - 1 : 12;
+}
+
+function createPoisonedMedicalUint32Lane(
+  lane: MedicalSelectionScratchLane,
+  undersizedLane: MedicalSelectionScratchLane | undefined,
+): Uint32Array {
+  return new Uint32Array(medicalLaneCapacity(lane, undersizedLane)).fill(99);
+}
+
+function createPoisonedMedicalInt32Lane(
+  lane: MedicalSelectionScratchLane,
+  undersizedLane: MedicalSelectionScratchLane | undefined,
+): Int32Array {
+  return new Int32Array(medicalLaneCapacity(lane, undersizedLane)).fill(-99);
+}
+
+function createPoisonedMedicalUint16Lane(
+  lane: MedicalSelectionScratchLane,
+  undersizedLane: MedicalSelectionScratchLane | undefined,
+): Uint16Array {
+  return new Uint16Array(medicalLaneCapacity(lane, undersizedLane)).fill(99);
+}
+
+function createMedicalAbilityQueryOutput(): MedicalSelectionIntoScratchForTest["abilityQueryOutput"] {
+  return {
+    ok: true,
+    reason: "ability.cache_hit",
+    actorId: 99,
+    ability: 99,
+    value: 99,
+    threshold: 99,
+    baseValue: 99,
+    conditionPenalty: 99,
+    actorConditionVersion: 99,
+    baseAbilityVersion: 99,
+    visitedConditionCount: 99,
+  };
+}
+
+function createMedicalSelectionIntoOutput(): MedicalSelectionIntoOutputForTest {
+  return {
+    ok: true,
+    reason: "medical.value_out_of_range",
+    queryCaregiverId: 99,
+    queryRegionId: 99,
+    queryUrgencyBucket: 99,
+    queryPermissionId: 99,
+    candidateCap: 99,
+    maxSelectedRequests: 99,
+    bucketCandidateCount: 99,
+    visitedCount: 99,
+    scoredCount: 99,
+    selectedCount: 99,
+    candidateCapHit: true,
+    selectedCapHit: true,
+    rejectedByCandidateCap: 99,
+    rejectedByPermission: 99,
+    rejectedByAbility: 99,
+    rejectedByCondition: 99,
+    rejectedByStaleBasis: 99,
+    selectedRequestId: 99,
+    selectedPatientId: 99,
+    selectedConditionId: 99,
+    selectedRegionId: 99,
+    selectedUrgencyBucket: 99,
+    selectedPermissionId: 99,
+    selectedTreatmentDefId: 99,
+    selectedStockDefId: 99,
+    selectedStockAmount: 99,
+    selectedTargetCellIndex: 99,
+    selectedScoreMilli: 99,
+    selectedConditionVersion: 99,
+    selectedActorConditionVersion: 99,
+    selectedHealthStoreVersion: 99,
+    selectedSeverity: 99,
+    selectedClueRef: 99,
+    selectedCounterevidenceRef: 99,
+    selectedCaregiverId: 99,
+    caregiverRegionId: 99,
+    caregiverPermissionId: 99,
+    caregiverAbility: 99,
+    caregiverMinimumValue: 99,
+    caregiverAbilityValue: 99,
+    caregiverActorConditionVersion: 99,
+    caregiverBaseAbilityVersion: 99,
+    caregiverValid: true,
+    caregiverAllowed: true,
+    medicalStoreVersion: 99,
+    healthStoreVersion: 99,
+  };
+}
+
+function createMedicalSelectionResetOutput(
+  options: MedicalSelectionOptionsForTest,
+  fixture: MedicalFixture,
+  reason: MedicalSelectionIntoOutputForTest["reason"],
+): MedicalSelectionIntoOutputForTest {
+  return {
+    ok: false,
+    reason,
+    queryCaregiverId: options.caregiverId,
+    queryRegionId: options.regionId,
+    queryUrgencyBucket: options.urgencyBucket,
+    queryPermissionId: options.permissionId,
+    candidateCap: options.candidateCap,
+    maxSelectedRequests: options.maxSelectedRequests,
+    bucketCandidateCount: 0,
+    visitedCount: 0,
+    scoredCount: 0,
+    selectedCount: 0,
+    candidateCapHit: false,
+    selectedCapHit: false,
+    rejectedByCandidateCap: 0,
+    rejectedByPermission: 0,
+    rejectedByAbility: 0,
+    rejectedByCondition: 0,
+    rejectedByStaleBasis: 0,
+    selectedRequestId: M3_MEDICAL_NO_REQUEST,
+    selectedPatientId: 0,
+    selectedConditionId: 0,
+    selectedRegionId: 0,
+    selectedUrgencyBucket: 0,
+    selectedPermissionId: 0,
+    selectedTreatmentDefId: 0,
+    selectedStockDefId: 0,
+    selectedStockAmount: 0,
+    selectedTargetCellIndex: 0,
+    selectedScoreMilli: 0,
+    selectedConditionVersion: 0,
+    selectedActorConditionVersion: 0,
+    selectedHealthStoreVersion: 0,
+    selectedSeverity: 0,
+    selectedClueRef: 0,
+    selectedCounterevidenceRef: 0,
+    selectedCaregiverId: M3_MEDICAL_NO_REQUEST,
+    caregiverRegionId: 0,
+    caregiverPermissionId: 0,
+    caregiverAbility: 0,
+    caregiverMinimumValue: 0,
+    caregiverAbilityValue: 0,
+    caregiverActorConditionVersion: 0,
+    caregiverBaseAbilityVersion: 0,
+    caregiverValid: false,
+    caregiverAllowed: false,
+    medicalStoreVersion: fixture.medical.version,
+    healthStoreVersion: fixture.health.storeVersion,
+  };
+}
+
+function expectMedicalSelectionScratchReset(
+  scratch: MedicalSelectionIntoScratchForTest,
+  fixture: MedicalFixture,
+): void {
+  for (const laneName of MEDICAL_SELECTION_SCRATCH_LANES) {
+    const lane = scratch[laneName];
+    const expected = laneName === "requestIds" ? M3_MEDICAL_NO_REQUEST : 0;
+    for (const value of lane) {
+      expect(value).toBe(expected);
+    }
+  }
+  expect(scratch.patientReadOutput).toEqual(
+    createPatientRequestResetOutput(M3_MEDICAL_NO_REQUEST, fixture.medical.version),
+  );
+  expect(scratch.caregiverReadOutput).toEqual(
+    createCaregiverStateResetOutput(M3_MEDICAL_NO_REQUEST, fixture.medical.version),
+  );
+  expect(scratch.abilityQueryOutput).toEqual({
+    ok: false,
+    reason: "ability.actor_out_of_range",
+    actorId: M3_MEDICAL_NO_REQUEST,
+    ability: 0,
+    value: 0,
+    threshold: 0,
+    baseValue: 0,
+    conditionPenalty: 0,
+    actorConditionVersion: 0,
+    baseAbilityVersion: 0,
+    visitedConditionCount: 0,
+  });
+}
+
+function createPatientRequestResetOutput(
+  requestId: number,
+  medicalStoreVersion: number,
+): PatientRequestIntoOutput {
+  return {
+    ok: false,
+    reason: "medical.request_id_out_of_range",
+    requestId,
+    active: false,
+    patientId: 0,
+    conditionId: 0,
+    regionId: 0,
+    urgencyBucket: 0,
+    permissionId: 0,
+    treatmentDefId: 0,
+    stockDefId: 0,
+    stockAmount: 0,
+    targetCellIndex: 0,
+    scoreMilli: 0,
+    conditionVersion: 0,
+    actorConditionVersion: 0,
+    healthStoreVersion: 0,
+    severity: 0,
+    clueRef: 0,
+    counterevidenceRef: 0,
+    medicalStoreVersion,
+  };
+}
+
+function createCaregiverStateResetOutput(
+  caregiverId: number,
+  medicalStoreVersion: number,
+): CaregiverStateIntoOutput {
+  return {
+    ok: false,
+    reason: "medical.actor_out_of_range",
+    caregiverId,
+    valid: false,
+    regionId: 0,
+    permissionId: 0,
+    ability: 0,
+    minimumValue: 0,
+    allowed: false,
+    abilityValue: 0,
+    actorConditionVersion: 0,
+    baseAbilityVersion: 0,
+    medicalStoreVersion,
+  };
+}
+
+function expectMedicalSelectionScratchRow(
+  scratch: MedicalSelectionIntoScratchForTest,
+  index: number,
+  requestId: number,
+  fixture: MedicalFixture,
+): void {
+  const patient = createPatientRequestIntoOutput();
+  fixture.medical.readPatientRequestInto(requestId, patient);
+  expect(patient.ok).toBe(true);
+  expect(scratch.requestIds[index]).toBe(patient.requestId);
+  expect(scratch.patientIds[index]).toBe(patient.patientId);
+  expect(scratch.conditionIds[index]).toBe(patient.conditionId);
+  expect(scratch.regionIds[index]).toBe(patient.regionId);
+  expect(scratch.urgencyBuckets[index]).toBe(patient.urgencyBucket);
+  expect(scratch.permissionIds[index]).toBe(patient.permissionId);
+  expect(scratch.treatmentDefIds[index]).toBe(patient.treatmentDefId);
+  expect(scratch.stockDefIds[index]).toBe(patient.stockDefId);
+  expect(scratch.stockAmounts[index]).toBe(patient.stockAmount);
+  expect(scratch.targetCellIndexes[index]).toBe(patient.targetCellIndex);
+  expect(scratch.scoresMilli[index]).toBe(patient.scoreMilli);
+  expect(scratch.conditionVersions[index]).toBe(patient.conditionVersion);
+  expect(scratch.actorConditionVersions[index]).toBe(patient.actorConditionVersion);
+  expect(scratch.healthStoreVersions[index]).toBe(patient.healthStoreVersion);
+  expect(scratch.severities[index]).toBe(patient.severity);
+  expect(scratch.clueRefs[index]).toBe(patient.clueRef);
+  expect(scratch.counterevidenceRefs[index]).toBe(patient.counterevidenceRef);
+}
+
+function createMedicalFixture(requestCapacity = 8): MedicalFixture {
   const registry = createEntityRegistry({ capacity: 16 });
   const caregiver = mustAllocate(registry);
   const patient = mustAllocate(registry);
@@ -801,7 +1486,7 @@ function createMedicalFixture(): MedicalFixture {
   abilities.drainInvalidationBacklog(8);
   expect(health.addCondition(createSprain())).toMatchObject({ ok: true });
   const medical = createM3MedicalCareStore({
-    requestCapacity: 8,
+    requestCapacity,
     actorCapacity: 6,
     regionCapacity: 4,
     urgencyBucketCount: 4,
@@ -1036,6 +1721,14 @@ function createRequestFor(
     targetCellIndex: 5,
     scoreMilli,
   };
+}
+
+function failMissingMedicalPatient(): never {
+  throw new Error("missing medical patient request");
+}
+
+function failMissingCaregiver(): never {
+  throw new Error("missing medical caregiver state");
 }
 
 function mustAllocate(registry: ReturnType<typeof createEntityRegistry>): EntityId {
