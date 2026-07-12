@@ -1,0 +1,103 @@
+{
+  "id": "WM-0181",
+  "title": "M3 need-driven exact-index caller-owned surfaces",
+  "summary": "Add caller-owned version-bound Into selection and read surfaces for food, rest, and medical exact indexes before WM-0170 resumes.",
+  "state": "ready",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0177"
+  ],
+  "docs": [
+    "AGENTS.md",
+    ".agents/skills/wuming-town-agent-workflow/SKILL.md",
+    "coordination/tasks/WM-0170.json",
+    "coordination/tasks/WM-0171.json",
+    "coordination/tasks/WM-0177.json",
+    "coordination/reports/WM-0177.md",
+    "coordination/reports/WM-0170-plan.md",
+    "docs/05_tech/13_autonomous_town_life_architecture.md",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "packages/sim-core/src/m3-food.ts",
+    "packages/sim-core/src/m3-rest-sleep.ts",
+    "packages/sim-core/src/m3-medical-care.ts"
+  ],
+  "acceptance": [
+    "M3FoodAvailabilityStore exposes caller-owned selectCandidatesInto and readPortionInto surfaces that bind selected portion/stack/target facts to food owner/index versions and dirty-backlog basis in one reset-on-entry flat output; a dirty stack that has not advanced the owner version is still rejected during final revalidation",
+    "RestCandidateIndex exposes caller-owned selectCandidatesInto and RestSleepStore exposes readFixtureInto so one selected fixture carries RestSleepStore owner version, candidate source/index versions, schedule/weather basis, target/cell, score and cap counters without materializing a result",
+    "M3MedicalCareStore exposes caller-owned selectTreatmentRequestsInto, readPatientRequestInto and readCaregiverStateInto surfaces; the selected request binds patient condition plus caregiver cached condition/base-ability/valid/allowed basis, and revalidation cannot rely only on the medical store version",
+    "All new selection surfaces use caller-owned fixed-cap scratch/output, visit at most 24 candidates, retain at most 12, order by integer score then source-row id then target id, reset every output lane, and make no object, array, typed-array, closure or dynamic-string allocation in the complete hot call closure",
+    "Existing allocating APIs, snapshots, hashes, drivers and historical food/rest/medical scenarios remain behavior-compatible; the new Into paths are additive public owner surfaces and do not duplicate owner truth into WorkOffer rows",
+    "owner-hot-path-surfaces.test.ts audits the complete transitive closure of every new root and proves output/scratch identity, stale owner/row/index/backlog rejection, cap metrics and parity with existing behavior; all required types and roots are exported from packages/sim-core/src/index.ts",
+    "The task does not modify game-session-autonomy, m3-health, WorkOffer, pathing, ReservationLedger, GameSession, protocol, Worker, client, save/load, dependencies or release surfaces"
+  ],
+  "requiredChecks": [
+    "corepack pnpm typecheck",
+    "corepack pnpm exec vitest run packages/sim-core/src/m3-food-eating.test.ts packages/sim-core/src/m3-rest-sleep.test.ts packages/sim-core/src/m3-medical-care.test.ts packages/sim-core/src/owner-hot-path-surfaces.test.ts",
+    "corepack pnpm boundaries:check",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0181-m3-need-driven-exact-index-caller-owned-surfaces",
+  "createdAt": "2026-07-12T19:50:48.315Z",
+  "updatedAt": "2026-07-12T19:55:00.000Z",
+  "history": [
+    {
+      "at": "2026-07-12T19:50:48.315Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    },
+    {
+      "at": "2026-07-12T19:52:00.000Z",
+      "actor": "systems-architect",
+      "action": "refine-proposed-task",
+      "details": "Independent WM-0170 owner-index stop-line decision selected strict prerequisite B and rejected derived WorkOffer mirroring for need-driven food/rest/medical candidates."
+    },
+    {
+      "at": "2026-07-12T19:55:00.000Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "WM-0177 is done and the independent systems-architect packet fully refined the strict owner-index repair."
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "pr-2-autonomous-town-life-owner-index-repair",
+  "planningTask": "WM-0169",
+  "architectureDecision": "coordination/decisions/ADR-0018.md",
+  "repairFor": "WM-0170",
+  "writeOwnership": [
+    "packages/sim-core/src/m3-food.ts",
+    "packages/sim-core/src/m3-food-eating.test.ts",
+    "packages/sim-core/src/m3-rest-sleep.ts",
+    "packages/sim-core/src/m3-rest-sleep.test.ts",
+    "packages/sim-core/src/m3-medical-care.ts",
+    "packages/sim-core/src/m3-medical-care.test.ts",
+    "packages/sim-core/src/owner-hot-path-surfaces.test.ts",
+    "packages/sim-core/src/index.ts"
+  ],
+  "allowedPaths": [
+    "packages/sim-core/src/m3-food.ts",
+    "packages/sim-core/src/m3-food-eating.test.ts",
+    "packages/sim-core/src/m3-rest-sleep.ts",
+    "packages/sim-core/src/m3-rest-sleep.test.ts",
+    "packages/sim-core/src/m3-medical-care.ts",
+    "packages/sim-core/src/m3-medical-care.test.ts",
+    "packages/sim-core/src/owner-hot-path-surfaces.test.ts",
+    "packages/sim-core/src/index.ts",
+    "coordination/tasks/WM-0181.json",
+    "coordination/reports/WM-0181*.md"
+  ],
+  "forbiddenPaths": [
+    "packages/sim-core/src/game-session-autonomy*.ts or other WM-0170 implementation/checkpoint files",
+    "packages/sim-core/src/m3-health*.ts, work-offers.ts, pathing.ts or reservation-ledger.ts",
+    "GameSession/runtime integration owned by WM-0171, protocol, Worker, apps, renderer, UI or save/load",
+    "derived WorkOffer mirrors for food/rest/treatment, global entity/map/store scans, per-call allocation, callback selection or unbounded sort",
+    "runtime dependencies, benchmark/admission changes, PR-3 commands or release actions"
+  ],
+  "executionLane": "simulation-engineer; Spark is prohibited because this task repairs generic owner-version and allocation boundaries consumed by deterministic autonomy",
+  "singleWriterRule": "WM-0181 is the sole ready repair writer. WM-0170 remains blocked with its Phase A/B1 checkpoint until WM-0181 is independently verified, integrated and done; WM-0171 remains proposed behind WM-0170."
+}
