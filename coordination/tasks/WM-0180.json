@@ -2,7 +2,7 @@
   "id": "WM-0180",
   "title": "Windows PowerShell quiet-host admission tool",
   "summary": "Add a reusable Windows PowerShell 5.1-compatible fail-closed quiet-host admission script, synthetic self-test and workflow quality-gate reference so benchmark tasks no longer rely on unreviewed inline sampling scripts.",
-  "state": "review_requested",
+  "state": "changes_requested",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -43,7 +43,7 @@
   ],
   "branch": "task/WM-0180-windows-powershell-quiet-host-admission-tool",
   "createdAt": "2026-07-12T05:31:19.650Z",
-  "updatedAt": "2026-07-12T06:07:54.872Z",
+  "updatedAt": "2026-07-12T06:15:07.063Z",
   "history": [
     {
       "at": "2026-07-12T05:31:19.650Z",
@@ -68,6 +68,12 @@
       "actor": "qa-performance",
       "action": "complete",
       "details": "Implemented a PS5.1 fail-closed quiet-host admission tool, 28-case no-sleep child-process self-test and reviewed quality-gate contract; all required checks including 78-file/462-test quality pass."
+    },
+    {
+      "at": "2026-07-12T06:15:07.063Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: Medium: quiet-host-admission.ps1:428-432 accepts finite fractional logicalProcessorCount; a PS5.1 synthetic probe with 1.5 returned admission_passed/exit 0, violating invalid-count fail-closed. Require a positive integer within Int32 bounds before casting and add fractional coverage. Medium: quiet-host-admission-self-test.ps1:126-129 TrimEnd removes unlimited CR/LF, so JSON plus extra blank stdout lines would pass the claimed exactly-one-line assertion. Validate the raw stdout framing exactly (one compact JSON record and one terminator) before parsing."
     }
   ],
   "milestone": "Post-M8",
@@ -123,5 +129,11 @@
   "claimedBy": "qa-performance",
   "threadLabel": "Sentinel WM-0180",
   "blocker": null,
-  "reportPath": "coordination/reports/WM-0180.md"
+  "reportPath": "coordination/reports/WM-0180.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "changes_requested",
+    "summary": "Medium: quiet-host-admission.ps1:428-432 accepts finite fractional logicalProcessorCount; a PS5.1 synthetic probe with 1.5 returned admission_passed/exit 0, violating invalid-count fail-closed. Require a positive integer within Int32 bounds before casting and add fractional coverage. Medium: quiet-host-admission-self-test.ps1:126-129 TrimEnd removes unlimited CR/LF, so JSON plus extra blank stdout lines would pass the claimed exactly-one-line assertion. Validate the raw stdout framing exactly (one compact JSON record and one terminator) before parsing.",
+    "at": "2026-07-12T06:15:07.063Z"
+  }
 }

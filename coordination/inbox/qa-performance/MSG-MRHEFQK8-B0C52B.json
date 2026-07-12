@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MRHEFQK8-B0C52B",
+  "from": "reviewer",
+  "to": "qa-performance",
+  "taskId": "WM-0180",
+  "kind": "changes-requested",
+  "subject": "WM-0180 review: changes_requested",
+  "body": "Medium: quiet-host-admission.ps1:428-432 accepts finite fractional logicalProcessorCount; a PS5.1 synthetic probe with 1.5 returned admission_passed/exit 0, violating invalid-count fail-closed. Require a positive integer within Int32 bounds before casting and add fractional coverage. Medium: quiet-host-admission-self-test.ps1:126-129 TrimEnd removes unlimited CR/LF, so JSON plus extra blank stdout lines would pass the claimed exactly-one-line assertion. Validate the raw stdout framing exactly (one compact JSON record and one terminator) before parsing.",
+  "artifacts": [
+    "coordination/reports/WM-0180.md"
+  ],
+  "createdAt": "2026-07-12T06:15:07.064Z",
+  "acknowledgedAt": null
+}
