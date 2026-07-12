@@ -1123,7 +1123,9 @@ function readFirstPathReason(results: readonly PathSearchResult[]): PathReason |
   return undefined;
 }
 
-function hasFoodSelectionScratchCapacity(scratch: M3FoodCandidateSelectionIntoScratch): boolean {
+export function hasFoodSelectionScratchCapacity(
+  scratch: M3FoodCandidateSelectionIntoScratch,
+): boolean {
   return (
     scratch.stackIds.length >= M3_FOOD_DEFAULT_SELECTED_CAP &&
     scratch.foodDefIds.length >= M3_FOOD_DEFAULT_SELECTED_CAP &&
@@ -1144,7 +1146,7 @@ function hasFoodSelectionScratchCapacity(scratch: M3FoodCandidateSelectionIntoSc
   );
 }
 
-function resetFoodSelectionScratch(scratch: M3FoodCandidateSelectionIntoScratch): void {
+export function resetFoodSelectionScratch(scratch: M3FoodCandidateSelectionIntoScratch): void {
   for (let index = 0; index < M3_FOOD_DEFAULT_SELECTED_CAP; index += 1) {
     scratch.stackIds[index] = M3_FOOD_STACK_NONE;
     scratch.foodDefIds[index] = 0;
@@ -1187,14 +1189,14 @@ function clearUint32(values: Uint32Array, count: number, fill: number): void {
   }
 }
 
-function isIndexInRange(value: number, upperBound: number): boolean {
+export function isIndexInRange(value: number, upperBound: number): boolean {
   return Number.isSafeInteger(value) && value >= 0 && value < upperBound;
 }
 
-function isSafeUint32(value: number): boolean {
+export function isSafeUint32(value: number): boolean {
   return Number.isSafeInteger(value) && value >= 0 && value <= 0xffff_ffff;
 }
 
-function isPositiveSafeInteger(value: number): boolean {
+export function isPositiveSafeInteger(value: number): boolean {
   return Number.isSafeInteger(value) && value > 0;
 }

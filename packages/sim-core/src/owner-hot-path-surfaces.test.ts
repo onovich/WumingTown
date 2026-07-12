@@ -12,10 +12,14 @@ import {
   createEntityRegistry,
   createGridPathfinder,
   createM3AbilityCacheStore,
+  createM3FoodAvailabilityStore,
   createM3HealthAbilityMask,
   createM3HealthConditionStore,
+  createM3MedicalCareStore,
   createMapGrid,
   createReservationLedger,
+  createRestCandidateIndex,
+  createRestSleepStore,
   createWorkOfferIndex,
   isSafeTick,
   type EntityId,
@@ -40,6 +44,13 @@ import {
   oppositeDirection as auditMapOppositeDirection,
 } from "./map-grid";
 import {
+  hasFoodSelectionScratchCapacity as auditFoodHasSelectionScratchCapacity,
+  isIndexInRange as auditFoodIsIndexInRange,
+  isPositiveSafeInteger as auditFoodIsPositiveSafeInteger,
+  isSafeUint32 as auditFoodIsSafeUint32,
+  resetFoodSelectionScratch as auditFoodResetSelectionScratch,
+} from "./m3-food";
+import {
   abilityMaskFor as auditM3AbilityMaskFor,
   clampAbilityValue as auditM3ClampAbilityValue,
   isAbilityLane as auditM3IsAbilityLane,
@@ -47,6 +58,46 @@ import {
   isSeverity as auditM3IsSeverity,
   laneIndex as auditM3LaneIndex,
 } from "./m3-health";
+import {
+  copyFirstMedicalPatientIntoOutput as auditMedicalCopyFirstPatientIntoOutput,
+  copyMedicalCaregiverIntoOutput as auditMedicalCopyCaregiverIntoOutput,
+  copyMedicalScratchRow as auditMedicalCopyScratchRow,
+  hasMedicalSelectionScratchCapacity as auditMedicalHasSelectionScratchCapacity,
+  insertMedicalPatientIntoScratch as auditMedicalInsertPatientIntoScratch,
+  isIndexInRange as auditMedicalIsIndexInRange,
+  isMedicalCaregiverAbilityTupleCurrent as auditMedicalIsCaregiverAbilityTupleCurrent,
+  isMedicalCaregiverOutputCurrent as auditMedicalIsCaregiverOutputCurrent,
+  isMedicalPatientScratchRowCurrent as auditMedicalIsPatientScratchRowCurrent,
+  isMedicalScratchCandidateBefore as auditMedicalIsScratchCandidateBefore,
+  isPositiveSafeInteger as auditMedicalIsPositiveSafeInteger,
+  resetMedicalAbilityQueryOutput as auditMedicalResetAbilityQueryOutput,
+  resetMedicalSelectionScratch as auditMedicalResetSelectionScratch,
+  writeMedicalPatientScratchRow as auditMedicalWritePatientScratchRow,
+} from "./m3-medical-care";
+import {
+  copyFirstRestCandidateIntoOutput as auditRestCopyFirstCandidateIntoOutput,
+  createAggregateKey as auditRestCreateAggregateKey,
+  createRestBucketKey as auditRestCreateBucketKey,
+  createScheduleKey as auditRestCreateScheduleKey,
+  decodeFixtureKind as auditRestDecodeFixtureKind,
+  decodeRestKind as auditRestDecodeRestKind,
+  decodeScheduleWindow as auditRestDecodeScheduleWindow,
+  decodeWeatherExposure as auditRestDecodeWeatherExposure,
+  encodeFixtureKind as auditRestEncodeFixtureKind,
+  encodeOptionalFixtureKind as auditRestEncodeOptionalFixtureKind,
+  encodeOptionalRestKind as auditRestEncodeOptionalRestKind,
+  encodeOptionalScheduleWindow as auditRestEncodeOptionalScheduleWindow,
+  encodeOptionalWeatherExposure as auditRestEncodeOptionalWeatherExposure,
+  encodeRestKind as auditRestEncodeRestKind,
+  encodeScheduleWindow as auditRestEncodeScheduleWindow,
+  encodeWeatherExposure as auditRestEncodeWeatherExposure,
+  hasRestSelectionScratchCapacity as auditRestHasSelectionScratchCapacity,
+  isIndexInRange as auditRestIsIndexInRange,
+  isPositiveUint32 as auditRestIsPositiveUint32,
+  isRestEnvironmentBasisCurrent as auditRestIsEnvironmentBasisCurrent,
+  isSafeUint32 as auditRestIsSafeUint32,
+  resetRestSelectionScratch as auditRestResetSelectionScratch,
+} from "./m3-rest-sleep";
 import {
   isCellIndexInRange as auditPathIsCellIndexInRange,
   isPositiveSafeInteger as auditPathIsPositiveSafeInteger,
@@ -674,6 +725,20 @@ describe("caller-owned owner hot-path surfaces", () => {
       abilityDirtyCapacity: 2,
     });
     const abilities = createM3AbilityCacheStore({ actorCapacity: 2, dirtyCapacity: 2 });
+    const food = createM3FoodAvailabilityStore(12, 2, 2);
+    const restStore = createRestSleepStore(12, 2, 2);
+    const restIndex = createRestCandidateIndex({
+      fixtureCapacity: 12,
+      regionCapacity: 2,
+      permissionCapacity: 2,
+    });
+    const medical = createM3MedicalCareStore({
+      requestCapacity: 12,
+      actorCapacity: 2,
+      regionCapacity: 2,
+      urgencyBucketCount: 2,
+      permissionCapacity: 2,
+    });
     const registry = createEntityRegistry({ capacity: 2 });
     const targets: HotAuditTargets = {
       map,
@@ -683,6 +748,10 @@ describe("caller-owned owner hot-path surfaces", () => {
       registry,
       health,
       abilities,
+      food,
+      restStore,
+      restIndex,
+      medical,
     };
     const roots = createRootHotAuditEntries(targets);
     const classHelpers = createClassHelperHotAuditEntries(targets);
@@ -691,11 +760,11 @@ describe("caller-owned owner hot-path surfaces", () => {
     const labels = new Set<string>();
     for (const entry of entries) labels.add(entry.label);
 
-    expect(roots).toHaveLength(11);
-    expect(classHelpers).toHaveLength(42);
-    expect(freeHelpers).toHaveLength(27);
-    expect(entries).toHaveLength(80);
-    expect(labels.size).toBe(80);
+    expect(roots).toHaveLength(18);
+    expect(classHelpers).toHaveLength(75);
+    expect(freeHelpers).toHaveLength(68);
+    expect(entries).toHaveLength(161);
+    expect(labels.size).toBe(161);
 
     const resolver = createHotAuditResolver(entries);
     for (const entry of entries) {
@@ -733,6 +802,57 @@ describe("caller-owned owner hot-path surfaces", () => {
       "otherwise-valid hiddenHelper() must fail transitive closure",
     ).toBe("unresolved project call hiddenHelper");
 
+    const collisionResolver = createHotAuditResolver([
+      functionAuditEntry("food", auditFoodIsIndexInRange),
+      functionAuditEntry("rest", auditRestIsIndexInRange),
+    ]);
+    const foodCollisionCaller: HotSourceAuditEntry = {
+      label: "food.regression",
+      moduleName: "food",
+      callName: "regression",
+      source: "function regression() { isIndexInRange(0, 1); }",
+    };
+    const restCollisionCaller: HotSourceAuditEntry = {
+      ...foodCollisionCaller,
+      label: "rest.regression",
+      moduleName: "rest",
+    };
+    const medicalCollisionCaller: HotSourceAuditEntry = {
+      ...foodCollisionCaller,
+      label: "medical.regression",
+      moduleName: "medical",
+    };
+    expect(findUnresolvedHotCall(foodCollisionCaller, collisionResolver)).toBeUndefined();
+    expect(findUnresolvedHotCall(restCollisionCaller, collisionResolver)).toBeUndefined();
+    expect(findUnresolvedHotCall(medicalCollisionCaller, collisionResolver)).toBe(
+      "unresolved project call isIndexInRange",
+    );
+
+    const receiverResolver = createHotAuditResolver([
+      {
+        label: "RestSleepStore.readFixtureInto",
+        moduleName: "rest",
+        ownerName: "RestSleepStore",
+        callName: "readFixtureInto",
+        source: "function readFixtureInto() { return; }",
+      },
+    ]);
+    const exactReceiverCaller: HotSourceAuditEntry = {
+      label: "RestCandidateIndex.regression",
+      moduleName: "rest",
+      ownerName: "RestCandidateIndex",
+      callName: "regression",
+      source: "function regression(store, output) { store.readFixtureInto(0, output); }",
+    };
+    const fakeReceiverCaller: HotSourceAuditEntry = {
+      ...exactReceiverCaller,
+      source: "function regression(fakeStore, output) { fakeStore.readFixtureInto(0, output); }",
+    };
+    expect(findUnresolvedHotCall(exactReceiverCaller, receiverResolver)).toBeUndefined();
+    expect(findUnresolvedHotCall(fakeReceiverCaller, receiverResolver)).toBe(
+      "unresolved project call fakeStore.readFixtureInto",
+    );
+
     for (const callName of ["get", "set", "fill"]) {
       const fakeReceiverEntry: HotSourceAuditEntry = {
         label: `regression.fake.${callName}`,
@@ -762,7 +882,15 @@ describe("caller-owned owner hot-path surfaces", () => {
   });
 });
 
-type HotAuditModuleName = "map" | "path" | "work" | "reservation" | "m3";
+type HotAuditModuleName =
+  | "map"
+  | "path"
+  | "work"
+  | "reservation"
+  | "health"
+  | "food"
+  | "rest"
+  | "medical";
 
 interface HotAuditTargets {
   readonly map: ReturnType<typeof createMapGrid>;
@@ -772,6 +900,10 @@ interface HotAuditTargets {
   readonly registry: ReturnType<typeof createEntityRegistry>;
   readonly health: ReturnType<typeof createM3HealthConditionStore>;
   readonly abilities: ReturnType<typeof createM3AbilityCacheStore>;
+  readonly food: ReturnType<typeof createM3FoodAvailabilityStore>;
+  readonly restStore: ReturnType<typeof createRestSleepStore>;
+  readonly restIndex: ReturnType<typeof createRestCandidateIndex>;
+  readonly medical: ReturnType<typeof createM3MedicalCareStore>;
 }
 
 interface HotSourceAuditEntry {
@@ -1003,8 +1135,25 @@ function createRootHotAuditEntries(targets: HotAuditTargets): readonly HotSource
     classAuditEntry("WorkOfferIndex", "work", targets.offers, "readOfferInto"),
     classAuditEntry("WorkOfferIndex", "work", targets.offers, "selectTopOffersInto"),
     classAuditEntry("ReservationLedger", "reservation", targets.ledger, "acquireInto"),
-    classAuditEntry("M3HealthConditionStore", "m3", targets.health, "computeAbilityPenaltyInto"),
-    classAuditEntry("M3AbilityCacheStore", "m3", targets.abilities, "queryAbilityInto"),
+    classAuditEntry(
+      "M3HealthConditionStore",
+      "health",
+      targets.health,
+      "computeAbilityPenaltyInto",
+    ),
+    classAuditEntry("M3AbilityCacheStore", "health", targets.abilities, "queryAbilityInto"),
+    classAuditEntry("M3FoodAvailabilityStore", "food", targets.food, "readPortionInto"),
+    classAuditEntry("M3FoodAvailabilityStore", "food", targets.food, "selectCandidatesInto"),
+    classAuditEntry("RestSleepStore", "rest", targets.restStore, "readFixtureInto"),
+    classAuditEntry("RestCandidateIndex", "rest", targets.restIndex, "selectCandidatesInto"),
+    classAuditEntry("M3MedicalCareStore", "medical", targets.medical, "readPatientRequestInto"),
+    classAuditEntry("M3MedicalCareStore", "medical", targets.medical, "readCaregiverStateInto"),
+    classAuditEntry(
+      "M3MedicalCareStore",
+      "medical",
+      targets.medical,
+      "selectTreatmentRequestsInto",
+    ),
   ];
 }
 
@@ -1062,8 +1211,47 @@ function createClassHelperHotAuditEntries(
       "isIndexActive",
       "generationAt",
     ]),
-    classAuditEntry("M3HealthConditionStore", "m3", targets.health, "actorConditionVersion"),
-    classAuditEntry("M3AbilityCacheStore", "m3", targets.abilities, "resetAbilityIntoOutput"),
+    classAuditEntry("M3HealthConditionStore", "health", targets.health, "actorConditionVersion"),
+    classAuditEntry("M3AbilityCacheStore", "health", targets.abilities, "resetAbilityIntoOutput"),
+    ...classAuditEntries("M3FoodAvailabilityStore", "food", targets.food, [
+      "resetPortionInto",
+      "validateCandidateSelectionInto",
+      "resetCandidateSelectionInto",
+      "writeCandidateIntoScratch",
+      "isCandidateSelectionBasisCurrent",
+      "isCandidateScratchRowCurrent",
+      "copyFirstCandidateIntoOutput",
+      "createBucketKey",
+      "recordSelectionMetrics",
+      "isActiveStack",
+    ]),
+    classAuditEntry("RestSleepStore", "rest", targets.restStore, "resetFixtureInto"),
+    ...classAuditEntries("RestCandidateIndex", "rest", targets.restIndex, [
+      "validateCandidateSelectionInto",
+      "resetCandidateSelectionInto",
+      "failCandidateSelectionInto",
+      "collectCandidatesInto",
+      "isFixtureReadCurrent",
+      "writeCandidateIntoScratch",
+      "isCandidateSelectionBasisCurrent",
+      "isCandidateScratchRowCurrent",
+      "finishCandidateSelectionInto",
+      "resolveSelectionReason",
+    ]),
+    ...classAuditEntries("M3MedicalCareStore", "medical", targets.medical, [
+      "resetPatientRequestInto",
+      "resetCaregiverStateInto",
+      "validateSelectionInto",
+      "resetSelectionInto",
+      "prepareCaregiverInto",
+      "collectTreatmentRequestsInto",
+      "validatePatientReadInto",
+      "isMedicalSelectionBasisCurrent",
+      "failSelectionInto",
+      "finishSelectionInto",
+      "bucketIndex",
+      "bucketIndexFor",
+    ]),
   ];
 }
 
@@ -1090,12 +1278,53 @@ function createFreeHelperHotAuditEntries(): readonly HotSourceAuditEntry[] {
     functionAuditEntry("reservation", auditReservationIsSafeUint32),
     functionAuditEntry("reservation", auditReservationIsIndexInRange),
     functionAuditEntry("reservation", isSafeTick, "time.isSafeTick"),
-    functionAuditEntry("m3", auditM3AbilityMaskFor),
-    functionAuditEntry("m3", auditM3LaneIndex),
-    functionAuditEntry("m3", auditM3IsIndexInRange),
-    functionAuditEntry("m3", auditM3IsAbilityLane),
-    functionAuditEntry("m3", auditM3IsSeverity),
-    functionAuditEntry("m3", auditM3ClampAbilityValue),
+    functionAuditEntry("health", auditM3AbilityMaskFor),
+    functionAuditEntry("health", auditM3LaneIndex),
+    functionAuditEntry("health", auditM3IsIndexInRange),
+    functionAuditEntry("health", auditM3IsAbilityLane),
+    functionAuditEntry("health", auditM3IsSeverity),
+    functionAuditEntry("health", auditM3ClampAbilityValue),
+    functionAuditEntry("food", auditFoodHasSelectionScratchCapacity),
+    functionAuditEntry("food", auditFoodResetSelectionScratch),
+    functionAuditEntry("food", auditFoodIsIndexInRange),
+    functionAuditEntry("food", auditFoodIsSafeUint32),
+    functionAuditEntry("food", auditFoodIsPositiveSafeInteger),
+    functionAuditEntry("rest", auditRestIsEnvironmentBasisCurrent),
+    functionAuditEntry("rest", auditRestHasSelectionScratchCapacity),
+    functionAuditEntry("rest", auditRestResetSelectionScratch),
+    functionAuditEntry("rest", auditRestCopyFirstCandidateIntoOutput),
+    functionAuditEntry("rest", auditRestCreateBucketKey),
+    functionAuditEntry("rest", auditRestCreateAggregateKey),
+    functionAuditEntry("rest", auditRestCreateScheduleKey),
+    functionAuditEntry("rest", auditRestEncodeRestKind),
+    functionAuditEntry("rest", auditRestEncodeOptionalRestKind),
+    functionAuditEntry("rest", auditRestDecodeRestKind),
+    functionAuditEntry("rest", auditRestEncodeFixtureKind),
+    functionAuditEntry("rest", auditRestEncodeOptionalFixtureKind),
+    functionAuditEntry("rest", auditRestDecodeFixtureKind),
+    functionAuditEntry("rest", auditRestEncodeWeatherExposure),
+    functionAuditEntry("rest", auditRestEncodeOptionalWeatherExposure),
+    functionAuditEntry("rest", auditRestDecodeWeatherExposure),
+    functionAuditEntry("rest", auditRestEncodeScheduleWindow),
+    functionAuditEntry("rest", auditRestEncodeOptionalScheduleWindow),
+    functionAuditEntry("rest", auditRestDecodeScheduleWindow),
+    functionAuditEntry("rest", auditRestIsIndexInRange),
+    functionAuditEntry("rest", auditRestIsSafeUint32),
+    functionAuditEntry("rest", auditRestIsPositiveUint32),
+    functionAuditEntry("medical", auditMedicalHasSelectionScratchCapacity),
+    functionAuditEntry("medical", auditMedicalResetSelectionScratch),
+    functionAuditEntry("medical", auditMedicalResetAbilityQueryOutput),
+    functionAuditEntry("medical", auditMedicalIsCaregiverAbilityTupleCurrent),
+    functionAuditEntry("medical", auditMedicalCopyCaregiverIntoOutput),
+    functionAuditEntry("medical", auditMedicalIsCaregiverOutputCurrent),
+    functionAuditEntry("medical", auditMedicalInsertPatientIntoScratch),
+    functionAuditEntry("medical", auditMedicalIsScratchCandidateBefore),
+    functionAuditEntry("medical", auditMedicalCopyScratchRow),
+    functionAuditEntry("medical", auditMedicalWritePatientScratchRow),
+    functionAuditEntry("medical", auditMedicalIsPatientScratchRowCurrent),
+    functionAuditEntry("medical", auditMedicalCopyFirstPatientIntoOutput),
+    functionAuditEntry("medical", auditMedicalIsIndexInRange),
+    functionAuditEntry("medical", auditMedicalIsPositiveSafeInteger),
   ];
 }
 
@@ -1342,6 +1571,9 @@ const PROJECT_OBJECT_HOT_CALLS = new Map<string, string>([
   ["registry.generationAt", "EntityRegistry.generationAt"],
   ["conditionStore.actorConditionVersion", "M3HealthConditionStore.actorConditionVersion"],
   ["conditionStore.computeAbilityPenaltyInto", "M3HealthConditionStore.computeAbilityPenaltyInto"],
+  ["store.readFixtureInto", "RestSleepStore.readFixtureInto"],
+  ["health.actorConditionVersion", "M3HealthConditionStore.actorConditionVersion"],
+  ["abilities.queryAbilityInto", "M3AbilityCacheStore.queryAbilityInto"],
 ]);
 
 function isAllowedNativeHotCall(call: HotCall): boolean {

@@ -2471,7 +2471,7 @@ function isRestJobView(record: unknown, capacity: number): record is RestJobView
   );
 }
 
-function isRestEnvironmentBasisCurrent(
+export function isRestEnvironmentBasisCurrent(
   environment: RestCandidateEnvironmentBasis,
   output: RestCandidateSelectionIntoOutput,
 ): boolean {
@@ -2487,7 +2487,9 @@ function isRestEnvironmentBasisCurrent(
   );
 }
 
-function hasRestSelectionScratchCapacity(scratch: RestCandidateSelectionIntoScratch): boolean {
+export function hasRestSelectionScratchCapacity(
+  scratch: RestCandidateSelectionIntoScratch,
+): boolean {
   return (
     scratch.fixtureIds.length >= M3_REST_DEFAULT_SELECTED_CAP &&
     scratch.entityIndexes.length >= M3_REST_DEFAULT_SELECTED_CAP &&
@@ -2508,7 +2510,7 @@ function hasRestSelectionScratchCapacity(scratch: RestCandidateSelectionIntoScra
   );
 }
 
-function resetRestSelectionScratch(scratch: RestCandidateSelectionIntoScratch): void {
+export function resetRestSelectionScratch(scratch: RestCandidateSelectionIntoScratch): void {
   for (let index = 0; index < M3_REST_DEFAULT_SELECTED_CAP; index += 1) {
     scratch.fixtureIds[index] = M3_REST_FIXTURE_NONE;
     scratch.entityIndexes[index] = 0;
@@ -2529,7 +2531,7 @@ function resetRestSelectionScratch(scratch: RestCandidateSelectionIntoScratch): 
   }
 }
 
-function copyFirstRestCandidateIntoOutput(
+export function copyFirstRestCandidateIntoOutput(
   scratch: RestCandidateSelectionIntoScratch,
   output: RestCandidateSelectionIntoOutput,
 ): void {
@@ -2566,7 +2568,7 @@ function isRestFixtureBefore(
   return currentFixtureId < nextFixtureId;
 }
 
-function createRestBucketKey(
+export function createRestBucketKey(
   regionId: number,
   restKindCode: number,
   scheduleCode: number,
@@ -2594,7 +2596,7 @@ function createRestBucketKey(
   );
 }
 
-function createAggregateKey(
+export function createAggregateKey(
   regionId: number,
   restKindCode: number,
   permissionId: number,
@@ -2603,7 +2605,7 @@ function createAggregateKey(
   return (regionId * REST_KIND_COUNT + restKindCode) * permissionCapacity + permissionId;
 }
 
-function createScheduleKey(
+export function createScheduleKey(
   regionId: number,
   restKindCode: number,
   scheduleCode: number,
@@ -2617,15 +2619,15 @@ function createScheduleKey(
   );
 }
 
-function encodeRestKind(kind: RestKind): number {
+export function encodeRestKind(kind: RestKind): number {
   return kind === "sleep" ? REST_KIND_SLEEP : REST_KIND_REST;
 }
 
-function encodeOptionalRestKind(kind: RestKind | undefined): number {
+export function encodeOptionalRestKind(kind: RestKind | undefined): number {
   return kind === undefined ? REST_KIND_REST : encodeRestKind(kind);
 }
 
-function decodeRestKind(code: number): RestKind {
+export function decodeRestKind(code: number): RestKind {
   return code === REST_KIND_SLEEP ? "sleep" : "rest";
 }
 
@@ -2633,31 +2635,33 @@ function isRestKind(value: unknown): value is RestKind {
   return value === "rest" || value === "sleep";
 }
 
-function encodeFixtureKind(kind: RestFixtureKind): number {
+export function encodeFixtureKind(kind: RestFixtureKind): number {
   return kind === "bedroll" ? 1 : 0;
 }
 
-function encodeOptionalFixtureKind(kind: RestFixtureKind | undefined): number {
+export function encodeOptionalFixtureKind(kind: RestFixtureKind | undefined): number {
   return kind === undefined ? 0 : encodeFixtureKind(kind);
 }
 
-function decodeFixtureKind(code: number): RestFixtureKind {
+export function decodeFixtureKind(code: number): RestFixtureKind {
   return code === 1 ? "bedroll" : "clinic_mat";
 }
 
-function encodeWeatherExposure(exposure: RestFixtureWeatherExposure): number {
+export function encodeWeatherExposure(exposure: RestFixtureWeatherExposure): number {
   return exposure === "outdoor" ? WEATHER_EXPOSURE_OUTDOOR : WEATHER_EXPOSURE_INDOOR;
 }
 
-function encodeOptionalWeatherExposure(exposure: RestFixtureWeatherExposure | undefined): number {
+export function encodeOptionalWeatherExposure(
+  exposure: RestFixtureWeatherExposure | undefined,
+): number {
   return exposure === undefined ? WEATHER_EXPOSURE_INDOOR : encodeWeatherExposure(exposure);
 }
 
-function decodeWeatherExposure(code: number): RestFixtureWeatherExposure {
+export function decodeWeatherExposure(code: number): RestFixtureWeatherExposure {
   return code === WEATHER_EXPOSURE_OUTDOOR ? "outdoor" : "indoor";
 }
 
-function encodeScheduleWindow(window: M3ScheduleWindowId): number {
+export function encodeScheduleWindow(window: M3ScheduleWindowId): number {
   if (window === "daytime") {
     return SCHEDULE_DAYTIME;
   }
@@ -2670,11 +2674,11 @@ function encodeScheduleWindow(window: M3ScheduleWindowId): number {
   return SCHEDULE_DAWN;
 }
 
-function encodeOptionalScheduleWindow(window: M3ScheduleWindowId | undefined): number {
+export function encodeOptionalScheduleWindow(window: M3ScheduleWindowId | undefined): number {
   return window === undefined ? SCHEDULE_DAWN : encodeScheduleWindow(window);
 }
 
-function decodeScheduleWindow(code: number): M3ScheduleWindowId {
+export function decodeScheduleWindow(code: number): M3ScheduleWindowId {
   if (code === SCHEDULE_DAYTIME) {
     return "daytime";
   }
@@ -3018,19 +3022,19 @@ function isSafeTickValue(value: unknown): value is Tick {
   return typeof value === "number" && isSafeTick(value);
 }
 
-function isIndexInRange(value: unknown, upperBound: number): value is number {
+export function isIndexInRange(value: unknown, upperBound: number): value is number {
   return (
     typeof value === "number" && Number.isSafeInteger(value) && value >= 0 && value < upperBound
   );
 }
 
-function isSafeUint32(value: unknown): value is number {
+export function isSafeUint32(value: unknown): value is number {
   return (
     typeof value === "number" && Number.isSafeInteger(value) && value >= 0 && value <= 0xffff_ffff
   );
 }
 
-function isPositiveUint32(value: unknown): value is number {
+export function isPositiveUint32(value: unknown): value is number {
   return (
     typeof value === "number" && Number.isSafeInteger(value) && value > 0 && value <= 0xffff_ffff
   );

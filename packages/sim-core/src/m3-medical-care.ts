@@ -1270,7 +1270,9 @@ export function createM3MedicalCareStore(options: {
   return new M3MedicalCareStore(options);
 }
 
-function hasMedicalSelectionScratchCapacity(scratch: M3MedicalSelectionIntoScratch): boolean {
+export function hasMedicalSelectionScratchCapacity(
+  scratch: M3MedicalSelectionIntoScratch,
+): boolean {
   return (
     scratch.requestIds.length >= M3_MEDICAL_DEFAULT_SELECTED_CAP &&
     scratch.patientIds.length >= M3_MEDICAL_DEFAULT_SELECTED_CAP &&
@@ -1292,7 +1294,7 @@ function hasMedicalSelectionScratchCapacity(scratch: M3MedicalSelectionIntoScrat
   );
 }
 
-function resetMedicalSelectionScratch(scratch: M3MedicalSelectionIntoScratch): void {
+export function resetMedicalSelectionScratch(scratch: M3MedicalSelectionIntoScratch): void {
   for (let index = 0; index < M3_MEDICAL_DEFAULT_SELECTED_CAP; index += 1) {
     scratch.requestIds[index] = M3_MEDICAL_NO_REQUEST;
     scratch.patientIds[index] = 0;
@@ -1314,7 +1316,7 @@ function resetMedicalSelectionScratch(scratch: M3MedicalSelectionIntoScratch): v
   }
 }
 
-function resetMedicalAbilityQueryOutput(output: M3AbilityQueryIntoOutput): void {
+export function resetMedicalAbilityQueryOutput(output: M3AbilityQueryIntoOutput): void {
   output.ok = false;
   output.reason = "ability.actor_out_of_range";
   output.actorId = M3_MEDICAL_NO_REQUEST;
@@ -1328,7 +1330,7 @@ function resetMedicalAbilityQueryOutput(output: M3AbilityQueryIntoOutput): void 
   output.visitedConditionCount = 0;
 }
 
-function isMedicalCaregiverAbilityTupleCurrent(
+export function isMedicalCaregiverAbilityTupleCurrent(
   caregiver: M3MedicalCaregiverStateIntoOutput,
   ability: M3AbilityQueryIntoOutput,
 ): boolean {
@@ -1346,7 +1348,7 @@ function isMedicalCaregiverAbilityTupleCurrent(
   );
 }
 
-function copyMedicalCaregiverIntoOutput(
+export function copyMedicalCaregiverIntoOutput(
   caregiver: M3MedicalCaregiverStateIntoOutput,
   output: M3MedicalSelectionIntoOutput,
 ): void {
@@ -1362,7 +1364,7 @@ function copyMedicalCaregiverIntoOutput(
   output.caregiverAllowed = caregiver.allowed;
 }
 
-function isMedicalCaregiverOutputCurrent(
+export function isMedicalCaregiverOutputCurrent(
   caregiver: M3MedicalCaregiverStateIntoOutput,
   ability: M3AbilityQueryIntoOutput,
   output: M3MedicalSelectionIntoOutput,
@@ -1383,7 +1385,7 @@ function isMedicalCaregiverOutputCurrent(
   );
 }
 
-function insertMedicalPatientIntoScratch(
+export function insertMedicalPatientIntoScratch(
   patient: M3MedicalPatientRequestIntoOutput,
   scratch: M3MedicalSelectionIntoScratch,
   selectedCount: number,
@@ -1405,7 +1407,7 @@ function insertMedicalPatientIntoScratch(
   return selectedCount < maxSelected ? selectedCount + 1 : selectedCount;
 }
 
-function isMedicalScratchCandidateBefore(
+export function isMedicalScratchCandidateBefore(
   selectedIndex: number,
   patient: M3MedicalPatientRequestIntoOutput,
   scratch: M3MedicalSelectionIntoScratch,
@@ -1421,7 +1423,7 @@ function isMedicalScratchCandidateBefore(
   return (scratch.targetCellIndexes[selectedIndex] ?? 0) < patient.targetCellIndex;
 }
 
-function copyMedicalScratchRow(
+export function copyMedicalScratchRow(
   source: number,
   destination: number,
   scratch: M3MedicalSelectionIntoScratch,
@@ -1445,7 +1447,7 @@ function copyMedicalScratchRow(
   scratch.counterevidenceRefs[destination] = scratch.counterevidenceRefs[source] ?? 0;
 }
 
-function writeMedicalPatientScratchRow(
+export function writeMedicalPatientScratchRow(
   destination: number,
   patient: M3MedicalPatientRequestIntoOutput,
   scratch: M3MedicalSelectionIntoScratch,
@@ -1469,7 +1471,7 @@ function writeMedicalPatientScratchRow(
   scratch.counterevidenceRefs[destination] = patient.counterevidenceRef;
 }
 
-function isMedicalPatientScratchRowCurrent(
+export function isMedicalPatientScratchRowCurrent(
   patient: M3MedicalPatientRequestIntoOutput,
   selectedIndex: number,
   scratch: M3MedicalSelectionIntoScratch,
@@ -1495,7 +1497,7 @@ function isMedicalPatientScratchRowCurrent(
   );
 }
 
-function copyFirstMedicalPatientIntoOutput(
+export function copyFirstMedicalPatientIntoOutput(
   scratch: M3MedicalSelectionIntoScratch,
   output: M3MedicalSelectionIntoOutput,
 ): void {
@@ -1588,11 +1590,11 @@ function createEmptyLinks(length: number): Int32Array {
   return links;
 }
 
-function isIndexInRange(value: number, upperBound: number): boolean {
+export function isIndexInRange(value: number, upperBound: number): boolean {
   return Number.isSafeInteger(value) && value >= 0 && value < upperBound;
 }
 
-function isPositiveSafeInteger(value: number): boolean {
+export function isPositiveSafeInteger(value: number): boolean {
   return Number.isSafeInteger(value) && value > 0;
 }
 
