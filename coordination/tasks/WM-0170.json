@@ -2,7 +2,7 @@
   "id": "WM-0170",
   "title": "PR-2 autonomous decision state and indexed work selection",
   "summary": "Implement explicit serializable resident autonomy state, structured reasons, schedule/need/capability arbitration and bounded indexed Top-K offer/path/reservation selection in sim-core without product projection changes.",
-  "state": "blocked",
+  "state": "in_progress",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -50,7 +50,7 @@
   ],
   "branch": "task/WM-0170-pr-2-autonomous-decision-state-and-indexed-work-",
   "createdAt": "2026-07-11T07:53:17.870Z",
-  "updatedAt": "2026-07-12T19:54:48.820Z",
+  "updatedAt": "2026-07-12T21:59:38.154Z",
   "history": [
     {
       "at": "2026-07-11T07:53:17.871Z",
@@ -105,6 +105,12 @@
       "actor": "simulation-engineer",
       "action": "block",
       "details": "Independent B1 review proved that WM-0177 repaired ordinary WorkOffer/path/reservation/ability owners but not the architecture-required food/rest/medical exact indexes: their selection/read APIs still materialize results and cannot provide same-call owner/row/index/backlog/caregiver-basis revalidation. Systems-architect selected strict prerequisite WM-0181 and rejected derived WorkOffer mirroring. Preserve the Phase A/B1 non-complete checkpoint; do not resume coordinator implementation until WM-0181 is verified, integrated and done and the exact resume procedure passes."
+    },
+    {
+      "at": "2026-07-12T21:59:38.153Z",
+      "actor": "simulation-engineer",
+      "action": "unblock",
+      "details": "WM-0181 food/rest/medical caller-owned exact-index prerequisite is verified, integrated and done; resume the unchanged WM-0170 contract."
     }
   ],
   "milestone": "Post-M8",
@@ -146,11 +152,5 @@
   "singleWriterRule": "WM-0181 is the sole ready repair writer. WM-0170 remains blocked with its original simulation-engineer owner and Phase A/B1 checkpoint until WM-0181 is verified/integrated/done and the exact resume procedure passes; WM-0171..WM-0175 retain their existing dependencies.",
   "claimedBy": "simulation-engineer",
   "threadLabel": "Tally WM-0170",
-  "blocker": {
-    "by": "simulation-engineer",
-    "to": "systems-architect",
-    "reason": "Independent B1 review proved that WM-0177 repaired ordinary WorkOffer/path/reservation/ability owners but not the architecture-required food/rest/medical exact indexes: their selection/read APIs still materialize results and cannot provide same-call owner/row/index/backlog/caregiver-basis revalidation. Systems-architect selected strict prerequisite WM-0181 and rejected derived WorkOffer mirroring. Preserve the Phase A/B1 non-complete checkpoint; do not resume coordinator implementation until WM-0181 is verified, integrated and done and the exact resume procedure passes.",
-    "previousState": "in_progress",
-    "at": "2026-07-12T19:54:48.819Z"
-  }
+  "blocker": null
 }
