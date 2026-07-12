@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-11T14:52:47.188Z",
+  "baselinePath": "packages/benchmarks/baseline.json",
+  "artifactPath": "C:/Users/ADMINI~1/AppData/Local/Temp/WumingTown-WM0178/repaired-main/map-dirty/benchmarks/benchmark-results.json",
+  "sampleCount": 9,
+  "warmupCount": 2,
+  "invocation": {
+    "command": "corepack pnpm bench --filter map-dirty",
+    "exitCode": 1
+  },
+  "execution": {
+    "mode": "isolated-node-per-suite",
+    "suiteProcessCount": 1
+  },
+  "environment": {
+    "nodeVersion": "v24.13.1",
+    "pnpmVersion": "11.8.0",
+    "osRelease": "10.0.26200",
+    "platform": "win32",
+    "arch": "x64",
+    "cpuModel": "AMD Ryzen 7 9700X 8-Core Processor             ",
+    "cpuCount": 16,
+    "hostKeySha256": "55442F953FEA3046AA652002ACBA5F947F40C7B767FBE51A63885BCC49E95912",
+    "processId": 47128,
+    "gitCommit": "7434d6f83952724f2d75c493663c95134515bf52"
+  },
+  "results": [
+    {
+      "name": "map-dirty",
+      "report": {
+        "name": "map-dirty",
+        "width": 256,
+        "height": 256,
+        "chunkSize": 32,
+        "changedCells": 1024,
+        "dirtyQueuePeak": 64,
+        "rebuildBudgetPerTick": 8,
+        "drainTicks": 8,
+        "processedChunks": 64,
+        "remainingDirtyChunks": 0,
+        "finalGlobalVersion": 1024,
+        "processedChecksum": 3385099136,
+        "mapHash": "0xba7253ca",
+        "elapsedMs": 2.0001812500000256,
+        "heapUsedBeforeBytes": 11605208,
+        "heapUsedAfterBytes": 10523376,
+        "heapDeltaBytes": -1081832
+      },
+      "invariants": {
+        "width": 256,
+        "height": 256,
+        "chunkSize": 32,
+        "changedCells": 1024,
+        "dirtyQueuePeak": 64,
+        "rebuildBudgetPerTick": 8,
+        "drainTicks": 8,
+        "processedChunks": 64,
+        "remainingDirtyChunks": 0,
+        "finalGlobalVersion": 1024,
+        "processedChecksum": 3385099136,
+        "mapHash": "0xba7253ca"
+      },
+      "sampleElapsedMs": [
+        2.214506250000042,
+        2.351543749999948,
+        2.5775562500000575,
+        1.366362499999994,
+        1.9679062500000128,
+        1.9039437499999678,
+        1.5382000000000176,
+        2.1116812500000037,
+        2.0001812500000256
+      ],
+      "stats": {
+        "sampleCount": 9,
+        "minElapsedMs": 1.366362499999994,
+        "medianElapsedMs": 2.0001812500000256,
+        "maxElapsedMs": 2.5775562500000575,
+        "meanElapsedMs": 2.0035423611111187
+      },
+      "comparison": {
+        "name": "map-dirty",
+        "status": "fail",
+        "actualMedianElapsedMs": 2.0001812500000256,
+        "baselineMedianElapsedMs": 1,
+        "regressionPercent": 100.01812500000256,
+        "warnRegressionPercent": 10,
+        "failRegressionPercent": 20,
+        "invariantMismatches": []
+      },
+      "suiteProcess": {
+        "processId": 54740,
+        "exitCode": 1,
+        "command": "corepack pnpm bench --filter map-dirty --samples 9 --warmup 2 --baseline D:\\WebProjects\\WumingTown\\packages\\benchmarks\\baseline.json --artifacts-dir C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\wuming-town-benchmark-CQ0vQt",
+        "artifactFileSha256": "4765907E1E42E535CA048CFC321DEE01E8AAD9CC68FD2C9CD838398A0503D178",
+        "artifactSidecarSha256": "FEAF8E3C4819941492A649D6661416AE0DF201238BB60DE89E29E1920DA01481",
+        "canonicalPayloadSha256": "88C336F127702F6EC1342C36A023BBBEBA93209A844BF49073B8123BC596E065"
+      }
+    }
+  ],
+  "hashing": {
+    "schemaVersion": 1,
+    "canonicalPayloadSha256": "0C3C7BB60329B1D8E79671A3EDAA13BF7143444A37E1DBD0593A02D5FA5AC26C",
+    "canonicalPayloadDescription": "SHA-256 of benchmark-results.json payload before hashing metadata is added.",
+    "artifactFileSha256Path": "C:/Users/ADMINI~1/AppData/Local/Temp/WumingTown-WM0178/repaired-main/map-dirty/benchmarks/benchmark-results.json.sha256",
+    "artifactFileSha256Description": "Actual SHA-256 of benchmark-results.json is written to this sidecar after the JSON artifact is written."
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-12T07:06:23.949Z",
+  "baselinePath": "packages/benchmarks/baseline.json",
+  "artifactPath": "C:/Users/ADMINI~1/AppData/Local/Temp/WumingTown-WM0178-final-e77ecc1d40114696b6642cae8732e42a/05-map-dirty/benchmarks/benchmark-results.json",
+  "sampleCount": 9,
+  "warmupCount": 2,
+  "invocation": {
+    "command": "corepack pnpm bench --filter map-dirty",
+    "exitCode": 0
+  },
+  "execution": {
+    "mode": "isolated-node-per-suite",
+    "suiteProcessCount": 1
+  },
+  "environment": {
+    "nodeVersion": "v24.13.1",
+    "pnpmVersion": "11.8.0",
+    "osRelease": "10.0.26200",
+    "platform": "win32",
+    "arch": "x64",
+    "cpuModel": "AMD Ryzen 7 9700X 8-Core Processor             ",
+    "cpuCount": 16,
+    "hostKeySha256": "55442F953FEA3046AA652002ACBA5F947F40C7B767FBE51A63885BCC49E95912",
+    "processId": 34776,
+    "gitCommit": "dba8e88b4dc8936f95b050d0bb0e195063999bb2"
+  },
+  "results": [
+    {
+      "name": "map-dirty",
+      "report": {
+        "name": "map-dirty",
+        "width": 256,
+        "height": 256,
+        "chunkSize": 32,
+        "changedCells": 1024,
+        "dirtyQueuePeak": 64,
+        "rebuildBudgetPerTick": 8,
+        "drainTicks": 8,
+        "processedChunks": 64,
+        "remainingDirtyChunks": 0,
+        "finalGlobalVersion": 1024,
+        "processedChecksum": 3385099136,
+        "mapHash": "0xba7253ca",
+        "elapsedMs": 0.9001000000000019,
+        "heapUsedBeforeBytes": 11154432,
+        "heapUsedAfterBytes": 9925360,
+        "heapDeltaBytes": -1229072
+      },
+      "invariants": {
+        "width": 256,
+        "height": 256,
+        "chunkSize": 32,
+        "changedCells": 1024,
+        "dirtyQueuePeak": 64,
+        "rebuildBudgetPerTick": 8,
+        "drainTicks": 8,
+        "processedChunks": 64,
+        "remainingDirtyChunks": 0,
+        "finalGlobalVersion": 1024,
+        "processedChecksum": 3385099136,
+        "mapHash": "0xba7253ca"
+      },
+      "sampleElapsedMs": [
+        0.9384187499999825,
+        0.9535562499999912,
+        1.017056250000003,
+        0.7839374999999862,
+        0.9018312499999723,
+        0.8903812499999972,
+        0.7970875000000177,
+        0.8576249999999987,
+        0.9001000000000019
+      ],
+      "stats": {
+        "sampleCount": 9,
+        "minElapsedMs": 0.7839374999999862,
+        "medianElapsedMs": 0.9001000000000019,
+        "maxElapsedMs": 1.017056250000003,
+        "meanElapsedMs": 0.8933326388888835
+      },
+      "comparison": {
+        "name": "map-dirty",
+        "status": "ok",
+        "actualMedianElapsedMs": 0.9001000000000019,
+        "baselineMedianElapsedMs": 1,
+        "regressionPercent": -9.98999999999981,
+        "warnRegressionPercent": 10,
+        "failRegressionPercent": 20,
+        "invariantMismatches": []
+      },
+      "suiteProcess": {
+        "processId": 9404,
+        "exitCode": 0,
+        "command": "corepack pnpm bench --filter map-dirty --samples 9 --warmup 2 --baseline D:\\WebProjects\\WumingTown\\packages\\benchmarks\\baseline.json --artifacts-dir C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\wuming-town-benchmark-QseXkR",
+        "artifactFileSha256": "CC44075B87B9D087AE14E3F41A0EB1A0C1E99A80BFD6CB5F3FBB30F0D641707B",
+        "artifactSidecarSha256": "A2750BD3856316F073F41400CF6CDCC72DC98E2F9B29A27EE25EEE8C40EA5CB5",
+        "canonicalPayloadSha256": "8B5C4002CDEC96582F615F0B50EE5145CE39974234D308E3805B5C887B60FF0E"
+      }
+    }
+  ],
+  "hashing": {
+    "schemaVersion": 1,
+    "canonicalPayloadSha256": "0CB163ED4420A080C79CE9FE475981776D5B9EAF0E77B88E5D59A8B789618544",
+    "canonicalPayloadDescription": "SHA-256 of benchmark-results.json payload before hashing metadata is added.",
+    "artifactFileSha256Path": "C:/Users/ADMINI~1/AppData/Local/Temp/WumingTown-WM0178-final-e77ecc1d40114696b6642cae8732e42a/05-map-dirty/benchmarks/benchmark-results.json.sha256",
+    "artifactFileSha256Description": "Actual SHA-256 of benchmark-results.json is written to this sidecar after the JSON artifact is written."
+  }
+}

@@ -6,7 +6,8 @@
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
-    "WM-0169"
+    "WM-0169",
+    "WM-0178"
   ],
   "docs": [
     "AGENTS.md",
@@ -27,7 +28,9 @@
     "packages/sim-core/src/reservation-ledger.ts",
     "packages/sim-core/src/m3-health.ts",
     "packages/sim-core/src/map-grid.test.ts",
-    "packages/sim-core/src/index.ts"
+    "packages/sim-core/src/index.ts",
+    "coordination/tasks/WM-0178.json",
+    "coordination/reports/WM-0178-plan.md"
   ],
   "acceptance": [
     "WorkOfferIndex adds typed ownerVersion, per-row version and monotonic indexVersion lanes. Successful version-bound register/update/remove changes the exact versions once, failed mutation changes none, and owner/index versions remain bound to the selected row rather than supplied as unrelated caller metadata",
@@ -59,7 +62,7 @@
   ],
   "branch": "task/WM-0177-pr-2-sim-core-owner-version-and-caller-owned-out",
   "createdAt": "2026-07-11T10:43:48.256Z",
-  "updatedAt": "2026-07-11T13:26:07.516Z",
+  "updatedAt": "2026-07-11T13:57:04.228Z",
   "history": [
     {
       "at": "2026-07-11T10:43:48.256Z",
@@ -101,7 +104,13 @@
       "at": "2026-07-11T13:26:07.516Z",
       "actor": "simulation-engineer",
       "action": "block",
-      "details": "Required full bench remains failing and cannot be waived: three sandboxed attempts plus one root-approved unsandboxed 2-warmup/9-sample run failed entity-store 371.4461/244.5070ms (+51.92%), m3-ordinary-life 39.2472/24.4560ms (+60.48%), m4 6.6062/4.6112ms (+43.26%), m5 106.3368/74.6344ms (+42.48%), map-dirty 1.4998/1.0000ms (+49.98%), and spatial-index 1952.9940/1436.7170ms (+35.93%). Owner-local work-offers/pathing/reservations pass, but that cannot waive the aggregate gate. Compare the exact same command on exact main in the same unsandboxed environment and obtain an independently reviewed performance decision before resume; keep WM-0170 blocked. Evidence: coordination/reports/WM-0177.md; checkpoint 054d501."
+      "details": "Required full bench remains failing and cannot be waived on checkpoint 054d501. Owner-local suites pass, but the aggregate gate fails six suites and requires same-host clean-main attribution before resume."
+    },
+    {
+      "at": "2026-07-11T13:57:04.228Z",
+      "actor": "systems-architect",
+      "action": "approve-mandatory-canonical-benchmark-repair",
+      "details": "Same-host 9-sample/2-warmup evidence proves a mixed blocker: clean main fails entity-store, M4 and map-dirty, while WM-0177 adds M3, M5 and spatial-index regressions and worsens M4/map-dirty. WM-0178 is the mandatory QA predecessor; no waiver, baseline change, threshold reduction or product edit is authorized."
     }
   ],
   "milestone": "Post-M8",
@@ -152,20 +161,35 @@
     "claiming or unblocking WM-0170 before WM-0177 is independently verified, integrated and done"
   ],
   "executionLane": "simulation-engineer only; Spark is prohibited because the task changes generic deterministic owner APIs, allocation behavior and reservation atomicity",
-  "resumeProcedure": [
-    "This architect-approved packet revision must be present on the WM-0177 execution base with the exact 12-file maximum and unchanged original acceptance thresholds.",
-    "The original simulation-engineer must run: node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs unblock --id WM-0177 --agent simulation-engineer --summary \"Architect approved additive MapGrid caller-owned movement surfaces inside the existing max-12-file WM-0177 scope; rerun the pre-code API audit and resume without lowering acceptance.\"",
-    "Immediately after unblock, rerun the complete pre-code public API audit from coordination/reports/WM-0177-plan.md across MapGrid, GridPathfinder, WorkOfferIndex, ReservationLedger, M3AbilityCacheStore and package-root exports.",
-    "Only if that audit passes may the original simulation-engineer implement the complete original WM-0177 acceptance plus the added MapGrid gates and run every required check; any thirteenth file, hidden allocation or semantic change blocks again instead of lowering acceptance."
+  "repairTasks": [
+    "WM-0178"
   ],
-  "singleWriterRule": "WM-0177 remains the sole scoped repair owner and stays blocked/claimed by the original simulation-engineer until the exact resume procedure is executed. WM-0170 remains blocked with unchanged thresholds; WM-0171..WM-0175 retain their existing dependencies.",
+  "resumeProcedure": [
+    "WM-0178 must be independently verified, integrated and done on main, and its unchanged-workload, unchanged-baseline exact corepack pnpm bench gate must pass. If WM-0178 identifies exact sim/product files and systems architecture conditionally creates WM-0179, WM-0179 must also be independently verified, integrated and done before this procedure continues.",
+    "Under project-director control, refresh the existing WM-0177 branch from the repaired main lineage and preserve reviewed checkpoint 054d501 through an explicit conflict/diff audit. Do not add a linked worktree, lower the 12-file product cap or import unrelated performance repairs into WM-0177.",
+    "Before unblock, the original simulation-engineer must rerun the complete public API audit from coordination/reports/WM-0177-plan.md and same-host isolated paired benchmark probes. M3, M5 and spatial-index task deltas plus the additional M4/map-dirty worsening must be explained and eliminated; owner-local passes alone are insufficient.",
+    "Only after those gates pass may the original simulation-engineer run: node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs unblock --id WM-0177 --agent simulation-engineer --summary \"WM-0178 canonical benchmark gate repair is verified, integrated and done; repaired main passes the fixed-baseline full bench, paired WM-0177 attribution is reviewed, and the original acceptance resumes without waiver.\"",
+    "Resume only the original max-12-file owner-surface scope, rerun every existing required check, and require corepack pnpm bench to exit zero against the unchanged baseline. Any remaining task delta, full-suite failure, thirteenth file, hidden allocation or semantic change blocks again instead of using a waiver."
+  ],
+  "singleWriterRule": "WM-0178 is ready and unclaimed and becomes the sole QA harness/evidence writer when claimed. WM-0177 remains blocked and claimed by its original simulation-engineer with no concurrent product edits until the exact resume procedure is satisfied. WM-0170 remains blocked behind WM-0177 with unchanged thresholds; WM-0171..WM-0175 retain their existing dependencies.",
   "claimedBy": "simulation-engineer",
   "threadLabel": "Tally WM-0177",
   "blocker": {
     "by": "simulation-engineer",
     "to": "systems-architect",
-    "reason": "Required full bench remains failing and cannot be waived: three sandboxed attempts plus one root-approved unsandboxed 2-warmup/9-sample run failed entity-store 371.4461/244.5070ms (+51.92%), m3-ordinary-life 39.2472/24.4560ms (+60.48%), m4 6.6062/4.6112ms (+43.26%), m5 106.3368/74.6344ms (+42.48%), map-dirty 1.4998/1.0000ms (+49.98%), and spatial-index 1952.9940/1436.7170ms (+35.93%). Owner-local work-offers/pathing/reservations pass, but that cannot waive the aggregate gate. Compare the exact same command on exact main in the same unsandboxed environment and obtain an independently reviewed performance decision before resume; keep WM-0170 blocked. Evidence: coordination/reports/WM-0177.md; checkpoint 054d501.",
+    "reason": "The required fixed-baseline full benchmark has a reviewed mixed failure and no waiver is permitted. Same-host clean main 4175afd fails entity-store (+52.62%), M4 (+26.52%) and map-dirty (+25.17%); checkpoint 054d501 additionally regresses M3 (+44.79% versus main), M5 (+38.30%) and spatial-index (+24.19%) and worsens M4 (+13.24%) and map-dirty (+19.82%). Owner-local passes do not satisfy the aggregate gate. WM-0178 must repair and independently verify the canonical main gate before WM-0177 can eliminate its task-associated deltas and resume. Evidence: checkpoint 054d501 and coordination/reports/WM-0178-plan.md.",
     "previousState": "in_progress",
-    "at": "2026-07-11T13:26:07.516Z"
+    "at": "2026-07-11T13:26:07.516Z",
+    "reviewedAt": "2026-07-11T13:57:04.228Z",
+    "repairTasks": [
+      "WM-0178"
+    ],
+    "resumeProcedure": [
+      "WM-0178 must be independently verified, integrated and done on main, and its unchanged-workload, unchanged-baseline exact corepack pnpm bench gate must pass. If WM-0178 identifies exact sim/product files and systems architecture conditionally creates WM-0179, WM-0179 must also be independently verified, integrated and done before this procedure continues.",
+      "Under project-director control, refresh the existing WM-0177 branch from the repaired main lineage and preserve reviewed checkpoint 054d501 through an explicit conflict/diff audit. Do not add a linked worktree, lower the 12-file product cap or import unrelated performance repairs into WM-0177.",
+      "Before unblock, the original simulation-engineer must rerun the complete public API audit from coordination/reports/WM-0177-plan.md and same-host isolated paired benchmark probes. M3, M5 and spatial-index task deltas plus the additional M4/map-dirty worsening must be explained and eliminated; owner-local passes alone are insufficient.",
+      "Only after those gates pass may the original simulation-engineer run: node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs unblock --id WM-0177 --agent simulation-engineer --summary \"WM-0178 canonical benchmark gate repair is verified, integrated and done; repaired main passes the fixed-baseline full bench, paired WM-0177 attribution is reviewed, and the original acceptance resumes without waiver.\"",
+      "Resume only the original max-12-file owner-surface scope, rerun every existing required check, and require corepack pnpm bench to exit zero against the unchanged baseline. Any remaining task delta, full-suite failure, thirteenth file, hidden allocation or semantic change blocks again instead of using a waiver."
+    ]
   }
 }

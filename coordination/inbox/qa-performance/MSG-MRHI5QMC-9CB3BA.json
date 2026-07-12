@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MRHI5QMC-9CB3BA",
+  "from": "reviewer",
+  "to": "qa-performance",
+  "taskId": "WM-0178",
+  "kind": "changes-requested",
+  "subject": "WM-0178 review: changes_requested",
+  "body": "Medium: isolated child validation accepts stats inconsistent with finite raw samples. A read-only diagnostic preserved entity-store raw median 1.419 ms but set stats median to 0; parseIsolatedBenchmarkChildReport accepted it, and the parent recomparison produced a matching -100% OK. Self-consistent artifact, sidecar and canonical hashes do not catch this semantic inconsistency. Recompute min, median, max and mean from raw samples, require every stats field finite and exact, and add malformed-child regression coverage. Final one-shot evidence, hashes, raw CRLF preservation and all non-benchmark gates otherwise pass.",
+  "artifacts": [
+    "coordination/reports/WM-0178.md"
+  ],
+  "createdAt": "2026-07-12T07:59:19.044Z",
+  "acknowledgedAt": "2026-07-12T08:07:14.018Z"
+}

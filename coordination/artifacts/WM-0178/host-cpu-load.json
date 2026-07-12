@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "taskId": "WM-0178",
+  "capturedAtDate": "2026-07-11",
+  "hostKeySha256": "55442F953FEA3046AA652002ACBA5F947F40C7B767FBE51A63885BCC49E95912",
+  "hostKeyInputs": "SHA-256 of hostname, OS release, architecture and CPU model joined with newline; raw hostname omitted",
+  "environment": {
+    "nodeVersion": "v24.13.1",
+    "pnpmVersion": "11.8.0",
+    "osRelease": "10.0.26200",
+    "platform": "win32",
+    "arch": "x64",
+    "cpuModel": "AMD Ryzen 7 9700X 8-Core Processor",
+    "cpuCount": 16,
+    "powerPlan": "high-performance"
+  },
+  "totalProcessorPercentSamples": [
+    {
+      "phase": "pre-repair-paired",
+      "values": [92.4007063786648, 92.1040152139644, 94.8755490628123, 92.8407470011435, 89.3987703106869]
+    },
+    {
+      "phase": "post-diagnostic-child-cleanup",
+      "values": [88.5998577798389, 94.0134826634732, 86.4568776922189]
+    },
+    {
+      "phase": "post-repaired-lineage",
+      "values": [79.2959162563043, 74.9264748722901, 85.4284811670741]
+    }
+  ],
+  "independentProcessCounterSample": {
+    "scale": "one logical processor equals 100 percent",
+    "aggregateTotal": 1503.74,
+    "idle": 476.87,
+    "topConsumers": [
+      { "process": "codex", "percent": 373.27 },
+      { "process": "acshadows", "percent": 281.86 },
+      { "process": "code", "percent": 88.37 },
+      { "process": "git", "percent": 86.84 },
+      { "process": "chatgpt", "percent": 60.94 }
+    ],
+    "residualBenchmarkNodeProcessObserved": false
+  },
+  "interpretation": "The approved host was persistently non-quiescent during both paired and repaired-lineage measurements. These counters explain material scheduling noise but do not waive the fixed benchmark gate or prove a product regression."
+}

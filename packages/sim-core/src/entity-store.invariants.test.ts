@@ -123,6 +123,91 @@ describe("entity handles and component stores", () => {
     expect(store.read(second, registry)).toStrictEqual({ ok: true, value: 20 });
   });
 
+  it("preserves priority, signed Int32 index, and sequence order at capacity", () => {
+    const registry = createEntityRegistry({ capacity: 3 });
+    const store = createInt32ComponentStore({ capacity: 3 });
+    const buffer = createStructuralCommandBuffer({ capacity: 10 });
+    const first = allocateOrThrow(registry);
+    const second = allocateOrThrow(registry);
+
+    expect(store.attach(first, registry, 10).ok).toBe(true);
+    expect(store.attach(second, registry, 20).ok).toBe(true);
+    expect(buffer.queueSetInt32(second, 30)).toStrictEqual({ ok: true, sequence: 0 });
+    expect(buffer.queueAllocate()).toStrictEqual({ ok: true, sequence: 1 });
+    expect(buffer.queueDestroy({ index: 2_147_483_647, generation: 1 })).toStrictEqual({
+      ok: true,
+      sequence: 2,
+    });
+    expect(buffer.queueDetachInt32({ index: -2_147_483_648, generation: 1 })).toStrictEqual({
+      ok: true,
+      sequence: 3,
+    });
+    expect(buffer.queueAttachInt32(second, 40)).toStrictEqual({ ok: true, sequence: 4 });
+    expect(buffer.queueSetInt32(first, 50)).toStrictEqual({ ok: true, sequence: 5 });
+    expect(buffer.queueDestroy(first)).toStrictEqual({ ok: true, sequence: 6 });
+    expect(buffer.queueDetachInt32(first)).toStrictEqual({ ok: true, sequence: 7 });
+    expect(buffer.queueAttachInt32(first, 80)).toStrictEqual({ ok: true, sequence: 8 });
+    expect(buffer.queueSetInt32(first, 90)).toStrictEqual({ ok: true, sequence: 9 });
+    expect(buffer.queueAllocate()).toStrictEqual({
+      ok: false,
+      reason: "command_buffer_capacity_exhausted",
+    });
+
+    const report = buffer.commit(registry, store);
+
+    expect(readResultSequences(report)).toStrictEqual([6, 2, 3, 7, 8, 4, 5, 9, 0, 1]);
+    expect(Array.from(report.kinds.subarray(0, report.resultCount))).toStrictEqual([
+      2, 2, 4, 4, 3, 3, 5, 5, 5, 1,
+    ]);
+    expect(Array.from(report.indexes.subarray(0, report.resultCount))).toStrictEqual([
+      0, 2_147_483_647, -2_147_483_648, 0, 0, 1, 0, 0, 1, 0,
+    ]);
+  });
+
+  it("reuses fixed ordering storage across reverse and repeated-index commits", () => {
+    const registry = createEntityRegistry({ capacity: 4 });
+    const store = createInt32ComponentStore({ capacity: 4 });
+    const buffer = createStructuralCommandBuffer({ capacity: 4 });
+    const entities = allocateMany(registry, 4);
+
+    for (let index = 0; index < entities.length; index += 1) {
+      const entity = entities[index] ?? missingEntity();
+      expect(store.attach(entity, registry, index).ok).toBe(true);
+    }
+
+    for (let index = entities.length - 1; index >= 0; index -= 1) {
+      const entity = entities[index] ?? missingEntity();
+      expect(buffer.queueSetInt32(entity, 10 + index).ok).toBe(true);
+    }
+
+    const reverseReport = buffer.commit(registry, store);
+    expect(readResultSequences(reverseReport)).toStrictEqual([3, 2, 1, 0]);
+
+    expect(buffer.queueSetInt32(entities[2] ?? missingEntity(), 100)).toStrictEqual({
+      ok: true,
+      sequence: 4,
+    });
+    expect(buffer.queueSetInt32(entities[2] ?? missingEntity(), 200)).toStrictEqual({
+      ok: true,
+      sequence: 5,
+    });
+    expect(buffer.queueSetInt32(entities[0] ?? missingEntity(), 300)).toStrictEqual({
+      ok: true,
+      sequence: 6,
+    });
+    expect(buffer.queueSetInt32(entities[3] ?? missingEntity(), 400)).toStrictEqual({
+      ok: true,
+      sequence: 7,
+    });
+
+    const reusedReport = buffer.commit(registry, store);
+    expect(readResultSequences(reusedReport)).toStrictEqual([6, 4, 5, 7]);
+    expect(store.read(entities[2] ?? missingEntity(), registry)).toStrictEqual({
+      ok: true,
+      value: 200,
+    });
+  });
+
   it("rejects queued Int32 command values before typed-array storage", () => {
     const registry = createEntityRegistry({ capacity: 1 });
     const store = createInt32ComponentStore({ capacity: 1 });

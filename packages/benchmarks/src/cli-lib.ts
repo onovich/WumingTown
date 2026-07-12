@@ -1,8 +1,9 @@
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { cpus, release } from "node:os";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpus, hostname, release, tmpdir } from "node:os";
 import * as path from "node:path";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
+import { fileURLToPath } from "node:url";
 
 import {
   BENCHMARK_BASELINE_SCHEMA_VERSION,
@@ -12,9 +13,10 @@ import {
   type BenchmarkComparison,
 } from "./baseline";
 import {
+  DEFAULT_BENCHMARK_NAMES,
   DEFAULT_BENCHMARK_SAMPLE_COUNT,
   DEFAULT_BENCHMARK_WARMUP_COUNT,
-  runDefaultBenchmarkSuite,
+  createBenchmarkStats,
   sampleBenchmark,
   type BenchmarkName,
   type SampledBenchmarkResult,
@@ -27,18 +29,34 @@ export interface BenchmarkCliReport {
   readonly artifactPath: string;
   readonly sampleCount: number;
   readonly warmupCount: number;
+  readonly invocation: BenchmarkInvocationMetadata;
+  readonly execution: BenchmarkExecutionMetadata;
   readonly hashing: BenchmarkArtifactHashing;
-  readonly environment: {
-    readonly nodeVersion: string;
-    readonly pnpmVersion: string;
-    readonly osRelease: string;
-    readonly platform: NodeJS.Platform;
-    readonly arch: string;
-    readonly cpuModel: string;
-    readonly cpuCount: number;
-    readonly gitCommit: string;
-  };
+  readonly environment: BenchmarkEnvironmentMetadata;
   readonly results: readonly BenchmarkCliResult[];
+}
+
+export interface BenchmarkEnvironmentMetadata {
+  readonly nodeVersion: string;
+  readonly pnpmVersion: string;
+  readonly osRelease: string;
+  readonly platform: NodeJS.Platform;
+  readonly arch: string;
+  readonly cpuModel: string;
+  readonly cpuCount: number;
+  readonly hostKeySha256: string;
+  readonly processId: number;
+  readonly gitCommit: string;
+}
+
+export interface BenchmarkInvocationMetadata {
+  readonly command: string;
+  readonly exitCode: number;
+}
+
+export interface BenchmarkExecutionMetadata {
+  readonly mode: "isolated-node-per-suite" | "isolated-suite-child";
+  readonly suiteProcessCount: number;
 }
 
 export interface BenchmarkArtifactHashing {
@@ -49,13 +67,18 @@ export interface BenchmarkArtifactHashing {
   readonly artifactFileSha256Description: string;
 }
 
-export interface BenchmarkCliResult {
-  readonly name: BenchmarkName;
-  readonly report: SampledBenchmarkResult["report"];
-  readonly sampleElapsedMs: readonly number[];
-  readonly stats: SampledBenchmarkResult["stats"];
-  readonly invariants: SampledBenchmarkResult["invariants"];
+export type BenchmarkCliResult = SampledBenchmarkResult & {
   readonly comparison: BenchmarkComparison<BenchmarkName>;
+  readonly suiteProcess: BenchmarkSuiteProcessMetadata;
+};
+
+export interface BenchmarkSuiteProcessMetadata {
+  readonly processId: number;
+  readonly exitCode: number;
+  readonly command: string;
+  readonly artifactFileSha256: string;
+  readonly artifactSidecarSha256: string;
+  readonly canonicalPayloadSha256: string;
 }
 
 interface ParsedBenchmarkArgs {
@@ -66,6 +89,13 @@ interface ParsedBenchmarkArgs {
   readonly artifactPath: string;
 }
 
+const ISOLATED_CHILD_ENV = "WM_BENCHMARK_ISOLATED_CHILD";
+const BENCHMARK_CLI_ENTRY_PATH = fileURLToPath(new URL("./cli.ts", import.meta.url));
+const TYPESCRIPT_LOADER_URL = new URL(
+  "../../../tools/register-ts-extension-loader.mjs",
+  import.meta.url,
+).href;
+
 export function runBenchmarksCli(argv: readonly string[]): number {
   const parsed = parseBenchmarkArgs(argv);
 
@@ -75,28 +105,18 @@ export function runBenchmarksCli(argv: readonly string[]): number {
   }
 
   const baseline = loadBenchmarkBaseline(parsed.value.baselinePath);
-  const sampledResults =
-    parsed.value.filter === undefined
-      ? runDefaultBenchmarkSuite({
-          sampleCount: parsed.value.sampleCount,
-          warmupCount: parsed.value.warmupCount,
-        })
-      : [
-          sampleNamedBenchmark(
-            parsed.value.filter,
-            parsed.value.sampleCount,
-            parsed.value.warmupCount,
-          ),
-        ];
+  const isolatedChild = process.env[ISOLATED_CHILD_ENV] === "1";
+  const environment = createBenchmarkEnvironmentMetadata();
 
-  const results = sampledResults.map((result) => ({
-    name: result.name,
-    report: result.report,
-    sampleElapsedMs: result.sampleElapsedMs,
-    stats: result.stats,
-    invariants: result.invariants,
-    comparison: compareAgainstNamedBaseline(result, baseline),
-  }));
+  if (isolatedChild && parsed.value.filter === undefined) {
+    console.error("isolated benchmark child requires one --filter");
+    return 1;
+  }
+
+  const results = isolatedChild
+    ? createInProcessResults(parsed.value, baseline)
+    : runIsolatedBenchmarkSuites(parsed.value, baseline, environment);
+  const exitCode = results.some((result) => result.comparison.status === "fail") ? 1 : 0;
 
   const artifactHashPath = createArtifactHashPath(parsed.value.artifactPath);
   const reportPayload: Omit<BenchmarkCliReport, "hashing"> = {
@@ -106,16 +126,15 @@ export function runBenchmarksCli(argv: readonly string[]): number {
     artifactPath: toRelativePath(parsed.value.artifactPath),
     sampleCount: parsed.value.sampleCount,
     warmupCount: parsed.value.warmupCount,
-    environment: {
-      nodeVersion: process.version,
-      pnpmVersion: readCommandOutput("pnpm", ["--version"]),
-      osRelease: release(),
-      platform: process.platform,
-      arch: process.arch,
-      cpuModel: cpus()[0]?.model ?? "unknown",
-      cpuCount: cpus().length,
-      gitCommit: readCommandOutput("git", ["rev-parse", "HEAD"]),
+    invocation: {
+      command: formatBenchmarkCommand(argv),
+      exitCode,
     },
+    execution: {
+      mode: isolatedChild ? "isolated-suite-child" : "isolated-node-per-suite",
+      suiteProcessCount: results.length,
+    },
+    environment,
     results,
   };
   const report: BenchmarkCliReport = {
@@ -142,7 +161,321 @@ export function runBenchmarksCli(argv: readonly string[]): number {
   );
 
   printBenchmarkSummary(results, report.artifactPath);
-  return results.some((result) => result.comparison.status === "fail") ? 1 : 0;
+  return exitCode;
+}
+
+function createInProcessResults(
+  parsed: ParsedBenchmarkArgs,
+  baseline: BenchmarkBaselineFile,
+): readonly BenchmarkCliResult[] {
+  const filter = parsed.filter;
+
+  if (filter === undefined) {
+    throw new Error("isolated benchmark child requires one named suite");
+  }
+
+  const sampled = sampleNamedBenchmark(filter, parsed.sampleCount, parsed.warmupCount);
+  const comparison = compareAgainstNamedBaseline(sampled, baseline);
+
+  const result = {
+    ...sampled,
+    comparison,
+    suiteProcess: {
+      processId: process.pid,
+      exitCode: comparison.status === "fail" ? 1 : 0,
+      command: formatBenchmarkCommand(process.argv.slice(2)),
+      artifactFileSha256: "recorded-by-parent",
+      artifactSidecarSha256: "recorded-by-parent",
+      canonicalPayloadSha256: "recorded-by-parent",
+    },
+  };
+
+  return [result];
+}
+
+function runIsolatedBenchmarkSuites(
+  parsed: ParsedBenchmarkArgs,
+  baseline: BenchmarkBaselineFile,
+  environment: BenchmarkEnvironmentMetadata,
+): readonly BenchmarkCliResult[] {
+  const names = parsed.filter === undefined ? DEFAULT_BENCHMARK_NAMES : [parsed.filter];
+  const results: BenchmarkCliResult[] = [];
+
+  for (const name of names) {
+    results.push(runIsolatedBenchmarkSuite(name, parsed, baseline, environment));
+  }
+
+  return results;
+}
+
+function runIsolatedBenchmarkSuite(
+  name: BenchmarkName,
+  parsed: ParsedBenchmarkArgs,
+  baseline: BenchmarkBaselineFile,
+  environment: BenchmarkEnvironmentMetadata,
+): BenchmarkCliResult {
+  const temporaryDirectory = mkdtempSync(path.join(tmpdir(), "wuming-town-benchmark-"));
+  const childArtifactPath = path.join(temporaryDirectory, "benchmark-results.json");
+  const childSidecarPath = createArtifactHashPath(childArtifactPath);
+
+  try {
+    const child = spawnSync(
+      process.execPath,
+      [
+        "--experimental-strip-types",
+        "--import",
+        TYPESCRIPT_LOADER_URL,
+        BENCHMARK_CLI_ENTRY_PATH,
+        "--filter",
+        name,
+        "--samples",
+        String(parsed.sampleCount),
+        "--warmup",
+        String(parsed.warmupCount),
+        "--baseline",
+        parsed.baselinePath,
+        "--artifacts-dir",
+        temporaryDirectory,
+      ],
+      {
+        cwd: process.cwd(),
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          [ISOLATED_CHILD_ENV]: "1",
+        },
+        maxBuffer: 16 * 1024 * 1024,
+        shell: false,
+        windowsHide: true,
+      },
+    );
+
+    if (child.error !== undefined) {
+      throw child.error;
+    }
+
+    if (child.status !== 0 && child.status !== 1) {
+      throw new Error(
+        `benchmark child ${name} exited without a reportable status: ${String(child.status)}`,
+      );
+    }
+
+    if (!existsSync(childArtifactPath) || !existsSync(childSidecarPath)) {
+      const diagnostics = [child.stdout, child.stderr]
+        .filter((value) => typeof value === "string" && value.trim().length > 0)
+        .join("\n")
+        .trim();
+      throw new Error(
+        `benchmark child ${name} omitted its artifact or sidecar${diagnostics.length === 0 ? "" : `: ${diagnostics}`}`,
+      );
+    }
+
+    const artifactText = readFileSync(childArtifactPath, "utf8");
+    const sidecarText = readFileSync(childSidecarPath, "utf8");
+    const childReport = parseIsolatedBenchmarkChildReport(artifactText, {
+      name,
+      sampleCount: parsed.sampleCount,
+      warmupCount: parsed.warmupCount,
+    });
+    const childResult = childReport.results[0];
+
+    if (childResult === undefined) {
+      throw new Error(`benchmark child ${name} did not publish one result`);
+    }
+
+    validateChildEnvironment(name, childReport.environment, environment);
+    validateChildArtifactHashes(name, childReport, artifactText, sidecarText);
+
+    const expectedExitCode = childResult.comparison.status === "fail" ? 1 : 0;
+    const parentComparison = compareAgainstNamedBaseline(childResult, baseline);
+
+    if (child.status !== expectedExitCode || childReport.invocation.exitCode !== expectedExitCode) {
+      throw new Error(`benchmark child ${name} exit code disagrees with its comparison`);
+    }
+
+    if (JSON.stringify(parentComparison) !== JSON.stringify(childResult.comparison)) {
+      throw new Error(`benchmark child ${name} comparison disagrees with the parent baseline`);
+    }
+
+    return {
+      ...childResult,
+      comparison: parentComparison,
+      suiteProcess: {
+        processId: childReport.environment.processId,
+        exitCode: child.status,
+        command: childReport.invocation.command,
+        artifactFileSha256: createSha256(artifactText),
+        artifactSidecarSha256: createSha256(sidecarText),
+        canonicalPayloadSha256: childReport.hashing.canonicalPayloadSha256,
+      },
+    };
+  } finally {
+    rmSync(temporaryDirectory, { force: true, recursive: true });
+  }
+}
+
+export function parseIsolatedBenchmarkChildReport(
+  artifactText: string,
+  expected: {
+    readonly name: BenchmarkName;
+    readonly sampleCount: number;
+    readonly warmupCount: number;
+  },
+): BenchmarkCliReport {
+  const parsed: unknown = JSON.parse(artifactText);
+
+  if (!isRecord(parsed) || parsed["schemaVersion"] !== 1) {
+    throw new Error("benchmark child artifact has an invalid schema");
+  }
+
+  if (
+    parsed["sampleCount"] !== expected.sampleCount ||
+    parsed["warmupCount"] !== expected.warmupCount
+  ) {
+    throw new Error("benchmark child artifact changed sampling options");
+  }
+
+  const execution = parsed["execution"];
+  const environment = parsed["environment"];
+  const invocation = parsed["invocation"];
+  const hashing = parsed["hashing"];
+  const results = parsed["results"];
+
+  if (
+    !isRecord(execution) ||
+    execution["mode"] !== "isolated-suite-child" ||
+    execution["suiteProcessCount"] !== 1 ||
+    !isRecord(environment) ||
+    typeof environment["processId"] !== "number" ||
+    !Number.isInteger(environment["processId"]) ||
+    !isRecord(invocation) ||
+    typeof invocation["command"] !== "string" ||
+    invocation["command"].length === 0 ||
+    (invocation["exitCode"] !== 0 && invocation["exitCode"] !== 1) ||
+    !isRecord(hashing) ||
+    typeof hashing["canonicalPayloadSha256"] !== "string" ||
+    typeof hashing["artifactFileSha256Path"] !== "string" ||
+    !Array.isArray(results) ||
+    results.length !== 1 ||
+    !isRecord(results[0]) ||
+    results[0]["name"] !== expected.name
+  ) {
+    throw new Error(`benchmark child artifact for ${expected.name} failed isolation validation`);
+  }
+
+  const result = results[0];
+  const samples = result["sampleElapsedMs"];
+  const stats = result["stats"];
+  const report = result["report"];
+  const invariants = result["invariants"];
+  const comparison = result["comparison"];
+  const suiteProcess = result["suiteProcess"];
+
+  if (
+    !isFiniteNumberArray(samples) ||
+    samples.length !== expected.sampleCount ||
+    samples.length === 0
+  ) {
+    throw new Error(`benchmark child artifact for ${expected.name} omitted raw samples`);
+  }
+
+  if (
+    !isRecord(stats) ||
+    !isFiniteNumber(stats["sampleCount"]) ||
+    !Number.isInteger(stats["sampleCount"]) ||
+    !isFiniteNumber(stats["minElapsedMs"]) ||
+    !isFiniteNumber(stats["medianElapsedMs"]) ||
+    !isFiniteNumber(stats["maxElapsedMs"]) ||
+    !isFiniteNumber(stats["meanElapsedMs"])
+  ) {
+    throw new Error(`benchmark child artifact for ${expected.name} has invalid sample statistics`);
+  }
+
+  const recomputedStats = createBenchmarkStats(samples);
+
+  if (
+    !Object.is(stats["sampleCount"], recomputedStats.sampleCount) ||
+    !Object.is(stats["minElapsedMs"], recomputedStats.minElapsedMs) ||
+    !Object.is(stats["medianElapsedMs"], recomputedStats.medianElapsedMs) ||
+    !Object.is(stats["maxElapsedMs"], recomputedStats.maxElapsedMs) ||
+    !Object.is(stats["meanElapsedMs"], recomputedStats.meanElapsedMs)
+  ) {
+    throw new Error(
+      `benchmark child artifact for ${expected.name} sample statistics do not match raw samples`,
+    );
+  }
+
+  if (
+    !isRecord(report) ||
+    report["name"] !== expected.name ||
+    !isRecord(invariants) ||
+    !isRecord(comparison) ||
+    comparison["name"] !== expected.name ||
+    (comparison["status"] !== "ok" &&
+      comparison["status"] !== "warn" &&
+      comparison["status"] !== "fail") ||
+    !isRecord(suiteProcess) ||
+    suiteProcess["processId"] !== environment["processId"]
+  ) {
+    throw new Error(`benchmark child artifact for ${expected.name} omitted raw samples`);
+  }
+
+  // The boundary checks above validate every field used by orchestration before
+  // retaining the child payload under its existing public report type.
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- validated external JSON boundary
+  return parsed as unknown as BenchmarkCliReport;
+}
+
+function validateChildEnvironment(
+  name: BenchmarkName,
+  child: BenchmarkEnvironmentMetadata,
+  parent: BenchmarkEnvironmentMetadata,
+): void {
+  if (
+    child.processId === parent.processId ||
+    child.nodeVersion !== parent.nodeVersion ||
+    child.pnpmVersion !== parent.pnpmVersion ||
+    child.osRelease !== parent.osRelease ||
+    child.platform !== parent.platform ||
+    child.arch !== parent.arch ||
+    child.cpuModel !== parent.cpuModel ||
+    child.cpuCount !== parent.cpuCount ||
+    child.hostKeySha256 !== parent.hostKeySha256 ||
+    child.gitCommit !== parent.gitCommit
+  ) {
+    throw new Error(`benchmark child ${name} environment disagrees with its parent`);
+  }
+}
+
+function validateChildArtifactHashes(
+  name: BenchmarkName,
+  report: BenchmarkCliReport,
+  artifactText: string,
+  sidecarText: string,
+): void {
+  const artifactFileSha256 = createSha256(artifactText);
+  const expectedSidecar = `${artifactFileSha256}  benchmark-results.json\n`;
+  const payload: Omit<BenchmarkCliReport, "hashing"> = {
+    schemaVersion: report.schemaVersion,
+    generatedAt: report.generatedAt,
+    baselinePath: report.baselinePath,
+    artifactPath: report.artifactPath,
+    sampleCount: report.sampleCount,
+    warmupCount: report.warmupCount,
+    invocation: report.invocation,
+    execution: report.execution,
+    environment: report.environment,
+    results: report.results,
+  };
+  const canonicalPayloadSha256 = createSha256(`${JSON.stringify(payload, undefined, 2)}\n`);
+
+  if (
+    sidecarText !== expectedSidecar ||
+    report.hashing.canonicalPayloadSha256 !== canonicalPayloadSha256 ||
+    !report.hashing.artifactFileSha256Path.endsWith("benchmark-results.json.sha256")
+  ) {
+    throw new Error(`benchmark child ${name} artifact hash validation failed`);
+  }
 }
 
 function parseBenchmarkArgs(
@@ -2191,6 +2524,35 @@ function createSha256(value: string): string {
   return createHash("sha256").update(value, "utf8").digest("hex").toUpperCase();
 }
 
+function createBenchmarkEnvironmentMetadata(): BenchmarkEnvironmentMetadata {
+  const cpuList = cpus();
+  return {
+    nodeVersion: process.version,
+    pnpmVersion: readCommandOutput("pnpm", ["--version"]),
+    osRelease: release(),
+    platform: process.platform,
+    arch: process.arch,
+    cpuModel: cpuList[0]?.model ?? "unknown",
+    cpuCount: cpuList.length,
+    hostKeySha256: createHostKeySha256(),
+    processId: process.pid,
+    gitCommit: readCommandOutput("git", ["rev-parse", "HEAD"]),
+  };
+}
+
+function createHostKeySha256(): string {
+  const cpuModel = cpus()[0]?.model ?? "unknown";
+  return createSha256([hostname(), release(), process.arch, cpuModel].join("\n"));
+}
+
+function formatBenchmarkCommand(argv: readonly string[]): string {
+  return ["corepack", "pnpm", "bench", ...argv].map(formatCommandToken).join(" ");
+}
+
+function formatCommandToken(value: string): string {
+  return /[\s"]/u.test(value) ? JSON.stringify(value) : value;
+}
+
 function failedArgs(error: string): { readonly ok: false; readonly error: string } {
   return {
     ok: false,
@@ -2252,4 +2614,12 @@ function createCommandInvocation(
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+function isFiniteNumberArray(value: unknown): value is number[] {
+  return Array.isArray(value) && value.every(isFiniteNumber);
 }

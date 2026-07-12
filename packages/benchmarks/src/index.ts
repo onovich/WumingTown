@@ -1,6 +1,7 @@
 export {
   BENCHMARKS_PUBLIC_DEPENDENCIES,
   BENCHMARKS_SMOKE,
+  DEFAULT_BENCHMARK_NAMES,
   DEFAULT_BENCHMARK_SAMPLE_COUNT,
   DEFAULT_BENCHMARK_WARMUP_COUNT,
   benchmarkInvariantsFromReport,
@@ -37,7 +38,7 @@ export {
 export { runPathing100Benchmark } from "./pathing-100-benchmark";
 export { runWorkOffersBenchmark } from "./work-offers-benchmark";
 export { BENCHMARK_BASELINE_SCHEMA_VERSION, compareBenchmarkToBaseline } from "./baseline";
-export { runBenchmarksCli } from "./cli-lib";
+export { parseIsolatedBenchmarkChildReport, runBenchmarksCli } from "./cli-lib";
 export type {
   BenchmarkInvariants,
   BenchmarkInvariantMap,
@@ -129,4 +130,12 @@ export type {
   BenchmarkComparison,
   BenchmarkComparisonStatus,
 } from "./baseline";
-export type { BenchmarkArtifactHashing, BenchmarkCliReport, BenchmarkCliResult } from "./cli-lib";
+export type {
+  BenchmarkArtifactHashing,
+  BenchmarkCliReport,
+  BenchmarkCliResult,
+  BenchmarkEnvironmentMetadata,
+  BenchmarkExecutionMetadata,
+  BenchmarkInvocationMetadata,
+  BenchmarkSuiteProcessMetadata,
+} from "./cli-lib";

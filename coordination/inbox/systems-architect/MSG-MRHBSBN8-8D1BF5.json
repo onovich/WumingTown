@@ -1,0 +1,12 @@
+{
+  "id": "MSG-MRHBSBN8-8D1BF5",
+  "from": "qa-performance",
+  "to": "systems-architect",
+  "taskId": "WM-0178",
+  "kind": "blocker",
+  "subject": "WM-0178 blocked",
+  "body": "Quiet-host admission passed at 24.41%/22.53% host busy with max process 6.18%/6.14%, ACShadows absent, zero benchmark Node and clean git. The only authorized unchanged-harness full corepack pnpm bench at fe4e8f exited 1: entity-store 355.852ms, +45.54% versus the fixed 244.507ms baseline, all invariants matching. Unlike the prior high-load full, M4 and map-dirty blocking failures disappeared (M4 +1.43% OK; map-dirty +10.89% WARN), and M3/M5/spatial are OK, so entity-store is the persistent cross-environment residual. Exact forbidden product boundary: packages/benchmarks/src/entity-store-benchmark.ts:runEntityStoreBenchmark -> packages/sim-core/src/entity-id.ts:createEntityRegistry/EntityRegistry.allocate; component-store.ts:createInt32ComponentStore/Int32ComponentStore.attach/forEachAttachedAscending; structural-commands.ts:createStructuralCommandBuffer/queueSetInt32/commit. Raw JSON and sidecar: coordination/artifacts/WM-0178/quiet-host-resume/benchmarks. No filters, retry, waiver, completion checks or product edits followed.",
+  "artifacts": [],
+  "createdAt": "2026-07-12T05:00:55.412Z",
+  "acknowledgedAt": "2026-07-12T05:01:52.478Z"
+}

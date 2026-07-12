@@ -1,0 +1,303 @@
+{
+  "id": "WM-0178",
+  "title": "Canonical benchmark gate repair and paired attribution",
+  "summary": "Restore the canonical fixed-baseline full benchmark gate on clean main, pair exact-main and WM-0177 checkpoint evidence, and identify any exact sim/product repair scope without waiving or weakening performance requirements.",
+  "state": "done",
+  "ownerRole": "qa-performance",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0169",
+    "WM-0179"
+  ],
+  "docs": [
+    "AGENTS.md",
+    ".agents/skills/wuming-town-agent-workflow/SKILL.md",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "packages/benchmarks/baseline.json",
+    "packages/benchmarks/src/cli.ts",
+    "packages/benchmarks/src/cli-lib.ts",
+    "packages/benchmarks/src/benchmarks.ts",
+    "coordination/tasks/WM-0177.json",
+    "coordination/reports/WM-0177-plan.md",
+    "coordination/reports/WM-0177.md",
+    "coordination/reports/WM-0178-plan.md",
+    "coordination/tasks/WM-0179.json",
+    "coordination/reports/WM-0179-plan.md"
+  ],
+  "acceptance": [
+    "The benchmark workload, fixtures, invariant payloads, packages/benchmarks/baseline.json medians, 10 percent warning threshold, 20 percent failure threshold, default 9 samples and 2 warmups remain immutable; no suite may be skipped, softened, retried-until-pass or reported through a waiver",
+    "Record raw per-sample evidence for clean main at 4175afd and WM-0177 checkpoint 054d501, including exact commit, Node and pnpm versions, Windows/architecture, CPU model/count, host identity or stable anonymized host key, sample/warmup counts, command, exit code and artifact hash",
+    "Run every comparison in an isolated Node process and alternate clean-main versus WM-0177 checkpoint runs for each filtered failing suite and for the full suite. Use the single existing worktree with serial clean checkouts or a reviewed equivalent; do not create a linked worktree and do not compare dirty trees",
+    "Reproduce and resolve the reviewed attribution: entity-store is a pre-existing clean-main gate failure; M3 ordinary-life, M5 alpha-content and spatial-index are WM-0177 task-associated regressions; M4 and map-dirty are mixed clean-main failures with additional task-branch worsening. Owner-local work-offers, pathing and reservations evidence may support attribution but cannot replace the aggregate gate",
+    "Repair only explicitly owned benchmark harness or benchmark-environment surfaces. The repair must preserve benchmark meaning and measured workload while making the clean-main lineage pass the exact corepack pnpm bench command against the unchanged canonical baseline",
+    "The final clean-main-lineage corepack pnpm bench run exits zero with every invariant matching and no comparison above the unchanged 20 percent failure threshold; warnings above 10 percent are documented with raw evidence and do not conceal a failure",
+    "Quiet-host evidence commit 0b89918 isolates one persistent entity-store failure and names the exact non-harness call chain. Systems architecture authorized WM-0179 as the sole conditional product repair; WM-0179 must be independently verified, integrated and done before WM-0178 resumes on repaired main",
+    "Historical benchmark artifacts, including coordination/artifacts/WM-0083, remain byte-identical to HEAD after each comparison. New raw and comparison evidence is written only under coordination/artifacts/WM-0178 and is covered by hashes",
+    "WM-0177 and WM-0170 remain blocked throughout WM-0178. WM-0177 may resume only after WM-0178 is independently verified, integrated and done and the repaired main full benchmark gate passes without a waiver"
+  ],
+  "requiredChecks": [
+    "corepack pnpm typecheck",
+    "corepack pnpm exec vitest run packages/benchmarks/src/baseline.test.ts packages/benchmarks/src/map-dirty-benchmark.test.ts",
+    "corepack pnpm bench --filter entity-store",
+    "corepack pnpm bench --filter m3-ordinary-life-long-run",
+    "corepack pnpm bench --filter m4-core-vertical-slice-long-run",
+    "corepack pnpm bench --filter m5-alpha-content-long-run",
+    "corepack pnpm bench --filter map-dirty",
+    "corepack pnpm bench --filter spatial-index",
+    "corepack pnpm bench",
+    "corepack pnpm boundaries:check",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0178-canonical-benchmark-gate-repair",
+  "createdAt": "2026-07-11T13:56:48.314Z",
+  "updatedAt": "2026-07-12T08:27:13.546Z",
+  "history": [
+    {
+      "at": "2026-07-11T13:56:48.315Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    },
+    {
+      "at": "2026-07-11T13:57:04.228Z",
+      "actor": "systems-architect",
+      "action": "refine-ready-canonical-benchmark-gate-repair",
+      "details": "Approved a mandatory qa-performance predecessor for fixed-baseline canonical gate repair and isolated paired attribution. Workload, baseline, warning/failure thresholds and full-suite required check remain immutable; no waiver or product edit is authorized."
+    },
+    {
+      "at": "2026-07-11T14:12:58.858Z",
+      "actor": "qa-performance",
+      "action": "claim",
+      "details": "thread=Sentinel WM-0178"
+    },
+    {
+      "at": "2026-07-11T14:59:04.771Z",
+      "actor": "qa-performance",
+      "action": "block",
+      "details": "Harness checkpoint 7434d6f now runs every suite in one fail-closed Node child and preserves the fixed baseline, 10/20 thresholds, workloads, invariants and 9-sample/2-warmup counts. One permitted repaired-lineage run still exits 1: entity-store 436.246ms (+78.42%), M4 6.965ms (+51.05%) and map-dirty 1.436ms (+43.61%) fail; M3/spatial warn and all invariants match. The host was persistently non-quiescent (roughly 75-94% aggregate CPU; Codex/ACShadows/control-plane load, no residual benchmark Node), so exact product attribution is not honest. Candidate diagnostic boundaries only: entity-store-benchmark -> sim-core entity-id.ts/component-store.ts/structural-commands.ts; M4 benchmark -> m4-core-vertical-slice-scenario.ts/m4-save-replay.ts; map-dirty -> map-grid.ts updateCell/processDirtyChunks/createHashFields. Evidence: coordination/reports/WM-0178.md and coordination/artifacts/WM-0178. Do not create WM-0179, change the gate or resume WM-0177/WM-0170. User must first pause ACShadows and other CPU-heavy processes and provide a controlled quiet-host rerun window."
+    },
+    {
+      "at": "2026-07-12T04:54:27.741Z",
+      "actor": "systems-architect",
+      "action": "unblock",
+      "details": "User closed ACShadows; two consecutive non-invasive 6-second process-delta windows measured 31.36% and 27.57% host busy, max process 6.25%, with no active benchmark Node. One bounded canonical rerun is authorized; no waiver, retry-until-pass, product edit, WM-0179, or WM-0177/0170 resume."
+    },
+    {
+      "at": "2026-07-12T05:00:55.410Z",
+      "actor": "qa-performance",
+      "action": "block",
+      "details": "Quiet-host admission passed at 24.41%/22.53% host busy with max process 6.18%/6.14%, ACShadows absent, zero benchmark Node and clean git. The only authorized unchanged-harness full corepack pnpm bench at fe4e8f exited 1: entity-store 355.852ms, +45.54% versus the fixed 244.507ms baseline, all invariants matching. Unlike the prior high-load full, M4 and map-dirty blocking failures disappeared (M4 +1.43% OK; map-dirty +10.89% WARN), and M3/M5/spatial are OK, so entity-store is the persistent cross-environment residual. Exact forbidden product boundary: packages/benchmarks/src/entity-store-benchmark.ts:runEntityStoreBenchmark -> packages/sim-core/src/entity-id.ts:createEntityRegistry/EntityRegistry.allocate; component-store.ts:createInt32ComponentStore/Int32ComponentStore.attach/forEachAttachedAscending; structural-commands.ts:createStructuralCommandBuffer/queueSetInt32/commit. Raw JSON and sidecar: coordination/artifacts/WM-0178/quiet-host-resume/benchmarks. No filters, retry, waiver, completion checks or product edits followed."
+    },
+    {
+      "at": "2026-07-12T05:07:43.355Z",
+      "actor": "systems-architect",
+      "action": "record-quiet-host-blocker-and-authorize-WM-0179",
+      "details": "WM-0178 owner evidence commit 0b89918, acknowledged at 2c283d9, records admission at 24.41/22.53 percent host busy and one unchanged-harness full-suite run with only entity-store failing at 355.852 ms (+45.54 percent), all invariants matching. Exact product call paths satisfy the conditional gate; WM-0179 is the sole authorized product repair and WM-0178 remains blocked."
+    },
+    {
+      "at": "2026-07-12T06:58:55.377Z",
+      "actor": "systems-architect",
+      "action": "unblock",
+      "details": "WM-0179 is independently verified, integrated and done on main at 40154b6; WM-0178 was refreshed at 5538a70 with exactly the four authorized harness/test files and unchanged canonical baseline/WM-0083 history. Authorize one reviewed quiet-host admission, then each of the six required filters once in task order and one full canonical bench once, using unique external artifacts and stopping/blocking on any failure. No retry or waiver."
+    },
+    {
+      "at": "2026-07-12T07:32:33.264Z",
+      "actor": "qa-performance",
+      "action": "complete",
+      "details": "Reviewed production admission passed once; six filters and the full canonical suite each ran once at 9 samples/2 warmups with zero invariant mismatches and full 15 OK/0 WARN/0 FAIL; imported hashed evidence; typecheck, focused tests, boundaries, handoff, taskctl, diff and quality all pass; baseline/WM-0083 unchanged; no retry, waiver or downstream state change."
+    },
+    {
+      "at": "2026-07-12T07:37:44.169Z",
+      "actor": "qa-performance",
+      "action": "block",
+      "details": "Final evidence staging failed the architect-mandated byte identity gate. Nested final-repaired-main/.gitattributes contains exact admission.json -text and git check-attr reports text unset; worktree admission JSON and sidecar remain SHA-256 66AD2D39BD8FEA34AABA331F8D36CD30D9E9D0E32ABC3E24FFEDAD02639D747C. However the normally staged blob OID e5fde6176fabf69b2bcc7a345d88a2f77ce4f2c1 exports byte-for-byte as SHA-256 A933568963B46FF03588A571676D4BE4F7E3BE622CA5EF87D25AC25EA48078E4; a second ordinary git add kept the same OID/hash. No commit, push, benchmark retry, low-level index bypass or downstream change followed. Exact TEMP export: C:/Users/ADMINI~1/AppData/Local/Temp/WM0178-admission-index-a9b15073a12f4ea090f468ee4da9de08.bin."
+    },
+    {
+      "at": "2026-07-12T07:39:43.741Z",
+      "actor": "systems-architect",
+      "action": "unblock",
+      "details": "Nested admission attribute is verified correct: git check-attr reports text unset, the attribute-filtered and raw worktree blob OIDs are d6646c860551a476cfebccf90af95d75fe1f1322, and worktree/sidecar SHA-256 is 66AD2D39BD8FEA34AABA331F8D36CD30D9E9D0E32ABC3E24FFEDAD02639D747C. The staged e5fde blob is stale pre-attribute index state. Authorize exactly one porcelain git add --renormalize for admission.json, followed by exact index/blob/hash/ordinary-add stability and report audits. If renormalize fails, block with no fallback; no benchmark or code-test rerun."
+    },
+    {
+      "at": "2026-07-12T07:59:19.042Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: Medium: isolated child validation accepts stats inconsistent with finite raw samples. A read-only diagnostic preserved entity-store raw median 1.419 ms but set stats median to 0; parseIsolatedBenchmarkChildReport accepted it, and the parent recomparison produced a matching -100% OK. Self-consistent artifact, sidecar and canonical hashes do not catch this semantic inconsistency. Recompute min, median, max and mean from raw samples, require every stats field finite and exact, and add malformed-child regression coverage. Final one-shot evidence, hashes, raw CRLF preservation and all non-benchmark gates otherwise pass."
+    },
+    {
+      "at": "2026-07-12T08:07:14.219Z",
+      "actor": "qa-performance",
+      "action": "claim",
+      "details": "thread=Sentinel WM-0178 review repair"
+    },
+    {
+      "at": "2026-07-12T08:17:32.532Z",
+      "actor": "qa-performance",
+      "action": "complete",
+      "details": "P2 fixed by shared raw-sample statistics recomputation with Object.is across all five fields and distinct invalid-statistics versus finite-mismatch errors; focused tests pass 2 files/15 tests; read-only audit passes 31 JSON/sidecar pairs, 29 benchmark artifacts/99 results, final 21 OK results, and 62 files hash-unchanged; full quality passes 78 files/475 tests; no admission or performance benchmark rerun."
+    },
+    {
+      "at": "2026-07-12T08:23:13.974Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. The original P2 is closed by one shared createBenchmarkStats recomputation of all five finite statistics with Object.is; the exact raw 1.419 ms versus reported 0 diagnostic now fails closed, while index/root exports, thresholds, workloads, schema and evidence are unchanged. Exact focused tests pass 2 files/15 tests. Read-only audit passes 31 JSON/sidecar pairs, 29 benchmark artifacts/99 results, final 7 artifacts/21 OK results and 62 unchanged hashes; admission CRLF/attributes and baseline/WM-0083 blobs remain exact. Typecheck, scoped ESLint, boundaries, handoff, taskctl, diff checks and full quality 78 files/475 tests pass; no admission or benchmark command was rerun."
+    },
+    {
+      "at": "2026-07-12T08:27:13.509Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Independent reviewer verified the shared raw-sample statistics repair at 39c48ae with no findings; project-director integration gates pass typecheck, scoped lint, 15 focused tests, 16-workspace boundaries, 1746-file handoff, 31-pair artifact audit and full quality 78 files/475 tests; admission CRLF, canonical baseline and WM-0083 remain exact; no performance command was rerun."
+    },
+    {
+      "at": "2026-07-12T08:27:13.546Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "pr-2-canonical-benchmark-gate-repair",
+  "planningTask": "WM-0169",
+  "blockedTask": "WM-0177",
+  "baselineCommit": "4175afd560fa228203bc31f1861dfea27bf48b77",
+  "checkpointCommit": "054d5017df3015faf63446929530a9d88c0b539d",
+  "benchmarkBaseline": "packages/benchmarks/baseline.json",
+  "reviewedDisposition": {
+    "environment": "Same approved unsandboxed Windows x64 host, Node v24.13.1, AMD Ryzen 7 9700X 8-Core Processor, 9 samples and 2 warmups",
+    "noWaiver": true,
+    "reason": "A documented exception can explain attribution but cannot satisfy the required corepack pnpm bench command or Definition of Done while the command exits non-zero.",
+    "suites": [
+      {
+        "name": "entity-store",
+        "baselineMedianMs": 244.507,
+        "mainMedianMs": 373.1679,
+        "mainRegressionPercent": 52.62,
+        "checkpointMedianMs": 371.4461,
+        "checkpointRegressionPercent": 51.92,
+        "checkpointVsMainPercent": -0.46,
+        "attribution": "pre_existing_clean_main_failure"
+      },
+      {
+        "name": "m3-ordinary-life-long-run",
+        "baselineMedianMs": 24.456,
+        "mainMedianMs": 27.1061,
+        "mainRegressionPercent": 10.84,
+        "checkpointMedianMs": 39.2472,
+        "checkpointRegressionPercent": 60.48,
+        "checkpointVsMainPercent": 44.79,
+        "attribution": "wm_0177_task_regression"
+      },
+      {
+        "name": "m4-core-vertical-slice-long-run",
+        "baselineMedianMs": 4.6112,
+        "mainMedianMs": 5.8341,
+        "mainRegressionPercent": 26.52,
+        "checkpointMedianMs": 6.6062,
+        "checkpointRegressionPercent": 43.26,
+        "checkpointVsMainPercent": 13.24,
+        "attribution": "mixed_main_failure_and_task_worsening"
+      },
+      {
+        "name": "m5-alpha-content-long-run",
+        "baselineMedianMs": 74.6344,
+        "mainMedianMs": 76.8893,
+        "mainRegressionPercent": 3.02,
+        "checkpointMedianMs": 106.3368,
+        "checkpointRegressionPercent": 42.48,
+        "checkpointVsMainPercent": 38.3,
+        "attribution": "wm_0177_task_regression"
+      },
+      {
+        "name": "map-dirty",
+        "baselineMedianMs": 1,
+        "mainMedianMs": 1.25174375,
+        "mainRegressionPercent": 25.17,
+        "checkpointMedianMs": 1.4998,
+        "checkpointRegressionPercent": 49.98,
+        "checkpointVsMainPercent": 19.82,
+        "attribution": "mixed_main_failure_and_task_worsening"
+      },
+      {
+        "name": "spatial-index",
+        "baselineMedianMs": 1436.717,
+        "mainMedianMs": 1572.6804,
+        "mainRegressionPercent": 9.46,
+        "checkpointMedianMs": 1952.994,
+        "checkpointRegressionPercent": 35.93,
+        "checkpointVsMainPercent": 24.19,
+        "attribution": "wm_0177_task_associated_regression"
+      }
+    ]
+  },
+  "writeOwnership": [
+    "packages/benchmarks/src/cli.ts",
+    "packages/benchmarks/src/cli-lib.ts",
+    "packages/benchmarks/src/benchmarks.ts",
+    "packages/benchmarks/src/index.ts",
+    "packages/benchmarks/src/baseline.ts",
+    "packages/benchmarks/src/baseline.test.ts",
+    "packages/benchmarks/src/entity-store-benchmark.ts",
+    "packages/benchmarks/src/m3-ordinary-life-long-run-benchmark.ts",
+    "packages/benchmarks/src/m4-core-vertical-slice-long-run-benchmark.ts",
+    "packages/benchmarks/src/m5-alpha-content-long-run-benchmark.ts",
+    "packages/benchmarks/src/map-dirty-benchmark.ts",
+    "packages/benchmarks/src/map-dirty-benchmark.test.ts",
+    "packages/benchmarks/src/spatial-index-benchmark.ts"
+  ],
+  "allowedPaths": [
+    "packages/benchmarks/src/cli.ts",
+    "packages/benchmarks/src/cli-lib.ts",
+    "packages/benchmarks/src/benchmarks.ts",
+    "packages/benchmarks/src/index.ts",
+    "packages/benchmarks/src/baseline.ts",
+    "packages/benchmarks/src/baseline.test.ts",
+    "packages/benchmarks/src/entity-store-benchmark.ts",
+    "packages/benchmarks/src/m3-ordinary-life-long-run-benchmark.ts",
+    "packages/benchmarks/src/m4-core-vertical-slice-long-run-benchmark.ts",
+    "packages/benchmarks/src/m5-alpha-content-long-run-benchmark.ts",
+    "packages/benchmarks/src/map-dirty-benchmark.ts",
+    "packages/benchmarks/src/map-dirty-benchmark.test.ts",
+    "packages/benchmarks/src/spatial-index-benchmark.ts",
+    "coordination/artifacts/WM-0178/**",
+    "coordination/tasks/WM-0178.json",
+    "coordination/reports/WM-0178*.md",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/05_tech/05_testing_observability_ci.md"
+  ],
+  "forbiddenPaths": [
+    "packages/benchmarks/baseline.json or any change to canonical medians, invariants, warning threshold or failure threshold",
+    "packages/sim-core/**, packages/sim-protocol/**, packages/sim-worker/**, apps/**, renderer, UI, Electron, GameSession, content or other product/scenario-authority files",
+    "package.json, lockfiles, runtime dependencies, release, deploy or distribution files",
+    "coordination/artifacts/WM-0083/** or any historical benchmark artifact",
+    "benchmark workload, fixture size, invariant payload, default 9-sample/2-warmup count, suite omission, failure suppression, retry-until-pass or exception/waiver behavior",
+    "linked worktrees, concurrent dirty checkout comparisons or host/commit metadata omission",
+    "creating another product-repair task or expanding WM-0179 beyond its reviewed structural-ordering scope without a new structured blocker and systems-architecture decision",
+    "claiming or unblocking WM-0177 or WM-0170 before the predecessor and review gates are complete"
+  ],
+  "executionLane": "qa-performance only; Spark is prohibited because cross-commit performance attribution, benchmark semantics and gate integrity require full evidence and independent review",
+  "conditionalProductRepair": "WM-0179 is authorized from the structured quiet-host blocker at evidence commit 0b89918. It owns only structural-commands.ts, a new internal structural-command-order.ts helper and entity-store.invariants.test.ts; entity-id.ts and component-store.ts remain forbidden absent a new blocker.",
+  "repairTasks": [
+    "WM-0179"
+  ],
+  "claimedBy": "qa-performance",
+  "threadLabel": "Sentinel WM-0178 review repair",
+  "singleWriterRule": "WM-0178 remains blocked and claimed by qa-performance with no harness/evidence writes while WM-0179 is the sole active product writer. WM-0177 remains blocked and claimed by its original simulation-engineer with no product writes; WM-0170 remains blocked behind WM-0177.",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0178.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. The original P2 is closed by one shared createBenchmarkStats recomputation of all five finite statistics with Object.is; the exact raw 1.419 ms versus reported 0 diagnostic now fails closed, while index/root exports, thresholds, workloads, schema and evidence are unchanged. Exact focused tests pass 2 files/15 tests. Read-only audit passes 31 JSON/sidecar pairs, 29 benchmark artifacts/99 results, final 7 artifacts/21 OK results and 62 unchanged hashes; admission CRLF/attributes and baseline/WM-0083 blobs remain exact. Typecheck, scoped ESLint, boundaries, handoff, taskctl, diff checks and full quality 78 files/475 tests pass; no admission or benchmark command was rerun.",
+    "at": "2026-07-12T08:23:13.974Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Independent reviewer verified the shared raw-sample statistics repair at 39c48ae with no findings; project-director integration gates pass typecheck, scoped lint, 15 focused tests, 16-workspace boundaries, 1746-file handoff, 31-pair artifact audit and full quality 78 files/475 tests; admission CRLF, canonical baseline and WM-0083 remain exact; no performance command was rerun.",
+    "at": "2026-07-12T08:27:13.508Z"
+  }
+}

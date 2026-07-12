@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-12T07:03:46.351Z",
+  "baselinePath": "packages/benchmarks/baseline.json",
+  "artifactPath": "C:/Users/ADMINI~1/AppData/Local/Temp/WumingTown-WM0178-final-e77ecc1d40114696b6642cae8732e42a/01-entity-store/benchmarks/benchmark-results.json",
+  "sampleCount": 9,
+  "warmupCount": 2,
+  "invocation": {
+    "command": "corepack pnpm bench --filter entity-store",
+    "exitCode": 0
+  },
+  "execution": {
+    "mode": "isolated-node-per-suite",
+    "suiteProcessCount": 1
+  },
+  "environment": {
+    "nodeVersion": "v24.13.1",
+    "pnpmVersion": "11.8.0",
+    "osRelease": "10.0.26200",
+    "platform": "win32",
+    "arch": "x64",
+    "cpuModel": "AMD Ryzen 7 9700X 8-Core Processor             ",
+    "cpuCount": 16,
+    "hostKeySha256": "55442F953FEA3046AA652002ACBA5F947F40C7B767FBE51A63885BCC49E95912",
+    "processId": 22044,
+    "gitCommit": "dba8e88b4dc8936f95b050d0bb0e195063999bb2"
+  },
+  "results": [
+    {
+      "name": "entity-store",
+      "report": {
+        "name": "entity-store",
+        "capacity": 8192,
+        "queuedCommands": 8192,
+        "commitResultCount": 8192,
+        "appliedCommands": 8192,
+        "failedCommands": 0,
+        "attachedComponents": 8192,
+        "iterationChecksum": 134209536,
+        "elapsedMs": 0.6189000000000533,
+        "heapUsedBeforeBytes": 16662304,
+        "heapUsedAfterBytes": 19460856,
+        "heapDeltaBytes": 2798552
+      },
+      "invariants": {
+        "capacity": 8192,
+        "queuedCommands": 8192,
+        "commitResultCount": 8192,
+        "appliedCommands": 8192,
+        "failedCommands": 0,
+        "attachedComponents": 8192,
+        "iterationChecksum": 134209536
+      },
+      "sampleElapsedMs": [
+        2.7450999999999794,
+        1.8765999999999394,
+        1.2475999999999203,
+        2.0267000000000053,
+        2.616100000000074,
+        0.8403999999999314,
+        1.4189999999999827,
+        1.2839999999999918,
+        0.6189000000000533
+      ],
+      "stats": {
+        "sampleCount": 9,
+        "minElapsedMs": 0.6189000000000533,
+        "medianElapsedMs": 1.4189999999999827,
+        "maxElapsedMs": 2.7450999999999794,
+        "meanElapsedMs": 1.6304888888888753
+      },
+      "comparison": {
+        "name": "entity-store",
+        "status": "ok",
+        "actualMedianElapsedMs": 1.4189999999999827,
+        "baselineMedianElapsedMs": 244.507,
+        "regressionPercent": -99.41964851722037,
+        "warnRegressionPercent": 10,
+        "failRegressionPercent": 20,
+        "invariantMismatches": []
+      },
+      "suiteProcess": {
+        "processId": 54624,
+        "exitCode": 0,
+        "command": "corepack pnpm bench --filter entity-store --samples 9 --warmup 2 --baseline D:\\WebProjects\\WumingTown\\packages\\benchmarks\\baseline.json --artifacts-dir C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\wuming-town-benchmark-ThtO9U",
+        "artifactFileSha256": "FF7DD09810E92BADD79DB6EFC580D290F72A377B218ABE2A66609DFE0109324C",
+        "artifactSidecarSha256": "78B0C0A3F2C7A2405645D235BD3799D4995BB8FF799DD6147B4C7180C67C712A",
+        "canonicalPayloadSha256": "4DF43DCF5D53FA0448AF4B4899DE54D5332B05492A1BEE633DE5FE18536849BB"
+      }
+    }
+  ],
+  "hashing": {
+    "schemaVersion": 1,
+    "canonicalPayloadSha256": "8DB21607BD368749F3EF8C6A180CF24F37B936565FE4C085C5A49B7C2378C184",
+    "canonicalPayloadDescription": "SHA-256 of benchmark-results.json payload before hashing metadata is added.",
+    "artifactFileSha256Path": "C:/Users/ADMINI~1/AppData/Local/Temp/WumingTown-WM0178-final-e77ecc1d40114696b6642cae8732e42a/01-entity-store/benchmarks/benchmark-results.json.sha256",
+    "artifactFileSha256Description": "Actual SHA-256 of benchmark-results.json is written to this sidecar after the JSON artifact is written."
+  }
+}

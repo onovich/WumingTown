@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MRHHDZHN-0FE14F",
+  "from": "qa-performance",
+  "to": "systems-architect",
+  "taskId": "WM-0178",
+  "kind": "blocker",
+  "subject": "WM-0178 blocked",
+  "body": "Final evidence staging failed the architect-mandated byte identity gate. Nested final-repaired-main/.gitattributes contains exact admission.json -text and git check-attr reports text unset; worktree admission JSON and sidecar remain SHA-256 66AD2D39BD8FEA34AABA331F8D36CD30D9E9D0E32ABC3E24FFEDAD02639D747C. However the normally staged blob OID e5fde6176fabf69b2bcc7a345d88a2f77ce4f2c1 exports byte-for-byte as SHA-256 A933568963B46FF03588A571676D4BE4F7E3BE622CA5EF87D25AC25EA48078E4; a second ordinary git add kept the same OID/hash. No commit, push, benchmark retry, low-level index bypass or downstream change followed. Exact TEMP export: C:/Users/ADMINI~1/AppData/Local/Temp/WM0178-admission-index-a9b15073a12f4ea090f468ee4da9de08.bin.",
+  "artifacts": [
+    "coordination/reports/WM-0178.md"
+  ],
+  "createdAt": "2026-07-12T07:37:44.171Z",
+  "acknowledgedAt": "2026-07-12T07:39:36.877Z"
+}
