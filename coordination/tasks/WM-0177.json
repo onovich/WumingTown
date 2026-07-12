@@ -2,7 +2,7 @@
   "id": "WM-0177",
   "title": "PR-2 sim-core owner version and caller-owned output surfaces",
   "summary": "Add version-bound and caller-owned allocation-free public surfaces for MapGrid-assisted GridPathfinder, WorkOfferIndex, ReservationLedger and M3AbilityCacheStore so WM-0170 can resume unchanged.",
-  "state": "changes_requested",
+  "state": "in_progress",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -62,7 +62,7 @@
   ],
   "branch": "task/WM-0177-pr-2-sim-core-owner-version-and-caller-owned-out",
   "createdAt": "2026-07-11T10:43:48.256Z",
-  "updatedAt": "2026-07-12T12:52:50.189Z",
+  "updatedAt": "2026-07-12T13:13:32.837Z",
   "history": [
     {
       "at": "2026-07-11T10:43:48.256Z",
@@ -135,6 +135,12 @@
       "actor": "reviewer",
       "action": "review",
       "details": "changes_requested: High: packages/sim-core/src/pathing.ts writeFoundPathInto reconstructs the complete path and knows the goal cost, but on path_output_capacity_exceeded it leaves pathCellCount and pathCostMilli reset to zero; owner-hot-path-surfaces.test.ts incorrectly locks those zeros in. Acceptance 3 requires request, basis, start, goal, cost and node-expansion facts for every structured failure while only forbidding partial route publication. Publish the known required path count and cost before the capacity return, keep route bytes untouched, and correct the regression test. Medium: acceptance 8 allocation proof is incomplete. owner-hot-path-surfaces.test.ts audits 11 Into methods and selected class helpers, but normal hot chains reach unaudited helpers including Map directionMask/oppositeDirection, Path validators, WorkOffer createCompositeKeyForOffer plus insert/remove/top-K/key helpers, Reservation prepared-channel and numeric/tick validators, and M3 condition-version/lane/clamp helpers; its regex also misses object and array literals and plus-based dynamic strings. Current source review found no actual hot allocation, but the probe cannot substantiate acceptance 8 or the report claim that every hot helper is covered. Add mechanical coverage for the complete reachable helper set and all forbidden construction forms with regressions. All other product semantics and scope reviewed clean; 17-file evidence, 15 OK full run, 20 exact pairs, typecheck, 51 focused tests, exact M1/M2/M3 hashes, boundaries, handoff, task control, diff checks and quality 79 files/481 tests pass; no admission or benchmark was rerun."
+    },
+    {
+      "at": "2026-07-12T13:13:32.837Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Tally WM-0177 review repair"
     }
   ],
   "milestone": "Post-M8",
@@ -198,7 +204,7 @@
   ],
   "singleWriterRule": "Until the pre-unblock control commit is pushed, project-director may serialize only this authorized task-control edit and the original simulation-engineer taskctl unblock transition. After that commit, the original simulation-engineer is the sole WM-0177 writer for the existing owner-surface scope, task/report and coordination/artifacts/WM-0177/pre-unblock-paired/**. The product/test/export diff remains seven files within the unchanged maximum of 12; no concurrent writer, admission or benchmark rerun is authorized. WM-0170 remains blocked until WM-0177 is independently verified, integrated and done; WM-0171..WM-0175 retain their existing dependencies.",
   "claimedBy": "simulation-engineer",
-  "threadLabel": "Tally WM-0177",
+  "threadLabel": "Tally WM-0177 review repair",
   "blocker": null,
   "reportPath": "coordination/reports/WM-0177.md",
   "review": {
