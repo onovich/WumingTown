@@ -2,7 +2,7 @@
   "id": "WM-0179",
   "title": "Entity-store structural command ordering repair",
   "summary": "Replace the inversion-dependent structural command ordering bottleneck with deterministic preallocated bounded ordering so the unchanged canonical entity-store gate passes without touching registry, component, benchmark or baseline semantics.",
-  "state": "ready",
+  "state": "in_progress",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -49,7 +49,7 @@
   ],
   "branch": "task/WM-0179-entity-store-structural-command-ordering-repair",
   "createdAt": "2026-07-12T05:07:29.890Z",
-  "updatedAt": "2026-07-12T05:07:43.355Z",
+  "updatedAt": "2026-07-12T05:13:15.123Z",
   "history": [
     {
       "at": "2026-07-12T05:07:29.891Z",
@@ -62,6 +62,12 @@
       "actor": "systems-architect",
       "action": "refine-ready-entity-store-structural-ordering-repair",
       "details": "Authorized from the quiet-host WM-0178 blocker at evidence commit 0b89918. Scope is limited to deterministic preallocated structural command ordering and one focused invariant test; entity registry, component store, benchmark workload/baseline and every downstream task remain unchanged."
+    },
+    {
+      "at": "2026-07-12T05:13:15.122Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Tally WM-0179"
     }
   ],
   "milestone": "Post-M8",
@@ -103,5 +109,8 @@
     "Systems architecture may then unblock WM-0178 for the original qa-performance owner. WM-0178 must run its six explicit filters once each and the exact full corepack pnpm bench once, with no retries or waiver, then pass all remaining checks and independent review.",
     "Only after WM-0178 is integrated and done may the original simulation-engineer resume WM-0177 under its existing paired-attribution procedure; WM-0170 remains blocked until WM-0177 is independently verified, integrated and done."
   ],
-  "singleWriterRule": "WM-0179 is the sole product writer while active. WM-0178 remains blocked and claimed by qa-performance with no harness/evidence writes; WM-0177 remains blocked and claimed by its original simulation-engineer with no product writes; WM-0170 remains blocked."
+  "singleWriterRule": "WM-0179 is the sole product writer while active. WM-0178 remains blocked and claimed by qa-performance with no harness/evidence writes; WM-0177 remains blocked and claimed by its original simulation-engineer with no product writes; WM-0170 remains blocked.",
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Tally WM-0179",
+  "blocker": null
 }
