@@ -1,12 +1,12 @@
 import { type EntityId, type EntityRegistry } from "./entity-id";
 import { type Int32ComponentStore } from "./component-store";
+import { StructuralCommandOrder } from "./structural-command-order";
 import {
   COMMAND_ALLOCATE,
   COMMAND_ATTACH_I32,
   COMMAND_DESTROY,
   COMMAND_DETACH_I32,
   COMMAND_SET_I32,
-  commandPriority,
   isCommandCode,
   isInt32,
   type CommandCode,
@@ -42,7 +42,7 @@ export class StructuralCommandBuffer {
   private readonly generations: Uint32Array;
   private readonly values: Int32Array;
   private readonly sequences: Uint32Array;
-  private readonly orderedSlots: Uint32Array;
+  private readonly commandOrder: StructuralCommandOrder;
   private readonly resultOk: Uint8Array;
   private readonly resultKinds: Uint8Array;
   private readonly resultSequences: Uint32Array;
@@ -66,7 +66,7 @@ export class StructuralCommandBuffer {
     this.generations = new Uint32Array(options.capacity);
     this.values = new Int32Array(options.capacity);
     this.sequences = new Uint32Array(options.capacity);
-    this.orderedSlots = new Uint32Array(options.capacity);
+    this.commandOrder = new StructuralCommandOrder(options.capacity);
     this.resultOk = new Uint8Array(options.capacity);
     this.resultKinds = new Uint8Array(options.capacity);
     this.resultSequences = new Uint32Array(options.capacity);
@@ -127,14 +127,19 @@ export class StructuralCommandBuffer {
   }
 
   commit(registry: EntityRegistry, componentStore: Int32ComponentStore): StructuralCommitReport {
-    this.orderQueuedSlots();
+    const orderedSlots = this.commandOrder.order(
+      this.count,
+      this.kinds,
+      this.indexes,
+      this.sequences,
+    );
 
     this.report.appliedCount = 0;
     this.report.failedCount = 0;
     this.report.resultCount = 0;
 
     for (let cursor = 0; cursor < this.count; cursor += 1) {
-      const slot = this.orderedSlots[cursor] ?? 0;
+      const slot = orderedSlots[cursor] ?? 0;
       const ok = this.applySlot(slot, registry, componentStore);
 
       if (ok) {
@@ -179,42 +184,6 @@ export class StructuralCommandBuffer {
       ok: true,
       sequence,
     };
-  }
-
-  private orderQueuedSlots(): void {
-    for (let slot = 0; slot < this.count; slot += 1) {
-      this.orderedSlots[slot] = slot;
-    }
-
-    for (let cursor = 1; cursor < this.count; cursor += 1) {
-      const selectedSlot = this.orderedSlots[cursor] ?? 0;
-      let scan = cursor - 1;
-
-      while (scan >= 0 && this.compareSlots(selectedSlot, this.orderedSlots[scan] ?? 0) < 0) {
-        this.orderedSlots[scan + 1] = this.orderedSlots[scan] ?? 0;
-        scan -= 1;
-      }
-
-      this.orderedSlots[scan + 1] = selectedSlot;
-    }
-  }
-
-  private compareSlots(leftSlot: number, rightSlot: number): number {
-    const leftPriority = commandPriority(this.readKind(leftSlot));
-    const rightPriority = commandPriority(this.readKind(rightSlot));
-
-    if (leftPriority !== rightPriority) {
-      return leftPriority - rightPriority;
-    }
-
-    const leftIndex = this.indexes[leftSlot] ?? Number.MAX_SAFE_INTEGER;
-    const rightIndex = this.indexes[rightSlot] ?? Number.MAX_SAFE_INTEGER;
-
-    if (leftIndex !== rightIndex) {
-      return leftIndex - rightIndex;
-    }
-
-    return (this.sequences[leftSlot] ?? 0) - (this.sequences[rightSlot] ?? 0);
   }
 
   private applySlot(
