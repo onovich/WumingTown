@@ -2,7 +2,7 @@
   "id": "WM-0181",
   "title": "M3 need-driven exact-index caller-owned surfaces",
   "summary": "Add caller-owned version-bound Into selection and read surfaces for food, rest, and medical exact indexes before WM-0170 resumes.",
-  "state": "review_requested",
+  "state": "verified",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": ["WM-0177"],
@@ -41,7 +41,7 @@
   ],
   "branch": "task/WM-0181-m3-need-driven-exact-index-caller-owned-surfaces",
   "createdAt": "2026-07-12T19:50:48.315Z",
-  "updatedAt": "2026-07-12T21:49:19.619Z",
+  "updatedAt": "2026-07-12T21:53:34.126Z",
   "history": [
     {
       "at": "2026-07-12T19:50:48.315Z",
@@ -78,6 +78,12 @@
       "actor": "simulation-engineer",
       "action": "complete",
       "details": "Implemented seven caller-owned food/rest/medical exact-index roots with 24/12 bounds, explicit owner/row/backlog/environment/caregiver revalidation, exact medical bucket totals, 161-entry allocation closure, 46 focused and 499 full tests passing; report coordination/reports/WM-0181.md."
+    },
+    {
+      "at": "2026-07-12T21:53:34.126Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; main...b4b777d exact eight-file product/test scope and seven Into roots verified; legacy parity, 24/12 caps, Food dirty rejection, Rest dual-row/three-environment/missed-dirty rejection, Medical exact totals/complete caregiver/forbidden-read rejection, 161-entry closure and package exports confirmed; typecheck, focused 46/46, boundaries 16, handoff, taskctl validate/status, diff checks, and quality 79/79 files 499/499 tests passed; one worktree; no benchmark or admission run."
     }
   ],
   "milestone": "Post-M8",
@@ -119,5 +125,11 @@
   "claimedBy": "simulation-engineer",
   "threadLabel": "Tally WM-0181",
   "blocker": null,
-  "reportPath": "coordination/reports/WM-0181.md"
+  "reportPath": "coordination/reports/WM-0181.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; main...b4b777d exact eight-file product/test scope and seven Into roots verified; legacy parity, 24/12 caps, Food dirty rejection, Rest dual-row/three-environment/missed-dirty rejection, Medical exact totals/complete caregiver/forbidden-read rejection, 161-entry closure and package exports confirmed; typecheck, focused 46/46, boundaries 16, handoff, taskctl validate/status, diff checks, and quality 79/79 files 499/499 tests passed; one worktree; no benchmark or admission run.",
+    "at": "2026-07-12T21:53:34.126Z"
+  }
 }
