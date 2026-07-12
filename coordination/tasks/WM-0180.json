@@ -1,0 +1,111 @@
+{
+  "id": "WM-0180",
+  "title": "Windows PowerShell quiet-host admission tool",
+  "summary": "Add a reusable Windows PowerShell 5.1-compatible fail-closed quiet-host admission script, synthetic self-test and workflow quality-gate reference so benchmark tasks no longer rely on unreviewed inline sampling scripts.",
+  "state": "ready",
+  "ownerRole": "qa-performance",
+  "reviewerRole": "reviewer",
+  "dependsOn": [
+    "WM-0169"
+  ],
+  "docs": [
+    "AGENTS.md",
+    ".agents/skills/wuming-town-agent-workflow/SKILL.md",
+    ".agents/skills/wuming-town-agent-workflow/references/quality-gates.md",
+    "docs/05_tech/03_performance_budget.md",
+    "docs/05_tech/05_testing_observability_ci.md",
+    "coordination/tasks/WM-0179.json",
+    "coordination/reports/WM-0179-plan.md",
+    "coordination/reports/WM-0180-plan.md"
+  ],
+  "acceptance": [
+    "Add a reusable quiet-host-admission.ps1 that parses and runs under Windows PowerShell 5.1 with -NoProfile. PowerShell 7-only APIs, including System.Double.IsFinite, are prohibited",
+    "Finite-number validation uses both -not [double]::IsNaN(value) and -not [double]::IsInfinity(value). Null, non-numeric values, NaN, positive infinity and negative infinity fail closed before threshold comparison",
+    "Production measurement is fixed to two sequential six-second Get-Process cumulative-CPU delta windows, normalized by the detected positive logical-processor count, with host-busy threshold at most 40 percent and maximum single-process host share at most 8 percent. No caller option may weaken those constants",
+    "The production script never calls Get-Counter, CIM, WMI, a benchmark, package command or product executable. It requires repository root, exact expected commit and an explicit no-concurrent-benchmark confirmation; git must be clean before and after and ACShadows must be absent at every boundary snapshot",
+    "All helper functions suppress or capture command output and return exactly one scalar result where required. The outermost entrypoint writes exactly one compact JSON line to stdout and zero lines to stderr on every controlled success or failure path; no banner, progress, warning or pipeline noise is permitted",
+    "Exit code 0 means only a complete measured PASS. Stable nonzero codes are 2 invalid invocation/runtime, 10 precondition failure, 20 evidence shape or non-finite measurement, 30 threshold exceeded, 40 postcondition failure and 70 unexpected caught exception. The JSON exitCode, status and reasonCode exactly match the process exit",
+    "Measured JSON records schemaVersion, evidenceKind=measured, exact commit, PowerShell/OS facts, logical processor count, locked window/threshold constants, both finite window objects, maximum process name/id/share, clean-before/after facts, ACShadows facts, external no-benchmark confirmation, status, reasonCode and exitCode",
+    "Any missing or duplicate result, array-valued window, wrong window count, missing field, non-finite number, invalid logical-processor count, dirty tree, commit mismatch, ACShadows presence, absent no-benchmark confirmation, threshold breach or internal exception returns one auditable failure JSON and nonzero exit",
+    "Add a no-sleep synthetic self-test that covers finite values 0, negative zero, 24.41, 40, 8 and Double.MaxValue; rejects null, non-numeric, NaN and both infinities; rejects arrays, duplicate output, missing fields and wrong window counts; verifies exact 40/8 boundary pass and above-boundary failure; and covers dirty git, commit mismatch, ACShadows, missing benchmark confirmation and caught exceptions",
+    "For synthetic pass and every failure class, the self-test asserts exactly one parseable compact JSON stdout line, empty stderr, required schema/evidence/status/reason fields and exact process-exit/JSON-exitCode agreement. The mandatory self-test process itself exits zero only after every case passes",
+    "Update the workflow quality-gates reference with the reviewed script invocation contract, the two-window constants, one-line/exit semantics and the rule that a failed or missing admission blocks benchmark execution; do not place another inline admission script in a task report or agent command",
+    "WM-0180 performs no real quiet-host measurement and invokes no benchmark. It changes no product, benchmark workload, baseline, threshold, package dependency, taskctl state machine or downstream task state"
+  ],
+  "requiredChecks": [
+    "powershell.exe -NoProfile -Command \"if ($PSVersionTable.PSVersion.Major -ne 5) { exit 1 }\"",
+    "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .agents/skills/wuming-town-agent-workflow/scripts/quiet-host-admission-self-test.ps1",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0180-windows-powershell-quiet-host-admission-tool",
+  "createdAt": "2026-07-12T05:31:19.650Z",
+  "updatedAt": "2026-07-12T05:31:23.711Z",
+  "history": [
+    {
+      "at": "2026-07-12T05:31:19.650Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    },
+    {
+      "at": "2026-07-12T05:31:23.711Z",
+      "actor": "systems-architect",
+      "action": "refine-ready-powershell-admission-tool-repair",
+      "details": "Two same-class inline admission failures on WM-0179 trigger the workflow repeated-failure rule. Approved one independently reviewed PowerShell 5.1 tooling/reference predecessor; no further WM-0179 admission or benchmark is authorized until this task is integrated and done."
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "workflow-quiet-host-admission-repair",
+  "planningTask": "WM-0169",
+  "blockedTask": "WM-0179",
+  "triggerTask": "WM-0179",
+  "triggerEvidenceCommit": "d6d690b",
+  "writeOwnership": [
+    ".agents/skills/wuming-town-agent-workflow/scripts/quiet-host-admission.ps1",
+    ".agents/skills/wuming-town-agent-workflow/scripts/quiet-host-admission-self-test.ps1",
+    ".agents/skills/wuming-town-agent-workflow/references/quality-gates.md"
+  ],
+  "maximumModifiedToolFiles": 3,
+  "allowedPaths": [
+    ".agents/skills/wuming-town-agent-workflow/scripts/quiet-host-admission.ps1",
+    ".agents/skills/wuming-town-agent-workflow/scripts/quiet-host-admission-self-test.ps1",
+    ".agents/skills/wuming-town-agent-workflow/references/quality-gates.md",
+    "coordination/tasks/WM-0180.json",
+    "coordination/reports/WM-0180*.md"
+  ],
+  "forbiddenPaths": [
+    ".agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs, SKILL.md, agents/openai.yaml or other workflow files",
+    "packages/**, apps/**, tools/**, package.json, lockfiles, dependencies, benchmark workloads, baseline data or historical artifacts",
+    "System.Double.IsFinite or any PowerShell/.NET API unavailable in Windows PowerShell 5.1",
+    "Get-Counter, Get-CimInstance, WMI, process priority/affinity changes, service/process termination, benchmark invocation or production host measurement",
+    "caller-configurable window count, duration or thresholds; retry, fallback success, warning suppression, multiple stdout lines or stderr evidence",
+    "inline replacement admission commands in WM-0179 or unblocking/editing WM-0179, WM-0178, WM-0177 or WM-0170 from the WM-0180 worker lane",
+    "modifying more than the three exact tool/reference files in writeOwnership"
+  ],
+  "executionLane": "qa-performance only; Spark is prohibited because fail-closed benchmark admission, cross-PowerShell compatibility and workflow policy require auditable evidence and independent review",
+  "outputContract": {
+    "stdoutLines": 1,
+    "stderrLines": 0,
+    "successExitCode": 0,
+    "failureExitCodes": {
+      "invalid_invocation_or_runtime": 2,
+      "precondition_failed": 10,
+      "shape_or_non_finite": 20,
+      "threshold_exceeded": 30,
+      "postcondition_failed": 40,
+      "unexpected_exception": 70
+    }
+  },
+  "resumeClosure": [
+    "WM-0180 must receive independent reviewer verification, project-director integration and done on main.",
+    "The project director refreshes the existing WM-0179 branch from repaired main and audits that product checkpoint 0882988 remains the only product/test diff.",
+    "Systems architecture may then unblock WM-0179 and authorize exactly one measured invocation of the reviewed quiet-host-admission.ps1; inline scripts and further dry probes remain prohibited.",
+    "Only a process exit 0 plus one valid evidenceKind=measured PASS JSON permits the original owner to invoke corepack pnpm bench --filter entity-store exactly once. This is benchmark attempt one because the recorded benchmark invocation count remains zero.",
+    "Any script failure or lost/malformed evidence re-blocks WM-0179 without another inline replacement. WM-0178, WM-0177 and WM-0170 remain blocked until their existing closure DAG is satisfied."
+  ],
+  "singleWriterRule": "WM-0180 is the sole workflow-tool/reference writer while active. WM-0179 remains blocked and claimed by its simulation-engineer with no product, admission or benchmark work; WM-0178 and WM-0177 remain blocked/claimed with no writes; WM-0170 remains blocked."
+}
