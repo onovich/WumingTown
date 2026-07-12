@@ -5,9 +5,7 @@
   "state": "review_requested",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
-  "dependsOn": [
-    "WM-0177"
-  ],
+  "dependsOn": ["WM-0177"],
   "docs": [
     "AGENTS.md",
     ".agents/skills/wuming-town-agent-workflow/SKILL.md",
