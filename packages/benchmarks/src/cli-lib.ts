@@ -16,6 +16,7 @@ import {
   DEFAULT_BENCHMARK_NAMES,
   DEFAULT_BENCHMARK_SAMPLE_COUNT,
   DEFAULT_BENCHMARK_WARMUP_COUNT,
+  createBenchmarkStats,
   sampleBenchmark,
   type BenchmarkName,
   type SampledBenchmarkResult,
@@ -369,12 +370,42 @@ export function parseIsolatedBenchmarkChildReport(
   const invariants = result["invariants"];
   const comparison = result["comparison"];
   const suiteProcess = result["suiteProcess"];
+
   if (
-    !Array.isArray(samples) ||
+    !isFiniteNumberArray(samples) ||
     samples.length !== expected.sampleCount ||
-    !samples.every((value) => typeof value === "number" && Number.isFinite(value)) ||
+    samples.length === 0
+  ) {
+    throw new Error(`benchmark child artifact for ${expected.name} omitted raw samples`);
+  }
+
+  if (
     !isRecord(stats) ||
-    stats["sampleCount"] !== expected.sampleCount ||
+    !isFiniteNumber(stats["sampleCount"]) ||
+    !Number.isInteger(stats["sampleCount"]) ||
+    !isFiniteNumber(stats["minElapsedMs"]) ||
+    !isFiniteNumber(stats["medianElapsedMs"]) ||
+    !isFiniteNumber(stats["maxElapsedMs"]) ||
+    !isFiniteNumber(stats["meanElapsedMs"])
+  ) {
+    throw new Error(`benchmark child artifact for ${expected.name} has invalid sample statistics`);
+  }
+
+  const recomputedStats = createBenchmarkStats(samples);
+
+  if (
+    !Object.is(stats["sampleCount"], recomputedStats.sampleCount) ||
+    !Object.is(stats["minElapsedMs"], recomputedStats.minElapsedMs) ||
+    !Object.is(stats["medianElapsedMs"], recomputedStats.medianElapsedMs) ||
+    !Object.is(stats["maxElapsedMs"], recomputedStats.maxElapsedMs) ||
+    !Object.is(stats["meanElapsedMs"], recomputedStats.meanElapsedMs)
+  ) {
+    throw new Error(
+      `benchmark child artifact for ${expected.name} sample statistics do not match raw samples`,
+    );
+  }
+
+  if (
     !isRecord(report) ||
     report["name"] !== expected.name ||
     !isRecord(invariants) ||
@@ -2583,4 +2614,12 @@ function createCommandInvocation(
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+function isFiniteNumberArray(value: unknown): value is number[] {
+  return Array.isArray(value) && value.every(isFiniteNumber);
 }

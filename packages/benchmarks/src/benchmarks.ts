@@ -1095,7 +1095,7 @@ function validateInvariantConsistency(
   return readInvariantUnion(firstReport);
 }
 
-function createBenchmarkStats(sampleElapsedMs: readonly number[]): BenchmarkSampleStats {
+export function createBenchmarkStats(sampleElapsedMs: readonly number[]): BenchmarkSampleStats {
   if (sampleElapsedMs.length === 0) {
     throw new Error("benchmark stats require at least one sample");
   }

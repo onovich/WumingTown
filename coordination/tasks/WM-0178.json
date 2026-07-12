@@ -2,7 +2,7 @@
   "id": "WM-0178",
   "title": "Canonical benchmark gate repair and paired attribution",
   "summary": "Restore the canonical fixed-baseline full benchmark gate on clean main, pair exact-main and WM-0177 checkpoint evidence, and identify any exact sim/product repair scope without waiving or weakening performance requirements.",
-  "state": "changes_requested",
+  "state": "review_requested",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -55,7 +55,7 @@
   ],
   "branch": "task/WM-0178-canonical-benchmark-gate-repair",
   "createdAt": "2026-07-11T13:56:48.314Z",
-  "updatedAt": "2026-07-12T07:59:19.042Z",
+  "updatedAt": "2026-07-12T08:17:32.533Z",
   "history": [
     {
       "at": "2026-07-11T13:56:48.315Z",
@@ -128,6 +128,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "changes_requested: Medium: isolated child validation accepts stats inconsistent with finite raw samples. A read-only diagnostic preserved entity-store raw median 1.419 ms but set stats median to 0; parseIsolatedBenchmarkChildReport accepted it, and the parent recomparison produced a matching -100% OK. Self-consistent artifact, sidecar and canonical hashes do not catch this semantic inconsistency. Recompute min, median, max and mean from raw samples, require every stats field finite and exact, and add malformed-child regression coverage. Final one-shot evidence, hashes, raw CRLF preservation and all non-benchmark gates otherwise pass."
+    },
+    {
+      "at": "2026-07-12T08:07:14.219Z",
+      "actor": "qa-performance",
+      "action": "claim",
+      "details": "thread=Sentinel WM-0178 review repair"
+    },
+    {
+      "at": "2026-07-12T08:17:32.532Z",
+      "actor": "qa-performance",
+      "action": "complete",
+      "details": "P2 fixed by shared raw-sample statistics recomputation with Object.is across all five fields and distinct invalid-statistics versus finite-mismatch errors; focused tests pass 2 files/15 tests; read-only audit passes 31 JSON/sidecar pairs, 29 benchmark artifacts/99 results, final 21 OK results, and 62 files hash-unchanged; full quality passes 78 files/475 tests; no admission or performance benchmark rerun."
     }
   ],
   "milestone": "Post-M8",
@@ -255,7 +267,7 @@
     "WM-0179"
   ],
   "claimedBy": "qa-performance",
-  "threadLabel": "Sentinel WM-0178",
+  "threadLabel": "Sentinel WM-0178 review repair",
   "singleWriterRule": "WM-0178 remains blocked and claimed by qa-performance with no harness/evidence writes while WM-0179 is the sole active product writer. WM-0177 remains blocked and claimed by its original simulation-engineer with no product writes; WM-0170 remains blocked behind WM-0177.",
   "blocker": null,
   "reportPath": "coordination/reports/WM-0178.md",
