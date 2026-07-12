@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   M3_ABILITY_MANIPULATION,
@@ -26,6 +26,140 @@ import {
 } from "./index";
 
 describe("m3-medical-care", () => {
+  it("reads patient and caregiver rows into reusable flat outputs", () => {
+    const fixture = createReadyTreatmentFixture();
+    const legacyPatient = fixture.medical.readPatientRequest(REQUEST_YAO_SPRAIN);
+    const legacyCaregiver = fixture.medical.readCaregiverState(ACTOR_MIN);
+    if (legacyPatient === undefined || legacyCaregiver === undefined) {
+      throw new Error("missing medical owner rows");
+    }
+    const patientOutput = createPatientRequestIntoOutput();
+    const caregiverOutput = createCaregiverStateIntoOutput();
+    const patientIdentity = patientOutput;
+    const caregiverIdentity = caregiverOutput;
+    const legacyPatientRead = vi
+      .spyOn(fixture.medical, "readPatientRequest")
+      .mockImplementation(() => {
+        throw new Error("materializing readPatientRequest called");
+      });
+    const legacyCaregiverRead = vi
+      .spyOn(fixture.medical, "readCaregiverState")
+      .mockImplementation(() => {
+        throw new Error("materializing readCaregiverState called");
+      });
+
+    fixture.medical.readPatientRequestInto(REQUEST_YAO_SPRAIN, patientOutput);
+    expect(patientOutput).toEqual({
+      ok: true,
+      reason: undefined,
+      ...legacyPatient,
+      active: true,
+      medicalStoreVersion: 2,
+    });
+    expect(patientOutput).toBe(patientIdentity);
+
+    fixture.medical.readCaregiverStateInto(ACTOR_MIN, caregiverOutput);
+    expect(caregiverOutput).toEqual({
+      ok: true,
+      reason: undefined,
+      ...legacyCaregiver,
+      medicalStoreVersion: 2,
+    });
+    expect(caregiverOutput).toBe(caregiverIdentity);
+    expect(legacyPatientRead).not.toHaveBeenCalled();
+    expect(legacyCaregiverRead).not.toHaveBeenCalled();
+
+    fixture.medical.readPatientRequestInto(1, patientOutput);
+    expect(patientOutput).toEqual({
+      ok: false,
+      reason: "medical.no_patient",
+      requestId: 1,
+      active: false,
+      patientId: 0,
+      conditionId: 0,
+      regionId: 0,
+      urgencyBucket: 0,
+      permissionId: 0,
+      treatmentDefId: 0,
+      stockDefId: 0,
+      stockAmount: 0,
+      targetCellIndex: 0,
+      scoreMilli: 0,
+      conditionVersion: 0,
+      actorConditionVersion: 0,
+      healthStoreVersion: 0,
+      severity: 0,
+      clueRef: 0,
+      counterevidenceRef: 0,
+      medicalStoreVersion: 2,
+    });
+    expect(patientOutput).toBe(patientIdentity);
+
+    fixture.medical.readPatientRequestInto(-1, patientOutput);
+    expect(patientOutput).toEqual({
+      ok: false,
+      reason: "medical.request_id_out_of_range",
+      requestId: -1,
+      active: false,
+      patientId: 0,
+      conditionId: 0,
+      regionId: 0,
+      urgencyBucket: 0,
+      permissionId: 0,
+      treatmentDefId: 0,
+      stockDefId: 0,
+      stockAmount: 0,
+      targetCellIndex: 0,
+      scoreMilli: 0,
+      conditionVersion: 0,
+      actorConditionVersion: 0,
+      healthStoreVersion: 0,
+      severity: 0,
+      clueRef: 0,
+      counterevidenceRef: 0,
+      medicalStoreVersion: 2,
+    });
+    expect(patientOutput).toBe(patientIdentity);
+
+    fixture.medical.readCaregiverStateInto(1, caregiverOutput);
+    expect(caregiverOutput).toEqual({
+      ok: false,
+      reason: "medical.rejected_caregiver_ability",
+      caregiverId: 1,
+      valid: false,
+      regionId: 0,
+      permissionId: 0,
+      ability: 0,
+      minimumValue: 0,
+      allowed: false,
+      abilityValue: 0,
+      actorConditionVersion: 0,
+      baseAbilityVersion: 0,
+      medicalStoreVersion: 2,
+    });
+    expect(caregiverOutput).toBe(caregiverIdentity);
+
+    fixture.medical.readCaregiverStateInto(-1, caregiverOutput);
+    expect(caregiverOutput).toEqual({
+      ok: false,
+      reason: "medical.actor_out_of_range",
+      caregiverId: -1,
+      valid: false,
+      regionId: 0,
+      permissionId: 0,
+      ability: 0,
+      minimumValue: 0,
+      allowed: false,
+      abilityValue: 0,
+      actorConditionVersion: 0,
+      baseAbilityVersion: 0,
+      medicalStoreVersion: 2,
+    });
+    expect(caregiverOutput).toBe(caregiverIdentity);
+    expect(legacyPatientRead).not.toHaveBeenCalled();
+    expect(legacyCaregiverRead).not.toHaveBeenCalled();
+  });
+
   it("selects treatment offers from patient owner state and caregiver ability state", () => {
     const fixture = createMedicalFixture();
     const scratch = createSelectionScratch();
@@ -601,6 +735,53 @@ interface MedicalFixture {
   readonly stock: EntityId;
   readonly grid: ReturnType<typeof createMapGrid>;
   readonly pathBasis: ReturnType<typeof createPathVersionBasis>;
+}
+
+type PatientRequestIntoOutput = Parameters<MedicalFixture["medical"]["readPatientRequestInto"]>[1];
+type CaregiverStateIntoOutput = Parameters<MedicalFixture["medical"]["readCaregiverStateInto"]>[1];
+
+function createPatientRequestIntoOutput(): PatientRequestIntoOutput {
+  return {
+    ok: true,
+    reason: "medical.value_out_of_range",
+    requestId: 99,
+    active: true,
+    patientId: 99,
+    conditionId: 99,
+    regionId: 99,
+    urgencyBucket: 99,
+    permissionId: 99,
+    treatmentDefId: 99,
+    stockDefId: 99,
+    stockAmount: 99,
+    targetCellIndex: 99,
+    scoreMilli: 99,
+    conditionVersion: 99,
+    actorConditionVersion: 99,
+    healthStoreVersion: 99,
+    severity: 99,
+    clueRef: 99,
+    counterevidenceRef: 99,
+    medicalStoreVersion: 99,
+  };
+}
+
+function createCaregiverStateIntoOutput(): CaregiverStateIntoOutput {
+  return {
+    ok: true,
+    reason: "medical.value_out_of_range",
+    caregiverId: 99,
+    valid: true,
+    regionId: 99,
+    permissionId: 99,
+    ability: 99,
+    minimumValue: 99,
+    allowed: true,
+    abilityValue: 99,
+    actorConditionVersion: 99,
+    baseAbilityVersion: 99,
+    medicalStoreVersion: 99,
+  };
 }
 
 function createMedicalFixture(): MedicalFixture {

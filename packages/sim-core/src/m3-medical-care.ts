@@ -69,11 +69,51 @@ export interface M3MedicalPatientRequestView extends M3MedicalPatientRequestInpu
   readonly counterevidenceRef: number;
 }
 
+export interface M3MedicalPatientRequestIntoOutput {
+  ok: boolean;
+  reason: M3MedicalReason | undefined;
+  requestId: number;
+  active: boolean;
+  patientId: number;
+  conditionId: number;
+  regionId: number;
+  urgencyBucket: number;
+  permissionId: number;
+  treatmentDefId: number;
+  stockDefId: number;
+  stockAmount: number;
+  targetCellIndex: number;
+  scoreMilli: number;
+  conditionVersion: number;
+  actorConditionVersion: number;
+  healthStoreVersion: number;
+  severity: number;
+  clueRef: number;
+  counterevidenceRef: number;
+  medicalStoreVersion: number;
+}
+
 export interface M3MedicalCaregiverStateView extends M3MedicalCaregiverStateInput {
   readonly abilityValue: number;
   readonly actorConditionVersion: number;
   readonly baseAbilityVersion: number;
   readonly valid: boolean;
+}
+
+export interface M3MedicalCaregiverStateIntoOutput {
+  ok: boolean;
+  reason: M3MedicalReason | undefined;
+  caregiverId: number;
+  valid: boolean;
+  regionId: number;
+  permissionId: number;
+  ability: number;
+  minimumValue: number;
+  allowed: boolean;
+  abilityValue: number;
+  actorConditionVersion: number;
+  baseAbilityVersion: number;
+  medicalStoreVersion: number;
 }
 
 export type M3MedicalMutationResult =
@@ -413,6 +453,37 @@ export class M3MedicalCareStore {
     };
   }
 
+  readPatientRequestInto(requestId: number, output: M3MedicalPatientRequestIntoOutput): void {
+    this.resetPatientRequestInto(requestId, output);
+    if (!isIndexInRange(requestId, this.requestCapacity)) {
+      output.reason = "medical.request_id_out_of_range";
+      return;
+    }
+    if ((this.activeRequests[requestId] ?? 0) !== 1) {
+      output.reason = "medical.no_patient";
+      return;
+    }
+
+    output.ok = true;
+    output.active = true;
+    output.patientId = this.patientIds[requestId] ?? 0;
+    output.conditionId = this.conditionIds[requestId] ?? 0;
+    output.regionId = this.regionIds[requestId] ?? 0;
+    output.urgencyBucket = this.urgencyBuckets[requestId] ?? 0;
+    output.permissionId = this.permissionIds[requestId] ?? 0;
+    output.treatmentDefId = this.treatmentDefIds[requestId] ?? 0;
+    output.stockDefId = this.stockDefIds[requestId] ?? 0;
+    output.stockAmount = this.stockAmounts[requestId] ?? 0;
+    output.targetCellIndex = this.targetCellIndexes[requestId] ?? 0;
+    output.scoreMilli = this.scoresMilli[requestId] ?? 0;
+    output.conditionVersion = this.conditionVersions[requestId] ?? 0;
+    output.actorConditionVersion = this.actorConditionVersions[requestId] ?? 0;
+    output.healthStoreVersion = this.healthStoreVersions[requestId] ?? 0;
+    output.severity = this.severities[requestId] ?? 0;
+    output.clueRef = this.clueRefs[requestId] ?? 0;
+    output.counterevidenceRef = this.counterevidenceRefs[requestId] ?? 0;
+  }
+
   readCaregiverState(caregiverId: number): M3MedicalCaregiverStateView | undefined {
     if (
       !isIndexInRange(caregiverId, this.actorCapacity) ||
@@ -432,6 +503,29 @@ export class M3MedicalCareStore {
       baseAbilityVersion: this.caregiverBaseAbilityVersions[caregiverId] ?? 0,
       valid: true,
     };
+  }
+
+  readCaregiverStateInto(caregiverId: number, output: M3MedicalCaregiverStateIntoOutput): void {
+    this.resetCaregiverStateInto(caregiverId, output);
+    if (!isIndexInRange(caregiverId, this.actorCapacity)) {
+      output.reason = "medical.actor_out_of_range";
+      return;
+    }
+    if ((this.caregiverValid[caregiverId] ?? 0) !== 1) {
+      output.reason = "medical.rejected_caregiver_ability";
+      return;
+    }
+
+    output.ok = true;
+    output.valid = true;
+    output.regionId = this.caregiverRegions[caregiverId] ?? 0;
+    output.permissionId = this.caregiverPermissions[caregiverId] ?? 0;
+    output.ability = this.caregiverAbilities[caregiverId] ?? 0;
+    output.minimumValue = this.caregiverMinimums[caregiverId] ?? 0;
+    output.allowed = (this.caregiverAllowed[caregiverId] ?? 0) === 1;
+    output.abilityValue = this.caregiverValues[caregiverId] ?? 0;
+    output.actorConditionVersion = this.caregiverConditionVersions[caregiverId] ?? 0;
+    output.baseAbilityVersion = this.caregiverBaseAbilityVersions[caregiverId] ?? 0;
   }
 
   createMetrics(): M3MedicalMetrics {
@@ -679,6 +773,52 @@ export class M3MedicalCareStore {
 
   private isActiveRequest(requestId: number): boolean {
     return isIndexInRange(requestId, this.requestCapacity) && this.activeRequests[requestId] === 1;
+  }
+
+  private resetPatientRequestInto(
+    requestId: number,
+    output: M3MedicalPatientRequestIntoOutput,
+  ): void {
+    output.ok = false;
+    output.reason = undefined;
+    output.requestId = requestId;
+    output.active = false;
+    output.patientId = 0;
+    output.conditionId = 0;
+    output.regionId = 0;
+    output.urgencyBucket = 0;
+    output.permissionId = 0;
+    output.treatmentDefId = 0;
+    output.stockDefId = 0;
+    output.stockAmount = 0;
+    output.targetCellIndex = 0;
+    output.scoreMilli = 0;
+    output.conditionVersion = 0;
+    output.actorConditionVersion = 0;
+    output.healthStoreVersion = 0;
+    output.severity = 0;
+    output.clueRef = 0;
+    output.counterevidenceRef = 0;
+    output.medicalStoreVersion = this.storeVersion;
+  }
+
+  private resetCaregiverStateInto(
+    caregiverId: number,
+    output: M3MedicalCaregiverStateIntoOutput,
+  ): void {
+    output.ok = false;
+    output.reason = undefined;
+    output.caregiverId = caregiverId;
+    output.valid = false;
+    output.regionId = 0;
+    output.permissionId = 0;
+    output.ability = 0;
+    output.minimumValue = 0;
+    output.allowed = false;
+    output.abilityValue = 0;
+    output.actorConditionVersion = 0;
+    output.baseAbilityVersion = 0;
+    output.medicalStoreVersion = this.storeVersion;
   }
 }
 
