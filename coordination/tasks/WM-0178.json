@@ -2,7 +2,7 @@
   "id": "WM-0178",
   "title": "Canonical benchmark gate repair and paired attribution",
   "summary": "Restore the canonical fixed-baseline full benchmark gate on clean main, pair exact-main and WM-0177 checkpoint evidence, and identify any exact sim/product repair scope without waiving or weakening performance requirements.",
-  "state": "review_requested",
+  "state": "changes_requested",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -55,7 +55,7 @@
   ],
   "branch": "task/WM-0178-canonical-benchmark-gate-repair",
   "createdAt": "2026-07-11T13:56:48.314Z",
-  "updatedAt": "2026-07-12T07:39:43.741Z",
+  "updatedAt": "2026-07-12T07:59:19.042Z",
   "history": [
     {
       "at": "2026-07-11T13:56:48.315Z",
@@ -122,6 +122,12 @@
       "actor": "systems-architect",
       "action": "unblock",
       "details": "Nested admission attribute is verified correct: git check-attr reports text unset, the attribute-filtered and raw worktree blob OIDs are d6646c860551a476cfebccf90af95d75fe1f1322, and worktree/sidecar SHA-256 is 66AD2D39BD8FEA34AABA331F8D36CD30D9E9D0E32ABC3E24FFEDAD02639D747C. The staged e5fde blob is stale pre-attribute index state. Authorize exactly one porcelain git add --renormalize for admission.json, followed by exact index/blob/hash/ordinary-add stability and report audits. If renormalize fails, block with no fallback; no benchmark or code-test rerun."
+    },
+    {
+      "at": "2026-07-12T07:59:19.042Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: Medium: isolated child validation accepts stats inconsistent with finite raw samples. A read-only diagnostic preserved entity-store raw median 1.419 ms but set stats median to 0; parseIsolatedBenchmarkChildReport accepted it, and the parent recomparison produced a matching -100% OK. Self-consistent artifact, sidecar and canonical hashes do not catch this semantic inconsistency. Recompute min, median, max and mean from raw samples, require every stats field finite and exact, and add malformed-child regression coverage. Final one-shot evidence, hashes, raw CRLF preservation and all non-benchmark gates otherwise pass."
     }
   ],
   "milestone": "Post-M8",
@@ -252,5 +258,11 @@
   "threadLabel": "Sentinel WM-0178",
   "singleWriterRule": "WM-0178 remains blocked and claimed by qa-performance with no harness/evidence writes while WM-0179 is the sole active product writer. WM-0177 remains blocked and claimed by its original simulation-engineer with no product writes; WM-0170 remains blocked behind WM-0177.",
   "blocker": null,
-  "reportPath": "coordination/reports/WM-0178.md"
+  "reportPath": "coordination/reports/WM-0178.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "changes_requested",
+    "summary": "Medium: isolated child validation accepts stats inconsistent with finite raw samples. A read-only diagnostic preserved entity-store raw median 1.419 ms but set stats median to 0; parseIsolatedBenchmarkChildReport accepted it, and the parent recomparison produced a matching -100% OK. Self-consistent artifact, sidecar and canonical hashes do not catch this semantic inconsistency. Recompute min, median, max and mean from raw samples, require every stats field finite and exact, and add malformed-child regression coverage. Final one-shot evidence, hashes, raw CRLF preservation and all non-benchmark gates otherwise pass.",
+    "at": "2026-07-12T07:59:19.042Z"
+  }
 }
