@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MRHUN31B-21350D",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0177",
+  "kind": "review-request",
+  "subject": "WM-0177 ready for review",
+  "body": "Closed Canvas P1 capacity-failure facts and P2 complete 80-label AST call/allocation audit; exact six focused files pass 52 tests, M1/M2/M3 100000-tick hashes remain exact, and final quality passes 79 files/482 tests; architect-authorized measurement evidence reuse remains byte-identical with no admission or benchmark rerun.",
+  "artifacts": [
+    "coordination/reports/WM-0177.md",
+    "task/WM-0177-pr-2-sim-core-owner-version-and-caller-owned-out"
+  ],
+  "createdAt": "2026-07-12T13:48:43.680Z",
+  "acknowledgedAt": null
+}

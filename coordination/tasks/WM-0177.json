@@ -2,7 +2,7 @@
   "id": "WM-0177",
   "title": "PR-2 sim-core owner version and caller-owned output surfaces",
   "summary": "Add version-bound and caller-owned allocation-free public surfaces for MapGrid-assisted GridPathfinder, WorkOfferIndex, ReservationLedger and M3AbilityCacheStore so WM-0170 can resume unchanged.",
-  "state": "in_progress",
+  "state": "review_requested",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -62,7 +62,7 @@
   ],
   "branch": "task/WM-0177-pr-2-sim-core-owner-version-and-caller-owned-out",
   "createdAt": "2026-07-11T10:43:48.256Z",
-  "updatedAt": "2026-07-12T13:13:32.837Z",
+  "updatedAt": "2026-07-12T13:48:43.678Z",
   "history": [
     {
       "at": "2026-07-11T10:43:48.256Z",
@@ -141,6 +141,12 @@
       "actor": "simulation-engineer",
       "action": "claim",
       "details": "thread=Tally WM-0177 review repair"
+    },
+    {
+      "at": "2026-07-12T13:48:43.678Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Closed Canvas P1 capacity-failure facts and P2 complete 80-label AST call/allocation audit; exact six focused files pass 52 tests, M1/M2/M3 100000-tick hashes remain exact, and final quality passes 79 files/482 tests; architect-authorized measurement evidence reuse remains byte-identical with no admission or benchmark rerun."
     }
   ],
   "milestone": "Post-M8",
