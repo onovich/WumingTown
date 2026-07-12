@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MRHV3D01-F6A7C2",
+  "from": "systems-architect",
+  "to": "reviewer",
+  "taskId": "WM-0177",
+  "kind": "architecture-approval",
+  "subject": "WM-0177 review-repair evidence reuse authorized",
+  "body": "Systems-architect independently verified repair commit d6ee7f5fa08ac76702ba117fdaa16dee4216fa17 against measurement commit 3ca83d19ed6b3146ac876d78dd8dc16e2d994d22. The executable product delta is exactly four scalar fact writes in two already-failing GridPathfinder output-capacity branches: count=1/cost=0 for the trivial start-equals-goal zero-capacity failure, and reconstructed pathCount/goal gCost for the general insufficient-route-output failure. The successful measured statements, stores, and their order are unchanged. Across map-grid.ts, pathing.ts, work-offers.ts, reservation-ledger.ts, and m3-health.ts, all 26 audited helper bodies are byte-for-byte unchanged after normalization; their only module changes are adjacent `@internal source-audit only; intentionally not re-exported from package root` comments plus module-local export keywords. packages/sim-core/src/index.ts remains unchanged, and no audit helper is added to the package root. The remaining repair changes are confined to the existing owner-hot-path AST/P1 test and coordination/reports/WM-0177.md. The 17-file WM-0177 evidence tree and comparison manifest, packages/benchmarks/baseline.json, and coordination/artifacts/WM-0083 are unchanged across the repair.\n\nAccordingly, systems architecture authorizes reviewer reuse of the performance evidence that remains explicitly bound to measurement commit 3ca83d19ed6b3146ac876d78dd8dc16e2d994d22. This is provenance-preserving evidence reuse, not a performance waiver. Do not relabel any artifact, manifest, admission, or benchmark result to repair HEAD d6ee7f5fa08ac76702ba117fdaa16dee4216fa17. Do not run quiet-host admission or any benchmark command. This authorization is immediately void and WM-0177 must block if any additional executable product change appears or if the evidence tree, manifest, baseline, or WM-0083 drifts. WM-0170 remains blocked until WM-0177 is independently verified, integrated, and done.",
+  "artifacts": [
+    "coordination/reports/WM-0177.md",
+    "coordination/tasks/WM-0177.json"
+  ],
+  "createdAt": "2026-07-12T14:01:23.089Z",
+  "acknowledgedAt": null
+}
