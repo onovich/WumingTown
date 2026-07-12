@@ -1360,11 +1360,11 @@ function isMappedFoodBasis(basis: AutonomyVersionBasis): boolean {
   return (
     basis.foodAvailabilityVersion > 0 &&
     basis.foodItemVersion > 0 &&
-    basis.foodMealWindowVersion > 0 &&
     basis.candidateOwnerVersion === basis.foodAvailabilityVersion &&
     basis.candidateRowVersion === basis.foodItemVersion &&
     basis.candidateIndexVersion === basis.foodAvailabilityVersion &&
-    basis.candidateBacklog === basis.foodDirtyBacklog &&
+    basis.candidateBacklog === 0 &&
+    basis.foodDirtyBacklog === 0 &&
     hasZeroRestBasis(basis) &&
     hasZeroMedicalBasis(basis)
   );
@@ -1375,15 +1375,15 @@ function isMappedRestBasis(basis: AutonomyVersionBasis): boolean {
     basis.restStoreVersion > 0 &&
     basis.restCachedRowVersion > 0 &&
     basis.restCurrentRowVersion > 0 &&
-    basis.restSourceVersion > 0 &&
     basis.restIndexVersion > 0 &&
-    basis.restScheduleWindowVersion > 0 &&
-    basis.restWeatherVersion > 0 &&
-    basis.restWeatherSourceVersion > 0 &&
     basis.candidateOwnerVersion === basis.restStoreVersion &&
     basis.candidateRowVersion === basis.restCurrentRowVersion &&
     basis.candidateIndexVersion === basis.restIndexVersion &&
-    basis.candidateBacklog === basis.restDirtyBacklog &&
+    basis.candidateBacklog === 0 &&
+    basis.restDirtyBacklog === 0 &&
+    basis.restCachedRowVersion === basis.restCurrentRowVersion &&
+    basis.restSourceVersion === basis.restStoreVersion &&
+    (basis.restWeatherExposureCode !== 1 || basis.restOutdoorWorkAllowed === 1) &&
     hasZeroFoodBasis(basis) &&
     hasZeroMedicalBasis(basis)
   );
@@ -1396,8 +1396,7 @@ function isMappedMedicalBasis(basis: AutonomyVersionBasis): boolean {
     basis.medicalConditionVersion > 0 &&
     basis.medicalActorVersion > 0 &&
     basis.medicalCaregiverAbility < 6 &&
-    basis.medicalCaregiverActorConditionVersion > 0 &&
-    basis.medicalCaregiverBaseAbilityVersion > 0 &&
+    basis.medicalCaregiverAbilityValue >= basis.medicalCaregiverMinimumAbility &&
     basis.medicalCaregiverValid === 1 &&
     basis.medicalCaregiverAllowed === 1 &&
     basis.candidateOwnerVersion === basis.medicalStoreVersion &&
@@ -1719,15 +1718,14 @@ function hasStoredOrdinaryBasis(lanes: Uint32Array, base: number): boolean {
 function hasStoredFoodBasis(lanes: Uint32Array, base: number): boolean {
   const owner = lanes[base + AutonomySnapshotLane.foodAvailabilityVersion] ?? 0;
   const row = lanes[base + AutonomySnapshotLane.foodItemVersion] ?? 0;
-  const backlog = lanes[base + AutonomySnapshotLane.foodDirtyBacklog] ?? 0;
   return (
     owner > 0 &&
     row > 0 &&
-    (lanes[base + AutonomySnapshotLane.foodMealWindowVersion] ?? 0) > 0 &&
     lanes[base + AutonomySnapshotLane.candidateOwnerVersion] === owner &&
     lanes[base + AutonomySnapshotLane.candidateRowVersion] === row &&
     lanes[base + AutonomySnapshotLane.candidateIndexVersion] === owner &&
-    lanes[base + AutonomySnapshotLane.candidateBacklog] === backlog &&
+    lanes[base + AutonomySnapshotLane.candidateBacklog] === 0 &&
+    lanes[base + AutonomySnapshotLane.foodDirtyBacklog] === 0 &&
     hasZeroStoredRestBasis(lanes, base) &&
     hasZeroStoredMedicalBasis(lanes, base)
   );
@@ -1735,23 +1733,28 @@ function hasStoredFoodBasis(lanes: Uint32Array, base: number): boolean {
 
 function hasStoredRestBasis(lanes: Uint32Array, base: number): boolean {
   const owner = lanes[base + AutonomySnapshotLane.restStoreVersion] ?? 0;
+  const cachedRow = lanes[base + AutonomySnapshotLane.restCachedRowVersion] ?? 0;
   const row = lanes[base + AutonomySnapshotLane.restCurrentRowVersion] ?? 0;
+  const source = lanes[base + AutonomySnapshotLane.restSourceVersion] ?? 0;
   const index = lanes[base + AutonomySnapshotLane.restIndexVersion] ?? 0;
-  const backlog = lanes[base + AutonomySnapshotLane.restDirtyBacklog] ?? 0;
+  const scheduleCode = lanes[base + AutonomySnapshotLane.restScheduleWindowCode] ?? 4;
+  const weatherCode = lanes[base + AutonomySnapshotLane.restWeatherExposureCode] ?? 2;
+  const outdoorAllowed = lanes[base + AutonomySnapshotLane.restOutdoorWorkAllowed] ?? 2;
   return (
     owner > 0 &&
     row > 0 &&
     index > 0 &&
-    (lanes[base + AutonomySnapshotLane.restCachedRowVersion] ?? 0) > 0 &&
-    (lanes[base + AutonomySnapshotLane.restSourceVersion] ?? 0) > 0 &&
-    (lanes[base + AutonomySnapshotLane.restScheduleWindowVersion] ?? 0) > 0 &&
-    (lanes[base + AutonomySnapshotLane.restWeatherVersion] ?? 0) > 0 &&
-    (lanes[base + AutonomySnapshotLane.restWeatherSourceVersion] ?? 0) > 0 &&
-    isBinaryFlag(lanes[base + AutonomySnapshotLane.restOutdoorWorkAllowed] ?? 2) &&
+    cachedRow === row &&
+    source === owner &&
+    scheduleCode < 4 &&
+    weatherCode < 2 &&
+    isBinaryFlag(outdoorAllowed) &&
+    (weatherCode !== 1 || outdoorAllowed === 1) &&
     lanes[base + AutonomySnapshotLane.candidateOwnerVersion] === owner &&
     lanes[base + AutonomySnapshotLane.candidateRowVersion] === row &&
     lanes[base + AutonomySnapshotLane.candidateIndexVersion] === index &&
-    lanes[base + AutonomySnapshotLane.candidateBacklog] === backlog &&
+    lanes[base + AutonomySnapshotLane.candidateBacklog] === 0 &&
+    lanes[base + AutonomySnapshotLane.restDirtyBacklog] === 0 &&
     hasZeroStoredFoodBasis(lanes, base) &&
     hasZeroStoredMedicalBasis(lanes, base)
   );
@@ -1760,16 +1763,17 @@ function hasStoredRestBasis(lanes: Uint32Array, base: number): boolean {
 function hasStoredMedicalBasis(lanes: Uint32Array, base: number): boolean {
   const owner = lanes[base + AutonomySnapshotLane.medicalStoreVersion] ?? 0;
   const row = lanes[base + AutonomySnapshotLane.medicalConditionVersion] ?? 0;
+  const minimum = lanes[base + AutonomySnapshotLane.medicalCaregiverMinimumAbility] ?? 1_001;
+  const value = lanes[base + AutonomySnapshotLane.medicalCaregiverAbilityValue] ?? 1_001;
   return (
     owner > 0 &&
     row > 0 &&
     (lanes[base + AutonomySnapshotLane.medicalHealthStoreVersion] ?? 0) > 0 &&
     (lanes[base + AutonomySnapshotLane.medicalActorVersion] ?? 0) > 0 &&
-    (lanes[base + AutonomySnapshotLane.medicalCaregiverActorConditionVersion] ?? 0) > 0 &&
-    (lanes[base + AutonomySnapshotLane.medicalCaregiverBaseAbilityVersion] ?? 0) > 0 &&
     (lanes[base + AutonomySnapshotLane.medicalCaregiverAbility] ?? 6) < 6 &&
-    (lanes[base + AutonomySnapshotLane.medicalCaregiverMinimumAbility] ?? 1_001) <= 1_000 &&
-    (lanes[base + AutonomySnapshotLane.medicalCaregiverAbilityValue] ?? 1_001) <= 1_000 &&
+    minimum <= 1_000 &&
+    value <= 1_000 &&
+    value >= minimum &&
     lanes[base + AutonomySnapshotLane.medicalCaregiverValid] === 1 &&
     lanes[base + AutonomySnapshotLane.medicalCaregiverAllowed] === 1 &&
     lanes[base + AutonomySnapshotLane.candidateOwnerVersion] === owner &&

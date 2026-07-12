@@ -111,6 +111,17 @@ integrated and marked done before this resume. The resumed audit now passes for
    atomic rejection, WAIT refresh, and output/array/ref/slot identity. Leave
    five-source arbitration/acquire/rollback/closure behavior to the next
    coordinator phase and independent review.
+7. After Canvas review of `39cf63a`, align accepted source basis with the exact
+   owner success domain: Food and Rest dirty backlogs are zero; Rest cached and
+   current fixture versions match, source equals store, and outdoor exposure is
+   allowed; Medical caregiver value meets its minimum. Keep owner-valid
+   supplemental versions at uint32, including zero.
+8. Validate claim-plan reference aliases without allocation. Reset standalone
+   and embedded refs separately so malformed aliases cannot retain stale ids;
+   reject binding when transaction-owner or slot target/item aliases differ.
+9. Add transition and raw-snapshot atomic rejection for every reviewed relation,
+   plus zero-version roundtrips, then rerun only the scoped B1 gates and stop for
+   Canvas re-review.
 
 ## Frozen API and state-lane design
 

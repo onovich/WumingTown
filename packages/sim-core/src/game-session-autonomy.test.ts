@@ -42,6 +42,7 @@ import { ResidentAutonomyStore } from "./game-session-autonomy-store";
 import { isLegalAutonomyTransition } from "./game-session-autonomy-store";
 import {
   bindAutonomyClaimSlotInto,
+  hasValidAutonomyClaimPlanAliases,
   resetAutonomyClaimPlanInto,
   type AutonomyClaimPlanIntoOutput,
   type AutonomyClaimSlotScratch,
@@ -1040,6 +1041,110 @@ it("roundtrips each approved candidate source basis and rejects cross-source res
   expectAtomicRestoreFailure(guard, badResidue, AUTONOMY_STORE_SNAPSHOT_STATE);
 });
 
+it("rejects impossible Food backlog basis atomically while accepting zero meal-window version", () => {
+  const zeroVersion = createClaimingInput();
+  writeFoodCandidateBasis(zeroVersion);
+  zeroVersion.basis.foodMealWindowVersion = 0;
+  expectCandidateBasisRoundTrip(zeroVersion);
+
+  const dirty = createClaimingInput();
+  writeFoodCandidateBasis(dirty);
+  dirty.basis.foodDirtyBacklog = 1;
+  dirty.basis.candidateBacklog = 1;
+  expectBasisTransitionRejectedAtomically(dirty);
+
+  const candidateBacklog = createClaimingInput();
+  writeFoodCandidateBasis(candidateBacklog);
+  candidateBacklog.basis.candidateBacklog = 1;
+  expectBasisTransitionRejectedAtomically(candidateBacklog);
+
+  const snapshot = createCandidateSnapshot(createValidFoodInput());
+  const guard = new ResidentAutonomyStore(2);
+  const storedDirty = cloneSnapshot(snapshot);
+  storedDirty.lanes[AutonomySnapshotLane.foodDirtyBacklog] = 1;
+  storedDirty.lanes[AutonomySnapshotLane.candidateBacklog] = 1;
+  expectAtomicRestoreFailure(guard, storedDirty, AUTONOMY_STORE_SNAPSHOT_STATE);
+  const storedCandidateBacklog = cloneSnapshot(snapshot);
+  storedCandidateBacklog.lanes[AutonomySnapshotLane.candidateBacklog] = 1;
+  expectAtomicRestoreFailure(guard, storedCandidateBacklog, AUTONOMY_STORE_SNAPSHOT_STATE);
+});
+
+it("rejects impossible Rest coherence and exposure basis atomically", () => {
+  const dirty = createClaimingInput();
+  writeRestCandidateBasis(dirty);
+  dirty.basis.restDirtyBacklog = 1;
+  dirty.basis.candidateBacklog = 1;
+  expectBasisTransitionRejectedAtomically(dirty);
+
+  const staleRow = createClaimingInput();
+  writeRestCandidateBasis(staleRow);
+  staleRow.basis.restCachedRowVersion = 21;
+  expectBasisTransitionRejectedAtomically(staleRow);
+
+  const staleSource = createClaimingInput();
+  writeRestCandidateBasis(staleSource);
+  staleSource.basis.restSourceVersion = 23;
+  expectBasisTransitionRejectedAtomically(staleSource);
+
+  const unsafeOutdoor = createClaimingInput();
+  writeRestCandidateBasis(unsafeOutdoor);
+  unsafeOutdoor.basis.restOutdoorWorkAllowed = 0;
+  expectBasisTransitionRejectedAtomically(unsafeOutdoor);
+});
+
+it("keeps Rest snapshot validation symmetric and accepts zero environment versions", () => {
+  const zeroVersions = createClaimingInput();
+  writeRestCandidateBasis(zeroVersions);
+  zeroVersions.basis.restScheduleWindowVersion = 0;
+  zeroVersions.basis.restWeatherVersion = 0;
+  zeroVersions.basis.restWeatherSourceVersion = 0;
+  expectCandidateBasisRoundTrip(zeroVersions);
+
+  const snapshot = createCandidateSnapshot(createValidRestInput());
+  const guard = new ResidentAutonomyStore(2);
+  const badScheduleCode = cloneSnapshot(snapshot);
+  badScheduleCode.lanes[AutonomySnapshotLane.restScheduleWindowCode] = 99;
+  expectAtomicRestoreFailure(guard, badScheduleCode, AUTONOMY_STORE_SNAPSHOT_STATE);
+  const badWeatherCode = cloneSnapshot(snapshot);
+  badWeatherCode.lanes[AutonomySnapshotLane.restWeatherExposureCode] = 99;
+  expectAtomicRestoreFailure(guard, badWeatherCode, AUTONOMY_STORE_SNAPSHOT_STATE);
+  const badOutdoorRelation = cloneSnapshot(snapshot);
+  badOutdoorRelation.lanes[AutonomySnapshotLane.restOutdoorWorkAllowed] = 0;
+  expectAtomicRestoreFailure(guard, badOutdoorRelation, AUTONOMY_STORE_SNAPSHOT_STATE);
+  const badDirtyRelation = cloneSnapshot(snapshot);
+  badDirtyRelation.lanes[AutonomySnapshotLane.restDirtyBacklog] = 1;
+  badDirtyRelation.lanes[AutonomySnapshotLane.candidateBacklog] = 1;
+  expectAtomicRestoreFailure(guard, badDirtyRelation, AUTONOMY_STORE_SNAPSHOT_STATE);
+  const badRowRelation = cloneSnapshot(snapshot);
+  badRowRelation.lanes[AutonomySnapshotLane.restCachedRowVersion] = 21;
+  expectAtomicRestoreFailure(guard, badRowRelation, AUTONOMY_STORE_SNAPSHOT_STATE);
+  const badSourceRelation = cloneSnapshot(snapshot);
+  badSourceRelation.lanes[AutonomySnapshotLane.restSourceVersion] = 23;
+  expectAtomicRestoreFailure(guard, badSourceRelation, AUTONOMY_STORE_SNAPSHOT_STATE);
+});
+
+it("rejects infeasible Medical caregiver ability and accepts zero caregiver ability versions", () => {
+  const zeroCaregiverCondition = createClaimingInput();
+  writeMedicalCandidateBasis(zeroCaregiverCondition);
+  zeroCaregiverCondition.basis.medicalCaregiverActorConditionVersion = 0;
+  zeroCaregiverCondition.basis.medicalCaregiverBaseAbilityVersion = 0;
+  expectCandidateBasisRoundTrip(zeroCaregiverCondition);
+
+  const insufficientAbility = createClaimingInput();
+  writeMedicalCandidateBasis(insufficientAbility);
+  insufficientAbility.basis.medicalCaregiverAbilityValue = 199;
+  expectBasisTransitionRejectedAtomically(insufficientAbility);
+
+  const snapshot = createCandidateSnapshot(createValidMedicalInput());
+  const storedInsufficientAbility = cloneSnapshot(snapshot);
+  storedInsufficientAbility.lanes[AutonomySnapshotLane.medicalCaregiverAbilityValue] = 199;
+  expectAtomicRestoreFailure(
+    new ResidentAutonomyStore(2),
+    storedInsufficientAbility,
+    AUTONOMY_STORE_SNAPSHOT_STATE,
+  );
+});
+
 it("persists WAIT through the reviewed idle refresh without legalizing idle to idle transition", () => {
   const store = new ResidentAutonomyStore(2);
   const output = createStoreOutput();
@@ -1085,6 +1190,7 @@ it("resets and rebinds only caller-preallocated claim plan identities", () => {
   const itemClaim = slots[2].itemQuantityClaim;
   const spotClaim = slots[3].interactionSpotClaim;
   const capacityClaim = slots[4].capacityClaim;
+  expect(hasValidAutonomyClaimPlanAliases(plan)).toBe(true);
   expect(bindAutonomyClaimSlotInto(plan, 0, "entity")).toBe(true);
   expect(bindAutonomyClaimSlotInto(plan, 1, "cell")).toBe(true);
   plan.header.pendingJobId = 41;
@@ -1105,6 +1211,8 @@ it("resets and rebinds only caller-preallocated claim plan identities", () => {
     claimCount: 0,
   });
   expect(plan.owner).toEqual({ index: AUTONOMY_REF_NONE, generation: AUTONOMY_REF_NONE });
+  expect(plan.target).toEqual({ index: AUTONOMY_REF_NONE, generation: AUTONOMY_REF_NONE });
+  expect(plan.item).toEqual({ index: AUTONOMY_REF_NONE, generation: AUTONOMY_REF_NONE });
 
   expect(bindAutonomyClaimSlotInto(plan, 0, "entity")).toBe(true);
   expect(bindAutonomyClaimSlotInto(plan, 1, "cell")).toBe(true);
@@ -1125,6 +1233,35 @@ it("resets and rebinds only caller-preallocated claim plan identities", () => {
   expect(acquireRequest).toBe(transaction);
 });
 
+it("rejects malformed claim aliases and clears every detached embedded ref", () => {
+  const plan = createClaimPlanOutput();
+  const slot = plan.claimSlots[0];
+  const detachedEntity = { index: 61, generation: 62 };
+  const detachedSpot = { index: 63, generation: 64 };
+  const detachedCapacity = { index: 65, generation: 66 };
+  const detachedItem = { index: 67, generation: 68 };
+  Reflect.set(slot.entityClaim, "target", detachedEntity);
+  Reflect.set(slot.interactionSpotClaim, "target", detachedSpot);
+  Reflect.set(slot.capacityClaim, "target", detachedCapacity);
+  Reflect.set(slot.itemQuantityClaim, "item", detachedItem);
+  expect(hasValidAutonomyClaimPlanAliases(plan)).toBe(false);
+  expect(bindAutonomyClaimSlotInto(plan, 0, "entity")).toBe(false);
+
+  resetAutonomyClaimPlanInto(plan);
+  expect(slot.entityTarget).toEqual({ index: AUTONOMY_REF_NONE, generation: AUTONOMY_REF_NONE });
+  expect(slot.itemTarget).toEqual({ index: AUTONOMY_REF_NONE, generation: AUTONOMY_REF_NONE });
+  expect(detachedEntity).toEqual({ index: AUTONOMY_REF_NONE, generation: AUTONOMY_REF_NONE });
+  expect(detachedSpot).toEqual({ index: AUTONOMY_REF_NONE, generation: AUTONOMY_REF_NONE });
+  expect(detachedCapacity).toEqual({ index: AUTONOMY_REF_NONE, generation: AUTONOMY_REF_NONE });
+  expect(detachedItem).toEqual({ index: AUTONOMY_REF_NONE, generation: AUTONOMY_REF_NONE });
+
+  const detachedOwner = { index: 71, generation: 72 };
+  Reflect.set(plan.transaction, "owner", detachedOwner);
+  expect(bindAutonomyClaimSlotInto(plan, 1, "cell")).toBe(false);
+  resetAutonomyClaimPlanInto(plan);
+  expect(detachedOwner).toEqual({ index: AUTONOMY_REF_NONE, generation: AUTONOMY_REF_NONE });
+});
+
 function expectCandidateBasisRoundTrip(input: AutonomyTransitionInput): void {
   const store = new ResidentAutonomyStore(2);
   const output = createStoreOutput();
@@ -1143,17 +1280,54 @@ function expectCandidateBasisRoundTrip(input: AutonomyTransitionInput): void {
   expect(restored.createSnapshot()).toEqual(snapshot);
 }
 
+function expectBasisTransitionRejectedAtomically(input: AutonomyTransitionInput): void {
+  const store = new ResidentAutonomyStore(2);
+  const output = createStoreOutput();
+  store.registerResidentInto(0, 1, 0, output);
+  const stable = store.createSnapshot();
+  store.transitionInto(input, output);
+  expect(output).toMatchObject({ ok: false, code: AUTONOMY_STORE_BASIS_INVALID });
+  expect(store.createSnapshot()).toEqual(stable);
+}
+
+function createCandidateSnapshot(input: AutonomyTransitionInput): ResidentAutonomySnapshot {
+  const store = new ResidentAutonomyStore(2);
+  const output = createStoreOutput();
+  store.registerResidentInto(0, 1, 0, output);
+  store.transitionInto(input, output);
+  expect(output.ok).toBe(true);
+  return store.createSnapshot();
+}
+
+function createValidRestInput(): AutonomyTransitionInput {
+  const input = createClaimingInput();
+  writeRestCandidateBasis(input);
+  return input;
+}
+
+function createValidFoodInput(): AutonomyTransitionInput {
+  const input = createClaimingInput();
+  writeFoodCandidateBasis(input);
+  return input;
+}
+
+function createValidMedicalInput(): AutonomyTransitionInput {
+  const input = createClaimingInput();
+  writeMedicalCandidateBasis(input);
+  return input;
+}
+
 function writeFoodCandidateBasis(input: AutonomyTransitionInput): void {
   input.candidateSourceCode = AUTONOMY_CANDIDATE_SOURCE_FOOD;
   input.basis.candidateOwnerVersion = 10;
   input.basis.candidateRowVersion = 11;
   input.basis.candidateIndexVersion = 10;
-  input.basis.candidateBacklog = 2;
+  input.basis.candidateBacklog = 0;
   input.basis.foodAvailabilityVersion = 10;
   input.basis.foodItemVersion = 11;
   input.basis.foodMealWindowId = 3;
   input.basis.foodMealWindowVersion = 12;
-  input.basis.foodDirtyBacklog = 2;
+  input.basis.foodDirtyBacklog = 0;
   input.reason.ownerBasis = 10;
 }
 
@@ -1162,13 +1336,13 @@ function writeRestCandidateBasis(input: AutonomyTransitionInput): void {
   input.basis.candidateOwnerVersion = 20;
   input.basis.candidateRowVersion = 22;
   input.basis.candidateIndexVersion = 24;
-  input.basis.candidateBacklog = 1;
+  input.basis.candidateBacklog = 0;
   input.basis.restStoreVersion = 20;
-  input.basis.restCachedRowVersion = 21;
+  input.basis.restCachedRowVersion = 22;
   input.basis.restCurrentRowVersion = 22;
-  input.basis.restSourceVersion = 23;
+  input.basis.restSourceVersion = 20;
   input.basis.restIndexVersion = 24;
-  input.basis.restDirtyBacklog = 1;
+  input.basis.restDirtyBacklog = 0;
   input.basis.restScheduleWindowCode = 1;
   input.basis.restScheduleWindowVersion = 25;
   input.basis.restWeatherExposureCode = 1;

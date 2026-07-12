@@ -309,6 +309,10 @@ function resetMutableEntityRef(ref: AutonomyMutableEntityRef): void {
 function resetAutonomyClaimSlot(slot: AutonomyClaimSlotScratch): void {
   resetMutableEntityRef(slot.entityTarget);
   resetMutableEntityRef(slot.itemTarget);
+  resetMutableEntityRef(slot.entityClaim.target);
+  resetMutableEntityRef(slot.itemQuantityClaim.item);
+  resetMutableEntityRef(slot.interactionSpotClaim.target);
+  resetMutableEntityRef(slot.capacityClaim.target);
   slot.cellClaim.cellIndex = AUTONOMY_REF_NONE;
   slot.itemQuantityClaim.amount = 0;
   slot.itemQuantityClaim.availableAmount = 0;
@@ -316,6 +320,25 @@ function resetAutonomyClaimSlot(slot: AutonomyClaimSlotScratch): void {
   slot.capacityClaim.capacityId = AUTONOMY_REF_NONE;
   slot.capacityClaim.amount = 0;
   slot.capacityClaim.capacity = 0;
+}
+
+/** Validates every required reference alias without allocating scratch or result objects. */
+export function hasValidAutonomyClaimPlanAliases(output: AutonomyClaimPlanIntoOutput): boolean {
+  if (output.transaction.owner !== output.owner) return false;
+  for (let index = 0; index < AUTONOMY_MAX_CLAIM_REFS; index += 1) {
+    const slot = output.claimSlots[index];
+    if (slot === undefined || !hasValidAutonomyClaimSlotAliases(slot)) return false;
+  }
+  return true;
+}
+
+function hasValidAutonomyClaimSlotAliases(slot: AutonomyClaimSlotScratch): boolean {
+  return (
+    slot.entityClaim.target === slot.entityTarget &&
+    slot.interactionSpotClaim.target === slot.entityTarget &&
+    slot.capacityClaim.target === slot.entityTarget &&
+    slot.itemQuantityClaim.item === slot.itemTarget
+  );
 }
 
 /**
@@ -336,7 +359,7 @@ export function bindAutonomyClaimSlotInto(
   )
     return false;
   const slot = output.claimSlots[slotIndex];
-  if (slot === undefined) return false;
+  if (slot === undefined || !hasValidAutonomyClaimSlotAliases(slot)) return false;
   output.transaction.claims[output.transaction.claims.length] = readAutonomySlotClaim(
     slot,
     channel,
