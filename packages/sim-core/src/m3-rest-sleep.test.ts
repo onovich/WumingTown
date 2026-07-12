@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   M3_REST_FIXTURE_NONE,
@@ -24,6 +24,104 @@ import {
 } from "./index";
 
 describe("M3 rest and sleep indexed selection", () => {
+  it("reads fixture rows into one reusable flat output without materializing entities", () => {
+    const fixture = createFixture(16, 2);
+    registerFixture(fixture, 0, {
+      kind: "bedroll",
+      restKind: "sleep",
+      regionId: 1,
+      targetCellIndex: 9,
+      interactionSpotId: 7,
+      scheduleWindow: "night",
+      weatherExposure: "outdoor",
+      permissionId: 1,
+      recoveryPerTickQ16: 5 << 16,
+      baseScoreMilli: 12_345,
+    });
+    const legacy = fixture.rest.readFixture(0) ?? failMissingFixture();
+    const output = createRestFixtureIntoOutput();
+    const identity = output;
+    const legacyRead = vi.spyOn(fixture.rest, "readFixture").mockImplementation(() => {
+      throw new Error("materializing readFixture called");
+    });
+    const legacyEntityRead = vi.spyOn(fixture.rest, "readFixtureEntity").mockImplementation(() => {
+      throw new Error("materializing readFixtureEntity called");
+    });
+
+    fixture.rest.readFixtureInto(0, output);
+    expect(output).toEqual({
+      ok: true,
+      reason: undefined,
+      fixtureId: legacy.fixtureId,
+      active: true,
+      entityIndex: legacy.entity.index,
+      entityGeneration: legacy.entity.generation,
+      kind: legacy.kind,
+      restKind: legacy.restKind,
+      regionId: legacy.regionId,
+      targetCellIndex: legacy.targetCellIndex,
+      interactionSpotId: legacy.interactionSpotId,
+      scheduleWindow: legacy.scheduleWindow,
+      weatherExposure: legacy.weatherExposure,
+      permissionId: legacy.permissionId,
+      recoveryPerTickQ16: legacy.recoveryPerTickQ16,
+      baseScoreMilli: legacy.baseScoreMilli,
+      ownerVersion: legacy.ownerVersion,
+      storeVersion: fixture.rest.version,
+    });
+    expect(output).toBe(identity);
+    expect(legacyRead).not.toHaveBeenCalled();
+    expect(legacyEntityRead).not.toHaveBeenCalled();
+
+    fixture.rest.readFixtureInto(1, output);
+    expect(output).toEqual({
+      ok: false,
+      reason: "rest.fixture_not_active",
+      fixtureId: 1,
+      active: false,
+      entityIndex: 0,
+      entityGeneration: 0,
+      kind: undefined,
+      restKind: undefined,
+      regionId: 0,
+      targetCellIndex: 0,
+      interactionSpotId: 0,
+      scheduleWindow: undefined,
+      weatherExposure: undefined,
+      permissionId: 0,
+      recoveryPerTickQ16: 0,
+      baseScoreMilli: 0,
+      ownerVersion: 0,
+      storeVersion: 1,
+    });
+    expect(output).toBe(identity);
+
+    fixture.rest.readFixtureInto(-1, output);
+    expect(output).toEqual({
+      ok: false,
+      reason: "rest.fixture_id_out_of_range",
+      fixtureId: -1,
+      active: false,
+      entityIndex: 0,
+      entityGeneration: 0,
+      kind: undefined,
+      restKind: undefined,
+      regionId: 0,
+      targetCellIndex: 0,
+      interactionSpotId: 0,
+      scheduleWindow: undefined,
+      weatherExposure: undefined,
+      permissionId: 0,
+      recoveryPerTickQ16: 0,
+      baseScoreMilli: 0,
+      ownerVersion: 0,
+      storeVersion: 1,
+    });
+    expect(output).toBe(identity);
+    expect(legacyRead).not.toHaveBeenCalled();
+    expect(legacyEntityRead).not.toHaveBeenCalled();
+  });
+
   it("selects tired actors through bounded indexed candidates and Top-K exact paths", () => {
     const fixture = createFixture(64, 40);
     const traces = createRestSleepTraceStore(8);
@@ -459,6 +557,31 @@ interface Fixture {
   pathBasis: PathVersionBasis;
 }
 
+type RestFixtureIntoOutputForTest = Parameters<Fixture["rest"]["readFixtureInto"]>[1];
+
+function createRestFixtureIntoOutput(): RestFixtureIntoOutputForTest {
+  return {
+    ok: true,
+    reason: "rest.fixture_input_invalid",
+    fixtureId: 99,
+    active: true,
+    entityIndex: 99,
+    entityGeneration: 99,
+    kind: "clinic_mat",
+    restKind: "rest",
+    regionId: 99,
+    targetCellIndex: 99,
+    interactionSpotId: 99,
+    scheduleWindow: "dawn",
+    weatherExposure: "indoor",
+    permissionId: 99,
+    recoveryPerTickQ16: 99,
+    baseScoreMilli: 99,
+    ownerVersion: 99,
+    storeVersion: 99,
+  };
+}
+
 function createFixture(entityCapacity: number, fixtureCapacity: number): Fixture {
   const registry = createEntityRegistry({ capacity: entityCapacity });
   const actor = allocate(registry);
@@ -616,4 +739,8 @@ function allocateMany(
 
 function failMissingEntity(): never {
   throw new Error("missing fixture entity");
+}
+
+function failMissingFixture(): never {
+  throw new Error("missing rest fixture");
 }

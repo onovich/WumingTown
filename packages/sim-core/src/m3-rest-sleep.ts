@@ -195,6 +195,27 @@ export interface RestFixtureView extends RestFixtureInput {
   readonly ownerVersion: number;
 }
 
+export interface RestFixtureIntoOutput {
+  ok: boolean;
+  reason: RestSleepReason | undefined;
+  fixtureId: number;
+  active: boolean;
+  entityIndex: number;
+  entityGeneration: number;
+  kind: RestFixtureKind | undefined;
+  restKind: RestKind | undefined;
+  regionId: number;
+  targetCellIndex: number;
+  interactionSpotId: number;
+  scheduleWindow: M3ScheduleWindowId | undefined;
+  weatherExposure: RestFixtureWeatherExposure | undefined;
+  permissionId: number;
+  recoveryPerTickQ16: number;
+  baseScoreMilli: number;
+  ownerVersion: number;
+  storeVersion: number;
+}
+
 export interface RestSleepMetrics {
   readonly version: number;
   readonly activeFixtureCount: number;
@@ -462,6 +483,34 @@ export class RestSleepStore {
     };
   }
 
+  readFixtureInto(fixtureId: number, output: RestFixtureIntoOutput): void {
+    this.resetFixtureInto(fixtureId, output);
+    if (!isIndexInRange(fixtureId, this.fixtureCapacity)) {
+      output.reason = "rest.fixture_id_out_of_range";
+      return;
+    }
+    if ((this.active[fixtureId] ?? 0) !== 1) {
+      output.reason = "rest.fixture_not_active";
+      return;
+    }
+
+    output.ok = true;
+    output.active = true;
+    output.entityIndex = this.entityIndexes[fixtureId] ?? 0;
+    output.entityGeneration = this.entityGenerations[fixtureId] ?? 0;
+    output.kind = decodeFixtureKind(this.kindCodes[fixtureId] ?? 0);
+    output.restKind = decodeRestKind(this.restKindCodes[fixtureId] ?? 0);
+    output.regionId = this.regionIds[fixtureId] ?? 0;
+    output.targetCellIndex = this.targetCellIndexes[fixtureId] ?? 0;
+    output.interactionSpotId = this.interactionSpotIds[fixtureId] ?? 0;
+    output.scheduleWindow = decodeScheduleWindow(this.scheduleCodes[fixtureId] ?? 0);
+    output.weatherExposure = decodeWeatherExposure(this.weatherCodes[fixtureId] ?? 0);
+    output.permissionId = this.permissionIds[fixtureId] ?? 0;
+    output.recoveryPerTickQ16 = this.recoveryPerTickQ16[fixtureId] ?? 0;
+    output.baseScoreMilli = this.baseScoreMilli[fixtureId] ?? 0;
+    output.ownerVersion = this.ownerVersions[fixtureId] ?? 0;
+  }
+
   isFixtureActive(fixtureId: number): boolean {
     return isIndexInRange(fixtureId, this.fixtureCapacity) && (this.active[fixtureId] ?? 0) === 1;
   }
@@ -525,6 +574,27 @@ export class RestSleepStore {
     }
 
     return { ok: true, id: input.fixtureId, version: this.storeVersion };
+  }
+
+  private resetFixtureInto(fixtureId: number, output: RestFixtureIntoOutput): void {
+    output.ok = false;
+    output.reason = undefined;
+    output.fixtureId = fixtureId;
+    output.active = false;
+    output.entityIndex = 0;
+    output.entityGeneration = 0;
+    output.kind = undefined;
+    output.restKind = undefined;
+    output.regionId = 0;
+    output.targetCellIndex = 0;
+    output.interactionSpotId = 0;
+    output.scheduleWindow = undefined;
+    output.weatherExposure = undefined;
+    output.permissionId = 0;
+    output.recoveryPerTickQ16 = 0;
+    output.baseScoreMilli = 0;
+    output.ownerVersion = 0;
+    output.storeVersion = this.storeVersion;
   }
 }
 
