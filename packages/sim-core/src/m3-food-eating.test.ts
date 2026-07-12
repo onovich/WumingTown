@@ -5,6 +5,7 @@ import {
   M3_FOOD_DEFAULT_CANDIDATE_CAP,
   M3_FOOD_DEFAULT_EXACT_PATH_CAP,
   M3_FOOD_DEFAULT_SELECTED_CAP,
+  M3_FOOD_STACK_NONE,
   NEED_LANE_HUNGER,
   calculateM3FoodConservationTotal,
   createEntityRegistry,
@@ -135,6 +136,248 @@ describe("M3 food availability and eating logistics", () => {
       dirtyBacklog: 1,
     });
     expect(output).toBe(identity);
+  });
+
+  it("selects caller-owned food candidates in stable score and source-row order", () => {
+    const fixture = createFoodFixture(3, 2);
+    updateFoodPortionConfig(fixture, 0, {
+      regionId: 2,
+      interactionSpotId: 20,
+      targetCellIndex: 9,
+      scoreMilli: 900,
+      permissionId: 1,
+      mealWindowId: 3,
+      mealWindowVersion: 11,
+    });
+    updateFoodPortionConfig(fixture, 1, {
+      regionId: 2,
+      interactionSpotId: 21,
+      targetCellIndex: 1,
+      scoreMilli: 900,
+      permissionId: 1,
+      mealWindowId: 3,
+      mealWindowVersion: 12,
+    });
+    updateFoodPortionConfig(fixture, 2, {
+      regionId: 2,
+      interactionSpotId: 22,
+      targetCellIndex: 7,
+      scoreMilli: 1_000,
+      permissionId: 1,
+      mealWindowId: 3,
+      mealWindowVersion: 13,
+    });
+    fixture.food.rebuildFromStores(fixture.items, fixture.ledger);
+    const query = createFoodCandidateQuery({
+      regionId: 2,
+      permissionId: 1,
+      mealWindowId: 3,
+    });
+    const legacyIds = new Uint32Array(M3_FOOD_DEFAULT_SELECTED_CAP);
+    const legacy = fixture.food.selectCandidates(query, legacyIds);
+    if (!legacy.ok) {
+      throw new Error(`unexpected legacy food selection failure: ${legacy.reason}`);
+    }
+
+    const scratch = createFoodSelectionScratch();
+    const output = createFoodSelectionOutput();
+    const scratchIdentity = scratch;
+    const stackLaneIdentity = scratch.stackIds;
+    const outputIdentity = output;
+    fixture.food.selectCandidatesInto(query, scratch, output);
+    const first = fixture.food.readPortion(2) ?? failMissingPortion();
+
+    expect(output).toEqual({
+      ok: true,
+      reason: legacy.reason,
+      queryFoodDefId: query.foodDefId,
+      queryRegionId: query.regionId,
+      queryPermissionId: query.permissionId,
+      queryMealWindowId: query.mealWindowId,
+      candidateCap: query.candidateCap,
+      maxSelected: query.maxSelected,
+      bucketCandidateCount: legacy.bucketCandidateCount,
+      visitedCount: legacy.visitedCount,
+      selectedCount: legacy.selectedCount,
+      candidateCapHit: legacy.candidateCapHit,
+      selectedCapHit: legacy.selectedCapHit,
+      selectedStackId: first.stackId,
+      selectedFoodDefId: first.foodDefId,
+      selectedRegionId: first.regionId,
+      selectedStorageSlotId: first.storageSlotId,
+      selectedTargetCellIndex: first.targetCellIndex,
+      selectedInteractionSpotId: first.interactionSpotId,
+      selectedScoreMilli: first.scoreMilli,
+      selectedPermissionId: first.permissionId,
+      selectedMealWindowId: first.mealWindowId,
+      selectedMealWindowVersion: first.mealWindowVersion,
+      selectedSafe: first.safe,
+      selectedPermissionAllowed: first.permissionAllowed,
+      selectedScheduleAllowed: first.scheduleAllowed,
+      selectedAvailableAmount: first.availableAmount,
+      sourceItemVersion: first.itemStoreVersion,
+      selectedLinkedCandidate: first.linkedCandidate,
+      foodAvailabilityVersion: first.foodAvailabilityVersion,
+      dirtyBacklog: 0,
+    });
+    expect(Array.from(legacyIds.subarray(0, 3))).toEqual([2, 0, 1]);
+    expect(Array.from(scratch.stackIds.subarray(0, 3))).toEqual([2, 0, 1]);
+    expect(Array.from(scratch.scoreMillis.subarray(0, 3))).toEqual([1_000, 900, 900]);
+    expect(Array.from(scratch.targetCellIndexes.subarray(0, 3))).toEqual([7, 9, 1]);
+    expect(Array.from(scratch.itemStoreVersions.subarray(0, 3))).toEqual([
+      fixture.items.version,
+      fixture.items.version,
+      fixture.items.version,
+    ]);
+    expect(Array.from(scratch.mealWindowVersions.subarray(0, 3))).toEqual([13, 11, 12]);
+    expect(Array.from(scratch.permissionAllowedFlags.subarray(0, 3))).toEqual([1, 1, 1]);
+    expect(Array.from(scratch.scheduleAllowedFlags.subarray(0, 3))).toEqual([1, 1, 1]);
+    for (let index = 0; index < output.selectedCount; index += 1) {
+      const stackId = scratch.stackIds[index] ?? M3_FOOD_STACK_NONE;
+      const portion = fixture.food.readPortion(stackId) ?? failMissingPortion();
+      expect(scratch.stackIds[index]).toBe(portion.stackId);
+      expect(scratch.foodDefIds[index]).toBe(portion.foodDefId);
+      expect(scratch.regionIds[index]).toBe(portion.regionId);
+      expect(scratch.storageSlotIds[index]).toBe(portion.storageSlotId);
+      expect(scratch.targetCellIndexes[index]).toBe(portion.targetCellIndex);
+      expect(scratch.interactionSpotIds[index]).toBe(portion.interactionSpotId);
+      expect(scratch.scoreMillis[index]).toBe(portion.scoreMilli);
+      expect(scratch.permissionIds[index]).toBe(portion.permissionId);
+      expect(scratch.mealWindowIds[index]).toBe(portion.mealWindowId);
+      expect(scratch.mealWindowVersions[index]).toBe(portion.mealWindowVersion);
+      expect(scratch.safeFlags[index]).toBe(portion.safe ? 1 : 0);
+      expect(scratch.permissionAllowedFlags[index]).toBe(portion.permissionAllowed ? 1 : 0);
+      expect(scratch.scheduleAllowedFlags[index]).toBe(portion.scheduleAllowed ? 1 : 0);
+      expect(scratch.availableAmounts[index]).toBe(portion.availableAmount);
+      expect(scratch.itemStoreVersions[index]).toBe(portion.itemStoreVersion);
+      expect(scratch.linkedCandidateFlags[index]).toBe(portion.linkedCandidate ? 1 : 0);
+    }
+    expect(output).toBe(outputIdentity);
+    expect(scratch).toBe(scratchIdentity);
+    expect(scratch.stackIds).toBe(stackLaneIdentity);
+  });
+
+  it("honors smaller caller caps and the fixed 24/12 food bounds", () => {
+    const fixture = createFoodFixture(30);
+    fixture.food.rebuildFromStores(fixture.items, fixture.ledger);
+    const scratch = createFoodSelectionScratch();
+    const output = createFoodSelectionOutput();
+    const fullQuery = createFoodCandidateQuery();
+
+    fixture.food.selectCandidatesInto(fullQuery, scratch, output);
+    expect(output).toMatchObject({
+      ok: true,
+      reason: "trace.candidate_cap_reached",
+      bucketCandidateCount: 30,
+      visitedCount: 24,
+      selectedCount: 12,
+      candidateCapHit: true,
+      selectedCapHit: true,
+      selectedStackId: 0,
+      dirtyBacklog: 0,
+    });
+    expect(Array.from(scratch.stackIds)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+
+    const smallQuery = createFoodCandidateQuery({ candidateCap: 3, maxSelected: 2 });
+    const legacyIds = new Uint32Array(M3_FOOD_DEFAULT_SELECTED_CAP);
+    const legacy = fixture.food.selectCandidates(smallQuery, legacyIds);
+    if (!legacy.ok) {
+      throw new Error(`unexpected legacy food selection failure: ${legacy.reason}`);
+    }
+    fixture.food.selectCandidatesInto(smallQuery, scratch, output);
+    expect(output).toMatchObject({
+      ok: true,
+      reason: legacy.reason,
+      bucketCandidateCount: legacy.bucketCandidateCount,
+      visitedCount: legacy.visitedCount,
+      selectedCount: legacy.selectedCount,
+      candidateCapHit: legacy.candidateCapHit,
+      selectedCapHit: legacy.selectedCapHit,
+      candidateCap: 3,
+      maxSelected: 2,
+    });
+    expect(Array.from(scratch.stackIds.subarray(0, 4))).toEqual([
+      legacyIds[0],
+      legacyIds[1],
+      M3_FOOD_STACK_NONE,
+      M3_FOOD_STACK_NONE,
+    ]);
+    expect(scratch.scoreMillis[2]).toBe(0);
+    expect(scratch.itemStoreVersions[11]).toBe(0);
+    expect(scratch.permissionAllowedFlags[11]).toBe(0);
+  });
+
+  it("rejects invalid caps and every undersized food scratch lane before traversal", () => {
+    const fixture = createFoodFixture(1);
+    fixture.food.rebuildFromStores(fixture.items, fixture.ledger);
+    const metricsBefore = fixture.food.createMetrics();
+    const invalidQueries = [
+      {
+        query: createFoodCandidateQuery({ candidateCap: 25 }),
+        reason: "food_candidate_cap_invalid" as const,
+      },
+      {
+        query: createFoodCandidateQuery({ maxSelected: 13 }),
+        reason: "food_selected_cap_invalid" as const,
+      },
+    ];
+
+    for (const invalid of invalidQueries) {
+      const scratch = createFoodSelectionScratch();
+      const output = createFoodSelectionOutput();
+      fixture.food.selectCandidatesInto(invalid.query, scratch, output);
+      expect(output).toEqual(
+        createFoodSelectionResetOutput(invalid.query, fixture.food.version, 0, invalid.reason),
+      );
+      expectFoodSelectionScratchReset(scratch);
+    }
+
+    for (const lane of FOOD_SELECTION_SCRATCH_LANES) {
+      const query = createFoodCandidateQuery();
+      const scratch = createFoodSelectionScratch(lane);
+      const output = createFoodSelectionOutput();
+      fixture.food.selectCandidatesInto(query, scratch, output);
+      expect(output).toEqual(
+        createFoodSelectionResetOutput(
+          query,
+          fixture.food.version,
+          0,
+          "food_candidate_buffer_too_small",
+        ),
+      );
+      expectFoodSelectionScratchReset(scratch);
+    }
+    expect(fixture.food.createMetrics()).toEqual(metricsBefore);
+  });
+
+  it("rejects a dirty food index even when its owner version did not advance", () => {
+    const fixture = createFoodFixture(1);
+    fixture.food.rebuildFromStores(fixture.items, fixture.ledger);
+    const versionBeforeDirty = fixture.food.version;
+    const metricsBefore = fixture.food.createMetrics();
+    expect(fixture.food.markStackDirty(0)).toEqual({
+      ok: true,
+      stackId: 0,
+      version: versionBeforeDirty,
+    });
+    const query = createFoodCandidateQuery();
+    const scratch = createFoodSelectionScratch();
+    const output = createFoodSelectionOutput();
+    const outputIdentity = output;
+
+    fixture.food.selectCandidatesInto(query, scratch, output);
+    expect(output).toEqual(
+      createFoodSelectionResetOutput(query, versionBeforeDirty, 1, "food_dirty_backlog"),
+    );
+    expect(output).toBe(outputIdentity);
+    expectFoodSelectionScratchReset(scratch);
+    expect(fixture.food.version).toBe(versionBeforeDirty);
+    expect(fixture.food.createMetrics()).toMatchObject({
+      lastCandidateCount: metricsBefore.lastCandidateCount,
+      lastVisitedCount: metricsBefore.lastVisitedCount,
+      lastSelectedCount: metricsBefore.lastSelectedCount,
+      dirtyBacklog: 1,
+    });
   });
 
   it("selects edible resources through bounded indexed candidates and Top-K path evidence", () => {
@@ -442,6 +685,35 @@ const MIDDAY_MEAL = 1;
 type FoodPortionIntoOutput = Parameters<
   ReturnType<typeof createM3FoodAvailabilityStore>["readPortionInto"]
 >[1];
+type FoodCandidateQuery = Parameters<
+  ReturnType<typeof createM3FoodAvailabilityStore>["selectCandidatesInto"]
+>[0];
+type FoodSelectionScratch = Parameters<
+  ReturnType<typeof createM3FoodAvailabilityStore>["selectCandidatesInto"]
+>[1];
+type FoodSelectionOutput = Parameters<
+  ReturnType<typeof createM3FoodAvailabilityStore>["selectCandidatesInto"]
+>[2];
+type FoodSelectionScratchLane = keyof FoodSelectionScratch;
+
+const FOOD_SELECTION_SCRATCH_LANES: readonly FoodSelectionScratchLane[] = [
+  "stackIds",
+  "foodDefIds",
+  "regionIds",
+  "storageSlotIds",
+  "targetCellIndexes",
+  "interactionSpotIds",
+  "scoreMillis",
+  "permissionIds",
+  "mealWindowIds",
+  "mealWindowVersions",
+  "safeFlags",
+  "permissionAllowedFlags",
+  "scheduleAllowedFlags",
+  "availableAmounts",
+  "itemStoreVersions",
+  "linkedCandidateFlags",
+];
 
 interface FoodFixture {
   readonly registry: ReturnType<typeof createEntityRegistry>;
@@ -481,6 +753,144 @@ function createFoodPortionIntoOutput(): FoodPortionIntoOutput {
     linkedCandidate: true,
     dirtyBacklog: 99,
   };
+}
+
+function createFoodCandidateQuery(overrides: Partial<FoodCandidateQuery> = {}): FoodCandidateQuery {
+  return {
+    foodDefId: GRAIN_BOWL,
+    regionId: REGION_YARD,
+    permissionId: PUBLIC_PERMISSION,
+    mealWindowId: MIDDAY_MEAL,
+    candidateCap: M3_FOOD_DEFAULT_CANDIDATE_CAP,
+    maxSelected: M3_FOOD_DEFAULT_SELECTED_CAP,
+    ...overrides,
+  };
+}
+
+function createFoodSelectionScratch(
+  undersizedLane?: FoodSelectionScratchLane,
+): FoodSelectionScratch {
+  return {
+    stackIds: createPoisonedUint32Lane("stackIds", undersizedLane),
+    foodDefIds: createPoisonedUint32Lane("foodDefIds", undersizedLane),
+    regionIds: createPoisonedUint32Lane("regionIds", undersizedLane),
+    storageSlotIds: createPoisonedUint32Lane("storageSlotIds", undersizedLane),
+    targetCellIndexes: createPoisonedUint32Lane("targetCellIndexes", undersizedLane),
+    interactionSpotIds: createPoisonedUint32Lane("interactionSpotIds", undersizedLane),
+    scoreMillis: createPoisonedUint32Lane("scoreMillis", undersizedLane),
+    permissionIds: createPoisonedUint32Lane("permissionIds", undersizedLane),
+    mealWindowIds: createPoisonedUint32Lane("mealWindowIds", undersizedLane),
+    mealWindowVersions: createPoisonedUint32Lane("mealWindowVersions", undersizedLane),
+    safeFlags: createPoisonedUint8Lane("safeFlags", undersizedLane),
+    permissionAllowedFlags: createPoisonedUint8Lane("permissionAllowedFlags", undersizedLane),
+    scheduleAllowedFlags: createPoisonedUint8Lane("scheduleAllowedFlags", undersizedLane),
+    availableAmounts: createPoisonedUint32Lane("availableAmounts", undersizedLane),
+    itemStoreVersions: createPoisonedUint32Lane("itemStoreVersions", undersizedLane),
+    linkedCandidateFlags: createPoisonedUint8Lane("linkedCandidateFlags", undersizedLane),
+  };
+}
+
+function createPoisonedUint32Lane(
+  lane: FoodSelectionScratchLane,
+  undersizedLane: FoodSelectionScratchLane | undefined,
+): Uint32Array {
+  const capacity = lane === undersizedLane ? M3_FOOD_DEFAULT_SELECTED_CAP - 1 : 12;
+  return new Uint32Array(capacity).fill(99);
+}
+
+function createPoisonedUint8Lane(
+  lane: FoodSelectionScratchLane,
+  undersizedLane: FoodSelectionScratchLane | undefined,
+): Uint8Array {
+  const capacity = lane === undersizedLane ? M3_FOOD_DEFAULT_SELECTED_CAP - 1 : 12;
+  return new Uint8Array(capacity).fill(1);
+}
+
+function createFoodSelectionOutput(): FoodSelectionOutput {
+  return {
+    ok: true,
+    reason: "food_score_invalid",
+    queryFoodDefId: 99,
+    queryRegionId: 99,
+    queryPermissionId: 99,
+    queryMealWindowId: 99,
+    candidateCap: 99,
+    maxSelected: 99,
+    bucketCandidateCount: 99,
+    visitedCount: 99,
+    selectedCount: 99,
+    candidateCapHit: true,
+    selectedCapHit: true,
+    selectedStackId: 99,
+    selectedFoodDefId: 99,
+    selectedRegionId: 99,
+    selectedStorageSlotId: 99,
+    selectedTargetCellIndex: 99,
+    selectedInteractionSpotId: 99,
+    selectedScoreMilli: 99,
+    selectedPermissionId: 99,
+    selectedMealWindowId: 99,
+    selectedMealWindowVersion: 99,
+    selectedSafe: true,
+    selectedPermissionAllowed: true,
+    selectedScheduleAllowed: true,
+    selectedAvailableAmount: 99,
+    sourceItemVersion: 99,
+    selectedLinkedCandidate: true,
+    foodAvailabilityVersion: 99,
+    dirtyBacklog: 99,
+  };
+}
+
+function createFoodSelectionResetOutput(
+  query: FoodCandidateQuery,
+  foodAvailabilityVersion: number,
+  dirtyBacklog: number,
+  reason: FoodSelectionOutput["reason"],
+): FoodSelectionOutput {
+  return {
+    ok: false,
+    reason,
+    queryFoodDefId: query.foodDefId,
+    queryRegionId: query.regionId,
+    queryPermissionId: query.permissionId,
+    queryMealWindowId: query.mealWindowId,
+    candidateCap: query.candidateCap,
+    maxSelected: query.maxSelected,
+    bucketCandidateCount: 0,
+    visitedCount: 0,
+    selectedCount: 0,
+    candidateCapHit: false,
+    selectedCapHit: false,
+    selectedStackId: M3_FOOD_STACK_NONE,
+    selectedFoodDefId: 0,
+    selectedRegionId: 0,
+    selectedStorageSlotId: 0,
+    selectedTargetCellIndex: 0,
+    selectedInteractionSpotId: 0,
+    selectedScoreMilli: 0,
+    selectedPermissionId: 0,
+    selectedMealWindowId: 0,
+    selectedMealWindowVersion: 0,
+    selectedSafe: false,
+    selectedPermissionAllowed: false,
+    selectedScheduleAllowed: false,
+    selectedAvailableAmount: 0,
+    sourceItemVersion: 0,
+    selectedLinkedCandidate: false,
+    foodAvailabilityVersion,
+    dirtyBacklog,
+  };
+}
+
+function expectFoodSelectionScratchReset(scratch: FoodSelectionScratch): void {
+  for (const laneName of FOOD_SELECTION_SCRATCH_LANES) {
+    const lane = scratch[laneName];
+    const expected = laneName === "stackIds" ? M3_FOOD_STACK_NONE : 0;
+    for (const value of lane) {
+      expect(value).toBe(expected);
+    }
+  }
 }
 
 function createFoodFixture(
@@ -576,6 +986,32 @@ function createFoodFixture(
     needIndex,
     actors,
   };
+}
+
+function updateFoodPortionConfig(
+  fixture: FoodFixture,
+  stackId: number,
+  overrides: Partial<M3FoodPortionInput>,
+): void {
+  const portion = fixture.food.readPortion(stackId) ?? failMissingPortion();
+  expect(
+    fixture.food.updatePortion({
+      stackId: portion.stackId,
+      foodDefId: portion.foodDefId,
+      regionId: portion.regionId,
+      storageSlotId: portion.storageSlotId,
+      targetCellIndex: portion.targetCellIndex,
+      interactionSpotId: portion.interactionSpotId,
+      scoreMilli: portion.scoreMilli,
+      permissionId: portion.permissionId,
+      mealWindowId: portion.mealWindowId,
+      mealWindowVersion: portion.mealWindowVersion,
+      safe: portion.safe,
+      permissionAllowed: portion.permissionAllowed,
+      scheduleAllowed: portion.scheduleAllowed,
+      ...overrides,
+    }),
+  ).toMatchObject({ ok: true, stackId });
 }
 
 function createEatingJobFromPortion(
