@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MRIBT4ZO-3FF98F",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0181",
+  "kind": "review-request",
+  "subject": "WM-0181 ready for review",
+  "body": "Implemented seven caller-owned food/rest/medical exact-index roots with 24/12 bounds, explicit owner/row/backlog/environment/caregiver revalidation, exact medical bucket totals, 161-entry allocation closure, 46 focused and 499 full tests passing; report coordination/reports/WM-0181.md.",
+  "artifacts": [
+    "coordination/reports/WM-0181.md",
+    "task/WM-0181-m3-need-driven-exact-index-caller-owned-surfaces"
+  ],
+  "createdAt": "2026-07-12T21:49:19.620Z",
+  "acknowledgedAt": "2026-07-12T21:50:50.339Z"
+}

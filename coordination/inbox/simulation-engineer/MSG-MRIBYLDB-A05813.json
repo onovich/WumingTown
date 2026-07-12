@@ -1,0 +1,12 @@
+{
+  "id": "MSG-MRIBYLDB-A05813",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0181",
+  "kind": "review-approved",
+  "subject": "WM-0181 review: verified",
+  "body": "No blocking findings; main...b4b777d exact eight-file product/test scope and seven Into roots verified; legacy parity, 24/12 caps, Food dirty rejection, Rest dual-row/three-environment/missed-dirty rejection, Medical exact totals/complete caregiver/forbidden-read rejection, 161-entry closure and package exports confirmed; typecheck, focused 46/46, boundaries 16, handoff, taskctl validate/status, diff checks, and quality 79/79 files 499/499 tests passed; one worktree; no benchmark or admission run.",
+  "artifacts": ["coordination/reports/WM-0181.md"],
+  "createdAt": "2026-07-12T21:53:34.127Z",
+  "acknowledgedAt": "2026-07-12T21:55:04.922Z"
+}

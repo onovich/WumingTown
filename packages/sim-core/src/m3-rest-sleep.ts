@@ -195,6 +195,27 @@ export interface RestFixtureView extends RestFixtureInput {
   readonly ownerVersion: number;
 }
 
+export interface RestFixtureIntoOutput {
+  ok: boolean;
+  reason: RestSleepReason | undefined;
+  fixtureId: number;
+  active: boolean;
+  entityIndex: number;
+  entityGeneration: number;
+  kind: RestFixtureKind | undefined;
+  restKind: RestKind | undefined;
+  regionId: number;
+  targetCellIndex: number;
+  interactionSpotId: number;
+  scheduleWindow: M3ScheduleWindowId | undefined;
+  weatherExposure: RestFixtureWeatherExposure | undefined;
+  permissionId: number;
+  recoveryPerTickQ16: number;
+  baseScoreMilli: number;
+  ownerVersion: number;
+  storeVersion: number;
+}
+
 export interface RestSleepMetrics {
   readonly version: number;
   readonly activeFixtureCount: number;
@@ -227,6 +248,78 @@ export interface RestCandidateQuery {
   readonly permissionId: number;
   readonly candidateCap: number;
   readonly maxSelectedFixtures: number;
+}
+
+export interface RestCandidateEnvironmentBasis {
+  readonly scheduleWindow: M3ScheduleWindowId;
+  readonly scheduleWindowVersion: number;
+  readonly weatherExposure: RestFixtureWeatherExposure;
+  readonly outdoorWorkAllowed: boolean;
+  readonly weatherVersion: number;
+  readonly weatherSourceVersion: number;
+}
+
+export interface RestCandidateSelectionIntoScratch {
+  readonly fixtureReadOutput: RestFixtureIntoOutput;
+  readonly fixtureIds: Uint32Array;
+  readonly entityIndexes: Uint32Array;
+  readonly entityGenerations: Uint32Array;
+  readonly fixtureKindCodes: Uint8Array;
+  readonly restKindCodes: Uint8Array;
+  readonly regionIds: Uint32Array;
+  readonly targetCellIndexes: Uint32Array;
+  readonly interactionSpotIds: Uint32Array;
+  readonly scheduleCodes: Uint8Array;
+  readonly weatherCodes: Uint8Array;
+  readonly permissionIds: Uint32Array;
+  readonly recoveryPerTickQ16s: Uint32Array;
+  readonly scoreMillis: Uint32Array;
+  readonly cachedFixtureVersions: Uint32Array;
+  readonly currentFixtureOwnerVersions: Uint32Array;
+  readonly linkedCandidateFlags: Uint8Array;
+}
+
+export interface RestCandidateSelectionIntoOutput {
+  ok: boolean;
+  reason: RestSleepReason | undefined;
+  queryRegionId: number;
+  queryRestKind: RestKind | undefined;
+  queryScheduleWindow: M3ScheduleWindowId | undefined;
+  queryWeatherExposure: RestFixtureWeatherExposure | undefined;
+  queryPermissionId: number;
+  candidateCap: number;
+  maxSelectedFixtures: number;
+  environmentScheduleWindow: M3ScheduleWindowId | undefined;
+  scheduleWindowVersion: number;
+  environmentWeatherExposure: RestFixtureWeatherExposure | undefined;
+  outdoorWorkAllowed: boolean;
+  weatherVersion: number;
+  weatherSourceVersion: number;
+  candidateTotal: number;
+  visitedCount: number;
+  selectedCount: number;
+  candidateCapHit: boolean;
+  selectedCapHit: boolean;
+  selectedFixtureId: number;
+  selectedEntityIndex: number;
+  selectedEntityGeneration: number;
+  selectedFixtureKind: RestFixtureKind | undefined;
+  selectedRestKind: RestKind | undefined;
+  selectedRegionId: number;
+  selectedTargetCellIndex: number;
+  selectedInteractionSpotId: number;
+  selectedScheduleWindow: M3ScheduleWindowId | undefined;
+  selectedWeatherExposure: RestFixtureWeatherExposure | undefined;
+  selectedPermissionId: number;
+  selectedRecoveryPerTickQ16: number;
+  selectedScoreMilli: number;
+  selectedCachedFixtureVersion: number;
+  selectedCurrentFixtureOwnerVersion: number;
+  selectedLinkedCandidate: boolean;
+  restStoreVersion: number;
+  sourceVersion: number;
+  indexVersion: number;
+  dirtyBacklog: number;
 }
 
 export type RestCandidateQueryResult =
@@ -462,6 +555,34 @@ export class RestSleepStore {
     };
   }
 
+  readFixtureInto(fixtureId: number, output: RestFixtureIntoOutput): void {
+    this.resetFixtureInto(fixtureId, output);
+    if (!isIndexInRange(fixtureId, this.fixtureCapacity)) {
+      output.reason = "rest.fixture_id_out_of_range";
+      return;
+    }
+    if ((this.active[fixtureId] ?? 0) !== 1) {
+      output.reason = "rest.fixture_not_active";
+      return;
+    }
+
+    output.ok = true;
+    output.active = true;
+    output.entityIndex = this.entityIndexes[fixtureId] ?? 0;
+    output.entityGeneration = this.entityGenerations[fixtureId] ?? 0;
+    output.kind = decodeFixtureKind(this.kindCodes[fixtureId] ?? 0);
+    output.restKind = decodeRestKind(this.restKindCodes[fixtureId] ?? 0);
+    output.regionId = this.regionIds[fixtureId] ?? 0;
+    output.targetCellIndex = this.targetCellIndexes[fixtureId] ?? 0;
+    output.interactionSpotId = this.interactionSpotIds[fixtureId] ?? 0;
+    output.scheduleWindow = decodeScheduleWindow(this.scheduleCodes[fixtureId] ?? 0);
+    output.weatherExposure = decodeWeatherExposure(this.weatherCodes[fixtureId] ?? 0);
+    output.permissionId = this.permissionIds[fixtureId] ?? 0;
+    output.recoveryPerTickQ16 = this.recoveryPerTickQ16[fixtureId] ?? 0;
+    output.baseScoreMilli = this.baseScoreMilli[fixtureId] ?? 0;
+    output.ownerVersion = this.ownerVersions[fixtureId] ?? 0;
+  }
+
   isFixtureActive(fixtureId: number): boolean {
     return isIndexInRange(fixtureId, this.fixtureCapacity) && (this.active[fixtureId] ?? 0) === 1;
   }
@@ -525,6 +646,27 @@ export class RestSleepStore {
     }
 
     return { ok: true, id: input.fixtureId, version: this.storeVersion };
+  }
+
+  private resetFixtureInto(fixtureId: number, output: RestFixtureIntoOutput): void {
+    output.ok = false;
+    output.reason = undefined;
+    output.fixtureId = fixtureId;
+    output.active = false;
+    output.entityIndex = 0;
+    output.entityGeneration = 0;
+    output.kind = undefined;
+    output.restKind = undefined;
+    output.regionId = 0;
+    output.targetCellIndex = 0;
+    output.interactionSpotId = 0;
+    output.scheduleWindow = undefined;
+    output.weatherExposure = undefined;
+    output.permissionId = 0;
+    output.recoveryPerTickQ16 = 0;
+    output.baseScoreMilli = 0;
+    output.ownerVersion = 0;
+    output.storeVersion = this.storeVersion;
   }
 }
 
@@ -654,6 +796,70 @@ export class RestCandidateIndex {
     }
 
     return { ok: true, id: refreshed, version: this.indexVersion };
+  }
+
+  selectCandidatesInto(
+    query: RestCandidateQuery,
+    environment: RestCandidateEnvironmentBasis,
+    store: RestSleepStore,
+    scratch: RestCandidateSelectionIntoScratch,
+    output: RestCandidateSelectionIntoOutput,
+  ): void {
+    this.resetCandidateSelectionInto(query, environment, store, scratch, output);
+    if (!this.validateCandidateSelectionInto(query, environment, scratch, output)) {
+      return;
+    }
+    if (this.dirtyCount > 0 || this.sourceVersion !== store.version) {
+      output.reason = "rest.fixture_input_invalid";
+      return;
+    }
+
+    const storeVersion = store.version;
+    const sourceVersion = this.sourceVersion;
+    const ownerIndexVersion = this.indexVersion;
+    const restKindCode = encodeRestKind(query.restKind);
+    const scheduleCode = encodeScheduleWindow(query.scheduleWindow);
+    const weatherCode = encodeWeatherExposure(query.weatherExposure);
+    if (
+      !this.collectCandidatesInto(
+        query,
+        restKindCode,
+        scheduleCode,
+        weatherCode,
+        store,
+        storeVersion,
+        scratch,
+        output,
+      )
+    ) {
+      this.failCandidateSelectionInto(query, environment, store, scratch, output);
+      return;
+    }
+
+    if (
+      !this.isCandidateSelectionBasisCurrent(
+        store,
+        environment,
+        scratch,
+        output,
+        output.selectedCount,
+        storeVersion,
+        sourceVersion,
+        ownerIndexVersion,
+      )
+    ) {
+      this.failCandidateSelectionInto(query, environment, store, scratch, output);
+      return;
+    }
+
+    this.finishCandidateSelectionInto(
+      query,
+      restKindCode,
+      scheduleCode,
+      weatherCode,
+      scratch,
+      output,
+    );
   }
 
   selectCandidates(
@@ -872,6 +1078,279 @@ export class RestCandidateIndex {
       this.scheduleCounts[scheduleKey] = (this.scheduleCounts[scheduleKey] ?? 1) - 1;
       this.scheduleKeys[fixtureId] = -1;
     }
+  }
+
+  private validateCandidateSelectionInto(
+    query: RestCandidateQuery,
+    environment: RestCandidateEnvironmentBasis,
+    scratch: RestCandidateSelectionIntoScratch,
+    output: RestCandidateSelectionIntoOutput,
+  ): boolean {
+    if (
+      !isIndexInRange(query.regionId, this.regionCapacity) ||
+      !isIndexInRange(query.permissionId, this.permissionCapacity) ||
+      !isPositiveUint32(query.candidateCap) ||
+      query.candidateCap > M3_REST_DEFAULT_CANDIDATE_CAP ||
+      !isPositiveUint32(query.maxSelectedFixtures) ||
+      query.maxSelectedFixtures > M3_REST_DEFAULT_SELECTED_CAP ||
+      !isSafeUint32(environment.scheduleWindowVersion) ||
+      !isSafeUint32(environment.weatherVersion) ||
+      !isSafeUint32(environment.weatherSourceVersion) ||
+      !hasRestSelectionScratchCapacity(scratch)
+    ) {
+      output.reason = "rest.fixture_input_invalid";
+      return false;
+    }
+    if (query.scheduleWindow !== environment.scheduleWindow) {
+      output.reason = "rest.rejected_schedule_window";
+      return false;
+    }
+    if (
+      query.weatherExposure !== environment.weatherExposure ||
+      (query.weatherExposure === "outdoor" && !environment.outdoorWorkAllowed)
+    ) {
+      output.reason = "rest.rejected_weather_exposure";
+      return false;
+    }
+    return true;
+  }
+
+  private resetCandidateSelectionInto(
+    query: RestCandidateQuery,
+    environment: RestCandidateEnvironmentBasis,
+    store: RestSleepStore,
+    scratch: RestCandidateSelectionIntoScratch,
+    output: RestCandidateSelectionIntoOutput,
+  ): void {
+    store.readFixtureInto(M3_REST_FIXTURE_NONE, scratch.fixtureReadOutput);
+    resetRestSelectionScratch(scratch);
+    output.ok = false;
+    output.reason = undefined;
+    output.queryRegionId = query.regionId;
+    output.queryRestKind = query.restKind;
+    output.queryScheduleWindow = query.scheduleWindow;
+    output.queryWeatherExposure = query.weatherExposure;
+    output.queryPermissionId = query.permissionId;
+    output.candidateCap = query.candidateCap;
+    output.maxSelectedFixtures = query.maxSelectedFixtures;
+    output.environmentScheduleWindow = environment.scheduleWindow;
+    output.scheduleWindowVersion = environment.scheduleWindowVersion;
+    output.environmentWeatherExposure = environment.weatherExposure;
+    output.outdoorWorkAllowed = environment.outdoorWorkAllowed;
+    output.weatherVersion = environment.weatherVersion;
+    output.weatherSourceVersion = environment.weatherSourceVersion;
+    output.candidateTotal = 0;
+    output.visitedCount = 0;
+    output.selectedCount = 0;
+    output.candidateCapHit = false;
+    output.selectedCapHit = false;
+    output.selectedFixtureId = M3_REST_FIXTURE_NONE;
+    output.selectedEntityIndex = 0;
+    output.selectedEntityGeneration = 0;
+    output.selectedFixtureKind = undefined;
+    output.selectedRestKind = undefined;
+    output.selectedRegionId = 0;
+    output.selectedTargetCellIndex = 0;
+    output.selectedInteractionSpotId = 0;
+    output.selectedScheduleWindow = undefined;
+    output.selectedWeatherExposure = undefined;
+    output.selectedPermissionId = 0;
+    output.selectedRecoveryPerTickQ16 = 0;
+    output.selectedScoreMilli = 0;
+    output.selectedCachedFixtureVersion = 0;
+    output.selectedCurrentFixtureOwnerVersion = 0;
+    output.selectedLinkedCandidate = false;
+    output.restStoreVersion = store.version;
+    output.sourceVersion = this.sourceVersion;
+    output.indexVersion = this.indexVersion;
+    output.dirtyBacklog = this.dirtyCount;
+  }
+
+  private failCandidateSelectionInto(
+    query: RestCandidateQuery,
+    environment: RestCandidateEnvironmentBasis,
+    store: RestSleepStore,
+    scratch: RestCandidateSelectionIntoScratch,
+    output: RestCandidateSelectionIntoOutput,
+  ): void {
+    this.resetCandidateSelectionInto(query, environment, store, scratch, output);
+    output.reason = "rest.fixture_input_invalid";
+  }
+
+  private collectCandidatesInto(
+    query: RestCandidateQuery,
+    restKindCode: number,
+    scheduleCode: number,
+    weatherCode: number,
+    store: RestSleepStore,
+    storeVersion: number,
+    scratch: RestCandidateSelectionIntoScratch,
+    output: RestCandidateSelectionIntoOutput,
+  ): boolean {
+    const bucketKey = createRestBucketKey(
+      query.regionId,
+      restKindCode,
+      scheduleCode,
+      weatherCode,
+      query.permissionId,
+      this.regionCapacity,
+      this.permissionCapacity,
+    );
+    const candidateTotal = this.bucketCounts[bucketKey] ?? 0;
+    let current = this.bucketHeads[bucketKey] ?? -1;
+    let visited = 0;
+    let selected = 0;
+    while (current >= 0 && visited < query.candidateCap) {
+      store.readFixtureInto(current, scratch.fixtureReadOutput);
+      if (!this.isFixtureReadCurrent(current, storeVersion, scratch.fixtureReadOutput)) {
+        return false;
+      }
+      if (selected < query.maxSelectedFixtures) {
+        this.writeCandidateIntoScratch(current, selected, scratch);
+        selected += 1;
+      }
+      visited += 1;
+      current = this.nextByFixture[current] ?? -1;
+    }
+    output.candidateTotal = candidateTotal;
+    output.visitedCount = visited;
+    output.selectedCount = selected;
+    output.candidateCapHit = candidateTotal > visited;
+    output.selectedCapHit = visited > selected;
+    return true;
+  }
+
+  private isFixtureReadCurrent(
+    fixtureId: number,
+    storeVersion: number,
+    fixture: RestFixtureIntoOutput,
+  ): boolean {
+    return (
+      fixture.ok &&
+      fixture.active &&
+      fixture.fixtureId === fixtureId &&
+      fixture.storeVersion === storeVersion &&
+      fixture.ownerVersion === (this.fixtureVersions[fixtureId] ?? 0) &&
+      (this.linked[fixtureId] ?? 0) === 1
+    );
+  }
+
+  private writeCandidateIntoScratch(
+    fixtureId: number,
+    selectedIndex: number,
+    scratch: RestCandidateSelectionIntoScratch,
+  ): void {
+    const fixture = scratch.fixtureReadOutput;
+    scratch.fixtureIds[selectedIndex] = fixtureId;
+    scratch.entityIndexes[selectedIndex] = fixture.entityIndex;
+    scratch.entityGenerations[selectedIndex] = fixture.entityGeneration;
+    scratch.fixtureKindCodes[selectedIndex] = encodeOptionalFixtureKind(fixture.kind);
+    scratch.restKindCodes[selectedIndex] = encodeOptionalRestKind(fixture.restKind);
+    scratch.regionIds[selectedIndex] = fixture.regionId;
+    scratch.targetCellIndexes[selectedIndex] = fixture.targetCellIndex;
+    scratch.interactionSpotIds[selectedIndex] = fixture.interactionSpotId;
+    scratch.scheduleCodes[selectedIndex] = encodeOptionalScheduleWindow(fixture.scheduleWindow);
+    scratch.weatherCodes[selectedIndex] = encodeOptionalWeatherExposure(fixture.weatherExposure);
+    scratch.permissionIds[selectedIndex] = fixture.permissionId;
+    scratch.recoveryPerTickQ16s[selectedIndex] = fixture.recoveryPerTickQ16;
+    scratch.scoreMillis[selectedIndex] = fixture.baseScoreMilli;
+    scratch.cachedFixtureVersions[selectedIndex] = this.fixtureVersions[fixtureId] ?? 0;
+    scratch.currentFixtureOwnerVersions[selectedIndex] = fixture.ownerVersion;
+    scratch.linkedCandidateFlags[selectedIndex] = this.linked[fixtureId] ?? 0;
+  }
+
+  private isCandidateSelectionBasisCurrent(
+    store: RestSleepStore,
+    environment: RestCandidateEnvironmentBasis,
+    scratch: RestCandidateSelectionIntoScratch,
+    output: RestCandidateSelectionIntoOutput,
+    selectedCount: number,
+    storeVersion: number,
+    sourceOwnerVersion: number,
+    ownerIndexVersion: number,
+  ): boolean {
+    if (
+      store.version !== storeVersion ||
+      this.sourceVersion !== sourceOwnerVersion ||
+      this.indexVersion !== ownerIndexVersion ||
+      this.dirtyCount !== 0 ||
+      output.restStoreVersion !== storeVersion ||
+      output.sourceVersion !== sourceOwnerVersion ||
+      output.indexVersion !== ownerIndexVersion ||
+      output.dirtyBacklog !== 0 ||
+      !isRestEnvironmentBasisCurrent(environment, output)
+    ) {
+      return false;
+    }
+    for (let index = 0; index < selectedCount; index += 1) {
+      const fixtureId = scratch.fixtureIds[index] ?? M3_REST_FIXTURE_NONE;
+      store.readFixtureInto(fixtureId, scratch.fixtureReadOutput);
+      if (
+        !this.isCandidateScratchRowCurrent(fixtureId, index, storeVersion, environment, scratch)
+      ) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private isCandidateScratchRowCurrent(
+    fixtureId: number,
+    selectedIndex: number,
+    storeVersion: number,
+    environment: RestCandidateEnvironmentBasis,
+    scratch: RestCandidateSelectionIntoScratch,
+  ): boolean {
+    const fixture = scratch.fixtureReadOutput;
+    return (
+      this.isFixtureReadCurrent(fixtureId, storeVersion, fixture) &&
+      fixture.entityIndex === (scratch.entityIndexes[selectedIndex] ?? 0) &&
+      fixture.entityGeneration === (scratch.entityGenerations[selectedIndex] ?? 0) &&
+      encodeOptionalFixtureKind(fixture.kind) === (scratch.fixtureKindCodes[selectedIndex] ?? 0) &&
+      encodeOptionalRestKind(fixture.restKind) === (scratch.restKindCodes[selectedIndex] ?? 0) &&
+      fixture.regionId === (scratch.regionIds[selectedIndex] ?? 0) &&
+      fixture.targetCellIndex === (scratch.targetCellIndexes[selectedIndex] ?? 0) &&
+      fixture.interactionSpotId === (scratch.interactionSpotIds[selectedIndex] ?? 0) &&
+      encodeOptionalScheduleWindow(fixture.scheduleWindow) ===
+        (scratch.scheduleCodes[selectedIndex] ?? 0) &&
+      encodeOptionalWeatherExposure(fixture.weatherExposure) ===
+        (scratch.weatherCodes[selectedIndex] ?? 0) &&
+      fixture.permissionId === (scratch.permissionIds[selectedIndex] ?? 0) &&
+      fixture.recoveryPerTickQ16 === (scratch.recoveryPerTickQ16s[selectedIndex] ?? 0) &&
+      fixture.baseScoreMilli === (scratch.scoreMillis[selectedIndex] ?? 0) &&
+      encodeScheduleWindow(environment.scheduleWindow) ===
+        (scratch.scheduleCodes[selectedIndex] ?? 0) &&
+      encodeWeatherExposure(environment.weatherExposure) ===
+        (scratch.weatherCodes[selectedIndex] ?? 0) &&
+      fixture.ownerVersion === (scratch.cachedFixtureVersions[selectedIndex] ?? 0) &&
+      fixture.ownerVersion === (scratch.currentFixtureOwnerVersions[selectedIndex] ?? 0) &&
+      (scratch.linkedCandidateFlags[selectedIndex] ?? 0) === 1
+    );
+  }
+
+  private finishCandidateSelectionInto(
+    query: RestCandidateQuery,
+    restKindCode: number,
+    scheduleCode: number,
+    weatherCode: number,
+    scratch: RestCandidateSelectionIntoScratch,
+    output: RestCandidateSelectionIntoOutput,
+  ): void {
+    output.ok = true;
+    output.reason = this.resolveSelectionReason(
+      query.regionId,
+      restKindCode,
+      scheduleCode,
+      weatherCode,
+      query.permissionId,
+      output.candidateTotal,
+      output.candidateCapHit,
+    );
+    if (output.selectedCount > 0) {
+      copyFirstRestCandidateIntoOutput(scratch, output);
+    }
+    this.selectionCount += 1;
+    this.candidateVisitedCount += output.visitedCount;
   }
 
   private resolveSelectionReason(
@@ -1992,6 +2471,88 @@ function isRestJobView(record: unknown, capacity: number): record is RestJobView
   );
 }
 
+export function isRestEnvironmentBasisCurrent(
+  environment: RestCandidateEnvironmentBasis,
+  output: RestCandidateSelectionIntoOutput,
+): boolean {
+  return (
+    output.queryScheduleWindow === environment.scheduleWindow &&
+    output.queryWeatherExposure === environment.weatherExposure &&
+    output.environmentScheduleWindow === environment.scheduleWindow &&
+    output.scheduleWindowVersion === environment.scheduleWindowVersion &&
+    output.environmentWeatherExposure === environment.weatherExposure &&
+    output.outdoorWorkAllowed === environment.outdoorWorkAllowed &&
+    output.weatherVersion === environment.weatherVersion &&
+    output.weatherSourceVersion === environment.weatherSourceVersion
+  );
+}
+
+export function hasRestSelectionScratchCapacity(
+  scratch: RestCandidateSelectionIntoScratch,
+): boolean {
+  return (
+    scratch.fixtureIds.length >= M3_REST_DEFAULT_SELECTED_CAP &&
+    scratch.entityIndexes.length >= M3_REST_DEFAULT_SELECTED_CAP &&
+    scratch.entityGenerations.length >= M3_REST_DEFAULT_SELECTED_CAP &&
+    scratch.fixtureKindCodes.length >= M3_REST_DEFAULT_SELECTED_CAP &&
+    scratch.restKindCodes.length >= M3_REST_DEFAULT_SELECTED_CAP &&
+    scratch.regionIds.length >= M3_REST_DEFAULT_SELECTED_CAP &&
+    scratch.targetCellIndexes.length >= M3_REST_DEFAULT_SELECTED_CAP &&
+    scratch.interactionSpotIds.length >= M3_REST_DEFAULT_SELECTED_CAP &&
+    scratch.scheduleCodes.length >= M3_REST_DEFAULT_SELECTED_CAP &&
+    scratch.weatherCodes.length >= M3_REST_DEFAULT_SELECTED_CAP &&
+    scratch.permissionIds.length >= M3_REST_DEFAULT_SELECTED_CAP &&
+    scratch.recoveryPerTickQ16s.length >= M3_REST_DEFAULT_SELECTED_CAP &&
+    scratch.scoreMillis.length >= M3_REST_DEFAULT_SELECTED_CAP &&
+    scratch.cachedFixtureVersions.length >= M3_REST_DEFAULT_SELECTED_CAP &&
+    scratch.currentFixtureOwnerVersions.length >= M3_REST_DEFAULT_SELECTED_CAP &&
+    scratch.linkedCandidateFlags.length >= M3_REST_DEFAULT_SELECTED_CAP
+  );
+}
+
+export function resetRestSelectionScratch(scratch: RestCandidateSelectionIntoScratch): void {
+  for (let index = 0; index < M3_REST_DEFAULT_SELECTED_CAP; index += 1) {
+    scratch.fixtureIds[index] = M3_REST_FIXTURE_NONE;
+    scratch.entityIndexes[index] = 0;
+    scratch.entityGenerations[index] = 0;
+    scratch.fixtureKindCodes[index] = 0;
+    scratch.restKindCodes[index] = 0;
+    scratch.regionIds[index] = 0;
+    scratch.targetCellIndexes[index] = 0;
+    scratch.interactionSpotIds[index] = 0;
+    scratch.scheduleCodes[index] = 0;
+    scratch.weatherCodes[index] = 0;
+    scratch.permissionIds[index] = 0;
+    scratch.recoveryPerTickQ16s[index] = 0;
+    scratch.scoreMillis[index] = 0;
+    scratch.cachedFixtureVersions[index] = 0;
+    scratch.currentFixtureOwnerVersions[index] = 0;
+    scratch.linkedCandidateFlags[index] = 0;
+  }
+}
+
+export function copyFirstRestCandidateIntoOutput(
+  scratch: RestCandidateSelectionIntoScratch,
+  output: RestCandidateSelectionIntoOutput,
+): void {
+  output.selectedFixtureId = scratch.fixtureIds[0] ?? M3_REST_FIXTURE_NONE;
+  output.selectedEntityIndex = scratch.entityIndexes[0] ?? 0;
+  output.selectedEntityGeneration = scratch.entityGenerations[0] ?? 0;
+  output.selectedFixtureKind = decodeFixtureKind(scratch.fixtureKindCodes[0] ?? 0);
+  output.selectedRestKind = decodeRestKind(scratch.restKindCodes[0] ?? 0);
+  output.selectedRegionId = scratch.regionIds[0] ?? 0;
+  output.selectedTargetCellIndex = scratch.targetCellIndexes[0] ?? 0;
+  output.selectedInteractionSpotId = scratch.interactionSpotIds[0] ?? 0;
+  output.selectedScheduleWindow = decodeScheduleWindow(scratch.scheduleCodes[0] ?? 0);
+  output.selectedWeatherExposure = decodeWeatherExposure(scratch.weatherCodes[0] ?? 0);
+  output.selectedPermissionId = scratch.permissionIds[0] ?? 0;
+  output.selectedRecoveryPerTickQ16 = scratch.recoveryPerTickQ16s[0] ?? 0;
+  output.selectedScoreMilli = scratch.scoreMillis[0] ?? 0;
+  output.selectedCachedFixtureVersion = scratch.cachedFixtureVersions[0] ?? 0;
+  output.selectedCurrentFixtureOwnerVersion = scratch.currentFixtureOwnerVersions[0] ?? 0;
+  output.selectedLinkedCandidate = (scratch.linkedCandidateFlags[0] ?? 0) === 1;
+}
+
 function isRestFixtureBefore(
   store: RestSleepStore,
   currentFixtureId: number,
@@ -2007,7 +2568,7 @@ function isRestFixtureBefore(
   return currentFixtureId < nextFixtureId;
 }
 
-function createRestBucketKey(
+export function createRestBucketKey(
   regionId: number,
   restKindCode: number,
   scheduleCode: number,
@@ -2035,7 +2596,7 @@ function createRestBucketKey(
   );
 }
 
-function createAggregateKey(
+export function createAggregateKey(
   regionId: number,
   restKindCode: number,
   permissionId: number,
@@ -2044,7 +2605,7 @@ function createAggregateKey(
   return (regionId * REST_KIND_COUNT + restKindCode) * permissionCapacity + permissionId;
 }
 
-function createScheduleKey(
+export function createScheduleKey(
   regionId: number,
   restKindCode: number,
   scheduleCode: number,
@@ -2058,11 +2619,15 @@ function createScheduleKey(
   );
 }
 
-function encodeRestKind(kind: RestKind): number {
+export function encodeRestKind(kind: RestKind): number {
   return kind === "sleep" ? REST_KIND_SLEEP : REST_KIND_REST;
 }
 
-function decodeRestKind(code: number): RestKind {
+export function encodeOptionalRestKind(kind: RestKind | undefined): number {
+  return kind === undefined ? REST_KIND_REST : encodeRestKind(kind);
+}
+
+export function decodeRestKind(code: number): RestKind {
   return code === REST_KIND_SLEEP ? "sleep" : "rest";
 }
 
@@ -2070,23 +2635,33 @@ function isRestKind(value: unknown): value is RestKind {
   return value === "rest" || value === "sleep";
 }
 
-function encodeFixtureKind(kind: RestFixtureKind): number {
+export function encodeFixtureKind(kind: RestFixtureKind): number {
   return kind === "bedroll" ? 1 : 0;
 }
 
-function decodeFixtureKind(code: number): RestFixtureKind {
+export function encodeOptionalFixtureKind(kind: RestFixtureKind | undefined): number {
+  return kind === undefined ? 0 : encodeFixtureKind(kind);
+}
+
+export function decodeFixtureKind(code: number): RestFixtureKind {
   return code === 1 ? "bedroll" : "clinic_mat";
 }
 
-function encodeWeatherExposure(exposure: RestFixtureWeatherExposure): number {
+export function encodeWeatherExposure(exposure: RestFixtureWeatherExposure): number {
   return exposure === "outdoor" ? WEATHER_EXPOSURE_OUTDOOR : WEATHER_EXPOSURE_INDOOR;
 }
 
-function decodeWeatherExposure(code: number): RestFixtureWeatherExposure {
+export function encodeOptionalWeatherExposure(
+  exposure: RestFixtureWeatherExposure | undefined,
+): number {
+  return exposure === undefined ? WEATHER_EXPOSURE_INDOOR : encodeWeatherExposure(exposure);
+}
+
+export function decodeWeatherExposure(code: number): RestFixtureWeatherExposure {
   return code === WEATHER_EXPOSURE_OUTDOOR ? "outdoor" : "indoor";
 }
 
-function encodeScheduleWindow(window: M3ScheduleWindowId): number {
+export function encodeScheduleWindow(window: M3ScheduleWindowId): number {
   if (window === "daytime") {
     return SCHEDULE_DAYTIME;
   }
@@ -2099,7 +2674,11 @@ function encodeScheduleWindow(window: M3ScheduleWindowId): number {
   return SCHEDULE_DAWN;
 }
 
-function decodeScheduleWindow(code: number): M3ScheduleWindowId {
+export function encodeOptionalScheduleWindow(window: M3ScheduleWindowId | undefined): number {
+  return window === undefined ? SCHEDULE_DAWN : encodeScheduleWindow(window);
+}
+
+export function decodeScheduleWindow(code: number): M3ScheduleWindowId {
   if (code === SCHEDULE_DAYTIME) {
     return "daytime";
   }
@@ -2443,19 +3022,19 @@ function isSafeTickValue(value: unknown): value is Tick {
   return typeof value === "number" && isSafeTick(value);
 }
 
-function isIndexInRange(value: unknown, upperBound: number): value is number {
+export function isIndexInRange(value: unknown, upperBound: number): value is number {
   return (
     typeof value === "number" && Number.isSafeInteger(value) && value >= 0 && value < upperBound
   );
 }
 
-function isSafeUint32(value: unknown): value is number {
+export function isSafeUint32(value: unknown): value is number {
   return (
     typeof value === "number" && Number.isSafeInteger(value) && value >= 0 && value <= 0xffff_ffff
   );
 }
 
-function isPositiveUint32(value: unknown): value is number {
+export function isPositiveUint32(value: unknown): value is number {
   return (
     typeof value === "number" && Number.isSafeInteger(value) && value > 0 && value <= 0xffff_ffff
   );

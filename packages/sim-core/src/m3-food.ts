@@ -65,6 +65,83 @@ export interface M3FoodPortionView extends M3FoodPortionInput {
   readonly linkedCandidate: boolean;
 }
 
+export interface M3FoodPortionIntoOutput {
+  ok: boolean;
+  reason: M3FoodReason | undefined;
+  stackId: number;
+  foodDefId: number;
+  regionId: number;
+  storageSlotId: number;
+  targetCellIndex: number;
+  interactionSpotId: number;
+  scoreMilli: number;
+  permissionId: number;
+  mealWindowId: number;
+  mealWindowVersion: number;
+  safe: boolean;
+  permissionAllowed: boolean;
+  scheduleAllowed: boolean;
+  availableAmount: number;
+  itemStoreVersion: number;
+  foodAvailabilityVersion: number;
+  active: boolean;
+  linkedCandidate: boolean;
+  dirtyBacklog: number;
+}
+
+export interface M3FoodCandidateSelectionIntoScratch {
+  readonly stackIds: Uint32Array;
+  readonly foodDefIds: Uint32Array;
+  readonly regionIds: Uint32Array;
+  readonly storageSlotIds: Uint32Array;
+  readonly targetCellIndexes: Uint32Array;
+  readonly interactionSpotIds: Uint32Array;
+  readonly scoreMillis: Uint32Array;
+  readonly permissionIds: Uint32Array;
+  readonly mealWindowIds: Uint32Array;
+  readonly mealWindowVersions: Uint32Array;
+  readonly safeFlags: Uint8Array;
+  readonly permissionAllowedFlags: Uint8Array;
+  readonly scheduleAllowedFlags: Uint8Array;
+  readonly availableAmounts: Uint32Array;
+  readonly itemStoreVersions: Uint32Array;
+  readonly linkedCandidateFlags: Uint8Array;
+}
+
+export interface M3FoodCandidateSelectionIntoOutput {
+  ok: boolean;
+  reason: M3FoodReason | undefined;
+  queryFoodDefId: number;
+  queryRegionId: number;
+  queryPermissionId: number;
+  queryMealWindowId: number;
+  candidateCap: number;
+  maxSelected: number;
+  bucketCandidateCount: number;
+  visitedCount: number;
+  selectedCount: number;
+  candidateCapHit: boolean;
+  selectedCapHit: boolean;
+  selectedStackId: number;
+  selectedFoodDefId: number;
+  selectedRegionId: number;
+  selectedStorageSlotId: number;
+  selectedTargetCellIndex: number;
+  selectedInteractionSpotId: number;
+  selectedScoreMilli: number;
+  selectedPermissionId: number;
+  selectedMealWindowId: number;
+  selectedMealWindowVersion: number;
+  selectedSafe: boolean;
+  selectedPermissionAllowed: boolean;
+  selectedScheduleAllowed: boolean;
+  selectedAvailableAmount: number;
+  sourceItemVersion: number;
+  selectedLinkedCandidate: boolean;
+  foodAvailabilityVersion: number;
+  dirtyBacklog: number;
+}
+
 export interface M3FoodCandidateQuery {
   readonly foodDefId: number;
   readonly regionId: number;
@@ -334,6 +411,94 @@ export class M3FoodAvailabilityStore {
     };
   }
 
+  readPortionInto(stackId: number, output: M3FoodPortionIntoOutput): void {
+    this.resetPortionInto(stackId, output);
+    if (!isIndexInRange(stackId, this.stackCapacity)) {
+      output.reason = "food_stack_id_out_of_range";
+      return;
+    }
+    if ((this.active[stackId] ?? 0) !== 1) {
+      output.reason = "food_stack_not_registered";
+      return;
+    }
+
+    output.ok = true;
+    output.active = true;
+    output.foodDefId = this.foodDefIds[stackId] ?? 0;
+    output.regionId = this.regionIds[stackId] ?? 0;
+    output.storageSlotId = this.storageSlotIds[stackId] ?? 0;
+    output.targetCellIndex = this.targetCellIndexes[stackId] ?? 0;
+    output.interactionSpotId = this.interactionSpotIds[stackId] ?? 0;
+    output.scoreMilli = this.scoreMillis[stackId] ?? 0;
+    output.permissionId = this.permissionIds[stackId] ?? 0;
+    output.mealWindowId = this.mealWindowIds[stackId] ?? 0;
+    output.mealWindowVersion = this.mealWindowVersions[stackId] ?? 0;
+    output.safe = (this.safeFlags[stackId] ?? 0) === 1;
+    output.permissionAllowed = (this.permissionAllowedFlags[stackId] ?? 0) === 1;
+    output.scheduleAllowed = (this.scheduleAllowedFlags[stackId] ?? 0) === 1;
+    output.availableAmount = this.availableAmounts[stackId] ?? 0;
+    output.itemStoreVersion = this.itemStoreVersions[stackId] ?? 0;
+    output.linkedCandidate = (this.linked[stackId] ?? 0) === 1;
+  }
+
+  selectCandidatesInto(
+    query: M3FoodCandidateQuery,
+    scratch: M3FoodCandidateSelectionIntoScratch,
+    output: M3FoodCandidateSelectionIntoOutput,
+  ): void {
+    this.resetCandidateSelectionInto(query, scratch, output);
+    if (!this.validateCandidateSelectionInto(query, scratch, output)) {
+      return;
+    }
+    if (this.dirtyCount > 0) {
+      output.reason = "food_dirty_backlog";
+      return;
+    }
+
+    const ownerVersion = this.versionValue;
+    const bucketKey = this.createBucketKey(query.foodDefId, query.regionId);
+    const totalCandidates = this.bucketCounts[bucketKey] ?? 0;
+    let current = this.bucketHeads[bucketKey] ?? -1;
+    let visited = 0;
+    let selected = 0;
+
+    while (current >= 0 && visited < query.candidateCap) {
+      if (
+        (this.permissionIds[current] ?? 0) === query.permissionId &&
+        (this.mealWindowIds[current] ?? 0) === query.mealWindowId &&
+        selected < query.maxSelected
+      ) {
+        this.writeCandidateIntoScratch(current, selected, scratch);
+        selected += 1;
+      }
+      visited += 1;
+      current = this.nextByStack[current] ?? -1;
+    }
+
+    if (!this.isCandidateSelectionBasisCurrent(scratch, selected, ownerVersion)) {
+      const reason: M3FoodReason =
+        this.dirtyCount > 0 ? "food_dirty_backlog" : "food.rejected_stale_owner";
+      this.resetCandidateSelectionInto(query, scratch, output);
+      output.reason = reason;
+      return;
+    }
+
+    const candidateCapHit = current >= 0;
+    output.ok = true;
+    output.reason = candidateCapHit
+      ? "trace.candidate_cap_reached"
+      : "food.rejected_no_available_portion";
+    output.bucketCandidateCount = totalCandidates;
+    output.visitedCount = visited;
+    output.selectedCount = selected;
+    output.candidateCapHit = candidateCapHit;
+    output.selectedCapHit = selected < totalCandidates && selected === query.maxSelected;
+    if (selected > 0) {
+      this.copyFirstCandidateIntoOutput(scratch, output);
+    }
+    this.recordSelectionMetrics(totalCandidates, visited, selected, 0, candidateCapHit);
+  }
+
   selectCandidates(
     query: M3FoodCandidateQuery,
     outputStackIds: Uint32Array,
@@ -583,6 +748,203 @@ export class M3FoodAvailabilityStore {
     this.lastCandidateCapHit = candidateCapHit;
   }
 
+  private validateCandidateSelectionInto(
+    query: M3FoodCandidateQuery,
+    scratch: M3FoodCandidateSelectionIntoScratch,
+    output: M3FoodCandidateSelectionIntoOutput,
+  ): boolean {
+    if (!isIndexInRange(query.foodDefId, this.foodDefCapacity)) {
+      output.reason = "food_def_invalid";
+      return false;
+    }
+    if (!isIndexInRange(query.regionId, this.regionCapacity)) {
+      output.reason = "food_region_invalid";
+      return false;
+    }
+    if (!isSafeUint32(query.permissionId)) {
+      output.reason = "food_permission_invalid";
+      return false;
+    }
+    if (!isSafeUint32(query.mealWindowId)) {
+      output.reason = "food_meal_window_invalid";
+      return false;
+    }
+    if (
+      !isPositiveSafeInteger(query.candidateCap) ||
+      query.candidateCap > M3_FOOD_DEFAULT_CANDIDATE_CAP
+    ) {
+      output.reason = "food_candidate_cap_invalid";
+      return false;
+    }
+    if (
+      !isPositiveSafeInteger(query.maxSelected) ||
+      query.maxSelected > M3_FOOD_DEFAULT_SELECTED_CAP
+    ) {
+      output.reason = "food_selected_cap_invalid";
+      return false;
+    }
+    if (!hasFoodSelectionScratchCapacity(scratch)) {
+      output.reason = "food_candidate_buffer_too_small";
+      return false;
+    }
+    return true;
+  }
+
+  private resetCandidateSelectionInto(
+    query: M3FoodCandidateQuery,
+    scratch: M3FoodCandidateSelectionIntoScratch,
+    output: M3FoodCandidateSelectionIntoOutput,
+  ): void {
+    resetFoodSelectionScratch(scratch);
+    output.ok = false;
+    output.reason = undefined;
+    output.queryFoodDefId = query.foodDefId;
+    output.queryRegionId = query.regionId;
+    output.queryPermissionId = query.permissionId;
+    output.queryMealWindowId = query.mealWindowId;
+    output.candidateCap = query.candidateCap;
+    output.maxSelected = query.maxSelected;
+    output.bucketCandidateCount = 0;
+    output.visitedCount = 0;
+    output.selectedCount = 0;
+    output.candidateCapHit = false;
+    output.selectedCapHit = false;
+    output.selectedStackId = M3_FOOD_STACK_NONE;
+    output.selectedFoodDefId = 0;
+    output.selectedRegionId = 0;
+    output.selectedStorageSlotId = 0;
+    output.selectedTargetCellIndex = 0;
+    output.selectedInteractionSpotId = 0;
+    output.selectedScoreMilli = 0;
+    output.selectedPermissionId = 0;
+    output.selectedMealWindowId = 0;
+    output.selectedMealWindowVersion = 0;
+    output.selectedSafe = false;
+    output.selectedPermissionAllowed = false;
+    output.selectedScheduleAllowed = false;
+    output.selectedAvailableAmount = 0;
+    output.sourceItemVersion = 0;
+    output.selectedLinkedCandidate = false;
+    output.foodAvailabilityVersion = this.versionValue;
+    output.dirtyBacklog = this.dirtyCount;
+  }
+
+  private writeCandidateIntoScratch(
+    stackId: number,
+    selectedIndex: number,
+    scratch: M3FoodCandidateSelectionIntoScratch,
+  ): void {
+    scratch.stackIds[selectedIndex] = stackId;
+    scratch.foodDefIds[selectedIndex] = this.foodDefIds[stackId] ?? 0;
+    scratch.regionIds[selectedIndex] = this.regionIds[stackId] ?? 0;
+    scratch.storageSlotIds[selectedIndex] = this.storageSlotIds[stackId] ?? 0;
+    scratch.targetCellIndexes[selectedIndex] = this.targetCellIndexes[stackId] ?? 0;
+    scratch.interactionSpotIds[selectedIndex] = this.interactionSpotIds[stackId] ?? 0;
+    scratch.scoreMillis[selectedIndex] = this.scoreMillis[stackId] ?? 0;
+    scratch.permissionIds[selectedIndex] = this.permissionIds[stackId] ?? 0;
+    scratch.mealWindowIds[selectedIndex] = this.mealWindowIds[stackId] ?? 0;
+    scratch.mealWindowVersions[selectedIndex] = this.mealWindowVersions[stackId] ?? 0;
+    scratch.safeFlags[selectedIndex] = this.safeFlags[stackId] ?? 0;
+    scratch.permissionAllowedFlags[selectedIndex] = this.permissionAllowedFlags[stackId] ?? 0;
+    scratch.scheduleAllowedFlags[selectedIndex] = this.scheduleAllowedFlags[stackId] ?? 0;
+    scratch.availableAmounts[selectedIndex] = this.availableAmounts[stackId] ?? 0;
+    scratch.itemStoreVersions[selectedIndex] = this.itemStoreVersions[stackId] ?? 0;
+    scratch.linkedCandidateFlags[selectedIndex] = this.linked[stackId] ?? 0;
+  }
+
+  private isCandidateSelectionBasisCurrent(
+    scratch: M3FoodCandidateSelectionIntoScratch,
+    selectedCount: number,
+    ownerVersion: number,
+  ): boolean {
+    if (this.versionValue !== ownerVersion || this.dirtyCount !== 0) {
+      return false;
+    }
+    for (let index = 0; index < selectedCount; index += 1) {
+      const stackId = scratch.stackIds[index] ?? M3_FOOD_STACK_NONE;
+      if (!this.isCandidateScratchRowCurrent(stackId, index, scratch)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private isCandidateScratchRowCurrent(
+    stackId: number,
+    selectedIndex: number,
+    scratch: M3FoodCandidateSelectionIntoScratch,
+  ): boolean {
+    return (
+      this.isActiveStack(stackId) &&
+      (this.linked[stackId] ?? 0) === 1 &&
+      (this.foodDefIds[stackId] ?? 0) === (scratch.foodDefIds[selectedIndex] ?? 0) &&
+      (this.regionIds[stackId] ?? 0) === (scratch.regionIds[selectedIndex] ?? 0) &&
+      (this.storageSlotIds[stackId] ?? 0) === (scratch.storageSlotIds[selectedIndex] ?? 0) &&
+      (this.targetCellIndexes[stackId] ?? 0) === (scratch.targetCellIndexes[selectedIndex] ?? 0) &&
+      (this.interactionSpotIds[stackId] ?? 0) ===
+        (scratch.interactionSpotIds[selectedIndex] ?? 0) &&
+      (this.scoreMillis[stackId] ?? 0) === (scratch.scoreMillis[selectedIndex] ?? 0) &&
+      (this.permissionIds[stackId] ?? 0) === (scratch.permissionIds[selectedIndex] ?? 0) &&
+      (this.mealWindowIds[stackId] ?? 0) === (scratch.mealWindowIds[selectedIndex] ?? 0) &&
+      (this.mealWindowVersions[stackId] ?? 0) ===
+        (scratch.mealWindowVersions[selectedIndex] ?? 0) &&
+      (this.safeFlags[stackId] ?? 0) === (scratch.safeFlags[selectedIndex] ?? 0) &&
+      (this.permissionAllowedFlags[stackId] ?? 0) ===
+        (scratch.permissionAllowedFlags[selectedIndex] ?? 0) &&
+      (this.scheduleAllowedFlags[stackId] ?? 0) ===
+        (scratch.scheduleAllowedFlags[selectedIndex] ?? 0) &&
+      (this.availableAmounts[stackId] ?? 0) === (scratch.availableAmounts[selectedIndex] ?? 0) &&
+      (this.itemStoreVersions[stackId] ?? 0) === (scratch.itemStoreVersions[selectedIndex] ?? 0) &&
+      (scratch.linkedCandidateFlags[selectedIndex] ?? 0) === 1
+    );
+  }
+
+  private copyFirstCandidateIntoOutput(
+    scratch: M3FoodCandidateSelectionIntoScratch,
+    output: M3FoodCandidateSelectionIntoOutput,
+  ): void {
+    output.selectedStackId = scratch.stackIds[0] ?? M3_FOOD_STACK_NONE;
+    output.selectedFoodDefId = scratch.foodDefIds[0] ?? 0;
+    output.selectedRegionId = scratch.regionIds[0] ?? 0;
+    output.selectedStorageSlotId = scratch.storageSlotIds[0] ?? 0;
+    output.selectedTargetCellIndex = scratch.targetCellIndexes[0] ?? 0;
+    output.selectedInteractionSpotId = scratch.interactionSpotIds[0] ?? 0;
+    output.selectedScoreMilli = scratch.scoreMillis[0] ?? 0;
+    output.selectedPermissionId = scratch.permissionIds[0] ?? 0;
+    output.selectedMealWindowId = scratch.mealWindowIds[0] ?? 0;
+    output.selectedMealWindowVersion = scratch.mealWindowVersions[0] ?? 0;
+    output.selectedSafe = (scratch.safeFlags[0] ?? 0) === 1;
+    output.selectedPermissionAllowed = (scratch.permissionAllowedFlags[0] ?? 0) === 1;
+    output.selectedScheduleAllowed = (scratch.scheduleAllowedFlags[0] ?? 0) === 1;
+    output.selectedAvailableAmount = scratch.availableAmounts[0] ?? 0;
+    output.sourceItemVersion = scratch.itemStoreVersions[0] ?? 0;
+    output.selectedLinkedCandidate = (scratch.linkedCandidateFlags[0] ?? 0) === 1;
+  }
+
+  private resetPortionInto(stackId: number, output: M3FoodPortionIntoOutput): void {
+    output.ok = false;
+    output.reason = undefined;
+    output.stackId = stackId;
+    output.foodDefId = 0;
+    output.regionId = 0;
+    output.storageSlotId = 0;
+    output.targetCellIndex = 0;
+    output.interactionSpotId = 0;
+    output.scoreMilli = 0;
+    output.permissionId = 0;
+    output.mealWindowId = 0;
+    output.mealWindowVersion = 0;
+    output.safe = false;
+    output.permissionAllowed = false;
+    output.scheduleAllowed = false;
+    output.availableAmount = 0;
+    output.itemStoreVersion = 0;
+    output.foodAvailabilityVersion = this.versionValue;
+    output.active = false;
+    output.linkedCandidate = false;
+    output.dirtyBacklog = this.dirtyCount;
+  }
+
   private isActiveStack(stackId: number): boolean {
     return isIndexInRange(stackId, this.stackCapacity) && (this.active[stackId] ?? 0) === 1;
   }
@@ -761,6 +1123,50 @@ function readFirstPathReason(results: readonly PathSearchResult[]): PathReason |
   return undefined;
 }
 
+export function hasFoodSelectionScratchCapacity(
+  scratch: M3FoodCandidateSelectionIntoScratch,
+): boolean {
+  return (
+    scratch.stackIds.length >= M3_FOOD_DEFAULT_SELECTED_CAP &&
+    scratch.foodDefIds.length >= M3_FOOD_DEFAULT_SELECTED_CAP &&
+    scratch.regionIds.length >= M3_FOOD_DEFAULT_SELECTED_CAP &&
+    scratch.storageSlotIds.length >= M3_FOOD_DEFAULT_SELECTED_CAP &&
+    scratch.targetCellIndexes.length >= M3_FOOD_DEFAULT_SELECTED_CAP &&
+    scratch.interactionSpotIds.length >= M3_FOOD_DEFAULT_SELECTED_CAP &&
+    scratch.scoreMillis.length >= M3_FOOD_DEFAULT_SELECTED_CAP &&
+    scratch.permissionIds.length >= M3_FOOD_DEFAULT_SELECTED_CAP &&
+    scratch.mealWindowIds.length >= M3_FOOD_DEFAULT_SELECTED_CAP &&
+    scratch.mealWindowVersions.length >= M3_FOOD_DEFAULT_SELECTED_CAP &&
+    scratch.safeFlags.length >= M3_FOOD_DEFAULT_SELECTED_CAP &&
+    scratch.permissionAllowedFlags.length >= M3_FOOD_DEFAULT_SELECTED_CAP &&
+    scratch.scheduleAllowedFlags.length >= M3_FOOD_DEFAULT_SELECTED_CAP &&
+    scratch.availableAmounts.length >= M3_FOOD_DEFAULT_SELECTED_CAP &&
+    scratch.itemStoreVersions.length >= M3_FOOD_DEFAULT_SELECTED_CAP &&
+    scratch.linkedCandidateFlags.length >= M3_FOOD_DEFAULT_SELECTED_CAP
+  );
+}
+
+export function resetFoodSelectionScratch(scratch: M3FoodCandidateSelectionIntoScratch): void {
+  for (let index = 0; index < M3_FOOD_DEFAULT_SELECTED_CAP; index += 1) {
+    scratch.stackIds[index] = M3_FOOD_STACK_NONE;
+    scratch.foodDefIds[index] = 0;
+    scratch.regionIds[index] = 0;
+    scratch.storageSlotIds[index] = 0;
+    scratch.targetCellIndexes[index] = 0;
+    scratch.interactionSpotIds[index] = 0;
+    scratch.scoreMillis[index] = 0;
+    scratch.permissionIds[index] = 0;
+    scratch.mealWindowIds[index] = 0;
+    scratch.mealWindowVersions[index] = 0;
+    scratch.safeFlags[index] = 0;
+    scratch.permissionAllowedFlags[index] = 0;
+    scratch.scheduleAllowedFlags[index] = 0;
+    scratch.availableAmounts[index] = 0;
+    scratch.itemStoreVersions[index] = 0;
+    scratch.linkedCandidateFlags[index] = 0;
+  }
+}
+
 function isFoodCandidateBefore(current: number, next: number, scores: Uint32Array): boolean {
   const currentScore = scores[current] ?? 0;
   const nextScore = scores[next] ?? 0;
@@ -783,14 +1189,14 @@ function clearUint32(values: Uint32Array, count: number, fill: number): void {
   }
 }
 
-function isIndexInRange(value: number, upperBound: number): boolean {
+export function isIndexInRange(value: number, upperBound: number): boolean {
   return Number.isSafeInteger(value) && value >= 0 && value < upperBound;
 }
 
-function isSafeUint32(value: number): boolean {
+export function isSafeUint32(value: number): boolean {
   return Number.isSafeInteger(value) && value >= 0 && value <= 0xffff_ffff;
 }
 
-function isPositiveSafeInteger(value: number): boolean {
+export function isPositiveSafeInteger(value: number): boolean {
   return Number.isSafeInteger(value) && value > 0;
 }

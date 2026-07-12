@@ -2,12 +2,10 @@
   "id": "WM-0181",
   "title": "M3 need-driven exact-index caller-owned surfaces",
   "summary": "Add caller-owned version-bound Into selection and read surfaces for food, rest, and medical exact indexes before WM-0170 resumes.",
-  "state": "ready",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
-  "dependsOn": [
-    "WM-0177"
-  ],
+  "dependsOn": ["WM-0177"],
   "docs": [
     "AGENTS.md",
     ".agents/skills/wuming-town-agent-workflow/SKILL.md",
@@ -24,11 +22,11 @@
   ],
   "acceptance": [
     "M3FoodAvailabilityStore exposes caller-owned selectCandidatesInto and readPortionInto surfaces that bind selected portion/stack/target facts to food owner/index versions and dirty-backlog basis in one reset-on-entry flat output; a dirty stack that has not advanced the owner version is still rejected during final revalidation",
-    "RestCandidateIndex exposes caller-owned selectCandidatesInto and RestSleepStore exposes readFixtureInto so one selected fixture carries RestSleepStore owner version, candidate source/index versions, schedule/weather basis, target/cell, score and cap counters without materializing a result",
-    "M3MedicalCareStore exposes caller-owned selectTreatmentRequestsInto, readPatientRequestInto and readCaregiverStateInto surfaces; the selected request binds patient condition plus caregiver cached condition/base-ability/valid/allowed basis, and revalidation cannot rely only on the medical store version",
-    "All new selection surfaces use caller-owned fixed-cap scratch/output, visit at most 24 candidates, retain at most 12, order by integer score then source-row id then target id, reset every output lane, and make no object, array, typed-array, closure or dynamic-string allocation in the complete hot call closure",
+    "RestCandidateIndex exposes caller-owned selectCandidatesInto and RestSleepStore exposes readFixtureInto so one selected fixture binds both the index-cached and current row owner versions, RestSleepStore/source/index versions, schedule-window id/version, weather exposure/version/source version, outdoor-work decision, target/cell, score and cap counters without materializing a result; a missed dirty row cannot be hidden by refreshing another row",
+    "M3MedicalCareStore exposes caller-owned selectTreatmentRequestsInto, readPatientRequestInto and readCaregiverStateInto surfaces; a maintained per-bucket count supplies the exact total without scanning past the cap, and the successful output carries patient condition plus the complete caregiver id/ability/minimum/value/condition/base-version/valid/allowed tuple and medical version",
+    "All new selection surfaces use caller-owned fixed-cap scratch/output, reject candidate caps above 24 and retained caps above 12, order by integer score then source-row id then target id, reset every output lane, and make no object, array, typed-array, closure or dynamic-string allocation in the complete hot call closure",
     "Existing allocating APIs, snapshots, hashes, drivers and historical food/rest/medical scenarios remain behavior-compatible; the new Into paths are additive public owner surfaces and do not duplicate owner truth into WorkOffer rows",
-    "owner-hot-path-surfaces.test.ts audits the complete transitive closure of every new root and proves output/scratch identity, stale owner/row/index/backlog rejection, cap metrics and parity with existing behavior; all required types and roots are exported from packages/sim-core/src/index.ts",
+    "owner-hot-path-surfaces.test.ts gives food/rest/medical/health distinct module identities, audits the receiver-exact complete transitive closure of every new root, includes a same-named-helper collision regression, and proves output/scratch identity, stale owner/row/index/backlog rejection, cap metrics and parity with existing behavior; all required types and roots are exported from packages/sim-core/src/index.ts",
     "The task does not modify game-session-autonomy, m3-health, WorkOffer, pathing, ReservationLedger, GameSession, protocol, Worker, client, save/load, dependencies or release surfaces"
   ],
   "requiredChecks": [
@@ -43,7 +41,7 @@
   ],
   "branch": "task/WM-0181-m3-need-driven-exact-index-caller-owned-surfaces",
   "createdAt": "2026-07-12T19:50:48.315Z",
-  "updatedAt": "2026-07-12T19:55:00.000Z",
+  "updatedAt": "2026-07-12T21:57:48.768Z",
   "history": [
     {
       "at": "2026-07-12T19:50:48.315Z",
@@ -62,6 +60,42 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "WM-0177 is done and the independent systems-architect packet fully refined the strict owner-index repair."
+    },
+    {
+      "at": "2026-07-12T19:58:05.031Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Tally WM-0181"
+    },
+    {
+      "at": "2026-07-12T20:22:00.000Z",
+      "actor": "project-director",
+      "action": "refine-plan-after-independent-review",
+      "details": "Locked Rest cached/current row plus schedule/weather owner tuples, exact Medical bucket totals and caregiver output, bounded Into caps, and collision-safe hot-path module identities."
+    },
+    {
+      "at": "2026-07-12T21:49:19.618Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented seven caller-owned food/rest/medical exact-index roots with 24/12 bounds, explicit owner/row/backlog/environment/caregiver revalidation, exact medical bucket totals, 161-entry allocation closure, 46 focused and 499 full tests passing; report coordination/reports/WM-0181.md."
+    },
+    {
+      "at": "2026-07-12T21:53:34.126Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; main...b4b777d exact eight-file product/test scope and seven Into roots verified; legacy parity, 24/12 caps, Food dirty rejection, Rest dual-row/three-environment/missed-dirty rejection, Medical exact totals/complete caregiver/forbidden-read rejection, 161-entry closure and package exports confirmed; typecheck, focused 46/46, boundaries 16, handoff, taskctl validate/status, diff checks, and quality 79/79 files 499/499 tests passed; one worktree; no benchmark or admission run."
+    },
+    {
+      "at": "2026-07-12T21:57:39.089Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Fast-forwarded main from 2338f16 to verified commit 6ddb118; post-integration quality passed 79 files/499 tests, handoff 1776 files/181 tasks/10 roles, taskctl validate/status and diff-check passed; no benchmark/admission run."
+    },
+    {
+      "at": "2026-07-12T21:57:48.768Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "Post-M8",
@@ -99,5 +133,20 @@
     "runtime dependencies, benchmark/admission changes, PR-3 commands or release actions"
   ],
   "executionLane": "simulation-engineer; Spark is prohibited because this task repairs generic owner-version and allocation boundaries consumed by deterministic autonomy",
-  "singleWriterRule": "WM-0181 is the sole ready repair writer. WM-0170 remains blocked with its Phase A/B1 checkpoint until WM-0181 is independently verified, integrated and done; WM-0171 remains proposed behind WM-0170."
+  "singleWriterRule": "WM-0181 is the sole repair writer. WM-0170 remains blocked with its Phase A/B1 checkpoint until WM-0181 is independently verified, integrated and done; WM-0171 remains proposed behind WM-0170.",
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Tally WM-0181",
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0181.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; main...b4b777d exact eight-file product/test scope and seven Into roots verified; legacy parity, 24/12 caps, Food dirty rejection, Rest dual-row/three-environment/missed-dirty rejection, Medical exact totals/complete caregiver/forbidden-read rejection, 161-entry closure and package exports confirmed; typecheck, focused 46/46, boundaries 16, handoff, taskctl validate/status, diff checks, and quality 79/79 files 499/499 tests passed; one worktree; no benchmark or admission run.",
+    "at": "2026-07-12T21:53:34.126Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Fast-forwarded main from 2338f16 to verified commit 6ddb118; post-integration quality passed 79 files/499 tests, handoff 1776 files/181 tasks/10 roles, taskctl validate/status and diff-check passed; no benchmark/admission run.",
+    "at": "2026-07-12T21:57:39.088Z"
+  }
 }

@@ -976,10 +976,14 @@ export type {
   M3WeatherSeverityLanes,
 } from "./m3-environment-data";
 export type {
+  RestCandidateEnvironmentBasis,
   RestCandidateIndexOptions,
   RestCandidateQuery,
   RestCandidateQueryResult,
+  RestCandidateSelectionIntoOutput,
+  RestCandidateSelectionIntoScratch,
   RestFixtureInput,
+  RestFixtureIntoOutput,
   RestFixtureKind,
   RestFixtureView,
   RestFixtureWeatherExposure,
@@ -999,11 +1003,14 @@ export type {
 export type {
   M3FoodCandidateQuery,
   M3FoodCandidateQueryResult,
+  M3FoodCandidateSelectionIntoOutput,
+  M3FoodCandidateSelectionIntoScratch,
   M3FoodMetrics,
   M3FoodMutationResult,
   M3FoodPathSelectionOptions,
   M3FoodPathSelectionResult,
   M3FoodPortionInput,
+  M3FoodPortionIntoOutput,
   M3FoodPortionView,
   M3FoodReason,
 } from "./m3-food";
@@ -1687,14 +1694,18 @@ export type {
   M3HealthMetrics,
 } from "./m3-health";
 export type {
+  M3MedicalCaregiverStateIntoOutput,
   M3MedicalCaregiverStateInput,
   M3MedicalCaregiverStateView,
   M3MedicalMetrics,
   M3MedicalMutationResult,
   M3MedicalPatientRequestInput,
+  M3MedicalPatientRequestIntoOutput,
   M3MedicalPatientRequestView,
   M3MedicalReason,
   M3MedicalSelectionOptions,
+  M3MedicalSelectionIntoOutput,
+  M3MedicalSelectionIntoScratch,
   M3MedicalSelectionResult,
   M3MedicalSelectionScratch,
 } from "./m3-medical-care";
