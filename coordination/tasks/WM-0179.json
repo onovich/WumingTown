@@ -2,7 +2,7 @@
   "id": "WM-0179",
   "title": "Entity-store structural command ordering repair",
   "summary": "Replace the inversion-dependent structural command ordering bottleneck with deterministic preallocated bounded ordering so the unchanged canonical entity-store gate passes without touching registry, component, benchmark or baseline semantics.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -53,7 +53,7 @@
   ],
   "branch": "task/WM-0179-entity-store-structural-command-ordering-repair",
   "createdAt": "2026-07-12T05:07:29.890Z",
-  "updatedAt": "2026-07-12T06:51:03.107Z",
+  "updatedAt": "2026-07-12T06:54:33.494Z",
   "history": [
     {
       "at": "2026-07-12T05:07:29.891Z",
@@ -114,6 +114,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings. Exact priority/signed-Int32-index/Uint32-sequence parity, nine fixed stable passes, constructor-owned scratch and reuse/capacity semantics verified; only three authorized product/test files changed. Admission and benchmark SHA/canonical evidence validate at b762b70: one measured 2x6s 40/8 PASS with reported empty stderr, one 9/2 entity-store result at 1.5104 ms and exact 8192/checksum invariants. PS5.1 30-case self-test, typecheck, 11 focused tests, M1-M3 hashes, boundaries, handoff, taskctl, diff and full quality pass; no live admission or benchmark rerun."
+    },
+    {
+      "at": "2026-07-12T06:54:27.208Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Fast-forward merged verified commit 6982799 to main; reviewed admission and entity benchmark each ran exactly once and passed (median 1.5104 ms, invariants exact); integration typecheck/focused/M1-M3/PS5.1/boundaries/handoff/taskctl/diff/full quality 78 files/464 tests passed."
+    },
+    {
+      "at": "2026-07-12T06:54:33.493Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "Post-M8",
@@ -172,5 +184,10 @@
     "verdict": "verified",
     "summary": "No blocking findings. Exact priority/signed-Int32-index/Uint32-sequence parity, nine fixed stable passes, constructor-owned scratch and reuse/capacity semantics verified; only three authorized product/test files changed. Admission and benchmark SHA/canonical evidence validate at b762b70: one measured 2x6s 40/8 PASS with reported empty stderr, one 9/2 entity-store result at 1.5104 ms and exact 8192/checksum invariants. PS5.1 30-case self-test, typecheck, 11 focused tests, M1-M3 hashes, boundaries, handoff, taskctl, diff and full quality pass; no live admission or benchmark rerun.",
     "at": "2026-07-12T06:51:03.106Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Fast-forward merged verified commit 6982799 to main; reviewed admission and entity benchmark each ran exactly once and passed (median 1.5104 ms, invariants exact); integration typecheck/focused/M1-M3/PS5.1/boundaries/handoff/taskctl/diff/full quality 78 files/464 tests passed.",
+    "at": "2026-07-12T06:54:27.207Z"
   }
 }
