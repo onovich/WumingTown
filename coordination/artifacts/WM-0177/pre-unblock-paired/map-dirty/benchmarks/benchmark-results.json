@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-12T09:01:35.754Z",
+  "baselinePath": "packages/benchmarks/baseline.json",
+  "artifactPath": "C:/Users/Administrator/AppData/Local/Temp/WumingTown-WM0177-map-dirty-d1a6a15d883b466f844d18ed501e3cac/benchmarks/benchmark-results.json",
+  "sampleCount": 9,
+  "warmupCount": 2,
+  "invocation": {
+    "command": "corepack pnpm bench --filter map-dirty",
+    "exitCode": 0
+  },
+  "execution": {
+    "mode": "isolated-node-per-suite",
+    "suiteProcessCount": 1
+  },
+  "environment": {
+    "nodeVersion": "v24.13.1",
+    "pnpmVersion": "11.8.0",
+    "osRelease": "10.0.26200",
+    "platform": "win32",
+    "arch": "x64",
+    "cpuModel": "AMD Ryzen 7 9700X 8-Core Processor             ",
+    "cpuCount": 16,
+    "hostKeySha256": "55442F953FEA3046AA652002ACBA5F947F40C7B767FBE51A63885BCC49E95912",
+    "processId": 4936,
+    "gitCommit": "3ca83d19ed6b3146ac876d78dd8dc16e2d994d22"
+  },
+  "results": [
+    {
+      "name": "map-dirty",
+      "report": {
+        "name": "map-dirty",
+        "width": 256,
+        "height": 256,
+        "chunkSize": 32,
+        "changedCells": 1024,
+        "dirtyQueuePeak": 64,
+        "rebuildBudgetPerTick": 8,
+        "drainTicks": 8,
+        "processedChunks": 64,
+        "remainingDirtyChunks": 0,
+        "finalGlobalVersion": 1024,
+        "processedChecksum": 3385099136,
+        "mapHash": "0xba7253ca",
+        "elapsedMs": 0.9109687500000021,
+        "heapUsedBeforeBytes": 11058944,
+        "heapUsedAfterBytes": 9825896,
+        "heapDeltaBytes": -1233048
+      },
+      "invariants": {
+        "width": 256,
+        "height": 256,
+        "chunkSize": 32,
+        "changedCells": 1024,
+        "dirtyQueuePeak": 64,
+        "rebuildBudgetPerTick": 8,
+        "drainTicks": 8,
+        "processedChunks": 64,
+        "remainingDirtyChunks": 0,
+        "finalGlobalVersion": 1024,
+        "processedChecksum": 3385099136,
+        "mapHash": "0xba7253ca"
+      },
+      "sampleElapsedMs": [
+        0.8171375000000012,
+        0.9697812500000111,
+        0.917100000000012,
+        0.9274375000000106,
+        0.8880374999999745,
+        1.021262500000006,
+        0.7531624999999948,
+        0.9404187499999921,
+        0.9109687500000021
+      ],
+      "stats": {
+        "sampleCount": 9,
+        "minElapsedMs": 0.7531624999999948,
+        "medianElapsedMs": 0.917100000000012,
+        "maxElapsedMs": 1.021262500000006,
+        "meanElapsedMs": 0.9050340277777783
+      },
+      "comparison": {
+        "name": "map-dirty",
+        "status": "ok",
+        "actualMedianElapsedMs": 0.917100000000012,
+        "baselineMedianElapsedMs": 1,
+        "regressionPercent": -8.289999999998798,
+        "warnRegressionPercent": 10,
+        "failRegressionPercent": 20,
+        "invariantMismatches": []
+      },
+      "suiteProcess": {
+        "processId": 51080,
+        "exitCode": 0,
+        "command": "corepack pnpm bench --filter map-dirty --samples 9 --warmup 2 --baseline D:\\WebProjects\\WumingTown\\packages\\benchmarks\\baseline.json --artifacts-dir C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\wuming-town-benchmark-Xa1tQr",
+        "artifactFileSha256": "0DA8436A15C272C66C783C63C4F08EA0A4EAB07C370167448877CDB6A3827CF6",
+        "artifactSidecarSha256": "A1523CB48F5E45B72899FD277D261096DED5BDD21EA605B5F25A4B6B54222169",
+        "canonicalPayloadSha256": "209E1593C5865D252DDDD8AD8A6607458B03FFEC469B5754C4C9BBD08EAE60A2"
+      }
+    }
+  ],
+  "hashing": {
+    "schemaVersion": 1,
+    "canonicalPayloadSha256": "4735F6B5568BAC72B2275680874053A2F97033D7C4249D271E7CB90B858C06AF",
+    "canonicalPayloadDescription": "SHA-256 of benchmark-results.json payload before hashing metadata is added.",
+    "artifactFileSha256Path": "C:/Users/Administrator/AppData/Local/Temp/WumingTown-WM0177-map-dirty-d1a6a15d883b466f844d18ed501e3cac/benchmarks/benchmark-results.json.sha256",
+    "artifactFileSha256Description": "Actual SHA-256 of benchmark-results.json is written to this sidecar after the JSON artifact is written."
+  }
+}
