@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MRHRX5WG-4AC5BA",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0177",
+  "kind": "review-request",
+  "subject": "WM-0177 ready for review",
+  "body": "Implemented and verified seven caller-owned owner-surface product/test/export files within the unchanged cap of 12; source/allocation, 51 focused tests, M1/M2/M3 100000-tick hashes and quality 79 files/481 tests pass; one measured admission and exactly six no-retry benchmark commands at 3ca83d produce full 15 OK/0 WARN/0 FAIL, zero invariant mismatches and 20 same-host paired rows with maximum positive observed delta 4.7327094761608945 percent; hashed raw evidence and manifest 45D9E35E are committed with baseline/WM-0083 unchanged; WM-0170 remains blocked.",
+  "artifacts": [
+    "coordination/reports/WM-0177.md",
+    "task/WM-0177-pr-2-sim-core-owner-version-and-caller-owned-out"
+  ],
+  "createdAt": "2026-07-12T12:32:35.104Z",
+  "acknowledgedAt": null
+}

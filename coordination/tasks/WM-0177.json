@@ -2,7 +2,7 @@
   "id": "WM-0177",
   "title": "PR-2 sim-core owner version and caller-owned output surfaces",
   "summary": "Add version-bound and caller-owned allocation-free public surfaces for MapGrid-assisted GridPathfinder, WorkOfferIndex, ReservationLedger and M3AbilityCacheStore so WM-0170 can resume unchanged.",
-  "state": "in_progress",
+  "state": "review_requested",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -62,7 +62,7 @@
   ],
   "branch": "task/WM-0177-pr-2-sim-core-owner-version-and-caller-owned-out",
   "createdAt": "2026-07-11T10:43:48.256Z",
-  "updatedAt": "2026-07-12T12:02:24.058Z",
+  "updatedAt": "2026-07-12T12:32:35.103Z",
   "history": [
     {
       "at": "2026-07-11T10:43:48.256Z",
@@ -123,6 +123,12 @@
       "actor": "simulation-engineer",
       "action": "unblock",
       "details": "WM-0178 canonical benchmark gate repair is verified, integrated and done; repaired main passes the fixed-baseline full bench, paired WM-0177 attribution is reviewed, and the original acceptance resumes without waiver."
+    },
+    {
+      "at": "2026-07-12T12:32:35.103Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented and verified seven caller-owned owner-surface product/test/export files within the unchanged cap of 12; source/allocation, 51 focused tests, M1/M2/M3 100000-tick hashes and quality 79 files/481 tests pass; one measured admission and exactly six no-retry benchmark commands at 3ca83d produce full 15 OK/0 WARN/0 FAIL, zero invariant mismatches and 20 same-host paired rows with maximum positive observed delta 4.7327094761608945 percent; hashed raw evidence and manifest 45D9E35E are committed with baseline/WM-0083 unchanged; WM-0170 remains blocked."
     }
   ],
   "milestone": "Post-M8",
@@ -187,5 +193,6 @@
   "singleWriterRule": "Until the pre-unblock control commit is pushed, project-director may serialize only this authorized task-control edit and the original simulation-engineer taskctl unblock transition. After that commit, the original simulation-engineer is the sole WM-0177 writer for the existing owner-surface scope, task/report and coordination/artifacts/WM-0177/pre-unblock-paired/**. The product/test/export diff remains seven files within the unchanged maximum of 12; no concurrent writer, admission or benchmark rerun is authorized. WM-0170 remains blocked until WM-0177 is independently verified, integrated and done; WM-0171..WM-0175 retain their existing dependencies.",
   "claimedBy": "simulation-engineer",
   "threadLabel": "Tally WM-0177",
-  "blocker": null
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0177.md"
 }
