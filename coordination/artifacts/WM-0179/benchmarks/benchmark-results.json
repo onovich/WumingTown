@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-12T06:37:09.474Z",
+  "baselinePath": "packages/benchmarks/baseline.json",
+  "artifactPath": "coordination/artifacts/WM-0179/benchmarks/benchmark-results.json",
+  "sampleCount": 9,
+  "warmupCount": 2,
+  "environment": {
+    "nodeVersion": "v24.13.1",
+    "pnpmVersion": "11.8.0",
+    "osRelease": "10.0.26200",
+    "platform": "win32",
+    "arch": "x64",
+    "cpuModel": "AMD Ryzen 7 9700X 8-Core Processor             ",
+    "cpuCount": 16,
+    "gitCommit": "b762b70dca499c6e694c1fa71aed5d636b90aaa1"
+  },
+  "results": [
+    {
+      "name": "entity-store",
+      "report": {
+        "name": "entity-store",
+        "capacity": 8192,
+        "queuedCommands": 8192,
+        "commitResultCount": 8192,
+        "appliedCommands": 8192,
+        "failedCommands": 0,
+        "attachedComponents": 8192,
+        "iterationChecksum": 134209536,
+        "elapsedMs": 1.2900999999999954,
+        "heapUsedBeforeBytes": 20546952,
+        "heapUsedAfterBytes": 15078096,
+        "heapDeltaBytes": -5468856
+      },
+      "sampleElapsedMs": [
+        2.6516000000000304,
+        1.3476,
+        1.66700000000003,
+        1.5104000000000042,
+        1.6853999999999587,
+        1.7374000000000365,
+        1.154100000000028,
+        0.8179999999999836,
+        1.2900999999999954
+      ],
+      "stats": {
+        "sampleCount": 9,
+        "minElapsedMs": 0.8179999999999836,
+        "medianElapsedMs": 1.5104000000000042,
+        "maxElapsedMs": 2.6516000000000304,
+        "meanElapsedMs": 1.5401777777777852
+      },
+      "invariants": {
+        "capacity": 8192,
+        "queuedCommands": 8192,
+        "commitResultCount": 8192,
+        "appliedCommands": 8192,
+        "failedCommands": 0,
+        "attachedComponents": 8192,
+        "iterationChecksum": 134209536
+      },
+      "comparison": {
+        "name": "entity-store",
+        "status": "ok",
+        "actualMedianElapsedMs": 1.5104000000000042,
+        "baselineMedianElapsedMs": 244.507,
+        "regressionPercent": -99.38226717435492,
+        "warnRegressionPercent": 10,
+        "failRegressionPercent": 20,
+        "invariantMismatches": []
+      }
+    }
+  ],
+  "hashing": {
+    "schemaVersion": 1,
+    "canonicalPayloadSha256": "E245527C07DB8F765002548C9E35D09236A8CDBC55A49012B6E635B1F40FEEC5",
+    "canonicalPayloadDescription": "SHA-256 of benchmark-results.json payload before hashing metadata is added.",
+    "artifactFileSha256Path": "coordination/artifacts/WM-0179/benchmarks/benchmark-results.json.sha256",
+    "artifactFileSha256Description": "Actual SHA-256 of benchmark-results.json is written to this sidecar after the JSON artifact is written."
+  }
+}
