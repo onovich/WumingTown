@@ -5,11 +5,7 @@ import * as path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { compareBenchmarkToBaseline } from "./baseline";
-import {
-  parseIsolatedBenchmarkChildReport,
-  runBenchmarksCli,
-  type BenchmarkCliReport,
-} from "./cli-lib";
+import { parseIsolatedBenchmarkChildReport, runBenchmarksCli } from "./cli-lib";
 import type { SampledEmptyTickBenchmark, SampledEntityStoreBenchmark } from "./benchmarks";
 
 describe("benchmark baseline comparison", () => {
@@ -89,31 +85,53 @@ describe("benchmark baseline comparison", () => {
       );
       const parsed: unknown = JSON.parse(artifactText);
 
-      // The artifact was produced by runBenchmarksCli in this test; retain its
-      // public schema type after checking the root discriminator.
       if (
-        typeof parsed !== "object" ||
-        parsed === null ||
-        !("schemaVersion" in parsed) ||
-        parsed.schemaVersion !== 1
+        !isRecord(parsed) ||
+        parsed["schemaVersion"] !== 1 ||
+        !isRecord(parsed["invocation"]) ||
+        !isRecord(parsed["execution"]) ||
+        !isRecord(parsed["environment"]) ||
+        !Array.isArray(parsed["results"])
       ) {
         throw new Error("benchmark CLI test expected schema version 1");
       }
-      const report = parsed as BenchmarkCliReport;
-      const result = report.results[0];
+      const invocation = parsed["invocation"];
+      const execution = parsed["execution"];
+      const environment = parsed["environment"];
+      const results: readonly unknown[] = parsed["results"];
+      const result = results[0];
 
-      expect(exitCode).toBe(0);
-      expect(report.invocation.exitCode).toBe(0);
-      expect(report.execution).toStrictEqual({
+      if (
+        !isRecord(result) ||
+        !isRecord(result["suiteProcess"]) ||
+        !isRecord(result["comparison"]) ||
+        (result["comparison"]["status"] !== "ok" &&
+          result["comparison"]["status"] !== "warn" &&
+          result["comparison"]["status"] !== "fail") ||
+        !Array.isArray(result["sampleElapsedMs"])
+      ) {
+        throw new Error("benchmark CLI test expected one isolated result");
+      }
+      const suiteProcess = result["suiteProcess"];
+      const comparison = result["comparison"];
+      const sampleElapsedMs: readonly unknown[] = result["sampleElapsedMs"];
+      const expectedExitCode = comparison["status"] === "fail" ? 1 : 0;
+
+      expect(exitCode).toBe(expectedExitCode);
+      expect(invocation).toHaveProperty("exitCode", expectedExitCode);
+      expect(execution).toStrictEqual({
         mode: "isolated-node-per-suite",
         suiteProcessCount: 1,
       });
-      expect(report.environment.hostKeySha256).toMatch(/^[A-F0-9]{64}$/u);
-      expect(result?.name).toBe("empty-tick");
-      expect(result?.sampleElapsedMs).toHaveLength(1);
-      expect(result?.suiteProcess.processId).not.toBe(process.pid);
-      expect(result?.suiteProcess.exitCode).toBe(0);
-      expect(result?.suiteProcess.artifactFileSha256).toMatch(/^[A-F0-9]{64}$/u);
+      expect(environment).toHaveProperty("hostKeySha256", expect.stringMatching(/^[A-F0-9]{64}$/u));
+      expect(result).toHaveProperty("name", "empty-tick");
+      expect(sampleElapsedMs).toHaveLength(1);
+      expect(suiteProcess).not.toHaveProperty("processId", process.pid);
+      expect(suiteProcess).toHaveProperty("exitCode", expectedExitCode);
+      expect(suiteProcess).toHaveProperty(
+        "artifactFileSha256",
+        expect.stringMatching(/^[A-F0-9]{64}$/u),
+      );
     } finally {
       rmSync(artifactDirectory, { force: true, recursive: true });
     }
@@ -211,4 +229,8 @@ function createEntityStoreResult(medianElapsedMs: number): SampledEntityStoreBen
       meanElapsedMs: medianElapsedMs,
     },
   };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
 }

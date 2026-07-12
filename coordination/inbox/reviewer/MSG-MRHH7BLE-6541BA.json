@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MRHH7BLE-6541BA",
+  "from": "qa-performance",
+  "to": "reviewer",
+  "taskId": "WM-0178",
+  "kind": "review-request",
+  "subject": "WM-0178 ready for review",
+  "body": "Reviewed production admission passed once; six filters and the full canonical suite each ran once at 9 samples/2 warmups with zero invariant mismatches and full 15 OK/0 WARN/0 FAIL; imported hashed evidence; typecheck, focused tests, boundaries, handoff, taskctl, diff and quality all pass; baseline/WM-0083 unchanged; no retry, waiver or downstream state change.",
+  "artifacts": [
+    "coordination/reports/WM-0178.md",
+    "task/WM-0178-canonical-benchmark-gate-repair"
+  ],
+  "createdAt": "2026-07-12T07:32:33.266Z",
+  "acknowledgedAt": null
+}

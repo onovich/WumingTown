@@ -1,11 +1,4 @@
-import {
-  existsSync,
-  mkdirSync,
-  mkdtempSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { cpus, hostname, release, tmpdir } from "node:os";
 import * as path from "node:path";
 import { spawnSync } from "node:child_process";
@@ -196,10 +189,7 @@ function createInProcessResults(
     },
   };
 
-  // sampleNamedBenchmark returns a discriminated SampledBenchmarkResult; the
-  // object spread preserves that exact name/report/invariants pairing even
-  // though TypeScript widens the local spread before intersecting metadata.
-  return [result as BenchmarkCliResult];
+  return [result];
 }
 
 function runIsolatedBenchmarkSuites(
@@ -399,9 +389,9 @@ export function parseIsolatedBenchmarkChildReport(
     throw new Error(`benchmark child artifact for ${expected.name} omitted raw samples`);
   }
 
-  // The artifact is produced by this exact CLI schema in a child process; the
-  // boundary checks above validate every field used for orchestration before
-  // retaining its already-typed benchmark report payload.
+  // The boundary checks above validate every field used by orchestration before
+  // retaining the child payload under its existing public report type.
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- validated external JSON boundary
   return parsed as unknown as BenchmarkCliReport;
 }
 
