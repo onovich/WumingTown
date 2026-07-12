@@ -2,7 +2,7 @@
   "id": "WM-0178",
   "title": "Canonical benchmark gate repair and paired attribution",
   "summary": "Restore the canonical fixed-baseline full benchmark gate on clean main, pair exact-main and WM-0177 checkpoint evidence, and identify any exact sim/product repair scope without waiving or weakening performance requirements.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "qa-performance",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -55,7 +55,7 @@
   ],
   "branch": "task/WM-0178-canonical-benchmark-gate-repair",
   "createdAt": "2026-07-11T13:56:48.314Z",
-  "updatedAt": "2026-07-12T08:23:13.974Z",
+  "updatedAt": "2026-07-12T08:27:13.546Z",
   "history": [
     {
       "at": "2026-07-11T13:56:48.315Z",
@@ -146,6 +146,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings. The original P2 is closed by one shared createBenchmarkStats recomputation of all five finite statistics with Object.is; the exact raw 1.419 ms versus reported 0 diagnostic now fails closed, while index/root exports, thresholds, workloads, schema and evidence are unchanged. Exact focused tests pass 2 files/15 tests. Read-only audit passes 31 JSON/sidecar pairs, 29 benchmark artifacts/99 results, final 7 artifacts/21 OK results and 62 unchanged hashes; admission CRLF/attributes and baseline/WM-0083 blobs remain exact. Typecheck, scoped ESLint, boundaries, handoff, taskctl, diff checks and full quality 78 files/475 tests pass; no admission or benchmark command was rerun."
+    },
+    {
+      "at": "2026-07-12T08:27:13.509Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Independent reviewer verified the shared raw-sample statistics repair at 39c48ae with no findings; project-director integration gates pass typecheck, scoped lint, 15 focused tests, 16-workspace boundaries, 1746-file handoff, 31-pair artifact audit and full quality 78 files/475 tests; admission CRLF, canonical baseline and WM-0083 remain exact; no performance command was rerun."
+    },
+    {
+      "at": "2026-07-12T08:27:13.546Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "Post-M8",
@@ -282,5 +294,10 @@
     "verdict": "verified",
     "summary": "No blocking findings. The original P2 is closed by one shared createBenchmarkStats recomputation of all five finite statistics with Object.is; the exact raw 1.419 ms versus reported 0 diagnostic now fails closed, while index/root exports, thresholds, workloads, schema and evidence are unchanged. Exact focused tests pass 2 files/15 tests. Read-only audit passes 31 JSON/sidecar pairs, 29 benchmark artifacts/99 results, final 7 artifacts/21 OK results and 62 unchanged hashes; admission CRLF/attributes and baseline/WM-0083 blobs remain exact. Typecheck, scoped ESLint, boundaries, handoff, taskctl, diff checks and full quality 78 files/475 tests pass; no admission or benchmark command was rerun.",
     "at": "2026-07-12T08:23:13.974Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Independent reviewer verified the shared raw-sample statistics repair at 39c48ae with no findings; project-director integration gates pass typecheck, scoped lint, 15 focused tests, 16-workspace boundaries, 1746-file handoff, 31-pair artifact audit and full quality 78 files/475 tests; admission CRLF, canonical baseline and WM-0083 remain exact; no performance command was rerun.",
+    "at": "2026-07-12T08:27:13.508Z"
   }
 }
