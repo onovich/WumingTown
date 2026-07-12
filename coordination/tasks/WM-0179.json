@@ -2,7 +2,7 @@
   "id": "WM-0179",
   "title": "Entity-store structural command ordering repair",
   "summary": "Replace the inversion-dependent structural command ordering bottleneck with deterministic preallocated bounded ordering so the unchanged canonical entity-store gate passes without touching registry, component, benchmark or baseline semantics.",
-  "state": "blocked",
+  "state": "in_progress",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -53,7 +53,7 @@
   ],
   "branch": "task/WM-0179-entity-store-structural-command-ordering-repair",
   "createdAt": "2026-07-12T05:07:29.890Z",
-  "updatedAt": "2026-07-12T05:31:23.711Z",
+  "updatedAt": "2026-07-12T06:32:35.126Z",
   "history": [
     {
       "at": "2026-07-12T05:07:29.891Z",
@@ -96,6 +96,12 @@
       "actor": "systems-architect",
       "action": "require-WM-0180-reviewed-admission-tool",
       "details": "WM-0179 checkpoint 0882988 passes its non-benchmark gates and has benchmark invocation count zero, but two same-class inline admission failures lost evidence and used a PowerShell 7-only finite API. The workflow repeated-failure rule requires WM-0180 to add and independently verify a reusable Windows PowerShell 5.1 admission tool/reference before WM-0179 may resume."
+    },
+    {
+      "at": "2026-07-12T06:32:35.125Z",
+      "actor": "systems-architect",
+      "action": "unblock",
+      "details": "WM-0180 is independently verified, integrated and done at 3ac1a66; WM-0179 was refreshed at 02419e1 with product checkpoint 0882988 preserved and exactly the three authorized package files. Authorize exactly one measured invocation of the reviewed quiet-host-admission.ps1. Only one exit-zero measured PASS JSON may precede the single entity-store benchmark attempt; any admission or benchmark failure blocks with no retry."
     }
   ],
   "milestone": "Post-M8",
@@ -147,22 +153,5 @@
   "claimedBy": "simulation-engineer",
   "threadLabel": "Tally WM-0179",
   "singleWriterRule": "WM-0180 is the sole workflow-tool/reference writer while active. WM-0179 remains blocked and claimed by its simulation-engineer with no product, admission or benchmark writes; WM-0178 and WM-0177 remain blocked/claimed with no writes; WM-0170 remains blocked.",
-  "blocker": {
-    "by": "simulation-engineer",
-    "to": "systems-architect",
-    "reason": "Product checkpoint 0882988 and all non-benchmark gates pass, while benchmark invocation count remains zero. The first inline two-window admission lost its CPU evidence through captured Write-Output; the authorized synthetic recovery check then failed because Windows PowerShell lacks System.Double.IsFinite, so no replacement admission ran. This is the second same-class workflow failure. WM-0180 must provide an independently reviewed Windows PowerShell 5.1 fail-closed admission script/self-test and update the workflow quality-gate reference before WM-0179 may resume.",
-    "previousState": "in_progress",
-    "at": "2026-07-12T05:26:34.738Z",
-    "reviewedAt": "2026-07-12T05:31:23.711Z",
-    "repairTasks": [
-      "WM-0180"
-    ],
-    "resumeProcedure": [
-      "WM-0180 must be independently verified, integrated and done on main.",
-      "The project director refreshes the existing WM-0179 branch from repaired main and confirms checkpoint 0882988 is still the only product/test diff and its non-benchmark evidence remains valid.",
-      "Systems architecture unblocks WM-0179 and authorizes exactly one production invocation of the reviewed quiet-host-admission.ps1; no inline script or further dry probe is allowed.",
-      "Only exit zero plus exactly one valid evidenceKind=measured PASS JSON permits corepack pnpm bench --filter entity-store to run once. That command is benchmark attempt one because the recorded invocation count is zero.",
-      "Any admission-script failure or malformed/lost evidence re-blocks without another replacement. WM-0178, WM-0177 and WM-0170 remain blocked until the existing closure DAG is satisfied."
-    ]
-  }
+  "blocker": null
 }
