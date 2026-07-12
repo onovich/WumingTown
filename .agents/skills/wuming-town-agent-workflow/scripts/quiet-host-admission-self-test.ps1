@@ -115,6 +115,36 @@ function Invoke-TestCase {
   }
 }
 
+function Get-ExactSingleStdoutLine {
+  param([string]$RawStdout)
+
+  if ([string]::IsNullOrEmpty($RawStdout)) {
+    throw "stdout was empty"
+  }
+  if ($RawStdout.EndsWith("`r`n")) {
+    $line = $RawStdout.Substring(0, $RawStdout.Length - 2)
+  } elseif ($RawStdout.EndsWith("`n")) {
+    $line = $RawStdout.Substring(0, $RawStdout.Length - 1)
+  } else {
+    throw "stdout did not end with exactly one line terminator"
+  }
+  if ([string]::IsNullOrWhiteSpace($line) -or $line.Contains("`r") -or $line.Contains("`n")) {
+    throw "stdout contained an empty, additional, or malformed line"
+  }
+  return $line
+}
+
+function Assert-StdoutShapeRejected {
+  param([string]$Name, [string]$RawStdout)
+
+  try {
+    $null = Get-ExactSingleStdoutLine $RawStdout
+  } catch {
+    return
+  }
+  throw "stdout shape $Name was accepted unexpectedly"
+}
+
 function Assert-TestCase {
   param($Case)
 
@@ -123,9 +153,10 @@ function Assert-TestCase {
     throw "case $($Case.name): stderr was not empty: $($result.stderr)"
   }
 
-  $line = $result.stdout.TrimEnd([char[]]"`r`n")
-  if ([string]::IsNullOrWhiteSpace($line) -or $line.Contains("`r") -or $line.Contains("`n")) {
-    throw "case $($Case.name): stdout was not exactly one non-empty JSON line"
+  try {
+    $line = Get-ExactSingleStdoutLine $result.stdout
+  } catch {
+    throw "case $($Case.name): stdout was not exactly one non-empty JSON line: $($_.Exception.Message)"
   }
   if ($result.exitCode -ne $Case.expectedExitCode) {
     throw "case $($Case.name): process exit $($result.exitCode), expected $($Case.expectedExitCode); stdout=$line"
@@ -223,6 +254,14 @@ $payload.logicalProcessorCount = 0
 $null = $cases.Add((New-TestCase "invalid-logical-cpu-count" $payload 20 "fail" "evidence_shape_invalid"))
 
 $payload = New-TestPayload
+$payload.logicalProcessorCount = 1.5
+$null = $cases.Add((New-TestCase "fractional-logical-cpu-count" $payload 20 "fail" "evidence_shape_invalid"))
+
+$payload = New-TestPayload
+$payload.logicalProcessorCount = ([double][int]::MaxValue + 1.0)
+$null = $cases.Add((New-TestCase "overflow-logical-cpu-count" $payload 20 "fail" "evidence_shape_invalid"))
+
+$payload = New-TestPayload
 $payload.windows[0].hostBusyPct = 40.01
 $null = $cases.Add((New-TestCase "host-threshold-exceeded" $payload 30 "fail" "threshold_exceeded"))
 
@@ -267,6 +306,14 @@ $payload.throwUnexpected = $true
 $null = $cases.Add((New-TestCase "unexpected-exception" $payload 70 "fail" "unexpected_exception"))
 
 try {
+  $validShape = Get-ExactSingleStdoutLine "{}`r`n"
+  if ($validShape -ne "{}") {
+    throw "valid stdout shape changed"
+  }
+  Assert-StdoutShapeRejected "missing-terminator" "{}"
+  Assert-StdoutShapeRejected "extra-crlf" "{}`r`n`r`n"
+  Assert-StdoutShapeRejected "extra-lf" "{}`n`n"
+  Assert-StdoutShapeRejected "duplicate-json-lines" "{}`r`n{}`r`n"
   foreach ($case in $cases) {
     Assert-TestCase $case
   }

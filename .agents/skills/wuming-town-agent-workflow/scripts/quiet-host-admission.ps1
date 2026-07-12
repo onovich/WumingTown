@@ -35,6 +35,26 @@ function Test-FiniteNumber {
   return (-not [double]::IsNaN($number)) -and (-not [double]::IsInfinity($number))
 }
 
+function Test-PositiveInt32 {
+  param($Value)
+
+  if (-not (Test-FiniteNumber $Value)) {
+    return $false
+  }
+  $number = [Convert]::ToDouble($Value, [Globalization.CultureInfo]::InvariantCulture)
+  return $number -gt 0 -and $number -le [int]::MaxValue -and [math]::Floor($number) -eq $number
+}
+
+function Test-NonNegativeInt32 {
+  param($Value)
+
+  if (-not (Test-FiniteNumber $Value)) {
+    return $false
+  }
+  $number = [Convert]::ToDouble($Value, [Globalization.CultureInfo]::InvariantCulture)
+  return $number -ge 0 -and $number -le [int]::MaxValue -and [math]::Floor($number) -eq $number
+}
+
 function New-AdmissionEvidence {
   param([string]$EvidenceKind)
 
@@ -292,9 +312,9 @@ function Measure-CpuWindow {
 }
 
 function Test-WindowShape {
-  param($Windows, [int]$LogicalProcessorCount)
+  param($Windows, $LogicalProcessorCount)
 
-  if ($LogicalProcessorCount -le 0 -or @($Windows).Count -ne $script:WindowCount) {
+  if (-not (Test-PositiveInt32 $LogicalProcessorCount) -or @($Windows).Count -ne $script:WindowCount) {
     return [pscustomobject]@{ ok = $false; reason = "wrong_window_count_or_cpu_count" }
   }
 
@@ -308,15 +328,18 @@ function Test-WindowShape {
         return [pscustomobject]@{ ok = $false; reason = "window_field_missing" }
       }
     }
-    if ([int]$window.windowIndex -ne ($index + 1)) {
+    if (-not (Test-PositiveInt32 $window.windowIndex) -or [int]$window.windowIndex -ne ($index + 1)) {
       return [pscustomobject]@{ ok = $false; reason = "window_index_invalid" }
     }
-    foreach ($field in @("elapsedSeconds", "hostBusyPct", "maxProcessHostPct", "maxProcessId")) {
+    foreach ($field in @("elapsedSeconds", "hostBusyPct", "maxProcessHostPct")) {
       if (-not (Test-FiniteNumber $window.$field)) {
         return [pscustomobject]@{ ok = $false; reason = "window_value_non_finite" }
       }
     }
-    if ([double]$window.elapsedSeconds -le 0 -or [double]$window.hostBusyPct -lt 0 -or [double]$window.maxProcessHostPct -lt 0 -or [int]$window.maxProcessId -lt 0) {
+    if (-not (Test-NonNegativeInt32 $window.maxProcessId)) {
+      return [pscustomobject]@{ ok = $false; reason = "window_process_id_invalid" }
+    }
+    if ([double]$window.elapsedSeconds -le 0 -or [double]$window.hostBusyPct -lt 0 -or [double]$window.maxProcessHostPct -lt 0) {
       return [pscustomobject]@{ ok = $false; reason = "window_value_out_of_range" }
     }
     if ([double]$window.maxProcessHostPct -gt ([double]$window.hostBusyPct + 0.000001)) {
@@ -425,14 +448,11 @@ function Invoke-SyntheticAdmission {
     }
   }
 
-  $logicalProcessorCount = 0
-  if (Test-FiniteNumber $Payload.logicalProcessorCount) {
-    $logicalProcessorCount = [int]$Payload.logicalProcessorCount
-  }
-  $shape = Test-WindowShape -Windows $windows -LogicalProcessorCount $logicalProcessorCount
+  $shape = Test-WindowShape -Windows $windows -LogicalProcessorCount $Payload.logicalProcessorCount
   if (-not $shape.ok) {
     return Complete-AdmissionEvidence $evidence "fail" "evidence_shape_invalid" 20 $shape.reason
   }
+  $evidence.logicalProcessorCount = [int]$Payload.logicalProcessorCount
   Set-ValidatedWindows -Evidence $evidence -Windows $windows
 
   if (-not [bool]$Payload.gitCleanAfter) {
