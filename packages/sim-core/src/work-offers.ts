@@ -1820,7 +1820,8 @@ function createEmptyLinks(length: number): Int32Array {
   return links;
 }
 
-function insertSorted(
+/** @internal source-audit only; intentionally not re-exported from package root. */
+export function insertSorted(
   heads: Int32Array,
   next: Int32Array,
   previous: Int32Array,
@@ -1849,7 +1850,8 @@ function insertSorted(
   }
 }
 
-function removeLinked(
+/** @internal source-audit only; intentionally not re-exported from package root. */
+export function removeLinked(
   heads: Int32Array,
   next: Int32Array,
   previous: Int32Array,
@@ -1873,7 +1875,8 @@ function removeLinked(
   next[offerId] = -1;
 }
 
-function insertTopOffer(
+/** @internal source-audit only; intentionally not re-exported from package root. */
+export function insertTopOffer(
   selectedOfferIds: Uint32Array,
   selectedScoresMilli: Int32Array,
   selectedCount: number,
@@ -1908,7 +1911,8 @@ function insertTopOffer(
   return selectedCount < maxSelectedOffers ? selectedCount + 1 : selectedCount;
 }
 
-function clearSelection(
+/** @internal source-audit only; intentionally not re-exported from package root. */
+export function clearSelection(
   selectedOfferIds: Uint32Array,
   selectedScoresMilli: Int32Array,
   maxSelectedOffers: number,
@@ -1942,7 +1946,8 @@ function clearMultiPawnOutput(
   }
 }
 
-function isBetterOffer(
+/** @internal source-audit only; intentionally not re-exported from package root. */
+export function isBetterOffer(
   offerId: number,
   scoreMilli: number,
   currentId: number,
@@ -2033,7 +2038,8 @@ function decodeTraceReason(code: number): WorkOfferTraceReason {
   return "work_offer_trace_none";
 }
 
-function createCompositeKey(
+/** @internal source-audit only; intentionally not re-exported from package root. */
+export function createCompositeKey(
   workType: number,
   regionId: number,
   defId: number,
@@ -2070,22 +2076,27 @@ function requireCompositeBucketCount(options: WorkOfferIndexOptions): number {
   return bucketCount;
 }
 
-function isIndexInRange(value: number, upperBound: number): boolean {
+/** @internal source-audit only; intentionally not re-exported from package root. */
+export function isIndexInRange(value: number, upperBound: number): boolean {
   return Number.isSafeInteger(value) && value >= 0 && value < upperBound;
 }
 
-function isPositiveSafeInteger(value: number): boolean {
+/** @internal source-audit only; intentionally not re-exported from package root. */
+export function isPositiveSafeInteger(value: number): boolean {
   return Number.isSafeInteger(value) && value > 0;
 }
 
-function isSafeNonNegativeInteger(value: number): boolean {
+/** @internal source-audit only; intentionally not re-exported from package root. */
+export function isSafeNonNegativeInteger(value: number): boolean {
   return Number.isSafeInteger(value) && value >= 0;
 }
 
-function isUint32(value: number): boolean {
+/** @internal source-audit only; intentionally not re-exported from package root. */
+export function isUint32(value: number): boolean {
   return Number.isSafeInteger(value) && value >= 0 && value <= 0xffff_ffff;
 }
 
-function isInt32(value: number): boolean {
+/** @internal source-audit only; intentionally not re-exported from package root. */
+export function isInt32(value: number): boolean {
   return Number.isSafeInteger(value) && value >= -0x8000_0000 && value <= 0x7fff_ffff;
 }

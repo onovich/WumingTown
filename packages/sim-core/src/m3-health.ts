@@ -982,7 +982,8 @@ function mixCondition(hash: number, conditionId: number, store: M3HealthConditio
   return next;
 }
 
-function abilityMaskFor(ability: number): number {
+/** @internal source-audit only; intentionally not re-exported from package root. */
+export function abilityMaskFor(ability: number): number {
   return 1 << ability;
 }
 
@@ -1000,7 +1001,8 @@ function countAbilityMaskLanes(abilityMask: number): number {
   return count;
 }
 
-function laneIndex(actorId: number, ability: number): number {
+/** @internal source-audit only; intentionally not re-exported from package root. */
+export function laneIndex(actorId: number, ability: number): number {
   return actorId * M3_ABILITY_LANE_COUNT + ability;
 }
 
@@ -1010,11 +1012,13 @@ function createEmptyLinks(length: number): Int32Array {
   return links;
 }
 
-function isIndexInRange(value: number, upperBound: number): boolean {
+/** @internal source-audit only; intentionally not re-exported from package root. */
+export function isIndexInRange(value: number, upperBound: number): boolean {
   return Number.isSafeInteger(value) && value >= 0 && value < upperBound;
 }
 
-function isAbilityLane(value: number): boolean {
+/** @internal source-audit only; intentionally not re-exported from package root. */
+export function isAbilityLane(value: number): boolean {
   return isIndexInRange(value, M3_ABILITY_LANE_COUNT);
 }
 
@@ -1026,7 +1030,8 @@ function isNonNegativeUint32(value: number): boolean {
   return Number.isSafeInteger(value) && value >= 0 && value <= 0xffff_ffff;
 }
 
-function isSeverity(value: number): boolean {
+/** @internal source-audit only; intentionally not re-exported from package root. */
+export function isSeverity(value: number): boolean {
   return Number.isSafeInteger(value) && value >= 0 && value <= 1000;
 }
 
@@ -1039,7 +1044,8 @@ function isTerminalState(value: number): boolean {
   );
 }
 
-function clampAbilityValue(value: number): number {
+/** @internal source-audit only; intentionally not re-exported from package root. */
+export function clampAbilityValue(value: number): number {
   if (value <= 0) {
     return 0;
   }

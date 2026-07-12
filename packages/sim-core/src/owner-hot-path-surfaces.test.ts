@@ -1,3 +1,4 @@
+import * as ts from "typescript";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -16,6 +17,7 @@ import {
   createMapGrid,
   createReservationLedger,
   createWorkOfferIndex,
+  isSafeTick,
   type EntityId,
   type M3AbilityQueryResult,
   type M3AbilityQueryIntoOutput,
@@ -33,6 +35,42 @@ import {
   type WorkOfferSelectionIntoScratch,
   type WorkOfferVersionedInput,
 } from "./index";
+import {
+  directionMask as auditMapDirectionMask,
+  oppositeDirection as auditMapOppositeDirection,
+} from "./map-grid";
+import {
+  abilityMaskFor as auditM3AbilityMaskFor,
+  clampAbilityValue as auditM3ClampAbilityValue,
+  isAbilityLane as auditM3IsAbilityLane,
+  isIndexInRange as auditM3IsIndexInRange,
+  isSeverity as auditM3IsSeverity,
+  laneIndex as auditM3LaneIndex,
+} from "./m3-health";
+import {
+  isCellIndexInRange as auditPathIsCellIndexInRange,
+  isPositiveSafeInteger as auditPathIsPositiveSafeInteger,
+  isSafeNonNegativeInteger as auditPathIsSafeNonNegativeInteger,
+} from "./pathing";
+import {
+  isIndexInRange as auditReservationIsIndexInRange,
+  isPositiveUint32 as auditReservationIsPositiveUint32,
+  isSafeUint32 as auditReservationIsSafeUint32,
+  readPreparedChannelCode as auditReservationReadPreparedChannelCode,
+} from "./reservation-ledger";
+import {
+  clearSelection as auditWorkOfferClearSelection,
+  createCompositeKey as auditWorkOfferCreateCompositeKey,
+  insertSorted as auditWorkOfferInsertSorted,
+  insertTopOffer as auditWorkOfferInsertTopOffer,
+  isBetterOffer as auditWorkOfferIsBetterOffer,
+  isIndexInRange as auditWorkOfferIsIndexInRange,
+  isInt32 as auditWorkOfferIsInt32,
+  isPositiveSafeInteger as auditWorkOfferIsPositiveSafeInteger,
+  isSafeNonNegativeInteger as auditWorkOfferIsSafeNonNegativeInteger,
+  isUint32 as auditWorkOfferIsUint32,
+  removeLinked as auditWorkOfferRemoveLinked,
+} from "./work-offers";
 
 describe("caller-owned owner hot-path surfaces", () => {
   it("reads MapGrid movement facts without mutation and resets every output lane", () => {
@@ -139,6 +177,7 @@ describe("caller-owned owner hot-path surfaces", () => {
     const request = createPathRequest(grid.globalVersion, 0, 15);
     const legacy = pathfinder.findPath(grid, request);
     expect(legacy.ok).toBe(true);
+    if (!legacy.ok) throw new Error("expected legacy path success");
 
     const legacyCell = vi
       .spyOn(grid, "isCellPassableByIndex")
@@ -167,11 +206,9 @@ describe("caller-owned owner hot-path surfaces", () => {
       regionGraphVersion: request.basis.regionGraphVersion,
       pathCellCount: 7,
     });
-    if (legacy.ok) {
-      expect(Array.from(route.slice(0, output.pathCellCount))).toEqual(Array.from(legacy.path));
-      expect(output.pathCostMilli).toBe(legacy.pathCostMilli);
-      expect(output.nodeExpansions).toBe(legacy.nodeExpansions);
-    }
+    expect(Array.from(route.slice(0, output.pathCellCount))).toEqual(Array.from(legacy.path));
+    expect(output.pathCostMilli).toBe(legacy.pathCostMilli);
+    expect(output.nodeExpansions).toBe(legacy.nodeExpansions);
     expect(legacyCell).not.toHaveBeenCalled();
     expect(legacyMove).not.toHaveBeenCalled();
     expect(legacyRead).not.toHaveBeenCalled();
@@ -179,14 +216,48 @@ describe("caller-owned owner hot-path surfaces", () => {
     expect(route).toBe(routeIdentity);
 
     const shortRoute = new Uint32Array([777]);
+    const shortRouteIdentity = shortRoute;
     pathfinder.findPathInto(grid, request, shortRoute, output);
     expect(output).toMatchObject({
       ok: false,
       reason: "path_output_capacity_exceeded",
-      pathCellCount: 0,
-      pathCostMilli: 0,
+      requestSequence: request.requestSequence,
+      startCellIndex: request.startCellIndex,
+      goalCellIndex: request.goalCellIndex,
+      mapVersion: request.basis.mapVersion,
+      navigationVersion: request.basis.navigationVersion,
+      regionVersion: request.basis.regionVersion,
+      roomVersion: request.basis.roomVersion,
+      regionGraphVersion: request.basis.regionGraphVersion,
+      pathCellCount: 7,
+      pathCostMilli: legacy.pathCostMilli,
+      nodeExpansions: legacy.nodeExpansions,
     });
-    expect(shortRoute[0]).toBe(777);
+    expect(Array.from(shortRoute)).toEqual([777]);
+    expect(shortRoute).toBe(shortRouteIdentity);
+    expect(output).toBe(outputIdentity);
+
+    const trivialRequest = createPathRequest(grid.globalVersion, 5, 5);
+    const zeroRoute = new Uint32Array(0);
+    const zeroRouteIdentity = zeroRoute;
+    pathfinder.findPathInto(grid, trivialRequest, zeroRoute, output);
+    expect(output).toMatchObject({
+      ok: false,
+      reason: "path_output_capacity_exceeded",
+      requestSequence: trivialRequest.requestSequence,
+      startCellIndex: trivialRequest.startCellIndex,
+      goalCellIndex: trivialRequest.goalCellIndex,
+      mapVersion: trivialRequest.basis.mapVersion,
+      navigationVersion: trivialRequest.basis.navigationVersion,
+      regionVersion: trivialRequest.basis.regionVersion,
+      roomVersion: trivialRequest.basis.roomVersion,
+      regionGraphVersion: trivialRequest.basis.regionGraphVersion,
+      pathCellCount: 1,
+      pathCostMilli: 0,
+      nodeExpansions: 0,
+    });
+    expect(Array.from(zeroRoute)).toEqual([]);
+    expect(zeroRoute).toBe(zeroRouteIdentity);
     expect(output).toBe(outputIdentity);
 
     const blockedRequest = createPathRequest(grid.globalVersion, 1, 15);
@@ -585,7 +656,7 @@ describe("caller-owned owner hot-path surfaces", () => {
     expect(legacyPenalty).not.toHaveBeenCalled();
   });
 
-  it("contains no construction syntax in the Into hot methods and their class helpers", () => {
+  it("closes all Into hot call chains over allocation-free audited sources", () => {
     const map = createMapGrid({ width: 2, height: 2, chunkSize: 1 });
     const pathfinder = createGridPathfinder(4);
     const offers = createWorkOfferIndex({
@@ -603,67 +674,758 @@ describe("caller-owned owner hot-path surfaces", () => {
       abilityDirtyCapacity: 2,
     });
     const abilities = createM3AbilityCacheStore({ actorCapacity: 2, dirtyCapacity: 2 });
-    const sources = [
-      map.readMovementCellByIndexInto.toString(),
-      map.canMoveBetweenCardinalNeighborsInto.toString(),
-      pathfinder.findPathInto.toString(),
-      offers.registerOfferInto.toString(),
-      offers.updateOfferInto.toString(),
-      offers.removeOfferInto.toString(),
-      offers.readOfferInto.toString(),
-      offers.selectTopOffersInto.toString(),
-      ledger.acquireInto.toString(),
-      health.computeAbilityPenaltyInto.toString(),
-      abilities.queryAbilityInto.toString(),
-    ];
-    const helperMethods: readonly (readonly [object, string])[] = [
-      [map, "isCellIndexInRange"],
-      [map, "isCellPassableUnchecked"],
-      [map, "directionBetweenCardinalNeighbors"],
-      [map, "canMoveBetweenUnchecked"],
-      [pathfinder, "resetIntoOutput"],
-      [pathfinder, "validateRequestReason"],
-      [pathfinder, "tryRelaxNeighborInto"],
-      [pathfinder, "readPassableMovementCellInto"],
-      [pathfinder, "writeFoundPathInto"],
-      [pathfinder, "selectBestOpenIndex"],
-      [pathfinder, "nextSearchEpoch"],
-      [pathfinder, "heuristicMilli"],
-      [pathfinder, "neighborIndex"],
-      [offers, "resetMutationInto"],
-      [offers, "resetReadInto"],
-      [offers, "resetSelectionInto"],
-      [offers, "writeMutationSuccess"],
-      [offers, "validateVersionedInputReason"],
-      [offers, "validateKeyReason"],
-      [offers, "validateSelectionIntoReason"],
-      [offers, "canAdvanceVersions"],
-      [offers, "advanceVersions"],
-      [offers, "writeOffer"],
-      [offers, "insertOffer"],
-      [offers, "removeOfferFromCurrentBucket"],
-      [ledger, "resetAcquireIntoOutput"],
-      [ledger, "hasAcquireScratchCapacity"],
-      [ledger, "validateTransactionHeaderInto"],
-      [ledger, "validateEntityReason"],
-      [ledger, "prepareClaimInto"],
-      [ledger, "writePreparedClaimInto"],
-      [ledger, "addToTargetIndexInto"],
-      [ledger, "allocateClaimId"],
-      [ledger, "linkOwner"],
-      [ledger, "linkTarget"],
-      [ledger, "incrementChannelCount"],
-      [ledger, "encodeSlotKey"],
-      [abilities, "resetAbilityIntoOutput"],
-    ];
-    for (const [target, methodName] of helperMethods) {
-      sources.push(readMethodSource(target, methodName));
-    }
-    for (const source of sources) {
-      expect(source).not.toMatch(/\bnew\s|\bArray\s*\(|=>|return\s*\{|`/u);
+    const registry = createEntityRegistry({ capacity: 2 });
+    const targets: HotAuditTargets = {
+      map,
+      pathfinder,
+      offers,
+      ledger,
+      registry,
+      health,
+      abilities,
+    };
+    const roots = createRootHotAuditEntries(targets);
+    const classHelpers = createClassHelperHotAuditEntries(targets);
+    const freeHelpers = createFreeHelperHotAuditEntries();
+    const entries = [...roots, ...classHelpers, ...freeHelpers];
+    const labels = new Set<string>();
+    for (const entry of entries) labels.add(entry.label);
+
+    expect(roots).toHaveLength(11);
+    expect(classHelpers).toHaveLength(42);
+    expect(freeHelpers).toHaveLength(27);
+    expect(entries).toHaveLength(80);
+    expect(labels.size).toBe(80);
+
+    const resolver = createHotAuditResolver(entries);
+    for (const entry of entries) {
+      const category = containsForbiddenHotConstruction(entry.source);
+      expect(
+        category,
+        `${entry.label}: ${category ?? "no forbidden construction"}`,
+      ).toBeUndefined();
+      const unresolved = findUnresolvedHotCall(entry, resolver);
+      expect(unresolved, `${entry.label}: ${unresolved ?? "call chain closed"}`).toBeUndefined();
     }
   });
+
+  it("detects every forbidden construction category without rejecting scalar hot syntax", () => {
+    for (const fixture of FORBIDDEN_HOT_CONSTRUCTION_FIXTURES) {
+      expect(containsForbiddenHotConstruction(fixture.source), fixture.label).toBe(
+        fixture.category,
+      );
+    }
+    for (const fixture of ALLOWED_HOT_SYNTAX_FIXTURES) {
+      expect(
+        containsForbiddenHotConstruction(fixture.source),
+        `${fixture.label}: scalar syntax must remain allowed`,
+      ).toBeUndefined();
+    }
+
+    const hiddenHelperEntry: HotSourceAuditEntry = {
+      label: "regression.hiddenHelper",
+      moduleName: "path",
+      callName: "regression",
+      source: "function regression() { hiddenHelper(); }",
+    };
+    expect(
+      findUnresolvedHotCall(hiddenHelperEntry, createHotAuditResolver([])),
+      "otherwise-valid hiddenHelper() must fail transitive closure",
+    ).toBe("unresolved project call hiddenHelper");
+
+    for (const callName of ["get", "set", "fill"]) {
+      const fakeReceiverEntry: HotSourceAuditEntry = {
+        label: `regression.fake.${callName}`,
+        moduleName: "path",
+        callName: "regression",
+        source: `function regression(fake) { fake.${callName}(); }`,
+      };
+      expect(containsForbiddenHotConstruction(fakeReceiverEntry.source)).toBeUndefined();
+      expect(
+        findUnresolvedHotCall(fakeReceiverEntry, createHotAuditResolver([])),
+        `fake.${callName} must not enter the typed-array/Map native allowlist`,
+      ).toBe(`unresolved project call fake.${callName}`);
+    }
+
+    const foreignFailInternalEntry: HotSourceAuditEntry = {
+      label: "GridPathfinder.regression",
+      moduleName: "path",
+      ownerName: "GridPathfinder",
+      callName: "regression",
+      source: "function regression() { failInternal('unexpected'); }",
+    };
+    expect(containsForbiddenHotConstruction(foreignFailInternalEntry.source)).toBeUndefined();
+    expect(
+      findUnresolvedHotCall(foreignFailInternalEntry, createHotAuditResolver([])),
+      "failInternal is allowed only for the reviewed ReservationLedger.allocateClaimId sink",
+    ).toBe("unresolved project call failInternal");
+  });
 });
+
+type HotAuditModuleName = "map" | "path" | "work" | "reservation" | "m3";
+
+interface HotAuditTargets {
+  readonly map: ReturnType<typeof createMapGrid>;
+  readonly pathfinder: ReturnType<typeof createGridPathfinder>;
+  readonly offers: ReturnType<typeof createWorkOfferIndex>;
+  readonly ledger: ReturnType<typeof createReservationLedger>;
+  readonly registry: ReturnType<typeof createEntityRegistry>;
+  readonly health: ReturnType<typeof createM3HealthConditionStore>;
+  readonly abilities: ReturnType<typeof createM3AbilityCacheStore>;
+}
+
+interface HotSourceAuditEntry {
+  readonly label: string;
+  readonly moduleName: HotAuditModuleName;
+  readonly ownerName?: string;
+  readonly callName: string;
+  readonly source: string;
+}
+
+interface HotAuditResolver {
+  readonly labels: ReadonlySet<string>;
+  readonly classLabels: ReadonlyMap<string, string>;
+  readonly freeLabels: ReadonlyMap<string, string>;
+}
+
+interface ParsedHotSource {
+  readonly sourceFile: ts.SourceFile;
+  readonly body: ts.Block;
+}
+
+interface HotCall {
+  readonly kind: "bare" | "this" | "property" | "indirect";
+  readonly callName: string;
+  readonly receiver?: string;
+}
+
+interface ForbiddenHotConstructionFixture {
+  readonly label: string;
+  readonly source: string;
+  readonly category: string;
+}
+
+interface AllowedHotSyntaxFixture {
+  readonly label: string;
+  readonly source: string;
+}
+
+const FORBIDDEN_PROPERTY_CALLS = new Set([
+  "toString",
+  "concat",
+  "join",
+  "map",
+  "filter",
+  "reduce",
+  "flatMap",
+  "slice",
+  "split",
+  "replace",
+]);
+
+const ALLOWED_TYPED_ARRAY_FILL_RECEIVERS = new Set([
+  "claimIdOutput",
+  "this.seenEpoch",
+  "this.closedEpoch",
+]);
+
+const ALLOWED_MAP_RECEIVERS = new Set([
+  "this.entityClaims",
+  "this.cellClaims",
+  "this.itemQuantityAmounts",
+  "this.interactionClaims",
+  "this.capacityAmounts",
+]);
+
+const FORBIDDEN_HOT_CONSTRUCTION_FIXTURES: readonly ForbiddenHotConstructionFixture[] = [
+  {
+    label: "new object",
+    source: "function audit() { const value = new Date(); }",
+    category: "new expression",
+  },
+  {
+    label: "new typed array",
+    source: "function audit() { const value = new Uint32Array(1); }",
+    category: "new expression",
+  },
+  {
+    label: "Array call",
+    source: "function audit() { const value = Array(1); }",
+    category: "forbidden call Array",
+  },
+  {
+    label: "object literal assignment",
+    source: "function audit() { const value = { count: 1 }; }",
+    category: "object literal",
+  },
+  {
+    label: "object literal return",
+    source: "function audit() { return { count: 1 }; }",
+    category: "object literal",
+  },
+  {
+    label: "object literal argument",
+    source: "function audit() { consume({ count: 1 }); }",
+    category: "object literal",
+  },
+  {
+    label: "array literal assignment",
+    source: "function audit() { const value = [1]; }",
+    category: "array literal",
+  },
+  {
+    label: "array literal return",
+    source: "function audit() { return [1]; }",
+    category: "array literal",
+  },
+  {
+    label: "array literal argument",
+    source: "function audit() { consume([1]); }",
+    category: "array literal",
+  },
+  {
+    label: "nested arrow",
+    source: "function audit() { const nested = () => 1; }",
+    category: "nested arrow function",
+  },
+  {
+    label: "nested function declaration",
+    source: "function audit() { function nested() { return 1; } }",
+    category: "nested function",
+  },
+  {
+    label: "nested function expression",
+    source: "function audit() { const nested = function named() { return 1; }; }",
+    category: "nested function",
+  },
+  {
+    label: "nested class declaration",
+    source: "function audit() { class Nested {} }",
+    category: "nested class",
+  },
+  {
+    label: "nested class expression",
+    source: "function audit() { const Nested = class {}; }",
+    category: "nested class",
+  },
+  {
+    label: "template expression",
+    source: "function audit(name) { const value = `hello ${name}`; }",
+    category: "template literal",
+  },
+  {
+    label: "no-substitution backtick",
+    source: "function audit() { const value = `literal`; }",
+    category: "template literal",
+  },
+  {
+    label: "tagged template",
+    source: "function audit(value) { tag`value ${value}`; }",
+    category: "tagged template",
+  },
+  {
+    label: "regex literal",
+    source: "function audit(value) { return /value/u.test(value); }",
+    category: "regex literal",
+  },
+  {
+    label: "String conversion",
+    source: "function audit(value) { return String(value); }",
+    category: "forbidden call String",
+  },
+  {
+    label: "toString call",
+    source: "function audit(value) { return value.toString(); }",
+    category: "forbidden call .toString",
+  },
+  {
+    label: "concat call",
+    source: "function audit(value) { return value.concat('x'); }",
+    category: "forbidden call .concat",
+  },
+  {
+    label: "join call",
+    source: "function audit(value) { return value.join(','); }",
+    category: "forbidden call .join",
+  },
+  ...createForbiddenPropertyCallFixtures(),
+  ...createForbiddenFactoryCallFixtures(),
+  {
+    label: "string literal left plus",
+    source: "function audit(value) { return 'prefix' + value; }",
+    category: "string-producing plus",
+  },
+  {
+    label: "string literal right plus",
+    source: "function audit(value) { return value + 'suffix'; }",
+    category: "string-producing plus",
+  },
+  {
+    label: "string plus equals",
+    source: "function audit(value) { value += 'suffix'; }",
+    category: "string-producing plus-equals",
+  },
+];
+
+const ALLOWED_HOT_SYNTAX_FIXTURES: readonly AllowedHotSyntaxFixture[] = [
+  { label: "numeric plus", source: "function audit(left, right) { return left + right; }" },
+  { label: "numeric plus equals", source: "function audit(value) { value += 1; }" },
+  {
+    label: "bitwise operators",
+    source: "function audit(left, right) { return (left | right) & 3; }",
+  },
+  {
+    label: "property writes",
+    source: "function audit(output) { output.ok = false; output.count = 1; }",
+  },
+  {
+    label: "typed index writes",
+    source: "function audit(lane, index, value) { lane[index] = value; }",
+  },
+  {
+    label: "control blocks",
+    source: "function audit(output, value) { if (value > 0) { output.ok = true; } }",
+  },
+  {
+    label: "constant reason string",
+    source: "function audit(output) { output.reason = 'constant_reason'; }",
+  },
+];
+
+function createRootHotAuditEntries(targets: HotAuditTargets): readonly HotSourceAuditEntry[] {
+  return [
+    classAuditEntry("MapGrid", "map", targets.map, "readMovementCellByIndexInto"),
+    classAuditEntry("MapGrid", "map", targets.map, "canMoveBetweenCardinalNeighborsInto"),
+    classAuditEntry("GridPathfinder", "path", targets.pathfinder, "findPathInto"),
+    classAuditEntry("WorkOfferIndex", "work", targets.offers, "registerOfferInto"),
+    classAuditEntry("WorkOfferIndex", "work", targets.offers, "updateOfferInto"),
+    classAuditEntry("WorkOfferIndex", "work", targets.offers, "removeOfferInto"),
+    classAuditEntry("WorkOfferIndex", "work", targets.offers, "readOfferInto"),
+    classAuditEntry("WorkOfferIndex", "work", targets.offers, "selectTopOffersInto"),
+    classAuditEntry("ReservationLedger", "reservation", targets.ledger, "acquireInto"),
+    classAuditEntry("M3HealthConditionStore", "m3", targets.health, "computeAbilityPenaltyInto"),
+    classAuditEntry("M3AbilityCacheStore", "m3", targets.abilities, "queryAbilityInto"),
+  ];
+}
+
+function createClassHelperHotAuditEntries(
+  targets: HotAuditTargets,
+): readonly HotSourceAuditEntry[] {
+  return [
+    ...classAuditEntries("MapGrid", "map", targets.map, [
+      "isCellIndexInRange",
+      "isCellPassableUnchecked",
+      "directionBetweenCardinalNeighbors",
+      "canMoveBetweenUnchecked",
+    ]),
+    ...classAuditEntries("GridPathfinder", "path", targets.pathfinder, [
+      "resetIntoOutput",
+      "validateRequestReason",
+      "tryRelaxNeighborInto",
+      "readPassableMovementCellInto",
+      "writeFoundPathInto",
+      "selectBestOpenIndex",
+      "nextSearchEpoch",
+      "heuristicMilli",
+      "neighborIndex",
+    ]),
+    ...classAuditEntries("WorkOfferIndex", "work", targets.offers, [
+      "resetMutationInto",
+      "resetReadInto",
+      "resetSelectionInto",
+      "writeMutationSuccess",
+      "validateVersionedInputReason",
+      "validateKeyReason",
+      "validateSelectionIntoReason",
+      "canAdvanceVersions",
+      "advanceVersions",
+      "writeOffer",
+      "insertOffer",
+      "removeOfferFromCurrentBucket",
+      "createCompositeKeyForOffer",
+    ]),
+    ...classAuditEntries("ReservationLedger", "reservation", targets.ledger, [
+      "resetAcquireIntoOutput",
+      "hasAcquireScratchCapacity",
+      "validateTransactionHeaderInto",
+      "validateEntityReason",
+      "prepareClaimInto",
+      "writePreparedClaimInto",
+      "addToTargetIndexInto",
+      "allocateClaimId",
+      "linkOwner",
+      "linkTarget",
+      "incrementChannelCount",
+      "encodeSlotKey",
+    ]),
+    ...classAuditEntries("EntityRegistry", "reservation", targets.registry, [
+      "isIndexActive",
+      "generationAt",
+    ]),
+    classAuditEntry("M3HealthConditionStore", "m3", targets.health, "actorConditionVersion"),
+    classAuditEntry("M3AbilityCacheStore", "m3", targets.abilities, "resetAbilityIntoOutput"),
+  ];
+}
+
+function createFreeHelperHotAuditEntries(): readonly HotSourceAuditEntry[] {
+  return [
+    functionAuditEntry("map", auditMapDirectionMask),
+    functionAuditEntry("map", auditMapOppositeDirection),
+    functionAuditEntry("path", auditPathIsCellIndexInRange),
+    functionAuditEntry("path", auditPathIsPositiveSafeInteger),
+    functionAuditEntry("path", auditPathIsSafeNonNegativeInteger),
+    functionAuditEntry("work", auditWorkOfferCreateCompositeKey),
+    functionAuditEntry("work", auditWorkOfferInsertSorted),
+    functionAuditEntry("work", auditWorkOfferRemoveLinked),
+    functionAuditEntry("work", auditWorkOfferInsertTopOffer),
+    functionAuditEntry("work", auditWorkOfferClearSelection),
+    functionAuditEntry("work", auditWorkOfferIsBetterOffer),
+    functionAuditEntry("work", auditWorkOfferIsIndexInRange),
+    functionAuditEntry("work", auditWorkOfferIsPositiveSafeInteger),
+    functionAuditEntry("work", auditWorkOfferIsSafeNonNegativeInteger),
+    functionAuditEntry("work", auditWorkOfferIsUint32),
+    functionAuditEntry("work", auditWorkOfferIsInt32),
+    functionAuditEntry("reservation", auditReservationReadPreparedChannelCode),
+    functionAuditEntry("reservation", auditReservationIsPositiveUint32),
+    functionAuditEntry("reservation", auditReservationIsSafeUint32),
+    functionAuditEntry("reservation", auditReservationIsIndexInRange),
+    functionAuditEntry("reservation", isSafeTick, "time.isSafeTick"),
+    functionAuditEntry("m3", auditM3AbilityMaskFor),
+    functionAuditEntry("m3", auditM3LaneIndex),
+    functionAuditEntry("m3", auditM3IsIndexInRange),
+    functionAuditEntry("m3", auditM3IsAbilityLane),
+    functionAuditEntry("m3", auditM3IsSeverity),
+    functionAuditEntry("m3", auditM3ClampAbilityValue),
+  ];
+}
+
+function classAuditEntries(
+  ownerName: string,
+  moduleName: HotAuditModuleName,
+  target: object,
+  methodNames: readonly string[],
+): readonly HotSourceAuditEntry[] {
+  const entries: HotSourceAuditEntry[] = [];
+  for (const methodName of methodNames) {
+    entries.push(classAuditEntry(ownerName, moduleName, target, methodName));
+  }
+  return entries;
+}
+
+function classAuditEntry(
+  ownerName: string,
+  moduleName: HotAuditModuleName,
+  target: object,
+  methodName: string,
+): HotSourceAuditEntry {
+  return {
+    label: `${ownerName}.${methodName}`,
+    moduleName,
+    ownerName,
+    callName: methodName,
+    source: readMethodSource(target, methodName),
+  };
+}
+
+function functionAuditEntry(
+  moduleName: HotAuditModuleName,
+  callable: { readonly name: string },
+  label = `${moduleName}.${callable.name}`,
+): HotSourceAuditEntry {
+  return {
+    label,
+    moduleName,
+    callName: callable.name,
+    source: Function.prototype.toString.call(callable),
+  };
+}
+
+function createHotAuditResolver(entries: readonly HotSourceAuditEntry[]): HotAuditResolver {
+  const labels = new Set<string>();
+  const classLabels = new Map<string, string>();
+  const freeLabels = new Map<string, string>();
+  for (const entry of entries) {
+    labels.add(entry.label);
+    if (entry.ownerName === undefined) {
+      freeLabels.set(`${entry.moduleName}.${entry.callName}`, entry.label);
+    } else {
+      classLabels.set(`${entry.ownerName}.${entry.callName}`, entry.label);
+    }
+  }
+  return { labels, classLabels, freeLabels };
+}
+
+function containsForbiddenHotConstruction(source: string): string | undefined {
+  const parsed = parseHotSource(source);
+  let found: string | undefined;
+  function visit(node: ts.Node): void {
+    if (found !== undefined) return;
+    found = forbiddenHotConstructionForNode(node);
+    if (found === undefined) ts.forEachChild(node, visit);
+  }
+  visit(parsed.body);
+  return found;
+}
+
+function forbiddenHotConstructionForNode(node: ts.Node): string | undefined {
+  if (ts.isNewExpression(node)) return "new expression";
+  if (ts.isObjectLiteralExpression(node)) return "object literal";
+  if (ts.isArrayLiteralExpression(node)) return "array literal";
+  if (ts.isArrowFunction(node)) return "nested arrow function";
+  if (ts.isFunctionDeclaration(node) || ts.isFunctionExpression(node)) return "nested function";
+  if (ts.isClassDeclaration(node) || ts.isClassExpression(node)) return "nested class";
+  if (ts.isTaggedTemplateExpression(node)) return "tagged template";
+  if (ts.isTemplateExpression(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
+    return "template literal";
+  }
+  if (node.kind === ts.SyntaxKind.RegularExpressionLiteral) return "regex literal";
+  if (ts.isCallExpression(node)) return forbiddenHotCall(node);
+  if (ts.isBinaryExpression(node)) return forbiddenHotStringBinary(node);
+  return undefined;
+}
+
+function forbiddenHotCall(node: ts.CallExpression): string | undefined {
+  const expression = node.expression;
+  if (ts.isIdentifier(expression)) {
+    if (
+      expression.text === "Array" ||
+      expression.text === "Object" ||
+      expression.text === "String"
+    ) {
+      return `forbidden call ${expression.text}`;
+    }
+    return undefined;
+  }
+  if (!ts.isPropertyAccessExpression(expression)) return undefined;
+  const receiver = expression.expression.getText();
+  const callName = expression.name.text;
+  if (receiver === "Array" && (callName === "from" || callName === "of")) {
+    return `forbidden call Array.${callName}`;
+  }
+  if (
+    receiver === "Object" &&
+    (callName === "create" || callName === "assign" || callName === "fromEntries")
+  ) {
+    return `forbidden call Object.${callName}`;
+  }
+  if (receiver === "JSON" && callName === "stringify") return "forbidden call JSON.stringify";
+  return FORBIDDEN_PROPERTY_CALLS.has(callName) ? `forbidden call .${callName}` : undefined;
+}
+
+function forbiddenHotStringBinary(node: ts.BinaryExpression): string | undefined {
+  if (
+    node.operatorToken.kind !== ts.SyntaxKind.PlusToken &&
+    node.operatorToken.kind !== ts.SyntaxKind.PlusEqualsToken
+  ) {
+    return undefined;
+  }
+  if (!isSyntacticallyStringProducing(node.left) && !isSyntacticallyStringProducing(node.right)) {
+    return undefined;
+  }
+  return node.operatorToken.kind === ts.SyntaxKind.PlusEqualsToken
+    ? "string-producing plus-equals"
+    : "string-producing plus";
+}
+
+function isSyntacticallyStringProducing(node: ts.Expression): boolean {
+  if (
+    ts.isStringLiteral(node) ||
+    ts.isTemplateExpression(node) ||
+    ts.isNoSubstitutionTemplateLiteral(node)
+  ) {
+    return true;
+  }
+  if (ts.isParenthesizedExpression(node)) return isSyntacticallyStringProducing(node.expression);
+  if (
+    ts.isAsExpression(node) ||
+    ts.isTypeAssertionExpression(node) ||
+    ts.isNonNullExpression(node)
+  ) {
+    return isSyntacticallyStringProducing(node.expression);
+  }
+  if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+    return isSyntacticallyStringProducing(node.left) || isSyntacticallyStringProducing(node.right);
+  }
+  if (!ts.isCallExpression(node)) return false;
+  if (ts.isIdentifier(node.expression)) return node.expression.text === "String";
+  if (!ts.isPropertyAccessExpression(node.expression)) return false;
+  const callName = node.expression.name.text;
+  if (callName === "toString" || callName === "concat" || callName === "join") return true;
+  if (node.expression.expression.getText() === "JSON" && callName === "stringify") return true;
+  return ts.isCallExpression(node.expression.expression)
+    ? isSyntacticallyStringProducing(node.expression.expression)
+    : false;
+}
+
+function findUnresolvedHotCall(
+  entry: HotSourceAuditEntry,
+  resolver: HotAuditResolver,
+): string | undefined {
+  for (const call of collectHotCalls(entry.source)) {
+    if (call.kind === "this") {
+      const key = `${entry.ownerName ?? "<free>"}.${call.callName}`;
+      if (!resolver.classLabels.has(key)) return `unresolved project call ${key}`;
+      continue;
+    }
+    if (call.kind === "bare") {
+      if (call.callName === "failInternal") {
+        // acquireInto's complete capacity precheck makes this invariant sink unreachable after
+        // validation; the throwing branch itself is intentionally outside the allocation-free claim.
+        if (entry.label === "ReservationLedger.allocateClaimId") continue;
+        return "unresolved project call failInternal";
+      }
+      const key = `${entry.moduleName}.${call.callName}`;
+      if (!resolver.freeLabels.has(key)) return `unresolved project call ${call.callName}`;
+      continue;
+    }
+    if (call.kind === "property" && isAllowedNativeHotCall(call)) continue;
+    if (call.kind === "property") {
+      const receiver = call.receiver ?? "<missing>";
+      const targetLabel = PROJECT_OBJECT_HOT_CALLS.get(`${receiver}.${call.callName}`);
+      if (targetLabel !== undefined && resolver.labels.has(targetLabel)) continue;
+    }
+    return `unresolved project call ${call.receiver ?? "<indirect>"}.${call.callName}`;
+  }
+  return undefined;
+}
+
+function collectHotCalls(source: string): readonly HotCall[] {
+  const parsed = parseHotSource(source);
+  const calls: HotCall[] = [];
+  function visit(node: ts.Node): void {
+    if (ts.isCallExpression(node)) calls.push(readHotCall(node, parsed.sourceFile));
+    ts.forEachChild(node, visit);
+  }
+  visit(parsed.body);
+  return calls;
+}
+
+function readHotCall(node: ts.CallExpression, sourceFile: ts.SourceFile): HotCall {
+  const transformedImportCallName = readTransformedImportCallName(node.expression);
+  if (transformedImportCallName !== undefined) {
+    return { kind: "bare", callName: transformedImportCallName };
+  }
+  if (ts.isIdentifier(node.expression)) {
+    return { kind: "bare", callName: node.expression.text };
+  }
+  if (!ts.isPropertyAccessExpression(node.expression)) {
+    return { kind: "indirect", callName: node.expression.getText(sourceFile) };
+  }
+  const receiverNode = node.expression.expression;
+  const callName = node.expression.name.text;
+  return receiverNode.kind === ts.SyntaxKind.ThisKeyword
+    ? { kind: "this", callName }
+    : { kind: "property", receiver: receiverNode.getText(sourceFile), callName };
+}
+
+function readTransformedImportCallName(expression: ts.LeftHandSideExpression): string | undefined {
+  if (!ts.isParenthesizedExpression(expression)) return undefined;
+  const inner = expression.expression;
+  if (
+    !ts.isBinaryExpression(inner) ||
+    inner.operatorToken.kind !== ts.SyntaxKind.CommaToken ||
+    !ts.isNumericLiteral(inner.left) ||
+    inner.left.text !== "0" ||
+    !ts.isPropertyAccessExpression(inner.right) ||
+    !ts.isIdentifier(inner.right.expression) ||
+    !inner.right.expression.text.startsWith("__vite_ssr_import_")
+  ) {
+    return undefined;
+  }
+  return inner.right.name.text;
+}
+
+const PROJECT_OBJECT_HOT_CALLS = new Map<string, string>([
+  ["grid.readMovementCellByIndexInto", "MapGrid.readMovementCellByIndexInto"],
+  ["grid.canMoveBetweenCardinalNeighborsInto", "MapGrid.canMoveBetweenCardinalNeighborsInto"],
+  ["registry.isIndexActive", "EntityRegistry.isIndexActive"],
+  ["registry.generationAt", "EntityRegistry.generationAt"],
+  ["conditionStore.actorConditionVersion", "M3HealthConditionStore.actorConditionVersion"],
+  ["conditionStore.computeAbilityPenaltyInto", "M3HealthConditionStore.computeAbilityPenaltyInto"],
+]);
+
+function isAllowedNativeHotCall(call: HotCall): boolean {
+  if (call.receiver === "Number") return call.callName === "isSafeInteger";
+  if (call.receiver === "Math") {
+    return (
+      call.callName === "abs" ||
+      call.callName === "floor" ||
+      call.callName === "max" ||
+      call.callName === "min"
+    );
+  }
+  if (call.receiver === undefined) return false;
+  if (call.callName === "fill") return ALLOWED_TYPED_ARRAY_FILL_RECEIVERS.has(call.receiver);
+  if (call.callName === "get" || call.callName === "set") {
+    return ALLOWED_MAP_RECEIVERS.has(call.receiver);
+  }
+  return false;
+}
+
+function parseHotSource(source: string): ParsedHotSource {
+  const freeFunction = source.trimStart().startsWith("function ");
+  const sourceText = freeFunction ? source : `class HotAuditWrapper { ${source} }`;
+  const sourceFile = ts.createSourceFile(
+    "hot-source-audit.ts",
+    sourceText,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TS,
+  );
+  if (freeFunction) {
+    const statement = sourceFile.statements[0];
+    if (
+      statement !== undefined &&
+      ts.isFunctionDeclaration(statement) &&
+      statement.body !== undefined
+    ) {
+      return { sourceFile, body: statement.body };
+    }
+  } else {
+    const statement = sourceFile.statements[0];
+    const member =
+      statement !== undefined && ts.isClassDeclaration(statement)
+        ? statement.members[0]
+        : undefined;
+    if (member !== undefined && ts.isMethodDeclaration(member) && member.body !== undefined) {
+      return { sourceFile, body: member.body };
+    }
+  }
+  throw new Error("unable to parse hot source wrapper");
+}
+
+function createForbiddenPropertyCallFixtures(): readonly ForbiddenHotConstructionFixture[] {
+  const fixtures: ForbiddenHotConstructionFixture[] = [];
+  for (const callName of ["map", "filter", "reduce", "flatMap", "slice", "split", "replace"]) {
+    fixtures.push({
+      label: `${callName} call`,
+      source: `function audit(value) { return value.${callName}(); }`,
+      category: `forbidden call .${callName}`,
+    });
+  }
+  return fixtures;
+}
+
+function createForbiddenFactoryCallFixtures(): readonly ForbiddenHotConstructionFixture[] {
+  const definitions: readonly (readonly [string, string])[] = [
+    ["Array.from", "function audit(value) { return Array.from(value); }"],
+    ["Array.of", "function audit(value) { return Array.of(value); }"],
+    ["Object", "function audit(value) { return Object(value); }"],
+    ["Object.create", "function audit(value) { return Object.create(value); }"],
+    ["Object.assign", "function audit(value) { return Object.assign(value); }"],
+    ["Object.fromEntries", "function audit(value) { return Object.fromEntries(value); }"],
+    ["JSON.stringify", "function audit(value) { return JSON.stringify(value); }"],
+  ];
+  const fixtures: ForbiddenHotConstructionFixture[] = [];
+  for (const [callName, source] of definitions) {
+    fixtures.push({
+      label: `${callName} call`,
+      source,
+      category: `forbidden call ${callName}`,
+    });
+  }
+  return fixtures;
+}
 
 function createMovementCellOutput(): MapMovementCellIntoOutput {
   return { ok: false, reason: undefined, passable: false, walkCostMilli: 0, cellVersion: 0 };

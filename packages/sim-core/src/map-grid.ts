@@ -725,10 +725,12 @@ function isDirection(value: number): boolean {
   );
 }
 
-function directionMask(direction: number): number {
+/** @internal source-audit only; intentionally not re-exported from package root. */
+export function directionMask(direction: number): number {
   return 1 << direction;
 }
 
-function oppositeDirection(direction: number): number {
+/** @internal source-audit only; intentionally not re-exported from package root. */
+export function oppositeDirection(direction: number): number {
   return (direction + 2) & 3;
 }

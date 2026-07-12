@@ -301,6 +301,8 @@ export class GridPathfinder {
 
     if (request.startCellIndex === request.goalCellIndex) {
       if (routeOutput.length < 1) {
+        output.pathCellCount = 1;
+        output.pathCostMilli = 0;
         output.reason = "path_output_capacity_exceeded";
         return;
       }
@@ -462,6 +464,8 @@ export class GridPathfinder {
       return;
     }
     if (routeOutput.length < pathCount) {
+      output.pathCellCount = pathCount;
+      output.pathCostMilli = this.gCostMilli[request.goalCellIndex] ?? 0;
       output.reason = "path_output_capacity_exceeded";
       return;
     }
@@ -929,7 +933,8 @@ function validateNodeBudget(
   return { ok: true };
 }
 
-function isCellIndexInRange(cellIndex: number, cellCount: number): boolean {
+/** @internal source-audit only; intentionally not re-exported from package root. */
+export function isCellIndexInRange(cellIndex: number, cellCount: number): boolean {
   return Number.isSafeInteger(cellIndex) && cellIndex >= 0 && cellIndex < cellCount;
 }
 
@@ -941,10 +946,12 @@ function requirePositiveSafeInteger(value: number, label: string): number {
   return value;
 }
 
-function isPositiveSafeInteger(value: number): boolean {
+/** @internal source-audit only; intentionally not re-exported from package root. */
+export function isPositiveSafeInteger(value: number): boolean {
   return Number.isSafeInteger(value) && value > 0;
 }
 
-function isSafeNonNegativeInteger(value: number): boolean {
+/** @internal source-audit only; intentionally not re-exported from package root. */
+export function isSafeNonNegativeInteger(value: number): boolean {
   return Number.isSafeInteger(value) && value >= 0;
 }

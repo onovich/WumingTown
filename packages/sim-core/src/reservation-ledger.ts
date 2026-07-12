@@ -1976,7 +1976,8 @@ function channelNameFromCode(code: ReservationChannelCode): ReservationChannel {
   return "capacity";
 }
 
-function readPreparedChannelCode(code: number): ReservationChannelCode {
+/** @internal source-audit only; intentionally not re-exported from package root. */
+export function readPreparedChannelCode(code: number): ReservationChannelCode {
   if (code === RESERVATION_ENTITY) return RESERVATION_ENTITY;
   if (code === RESERVATION_CELL) return RESERVATION_CELL;
   if (code === RESERVATION_ITEM_QUANTITY) return RESERVATION_ITEM_QUANTITY;
@@ -1992,15 +1993,18 @@ function requirePositiveSafeInteger(value: number, label: string): number {
   return value;
 }
 
-function isPositiveUint32(value: number): boolean {
+/** @internal source-audit only; intentionally not re-exported from package root. */
+export function isPositiveUint32(value: number): boolean {
   return Number.isSafeInteger(value) && value > 0 && value <= 0xffff_ffff;
 }
 
-function isSafeUint32(value: number): boolean {
+/** @internal source-audit only; intentionally not re-exported from package root. */
+export function isSafeUint32(value: number): boolean {
   return Number.isSafeInteger(value) && value >= 0 && value <= 0xffff_ffff;
 }
 
-function isIndexInRange(value: number, upperBound: number): boolean {
+/** @internal source-audit only; intentionally not re-exported from package root. */
+export function isIndexInRange(value: number, upperBound: number): boolean {
   return Number.isSafeInteger(value) && value >= 0 && value < upperBound;
 }
 
