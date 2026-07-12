@@ -2,7 +2,7 @@
   "id": "WM-0179",
   "title": "Entity-store structural command ordering repair",
   "summary": "Replace the inversion-dependent structural command ordering bottleneck with deterministic preallocated bounded ordering so the unchanged canonical entity-store gate passes without touching registry, component, benchmark or baseline semantics.",
-  "state": "in_progress",
+  "state": "blocked",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -49,7 +49,7 @@
   ],
   "branch": "task/WM-0179-entity-store-structural-command-ordering-repair",
   "createdAt": "2026-07-12T05:07:29.890Z",
-  "updatedAt": "2026-07-12T05:24:33.294Z",
+  "updatedAt": "2026-07-12T05:26:34.739Z",
   "history": [
     {
       "at": "2026-07-12T05:07:29.891Z",
@@ -80,6 +80,12 @@
       "actor": "systems-architect",
       "action": "unblock",
       "details": "Authorized one replacement admission pair because the first pair retained no auditable CPU samples and benchmark invocation count remains zero. After one synthetic dry output-shape proof, run one fail-closed two-window Get-Process admission; only a valid pass may precede the single entity-store benchmark attempt. No product/gate change and no further admission or benchmark retry."
+    },
+    {
+      "at": "2026-07-12T05:26:34.739Z",
+      "actor": "simulation-engineer",
+      "action": "block",
+      "details": "The sole authorized synthetic dry output-shape check failed before replacement admission because current Windows PowerShell/.NET does not provide System.Double.IsFinite. It emitted a method-invocation error and fail-closed throw with no DRY_OUTPUT_OK line. Per the any-issue/no-retry recovery procedure, dry retry count is 0, replacement admission pair count is 0, benchmark invocation count remains 0, and product checkpoint 0882988 is unchanged. See coordination/reports/WM-0179.md."
     }
   ],
   "milestone": "Post-M8",
@@ -124,5 +130,11 @@
   "singleWriterRule": "WM-0179 is the sole product writer while active. WM-0178 remains blocked and claimed by qa-performance with no harness/evidence writes; WM-0177 remains blocked and claimed by its original simulation-engineer with no product writes; WM-0170 remains blocked.",
   "claimedBy": "simulation-engineer",
   "threadLabel": "Tally WM-0179",
-  "blocker": null
+  "blocker": {
+    "by": "simulation-engineer",
+    "to": "systems-architect",
+    "reason": "The sole authorized synthetic dry output-shape check failed before replacement admission because current Windows PowerShell/.NET does not provide System.Double.IsFinite. It emitted a method-invocation error and fail-closed throw with no DRY_OUTPUT_OK line. Per the any-issue/no-retry recovery procedure, dry retry count is 0, replacement admission pair count is 0, benchmark invocation count remains 0, and product checkpoint 0882988 is unchanged. See coordination/reports/WM-0179.md.",
+    "previousState": "in_progress",
+    "at": "2026-07-12T05:26:34.738Z"
+  }
 }

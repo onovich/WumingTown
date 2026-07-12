@@ -1,0 +1,12 @@
+{
+  "id": "MSG-MRHCPBEC-494F23",
+  "from": "simulation-engineer",
+  "to": "systems-architect",
+  "taskId": "WM-0179",
+  "kind": "blocker",
+  "subject": "WM-0179 blocked",
+  "body": "The sole authorized synthetic dry output-shape check failed before replacement admission because current Windows PowerShell/.NET does not provide System.Double.IsFinite. It emitted a method-invocation error and fail-closed throw with no DRY_OUTPUT_OK line. Per the any-issue/no-retry recovery procedure, dry retry count is 0, replacement admission pair count is 0, benchmark invocation count remains 0, and product checkpoint 0882988 is unchanged. See coordination/reports/WM-0179.md.",
+  "artifacts": [],
+  "createdAt": "2026-07-12T05:26:34.740Z",
+  "acknowledgedAt": null
+}
