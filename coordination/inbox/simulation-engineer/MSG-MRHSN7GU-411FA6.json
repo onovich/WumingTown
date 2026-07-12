@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MRHSN7GU-411FA6",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0177",
+  "kind": "changes-requested",
+  "subject": "WM-0177 review: changes_requested",
+  "body": "High: packages/sim-core/src/pathing.ts writeFoundPathInto reconstructs the complete path and knows the goal cost, but on path_output_capacity_exceeded it leaves pathCellCount and pathCostMilli reset to zero; owner-hot-path-surfaces.test.ts incorrectly locks those zeros in. Acceptance 3 requires request, basis, start, goal, cost and node-expansion facts for every structured failure while only forbidding partial route publication. Publish the known required path count and cost before the capacity return, keep route bytes untouched, and correct the regression test. Medium: acceptance 8 allocation proof is incomplete. owner-hot-path-surfaces.test.ts audits 11 Into methods and selected class helpers, but normal hot chains reach unaudited helpers including Map directionMask/oppositeDirection, Path validators, WorkOffer createCompositeKeyForOffer plus insert/remove/top-K/key helpers, Reservation prepared-channel and numeric/tick validators, and M3 condition-version/lane/clamp helpers; its regex also misses object and array literals and plus-based dynamic strings. Current source review found no actual hot allocation, but the probe cannot substantiate acceptance 8 or the report claim that every hot helper is covered. Add mechanical coverage for the complete reachable helper set and all forbidden construction forms with regressions. All other product semantics and scope reviewed clean; 17-file evidence, 15 OK full run, 20 exact pairs, typecheck, 51 focused tests, exact M1/M2/M3 hashes, boundaries, handoff, task control, diff checks and quality 79 files/481 tests pass; no admission or benchmark was rerun.",
+  "artifacts": [
+    "coordination/reports/WM-0177.md"
+  ],
+  "createdAt": "2026-07-12T12:52:50.191Z",
+  "acknowledgedAt": null
+}
