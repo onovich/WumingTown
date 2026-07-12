@@ -2,7 +2,7 @@
   "id": "WM-0179",
   "title": "Entity-store structural command ordering repair",
   "summary": "Replace the inversion-dependent structural command ordering bottleneck with deterministic preallocated bounded ordering so the unchanged canonical entity-store gate passes without touching registry, component, benchmark or baseline semantics.",
-  "state": "review_requested",
+  "state": "verified",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -53,7 +53,7 @@
   ],
   "branch": "task/WM-0179-entity-store-structural-command-ordering-repair",
   "createdAt": "2026-07-12T05:07:29.890Z",
-  "updatedAt": "2026-07-12T06:42:54.848Z",
+  "updatedAt": "2026-07-12T06:51:03.107Z",
   "history": [
     {
       "at": "2026-07-12T05:07:29.891Z",
@@ -108,6 +108,12 @@
       "actor": "simulation-engineer",
       "action": "complete",
       "details": "Bounded structural ordering repair verified; one reviewed admission PASS and exactly one entity-store benchmark PASS at 1.5104 ms; all required checks pass"
+    },
+    {
+      "at": "2026-07-12T06:51:03.107Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings. Exact priority/signed-Int32-index/Uint32-sequence parity, nine fixed stable passes, constructor-owned scratch and reuse/capacity semantics verified; only three authorized product/test files changed. Admission and benchmark SHA/canonical evidence validate at b762b70: one measured 2x6s 40/8 PASS with reported empty stderr, one 9/2 entity-store result at 1.5104 ms and exact 8192/checksum invariants. PS5.1 30-case self-test, typecheck, 11 focused tests, M1-M3 hashes, boundaries, handoff, taskctl, diff and full quality pass; no live admission or benchmark rerun."
     }
   ],
   "milestone": "Post-M8",
@@ -160,5 +166,11 @@
   "threadLabel": "Tally WM-0179",
   "singleWriterRule": "WM-0180 is the sole workflow-tool/reference writer while active. WM-0179 remains blocked and claimed by its simulation-engineer with no product, admission or benchmark writes; WM-0178 and WM-0177 remain blocked/claimed with no writes; WM-0170 remains blocked.",
   "blocker": null,
-  "reportPath": "coordination/reports/WM-0179.md"
+  "reportPath": "coordination/reports/WM-0179.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings. Exact priority/signed-Int32-index/Uint32-sequence parity, nine fixed stable passes, constructor-owned scratch and reuse/capacity semantics verified; only three authorized product/test files changed. Admission and benchmark SHA/canonical evidence validate at b762b70: one measured 2x6s 40/8 PASS with reported empty stderr, one 9/2 entity-store result at 1.5104 ms and exact 8192/checksum invariants. PS5.1 30-case self-test, typecheck, 11 focused tests, M1-M3 hashes, boundaries, handoff, taskctl, diff and full quality pass; no live admission or benchmark rerun.",
+    "at": "2026-07-12T06:51:03.106Z"
+  }
 }
