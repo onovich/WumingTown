@@ -2,7 +2,7 @@
   "id": "WM-0179",
   "title": "Entity-store structural command ordering repair",
   "summary": "Replace the inversion-dependent structural command ordering bottleneck with deterministic preallocated bounded ordering so the unchanged canonical entity-store gate passes without touching registry, component, benchmark or baseline semantics.",
-  "state": "blocked",
+  "state": "in_progress",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": [
@@ -49,7 +49,7 @@
   ],
   "branch": "task/WM-0179-entity-store-structural-command-ordering-repair",
   "createdAt": "2026-07-12T05:07:29.890Z",
-  "updatedAt": "2026-07-12T05:22:26.576Z",
+  "updatedAt": "2026-07-12T05:24:33.294Z",
   "history": [
     {
       "at": "2026-07-12T05:07:29.891Z",
@@ -74,6 +74,12 @@
       "actor": "simulation-engineer",
       "action": "block",
       "details": "The sole two-window Get-Process admission pair executed on clean checkpoint 0882988, but PowerShell Write-Output was captured by assignment into process-local arrays; array truthiness made exit 0 non-evidentiary and only GIT_CLEAN_AFTER=True survived. CPU thresholds cannot be audited. Per the two-window/no-retry policy, benchmark invocation count is 0 and no additional sampling or benchmark was run. Functional/typecheck/focused/quality/M1-M3 evidence passes; see coordination/reports/WM-0179.md."
+    },
+    {
+      "at": "2026-07-12T05:24:33.294Z",
+      "actor": "systems-architect",
+      "action": "unblock",
+      "details": "Authorized one replacement admission pair because the first pair retained no auditable CPU samples and benchmark invocation count remains zero. After one synthetic dry output-shape proof, run one fail-closed two-window Get-Process admission; only a valid pass may precede the single entity-store benchmark attempt. No product/gate change and no further admission or benchmark retry."
     }
   ],
   "milestone": "Post-M8",
@@ -118,11 +124,5 @@
   "singleWriterRule": "WM-0179 is the sole product writer while active. WM-0178 remains blocked and claimed by qa-performance with no harness/evidence writes; WM-0177 remains blocked and claimed by its original simulation-engineer with no product writes; WM-0170 remains blocked.",
   "claimedBy": "simulation-engineer",
   "threadLabel": "Tally WM-0179",
-  "blocker": {
-    "by": "simulation-engineer",
-    "to": "systems-architect",
-    "reason": "The sole two-window Get-Process admission pair executed on clean checkpoint 0882988, but PowerShell Write-Output was captured by assignment into process-local arrays; array truthiness made exit 0 non-evidentiary and only GIT_CLEAN_AFTER=True survived. CPU thresholds cannot be audited. Per the two-window/no-retry policy, benchmark invocation count is 0 and no additional sampling or benchmark was run. Functional/typecheck/focused/quality/M1-M3 evidence passes; see coordination/reports/WM-0179.md.",
-    "previousState": "in_progress",
-    "at": "2026-07-12T05:22:26.576Z"
-  }
+  "blocker": null
 }
