@@ -2,7 +2,7 @@
   "id": "WM-0183",
   "title": "Claim-ready owners and reusable JobCore driver adoption",
   "summary": "Add exact claim facts, owner-versioned prepared mutation surfaces, reusable JobCore token custody, and generation-aware adoption rollback and terminal closure.",
-  "state": "proposed",
+  "state": "ready",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": ["WM-0182", "WM-0181"],
@@ -62,7 +62,7 @@
   ],
   "branch": "task/WM-0183-claim-ready-owners-and-reusable-jobcore-driver-a",
   "createdAt": "2026-07-13T08:08:27.732Z",
-  "updatedAt": "2026-07-13T08:12:41.000Z",
+  "updatedAt": "2026-07-13T09:24:30.715Z",
   "history": [
     {
       "at": "2026-07-13T08:08:27.732Z",
@@ -75,6 +75,12 @@
       "actor": "project-director",
       "action": "refine-approved-prerequisite",
       "details": "Created as the second of exactly two serial prerequisites after independent B3 PLAN PASS at 7a483fc54701eeddb0e3285929dadb2971880075; remains proposed until WM-0182 is independently verified, integrated and done."
+    },
+    {
+      "at": "2026-07-13T09:24:30.715Z",
+      "actor": "project-director",
+      "action": "promote-ready",
+      "details": "all dependencies done"
     }
   ],
   "milestone": "Post-M8",

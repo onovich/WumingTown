@@ -2,7 +2,7 @@
   "id": "WM-0182",
   "title": "ReservationLedger exact claim custody and allocation epochs",
   "summary": "Add generation-aware exact claim custody APIs and independently rooted allocation-free release/read closure for WM-0170 and WM-0171.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": ["WM-0177"],
@@ -44,7 +44,7 @@
   ],
   "branch": "task/WM-0182-reservationledger-exact-claim-custody-and-alloca",
   "createdAt": "2026-07-13T08:08:27.691Z",
-  "updatedAt": "2026-07-13T09:22:16.371Z",
+  "updatedAt": "2026-07-13T09:24:30.703Z",
   "history": [
     {
       "at": "2026-07-13T08:08:27.691Z",
@@ -111,6 +111,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: Repair-1 independently verified at a17ae56. Original High 1 is closed: readActiveClaimsInto emits zero amounts for ENTITY/CELL/INTERACTION_SPOT, preserves record amounts only for ITEM_QUANTITY/CAPACITY, and the all-five-channel regression is exactly [0,0,2,0,3] with existing all-before-any and fourteen-lane coverage passing. Original High 2 is closed: both production roots use auditMethodClosure, whose same traversal now validates declaration owner plus literal-this receiver identity; foreign-class same-name, same-class non-this, and unresolved receiver negatives all run through that formal auditor and fail closed. Repair diff is limited to reservation-ledger.ts/test, closure test, and WM-0182 report; Worker golden/production and task scope are unchanged. Typecheck, 46 focused, 15 Worker, repair-scoped Prettier, boundaries, handoff, taskctl validate/status, diff checks, and full quality 80 files/524 tests passed; only expected taskctl-complete task JSON formatting drift remains outside the committed repair."
+    },
+    {
+      "at": "2026-07-13T09:24:30.657Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Fast-forwarded independently verified WM-0182 commits through 99dc939 onto main; main full quality passed 80 files and 524 tests."
+    },
+    {
+      "at": "2026-07-13T09:24:30.703Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "Post-M8",
@@ -163,5 +175,10 @@
     "verdict": "verified",
     "summary": "Repair-1 independently verified at a17ae56. Original High 1 is closed: readActiveClaimsInto emits zero amounts for ENTITY/CELL/INTERACTION_SPOT, preserves record amounts only for ITEM_QUANTITY/CAPACITY, and the all-five-channel regression is exactly [0,0,2,0,3] with existing all-before-any and fourteen-lane coverage passing. Original High 2 is closed: both production roots use auditMethodClosure, whose same traversal now validates declaration owner plus literal-this receiver identity; foreign-class same-name, same-class non-this, and unresolved receiver negatives all run through that formal auditor and fail closed. Repair diff is limited to reservation-ledger.ts/test, closure test, and WM-0182 report; Worker golden/production and task scope are unchanged. Typecheck, 46 focused, 15 Worker, repair-scoped Prettier, boundaries, handoff, taskctl validate/status, diff checks, and full quality 80 files/524 tests passed; only expected taskctl-complete task JSON formatting drift remains outside the committed repair.",
     "at": "2026-07-13T09:22:16.371Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Fast-forwarded independently verified WM-0182 commits through 99dc939 onto main; main full quality passed 80 files and 524 tests.",
+    "at": "2026-07-13T09:24:30.657Z"
   }
 }
