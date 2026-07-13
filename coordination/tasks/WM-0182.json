@@ -2,7 +2,7 @@
   "id": "WM-0182",
   "title": "ReservationLedger exact claim custody and allocation epochs",
   "summary": "Add generation-aware exact claim custody APIs and independently rooted allocation-free release/read closure for WM-0170 and WM-0171.",
-  "state": "changes_requested",
+  "state": "verified",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": ["WM-0177"],
@@ -44,7 +44,7 @@
   ],
   "branch": "task/WM-0182-reservationledger-exact-claim-custody-and-alloca",
   "createdAt": "2026-07-13T08:08:27.691Z",
-  "updatedAt": "2026-07-13T09:10:29.856Z",
+  "updatedAt": "2026-07-13T09:22:16.371Z",
   "history": [
     {
       "at": "2026-07-13T08:08:27.691Z",
@@ -93,6 +93,24 @@
       "actor": "reviewer",
       "action": "review",
       "details": "changes_requested: High: packages/sim-core/src/reservation-ledger.ts:1049 makes readActiveClaimsInto expose internal amount=1 for ENTITY, CELL, and INTERACTION_SPOT, contradicting approved WM-0170 plan blob line 526 that only ITEM_QUANTITY/CAPACITY carry amount; packages/sim-core/src/reservation-ledger.test.ts:756 locks the wrong [1,1,2,1,3] result. Normalize non-quantity/capacity amounts to zero and add exact [0,0,2,0,3] regression. High: packages/sim-core/src/reservation-ledger-closure.test.ts:147-152 accepts every same-source resolved target without checking receiver identity, while the foreign-receiver negative at 307-318 uses a different auditor, so the two formal roots are not proven receiver-exact. Enforce receiver-exact traversal in the production closure auditor and exercise a same-source foreign/same-name receiver through that same path. Typecheck, 44 focused tests, 15 Worker tests, boundaries, handoff, taskctl validate/status, diff checks, and full quality 522 passed; scoped pnpm-exec shims failed in this Windows shell and direct locked .CMD equivalents passed, except current taskctl-complete WM-0182.json formatting drift."
+    },
+    {
+      "at": "2026-07-13T09:12:54.720Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Tally WM-0182 repair-1"
+    },
+    {
+      "at": "2026-07-13T09:19:04.190Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Addressed Mirror changes_requested: readActiveClaimsInto now emits amounts only for ITEM_QUANTITY/CAPACITY with exact [0,0,2,0,3] regression; formal TypeChecker root traversal now enforces receiver identity and rejects foreign, non-this, and unresolved receivers through the same auditor. 46 focused tests, 15 Worker tests, all gates, and 524-test quality pass."
+    },
+    {
+      "at": "2026-07-13T09:22:16.371Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: Repair-1 independently verified at a17ae56. Original High 1 is closed: readActiveClaimsInto emits zero amounts for ENTITY/CELL/INTERACTION_SPOT, preserves record amounts only for ITEM_QUANTITY/CAPACITY, and the all-five-channel regression is exactly [0,0,2,0,3] with existing all-before-any and fourteen-lane coverage passing. Original High 2 is closed: both production roots use auditMethodClosure, whose same traversal now validates declaration owner plus literal-this receiver identity; foreign-class same-name, same-class non-this, and unresolved receiver negatives all run through that formal auditor and fail closed. Repair diff is limited to reservation-ledger.ts/test, closure test, and WM-0182 report; Worker golden/production and task scope are unchanged. Typecheck, 46 focused, 15 Worker, repair-scoped Prettier, boundaries, handoff, taskctl validate/status, diff checks, and full quality 80 files/524 tests passed; only expected taskctl-complete task JSON formatting drift remains outside the committed repair."
     }
   ],
   "milestone": "Post-M8",
@@ -137,13 +155,13 @@
   "singleWriterRule": "WM-0182 is the sole ready repair writer. WM-0183 remains proposed behind WM-0182, and WM-0170 retains its original owner/checkpoint while blocked until both prerequisites are independently verified, integrated and done.",
   "integrationOrder": "First prerequisite. Independent reviewer verification, project-director integration and done are mandatory before WM-0183 may become ready.",
   "claimedBy": "simulation-engineer",
-  "threadLabel": "Tally WM-0182",
+  "threadLabel": "Tally WM-0182 repair-1",
   "blocker": null,
   "reportPath": "coordination/reports/WM-0182.md",
   "review": {
     "reviewer": "reviewer",
-    "verdict": "changes_requested",
-    "summary": "High: packages/sim-core/src/reservation-ledger.ts:1049 makes readActiveClaimsInto expose internal amount=1 for ENTITY, CELL, and INTERACTION_SPOT, contradicting approved WM-0170 plan blob line 526 that only ITEM_QUANTITY/CAPACITY carry amount; packages/sim-core/src/reservation-ledger.test.ts:756 locks the wrong [1,1,2,1,3] result. Normalize non-quantity/capacity amounts to zero and add exact [0,0,2,0,3] regression. High: packages/sim-core/src/reservation-ledger-closure.test.ts:147-152 accepts every same-source resolved target without checking receiver identity, while the foreign-receiver negative at 307-318 uses a different auditor, so the two formal roots are not proven receiver-exact. Enforce receiver-exact traversal in the production closure auditor and exercise a same-source foreign/same-name receiver through that same path. Typecheck, 44 focused tests, 15 Worker tests, boundaries, handoff, taskctl validate/status, diff checks, and full quality 522 passed; scoped pnpm-exec shims failed in this Windows shell and direct locked .CMD equivalents passed, except current taskctl-complete WM-0182.json formatting drift.",
-    "at": "2026-07-13T09:10:29.855Z"
+    "verdict": "verified",
+    "summary": "Repair-1 independently verified at a17ae56. Original High 1 is closed: readActiveClaimsInto emits zero amounts for ENTITY/CELL/INTERACTION_SPOT, preserves record amounts only for ITEM_QUANTITY/CAPACITY, and the all-five-channel regression is exactly [0,0,2,0,3] with existing all-before-any and fourteen-lane coverage passing. Original High 2 is closed: both production roots use auditMethodClosure, whose same traversal now validates declaration owner plus literal-this receiver identity; foreign-class same-name, same-class non-this, and unresolved receiver negatives all run through that formal auditor and fail closed. Repair diff is limited to reservation-ledger.ts/test, closure test, and WM-0182 report; Worker golden/production and task scope are unchanged. Typecheck, 46 focused, 15 Worker, repair-scoped Prettier, boundaries, handoff, taskctl validate/status, diff checks, and full quality 80 files/524 tests passed; only expected taskctl-complete task JSON formatting drift remains outside the committed repair.",
+    "at": "2026-07-13T09:22:16.371Z"
   }
 }

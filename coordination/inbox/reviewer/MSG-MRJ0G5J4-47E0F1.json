@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MRJ0G5J4-47E0F1",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0182",
+  "kind": "review-request",
+  "subject": "WM-0182 ready for review",
+  "body": "Addressed Mirror changes_requested: readActiveClaimsInto now emits amounts only for ITEM_QUANTITY/CAPACITY with exact [0,0,2,0,3] regression; formal TypeChecker root traversal now enforces receiver identity and rejects foreign, non-this, and unresolved receivers through the same auditor. 46 focused tests, 15 Worker tests, all gates, and 524-test quality pass.",
+  "artifacts": [
+    "coordination/reports/WM-0182.md",
+    "task/WM-0182-reservationledger-exact-claim-custody-and-alloca"
+  ],
+  "createdAt": "2026-07-13T09:19:04.192Z",
+  "acknowledgedAt": "2026-07-13T09:23:10.869Z"
+}
