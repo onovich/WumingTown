@@ -352,6 +352,8 @@ interface ReservationReleaseIntoOutput {
 releaseClaimsInto(
   claimIds: Uint32Array,
   claimCount: number,
+  expectedOwner: EntityId,
+  expectedJobId: number,
   output: ReservationReleaseIntoOutput,
 ): void;
 ```
@@ -361,20 +363,24 @@ contract must satisfy all of these mechanical requirements:
 
 - reset the caller-owned output on every call and allocate no object, array,
   closure or string on the reachable call chain;
-- reject an invalid count, `NONE`/out-of-range id, inactive id or duplicate id
-  before releasing any claim;
+- reject an invalid count, invalid expected owner/job binding,
+  `NONE`/out-of-range id, inactive id, duplicate id or a claim whose owner/job
+  differs from the expected binding before releasing any claim;
 - on success release exactly the first `claimCount` ids, update every channel,
   owner/target link, capacity amount, active count, free lane and metric exactly
-  once, then advance ledger version exactly once when the count is non-zero;
+  once, require `releasedCount === claimCount`, then advance ledger version
+  exactly once when the count is non-zero;
 - on failure leave all authoritative claims, counts, links, amounts, free lanes,
   version and release metrics unchanged and return the first deterministic
   offending id/reason in the reused output;
 - use index-bounded loops rather than `for-of`, preserve the input/output/typed-
-  lane identities, and expose the API from the existing package public entry;
+  lane identities, expose the API from the existing package public entry, and
+  leave every legacy acquire/release signature and behavior compatible;
 - prove invalid-first, invalid-middle, invalid-last, inactive, duplicate and
-  mixed-channel atomic rejection; exact entity/cell/interaction/item/capacity
-  success; output reuse; version/metric behavior; full-capacity/reused-id
-  behavior; and a TypeChecker-based allocation-free transitive closure.
+  wrong-owner, wrong-job and foreign-claim-in-mixed-transaction atomic
+  rejection; exact entity/cell/interaction/item/capacity success; output reuse;
+  version/metric behavior; full-capacity/reused-id behavior; legacy API
+  compatibility; and a TypeChecker-based allocation-free transitive closure.
 
 This prerequisite is a stop line, not an optional optimization. A successful
 acquire followed by exact Store validation or publication failure cannot be
@@ -437,8 +443,9 @@ is changed by this sequence.
    re-run `validateTransitionInto` against the exact claiming row.
 9. Call `transitionInto` once only after exact validation. Success publishes the
    claiming endpoint defined above. Any exact validation or transition failure
-   calls integrated `releaseClaimsInto` once with precisely the ids/count from
-   this acquire and returns a structured publication/compensation result.
+   calls integrated `releaseClaimsInto` once with precisely the ids/count and
+   expected resident/pending-job binding from this acquire and returns a
+   structured publication/compensation result.
 10. A compensation failure is a fail-closed invariant breach: retain the exact
     acquire/release evidence in caller-owned output/metrics, publish no autonomy
     row, perform no broad owner/job cleanup, and surface the failure for the
