@@ -296,7 +296,7 @@ Canvas passed B2 at checkpoint `59c9731`. The B3 API/architecture audit is
 read-only and freezes the decisions below. This section supersedes any earlier
 wording that could be read as allowing WM-0170 to create a JobCore job or enter
 `moving`/`working`. No B3 product implementation starts until Canvas accepts
-this plan and the strict prerequisite below is independently implemented,
+this plan and the two strict prerequisites below are independently implemented,
 reviewed and integrated.
 
 ### Frozen B3 endpoint and WM-0171 handoff
@@ -323,7 +323,7 @@ reviewed and integrated.
    any supposedly inactive Job projection with a job id, policy or non-zero
    version as stale before mutation; it does not fabricate a future binding.
 
-### Strict prerequisite: exact zero-allocation claim compensation
+### Strict prerequisites: exact compensation and claim facts
 
 The current `ReservationLedger.acquireInto` is suitable for the forward
 transaction, but neither current rollback entry point is suitable for B3.
@@ -419,19 +419,57 @@ and job equality alone cannot distinguish a recycled claim id later reused by
 the same resident/pending-job pair. Exact `expectedLedgerVersion` equality
 closes that ABA case before any release mutation.
 
+The release surface is necessary but not sufficient. The current public owner
+APIs cannot mechanically construct all four source claim plans from the exact
+facts retained by B2: a Food `stackId`, Medical `stockDefId`/`patientId`, and an
+Ordinary WorkOffer `targetId` are owner-local scalar ids, not `EntityId`s. B3
+must not reinterpret them as entity indexes or recover their claims through a
+hidden map. After Canvas accepts this plan, Beacon creates exactly two
+prerequisite tasks: (1) generic ledger compensation with the reviewed
+`releaseClaimsInto` contract, and (2) one cohesive claim-ready owner-surfaces
+task containing the minimum ItemStack/storage/medical/ordinary public Into APIs
+below. Both tasks are independently implemented, reviewed, integrated and
+`done` before WM-0170 resumes. No prerequisite task is created before Canvas
+PLAN PASS, and the claim-ready work is not split into uncoordinated per-source
+tasks.
+
+| Source                      | Required prerequisite public facts surface                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Food                        | Add an allocation-free, version-bound exact `stackId -> ItemStack` Into read on the item-stack owner. It returns active status, exact stack id, item `EntityId` index/generation, def id, quantity, reserved quantity, available quantity, capacity, exact stack-row version, item-store version and reservation basis. It validates the entity against `EntityRegistry`; `stackId` itself is never treated as an entity.                                                                    |
+| Rest                        | Existing fixture Into/index facts remain sufficient: the selected fixture supplies its real target entity generation, interaction spot, target cell and owner/index versions. No new hidden mapping is permitted.                                                                                                                                                                                                                                                                            |
+| Medical stock               | Add a bounded, deterministic, version-bound exact stock selection/read keyed by the selected request's stock def, region and required amount. It returns a concrete `stockStackId`, item entity index/generation, def id, quantity/available quantity, exact owner version, row version, index version, dirty backlog, item-store version and reservation basis. Selection uses a fixed caller-owned cap and stable stack-id/entity tie-break; it never scans all stacks.                    |
+| Medical patient interaction | Add an owner-specific `M3MedicalClaimFactsIndex.readPatientInteractionInto(requestId, output)` (or reviewed equivalent) that returns the exact patient interaction target entity index/generation, spot id, target cell and its source/row/index versions. This derived medical claim-facts owner, not `patientId` or the autonomy provider, owns the request-to-interaction mapping and validates the entity against `EntityRegistry`.                                                      |
+| Ordinary                    | Add construction-approved owner-specific claim-facts resolvers keyed by `workType`, WorkOffer id and its owner-local `targetId`. Each allocation-free, version-bound Into resolver returns the exact channel-specific entity/item/cell/interaction/capacity facts plus its owner/row/index versions. A WorkOffer `targetId` remains an opaque owner scalar; a resolver may legitimately return a cell-only plan with no entity target. Unknown work types or unmapped resolvers fail closed. |
+
+Each surface resets caller-owned output, preserves output/ref/typed-lane
+identity, exposes exact stale/empty/malformed reasons, and is included in a
+receiver-exact TypeChecker closure. Food/Medical/Ordinary success outputs are
+not present in the passed `59c9731` B2 checkpoint. After both prerequisites are
+integrated, B3 implementation first extends the B2 final-selected read-only step
+to call these surfaces once and retain the exact schema frozen below. It does
+not claim that the historical checkpoint already retained them. The later B3
+pre-acquire phase re-reads the same surfaces and compares every retained scalar
+and every `AutonomyVersionBasis` version before plan access. These
+final-selected bounded reads do not expand the 24 visited / 12 scored / 4
+exact-path caps or authorize a global scan.
+
 ### Exact B3 resume procedure after prerequisite integration
 
-1. Confirm Canvas plan PASS, prerequisite task `done`, prerequisite integration
-   reachable from current `main`, clean single worktree, and WM-0170 still owned
-   by Tally/in progress. Run workflow validation/status; do not reclaim or
-   complete the task.
+1. Confirm Canvas plan PASS, exactly the ledger-compensation and cohesive
+   claim-ready-owner-surfaces prerequisite tasks independently `done`, both
+   integrations reachable from current `main`, clean single worktree, and
+   WM-0170 still owned by Tally/in progress. Run workflow validation/status; do
+   not reclaim or complete the task.
 2. Rebase or otherwise refresh the existing WM-0170 branch only through the
    project workflow chosen by Beacon, then rerun the B2 focused suite,
-   typecheck and closure audit unchanged. Stop on any baseline regression.
-3. Re-read the integrated `releaseClaimsInto` implementation, public export,
-   tests and independent review. Verify its actual signature against this
-   contract and add it to the B3 TypeChecker closure before editing coordinator
-   production code.
+   typecheck and closure audit unchanged. Stop on any baseline regression. The
+   first B3 implementation checkpoint then adds the final-selected claim-facts
+   reads/retention defined here and proves them before enabling any acquire.
+3. Re-read the integrated `releaseClaimsInto`, exact ItemStack Into read,
+   Medical stock/patient-interaction facts and concrete Ordinary resolver
+   implementations, public exports, tests and independent reviews. Verify their
+   actual signatures against this contract and add every concrete receiver to
+   the B3 TypeChecker closure before editing coordinator production code.
 4. Implement B3 only in the already-approved autonomy selection/types/store
    modules and focused autonomy test/report unless Canvas explicitly approves a
    narrower revised file list. Do not modify ReservationLedger again inside
@@ -457,11 +495,12 @@ readPlanInto(
   residentGeneration: number,
   tick: Tick,
   leaseExpiryTick: Tick,
+  claimFacts: AutonomyClaimFactsInput,
   output: AutonomyClaimPlanIntoOutput,
 ): void;
 ```
 
-The coordinator owns the first eight values. It passes the B2-selected
+The coordinator owns the eight scalar values. It passes the B2-selected
 source/candidate/target/cell and exact request resident/tick. A construction-only
 policy supplies one fixed positive integer lease duration. The coordinator uses
 a checked safe-add (`tick + leaseDurationTicks`) and calls no provider when the
@@ -469,16 +508,136 @@ duration, tick or sum is not a safe Tick; saturation, wraparound and provider-
 chosen wall time are forbidden. No provider may read a hidden mutable
 resident, tick, lease, selected-candidate or sequence context.
 
+`claimFacts` is a fixed construction-owned caller scratch whose identity never
+changes. This plan freezes its complete schema; `AutonomyClaimFactsLanes` uses
+the same fields in Store-owned scalar/flattened typed lanes and is not an object
+reference:
+
+```ts
+const AUTONOMY_CLAIM_FACT_SLOT_COUNT = 8;
+
+interface AutonomyClaimFactsInput {
+  sourceCode: AutonomyCandidateSourceCode;
+  resolverKind: number;
+  channelCount: number;
+  ownerCandidateId: number;
+  ownerTargetId: number;
+  primaryStackId: number;
+  secondaryStackId: number;
+  primaryDefId: number;
+  primaryAmount: number;
+  medicalRequestId: number;
+  medicalPatientId: number;
+  medicalConditionId: number;
+  medicalTreatmentDefId: number;
+  readonly channelCodes: Uint8Array; // exact length 8
+  readonly targetIndexes: Uint32Array; // exact length 8
+  readonly targetGenerations: Uint32Array; // exact length 8
+  readonly cellIndexes: Uint32Array; // exact length 8
+  readonly slotIds: Uint32Array; // exact length 8
+  readonly amounts: Uint32Array; // exact length 8
+  readonly limits: Uint32Array; // exact length 8
+  readonly domainIds: Uint32Array; // exact length 8
+}
+```
+
+`sourceCode`, `resolverKind`, `channelCount` and the ten remaining scalar
+fields are copied directly into fixed Store lanes; every eight-entry array is
+copied into a resident-offset fixed lane. `channelCount` is exactly `1..8` for a
+claiming row. For every unused slot `[channelCount, 8)`, `channelCodes` is
+`CLAIM_CHANNEL_NONE`, target index/generation, cell, slot and domain id are
+`AUTONOMY_REF_NONE`, and amount/limit are zero. Within the active prefix, a
+non-applicable target pair/cell/slot/domain uses `NONE`; a non-applicable
+amount/limit uses zero. Every source-inapplicable scalar id uses `NONE` and
+`primaryAmount` uses zero. Owner/row/index/item/reservation versions remain in
+`AutonomyVersionBasis` and are not duplicated in claim-facts lanes.
+
+The exact fields merged additively into the existing `AutonomyVersionBasis` are
+frozen as:
+
+```ts
+interface AutonomyVersionBasisAdditions {
+  wakeEventVersion: number;
+  claimPrimaryOwnerVersion: number;
+  claimPrimaryRowVersion: number;
+  claimPrimaryIndexVersion: number;
+  claimPrimaryBacklog: number;
+  claimSecondaryOwnerVersion: number;
+  claimSecondaryRowVersion: number;
+  claimSecondaryIndexVersion: number;
+  claimSecondaryBacklog: number;
+  claimItemStoreVersion: number;
+  claimReservationVersion: number;
+}
+```
+
+| Source   | Exact claim-basis mapping                                                                                                                                                                                                                                                                                                                                                                         |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Food     | Primary is the exact ItemStack owner/read row: owner = item-store version, row = prerequisite stack-row version, index/backlog = `0`; secondary is all `0`; item-store and reservation fields equal the exact ItemStack/availability read bases. Existing Food candidate owner/index/item lanes remain unchanged.                                                                                 |
+| Rest     | All new claim-primary/secondary/item/reservation fields are `0`; the existing Rest source/store/current/cached-row/index/backlog lanes and common reservation version remain authoritative.                                                                                                                                                                                                       |
+| Medical  | Primary is the bounded stock selector/read owner, row, index and backlog; secondary is the patient-interaction claim-facts owner, row, index and backlog; item-store and reservation fields equal the exact selected stock availability bases.                                                                                                                                                    |
+| Ordinary | The static `(workType, defId) -> resolverKind` descriptor assigns each exact owner/read/index/backlog basis to primary and, when required, secondary; an unused group is all `0`. Item-store and reservation fields equal the exact item/availability bases required by its active claim slots, otherwise `0`. More than two claim-owner groups requires plan re-review rather than hidden reuse. |
+
+`wakeEventVersion` is the exact selected wake-event owner version for every
+source. Generic `candidateOwnerVersion`, `candidateRowVersion` and
+`candidateIndexVersion` continue to bind the original Food/Rest/Medical/
+WorkOffer selection owner only; they cannot be reused to hide ItemStack,
+Medical claim-facts or Ordinary resolver versions. Every non-zero
+`claimReservationVersion` must equal the common `reservationVersion`. For Food,
+`claimPrimaryOwnerVersion` must equal `claimItemStoreVersion`; Medical and
+Ordinary bind `claimItemStoreVersion` through their reviewed resolver mapping,
+and Store validation rejects any contradictory version tuple.
+
+The scratch is not an authority and does not allocate. Every field must exactly
+equal the retained post-prerequisite B2 facts and the immediately preceding B3
+fresh reads. The provider receives it explicitly; construction-time mutable
+side channels are forbidden.
+
 The provider resets the existing output in place, echoes the four selection
 scalars into the header, writes the explicit resident index/generation into the
 fixed transaction owner, derives the pending job id from its construction-owned
 deterministic source and writes it identically to header and transaction, writes
 the supplied tick/lease expiry, and binds only the fixed source-required claim
-slots. It may fill target/item refs only from its construction-injected indexed
-owners and `EntityRegistry`; it may not choose a different candidate, target,
-resident, tick or lease. The coordinator, not the provider, owns all alias,
-EntityRegistry generation, source-row, count, route, version and transition
-validation and remains responsible for acquire/compensation/publication.
+slots from `claimFacts`. It must not query an injected hidden mapping or turn an
+owner-local scalar into an entity. It may emit an entity/item/interaction/
+capacity ref only when that channel requires the corresponding non-`NONE`
+EntityId in `claimFacts`; cell claims require no entity target. It may not choose
+a different candidate, target scalar, resident, tick or lease. The coordinator,
+not the provider, owns all alias, channel/source-required EntityRegistry
+generation, source-row, count, route, version and transition validation and
+remains responsible for acquire/compensation/publication.
+
+The validated `claimFacts` are also a durable WM-0171 handoff, not temporary
+provider scratch. B3 extends the already-approved autonomy types/store and raw
+snapshot with one fixed scalar `AutonomyClaimFactsLanes` bundle. The claiming
+transition copies the exact validated facts into those lanes before publication;
+Store transition/raw-snapshot validation rejects wrong source discriminators,
+missing channel-required fields, stale cross-source residue, invalid optional
+EntityId pairs, counts above fixed capacity and any mismatch with the claiming
+target/claims/basis. Snapshot round-trip preserves every lane. No object,
+provider reference, owner row or claim object is stored. The prerequisite
+outputs, B2 retained scratch, B3 fresh scratch, plan provider input, claiming
+transition/read output and raw snapshot all use this exact manifest. This plan,
+not a future review artifact, freezes it. A prerequisite/provider may not append
+an unreviewed field, variable-length payload or source-private object; any newly
+discovered job-construction fact returns this plan to review instead of being
+hidden in context.
+
+| Source   | Exact scalar and active-slot mapping                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Food     | `resolverKind = FOOD`; candidate/target echo the selected owner scalars; `primaryStackId = candidateId`, secondary stack and all medical ids are `NONE`, primary def/amount are the selected food def/quantity. Slot 0 is `ITEM_QUANTITY` with the ItemStack entity pair, amount, available limit and `domainId = primaryStackId`. Slot 1 is `INTERACTION_SPOT` with the same ItemStack entity pair, selected spot id and `domainId = storageSlotId`.                                                                                                                                                                                                                                                     |
+| Rest     | `resolverKind = REST`; owner candidate/target are the fixture scalars; both stack ids and all medical ids are `NONE`; `primaryDefId = restKind`, amount zero. Slot 0 is `ENTITY` for the fixture entity with `domainId = fixtureId`. Slot 1 is `INTERACTION_SPOT` for that same entity/spot with `domainId = fixtureId`.                                                                                                                                                                                                                                                                                                                                                                                  |
+| Medical  | `resolverKind = MEDICAL`; owner candidate is request id and owner target is patient owner scalar; primary stack is the bounded selected stock stack, secondary stack `NONE`, primary def/amount are stock def/amount; the four medical scalar fields are exact request/patient/condition/treatment ids. Slot 0 is `ITEM_QUANTITY` for the stock item entity with amount/available limit and `domainId = stockStackId`; slot 1 is `INTERACTION_SPOT` for the patient interaction entity/spot with `domainId = requestId`; slot 2 is `CELL` for the treatment cell with `domainId = requestId`.                                                                                                             |
+| Ordinary | `resolverKind` is the exact row selected from the construction-reviewed `(workType, defId)` descriptor manifest; owner candidate is WorkOffer id and owner target is its opaque target scalar; medical ids are `NONE`. The manifest fixes primary/secondary stack, primary def/amount and, for each active slot, channel plus the exact meaning of `domainIds[index]`. A cell-only row has count one, `CELL` in slot 0, target pair `NONE/NONE`, selected cell and `domainId = ownerTargetId`. Hauling/build/lamp rows enumerate each source/destination stack, site/lamp/order scalar and its slot-domain meaning in that same static manifest; no workType-only or runtime-hidden dispatch is accepted. |
+
+WM-0171 must read this claiming-row bundle allocation-free to create the exact
+Treatment/Hauling/Rest/Food/Ordinary Job, then validate it against the same
+current owners before binding `jobId`. It must not reconstruct Medical stock or
+Ordinary owner facts from claim ids and must not rerun an unconstrained selector.
+The alternative claim-record-to-owner-domain reverse lookup is rejected as a
+larger new public index. These lanes are internal autonomy execution state under
+WM-0170's existing allowed types/store/snapshot paths; they do not change the
+GameSession save format, protocol or product projection.
 
 The dynamic interface is never accepted as an allocation proof by itself. The
 B3 manifest enumerates the exact construction-approved concrete plan bodies for
@@ -505,7 +664,10 @@ is changed by this sequence.
    gates. Failure stops before claim-plan access.
 3. Re-read the selected owner row and its index/source basis using the matrix
    below. The candidate id, target id/cell and source-local policy facts must
-   still match B2 exactly. Failure stops before claim-plan access.
+   still match B2 exactly. Re-read the integrated channel/source-required
+   claim-facts Into surface and compare every stack/ref/spot/cell/amount/capacity
+   scalar and owner/row/index/reservation version retained by B2. Failure stops
+   before claim-plan access.
 4. Re-read the complete path basis and verify map, navigation, region, room and
    region-graph versions, route length `1..128`, valid route cells, target-cell
    endpoint and cleared tail. Failure stops before claim-plan access.
@@ -516,9 +678,9 @@ is changed by this sequence.
    before plan access with no ledger mutation.
 6. Compute the lease expiry with the construction policy's checked safe-add,
    reset the fixed claim-plan output and call `claimPlans.readPlanInto(...)`
-   exactly once with the eight explicit scalar inputs. Validate the returned
-   header, fixed refs, aliases, transaction and fixed claim slots without
-   allocation.
+   exactly once with the eight explicit scalar inputs plus the validated fixed
+   `claimFacts` scratch. Validate the returned header, fixed refs, aliases,
+   transaction and fixed claim slots without allocation.
 7. Build a provisional claiming transition in existing scratch, using valid
    placeholders for the not-yet-known claim ids and predicted success ledger
    version `current + 1`. Call `validateTransitionInto` before acquire. This
@@ -526,24 +688,38 @@ is changed by this sequence.
    proof of the future exact claim ids.
 8. Call `ReservationLedger.acquireInto` exactly once. On failure, publish no
    autonomy row and classify the returned structured reservation reason.
-   A successful output must have `version === priorVersion + 1`,
-   `activeCount === priorActiveCount + claimCount`, the exact planned count and
-   a unique, non-`NONE` prefix with a cleared `NONE` tail.
-9. On success, copy exactly `output.claimCount` returned ids into the fixed
-   transition claim lane, clear its tail, bind the actual acquire version and
-   re-run `validateTransitionInto` against the exact claiming row.
+   A successful output is structurally releasable only when the planned count
+   was already trusted in `1..8`, `output.claimCount` exactly equals it, the
+   original fixed id-buffer identity/length is intact, the readable prefix has
+   exactly that many unique non-`NONE` ids and every unused tail entry is
+   `NONE`. Version or active-count output mismatches are malformed evidence but
+   do not make an otherwise exact id set unreleasable.
+9. Only a fully valid success whose version and active count also equal the
+   predicted values may continue to publication. Copy exactly the trusted
+   planned/output count into the fixed transition claim lane, clear its tail,
+   bind reservation version `priorVersion + 1` (which now equals the validated
+   output), and re-run `validateTransitionInto` against the exact claiming row.
 10. Call `transitionInto` once only after exact validation. Success publishes the
     claiming endpoint defined above. Any exact validation or transition failure
     calls integrated `releaseClaimsInto` once with precisely the ids/count and
     expected resident/pending-job binding from this acquire,
-    `expectedLedgerVersion = acquireOutput.version`, and returns a structured
-    publication/compensation result. Release success must report version
-    `acquireOutput.version + 1`, the captured pre-acquire active count and the
-    exact planned count.
+    `expectedLedgerVersion = priorVersion + 1`, never the untrusted
+    `acquireOutput.version`, and returns a structured publication/compensation
+    result. Release success must report version `priorVersion + 2`, the captured
+    pre-acquire active count and the exact planned count.
 11. A compensation failure is a fail-closed invariant breach: retain the exact
     acquire/release evidence in caller-owned output/metrics, publish no autonomy
     row, perform no broad owner/job cleanup, and surface the failure for the
     authoritative caller. B3 must never silently continue with leaked claims.
+
+If a success-shaped acquire reports a wrong count, a short/replaced buffer, a
+`NONE` or duplicate inside the planned prefix, or non-`NONE` tail residue, the
+coordinator cannot prove the exact set that the ledger committed. It therefore
+does not call exact release, does not guess from tail values, and never uses a
+broad owner/job cleanup; it retains all malformed output and predicted-version
+evidence and fails closed. Conversely, wrong acquire `version` or `activeCount`
+fields alone do not block compensation when the planned count and exact id set
+are structurally trustworthy: release still uses trusted `priorVersion + 1`.
 
 There is no other ledger operation between the pre-plan version read and
 `acquireInto`, or between a successful acquire and `transitionInto`/
@@ -553,12 +729,12 @@ release, cleanup or second acquire. This makes `prior`, `prior + 1` and optional
 
 ### Selected-source revalidation matrix
 
-| Source   | Required fresh reads and exact relations before plan access                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Food     | `readPortionInto(candidateId, output)`; active/linked/safe/permission/schedule and available amount remain valid; stack/target/cell match; `foodAvailabilityVersion` equals selected owner/index basis, `itemStoreVersion` equals selected row/item basis, meal-window id/version match, and both current/selected dirty backlog are zero. The stack/item and any target ref are active in `EntityRegistry` at their exact returned generation.                                                                              |
-| Rest     | `readFixtureInto(candidateId, output)` plus a fresh bounded `RestCandidateIndex.selectCandidatesInto` with the retained B2 query/environment; find the same fixture in the caller-owned result; source/store/current/cached row versions, index version, zero backlog, target/entity/kind/region/spot/schedule/weather/exposure/outdoor/permission facts all match. The fixture target is active at its current registry generation. A row read alone is insufficient because it does not expose index source/backlog facts. |
-| Medical  | `readPatientRequestInto` for the candidate, `readCaregiverStateInto` for the selected caregiver, and fresh `queryAbilityInto`; patient/caregiver/condition/health/medical/base-ability/actor-condition versions and all target/region/permission/treatment/stock/amount facts match; caregiver remains valid/allowed and ability remains at least the selected minimum. Patient, caregiver and stock/item refs are active at their exact current registry generations.                                                       |
-| Ordinary | `WorkOfferIndex.readOfferInto(candidateId, output)`; owner, row and index versions, work type, region, definition, urgency, permission, target id/cell, score and the selected descriptor/query fields match exactly. Every emitted owner/target/item ref is active at its exact current registry generation.                                                                                                                                                                                                                |
+| Source   | Required fresh reads and exact relations before plan access                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Food     | `readPortionInto(candidateId, output)` plus the prerequisite exact ItemStack Into read for that `stackId`; active/linked/safe/permission/schedule facts, def/slot/cell/spot, quantity/available amount and meal window match; food owner/index, item owner and reservation versions equal the retained B2 facts; both dirty backlogs are zero. The returned item entity, not `stackId`, is the only legal item-quantity ref and is active at its exact registry generation.                                                                                                                                                                                                  |
+| Rest     | `readFixtureInto(candidateId, output)` plus a fresh bounded `RestCandidateIndex.selectCandidatesInto` with the retained B2 query/environment; find the same fixture in the caller-owned result; source/store/current/cached row versions, index version, zero backlog, target entity/kind/region/spot/cell/schedule/weather/exposure/outdoor/permission facts all match. The channel-required fixture entity is active at its current registry generation. A row read alone is insufficient because it does not expose index source/backlog facts.                                                                                                                           |
+| Medical  | `readPatientRequestInto`, `readCaregiverStateInto`, fresh `queryAbilityInto`, bounded exact medical stock selection/read and `readPatientInteractionInto`; patient/caregiver/condition/health/medical/base-ability/actor-condition versions and region/permission/treatment/stock-def/amount facts match. The concrete stock stack id, item entity/generation, quantity/availability, stock/item/index/reservation versions, patient interaction entity/generation/spot/cell and claim-facts owner versions exactly equal the retained B2 facts. Caregiver remains valid/allowed and ability meets the selected minimum. `patientId` and `stockDefId` are never entity refs. |
+| Ordinary | `WorkOfferIndex.readOfferInto(candidateId, output)` plus the construction-approved owner-specific resolver for the exact work type; WorkOffer owner/row/index, work type, region, definition, urgency, permission, opaque owner `targetId`, target cell, score and descriptor/query fields match. Resolver channel facts and versions exactly equal the retained B2 facts. Optional entity/item refs are validated only when emitted; a legitimate cell-only result keeps the transition entity target `NONE/NONE`.                                                                                                                                                          |
 
 Need, schedule, wake, capability, Job and path validation are common to all
 four sources and run once, not once per owner. The B2 snapshot must retain a
@@ -567,13 +743,17 @@ types/store snapshot lane adds the wake event version captured at selection;
 comparing only current wake facts without a retained version is prohibited.
 This is an autonomy-owned basis addition, not a generic wake-owner edit.
 
-For every source, each non-`NONE` plan `target` or `item` ref must be active in
-`EntityRegistry`, use `generationAt(index)`, and equal the corresponding fresh
-source-owner ref. Every embedded entity/item/interaction/capacity slot ref must
-alias and equal that validated ref; the claiming transition target index and
-generation must equal the plan/source ref. A stale generation, an inactive ref,
-or a provider-created ref not present in the fresh source row fails before
-acquire.
+For every source, only channel/source-required non-`NONE` entity or item refs
+are checked against `EntityRegistry.generationAt(index)` and the corresponding
+fresh claim-facts output. Optional target EntityId and target cell are
+independent: a source may have either or both, and cell-only Ordinary work is
+legal. Every emitted embedded entity/item/interaction/capacity slot ref must
+alias and equal its validated channel ref; the claiming transition entity pair
+equals the optional source claim-facts entity or remains `NONE/NONE`. A stale
+generation, inactive required ref, forbidden extra ref or provider-created ref
+not present in the fresh source output fails before acquire. Owner-local
+`stackId`, `patientId`, `stockDefId` and WorkOffer `targetId` remain scalars and
+are never validated or stored as `EntityId`s.
 
 ### Claim-plan structural acceptance
 
@@ -582,18 +762,25 @@ After the single plan call and before acquire, all of the following must hold:
 - output/header/transaction/claims-array/ref/slot identities are unchanged from
   construction; transaction owner aliases the fixed owner ref; every emitted
   claim aliases one of the eight fixed slot refs and no slot is repeated;
+- every `claimFacts` array identity is unchanged and length exactly eight;
+  source/resolver/scalar mapping matches the table above; tail sentinels are
+  exact; `claimFacts.channelCount === header.claimCount`; each emitted claim at
+  index `i` exactly matches the channel/ref/cell/slot/amount/limit facts at the
+  same fixed index and its reviewed domain meaning;
 - header is successful and exactly echoes selected source, candidate, target
-  and target cell; `pendingJobId` is valid and equals
-  `transaction.jobId`; transaction owner is the exact resident;
+  owner-local scalar and independent target cell; `pendingJobId` is valid and
+  equals `transaction.jobId`; transaction owner is the exact resident;
 - `createdTick` equals the request tick, lease expiry is not earlier, and
   lease expiry exactly equals the checked safe-add result;
 - `header.claimCount === transaction.claims.length` is an exact integer in
   `1..8` and fits every reservation/transition output capacity. After acquire,
   it also equals `reservationOutput.claimCount`, the transition `claimCount`
   and the compensation count;
-- there are no holes, duplicate claim objects or cross-slot target/item aliases;
+- there are no holes, duplicate claim objects or cross-slot ref substitutions;
   every source-required entity, cell, interaction, quantity or capacity claim
-  refers to the revalidated owner facts; route and target remain consistent;
+  refers to the exact revalidated `claimFacts` channel. No optional entity claim
+  is fabricated for a cell-only source; route endpoint and independent target
+  cell remain consistent;
 - a failed or malformed plan never reaches acquire. The fixed plan output is
   reset so no prior pending id, ref, claim or scalar can leak into the result.
 
@@ -608,35 +795,42 @@ count. No validator reads beyond the count, and no publication may reorder ids.
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | resident / expected | request resident index and generation; expected state `idle`; expected row version `r`; selected Store version unchanged through prevalidation                                                                                                                                                            |
 | next state / ticks  | `claiming`; `stateEnteredTick = request.tick`; `retryTick = request.tick`                                                                                                                                                                                                                                 |
-| selection           | exact B2 source and candidate id; fresh source target index/current generation and selected target cell                                                                                                                                                                                                   |
+| selection           | exact B2 source and candidate id; opaque owner-local target scalar remains in the decision/header; optional fresh channel-required target EntityId is stored as its exact index/current generation or `NONE/NONE`; selected target cell is independent                                                    |
 | job                 | `jobId = NONE`; `pendingJobId = header.pendingJobId = transaction.jobId`; interruption policy `NONE`; job basis `0`                                                                                                                                                                                       |
 | route               | exact B2 selected route, count `1..128`, cursor `0`, endpoint equal target cell, tail `NONE`                                                                                                                                                                                                              |
 | claims              | `claimCount = header = transaction.length = acquire output count` in `1..8`; exact acquire id prefix in acquire order; tail `NONE`                                                                                                                                                                        |
+| claim/job facts     | fixed `AutonomyClaimFactsLanes` exact copy of the fresh validated source facts used by the provider; source-required scalars present, unused source lanes `NONE`/zero; no object/reference identity                                                                                                       |
 | decision facts      | exact revalidated need lane/value, ability and schedule code selected by B2                                                                                                                                                                                                                               |
-| basis               | every revalidated B2 common/source/path basis retained; wake-event version added and matched; reservation version replaced only with `acquireOutput.version = prior + 1`; job version remains `0`                                                                                                         |
+| basis               | every revalidated B2 common/source/path and source claim-facts basis retained, including Food item, Medical stock/patient-interaction or concrete Ordinary resolver owner/row/index versions; wake-event version added and matched; reservation version is trusted `prior + 1`; job version remains `0`   |
 | reason              | code `RESERVATION_ACQUIRED`; source `RESERVATION`; subject exact resident; target exact transition target pair (or `NONE/NONE`); parameter count `0` and all six parameters `0`; owner basis exact acquire version; suggestion `INSPECT_TARGET` when a target entity exists, otherwise `INSPECT_RESIDENT` |
 | successful output   | previous `idle`, next `claiming`, row version `r + 1`, Store version exactly pre-transition Store version `+ 1`                                                                                                                                                                                           |
 
 ### Mechanical failure and call-count matrix
 
-| Case                                                                                                                                         | Plan / acquire / transition / release calls | Required authoritative result                                                                                                                                                                                                                                                             |
-| -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Any autonomy, actor/entity generation, Need, schedule/wake, capability, selected owner/ref, Job or path stale basis                          | `0 / 0 / 0 / 0`                             | AutonomyStore and ledger unchanged; increment exactly the matching stale class once; retain B2 actual visited/ingress/retained/scored/path work without a second budget aggregation.                                                                                                      |
-| Ledger version differs from B2 basis, exceeds `0xffff_fffd`, or lease safe-add fails                                                         | `0 / 0 / 0 / 0`                             | Both owners unchanged; exact stale-reservation/version-exhausted/tick reason; no provider call and no hidden saturated lease.                                                                                                                                                             |
-| Claim-plan failure or malformed aliases/header/claims                                                                                        | `1 / 0 / 0 / 0`                             | Both snapshots unchanged; return exact plan/invariant reason; do not count a reservation conflict.                                                                                                                                                                                        |
-| Plan count is `0`, negative, fractional, `>8`, exceeds fixed capacity or differs across header/transaction                                   | `1 / 0 / 0 / 0`                             | Both owners unchanged; exact plan-count invariant reason. These are rejected before the ledger and separately exercise the prerequisite release count reasons.                                                                                                                            |
-| Plan target/item ref is inactive, has a stale generation, differs from the fresh source ref, or differs across embedded slot/transition refs | `1 / 0 / 0 / 0`                             | Both owners unchanged; exact stale-target/item or plan-reference invariant reason.                                                                                                                                                                                                        |
-| Provisional Store validation failure                                                                                                         | `1 / 0 / 0 / 0`                             | Both snapshots unchanged; return structured publication-shape failure.                                                                                                                                                                                                                    |
-| Acquire conflict, shortage, capacity, target generation stale or invalid transaction                                                         | `1 / 1 / 0 / 0`                             | AutonomyStore unchanged; no partial claims/amounts/active-count change; claim-id output tail reset to `NONE`; ledger version unchanged; increment reservation conflict only for the defined conflict/shortage/capacity classes.                                                           |
-| Acquire reports success but count, id prefix/tail, active count or version is not exactly the predicted result                               | `1 / 1 / 0 / 1`                             | No autonomy publication; compensate the exact returned prefix with expected acquire version when structurally releasable, otherwise fail closed with the malformed acquire evidence. Never reinterpret malformed output as success.                                                       |
-| Successful acquire and claiming publication                                                                                                  | `1 / 1 / 1 / 0`                             | One claiming row at `r + 1`; exact active claim ids/count and acquire version persisted; no Job/world/position/item/target mutation.                                                                                                                                                      |
-| Successful acquire, then exact validation or injected transition failure                                                                     | `1 / 1 / 0..1 / 1`                          | AutonomyStore snapshot exactly unchanged; active records/counts/channel amounts restored to pre-acquire semantics by exact compensation. Ledger version and acquired/released metrics truthfully advance for acquire plus release and are not asserted byte-identical.                    |
-| Compensation count, duplicate, invalid/inactive id, owner, job, expected-version or version-exhaustion rejection                             | `1 / 1 / 0..1 / 1`                          | No autonomy publication or broad cleanup; `releasedCount = 0`, current version/active count and exact `claimIndex`/`claimId`/reason exposed; every claim remains active because validation is before-any. Test injection proves none can be reported as success.                          |
-| Successful compensation                                                                                                                      | `1 / 1 / 0..1 / 1`                          | Release count equals acquire count, release version equals acquire version `+1`, active count returns to the captured pre-acquire count, all channel amounts/links restore, and the next acquire returns the same id sequence as if the failed transaction never occupied the free stack. |
+| Case                                                                                                                                                                    | Plan / acquire / transition / release calls | Required authoritative result                                                                                                                                                                                                                                                                        |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Any autonomy, actor/entity generation, Need, schedule/wake, capability, selected owner/ref, Job or path stale basis                                                     | `0 / 0 / 0 / 0`                             | AutonomyStore and ledger unchanged; increment exactly the matching stale class once; retain B2 actual visited/ingress/retained/scored/path work without a second budget aggregation.                                                                                                                 |
+| Ledger version differs from B2 basis, exceeds `0xffff_fffd`, or lease safe-add fails                                                                                    | `0 / 0 / 0 / 0`                             | Both owners unchanged; exact stale-reservation/version-exhausted/tick reason; no provider call and no hidden saturated lease.                                                                                                                                                                        |
+| Claim-plan failure or malformed aliases/header/claims                                                                                                                   | `1 / 0 / 0 / 0`                             | Both snapshots unchanged; return exact plan/invariant reason; do not count a reservation conflict.                                                                                                                                                                                                   |
+| Plan count is `0`, negative, fractional, `>8`, exceeds fixed capacity or differs across header/transaction                                                              | `1 / 0 / 0 / 0`                             | Both owners unchanged; exact plan-count invariant reason. These are rejected before the ledger and separately exercise the prerequisite release count reasons.                                                                                                                                       |
+| A channel/source-required non-`NONE` entity/item ref is inactive, stale, differs from fresh claim facts, or an optional/cell-only source fabricates an extra entity ref | `1 / 0 / 0 / 0`                             | Both owners unchanged; exact stale-channel-ref or plan-reference invariant reason.                                                                                                                                                                                                                   |
+| Provisional Store validation failure                                                                                                                                    | `1 / 0 / 0 / 0`                             | Both snapshots unchanged; return structured publication-shape failure.                                                                                                                                                                                                                               |
+| Acquire conflict, shortage, capacity, target generation stale or invalid transaction                                                                                    | `1 / 1 / 0 / 0`                             | AutonomyStore unchanged; no partial claims/amounts/active-count change; claim-id output tail reset to `NONE`; ledger version unchanged; increment reservation conflict only for the defined conflict/shortage/capacity classes.                                                                      |
+| Acquire reports success with trusted planned/equal count and exact unique non-`NONE` prefix/`NONE` tail, but output version or active count is wrong                    | `1 / 1 / 0 / 1`                             | No autonomy publication; the exact acquired set is still trustworthy, so compensate with `expectedLedgerVersion = prior + 1`; retain the malformed scalar evidence. Never use the untrusted output version.                                                                                          |
+| Acquire reports success with count mismatch, short/replaced id buffer, malformed/duplicate/`NONE` prefix or non-`NONE` tail                                             | `1 / 1 / 0 / 0`                             | No autonomy publication. The exact acquired set cannot be proven, so exact release is unsafe; retain evidence and fail closed without guessing ids or invoking broad cleanup.                                                                                                                        |
+| Successful acquire and claiming publication                                                                                                                             | `1 / 1 / 1 / 0`                             | One claiming row at `r + 1`; exact active claim ids/count and acquire version persisted; no Job/world/position/item/target mutation.                                                                                                                                                                 |
+| Successful acquire, then exact validation or injected transition failure                                                                                                | `1 / 1 / 0..1 / 1`                          | AutonomyStore snapshot exactly unchanged; active records/counts/channel amounts restored to pre-acquire semantics by exact compensation. Ledger version and acquired/released metrics truthfully advance for acquire plus release and are not asserted byte-identical.                               |
+| Compensation count, duplicate, invalid/inactive id, owner, job, expected-version or version-exhaustion rejection                                                        | `1 / 1 / 0..1 / 1`                          | No autonomy publication or broad cleanup; `releasedCount = 0`, current version/active count and exact `claimIndex`/`claimId`/reason exposed; every claim remains active because validation is before-any. Test injection proves none can be reported as success.                                     |
+| Successful compensation                                                                                                                                                 | `1 / 1 / 0..1 / 1`                          | Release count equals the trusted planned/acquire count, release version equals `prior + 2`, active count returns to the captured pre-acquire count, all channel amounts/links restore, and the next acquire returns the same id sequence as if the failed transaction never occupied the free stack. |
 
 Every branch also proves scratch/output/typed-array/ref identities, deterministic
 reason and metric deltas, cleared unused tails, one selected resident only and
-zero legacy materializer calls. Acquire rejection tests cover first/middle/last
+zero legacy materializer calls. Claiming success reads the row back and proves
+every fixed claim/job-construction lane; raw snapshot/restore round-trips the
+same values and rejects cross-source residue or a missing source-required lane.
+WM-0171 handoff fixtures construct each real job input solely from the read row,
+without provider state, object identity, claim-id reverse lookup or reselection.
+Acquire rejection tests cover first/middle/last
 claim failures and prove transaction atomicity rather than only active count.
 The release prerequisite separately covers count `0`, negative, fractional,
 `>8` and `>claimIds.length`, plus invalid/inactive/duplicate/owner/job/version
@@ -650,7 +844,9 @@ The existing TypeScript `Program`/`TypeChecker` BFS is extended from
 declarations and accessors. The positive manifest must include at least
 `validateTransitionInto`, `transitionInto`, the concrete fixed claim-plan
 provider(s), `acquireInto`, integrated `releaseClaimsInto`, Food/Rest/Medical/
-Ordinary fresh reads, Rest fresh indexed selection and ability query. It keeps
+Ordinary fresh reads, the exact ItemStack Into read, bounded Medical stock and
+patient-interaction claim-facts surfaces, every concrete Ordinary claim-facts
+resolver, Rest fresh indexed selection and ability query. It keeps
 receiver-exact identity, complete declaration/accessor scanning, duplicate-free
 manifest/digest and zero unresolved or unexpected calls.
 
@@ -658,10 +854,12 @@ manifest/digest and zero unresolved or unexpected calls.
 checker must not pretend that its interface declaration supplies a concrete
 body. Its receiver resolution table contains the exact Food, Rest, Medical and
 Ordinary concrete provider declaration used by each positive construction site,
-plus every helper each provider reaches. The fixed source dispatch is audited;
-the four provider manifests are duplicate-free and contribute to the final
-digest. An unmapped construction site, opaque provider or fake same-name
-receiver fails closed. Synthetic negatives cover allocation,
+plus every prerequisite claim-facts receiver and helper each provider reaches.
+The fixed source and Ordinary `(workType, defId) -> resolverKind` descriptor
+dispatches are audited; the
+four provider manifests are duplicate-free and contribute to the final digest.
+An unmapped work type/construction site, opaque provider, hidden mapping or fake
+same-name receiver fails closed. Synthetic negatives cover allocation,
 interpolation/concatenation, higher-order calls, `for-of`, spread/rest,
 async/generator syntax, allocating getters/setters and unresolved dynamic
 receivers.
@@ -671,6 +869,7 @@ The production closure forbids `releaseClaims`,
 legacy materializing owner APIs, unbounded scans/sorts and all JobCore, world,
 LocationStore, item/target owner or GameSession mutation. Snapshot creation is
 test-only. Final B3 gates are scoped typecheck, the complete focused autonomy
-suite, prerequisite ledger regression suite, allocation/closure negatives,
+suite, prerequisite ledger and claim-facts regression suites,
+allocation/closure negatives,
 package-boundary checks and updated WM-0170 report evidence, followed by an
 independent Canvas review checkpoint.
