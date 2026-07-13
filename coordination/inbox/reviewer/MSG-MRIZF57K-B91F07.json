@@ -1,0 +1,12 @@
+{
+  "id": "MSG-MRIZF57K-B91F07",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0182",
+  "kind": "blocker",
+  "subject": "WM-0182 blocked",
+  "body": "Required canonical hash coverage changes GameSession hashes, but pnpm quality now fails the hardcoded golden in packages/sim-worker/src/game-session-worker.test.ts (expected 0x5c850f07/0x33affcde; actual 0x794ba2ff/0x026c716c). That file is outside WM-0182 allowedPaths. Please expand allowedPaths for this exact golden-only test update or provide an approved contract resolution; weakening ReservationLedger hash coverage would violate WM-0182 acceptance.",
+  "artifacts": [],
+  "createdAt": "2026-07-13T08:50:17.504Z",
+  "acknowledgedAt": "2026-07-13T08:55:30.208Z"
+}

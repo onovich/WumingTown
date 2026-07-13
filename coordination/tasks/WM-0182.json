@@ -17,7 +17,8 @@
     "docs/05_tech/13_autonomous_town_life_architecture.md",
     "docs/02_systems/04_ai_jobs_reservations_pathing.md",
     "packages/sim-core/src/reservation-ledger.ts",
-    "packages/sim-core/src/game-session-hash-owner-fields.ts"
+    "packages/sim-core/src/game-session-hash-owner-fields.ts",
+    "packages/sim-worker/src/game-session-worker.test.ts"
   ],
   "acceptance": [
     "ReservationTransactionRequest accepts optional uint32 jobGeneration for source compatibility, normalizes an omitted value to required record value 0 for legacy callers, and requires a positive exact JobCore token generation for autonomous claims; record views, snapshots, hashes, restore validation and every exact read/release path preserve the required scalar",
@@ -27,12 +28,13 @@
     "Every claim-creating acquire rejects current ledger versions 0xffff_fffe and 0xffffffff before mutation, exact release may consume the final legal bump, no version or epoch wraps, and focused boundary tests cover fffc through ffff plus fresh, reused and full-capacity compensation ordering",
     "Legacy acquire/release behavior and signatures remain compatible, no positive-generation claim can be matched by broad legacy owner/job cleanup, the public package entry exports only the reviewed new contracts, and snapshot/restore/hash tests cover mixed old shape, wrong generation and recycled claim ABA",
     "A receiver-exact TypeScript TypeChecker closure independently roots releaseClaimsInto and readActiveClaimsInto and proves caller-owned output identity, prefix-only bounded loops, no for-of, Set, object/array/closure/string allocation, unresolved receiver, broad release or materializing compatibility API on either reachable body",
-    "The task changes only the frozen ReservationLedger custody files, their focused/closure/hash/export tests and its own coordination artifacts; it does not edit ResidentAutonomyStore, JobCore, claim-ready domain owners, historical drivers, GameSession integration, protocol/product files, dependencies or benchmarks"
+    "The task changes only the frozen ReservationLedger custody files, their focused/closure/hash/export tests, its own coordination artifacts and one director-approved dependent Worker golden test; the Worker exception is limited to replacing exactly the two deterministic world/read-model hash literals caused by adding jobGeneration/allocationEpoch to canonical hashing, and it does not permit Worker production logic, ResidentAutonomyStore, JobCore, claim-ready domain owners, historical drivers, GameSession integration, protocol/product files, dependencies or benchmarks"
   ],
   "requiredChecks": [
     "corepack pnpm typecheck",
     "corepack pnpm exec vitest run packages/sim-core/src/reservation-ledger.test.ts packages/sim-core/src/reservation-ledger-closure.test.ts packages/sim-core/src/owner-hot-path-surfaces.test.ts",
-    "corepack pnpm exec prettier --check packages/sim-core/src/reservation-ledger.ts packages/sim-core/src/reservation-ledger.test.ts packages/sim-core/src/reservation-ledger-closure.test.ts packages/sim-core/src/game-session-hash-owner-fields.ts packages/sim-core/src/index.ts coordination/tasks/WM-0182.json coordination/reports/WM-0182.md",
+    "corepack pnpm exec vitest run packages/sim-worker/src/game-session-worker.test.ts",
+    "corepack pnpm exec prettier --check packages/sim-core/src/reservation-ledger.ts packages/sim-core/src/reservation-ledger.test.ts packages/sim-core/src/reservation-ledger-closure.test.ts packages/sim-core/src/game-session-hash-owner-fields.ts packages/sim-core/src/index.ts packages/sim-worker/src/game-session-worker.test.ts coordination/tasks/WM-0182.json coordination/reports/WM-0182.md",
     "corepack pnpm boundaries:check",
     "node tools/validate-handoff.mjs",
     "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
@@ -42,7 +44,7 @@
   ],
   "branch": "task/WM-0182-reservationledger-exact-claim-custody-and-alloca",
   "createdAt": "2026-07-13T08:08:27.691Z",
-  "updatedAt": "2026-07-13T08:17:44.223Z",
+  "updatedAt": "2026-07-13T08:55:30.169Z",
   "history": [
     {
       "at": "2026-07-13T08:08:27.691Z",
@@ -61,6 +63,24 @@
       "actor": "simulation-engineer",
       "action": "claim",
       "details": "thread=Tally WM-0182"
+    },
+    {
+      "at": "2026-07-13T08:50:17.502Z",
+      "actor": "simulation-engineer",
+      "action": "block",
+      "details": "Required canonical hash coverage changes GameSession hashes, but pnpm quality now fails the hardcoded golden in packages/sim-worker/src/game-session-worker.test.ts (expected 0x5c850f07/0x33affcde; actual 0x794ba2ff/0x026c716c). That file is outside WM-0182 allowedPaths. Please expand allowedPaths for this exact golden-only test update or provide an approved contract resolution; weakening ReservationLedger hash coverage would violate WM-0182 acceptance."
+    },
+    {
+      "at": "2026-07-13T08:54:54.661Z",
+      "actor": "project-director",
+      "action": "refine-blocker-scope",
+      "details": "Resolved MSG-MRIZF57K-B91F07 after read-only architecture audit: add only packages/sim-worker/src/game-session-worker.test.ts and permit only the two deterministic golden literal updates 0x5c850f07 -> 0x794ba2ff and 0x33affcde -> 0x026c716c. No Worker production, protocol, integration or historical evidence changes are allowed; focused Worker test and full quality remain mandatory."
+    },
+    {
+      "at": "2026-07-13T08:55:30.168Z",
+      "actor": "project-director",
+      "action": "unblock",
+      "details": "Approved exact golden-only scope refinement after MSG-MRIZF57K-B91F07: one Worker test file, two deterministic literals, no Worker production changes."
     }
   ],
   "milestone": "Post-M8",
@@ -80,6 +100,7 @@
     "packages/sim-core/src/game-session-hash-owner-fields.ts",
     "packages/sim-core/src/owner-hot-path-surfaces.test.ts",
     "packages/sim-core/src/index.ts",
+    "packages/sim-worker/src/game-session-worker.test.ts",
     "coordination/tasks/WM-0182.json",
     "coordination/reports/WM-0182*.md"
   ],
@@ -90,13 +111,14 @@
     "packages/sim-core/src/game-session-hash-owner-fields.ts",
     "packages/sim-core/src/owner-hot-path-surfaces.test.ts",
     "packages/sim-core/src/index.ts",
+    "packages/sim-worker/src/game-session-worker.test.ts",
     "coordination/tasks/WM-0182.json",
     "coordination/reports/WM-0182*.md"
   ],
   "forbiddenPaths": [
     "packages/sim-core/src/game-session-autonomy*.ts or any WM-0170 production/test file",
     "packages/sim-core/src/job-core.ts, item-stack-store.ts, storage-logistics-index.ts, m3-*.ts, hauling-jobs.ts or m4-lamp-network.ts",
-    "GameSession runtime/tick/initializer/product construction, packages/sim-protocol/**, packages/sim-worker/**, apps/**, renderer or UI files",
+    "GameSession runtime/tick/initializer/product construction, packages/sim-protocol/**, packages/sim-worker/** except the exact two-golden-only packages/sim-worker/src/game-session-worker.test.ts refinement, apps/**, renderer or UI files",
     "broad owner/job reservation cleanup for positive-generation claims, a new runtime dependency, benchmark/baseline/admission changes or release actions"
   ],
   "executionLane": "simulation-engineer; Spark is prohibited because this task changes authoritative ReservationLedger schema, ABA identity, snapshot/hash/restore and public owner contracts",
