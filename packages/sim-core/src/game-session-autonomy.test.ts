@@ -1,16 +1,21 @@
+import * as ts from "typescript";
 import { expect, it, vi } from "vitest";
 
 import {
   AUTONOMY_REASON_BLOCKED_SCHEDULE_CLOSED,
   AUTONOMY_REASON_CAPABILITY_MOVEMENT_DENIED,
+  AUTONOMY_REASON_CAPABILITY_PERMISSION_DENIED,
+  AUTONOMY_REASON_CAPABILITY_TREATMENT_DENIED,
   AUTONOMY_REASON_FAILED_INVARIANT,
   AUTONOMY_REASON_IDLE_RETRY_BACKOFF,
+  AUTONOMY_REASON_IDLE_NO_INDEXED_OFFER,
   AUTONOMY_REASON_IDLE_OFF_SHIFT,
   AUTONOMY_REASON_INTERRUPTED_DANGER,
   AUTONOMY_REASON_NEED_HUNGER_EMERGENCY,
   AUTONOMY_REASON_NONE,
   AUTONOMY_REASON_OFFER_EMPTY_BUCKET,
   AUTONOMY_REASON_OFFER_SELECTED,
+  AUTONOMY_REASON_OFFER_STALE_OWNER,
   AUTONOMY_REASON_PATH_NO_ROUTE,
   AUTONOMY_REASON_REF_NONE,
   AUTONOMY_REASON_RESERVATION_ACQUIRED,
@@ -44,7 +49,6 @@ import {
   AUTONOMY_ORDINARY_MAX_BUCKETS,
   AUTONOMY_REAL_SOURCE_COUNT,
   AUTONOMY_SCHEDULE_CODE_COUNT,
-  AUTONOMY_B2_HOT_FREE_AUDIT_TARGETS,
   ResidentAutonomyCoordinator,
   bindAutonomyClaimSlotInto,
   createAutonomyDecisionPolicy,
@@ -122,6 +126,7 @@ import {
 import { createEntityRegistry } from "./entity-id";
 import { createM3FoodAvailabilityStore } from "./m3-food";
 import {
+  M3_ABILITY_COMMUNICATION,
   M3_ABILITY_MANIPULATION,
   M3_ABILITY_MOVEMENT,
   M3_ABILITY_STAMINA,
@@ -615,22 +620,27 @@ it("fails stale schedule, job, generation, and inactive-Need pregates before own
   const staleSchedule = createCoordinatorFixture(12);
   Reflect.set(staleSchedule.dependencies.scheduleFacts, "sourceTick", 1);
   expectPregateFailure(staleSchedule, 0);
+  expectCoordinatorMetric(staleSchedule, "staleScheduleCount", 1);
 
   const staleJob = createCoordinatorFixture(12);
   Reflect.set(staleJob.dependencies.jobFacts, "sourceTick", 1);
   expectPregateFailure(staleJob, 0);
+  expectCoordinatorMetric(staleJob, "staleJobCount", 1);
 
   const staleGeneration = createCoordinatorFixture(12);
   staleGeneration.dependencies.wakeFacts.residentGenerations[0] = 2;
   expectPregateFailure(staleGeneration, 0);
+  expectCoordinatorMetric(staleGeneration, "staleScheduleCount", 1);
 
   const invalidScheduleCode = createCoordinatorFixture(12);
   invalidScheduleCode.dependencies.scheduleFacts.scheduleCodes[0] = 4;
   expectPregateFailure(invalidScheduleCode, 0);
+  expectCoordinatorMetric(invalidScheduleCode, "staleScheduleCount", 1);
 
   const invalidPermission = createCoordinatorFixture(12);
   invalidPermission.dependencies.scheduleFacts.permissionIds[0] = 2;
   expectPregateFailure(invalidPermission, 0);
+  expectCoordinatorMetric(invalidPermission, "staleScheduleCount", 1);
 
   const inactiveNeed = createCoordinatorFixture(12, 0, 1, 1, false);
   const scratch = createDecisionScratch();
@@ -644,6 +654,104 @@ it("fails stale schedule, job, generation, and inactive-Need pregates before own
     scoredCount: 0,
   });
   expect(scratch.ordinaryOptions.candidateCap).toBe(1);
+  expectCoordinatorMetric(inactiveNeed, "staleNeedCount", 1);
+
+  const staleCandidate = createCoordinatorFixture(12);
+  const staleCandidateOutput = createDecisionOutput();
+  staleCandidate.coordinator.decideInto(
+    { ...createDecisionRequest(0, 6), residentGeneration: 2 },
+    createDecisionScratch(),
+    staleCandidateOutput,
+  );
+  expect(staleCandidateOutput).toMatchObject({
+    ok: false,
+    decisionKind: AUTONOMY_DECISION_FAILED,
+    visitedCount: 0,
+  });
+  expectCoordinatorMetric(staleCandidate, "staleCandidateCount", 1);
+
+  const malformedScratch = createCoordinatorFixture(12);
+  const invalidScratch = createDecisionScratch();
+  invalidScratch.globalBudget.visitedCap = 0;
+  malformedScratch.coordinator.decideInto(
+    createDecisionRequest(0, 7),
+    invalidScratch,
+    createDecisionOutput(),
+  );
+  expectCoordinatorMetric(malformedScratch, "staleCandidateCount", 1);
+
+  const staleCapability = createCoordinatorFixture(12);
+  const abilitySpy = vi
+    .spyOn(staleCapability.dependencies.abilities, "queryAbilityInto")
+    .mockImplementation((actorId, ability, _health, threshold, output) => {
+      output.ok = false;
+      output.reason = "ability.cache_stale_basis";
+      output.actorId = actorId;
+      output.ability = ability;
+      output.threshold = threshold;
+    });
+  expectPregateFailure(staleCapability, 0);
+  expectCoordinatorMetric(staleCapability, "staleCapabilityCount", 1);
+  abilitySpy.mockRestore();
+});
+
+it("preserves actual budget when the second or third enabled source becomes stale", () => {
+  const cases = [
+    { mask: 10, enabled: 2, restCount: 12, staleVisited: 3, visited: 15, ingress: 12 },
+    { mask: 11, enabled: 3, restCount: 12, staleVisited: 4, visited: 12, ingress: 8 },
+  ] as const;
+  for (const [index, scenario] of cases.entries()) {
+    const fixture = createCoordinatorFixture(
+      0,
+      scenario.restCount,
+      scenario.enabled,
+      1,
+      true,
+      0,
+      scenario.mask,
+    );
+    const ownerSpy = vi
+      .spyOn(fixture.dependencies.workOffers, "selectTopOffersInto")
+      .mockImplementation((_options, _scratch, output) => {
+        output.ok = false;
+        output.reason = "work_offer_row_version_mismatch";
+        output.visitedCount = scenario.staleVisited;
+        output.selectedCount = 0;
+      });
+    const output = createDecisionOutput();
+    fixture.coordinator.decideInto(
+      createDecisionRequest(0, 200 + index),
+      createDecisionScratch(),
+      output,
+    );
+    expect(output).toMatchObject({
+      ok: false,
+      decisionKind: AUTONOMY_DECISION_FAILED,
+      reasonCode: AUTONOMY_REASON_OFFER_STALE_OWNER,
+      visitedCount: scenario.visited,
+      ingressCount: scenario.ingress,
+      retainedCount: scenario.ingress,
+      scoredCount: 0,
+      selectedCount: 0,
+      exactPathCount: 0,
+      nodeExpansions: 0,
+    });
+    const metrics = createDecisionMetricsOutput();
+    fixture.coordinator.readMetricsInto(metrics);
+    expect(metrics).toMatchObject({
+      failedCount: 1,
+      visitedCount: scenario.visited,
+      ingressCount: scenario.ingress,
+      retainedCount: scenario.ingress,
+      scoredCount: 0,
+      selectedCount: 0,
+      exactPathCount: 0,
+      nodeExpansionCount: 0,
+      staleCandidateCount: 1,
+      lastReasonCode: AUTONOMY_REASON_OFFER_STALE_OWNER,
+    });
+    ownerSpy.mockRestore();
+  }
 });
 
 it("applies hard safety, movement, source ability, permission, and empty-owner semantics", () => {
@@ -717,6 +825,109 @@ it("applies hard safety, movement, source ability, permission, and empty-owner s
     selectedCount: 0,
     exactPathCount: 0,
   });
+});
+
+it("preserves causal source denials with fixed priority and distinguishes true indexed emptiness", () => {
+  const denialCases = [
+    { mask: 1, ability: M3_ABILITY_MANIPULATION },
+    { mask: 2, ability: M3_ABILITY_STAMINA },
+    { mask: 8, ability: M3_ABILITY_MANIPULATION },
+  ] as const;
+  for (const [index, denial] of denialCases.entries()) {
+    const fixture = createCoordinatorFixture(0, 0, 1, 1, true, 0, denial.mask);
+    expect(fixture.dependencies.abilities.setBaseAbility(0, denial.ability, 0)).toEqual({
+      ok: true,
+    });
+    const output = createDecisionOutput();
+    fixture.coordinator.decideInto(
+      createDecisionRequest(0, 100 + index),
+      createDecisionScratch(),
+      output,
+    );
+    expect(output).toMatchObject({
+      ok: true,
+      decisionKind: AUTONOMY_DECISION_WAIT,
+      reasonCode: AUTONOMY_REASON_CAPABILITY_MOVEMENT_DENIED,
+      visitedCount: 0,
+    });
+  }
+
+  const treatmentDenied = createCoordinatorFixture(0, 0, 1, 1, true, 0, 4);
+  expect(
+    treatmentDenied.dependencies.abilities.setBaseAbility(0, M3_ABILITY_COMMUNICATION, 0),
+  ).toEqual({ ok: true });
+  const treatmentOutput = createDecisionOutput();
+  treatmentDenied.coordinator.decideInto(
+    createDecisionRequest(0, 103),
+    createDecisionScratch(),
+    treatmentOutput,
+  );
+  expect(treatmentOutput.reasonCode).toBe(AUTONOMY_REASON_CAPABILITY_TREATMENT_DENIED);
+
+  const permissionDenied = createCoordinatorFixture(0, 0, 1, 1, true, 0, 4);
+  expect(
+    permissionDenied.dependencies.medical.updateCaregiverStateFromAbility(
+      {
+        caregiverId: 0,
+        regionId: 0,
+        permissionId: 0,
+        ability: M3_ABILITY_COMMUNICATION,
+        minimumValue: 100,
+        allowed: false,
+      },
+      permissionDenied.dependencies.healthConditions,
+      permissionDenied.dependencies.abilities,
+    ),
+  ).toMatchObject({ ok: false, reason: "medical.rejected_permission" });
+  const permissionOutput = createDecisionOutput();
+  permissionDenied.coordinator.decideInto(
+    createDecisionRequest(0, 104),
+    createDecisionScratch(),
+    permissionOutput,
+  );
+  expect(permissionOutput.reasonCode).toBe(AUTONOMY_REASON_CAPABILITY_PERMISSION_DENIED);
+
+  const closedWindow = createCoordinatorFixture(0, 0, 1, 1, true, 0, 8);
+  closedWindow.dependencies.scheduleFacts.windowOpenFlags[0] = 0;
+  const closedWindowOutput = createDecisionOutput();
+  closedWindow.coordinator.decideInto(
+    createDecisionRequest(0, 105),
+    createDecisionScratch(),
+    closedWindowOutput,
+  );
+  expect(closedWindowOutput.reasonCode).toBe(AUTONOMY_REASON_IDLE_OFF_SHIFT);
+
+  const blockedSchedule = createCoordinatorFixture(0, 0, 1, 1, true, 0, 8);
+  blockedSchedule.dependencies.scheduleFacts.allowedWorkTypeMasks[0] = 0;
+  const blockedScheduleOutput = createDecisionOutput();
+  blockedSchedule.coordinator.decideInto(
+    createDecisionRequest(0, 106),
+    createDecisionScratch(),
+    blockedScheduleOutput,
+  );
+  expect(blockedScheduleOutput.reasonCode).toBe(AUTONOMY_REASON_BLOCKED_SCHEDULE_CLOSED);
+
+  const priority = createCoordinatorFixture(0, 0, 2, 1, true, 0, 12);
+  priority.dependencies.scheduleFacts.allowedWorkTypeMasks[0] = 0;
+  expect(priority.dependencies.abilities.setBaseAbility(0, M3_ABILITY_COMMUNICATION, 0)).toEqual({
+    ok: true,
+  });
+  const priorityOutput = createDecisionOutput();
+  priority.coordinator.decideInto(
+    createDecisionRequest(0, 107),
+    createDecisionScratch(),
+    priorityOutput,
+  );
+  expect(priorityOutput.reasonCode).toBe(AUTONOMY_REASON_CAPABILITY_TREATMENT_DENIED);
+
+  const trueEmpty = createCoordinatorFixture(0, 0, 1, 1, true, 0, 1);
+  const trueEmptyOutput = createDecisionOutput();
+  trueEmpty.coordinator.decideInto(
+    createDecisionRequest(0, 108),
+    createDecisionScratch(),
+    trueEmptyOutput,
+  );
+  expect(trueEmptyOutput.reasonCode).toBe(AUTONOMY_REASON_IDLE_NO_INDEXED_OFFER);
 });
 
 it("keeps active work free, consumes interruptions/selections, honors retry/cadence, and rejects rollback", () => {
@@ -803,6 +1014,43 @@ it("keeps active work free, consumes interruptions/selections, honors retry/cade
   const thirdOutput = createDecisionOutput();
   cap.coordinator.decideInto(createDecisionRequest(0, 18), createDecisionScratch(), thirdOutput);
   expect(thirdOutput.decisionKind).toBe(AUTONOMY_DECISION_DEFERRED);
+});
+
+it("allows KEEP after two consumed slots while a third new selection still defers", () => {
+  const fixture = createCoordinatorFixture(12);
+  fixture.coordinator.decideInto(
+    createDecisionRequest(0, 100),
+    createDecisionScratch(),
+    createDecisionOutput(),
+  );
+  fixture.coordinator.decideInto(
+    createDecisionRequest(0, 101),
+    createDecisionScratch(),
+    createDecisionOutput(),
+  );
+  fixture.dependencies.jobFacts.activeFlags[0] = 1;
+  fixture.dependencies.jobFacts.jobIds[0] = 90;
+  fixture.dependencies.jobFacts.jobVersions[0] = 1;
+  const keepOutput = createDecisionOutput();
+  fixture.coordinator.decideInto(
+    createDecisionRequest(0, 102),
+    createDecisionScratch(),
+    keepOutput,
+  );
+  expect(keepOutput.decisionKind).toBe(AUTONOMY_DECISION_KEEP_WORKING);
+  const metricsAfterKeep = createDecisionMetricsOutput();
+  fixture.coordinator.readMetricsInto(metricsAfterKeep);
+  expect(metricsAfterKeep.decisionsUsedThisTick).toBe(2);
+  fixture.dependencies.jobFacts.activeFlags[0] = 0;
+  fixture.dependencies.jobFacts.jobIds[0] = AUTONOMY_REF_NONE;
+  fixture.dependencies.jobFacts.jobVersions[0] = 0;
+  const selectionOutput = createDecisionOutput();
+  fixture.coordinator.decideInto(
+    createDecisionRequest(0, 103),
+    createDecisionScratch(),
+    selectionOutput,
+  );
+  expect(selectionOutput.decisionKind).toBe(AUTONOMY_DECISION_DEFERRED);
 });
 
 it("attempts exactly zero through four real paths in common-score order and clears route tails", () => {
@@ -905,6 +1153,38 @@ it("rejects each of five stale path bases and excludes maxNodeExpansions from ba
   stableSpy.mockRestore();
 });
 
+it("rejects wrong path request sequence, start, and goal identity before route publication", () => {
+  const identityFields: readonly (keyof PathSearchIntoOutput)[] = [
+    "requestSequence",
+    "startCellIndex",
+    "goalCellIndex",
+  ];
+  for (const field of identityFields) {
+    const fixture = createCoordinatorFixture(12);
+    const spy = vi
+      .spyOn(fixture.dependencies.pathfinder, "findPathInto")
+      .mockImplementation((_grid, request, route, output) => {
+        writeSuccessfulPathMock(request, route, output, 1);
+        const value = output[field];
+        if (typeof value === "number") Reflect.set(output, field, value + 1);
+      });
+    const scratch = createDecisionScratch();
+    const output = createDecisionOutput();
+    fixture.coordinator.decideInto(createDecisionRequest(0, 450), scratch, output);
+    expect(output).toMatchObject({
+      decisionKind: AUTONOMY_DECISION_WAIT,
+      selectedCount: 0,
+      routeCellCount: 0,
+      exactPathCount: AUTONOMY_MAX_EXACT_PATHS,
+    });
+    for (const cell of scratch.selectedRouteCells) expect(cell).toBe(AUTONOMY_REF_NONE);
+    const metrics = createDecisionMetricsOutput();
+    fixture.coordinator.readMetricsInto(metrics);
+    expect(metrics.stalePathCount).toBe(AUTONOMY_MAX_EXACT_PATHS);
+    spy.mockRestore();
+  }
+});
+
 it("accumulates real path node budgets across four bounded failures", () => {
   const fixture = createCoordinatorFixture(0);
   const mutation = createOfferMutationOutputForAutonomy();
@@ -938,43 +1218,20 @@ it("accumulates real path node budgets across four bounded failures", () => {
   });
 });
 
-it("closes the coordinator hot surface over Into owners without allocation, legacy calls, or scans", () => {
-  const forbidden = [
-    "new ",
-    "=>",
-    ".map(",
-    ".filter(",
-    ".reduce(",
-    ".flatMap(",
-    ".sort(",
-    "readActorNeeds(",
-    ".selectCandidates(",
-    ".selectTreatmentRequests(",
-    ".selectTopOffers(",
-    ".findPath(",
-    ".queryAbility(",
-    ".acquire(",
-    ".acquireInto(",
-    ".transitionInto(",
-    ".refreshIdleInto(",
-    ".readPlanInto(",
-    ".forEachAliveAscending(",
-    "Math.random(",
-    "Date.now(",
-    "performance.now(",
-  ];
-  const prototype = ResidentAutonomyCoordinator.prototype;
-  for (const name of Object.getOwnPropertyNames(prototype)) {
-    if (name === "constructor") continue;
-    const target: unknown = Reflect.get(prototype, name);
-    expect(typeof target, name).toBe("function");
-    if (typeof target === "function") assertNoForbiddenHotSource(name, target, forbidden);
-  }
-  expect(AUTONOMY_B2_HOT_FREE_AUDIT_TARGETS.length).toBeGreaterThan(40);
-  for (const target of AUTONOMY_B2_HOT_FREE_AUDIT_TARGETS) {
-    expect(typeof target).toBe("function");
-    if (typeof target === "function") assertNoForbiddenHotSource(target.name, target, forbidden);
-  }
+it("closes decideInto by declaration identity over exact allocation-free owner roots", () => {
+  const audit = auditAutonomyDecisionClosure();
+  expect(audit.unresolved).toEqual([]);
+  expect(audit.forbidden).toEqual([]);
+  expect(audit.declarationCount).toBe(239);
+  expect(audit.perFile).toEqual(AUTONOMY_HOT_EXPECTED_PER_FILE);
+  expect(audit.dynamicOwnerRoots).toEqual(AUTONOMY_HOT_EXPECTED_DYNAMIC_OWNER_ROOTS);
+  expect(audit.nativeCallKeys).toEqual(AUTONOMY_HOT_EXPECTED_NATIVE_CALL_KEYS);
+  expect(audit.manifestDigest).toBe("d02dea82-d7357816");
+
+  expect(readExpectedDynamicOwnerRoot("fake.selectCandidatesInto")).toBeUndefined();
+  expect(readExpectedDynamicOwnerRoot("this.dependencies.food.selectCandidatesInto")).toBe(
+    "M3FoodAvailabilityStore.selectCandidatesInto",
+  );
 });
 
 it("preserves every caller scratch identity and invokes no B3 mutation or global-scan surface", () => {
@@ -2493,6 +2750,7 @@ function createCoordinatorFixture(
   ordinaryDescriptorCount = 1,
   registerNeedActor = true,
   ordinaryDistanceWeight = 0,
+  enabledSourceMask = 0,
 ): CoordinatorFixture {
   const actorCapacity = 2;
   const entities = createEntityRegistry({ capacity: 64 });
@@ -2625,7 +2883,7 @@ function createCoordinatorFixture(
       },
     },
   };
-  if (enabledSourceCount >= 4) {
+  if (enabledSourceCount >= 4 || (enabledSourceMask & 4) !== 0) {
     expect(
       dependencies.medical.updateCaregiverStateFromAbility(
         {
@@ -2645,6 +2903,7 @@ function createCoordinatorFixture(
     enabledSourceCount,
     ordinaryDescriptorCount,
     ordinaryDistanceWeight,
+    enabledSourceMask,
   );
   return {
     coordinator: new ResidentAutonomyCoordinator(dependencies, policy),
@@ -2657,6 +2916,7 @@ function createEnabledSourcePolicyInput(
   enabledSourceCount: number,
   ordinaryDescriptorCount: number,
   ordinaryDistanceWeight: number,
+  enabledSourceMask: number,
 ): AutonomyDecisionPolicyInput {
   const policy = createDecisionPolicyInput();
   policy.sourceEnabledFlags.fill(0);
@@ -2674,12 +2934,18 @@ function createEnabledSourcePolicyInput(
   policy.ordinaryMinimumAbilityValues.fill(100);
   policy.sourceDistanceWeights[3] = ordinaryDistanceWeight;
   for (let table = 0; table < policy.policyClassCount * AUTONOMY_SCHEDULE_CODE_COUNT; table += 1) {
-    policy.sourceEnabledFlags[table * AUTONOMY_REAL_SOURCE_COUNT + 3] = 1;
-    if (enabledSourceCount >= 2)
-      policy.sourceEnabledFlags[table * AUTONOMY_REAL_SOURCE_COUNT + 1] = 1;
-    if (enabledSourceCount >= 3) policy.sourceEnabledFlags[table * AUTONOMY_REAL_SOURCE_COUNT] = 1;
-    if (enabledSourceCount >= 4)
-      policy.sourceEnabledFlags[table * AUTONOMY_REAL_SOURCE_COUNT + 2] = 1;
+    const base = table * AUTONOMY_REAL_SOURCE_COUNT;
+    if (enabledSourceMask === 0) {
+      policy.sourceEnabledFlags[base + 3] = 1;
+      if (enabledSourceCount >= 2) policy.sourceEnabledFlags[base + 1] = 1;
+      if (enabledSourceCount >= 3) policy.sourceEnabledFlags[base] = 1;
+      if (enabledSourceCount >= 4) policy.sourceEnabledFlags[base + 2] = 1;
+    } else {
+      if ((enabledSourceMask & 1) !== 0) policy.sourceEnabledFlags[base] = 1;
+      if ((enabledSourceMask & 2) !== 0) policy.sourceEnabledFlags[base + 1] = 1;
+      if ((enabledSourceMask & 4) !== 0) policy.sourceEnabledFlags[base + 2] = 1;
+      if ((enabledSourceMask & 8) !== 0) policy.sourceEnabledFlags[base + 3] = 1;
+    }
   }
   if (enabledSourceCount >= 2) {
     policy.sourceHardPriorities[1] = 0;
@@ -3343,6 +3609,7 @@ function createDecisionOutput(): AutonomyDecisionOutput {
     storeVersion: 0,
     reservationVersion: 0,
     visitedCount: 0,
+    ingressCount: 0,
     scoredCount: 0,
     retainedCount: 0,
     selectedCount: 0,
@@ -3382,6 +3649,16 @@ function expectPregateFailure(fixture: CoordinatorFixture, tick: number): void {
   expect(scratch.ordinaryOptions.candidateCap).toBe(1);
 }
 
+function expectCoordinatorMetric(
+  fixture: CoordinatorFixture,
+  metric: keyof AutonomyDecisionMetricsOutput,
+  expected: number,
+): void {
+  const metrics = createDecisionMetricsOutput();
+  fixture.coordinator.readMetricsInto(metrics);
+  expect(metrics[metric]).toBe(expected);
+}
+
 function createDecisionMetricsOutput(): AutonomyDecisionMetricsOutput {
   return {
     tick: 0,
@@ -3394,6 +3671,7 @@ function createDecisionMetricsOutput(): AutonomyDecisionMetricsOutput {
     failedCount: 0,
     deferredCount: 0,
     visitedCount: 0,
+    ingressCount: 0,
     scoredCount: 0,
     retainedCount: 0,
     selectedCount: 0,
@@ -3476,15 +3754,418 @@ function writePathMockBasis(request: PathRequest, output: PathSearchIntoOutput):
   output.regionGraphVersion = request.basis.regionGraphVersion;
 }
 
-function assertNoForbiddenHotSource(
-  label: string,
-  target: unknown,
-  forbidden: readonly string[],
+interface AutonomyHotClosureAudit {
+  readonly declarationCount: number;
+  readonly perFile: Readonly<Record<string, number>>;
+  readonly dynamicOwnerRoots: readonly string[];
+  readonly nativeCallKeys: readonly string[];
+  readonly manifestDigest: string;
+  readonly unresolved: readonly string[];
+  readonly forbidden: readonly string[];
+}
+
+const AUTONOMY_HOT_EXPECTED_PER_FILE: Readonly<Record<string, number>> = {
+  "entity-id.ts": 2,
+  "game-session-autonomy-reasons.ts": 3,
+  "game-session-autonomy-selection.ts": 91,
+  "game-session-autonomy-store.ts": 18,
+  "m3-food.ts": 15,
+  "m3-health.ts": 10,
+  "m3-medical-care.ts": 29,
+  "m3-needs.ts": 5,
+  "m3-rest-sleep.ts": 35,
+  "map-grid.ts": 8,
+  "pathing.ts": 13,
+  "work-offers.ts": 10,
+};
+
+const AUTONOMY_HOT_EXPECTED_DYNAMIC_OWNER_ROOT_MAP: ReadonlyMap<string, string> = new Map([
+  ["dependencies.entities.generationAt", "EntityRegistry.generationAt"],
+  ["dependencies.entities.isIndexActive", "EntityRegistry.isIndexActive"],
+  ["needs.isActorActive", "NeedStore.isActorActive"],
+  ["needs.readLaneOwnerVersion", "NeedStore.readLaneOwnerVersion"],
+  ["needs.readLaneValue", "NeedStore.readLaneValue"],
+  ["this.dependencies.abilities.queryAbilityInto", "M3AbilityCacheStore.queryAbilityInto"],
+  ["this.dependencies.autonomyStore.readResidentInto", "ResidentAutonomyStore.readResidentInto"],
+  ["this.dependencies.food.selectCandidatesInto", "M3FoodAvailabilityStore.selectCandidatesInto"],
+  ["this.dependencies.medical.readCaregiverStateInto", "M3MedicalCareStore.readCaregiverStateInto"],
+  [
+    "this.dependencies.medical.selectTreatmentRequestsInto",
+    "M3MedicalCareStore.selectTreatmentRequestsInto",
+  ],
+  ["this.dependencies.pathfinder.findPathInto", "GridPathfinder.findPathInto"],
+  [
+    "this.dependencies.restCandidates.selectCandidatesInto",
+    "RestCandidateIndex.selectCandidatesInto",
+  ],
+  ["this.dependencies.workOffers.selectTopOffersInto", "WorkOfferIndex.selectTopOffersInto"],
+]);
+
+const AUTONOMY_HOT_EXPECTED_DYNAMIC_OWNER_ROOTS = sortAuditStrings(
+  Array.from(
+    AUTONOMY_HOT_EXPECTED_DYNAMIC_OWNER_ROOT_MAP,
+    ([receiver, target]) => `${receiver} -> ${target}`,
+  ),
+);
+
+const AUTONOMY_HOT_EXPECTED_NATIVE_CALL_KEYS = [
+  "Math.abs",
+  "Math.floor",
+  "Math.min",
+  "Number.isInteger",
+  "Number.isSafeInteger",
+  "lanes.abilityBaseVersions.fill",
+  "lanes.abilityConditionVersions.fill",
+  "lanes.abilityIds.fill",
+  "lanes.abilityMinimumValues.fill",
+  "lanes.abilityValues.fill",
+  "lanes.candidateIds.fill",
+  "lanes.cheapAdmissionKeys.fill",
+  "lanes.commonScores.fill",
+  "lanes.needLaneCodes.fill",
+  "lanes.needOwnerVersions.fill",
+  "lanes.needValues.fill",
+  "lanes.policyDescriptorIndexes.fill",
+  "lanes.rawScores.fill",
+  "lanes.scheduleCodes.fill",
+  "lanes.scheduleVersions.fill",
+  "lanes.scoreInvocationCounts.fill",
+  "lanes.slotCodes.fill",
+  "lanes.sourceCodes.fill",
+  "lanes.sourceScratchRowIndexes.fill",
+  "lanes.targetCellIndexes.fill",
+  "lanes.targetIds.fill",
+  "output.claimIds.fill",
+  "output.routeCells.fill",
+  "scratch.needOwnerVersions.fill",
+  "scratch.needValues.fill",
+  "scratch.pathRouteCells.fill",
+  "scratch.selectedRouteCells.fill",
+  "this.closedEpoch.fill",
+  "this.seenEpoch.fill",
+] as const;
+
+const AUTONOMY_HOT_EXPECTED_NATIVE_CALL_KEY_SET = new Set<string>(
+  AUTONOMY_HOT_EXPECTED_NATIVE_CALL_KEYS,
+);
+
+const AUTONOMY_HOT_FORBIDDEN_PROPERTY_CALLS = new Set([
+  "toString",
+  "concat",
+  "join",
+  "map",
+  "filter",
+  "reduce",
+  "flatMap",
+  "slice",
+  "split",
+  "replace",
+  "sort",
+]);
+
+function auditAutonomyDecisionClosure(): AutonomyHotClosureAudit {
+  const program = createAutonomyHotAuditProgram();
+  const checker = program.getTypeChecker();
+  const source = program
+    .getSourceFiles()
+    .find((candidate) =>
+      normalizeAuditPath(candidate.fileName).endsWith(
+        "/packages/sim-core/src/game-session-autonomy-selection.ts",
+      ),
+    );
+  if (source === undefined) throw new Error("autonomy selection source is missing from Program");
+  const root = findAutonomyDecisionRoot(source);
+  const queue: ts.SignatureDeclaration[] = [root];
+  const reached = new Set<ts.SignatureDeclaration>();
+  const manifestKeys = new Set<string>();
+  const dynamicOwnerRoots = new Set<string>();
+  const nativeCallKeys = new Set<string>();
+  const unresolved = new Set<string>();
+  const forbidden = new Set<string>();
+  const perFile: Record<string, number> = {};
+  for (const declaration of queue) {
+    if (reached.has(declaration)) continue;
+    reached.add(declaration);
+    const body = readAutonomyCallableBody(declaration);
+    const fileName = readAutonomySourceFileName(declaration.getSourceFile());
+    const label = readAutonomyCallableLabel(declaration);
+    if (body === undefined || fileName === undefined) {
+      unresolved.add(`${label}: callable body is outside packages/sim-core/src`);
+      continue;
+    }
+    const manifestKey = `${fileName}:${label}`;
+    if (manifestKeys.has(manifestKey))
+      unresolved.add(`${manifestKey}: duplicate declaration label`);
+    manifestKeys.add(manifestKey);
+    perFile[fileName] = (perFile[fileName] ?? 0) + 1;
+    auditAutonomyHotBody(
+      body,
+      declaration,
+      checker,
+      queue,
+      dynamicOwnerRoots,
+      nativeCallKeys,
+      unresolved,
+      forbidden,
+    );
+  }
+  const sortedManifest = sortAuditStrings(Array.from(manifestKeys));
+  return {
+    declarationCount: reached.size,
+    perFile,
+    dynamicOwnerRoots: sortAuditStrings(Array.from(dynamicOwnerRoots)),
+    nativeCallKeys: sortAuditStrings(Array.from(nativeCallKeys)),
+    manifestDigest: hashAutonomyHotManifest(sortedManifest),
+    unresolved: sortAuditStrings(Array.from(unresolved)),
+    forbidden: sortAuditStrings(Array.from(forbidden)),
+  };
+}
+
+function createAutonomyHotAuditProgram(): ts.Program {
+  const configPath = ts.findConfigFile(
+    ts.sys.getCurrentDirectory(),
+    (fileName) => ts.sys.fileExists(fileName),
+    "tsconfig.typecheck.json",
+  );
+  if (configPath === undefined) throw new Error("tsconfig.typecheck.json was not found");
+  const config = ts.readConfigFile(configPath, (fileName) => ts.sys.readFile(fileName));
+  if (config.error !== undefined)
+    throw new Error(ts.flattenDiagnosticMessageText(config.error.messageText, "\n"));
+  const normalized = normalizeAuditPath(configPath);
+  const basePath = normalized.slice(0, normalized.lastIndexOf("/"));
+  const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, basePath);
+  if (parsed.errors.length > 0)
+    throw new Error(ts.flattenDiagnosticMessageText(parsed.errors[0]?.messageText ?? "", "\n"));
+  return ts.createProgram(parsed.fileNames, parsed.options);
+}
+
+function findAutonomyDecisionRoot(source: ts.SourceFile): ts.MethodDeclaration {
+  for (const statement of source.statements) {
+    if (!ts.isClassDeclaration(statement) || statement.name?.text !== "ResidentAutonomyCoordinator")
+      continue;
+    for (const member of statement.members) {
+      if (
+        ts.isMethodDeclaration(member) &&
+        ts.isIdentifier(member.name) &&
+        member.name.text === "decideInto"
+      )
+        return member;
+    }
+  }
+  throw new Error("ResidentAutonomyCoordinator.decideInto declaration was not found");
+}
+
+function auditAutonomyHotBody(
+  body: ts.ConciseBody,
+  caller: ts.SignatureDeclaration,
+  checker: ts.TypeChecker,
+  queue: ts.SignatureDeclaration[],
+  dynamicOwnerRoots: Set<string>,
+  nativeCallKeys: Set<string>,
+  unresolved: Set<string>,
+  forbidden: Set<string>,
 ): void {
-  if (typeof target !== "function") throw new Error("hot audit target is not callable");
-  const source = Function.prototype.toString.call(target);
-  for (const pattern of forbidden)
-    expect(source.includes(pattern), `${label}: ${pattern}`).toBe(false);
+  const callerLabel = readAutonomyCallableLabel(caller);
+  const callerFile = readAutonomySourceFileName(caller.getSourceFile());
+  function visit(node: ts.Node): void {
+    const category = readForbiddenAutonomyHotNode(node);
+    if (category !== undefined) forbidden.add(`${callerLabel}: ${category}`);
+    if (ts.isCallExpression(node)) {
+      const signature = checker.getResolvedSignature(node);
+      const target = signature?.declaration;
+      if (target === undefined) {
+        unresolved.add(`${callerLabel}: unresolved call ${node.expression.getText()}`);
+      } else if (target.kind === ts.SyntaxKind.JSDocSignature) {
+        unresolved.add(`${callerLabel}: JSDoc-only call ${node.expression.getText()}`);
+      } else {
+        const targetFile = readAutonomySourceFileName(target.getSourceFile());
+        if (targetFile === undefined) {
+          const nativeKey = readAutonomyNativeCallKey(node);
+          if (nativeKey === undefined || !AUTONOMY_HOT_EXPECTED_NATIVE_CALL_KEY_SET.has(nativeKey))
+            unresolved.add(`${callerLabel}: unexpected external call ${node.expression.getText()}`);
+          else nativeCallKeys.add(nativeKey);
+        } else {
+          const targetBody = readAutonomyCallableBody(target);
+          if (targetBody === undefined)
+            unresolved.add(`${callerLabel}: project call has no body ${node.expression.getText()}`);
+          else queue.push(target);
+          if (
+            callerFile === "game-session-autonomy-selection.ts" &&
+            targetFile !== callerFile &&
+            ts.isPropertyAccessExpression(node.expression)
+          ) {
+            const receiverKey = node.expression.getText();
+            dynamicOwnerRoots.add(`${receiverKey} -> ${readAutonomyCallableLabel(target)}`);
+          }
+        }
+      }
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(body);
+}
+
+function readAutonomyCallableBody(
+  declaration: ts.SignatureDeclaration,
+): ts.ConciseBody | undefined {
+  if (
+    ts.isFunctionDeclaration(declaration) ||
+    ts.isMethodDeclaration(declaration) ||
+    ts.isFunctionExpression(declaration) ||
+    ts.isArrowFunction(declaration) ||
+    ts.isConstructorDeclaration(declaration) ||
+    ts.isGetAccessorDeclaration(declaration) ||
+    ts.isSetAccessorDeclaration(declaration)
+  )
+    return declaration.body;
+  return undefined;
+}
+
+function readAutonomyCallableLabel(declaration: ts.SignatureDeclaration): string {
+  if (
+    ts.isMethodDeclaration(declaration) ||
+    ts.isGetAccessorDeclaration(declaration) ||
+    ts.isSetAccessorDeclaration(declaration)
+  ) {
+    const owner = ts.isClassDeclaration(declaration.parent)
+      ? (declaration.parent.name?.text ?? "<anonymous-class>")
+      : "<non-class>";
+    return `${owner}.${declaration.name.getText()}`;
+  }
+  if (ts.isConstructorDeclaration(declaration)) {
+    const owner = ts.isClassDeclaration(declaration.parent)
+      ? (declaration.parent.name?.text ?? "<anonymous-class>")
+      : "<non-class>";
+    return `${owner}.constructor`;
+  }
+  if (ts.isFunctionDeclaration(declaration) && declaration.name !== undefined)
+    return declaration.name.text;
+  return `<anonymous@${String(declaration.getStart())}>`;
+}
+
+function readAutonomySourceFileName(source: ts.SourceFile): string | undefined {
+  const normalized = normalizeAuditPath(source.fileName);
+  const marker = "/packages/sim-core/src/";
+  const markerIndex = normalized.lastIndexOf(marker);
+  return markerIndex < 0 ? undefined : normalized.slice(markerIndex + marker.length);
+}
+
+function normalizeAuditPath(fileName: string): string {
+  return fileName.replaceAll("\\", "/").toLowerCase();
+}
+
+function readAutonomyNativeCallKey(call: ts.CallExpression): string | undefined {
+  if (!ts.isPropertyAccessExpression(call.expression)) return undefined;
+  return `${call.expression.expression.getText()}.${call.expression.name.text}`;
+}
+
+function readExpectedDynamicOwnerRoot(receiver: string): string | undefined {
+  return AUTONOMY_HOT_EXPECTED_DYNAMIC_OWNER_ROOT_MAP.get(receiver);
+}
+
+function readForbiddenAutonomyHotNode(node: ts.Node): string | undefined {
+  if (ts.isNewExpression(node)) return "new expression";
+  if (ts.isObjectLiteralExpression(node)) return "object literal";
+  if (ts.isArrayLiteralExpression(node)) return "array literal";
+  if (ts.isArrowFunction(node)) return "nested arrow function";
+  if (ts.isFunctionDeclaration(node) || ts.isFunctionExpression(node)) return "nested function";
+  if (ts.isClassDeclaration(node) || ts.isClassExpression(node)) return "nested class";
+  if (ts.isTaggedTemplateExpression(node)) return "tagged template";
+  if (ts.isTemplateExpression(node) || ts.isNoSubstitutionTemplateLiteral(node))
+    return "template literal";
+  if (node.kind === ts.SyntaxKind.RegularExpressionLiteral) return "regex literal";
+  if (ts.isCallExpression(node)) return readForbiddenAutonomyHotCall(node);
+  if (ts.isBinaryExpression(node)) return readForbiddenAutonomyStringBinary(node);
+  return undefined;
+}
+
+function readForbiddenAutonomyHotCall(node: ts.CallExpression): string | undefined {
+  const expression = node.expression;
+  if (ts.isIdentifier(expression)) {
+    if (expression.text === "Array" || expression.text === "Object" || expression.text === "String")
+      return `forbidden call ${expression.text}`;
+    return undefined;
+  }
+  if (!ts.isPropertyAccessExpression(expression)) return undefined;
+  const receiver = expression.expression.getText();
+  const callName = expression.name.text;
+  if (receiver === "Array" && (callName === "from" || callName === "of"))
+    return `forbidden call Array.${callName}`;
+  if (
+    receiver === "Object" &&
+    (callName === "create" || callName === "assign" || callName === "fromEntries")
+  )
+    return `forbidden call Object.${callName}`;
+  if (receiver === "JSON" && callName === "stringify") return "forbidden call JSON.stringify";
+  return AUTONOMY_HOT_FORBIDDEN_PROPERTY_CALLS.has(callName)
+    ? `forbidden call .${callName}`
+    : undefined;
+}
+
+function readForbiddenAutonomyStringBinary(node: ts.BinaryExpression): string | undefined {
+  if (
+    node.operatorToken.kind !== ts.SyntaxKind.PlusToken &&
+    node.operatorToken.kind !== ts.SyntaxKind.PlusEqualsToken
+  )
+    return undefined;
+  if (!isAutonomyStringProducing(node.left) && !isAutonomyStringProducing(node.right))
+    return undefined;
+  return node.operatorToken.kind === ts.SyntaxKind.PlusEqualsToken
+    ? "string-producing plus-equals"
+    : "string-producing plus";
+}
+
+function isAutonomyStringProducing(node: ts.Expression): boolean {
+  if (
+    ts.isStringLiteral(node) ||
+    ts.isTemplateExpression(node) ||
+    ts.isNoSubstitutionTemplateLiteral(node)
+  )
+    return true;
+  if (ts.isParenthesizedExpression(node)) return isAutonomyStringProducing(node.expression);
+  if (ts.isAsExpression(node) || ts.isTypeAssertionExpression(node) || ts.isNonNullExpression(node))
+    return isAutonomyStringProducing(node.expression);
+  if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken)
+    return isAutonomyStringProducing(node.left) || isAutonomyStringProducing(node.right);
+  if (!ts.isCallExpression(node)) return false;
+  if (ts.isIdentifier(node.expression)) return node.expression.text === "String";
+  if (!ts.isPropertyAccessExpression(node.expression)) return false;
+  const callName = node.expression.name.text;
+  if (callName === "toString" || callName === "concat" || callName === "join") return true;
+  if (node.expression.expression.getText() === "JSON" && callName === "stringify") return true;
+  return ts.isCallExpression(node.expression.expression)
+    ? isAutonomyStringProducing(node.expression.expression)
+    : false;
+}
+
+function hashAutonomyHotManifest(manifest: readonly string[]): string {
+  let first = 0x811c9dc5;
+  let second = 0x9e3779b9;
+  for (const entry of manifest) {
+    for (let index = 0; index < entry.length; index += 1) {
+      const code = entry.charCodeAt(index);
+      first = Math.imul(first ^ code, 0x01000193);
+      second = Math.imul(second ^ code, 0x85ebca6b);
+    }
+    first = Math.imul(first ^ 10, 0x01000193);
+    second = Math.imul(second ^ 10, 0x85ebca6b);
+  }
+  return `${(first >>> 0).toString(16).padStart(8, "0")}-${(second >>> 0)
+    .toString(16)
+    .padStart(8, "0")}`;
+}
+
+function sortAuditStrings(values: string[]): string[] {
+  for (let index = 1; index < values.length; index += 1) {
+    const value = values[index] ?? "";
+    let cursor = index;
+    while (cursor > 0 && (values[cursor - 1] ?? "") > value) {
+      values[cursor] = values[cursor - 1] ?? "";
+      cursor -= 1;
+    }
+    values[cursor] = value;
+  }
+  return values;
 }
 
 function containsUint8Value(lane: Uint8Array, expected: number): boolean {

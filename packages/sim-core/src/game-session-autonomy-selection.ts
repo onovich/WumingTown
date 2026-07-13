@@ -1,11 +1,16 @@
 import type { EntityRegistry } from "./entity-id";
 import {
   AUTONOMY_REASON_CAPABILITY_MOVEMENT_DENIED,
+  AUTONOMY_REASON_CAPABILITY_PERMISSION_DENIED,
   AUTONOMY_REASON_CAPABILITY_STALE_BASIS,
+  AUTONOMY_REASON_CAPABILITY_TREATMENT_DENIED,
+  AUTONOMY_REASON_BLOCKED_SCHEDULE_CLOSED,
   AUTONOMY_REASON_FAILED_INVARIANT,
   AUTONOMY_REASON_IDLE_DECISION_DEFERRED,
   AUTONOMY_REASON_IDLE_NO_INDEXED_OFFER,
+  AUTONOMY_REASON_IDLE_OFF_SHIFT,
   AUTONOMY_REASON_INTERRUPTED_NEED_EMERGENCY,
+  AUTONOMY_REASON_NEED_SAFETY_EMERGENCY,
   AUTONOMY_REASON_NONE,
   AUTONOMY_REASON_OFFER_STALE_OWNER,
   AUTONOMY_REASON_PATH_NO_ROUTE,
@@ -112,6 +117,15 @@ export const AUTONOMY_WAKE_INVALID_TARGET = 2;
 export const AUTONOMY_WAKE_JOB_COMPLETED = 4;
 export const AUTONOMY_WAKE_SCHEDULE_BOUNDARY = 8;
 export const AUTONOMY_WAKE_MASK_ALL = 15;
+
+const AUTONOMY_FACT_CURRENT = 0;
+const AUTONOMY_FACT_STALE_NEED = 1;
+const AUTONOMY_FACT_STALE_SCHEDULE = 2;
+const AUTONOMY_FACT_STALE_CAPABILITY = 3;
+const AUTONOMY_FACT_STALE_CANDIDATE = 4;
+const AUTONOMY_FACT_STALE_JOB = 5;
+const AUTONOMY_FACT_STALE_WAKE = 6;
+type AutonomyFactValidationCode = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 /** Construction-only input. The coordinator validates and defensively copies every lane. */
 export interface AutonomyDecisionPolicyInput {
@@ -972,6 +986,7 @@ export interface AutonomyDecisionOutput {
   storeVersion: number;
   reservationVersion: number;
   visitedCount: number;
+  ingressCount: number;
   scoredCount: number;
   retainedCount: number;
   selectedCount: number;
@@ -991,6 +1006,7 @@ export interface AutonomyDecisionMetricsOutput {
   failedCount: number;
   deferredCount: number;
   visitedCount: number;
+  ingressCount: number;
   scoredCount: number;
   retainedCount: number;
   selectedCount: number;
@@ -1047,6 +1063,7 @@ export class ResidentAutonomyCoordinator {
   private readonly retryBackoffTicks: number;
   private readonly metrics: AutonomyDecisionMetricsOutput;
   private decisionAdmissionCount = 0;
+  private decisionRejectionReason: AutonomyReasonCode = AUTONOMY_REASON_NONE;
 
   constructor(
     private readonly dependencies: ResidentAutonomyCoordinatorDependencies,
@@ -1069,6 +1086,7 @@ export class ResidentAutonomyCoordinator {
     output: AutonomyDecisionOutput,
   ): void {
     this.decisionAdmissionCount = 0;
+    this.decisionRejectionReason = AUTONOMY_REASON_NONE;
     resetDecisionOutput(request, output);
     if (!this.prepareDecision(request, scratch, output)) return;
     if (!this.readNeedsAndHardAbilities(request, scratch, output)) return;
@@ -1096,19 +1114,15 @@ export class ResidentAutonomyCoordinator {
       this.finishFailure(output, AUTONOMY_REASON_FAILED_INVARIANT);
       return false;
     }
-    validateAutonomyGlobalRetainedLanes(scratch.globalRetained);
-    validateAutonomyGlobalCandidateBudget(scratch.globalBudget);
-    if (
-      scratch.needValues.length !== NEED_LANE_COUNT ||
-      scratch.needOwnerVersions.length !== NEED_LANE_COUNT ||
-      scratch.pathRouteCells.length < 1 ||
-      scratch.selectedRouteCells.length < 1
-    ) {
+    if (!hasValidDecisionScratchShape(scratch)) {
+      this.metrics.staleCandidateCount += 1;
       this.finishFailure(output, AUTONOMY_REASON_FAILED_INVARIANT);
       return false;
     }
     resetDecisionScratch(scratch);
-    if (!hasCurrentDecisionFacts(this.dependencies, request)) {
+    const factCode = validateCurrentDecisionFacts(this.dependencies, request);
+    if (factCode !== AUTONOMY_FACT_CURRENT) {
+      this.recordStaleFact(factCode);
       this.finishFailure(output, AUTONOMY_REASON_CAPABILITY_STALE_BASIS);
       return false;
     }
@@ -1118,6 +1132,7 @@ export class ResidentAutonomyCoordinator {
       scratch.residentReadOutput,
     );
     if (!scratch.residentReadOutput.ok) {
+      this.metrics.staleCandidateCount += 1;
       this.finishFailure(output, AUTONOMY_REASON_FAILED_INVARIANT);
       return false;
     }
@@ -1125,6 +1140,7 @@ export class ResidentAutonomyCoordinator {
     output.rowVersion = scratch.residentReadOutput.rowVersion;
     output.storeVersion = scratch.residentReadOutput.storeVersion;
     if (this.metrics.tick > request.tick) {
+      this.metrics.staleCapabilityCount += 1;
       this.finishFailure(output, AUTONOMY_REASON_CAPABILITY_STALE_BASIS);
       return false;
     }
@@ -1147,7 +1163,6 @@ export class ResidentAutonomyCoordinator {
       request.tick % this.decisionCadenceTicks ===
       request.residentIndex % this.decisionCadenceTicks;
     if (wakeMask === 0 && !cadenceDue) return false;
-    if (this.metrics.decisionsUsedThisTick >= 2) return false;
     return true;
   }
 
@@ -1165,6 +1180,7 @@ export class ResidentAutonomyCoordinator {
   ): boolean {
     const needs = this.dependencies.needs;
     if (!needs.isActorActive(request.residentIndex)) {
+      this.metrics.staleNeedCount += 1;
       this.finishFailure(output, AUTONOMY_REASON_FAILED_INVARIANT);
       return false;
     }
@@ -1181,13 +1197,13 @@ export class ResidentAutonomyCoordinator {
         this.policy.minimumConsciousness,
       )
     ) {
-      this.finishFailure(output, AUTONOMY_REASON_CAPABILITY_MOVEMENT_DENIED);
+      this.finishHardAbilityFailure(scratch, output);
       return false;
     }
     if (
       !this.queryHardAbility(request, scratch, M3_ABILITY_MOVEMENT, this.policy.minimumMovement)
     ) {
-      this.finishFailure(output, AUTONOMY_REASON_CAPABILITY_MOVEMENT_DENIED);
+      this.finishHardAbilityFailure(scratch, output);
       return false;
     }
     return true;
@@ -1261,7 +1277,8 @@ export class ResidentAutonomyCoordinator {
       const quota = calculateSourceVisitQuota(enabledCount, enabledRank);
       enabledRank += 1;
       if (!this.querySource(request, scratch, tableIndex, sourceIndex, quota)) {
-        this.finishFailure(output, AUTONOMY_REASON_OFFER_STALE_OWNER);
+        this.metrics.staleCandidateCount += 1;
+        this.finishFailureWithBudget(scratch, output, AUTONOMY_REASON_OFFER_STALE_OWNER);
         return false;
       }
     }
@@ -1291,27 +1308,47 @@ export class ResidentAutonomyCoordinator {
   ): boolean {
     const sourceLane = tableIndex * AUTONOMY_REAL_SOURCE_COUNT + sourceIndex;
     if ((this.policy.sourceEnabledFlags[sourceLane] ?? 0) !== 1) return false;
+    if (!this.isSourceNeedEligible(scratch, sourceIndex)) return false;
+    return this.isSourceScheduleEligible(request, tableIndex, sourceIndex);
+  }
+
+  private isSourceNeedEligible(scratch: AutonomyDecisionScratch, sourceIndex: number): boolean {
     if (
       (scratch.needValues[NEED_LANE_SAFETY] ?? 0) <= this.policy.safetyEmergencyMaximumValue &&
       sourceIndex !== 2
-    )
+    ) {
+      this.recordDecisionRejection(AUTONOMY_REASON_NEED_SAFETY_EMERGENCY);
       return false;
+    }
     const needLane = this.policy.sourceNeedLaneCodes[sourceIndex] ?? 0;
     if (
       (scratch.needValues[needLane] ?? 0) > (this.policy.sourceNeedMaximumValues[sourceIndex] ?? 0)
     )
       return false;
+    return true;
+  }
+
+  private isSourceScheduleEligible(
+    request: AutonomyDecisionRequest,
+    tableIndex: number,
+    sourceIndex: number,
+  ): boolean {
     if (
       (this.policy.sourceRequiresOpenWindowFlags[sourceIndex] ?? 0) === 1 &&
       (this.dependencies.scheduleFacts.windowOpenFlags[request.residentIndex] ?? 0) !== 1
-    )
+    ) {
+      this.recordDecisionRejection(AUTONOMY_REASON_IDLE_OFF_SHIFT);
       return false;
+    }
     if (sourceIndex === 3) {
       const descriptor = this.ordinaryDescriptorIndex(request, tableIndex);
       const lane = tableIndex * AUTONOMY_ORDINARY_MAX_BUCKETS + descriptor;
       const workType = this.policy.ordinaryWorkTypes[lane] ?? 0;
       const mask = this.dependencies.scheduleFacts.allowedWorkTypeMasks[request.residentIndex] ?? 0;
-      if (((mask >>> workType) & 1) !== 1) return false;
+      if (((mask >>> workType) & 1) !== 1) {
+        this.recordDecisionRejection(AUTONOMY_REASON_BLOCKED_SCHEDULE_CLOSED);
+        return false;
+      }
     }
     return true;
   }
@@ -1340,7 +1377,8 @@ export class ResidentAutonomyCoordinator {
     scratch: AutonomyDecisionScratch,
     ability: number,
     minimum: number,
-  ): boolean {
+    denialReason: AutonomyReasonCode,
+  ): number {
     this.dependencies.abilities.queryAbilityInto(
       request.residentIndex,
       ability,
@@ -1348,7 +1386,13 @@ export class ResidentAutonomyCoordinator {
       minimum,
       scratch.abilityOutput,
     );
-    return scratch.abilityOutput.ok;
+    if (scratch.abilityOutput.ok) return 0;
+    if (scratch.abilityOutput.reason === "ability.cache_stale_basis") {
+      this.metrics.staleCapabilityCount += 1;
+      return 2;
+    }
+    this.recordDecisionRejection(denialReason);
+    return 1;
   }
 
   private queryFood(
@@ -1359,15 +1403,20 @@ export class ResidentAutonomyCoordinator {
   ): boolean {
     const ability = this.policy.sourceAbilityIds[0] ?? 0;
     const minimum = this.policy.sourceMinimumAbilityValues[0] ?? 0;
-    if (!this.querySourceAbility(request, scratch, ability, minimum)) return true;
-    const query = scratch.foodQuery;
-    query.foodDefId = this.policy.foodDefIds[tableIndex] ?? 0;
-    query.regionId = request.originRegionId;
-    query.permissionId = this.dependencies.scheduleFacts.permissionIds[request.residentIndex] ?? 0;
-    query.mealWindowId = this.dependencies.scheduleFacts.mealWindowIds[request.residentIndex] ?? 0;
-    query.candidateCap = quota;
-    query.maxSelected = quota;
-    this.dependencies.food.selectCandidatesInto(query, scratch.foodScratch, scratch.foodOutput);
+    const abilityResult = this.querySourceAbility(
+      request,
+      scratch,
+      ability,
+      minimum,
+      AUTONOMY_REASON_CAPABILITY_MOVEMENT_DENIED,
+    );
+    if (abilityResult !== 0) return abilityResult === 1;
+    this.writeFoodQuery(request, scratch, tableIndex, quota);
+    this.dependencies.food.selectCandidatesInto(
+      scratch.foodQuery,
+      scratch.foodScratch,
+      scratch.foodOutput,
+    );
     if (
       !recordOwnerVisit(
         scratch,
@@ -1379,6 +1428,29 @@ export class ResidentAutonomyCoordinator {
       return false;
     if (!scratch.foodOutput.ok || scratch.foodOutput.dirtyBacklog !== 0) return false;
     if (scratch.foodOutput.candidateCapHit) this.metrics.candidateCapHitCount += 1;
+    return this.admitFoodRows(request, scratch, ability);
+  }
+
+  private writeFoodQuery(
+    request: AutonomyDecisionRequest,
+    scratch: AutonomyDecisionScratch,
+    tableIndex: number,
+    quota: number,
+  ): void {
+    const query = scratch.foodQuery;
+    query.foodDefId = this.policy.foodDefIds[tableIndex] ?? 0;
+    query.regionId = request.originRegionId;
+    query.permissionId = this.dependencies.scheduleFacts.permissionIds[request.residentIndex] ?? 0;
+    query.mealWindowId = this.dependencies.scheduleFacts.mealWindowIds[request.residentIndex] ?? 0;
+    query.candidateCap = quota;
+    query.maxSelected = quota;
+  }
+
+  private admitFoodRows(
+    request: AutonomyDecisionRequest,
+    scratch: AutonomyDecisionScratch,
+    ability: number,
+  ): boolean {
     for (let row = 0; row < scratch.foodOutput.selectedCount; row += 1) {
       const candidateId = scratch.foodScratch.stackIds[row] ?? AUTONOMY_REF_NONE;
       if (
@@ -1408,21 +1480,17 @@ export class ResidentAutonomyCoordinator {
   ): boolean {
     const ability = this.policy.sourceAbilityIds[1] ?? 0;
     const minimum = this.policy.sourceMinimumAbilityValues[1] ?? 0;
-    if (!this.querySourceAbility(request, scratch, ability, minimum)) return true;
-    const scheduleCode = this.dependencies.scheduleFacts.scheduleCodes[request.residentIndex] ?? 0;
-    const query = scratch.restQuery;
-    query.regionId = request.originRegionId;
-    query.restKind = decodeRestKind(this.policy.restKindCodes[tableIndex] ?? 0);
-    query.scheduleWindow = decodeScheduleWindow(scheduleCode);
-    query.weatherExposure = decodeWeatherExposure(
-      this.policy.restWeatherExposureCodes[tableIndex] ?? 0,
+    const abilityResult = this.querySourceAbility(
+      request,
+      scratch,
+      ability,
+      minimum,
+      AUTONOMY_REASON_CAPABILITY_MOVEMENT_DENIED,
     );
-    query.permissionId = this.dependencies.scheduleFacts.permissionIds[request.residentIndex] ?? 0;
-    query.candidateCap = quota;
-    query.maxSelectedFixtures = quota;
-    writeRestEnvironment(request, this.dependencies.scheduleFacts, query, scratch.restEnvironment);
+    if (abilityResult !== 0) return abilityResult === 1;
+    this.writeRestQuery(request, scratch, tableIndex, quota);
     this.dependencies.restCandidates.selectCandidatesInto(
-      query,
+      scratch.restQuery,
       scratch.restEnvironment,
       this.dependencies.restStore,
       scratch.restScratch,
@@ -1439,6 +1507,34 @@ export class ResidentAutonomyCoordinator {
       return false;
     if (!scratch.restOutput.ok || scratch.restOutput.dirtyBacklog !== 0) return false;
     if (scratch.restOutput.candidateCapHit) this.metrics.candidateCapHitCount += 1;
+    return this.admitRestRows(request, scratch, ability);
+  }
+
+  private writeRestQuery(
+    request: AutonomyDecisionRequest,
+    scratch: AutonomyDecisionScratch,
+    tableIndex: number,
+    quota: number,
+  ): void {
+    const scheduleCode = this.dependencies.scheduleFacts.scheduleCodes[request.residentIndex] ?? 0;
+    const query = scratch.restQuery;
+    query.regionId = request.originRegionId;
+    query.restKind = decodeRestKind(this.policy.restKindCodes[tableIndex] ?? 0);
+    query.scheduleWindow = decodeScheduleWindow(scheduleCode);
+    query.weatherExposure = decodeWeatherExposure(
+      this.policy.restWeatherExposureCodes[tableIndex] ?? 0,
+    );
+    query.permissionId = this.dependencies.scheduleFacts.permissionIds[request.residentIndex] ?? 0;
+    query.candidateCap = quota;
+    query.maxSelectedFixtures = quota;
+    writeRestEnvironment(request, this.dependencies.scheduleFacts, query, scratch.restEnvironment);
+  }
+
+  private admitRestRows(
+    request: AutonomyDecisionRequest,
+    scratch: AutonomyDecisionScratch,
+    ability: number,
+  ): boolean {
     for (let row = 0; row < scratch.restOutput.selectedCount; row += 1) {
       if (
         !this.admitRow(
@@ -1467,22 +1563,8 @@ export class ResidentAutonomyCoordinator {
   ): boolean {
     const ability = this.policy.sourceAbilityIds[2] ?? 0;
     const minimum = this.policy.sourceMinimumAbilityValues[2] ?? 0;
-    this.dependencies.medical.readCaregiverStateInto(
-      request.residentIndex,
-      scratch.medicalCaregiverReadOutput,
-    );
-    if (
-      !scratch.medicalCaregiverReadOutput.ok ||
-      !scratch.medicalCaregiverReadOutput.valid ||
-      !scratch.medicalCaregiverReadOutput.allowed ||
-      scratch.medicalCaregiverReadOutput.regionId !== request.originRegionId ||
-      scratch.medicalCaregiverReadOutput.permissionId !==
-        (this.dependencies.scheduleFacts.permissionIds[request.residentIndex] ?? 0) ||
-      scratch.medicalCaregiverReadOutput.ability !== ability ||
-      scratch.medicalCaregiverReadOutput.minimumValue !== minimum
-    )
-      return true;
-    if (!this.querySourceAbility(request, scratch, ability, minimum)) return true;
+    const caregiverResult = this.prepareMedicalCaregiver(request, scratch, ability, minimum);
+    if (caregiverResult !== 0) return caregiverResult === 1;
     const options = scratch.medicalOptions;
     options.caregiverId = request.residentIndex;
     options.regionId = request.originRegionId;
@@ -1509,7 +1591,57 @@ export class ResidentAutonomyCoordinator {
       return false;
     if (!scratch.medicalOutput.ok)
       return scratch.medicalOutput.reason === "medical.selection_empty";
+    if (!this.hasCurrentMedicalSelection(scratch, ability, minimum)) return false;
+    if (scratch.medicalOutput.candidateCapHit) this.metrics.candidateCapHitCount += 1;
+    return this.admitMedicalRows(request, scratch, ability);
+  }
+
+  private prepareMedicalCaregiver(
+    request: AutonomyDecisionRequest,
+    scratch: AutonomyDecisionScratch,
+    ability: number,
+    minimum: number,
+  ): number {
+    this.dependencies.medical.readCaregiverStateInto(
+      request.residentIndex,
+      scratch.medicalCaregiverReadOutput,
+    );
+    if (!scratch.medicalCaregiverReadOutput.ok || !scratch.medicalCaregiverReadOutput.valid) {
+      this.recordDecisionRejection(AUTONOMY_REASON_CAPABILITY_TREATMENT_DENIED);
+      return 1;
+    }
     if (
+      !scratch.medicalCaregiverReadOutput.allowed ||
+      scratch.medicalCaregiverReadOutput.permissionId !==
+        (this.dependencies.scheduleFacts.permissionIds[request.residentIndex] ?? 0)
+    ) {
+      this.recordDecisionRejection(AUTONOMY_REASON_CAPABILITY_PERMISSION_DENIED);
+      return 1;
+    }
+    if (
+      scratch.medicalCaregiverReadOutput.regionId !== request.originRegionId ||
+      scratch.medicalCaregiverReadOutput.ability !== ability ||
+      scratch.medicalCaregiverReadOutput.minimumValue !== minimum
+    ) {
+      this.recordDecisionRejection(AUTONOMY_REASON_CAPABILITY_TREATMENT_DENIED);
+      return 1;
+    }
+    const abilityResult = this.querySourceAbility(
+      request,
+      scratch,
+      ability,
+      minimum,
+      AUTONOMY_REASON_CAPABILITY_TREATMENT_DENIED,
+    );
+    return abilityResult;
+  }
+
+  private hasCurrentMedicalSelection(
+    scratch: AutonomyDecisionScratch,
+    ability: number,
+    minimum: number,
+  ): boolean {
+    return !(
       scratch.medicalOutput.caregiverAbility !== ability ||
       scratch.medicalOutput.caregiverMinimumValue !== minimum ||
       scratch.medicalOutput.caregiverAbilityValue !== scratch.abilityOutput.value ||
@@ -1519,9 +1651,14 @@ export class ResidentAutonomyCoordinator {
         scratch.abilityOutput.baseAbilityVersion ||
       !scratch.medicalOutput.caregiverValid ||
       !scratch.medicalOutput.caregiverAllowed
-    )
-      return false;
-    if (scratch.medicalOutput.candidateCapHit) this.metrics.candidateCapHitCount += 1;
+    );
+  }
+
+  private admitMedicalRows(
+    request: AutonomyDecisionRequest,
+    scratch: AutonomyDecisionScratch,
+    ability: number,
+  ): boolean {
     for (let row = 0; row < scratch.medicalOutput.selectedCount; row += 1) {
       if (
         !this.admitRow(
@@ -1552,19 +1689,17 @@ export class ResidentAutonomyCoordinator {
     const descriptorLane = tableIndex * AUTONOMY_ORDINARY_MAX_BUCKETS + descriptor;
     const ability = this.policy.ordinaryRequiredAbilityIds[descriptorLane] ?? 0;
     const minimum = this.policy.ordinaryMinimumAbilityValues[descriptorLane] ?? 0;
-    if (!this.querySourceAbility(request, scratch, ability, minimum)) return true;
-    const options = scratch.ordinaryOptions;
-    options.pawnId = request.residentIndex;
-    options.workType = this.policy.ordinaryWorkTypes[descriptorLane] ?? 0;
-    options.regionId = request.originRegionId;
-    options.defId = this.policy.ordinaryDefinitionIds[descriptorLane] ?? 0;
-    options.urgencyBucket = this.policy.ordinaryUrgencyBuckets[descriptorLane] ?? 0;
-    options.permissionId =
-      this.dependencies.scheduleFacts.permissionIds[request.residentIndex] ?? 0;
-    options.candidateCap = quota;
-    options.maxSelectedOffers = quota;
+    const abilityResult = this.querySourceAbility(
+      request,
+      scratch,
+      ability,
+      minimum,
+      AUTONOMY_REASON_CAPABILITY_MOVEMENT_DENIED,
+    );
+    if (abilityResult !== 0) return abilityResult === 1;
+    this.writeOrdinaryOptions(request, scratch, descriptorLane, quota);
     this.dependencies.workOffers.selectTopOffersInto(
-      options,
+      scratch.ordinaryOptions,
       scratch.ordinaryScratch,
       scratch.ordinaryOutput,
     );
@@ -1579,6 +1714,33 @@ export class ResidentAutonomyCoordinator {
       return false;
     if (!scratch.ordinaryOutput.ok) return false;
     if (scratch.ordinaryOutput.rejectedByCandidateCap > 0) this.metrics.candidateCapHitCount += 1;
+    return this.admitOrdinaryRows(request, scratch, descriptor, ability);
+  }
+
+  private writeOrdinaryOptions(
+    request: AutonomyDecisionRequest,
+    scratch: AutonomyDecisionScratch,
+    descriptorLane: number,
+    quota: number,
+  ): void {
+    const options = scratch.ordinaryOptions;
+    options.pawnId = request.residentIndex;
+    options.workType = this.policy.ordinaryWorkTypes[descriptorLane] ?? 0;
+    options.regionId = request.originRegionId;
+    options.defId = this.policy.ordinaryDefinitionIds[descriptorLane] ?? 0;
+    options.urgencyBucket = this.policy.ordinaryUrgencyBuckets[descriptorLane] ?? 0;
+    options.permissionId =
+      this.dependencies.scheduleFacts.permissionIds[request.residentIndex] ?? 0;
+    options.candidateCap = quota;
+    options.maxSelectedOffers = quota;
+  }
+
+  private admitOrdinaryRows(
+    request: AutonomyDecisionRequest,
+    scratch: AutonomyDecisionScratch,
+    descriptor: number,
+    ability: number,
+  ): boolean {
     for (let row = 0; row < scratch.ordinaryOutput.selectedCount; row += 1) {
       if (
         !this.admitRow(
@@ -1656,6 +1818,7 @@ export class ResidentAutonomyCoordinator {
     const tableIndex = policyClass * AUTONOMY_SCHEDULE_CODE_COUNT + scheduleCode;
     for (let row = 0; row < lanes.count; row += 1) {
       lanes.scoreInvocationCounts[row] = (lanes.scoreInvocationCounts[row] ?? 0) + 1;
+      output.scoredCount += 1;
       const common = calculateCommonScore(
         this.policy,
         tableIndex,
@@ -1667,13 +1830,13 @@ export class ResidentAutonomyCoordinator {
         this.dependencies.scheduleFacts.windowOpenFlags[request.residentIndex] ?? 0,
       );
       if (!Number.isSafeInteger(common)) {
-        this.finishFailure(output, AUTONOMY_REASON_FAILED_INVARIANT);
+        this.metrics.staleCandidateCount += 1;
+        this.finishFailureWithBudget(scratch, output, AUTONOMY_REASON_FAILED_INVARIANT);
         return false;
       }
       lanes.commonScores[row] = common;
       scratch.globalBudget.retainedCount += 0;
     }
-    output.scoredCount = lanes.count;
     output.retainedCount = lanes.count;
     return true;
   }
@@ -1685,84 +1848,97 @@ export class ResidentAutonomyCoordinator {
   ): void {
     const lanes = scratch.globalRetained;
     const attemptLimit = Math.min(lanes.count, AUTONOMY_MAX_EXACT_PATHS);
-    let nodeExpansions = 0;
     for (let row = 0; row < attemptLimit; row += 1) {
-      const sequence = request.requestSequenceStart + scratch.globalBudget.exactPathCount;
-      if (!Number.isSafeInteger(sequence)) {
-        this.finishFailure(output, AUTONOMY_REASON_FAILED_INVARIANT);
-        return;
-      }
-      writePathRequest(
-        request,
-        lanes.targetCellIndexes[row] ?? AUTONOMY_REF_NONE,
-        sequence,
-        this.dependencies.pathBasis,
-        scratch.pathRequest,
-      );
-      scratch.pathRouteCells.fill(AUTONOMY_REF_NONE);
-      this.dependencies.pathfinder.findPathInto(
-        this.dependencies.map,
-        scratch.pathRequest,
-        scratch.pathRouteCells,
-        scratch.pathOutput,
-      );
-      scratch.globalBudget.exactPathCount += 1;
-      if (
-        !Number.isSafeInteger(scratch.pathOutput.nodeExpansions) ||
-        scratch.pathOutput.nodeExpansions < 0
-      ) {
-        this.finishFailure(output, AUTONOMY_REASON_FAILED_INVARIANT);
-        return;
-      }
-      const nextExpansions = safeScoreAdd(nodeExpansions, scratch.pathOutput.nodeExpansions);
-      if (!Number.isSafeInteger(nextExpansions)) {
-        this.finishFailure(output, AUTONOMY_REASON_FAILED_INVARIANT);
-        return;
-      }
-      nodeExpansions = nextExpansions;
-      if (
-        !hasCurrentPathBasis(
-          scratch.pathRequest.basis,
-          scratch.pathOutput,
-          this.dependencies.pathBasis,
-        )
-      ) {
-        this.metrics.stalePathCount += 1;
-        continue;
-      }
-      if (!scratch.pathOutput.ok) continue;
-      if (!copySelectedRoute(scratch)) {
-        this.finishFailure(output, AUTONOMY_REASON_FAILED_INVARIANT);
-        return;
-      }
-      writeSelectedBasis(row, request, scratch, this.dependencies);
-      publishSelectedCandidate(row, scratch, output);
-      output.ok = true;
-      output.decisionKind = AUTONOMY_DECISION_NONE;
-      output.reasonCode = AUTONOMY_REASON_PATH_SELECTED;
-      output.nodeExpansions = nodeExpansions;
-      this.finishBudget(scratch, output);
-      this.metrics.lastReasonCode = output.reasonCode;
-      return;
+      const attemptResult = this.tryExactPath(row, request, scratch, output);
+      if (attemptResult !== 0) return;
     }
     if (lanes.count > AUTONOMY_MAX_EXACT_PATHS) this.metrics.exactPathCapHitCount += 1;
     output.ok = true;
     output.decisionKind = AUTONOMY_DECISION_WAIT;
     output.reasonCode =
-      lanes.count === 0 ? AUTONOMY_REASON_IDLE_NO_INDEXED_OFFER : AUTONOMY_REASON_PATH_NO_ROUTE;
-    output.nodeExpansions = nodeExpansions;
+      lanes.count === 0 ? this.readDecisionRejectionReason() : AUTONOMY_REASON_PATH_NO_ROUTE;
     this.metrics.waitCount += 1;
     this.finishBudget(scratch, output);
     this.metrics.lastReasonCode = output.reasonCode;
   }
 
+  private tryExactPath(
+    row: number,
+    request: AutonomyDecisionRequest,
+    scratch: AutonomyDecisionScratch,
+    output: AutonomyDecisionOutput,
+  ): number {
+    const sequence = request.requestSequenceStart + scratch.globalBudget.exactPathCount;
+    if (!Number.isSafeInteger(sequence)) {
+      this.finishFailureWithBudget(scratch, output, AUTONOMY_REASON_FAILED_INVARIANT);
+      return -1;
+    }
+    writePathRequest(
+      request,
+      scratch.globalRetained.targetCellIndexes[row] ?? AUTONOMY_REF_NONE,
+      sequence,
+      this.dependencies.pathBasis,
+      scratch.pathRequest,
+    );
+    scratch.pathRouteCells.fill(AUTONOMY_REF_NONE);
+    this.dependencies.pathfinder.findPathInto(
+      this.dependencies.map,
+      scratch.pathRequest,
+      scratch.pathRouteCells,
+      scratch.pathOutput,
+    );
+    scratch.globalBudget.exactPathCount += 1;
+    if (!this.accumulatePathExpansions(scratch, output)) return -1;
+    if (
+      !hasCurrentPathBasis(scratch.pathRequest, scratch.pathOutput, this.dependencies.pathBasis)
+    ) {
+      this.metrics.stalePathCount += 1;
+      return 0;
+    }
+    if (!scratch.pathOutput.ok) return 0;
+    if (!copySelectedRoute(scratch)) {
+      this.finishFailureWithBudget(scratch, output, AUTONOMY_REASON_FAILED_INVARIANT);
+      return -1;
+    }
+    writeSelectedBasis(row, request, scratch, this.dependencies);
+    publishSelectedCandidate(row, scratch, output);
+    output.ok = true;
+    output.decisionKind = AUTONOMY_DECISION_NONE;
+    output.reasonCode = AUTONOMY_REASON_PATH_SELECTED;
+    this.finishBudget(scratch, output);
+    this.metrics.lastReasonCode = output.reasonCode;
+    return 1;
+  }
+
+  private accumulatePathExpansions(
+    scratch: AutonomyDecisionScratch,
+    output: AutonomyDecisionOutput,
+  ): boolean {
+    if (
+      !Number.isSafeInteger(scratch.pathOutput.nodeExpansions) ||
+      scratch.pathOutput.nodeExpansions < 0
+    ) {
+      this.finishFailureWithBudget(scratch, output, AUTONOMY_REASON_FAILED_INVARIANT);
+      return false;
+    }
+    const nextExpansions = safeScoreAdd(output.nodeExpansions, scratch.pathOutput.nodeExpansions);
+    if (!Number.isSafeInteger(nextExpansions)) {
+      this.finishFailureWithBudget(scratch, output, AUTONOMY_REASON_FAILED_INVARIANT);
+      return false;
+    }
+    output.nodeExpansions = nextExpansions;
+    return true;
+  }
+
   private finishBudget(scratch: AutonomyDecisionScratch, output: AutonomyDecisionOutput): void {
     output.visitedCount = scratch.globalBudget.visitedCount;
+    output.ingressCount = this.decisionAdmissionCount;
     output.retainedCount = scratch.globalRetained.count;
-    output.scoredCount = scratch.globalRetained.count;
     output.exactPathCount = scratch.globalBudget.exactPathCount;
+    output.approximationDropCount = this.decisionAdmissionCount - scratch.globalRetained.count;
     output.reservationVersion = this.dependencies.reservations.version;
     this.metrics.visitedCount += output.visitedCount;
+    this.metrics.ingressCount += output.ingressCount;
     this.metrics.retainedCount += output.retainedCount;
     this.metrics.scoredCount += output.scoredCount;
     this.metrics.selectedCount += output.selectedCount;
@@ -1771,12 +1947,53 @@ export class ResidentAutonomyCoordinator {
     this.metrics.nodeExpansionCount += output.nodeExpansions;
   }
 
+  private recordDecisionRejection(reason: AutonomyReasonCode): void {
+    if (readRejectionPriority(reason) > readRejectionPriority(this.decisionRejectionReason))
+      this.decisionRejectionReason = reason;
+  }
+
+  private readDecisionRejectionReason(): AutonomyReasonCode {
+    return this.decisionRejectionReason === AUTONOMY_REASON_NONE
+      ? AUTONOMY_REASON_IDLE_NO_INDEXED_OFFER
+      : this.decisionRejectionReason;
+  }
+
+  private recordStaleFact(code: AutonomyFactValidationCode): void {
+    if (code === AUTONOMY_FACT_STALE_NEED) this.metrics.staleNeedCount += 1;
+    else if (code === AUTONOMY_FACT_STALE_SCHEDULE || code === AUTONOMY_FACT_STALE_WAKE)
+      this.metrics.staleScheduleCount += 1;
+    else if (code === AUTONOMY_FACT_STALE_CAPABILITY) this.metrics.staleCapabilityCount += 1;
+    else if (code === AUTONOMY_FACT_STALE_CANDIDATE) this.metrics.staleCandidateCount += 1;
+    else if (code === AUTONOMY_FACT_STALE_JOB) this.metrics.staleJobCount += 1;
+  }
+
+  private finishHardAbilityFailure(
+    scratch: AutonomyDecisionScratch,
+    output: AutonomyDecisionOutput,
+  ): void {
+    if (scratch.abilityOutput.reason === "ability.cache_stale_basis") {
+      this.metrics.staleCapabilityCount += 1;
+      this.finishFailure(output, AUTONOMY_REASON_CAPABILITY_STALE_BASIS);
+      return;
+    }
+    this.finishFailure(output, AUTONOMY_REASON_CAPABILITY_MOVEMENT_DENIED);
+  }
+
   private finishFailure(output: AutonomyDecisionOutput, reason: AutonomyReasonCode): void {
     output.ok = false;
     output.decisionKind = AUTONOMY_DECISION_FAILED;
     output.reasonCode = reason;
     this.metrics.failedCount += 1;
     this.metrics.lastReasonCode = reason;
+  }
+
+  private finishFailureWithBudget(
+    scratch: AutonomyDecisionScratch,
+    output: AutonomyDecisionOutput,
+    reason: AutonomyReasonCode,
+  ): void {
+    this.finishBudget(scratch, output);
+    this.finishFailure(output, reason);
   }
 
   private finishDeferred(output: AutonomyDecisionOutput): void {
@@ -1887,6 +2104,7 @@ function createCoordinatorMetrics(): AutonomyDecisionMetricsOutput {
     failedCount: 0,
     deferredCount: 0,
     visitedCount: 0,
+    ingressCount: 0,
     scoredCount: 0,
     retainedCount: 0,
     selectedCount: 0,
@@ -1922,6 +2140,7 @@ function copyCoordinatorMetrics(
   target.failedCount = source.failedCount;
   target.deferredCount = source.deferredCount;
   target.visitedCount = source.visitedCount;
+  target.ingressCount = source.ingressCount;
   target.scoredCount = source.scoredCount;
   target.retainedCount = source.retainedCount;
   target.selectedCount = source.selectedCount;
@@ -1963,6 +2182,7 @@ function resetDecisionOutput(
   output.storeVersion = 0;
   output.reservationVersion = 0;
   output.visitedCount = 0;
+  output.ingressCount = 0;
   output.scoredCount = 0;
   output.retainedCount = 0;
   output.selectedCount = 0;
@@ -2026,43 +2246,93 @@ function isValidDecisionRequest(request: AutonomyDecisionRequest, map: MapGrid):
   );
 }
 
-function hasCurrentDecisionFacts(
+function hasValidDecisionScratchShape(scratch: AutonomyDecisionScratch): boolean {
+  return (
+    hasValidGlobalCandidateBudgetShape(scratch.globalBudget) &&
+    hasValidGlobalRetainedShape(scratch.globalRetained) &&
+    scratch.needValues.length === NEED_LANE_COUNT &&
+    scratch.needOwnerVersions.length === NEED_LANE_COUNT &&
+    scratch.pathRouteCells.length >= 1 &&
+    scratch.selectedRouteCells.length >= 1
+  );
+}
+
+function hasValidGlobalCandidateBudgetShape(budget: AutonomyGlobalCandidateBudget): boolean {
+  return (
+    budget.visitedCap === AUTONOMY_MAX_VISITED_CANDIDATES &&
+    budget.retainedCap === AUTONOMY_MAX_RETAINED_CANDIDATES &&
+    budget.exactPathCap === AUTONOMY_MAX_EXACT_PATHS &&
+    isBoundedCount(budget.visitedCount, AUTONOMY_MAX_VISITED_CANDIDATES) &&
+    isBoundedCount(budget.retainedCount, AUTONOMY_MAX_RETAINED_CANDIDATES) &&
+    isBoundedCount(budget.exactPathCount, AUTONOMY_MAX_EXACT_PATHS)
+  );
+}
+
+function hasValidGlobalRetainedShape(lanes: AutonomyGlobalRetainedLanes): boolean {
+  const capacity = AUTONOMY_MAX_RETAINED_CANDIDATES;
+  return (
+    isBoundedCount(lanes.count, capacity) &&
+    lanes.sourceCodes.length === capacity &&
+    lanes.slotCodes.length === capacity &&
+    lanes.sourceScratchRowIndexes.length === capacity &&
+    lanes.policyDescriptorIndexes.length === capacity &&
+    lanes.needLaneCodes.length === capacity &&
+    lanes.candidateIds.length === capacity &&
+    lanes.targetIds.length === capacity &&
+    lanes.targetCellIndexes.length === capacity &&
+    lanes.rawScores.length === capacity &&
+    lanes.cheapAdmissionKeys.length === capacity &&
+    lanes.commonScores.length === capacity &&
+    lanes.scoreInvocationCounts.length === capacity &&
+    lanes.needValues.length === capacity &&
+    lanes.needOwnerVersions.length === capacity &&
+    lanes.scheduleCodes.length === capacity &&
+    lanes.scheduleVersions.length === capacity &&
+    lanes.abilityIds.length === capacity &&
+    lanes.abilityMinimumValues.length === capacity &&
+    lanes.abilityValues.length === capacity &&
+    lanes.abilityConditionVersions.length === capacity &&
+    lanes.abilityBaseVersions.length === capacity
+  );
+}
+
+function validateCurrentDecisionFacts(
+  dependencies: ResidentAutonomyCoordinatorDependencies,
+  request: AutonomyDecisionRequest,
+): AutonomyFactValidationCode {
+  const index = request.residentIndex;
+  if (
+    index >= dependencies.autonomyStore.capacity ||
+    !dependencies.entities.isIndexActive(index) ||
+    dependencies.entities.generationAt(index) !== request.residentGeneration
+  )
+    return AUTONOMY_FACT_STALE_CANDIDATE;
+  if (!hasCurrentScheduleFacts(dependencies, request)) return AUTONOMY_FACT_STALE_SCHEDULE;
+  if (!hasCurrentJobFacts(dependencies.jobFacts, request)) return AUTONOMY_FACT_STALE_JOB;
+  if (!hasCurrentWakeFacts(dependencies.wakeFacts, request)) return AUTONOMY_FACT_STALE_WAKE;
+  return AUTONOMY_FACT_CURRENT;
+}
+
+function hasCurrentScheduleFacts(
   dependencies: ResidentAutonomyCoordinatorDependencies,
   request: AutonomyDecisionRequest,
 ): boolean {
   const index = request.residentIndex;
   const schedule = dependencies.scheduleFacts;
-  const jobs = dependencies.jobFacts;
-  const wake = dependencies.wakeFacts;
   if (
-    index >= dependencies.autonomyStore.capacity ||
-    !dependencies.entities.isIndexActive(index) ||
-    dependencies.entities.generationAt(index) !== request.residentGeneration ||
     schedule.sourceTick !== request.tick ||
-    jobs.sourceTick !== request.tick ||
-    wake.sourceTick !== request.tick ||
-    (schedule.residentGenerations[index] ?? 0) !== request.residentGeneration ||
-    (jobs.residentGenerations[index] ?? 0) !== request.residentGeneration ||
-    (wake.residentGenerations[index] ?? 0) !== request.residentGeneration
+    (schedule.residentGenerations[index] ?? 0) !== request.residentGeneration
   )
     return false;
   const scheduleCode = schedule.scheduleCodes[index] ?? 0xff;
   const windowOpen = schedule.windowOpenFlags[index] ?? 0xff;
   const weather = schedule.weatherExposureCodes[index] ?? 0xff;
   const outdoor = schedule.outdoorWorkAllowedFlags[index] ?? 0xff;
-  const wakeMask = wake.wakeMasks[index] ?? 0xff;
-  const active = jobs.activeFlags[index] ?? 0xff;
-  const safePoint = jobs.safePointFlags[index] ?? 0xff;
-  const interruption = jobs.interruptionPolicyCodes[index] ?? 0xff;
   if (
     scheduleCode >= AUTONOMY_SCHEDULE_CODE_COUNT ||
     !isBinary(windowOpen) ||
     weather > 1 ||
-    !isBinary(outdoor) ||
-    wakeMask > AUTONOMY_WAKE_MASK_ALL ||
-    !isBinary(active) ||
-    !isBinary(safePoint) ||
-    interruption > AUTONOMY_INTERRUPTION_POLICY_EMERGENCY_ONLY
+    !isBinary(outdoor)
   )
     return false;
   const permission = schedule.permissionIds[index] ?? AUTONOMY_REF_NONE;
@@ -2076,12 +2346,46 @@ function hasCurrentDecisionFacts(
     permission >= dependencies.workOffers.permissionCapacity
   )
     return false;
+  return true;
+}
+
+function hasCurrentJobFacts(
+  facts: AutonomyJobFactsLane,
+  request: AutonomyDecisionRequest,
+): boolean {
+  const index = request.residentIndex;
+  if (
+    facts.sourceTick !== request.tick ||
+    (facts.residentGenerations[index] ?? 0) !== request.residentGeneration
+  )
+    return false;
+  const active = facts.activeFlags[index] ?? 0xff;
+  const safePoint = facts.safePointFlags[index] ?? 0xff;
+  const interruption = facts.interruptionPolicyCodes[index] ?? 0xff;
+  if (
+    !isBinary(active) ||
+    !isBinary(safePoint) ||
+    interruption > AUTONOMY_INTERRUPTION_POLICY_EMERGENCY_ONLY
+  )
+    return false;
   if (active === 1) {
-    const jobId = jobs.jobIds[index] ?? AUTONOMY_REF_NONE;
-    const jobVersion = jobs.jobVersions[index] ?? 0;
+    const jobId = facts.jobIds[index] ?? AUTONOMY_REF_NONE;
+    const jobVersion = facts.jobVersions[index] ?? 0;
     if (jobId === AUTONOMY_REF_NONE || jobVersion === 0) return false;
   }
   return true;
+}
+
+function hasCurrentWakeFacts(
+  facts: AutonomyWakeFactsLane,
+  request: AutonomyDecisionRequest,
+): boolean {
+  const index = request.residentIndex;
+  return (
+    facts.sourceTick === request.tick &&
+    (facts.residentGenerations[index] ?? 0) === request.residentGeneration &&
+    (facts.wakeMasks[index] ?? 0xff) <= AUTONOMY_WAKE_MASK_ALL
+  );
 }
 
 function hasEmergencyNeed(values: Uint16Array, thresholds: Uint16Array): boolean {
@@ -2177,6 +2481,16 @@ function safeScoreAdd(left: number, right: number): number {
 function safeScoreMultiply(left: number, right: number): number {
   const result = left * right;
   return Number.isSafeInteger(result) ? result : Number.NaN;
+}
+
+function readRejectionPriority(reason: AutonomyReasonCode): number {
+  if (reason === AUTONOMY_REASON_NEED_SAFETY_EMERGENCY) return 6;
+  if (reason === AUTONOMY_REASON_CAPABILITY_TREATMENT_DENIED) return 5;
+  if (reason === AUTONOMY_REASON_CAPABILITY_MOVEMENT_DENIED) return 4;
+  if (reason === AUTONOMY_REASON_CAPABILITY_PERMISSION_DENIED) return 3;
+  if (reason === AUTONOMY_REASON_BLOCKED_SCHEDULE_CLOSED) return 2;
+  if (reason === AUTONOMY_REASON_IDLE_OFF_SHIFT) return 1;
+  return 0;
 }
 
 function selectRawAdmissionIndex(
@@ -2415,21 +2729,24 @@ function writePathRequest(
 }
 
 function hasCurrentPathBasis(
-  requested: AutonomyPathBasisLane,
+  requested: AutonomyPathRequest,
   output: PathSearchIntoOutput,
   live: AutonomyPathBasisLane,
 ): boolean {
   return (
-    output.mapVersion === requested.mapVersion &&
-    output.navigationVersion === requested.navigationVersion &&
-    output.regionVersion === requested.regionVersion &&
-    output.roomVersion === requested.roomVersion &&
-    output.regionGraphVersion === requested.regionGraphVersion &&
-    live.mapVersion === requested.mapVersion &&
-    live.navigationVersion === requested.navigationVersion &&
-    live.regionVersion === requested.regionVersion &&
-    live.roomVersion === requested.roomVersion &&
-    live.regionGraphVersion === requested.regionGraphVersion
+    output.requestSequence === requested.requestSequence &&
+    output.startCellIndex === requested.startCellIndex &&
+    output.goalCellIndex === requested.goalCellIndex &&
+    output.mapVersion === requested.basis.mapVersion &&
+    output.navigationVersion === requested.basis.navigationVersion &&
+    output.regionVersion === requested.basis.regionVersion &&
+    output.roomVersion === requested.basis.roomVersion &&
+    output.regionGraphVersion === requested.basis.regionGraphVersion &&
+    live.mapVersion === requested.basis.mapVersion &&
+    live.navigationVersion === requested.basis.navigationVersion &&
+    live.regionVersion === requested.basis.regionVersion &&
+    live.roomVersion === requested.basis.roomVersion &&
+    live.regionGraphVersion === requested.basis.regionGraphVersion
   );
 }
 
@@ -2632,49 +2949,3 @@ function resetVersionBasis(basis: AutonomyVersionBasis): void {
   basis.reservationVersion = 0;
   basis.jobVersion = 0;
 }
-
-/** Direct-module audit roots; intentionally not exported from the sim-core package root. */
-export const AUTONOMY_B2_HOT_FREE_AUDIT_TARGETS: readonly unknown[] = Object.freeze([
-  resetDecisionOutput,
-  resetDecisionScratch,
-  clearRetainedLanes,
-  isValidDecisionRequest,
-  hasCurrentDecisionFacts,
-  hasEmergencyNeed,
-  calculateSourceVisitQuota,
-  recordOwnerVisit,
-  decodeRestKind,
-  decodeNeedLane,
-  decodeScheduleWindow,
-  decodeWeatherExposure,
-  writeRestEnvironment,
-  isUint32,
-  isBinary,
-  isCellIndex,
-  safeScoreAdd,
-  safeScoreMultiply,
-  selectRawAdmissionIndex,
-  isIncomingBeforeRow,
-  writeAdmissionRow,
-  bubbleRawAdmissionUp,
-  reorderRetainedByCommonScore,
-  isRetainedRowBefore,
-  swapRetainedRows,
-  swapUint8,
-  swapUint16,
-  swapUint32,
-  swapFloat64,
-  calculateCommonScore,
-  manhattanDistance,
-  writePathRequest,
-  hasCurrentPathBasis,
-  copySelectedRoute,
-  publishSelectedCandidate,
-  decodeCandidateSource,
-  writeSelectedBasis,
-  writeSelectedFoodBasis,
-  writeSelectedRestBasis,
-  writeSelectedMedicalBasis,
-  writeSelectedOrdinaryBasis,
-  resetVersionBasis,
-]);

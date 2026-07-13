@@ -191,6 +191,48 @@ Implementation landed first at checkpoint `ca23f19` and the final A-E matrix is
 recorded in `coordination/reports/WM-0170.md`. B2 stops after its final pushed
 checkpoint for independent Canvas review; it does not run `taskctl complete`.
 
+## Canvas B2 repair plan and completed evidence
+
+Canvas returned `changes_requested` on checkpoint `1319643`. The repair stays
+inside B2 and the existing selection/test/report ownership; B3 mutation,
+`taskctl complete`, integration and merge remain prohibited. The seven findings
+are closed as follows:
+
+1. Exact-path freshness now binds the returned request sequence, start cell and
+   goal cell as well as the five authoritative basis fields and their live
+   values. Three independent mismatch regressions prove no route publication or
+   copy and one `stalePathCount` increment per rejected attempt.
+2. Active work eligibility no longer consults the two-new-decisions counter.
+   Only a new selection or interruption calls `consumeDecisionSlot`; after two
+   selections, an active non-interruptible third resident still returns KEEP
+   with usage two, while another new selection defers.
+3. A fixed scalar rejection accumulator retains the highest-priority causal
+   denial across sources: safety, treatment, movement, permission, closed work
+   mask and off-shift window. Food, Rest, Medical and Ordinary plus multi-denial
+   priority are tested; only a genuinely empty eligible index reports
+   `IDLE_NO_INDEXED_OFFER`.
+4. Numeric pre-gate classification separates Need, schedule/wake, capability,
+   candidate and Job staleness. Owner dirty/stale failures increment candidate
+   staleness. Budget-aware failure publishes the actual visited, ingress,
+   retained, scored, selected, path and node-expansion work already performed;
+   regressions fail during the second and third enabled sources.
+5. The former substring/source-count audit is removed. A TypeScript `Program`
+   and `TypeChecker` starts only at
+   `ResidentAutonomyCoordinator.decideInto`, follows resolved declaration
+   identity through private/free helpers and concrete owner methods, rejects
+   every unresolved or unexpected external call, and checks every reached body
+   with an AST allocation/string/higher-order visitor.
+6. The final fixed closure is 239 declarations: 91 selection declarations plus
+   148 owner declarations, zero unresolved calls, 13 receiver-exact dynamic
+   owner roots and exactly 34 approved native keys (29 typed-array `fill`, two
+   `Number`, three `Math`). The duplicate-free manifest digest is
+   `d02dea82-d7357816`; a fake `selectCandidatesInto` receiver is rejected.
+7. The 98-line/complexity-30 medical query and 77-line/complexity-12 path loop
+   are split, as are the four bounded admission loops, source eligibility and
+   Food/Rest/Ordinary option writers. The remaining explicit structural audit
+   is recorded function by function in the report with its fixed bound and why
+   further splitting would only fragment straight-line validation/comparison.
+
 ## Implementation stop lines
 
 - Stop and block if any required operation needs a sixth product/test file,
