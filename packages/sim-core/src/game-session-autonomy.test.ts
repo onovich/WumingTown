@@ -41,12 +41,26 @@ import {
 import { ResidentAutonomyStore } from "./game-session-autonomy-store";
 import { isLegalAutonomyTransition } from "./game-session-autonomy-store";
 import {
+  AUTONOMY_ORDINARY_MAX_BUCKETS,
+  AUTONOMY_REAL_SOURCE_COUNT,
+  AUTONOMY_SCHEDULE_CODE_COUNT,
+  ResidentAutonomyCoordinator,
   bindAutonomyClaimSlotInto,
+  createAutonomyDecisionPolicy,
   hasValidAutonomyClaimPlanAliases,
   resetAutonomyClaimPlanInto,
   type AutonomyClaimPlanIntoOutput,
   type AutonomyClaimSlotScratch,
   type AutonomyClaimSlotScratchTuple,
+  type AutonomyDecisionOutput,
+  type AutonomyDecisionPolicyInput,
+  type AutonomyDecisionScratch,
+  type AutonomyGlobalRetainedLanes,
+  type AutonomyCandidateLane,
+  type AutonomyJobFactsLane,
+  type AutonomyScheduleFactsLane,
+  type AutonomyWakeFactsLane,
+  type ResidentAutonomyCoordinatorDependencies,
 } from "./game-session-autonomy-selection";
 import {
   AUTONOMY_CANDIDATE_SOURCE_NONE,
@@ -59,7 +73,10 @@ import {
   AUTONOMY_INTERRUPTION_POLICY_IMMEDIATE,
   AUTONOMY_INTERRUPTION_POLICY_NONE,
   AUTONOMY_MAX_CLAIM_REFS,
+  AUTONOMY_MAX_EXACT_PATHS,
+  AUTONOMY_MAX_RETAINED_CANDIDATES,
   AUTONOMY_MAX_ROUTE_CELLS,
+  AUTONOMY_MAX_VISITED_CANDIDATES,
   AUTONOMY_REF_NONE,
   AUTONOMY_STATE_BLOCKED,
   AUTONOMY_STATE_CLAIMING,
@@ -93,7 +110,33 @@ import {
   type ResidentAutonomyReadOutput,
   type ResidentAutonomySnapshot,
 } from "./game-session-autonomy-types";
-import type { ReservationTransactionRequest } from "./reservation-ledger";
+import { createEntityRegistry } from "./entity-id";
+import { createM3FoodAvailabilityStore } from "./m3-food";
+import {
+  M3_ABILITY_MANIPULATION,
+  M3_ABILITY_STAMINA,
+  createM3AbilityCacheStore,
+  createM3HealthConditionStore,
+  type M3AbilityQueryIntoOutput,
+} from "./m3-health";
+import { createM3MedicalCareStore } from "./m3-medical-care";
+import { createNeedStore } from "./m3-needs";
+import { createRestCandidateIndex, createRestSleepStore } from "./m3-rest-sleep";
+import { createMapGrid } from "./map-grid";
+import { createGridPathfinder, type PathSearchIntoOutput } from "./pathing";
+import {
+  createReservationLedger,
+  type ReservationAcquireIntoOutput,
+  type ReservationAcquireIntoScratch,
+  type ReservationTransactionRequest,
+} from "./reservation-ledger";
+import {
+  createWorkOfferIndex,
+  type WorkOfferMutationIntoOutput,
+  type WorkOfferReadIntoOutput,
+  type WorkOfferSelectionIntoOutput,
+  type WorkOfferSelectionIntoScratch,
+} from "./work-offers";
 
 interface ReasonCase {
   readonly code: AutonomyReasonCode;
@@ -286,6 +329,77 @@ it("validates bounded numeric structured reason families without prose", () => {
   expect(reason).toBe(identity);
   expect(reason).toEqual(createReason());
   expect(isValidAutonomyReason(reason)).toBe(true);
+});
+
+it("validates and defensively copies the construction-only autonomy policy", () => {
+  const input = createDecisionPolicyInput();
+  const policy = createAutonomyDecisionPolicy(input);
+  const originalFoodDef = policy.foodDefIds[0];
+  const originalWorkType = policy.ordinaryWorkTypes[0];
+  const originalClass = policy.residentPolicyClassIds[0];
+
+  input.foodDefIds[0] = 999;
+  input.ordinaryWorkTypes[0] = 31;
+  input.residentPolicyClassIds[0] = 1;
+  expect(policy.foodDefIds[0]).toBe(originalFoodDef);
+  expect(policy.ordinaryWorkTypes[0]).toBe(originalWorkType);
+  expect(policy.residentPolicyClassIds[0]).toBe(originalClass);
+
+  const invalidCount = createDecisionPolicyInput();
+  invalidCount.ordinaryDescriptorCounts[0] = AUTONOMY_ORDINARY_MAX_BUCKETS + 1;
+  expect(() => createAutonomyDecisionPolicy(invalidCount)).toThrow(RangeError);
+
+  const invalidAliasLength = createDecisionPolicyInput();
+  Reflect.set(invalidAliasLength, "sourceEnabledFlags", new Uint8Array(1));
+  expect(() => createAutonomyDecisionPolicy(invalidAliasLength)).toThrow(RangeError);
+
+  const overflow = createDecisionPolicyInput();
+  overflow.sourceDistanceWeights[0] = 0xffff_ffff;
+  Reflect.set(overflow, "maximumManhattanDistance", Number.MAX_SAFE_INTEGER);
+  expect(() => createAutonomyDecisionPolicy(overflow)).toThrow(RangeError);
+});
+
+it("runs the read-only ordinary owner through raw Top-12, one full score per row, and exact path", () => {
+  const fixture = createCoordinatorFixture(12);
+  const scratch = createDecisionScratch();
+  const output = createDecisionOutput();
+  const autonomyBefore = fixture.dependencies.autonomyStore.createSnapshot();
+  const reservationBefore = fixture.dependencies.reservations.createSnapshot();
+  const retainedIdentity = scratch.globalRetained.candidateIds;
+  const routeIdentity = scratch.selectedRouteCells;
+
+  fixture.coordinator.decideInto(
+    {
+      tick: 0,
+      residentIndex: 0,
+      residentGeneration: 1,
+      originCellIndex: 0,
+      originRegionId: 0,
+      requestSequenceStart: 77,
+      maxNodeExpansions: 64,
+    },
+    scratch,
+    output,
+  );
+
+  expect(output).toMatchObject({
+    ok: true,
+    candidateSourceCode: AUTONOMY_CANDIDATE_SOURCE_ORDINARY,
+    visitedCount: 12,
+    retainedCount: 12,
+    scoredCount: 12,
+    selectedCount: 1,
+    exactPathCount: 1,
+  });
+  expect(scratch.globalRetained.scoreInvocationCounts.slice(0, 12)).toEqual(
+    new Uint8Array(12).fill(1),
+  );
+  expect(scratch.globalRetained.candidateIds).toBe(retainedIdentity);
+  expect(scratch.selectedRouteCells).toBe(routeIdentity);
+  expect(scratch.selectedRouteCells[output.routeCellCount]).toBe(AUTONOMY_REF_NONE);
+  expect(fixture.dependencies.autonomyStore.createSnapshot()).toEqual(autonomyBefore);
+  expect(fixture.dependencies.reservations.createSnapshot()).toEqual(reservationBefore);
+  expect(fixture.claimPlanReadCount.value).toBe(0);
 });
 
 it("registers and reads one idle resident through caller-owned outputs", () => {
@@ -1725,6 +1839,854 @@ function cloneSnapshot(snapshot: ResidentAutonomySnapshot): ResidentAutonomySnap
     ticks: snapshot.ticks.slice(),
     routeCells: snapshot.routeCells.slice(),
     claimIds: snapshot.claimIds.slice(),
+  };
+}
+
+interface MutableCounter {
+  value: number;
+}
+
+function createCoordinatorFixture(offerCount: number): {
+  readonly coordinator: ResidentAutonomyCoordinator;
+  readonly dependencies: ResidentAutonomyCoordinatorDependencies;
+  readonly claimPlanReadCount: MutableCounter;
+} {
+  const actorCapacity = 2;
+  const entities = createEntityRegistry({ capacity: 4 });
+  const allocation = entities.allocate();
+  if (!allocation.ok) throw new Error("test resident allocation failed");
+  const autonomyStore = new ResidentAutonomyStore(actorCapacity);
+  const storeOutput = createStoreOutput();
+  autonomyStore.registerResidentInto(0, allocation.entity.generation, 0, storeOutput);
+  expect(storeOutput.ok).toBe(true);
+  const needs = createNeedStore({ actorCapacity, updateIntervalTicks: 8 });
+  expect(
+    needs.registerActor({
+      actorId: 0,
+      hunger: 500,
+      rest: 500,
+      comfort: 500,
+      social: 500,
+      safety: 500,
+      sourceTick: 0,
+    }),
+  ).toMatchObject({ ok: true });
+  const healthConditions = createM3HealthConditionStore({
+    actorCapacity,
+    conditionCapacity: 4,
+    abilityDirtyCapacity: 8,
+  });
+  const abilities = createM3AbilityCacheStore({ actorCapacity, dirtyCapacity: 8 });
+  const map = createMapGrid({ width: 4, height: 4, chunkSize: 2 });
+  const reservations = createReservationLedger({ capacity: 32, entityCapacity: 4, cellCount: 16 });
+  const workOffers = createWorkOfferIndex({
+    capacity: 32,
+    workTypeCapacity: 2,
+    regionCapacity: 2,
+    defCapacity: 2,
+    urgencyBucketCount: 2,
+    permissionCapacity: 2,
+  });
+  const mutation = createOfferMutationOutputForAutonomy();
+  for (let offerId = 0; offerId < offerCount; offerId += 1) {
+    workOffers.registerOfferInto(
+      {
+        offerId,
+        workType: 0,
+        regionId: 0,
+        defId: 1,
+        urgencyBucket: 1,
+        permissionId: 0,
+        targetId: offerId + 10,
+        targetCellIndex: (offerId % 15) + 1,
+        scoreMilli: 10_000 - offerId,
+        ownerVersion: 1,
+      },
+      mutation,
+    );
+    expect(mutation.ok).toBe(true);
+  }
+  const generation = allocation.entity.generation;
+  const scheduleFacts = createScheduleFacts(actorCapacity, generation, 0);
+  const jobFacts = createJobFacts(actorCapacity, generation, 0);
+  const wakeFacts = createWakeFacts(actorCapacity, generation, 0);
+  const claimPlanReadCount: MutableCounter = { value: 0 };
+  const dependencies: ResidentAutonomyCoordinatorDependencies = {
+    autonomyStore,
+    needs,
+    scheduleFacts,
+    jobFacts,
+    wakeFacts,
+    food: createM3FoodAvailabilityStore(12, 2, 2),
+    restStore: createRestSleepStore(12, 2, 2),
+    restCandidates: createRestCandidateIndex({
+      fixtureCapacity: 12,
+      regionCapacity: 2,
+      permissionCapacity: 2,
+    }),
+    medical: createM3MedicalCareStore({
+      requestCapacity: 12,
+      actorCapacity,
+      regionCapacity: 2,
+      urgencyBucketCount: 2,
+      permissionCapacity: 2,
+    }),
+    workOffers,
+    map,
+    pathBasis: {
+      mapVersion: map.globalVersion,
+      navigationVersion: 1,
+      regionVersion: 1,
+      roomVersion: 1,
+      regionGraphVersion: 1,
+    },
+    pathfinder: createGridPathfinder(map.cellCount),
+    abilities,
+    healthConditions,
+    reservations,
+    entities,
+    claimPlans: {
+      readPlanInto(_source, _candidate, _target, _cell, output): void {
+        claimPlanReadCount.value += 1;
+        resetAutonomyClaimPlanInto(output);
+      },
+    },
+  };
+  const policy = createOrdinaryOnlyPolicyInput();
+  return {
+    coordinator: new ResidentAutonomyCoordinator(dependencies, policy),
+    dependencies,
+    claimPlanReadCount,
+  };
+}
+
+function createOrdinaryOnlyPolicyInput(): AutonomyDecisionPolicyInput {
+  const policy = createDecisionPolicyInput();
+  policy.sourceEnabledFlags.fill(0);
+  policy.ordinaryDescriptorCounts.fill(1);
+  policy.ordinaryWorkTypes.fill(0);
+  policy.ordinaryDefinitionIds.fill(1);
+  policy.ordinaryUrgencyBuckets.fill(1);
+  policy.ordinaryRequiredAbilityIds.fill(M3_ABILITY_MANIPULATION);
+  policy.ordinaryMinimumAbilityValues.fill(100);
+  for (let table = 0; table < policy.policyClassCount * AUTONOMY_SCHEDULE_CODE_COUNT; table += 1)
+    policy.sourceEnabledFlags[table * AUTONOMY_REAL_SOURCE_COUNT + 3] = 1;
+  return policy;
+}
+
+function createOfferMutationOutputForAutonomy(): WorkOfferMutationIntoOutput {
+  return {
+    ok: false,
+    reason: undefined,
+    offerId: 0,
+    ownerVersion: 0,
+    rowVersion: 0,
+    indexVersion: 0,
+  };
+}
+
+function createScheduleFacts(
+  capacity: number,
+  generation: number,
+  tick: number,
+): AutonomyScheduleFactsLane {
+  const residentGenerations = new Uint32Array(capacity);
+  const windowOpenFlags = new Uint8Array(capacity);
+  const allowedWorkTypeMasks = new Uint32Array(capacity);
+  const ownerVersions = new Uint32Array(capacity);
+  const mealWindowVersions = new Uint32Array(capacity);
+  const weatherVersions = new Uint32Array(capacity);
+  const weatherSourceVersions = new Uint32Array(capacity);
+  const outdoorWorkAllowedFlags = new Uint8Array(capacity);
+  residentGenerations[0] = generation;
+  windowOpenFlags[0] = 1;
+  allowedWorkTypeMasks[0] = 1;
+  ownerVersions[0] = 1;
+  mealWindowVersions[0] = 1;
+  weatherVersions[0] = 1;
+  weatherSourceVersions[0] = 1;
+  outdoorWorkAllowedFlags[0] = 1;
+  return {
+    sourceTick: tick,
+    residentGenerations,
+    scheduleCodes: new Uint8Array(capacity),
+    windowOpenFlags,
+    allowedWorkTypeMasks,
+    permissionIds: new Uint32Array(capacity),
+    ownerVersions,
+    mealWindowIds: new Uint32Array(capacity),
+    mealWindowVersions,
+    weatherExposureCodes: new Uint8Array(capacity),
+    weatherVersions,
+    weatherSourceVersions,
+    outdoorWorkAllowedFlags,
+  };
+}
+
+function createJobFacts(capacity: number, generation: number, tick: number): AutonomyJobFactsLane {
+  const residentGenerations = new Uint32Array(capacity);
+  residentGenerations[0] = generation;
+  return {
+    sourceTick: tick,
+    residentGenerations,
+    activeFlags: new Uint8Array(capacity),
+    jobIds: new Uint32Array(capacity).fill(AUTONOMY_REF_NONE),
+    jobVersions: new Uint32Array(capacity),
+    interruptionPolicyCodes: new Uint8Array(capacity),
+    safePointFlags: new Uint8Array(capacity),
+  };
+}
+
+function createWakeFacts(
+  capacity: number,
+  generation: number,
+  tick: number,
+): AutonomyWakeFactsLane {
+  const residentGenerations = new Uint32Array(capacity);
+  const wakeMasks = new Uint8Array(capacity);
+  const eventVersions = new Uint32Array(capacity);
+  residentGenerations[0] = generation;
+  wakeMasks[0] = 1;
+  eventVersions[0] = 1;
+  return { sourceTick: tick, residentGenerations, wakeMasks, eventVersions };
+}
+
+function createDecisionScratch(): AutonomyDecisionScratch {
+  return {
+    residentReadOutput: createReadOutput(),
+    globalBudget: {
+      visitedCap: AUTONOMY_MAX_VISITED_CANDIDATES,
+      retainedCap: AUTONOMY_MAX_RETAINED_CANDIDATES,
+      exactPathCap: AUTONOMY_MAX_EXACT_PATHS,
+      visitedCount: 0,
+      retainedCount: 0,
+      exactPathCount: 0,
+    },
+    globalRetained: createGlobalRetainedLanes(),
+    needValues: new Uint16Array(5),
+    needOwnerVersions: new Uint32Array(5),
+    candidates: {
+      food: createCandidateLane(AUTONOMY_CANDIDATE_SOURCE_FOOD, 0),
+      rest: createCandidateLane(AUTONOMY_CANDIDATE_SOURCE_REST, 1),
+      medical: createCandidateLane(AUTONOMY_CANDIDATE_SOURCE_MEDICAL, 2),
+      ordinary: createCandidateLane(AUTONOMY_CANDIDATE_SOURCE_ORDINARY, 3),
+      wait: createCandidateLane(AUTONOMY_CANDIDATE_SOURCE_WAIT, 4),
+    },
+    foodQuery: {
+      foodDefId: 0,
+      regionId: 0,
+      permissionId: 0,
+      mealWindowId: 0,
+      candidateCap: 1,
+      maxSelected: 1,
+    },
+    foodScratch: createFoodSelectionScratchForAutonomy(),
+    foodOutput: createFoodSelectionOutputForAutonomy(),
+    foodReadOutput: createFoodReadOutputForAutonomy(),
+    restQuery: {
+      regionId: 0,
+      restKind: "rest",
+      scheduleWindow: "dawn",
+      weatherExposure: "indoor",
+      permissionId: 0,
+      candidateCap: 1,
+      maxSelectedFixtures: 1,
+    },
+    restEnvironment: {
+      scheduleWindow: "dawn",
+      scheduleWindowVersion: 0,
+      weatherExposure: "indoor",
+      outdoorWorkAllowed: true,
+      weatherVersion: 0,
+      weatherSourceVersion: 0,
+    },
+    restScratch: createRestSelectionScratchForAutonomy(),
+    restOutput: createRestSelectionOutputForAutonomy(),
+    restReadOutput: createRestReadOutputForAutonomy(),
+    medicalOptions: {
+      caregiverId: 0,
+      regionId: 0,
+      urgencyBucket: 0,
+      permissionId: 0,
+      candidateCap: 1,
+      maxSelectedRequests: 1,
+    },
+    medicalScratch: createMedicalSelectionScratchForAutonomy(),
+    medicalOutput: createMedicalSelectionOutputForAutonomy(),
+    medicalPatientReadOutput: createMedicalPatientOutputForAutonomy(),
+    medicalCaregiverReadOutput: createMedicalCaregiverOutputForAutonomy(),
+    ordinaryOptions: {
+      pawnId: 0,
+      workType: 0,
+      regionId: 0,
+      defId: 0,
+      urgencyBucket: 0,
+      permissionId: 0,
+      candidateCap: 1,
+      maxSelectedOffers: 1,
+    },
+    ordinaryScratch: createOfferSelectionScratchForAutonomy(),
+    ordinaryOutput: createOfferSelectionOutputForAutonomy(),
+    ordinaryReadOutput: createOfferReadOutputForAutonomy(),
+    pathRequest: {
+      requestSequence: 0,
+      issuedTick: 0,
+      startCellIndex: 0,
+      goalCellIndex: 0,
+      basis: {
+        mapVersion: 0,
+        navigationVersion: 0,
+        regionVersion: 0,
+        roomVersion: 0,
+        regionGraphVersion: 0,
+      },
+      maxNodeExpansions: 1,
+    },
+    pathOutput: createPathOutputForAutonomy(),
+    pathRouteCells: new Uint32Array(AUTONOMY_MAX_ROUTE_CELLS),
+    selectedRouteCells: new Uint32Array(AUTONOMY_MAX_ROUTE_CELLS),
+    abilityOutput: createAbilityOutputForAutonomy(),
+    selectedBasis: createBasis(),
+    claimPlanOutput: createClaimPlanOutput(),
+    reservationScratch: createReservationScratchForAutonomy(),
+    reservationOutput: createReservationOutputForAutonomy(),
+    reservationClaimIds: new Uint32Array(AUTONOMY_MAX_CLAIM_REFS),
+    transitionInput: createClaimingInput(),
+    transitionValidationOutput: createStoreOutput(),
+    transitionOutput: createStoreOutput(),
+  };
+}
+
+function createGlobalRetainedLanes(): AutonomyGlobalRetainedLanes {
+  const cap = AUTONOMY_MAX_RETAINED_CANDIDATES;
+  return {
+    count: 0,
+    sourceCodes: new Uint8Array(cap),
+    slotCodes: new Uint8Array(cap),
+    sourceScratchRowIndexes: new Uint8Array(cap),
+    policyDescriptorIndexes: new Uint8Array(cap),
+    needLaneCodes: new Uint8Array(cap),
+    candidateIds: new Uint32Array(cap),
+    targetIds: new Uint32Array(cap),
+    targetCellIndexes: new Uint32Array(cap),
+    rawScores: new Float64Array(cap),
+    cheapAdmissionKeys: new Float64Array(cap),
+    commonScores: new Float64Array(cap),
+    scoreInvocationCounts: new Uint8Array(cap),
+    needValues: new Uint16Array(cap),
+    needOwnerVersions: new Uint32Array(cap),
+    scheduleCodes: new Uint8Array(cap),
+    scheduleVersions: new Uint32Array(cap),
+    abilityIds: new Uint8Array(cap),
+    abilityMinimumValues: new Uint16Array(cap),
+    abilityValues: new Uint16Array(cap),
+    abilityConditionVersions: new Uint32Array(cap),
+    abilityBaseVersions: new Uint32Array(cap),
+  };
+}
+
+function createCandidateLane(
+  sourceCode: 1 | 2 | 3 | 4 | 5,
+  slotCode: number,
+): AutonomyCandidateLane {
+  return {
+    sourceCode,
+    slotCode,
+    candidateId: AUTONOMY_REF_NONE,
+    scoreMilli: 0,
+    targetId: AUTONOMY_REF_NONE,
+    targetCellIndex: AUTONOMY_REF_NONE,
+    basis: createBasis(),
+  };
+}
+
+function createFoodSelectionScratchForAutonomy(): AutonomyDecisionScratch["foodScratch"] {
+  const cap = AUTONOMY_MAX_RETAINED_CANDIDATES;
+  return {
+    stackIds: new Uint32Array(cap),
+    foodDefIds: new Uint32Array(cap),
+    regionIds: new Uint32Array(cap),
+    storageSlotIds: new Uint32Array(cap),
+    targetCellIndexes: new Uint32Array(cap),
+    interactionSpotIds: new Uint32Array(cap),
+    scoreMillis: new Uint32Array(cap),
+    permissionIds: new Uint32Array(cap),
+    mealWindowIds: new Uint32Array(cap),
+    mealWindowVersions: new Uint32Array(cap),
+    safeFlags: new Uint8Array(cap),
+    permissionAllowedFlags: new Uint8Array(cap),
+    scheduleAllowedFlags: new Uint8Array(cap),
+    availableAmounts: new Uint32Array(cap),
+    itemStoreVersions: new Uint32Array(cap),
+    linkedCandidateFlags: new Uint8Array(cap),
+  };
+}
+
+function createFoodSelectionOutputForAutonomy(): AutonomyDecisionScratch["foodOutput"] {
+  return {
+    ok: false,
+    reason: undefined,
+    queryFoodDefId: 0,
+    queryRegionId: 0,
+    queryPermissionId: 0,
+    queryMealWindowId: 0,
+    candidateCap: 0,
+    maxSelected: 0,
+    bucketCandidateCount: 0,
+    visitedCount: 0,
+    selectedCount: 0,
+    candidateCapHit: false,
+    selectedCapHit: false,
+    selectedStackId: AUTONOMY_REF_NONE,
+    selectedFoodDefId: 0,
+    selectedRegionId: 0,
+    selectedStorageSlotId: 0,
+    selectedTargetCellIndex: AUTONOMY_REF_NONE,
+    selectedInteractionSpotId: 0,
+    selectedScoreMilli: 0,
+    selectedPermissionId: 0,
+    selectedMealWindowId: 0,
+    selectedMealWindowVersion: 0,
+    selectedSafe: false,
+    selectedPermissionAllowed: false,
+    selectedScheduleAllowed: false,
+    selectedAvailableAmount: 0,
+    sourceItemVersion: 0,
+    selectedLinkedCandidate: false,
+    foodAvailabilityVersion: 0,
+    dirtyBacklog: 0,
+  };
+}
+
+function createFoodReadOutputForAutonomy(): AutonomyDecisionScratch["foodReadOutput"] {
+  return {
+    ok: false,
+    reason: undefined,
+    stackId: AUTONOMY_REF_NONE,
+    foodDefId: 0,
+    regionId: 0,
+    storageSlotId: 0,
+    targetCellIndex: AUTONOMY_REF_NONE,
+    interactionSpotId: 0,
+    scoreMilli: 0,
+    permissionId: 0,
+    mealWindowId: 0,
+    mealWindowVersion: 0,
+    safe: false,
+    permissionAllowed: false,
+    scheduleAllowed: false,
+    availableAmount: 0,
+    itemStoreVersion: 0,
+    foodAvailabilityVersion: 0,
+    active: false,
+    linkedCandidate: false,
+    dirtyBacklog: 0,
+  };
+}
+
+function createRestReadOutputForAutonomy(): AutonomyDecisionScratch["restReadOutput"] {
+  return {
+    ok: false,
+    reason: undefined,
+    fixtureId: AUTONOMY_REF_NONE,
+    active: false,
+    entityIndex: AUTONOMY_REF_NONE,
+    entityGeneration: AUTONOMY_REF_NONE,
+    kind: undefined,
+    restKind: undefined,
+    regionId: 0,
+    targetCellIndex: AUTONOMY_REF_NONE,
+    interactionSpotId: 0,
+    scheduleWindow: undefined,
+    weatherExposure: undefined,
+    permissionId: 0,
+    recoveryPerTickQ16: 0,
+    baseScoreMilli: 0,
+    ownerVersion: 0,
+    storeVersion: 0,
+  };
+}
+
+function createRestSelectionScratchForAutonomy(): AutonomyDecisionScratch["restScratch"] {
+  const cap = AUTONOMY_MAX_RETAINED_CANDIDATES;
+  return {
+    fixtureReadOutput: createRestReadOutputForAutonomy(),
+    fixtureIds: new Uint32Array(cap),
+    entityIndexes: new Uint32Array(cap),
+    entityGenerations: new Uint32Array(cap),
+    fixtureKindCodes: new Uint8Array(cap),
+    restKindCodes: new Uint8Array(cap),
+    regionIds: new Uint32Array(cap),
+    targetCellIndexes: new Uint32Array(cap),
+    interactionSpotIds: new Uint32Array(cap),
+    scheduleCodes: new Uint8Array(cap),
+    weatherCodes: new Uint8Array(cap),
+    permissionIds: new Uint32Array(cap),
+    recoveryPerTickQ16s: new Uint32Array(cap),
+    scoreMillis: new Uint32Array(cap),
+    cachedFixtureVersions: new Uint32Array(cap),
+    currentFixtureOwnerVersions: new Uint32Array(cap),
+    linkedCandidateFlags: new Uint8Array(cap),
+  };
+}
+
+function createRestSelectionOutputForAutonomy(): AutonomyDecisionScratch["restOutput"] {
+  return {
+    ok: false,
+    reason: undefined,
+    queryRegionId: 0,
+    queryRestKind: undefined,
+    queryScheduleWindow: undefined,
+    queryWeatherExposure: undefined,
+    queryPermissionId: 0,
+    candidateCap: 0,
+    maxSelectedFixtures: 0,
+    environmentScheduleWindow: undefined,
+    scheduleWindowVersion: 0,
+    environmentWeatherExposure: undefined,
+    outdoorWorkAllowed: false,
+    weatherVersion: 0,
+    weatherSourceVersion: 0,
+    candidateTotal: 0,
+    visitedCount: 0,
+    selectedCount: 0,
+    candidateCapHit: false,
+    selectedCapHit: false,
+    selectedFixtureId: AUTONOMY_REF_NONE,
+    selectedEntityIndex: AUTONOMY_REF_NONE,
+    selectedEntityGeneration: AUTONOMY_REF_NONE,
+    selectedFixtureKind: undefined,
+    selectedRestKind: undefined,
+    selectedRegionId: 0,
+    selectedTargetCellIndex: AUTONOMY_REF_NONE,
+    selectedInteractionSpotId: 0,
+    selectedScheduleWindow: undefined,
+    selectedWeatherExposure: undefined,
+    selectedPermissionId: 0,
+    selectedRecoveryPerTickQ16: 0,
+    selectedScoreMilli: 0,
+    selectedCachedFixtureVersion: 0,
+    selectedCurrentFixtureOwnerVersion: 0,
+    selectedLinkedCandidate: false,
+    restStoreVersion: 0,
+    sourceVersion: 0,
+    indexVersion: 0,
+    dirtyBacklog: 0,
+  };
+}
+
+function createMedicalPatientOutputForAutonomy(): AutonomyDecisionScratch["medicalPatientReadOutput"] {
+  return {
+    ok: false,
+    reason: undefined,
+    requestId: AUTONOMY_REF_NONE,
+    active: false,
+    patientId: AUTONOMY_REF_NONE,
+    conditionId: AUTONOMY_REF_NONE,
+    regionId: 0,
+    urgencyBucket: 0,
+    permissionId: 0,
+    treatmentDefId: 0,
+    stockDefId: 0,
+    stockAmount: 0,
+    targetCellIndex: AUTONOMY_REF_NONE,
+    scoreMilli: 0,
+    conditionVersion: 0,
+    actorConditionVersion: 0,
+    healthStoreVersion: 0,
+    severity: 0,
+    clueRef: 0,
+    counterevidenceRef: 0,
+    medicalStoreVersion: 0,
+  };
+}
+
+function createMedicalCaregiverOutputForAutonomy(): AutonomyDecisionScratch["medicalCaregiverReadOutput"] {
+  return {
+    ok: false,
+    reason: undefined,
+    caregiverId: AUTONOMY_REF_NONE,
+    valid: false,
+    regionId: 0,
+    permissionId: 0,
+    ability: 0,
+    minimumValue: 0,
+    allowed: false,
+    abilityValue: 0,
+    actorConditionVersion: 0,
+    baseAbilityVersion: 0,
+    medicalStoreVersion: 0,
+  };
+}
+
+function createMedicalSelectionScratchForAutonomy(): AutonomyDecisionScratch["medicalScratch"] {
+  const cap = AUTONOMY_MAX_RETAINED_CANDIDATES;
+  return {
+    patientReadOutput: createMedicalPatientOutputForAutonomy(),
+    caregiverReadOutput: createMedicalCaregiverOutputForAutonomy(),
+    abilityQueryOutput: createAbilityOutputForAutonomy(),
+    requestIds: new Uint32Array(cap),
+    patientIds: new Uint32Array(cap),
+    conditionIds: new Uint32Array(cap),
+    regionIds: new Uint32Array(cap),
+    urgencyBuckets: new Uint32Array(cap),
+    permissionIds: new Uint32Array(cap),
+    treatmentDefIds: new Uint32Array(cap),
+    stockDefIds: new Uint32Array(cap),
+    stockAmounts: new Uint32Array(cap),
+    targetCellIndexes: new Uint32Array(cap),
+    scoresMilli: new Int32Array(cap),
+    conditionVersions: new Uint32Array(cap),
+    actorConditionVersions: new Uint32Array(cap),
+    healthStoreVersions: new Uint32Array(cap),
+    severities: new Uint16Array(cap),
+    clueRefs: new Uint32Array(cap),
+    counterevidenceRefs: new Uint32Array(cap),
+  };
+}
+
+function createMedicalSelectionOutputForAutonomy(): AutonomyDecisionScratch["medicalOutput"] {
+  return {
+    ok: false,
+    reason: undefined,
+    queryCaregiverId: 0,
+    queryRegionId: 0,
+    queryUrgencyBucket: 0,
+    queryPermissionId: 0,
+    candidateCap: 0,
+    maxSelectedRequests: 0,
+    bucketCandidateCount: 0,
+    visitedCount: 0,
+    scoredCount: 0,
+    selectedCount: 0,
+    candidateCapHit: false,
+    selectedCapHit: false,
+    rejectedByCandidateCap: 0,
+    rejectedByPermission: 0,
+    rejectedByAbility: 0,
+    rejectedByCondition: 0,
+    rejectedByStaleBasis: 0,
+    selectedRequestId: AUTONOMY_REF_NONE,
+    selectedPatientId: AUTONOMY_REF_NONE,
+    selectedConditionId: AUTONOMY_REF_NONE,
+    selectedRegionId: 0,
+    selectedUrgencyBucket: 0,
+    selectedPermissionId: 0,
+    selectedTreatmentDefId: 0,
+    selectedStockDefId: 0,
+    selectedStockAmount: 0,
+    selectedTargetCellIndex: AUTONOMY_REF_NONE,
+    selectedScoreMilli: 0,
+    selectedConditionVersion: 0,
+    selectedActorConditionVersion: 0,
+    selectedHealthStoreVersion: 0,
+    selectedSeverity: 0,
+    selectedClueRef: 0,
+    selectedCounterevidenceRef: 0,
+    selectedCaregiverId: AUTONOMY_REF_NONE,
+    caregiverRegionId: 0,
+    caregiverPermissionId: 0,
+    caregiverAbility: 0,
+    caregiverMinimumValue: 0,
+    caregiverAbilityValue: 0,
+    caregiverActorConditionVersion: 0,
+    caregiverBaseAbilityVersion: 0,
+    caregiverValid: false,
+    caregiverAllowed: false,
+    medicalStoreVersion: 0,
+    healthStoreVersion: 0,
+  };
+}
+
+function createOfferSelectionScratchForAutonomy(): WorkOfferSelectionIntoScratch {
+  const cap = AUTONOMY_MAX_RETAINED_CANDIDATES;
+  return {
+    candidateOfferIds: new Uint32Array(cap),
+    selectedOfferIds: new Uint32Array(cap),
+    selectedScoresMilli: new Int32Array(cap),
+    selectedOwnerVersions: new Uint32Array(cap),
+    selectedRowVersions: new Uint32Array(cap),
+    selectedTargetIds: new Uint32Array(cap),
+    selectedTargetCellIndexes: new Uint32Array(cap),
+  };
+}
+
+function createOfferSelectionOutputForAutonomy(): WorkOfferSelectionIntoOutput {
+  return {
+    ok: false,
+    reason: undefined,
+    selectedCount: 0,
+    bucketCandidateCount: 0,
+    visitedCount: 0,
+    scoredCount: 0,
+    rejectedByCandidateCap: 0,
+    rejectedBySelectedCap: 0,
+    selectedOfferId: AUTONOMY_REF_NONE,
+    selectedOwnerVersion: 0,
+    selectedRowVersion: 0,
+    selectedIndexVersion: 0,
+    selectedTargetId: AUTONOMY_REF_NONE,
+    selectedTargetCellIndex: AUTONOMY_REF_NONE,
+    selectedScoreMilli: 0,
+  };
+}
+
+function createOfferReadOutputForAutonomy(): WorkOfferReadIntoOutput {
+  return {
+    ok: false,
+    reason: undefined,
+    offerId: AUTONOMY_REF_NONE,
+    ownerVersion: 0,
+    rowVersion: 0,
+    indexVersion: 0,
+    workType: 0,
+    regionId: 0,
+    defId: 0,
+    urgencyBucket: 0,
+    permissionId: 0,
+    targetId: AUTONOMY_REF_NONE,
+    targetCellIndex: AUTONOMY_REF_NONE,
+    scoreMilli: 0,
+  };
+}
+
+function createPathOutputForAutonomy(): PathSearchIntoOutput {
+  return {
+    ok: false,
+    reason: undefined,
+    requestSequence: 0,
+    startCellIndex: 0,
+    goalCellIndex: 0,
+    mapVersion: 0,
+    navigationVersion: 0,
+    regionVersion: 0,
+    roomVersion: 0,
+    regionGraphVersion: 0,
+    pathCellCount: 0,
+    pathCostMilli: 0,
+    nodeExpansions: 0,
+  };
+}
+
+function createAbilityOutputForAutonomy(): M3AbilityQueryIntoOutput {
+  return {
+    ok: false,
+    reason: "ability.actor_out_of_range",
+    actorId: 0,
+    ability: M3_ABILITY_STAMINA,
+    value: 0,
+    threshold: 0,
+    baseValue: 0,
+    conditionPenalty: 0,
+    actorConditionVersion: 0,
+    baseAbilityVersion: 0,
+    visitedConditionCount: 0,
+  };
+}
+
+function createReservationScratchForAutonomy(): ReservationAcquireIntoScratch {
+  return {
+    channelCodes: new Uint8Array(AUTONOMY_MAX_CLAIM_REFS),
+    keys: new Float64Array(AUTONOMY_MAX_CLAIM_REFS),
+    amounts: new Uint32Array(AUTONOMY_MAX_CLAIM_REFS),
+    limits: new Uint32Array(AUTONOMY_MAX_CLAIM_REFS),
+    targetIndexes: new Uint32Array(AUTONOMY_MAX_CLAIM_REFS),
+    targetGenerations: new Uint32Array(AUTONOMY_MAX_CLAIM_REFS),
+    hasTargets: new Uint8Array(AUTONOMY_MAX_CLAIM_REFS),
+    slots: new Uint32Array(AUTONOMY_MAX_CLAIM_REFS),
+  };
+}
+
+function createReservationOutputForAutonomy(): ReservationAcquireIntoOutput {
+  return {
+    ok: false,
+    reason: undefined,
+    claimIndex: AUTONOMY_REF_NONE,
+    conflictingClaimId: AUTONOMY_REF_NONE,
+    claimCount: 0,
+    version: 0,
+    activeCount: 0,
+  };
+}
+
+function createDecisionOutput(): AutonomyDecisionOutput {
+  return {
+    ok: false,
+    decisionKind: 0,
+    state: AUTONOMY_STATE_IDLE,
+    reasonCode: AUTONOMY_REASON_NONE,
+    residentIndex: AUTONOMY_REF_NONE,
+    residentGeneration: AUTONOMY_REF_NONE,
+    candidateSourceCode: AUTONOMY_CANDIDATE_SOURCE_NONE,
+    candidateId: AUTONOMY_REF_NONE,
+    jobId: AUTONOMY_REF_NONE,
+    targetId: AUTONOMY_REF_NONE,
+    targetCellIndex: AUTONOMY_REF_NONE,
+    routeCellCount: 0,
+    claimCount: 0,
+    rowVersion: 0,
+    storeVersion: 0,
+    reservationVersion: 0,
+    visitedCount: 0,
+    scoredCount: 0,
+    retainedCount: 0,
+    selectedCount: 0,
+    approximationDropCount: 0,
+    exactPathCount: 0,
+    nodeExpansions: 0,
+  };
+}
+
+function createDecisionPolicyInput(): AutonomyDecisionPolicyInput {
+  const actorCapacity = 2;
+  const policyClassCount = 2;
+  const tableLength = policyClassCount * AUTONOMY_SCHEDULE_CODE_COUNT;
+  const ordinaryLength = tableLength * AUTONOMY_ORDINARY_MAX_BUCKETS;
+  const sourceEnabledFlags = new Uint8Array(tableLength * AUTONOMY_REAL_SOURCE_COUNT);
+  const ordinaryDescriptorCounts = new Uint8Array(tableLength);
+  const ordinaryWorkTypes = new Uint8Array(ordinaryLength);
+  const ordinaryRequiredAbilityIds = new Uint8Array(ordinaryLength);
+  sourceEnabledFlags.fill(1);
+  ordinaryDescriptorCounts.fill(2);
+  for (let index = 0; index < ordinaryLength; index += 1) {
+    ordinaryWorkTypes[index] = index % 2;
+    ordinaryRequiredAbilityIds[index] = 2;
+  }
+  return {
+    actorCapacity,
+    policyClassCount,
+    residentPolicyClassIds: new Uint8Array([0, 1]),
+    emergencyNeedMaximumValues: new Uint16Array([100, 100, 0, 0, 100]),
+    sourceEnabledFlags,
+    sourceNeedLaneCodes: new Uint8Array([0, 1, 4, 2]),
+    sourceNeedMaximumValues: new Uint16Array([900, 900, 900, 1_000]),
+    sourceAbilityIds: new Uint8Array([2, 5, 4, 2]),
+    sourceMinimumAbilityValues: new Uint16Array([100, 100, 100, 100]),
+    sourceRequiresOpenWindowFlags: new Uint8Array([1, 1, 0, 1]),
+    sourceHardPriorities: new Int32Array([40, 30, 50, 20]),
+    sourceBaseScores: new Int32Array([400, 300, 500, 200]),
+    sourceNeedWeights: new Int32Array([3, 3, 4, 1]),
+    sourceScheduleBonuses: new Int32Array([20, 20, 0, 20]),
+    sourceAbilityWeights: new Int32Array([1, 1, 1, 1]),
+    sourceDistanceWeights: new Uint32Array([2, 2, 2, 2]),
+    sourceContinuityBonuses: new Uint32Array([10, 10, 10, 10]),
+    sourceRetryPenalties: new Uint32Array([20, 20, 20, 20]),
+    minimumConsciousness: 100,
+    minimumMovement: 100,
+    safetyEmergencyMaximumValue: 100,
+    foodDefIds: new Uint32Array(tableLength).fill(1),
+    restKindCodes: new Uint8Array(tableLength),
+    restWeatherExposureCodes: new Uint8Array(tableLength),
+    medicalUrgencyBuckets: new Uint32Array(tableLength).fill(1),
+    ordinaryDescriptorCounts,
+    ordinaryWorkTypes,
+    ordinaryDefinitionIds: new Uint32Array(ordinaryLength).fill(1),
+    ordinaryUrgencyBuckets: new Uint32Array(ordinaryLength).fill(1),
+    ordinaryRequiredAbilityIds,
+    ordinaryMinimumAbilityValues: new Uint16Array(ordinaryLength).fill(100),
+    ordinaryBaseScoreAdjustments: new Int32Array(ordinaryLength),
+    ordinaryDecisionCadenceTicks: 30,
+    maximumManhattanDistance: 63,
   };
 }
 
