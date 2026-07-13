@@ -2,7 +2,7 @@
   "id": "WM-0183",
   "title": "Claim-ready owners and reusable JobCore driver adoption",
   "summary": "Add exact claim facts, owner-versioned prepared mutation surfaces, reusable JobCore token custody, and generation-aware adoption rollback and terminal closure.",
-  "state": "ready",
+  "state": "in_progress",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": ["WM-0182", "WM-0181"],
@@ -62,7 +62,7 @@
   ],
   "branch": "task/WM-0183-claim-ready-owners-and-reusable-jobcore-driver-a",
   "createdAt": "2026-07-13T08:08:27.732Z",
-  "updatedAt": "2026-07-13T09:24:30.715Z",
+  "updatedAt": "2026-07-13T09:25:03.029Z",
   "history": [
     {
       "at": "2026-07-13T08:08:27.732Z",
@@ -81,6 +81,12 @@
       "actor": "project-director",
       "action": "promote-ready",
       "details": "all dependencies done"
+    },
+    {
+      "at": "2026-07-13T09:25:03.029Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Tally WM-0183"
     }
   ],
   "milestone": "Post-M8",
@@ -165,5 +171,8 @@
   ],
   "executionLane": "simulation-engineer; Spark is prohibited because this task changes public authoritative owner mutation, JobCore token, historical driver, snapshot/hash/restore and once-only effect boundaries",
   "singleWriterRule": "WM-0183 begins only after WM-0182 is independently verified, integrated and done. Until then WM-0182 is the sole ready repair writer and WM-0170 remains blocked with its approved B2 checkpoint and original owner.",
-  "integrationOrder": "Second prerequisite. Promote and claim only after WM-0182 is done; independent reviewer verification, project-director integration and done are mandatory before WM-0170 may resume."
+  "integrationOrder": "Second prerequisite. Promote and claim only after WM-0182 is done; independent reviewer verification, project-director integration and done are mandatory before WM-0170 may resume.",
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Tally WM-0183",
+  "blocker": null
 }
