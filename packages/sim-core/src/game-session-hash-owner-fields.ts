@@ -157,6 +157,8 @@ function appendJobAndReservationRecords(
     fields.push({ name: `${recordPrefix}.ownerIndex`, value: record.owner.index });
     fields.push({ name: `${recordPrefix}.ownerGeneration`, value: record.owner.generation });
     fields.push({ name: `${recordPrefix}.jobId`, value: record.jobId });
+    fields.push({ name: `${recordPrefix}.jobGeneration`, value: record.jobGeneration });
+    fields.push({ name: `${recordPrefix}.allocationEpoch`, value: record.allocationEpoch });
     fields.push({ name: `${recordPrefix}.amount`, value: record.amount });
     fields.push({ name: `${recordPrefix}.createdTick`, value: record.createdTick });
     fields.push({ name: `${recordPrefix}.leaseExpiryTick`, value: record.leaseExpiryTick });

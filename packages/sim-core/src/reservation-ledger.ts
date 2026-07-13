@@ -2,7 +2,7 @@ import { assertValidCapacity, type EntityId, type EntityRegistry } from "./entit
 import type { LocationLifecycleHooks } from "./location-store";
 import { isSafeTick, type Tick } from "./time";
 
-export const RESERVATION_LEDGER_SNAPSHOT_VERSION = 1;
+export const RESERVATION_LEDGER_SNAPSHOT_VERSION = 2;
 
 export const RESERVATION_ENTITY = 1;
 export const RESERVATION_CELL = 2;
@@ -52,8 +52,16 @@ export type ReservationReason =
   | "reservation_duplicate_target"
   | "reservation_scratch_capacity_exhausted"
   | "reservation_claim_output_too_small"
+  | "reservation_claim_count_invalid"
+  | "reservation_claim_duplicate"
   | "reservation_claim_id_invalid"
   | "reservation_claim_not_active"
+  | "reservation_claim_owner_mismatch"
+  | "reservation_claim_job_mismatch"
+  | "reservation_claim_job_generation_mismatch"
+  | "reservation_claim_epoch_mismatch"
+  | "reservation_ledger_version_mismatch"
+  | "reservation_ledger_version_exhausted"
   | "reservation_snapshot_version_unsupported";
 
 export type ReservationAcquireResult =
@@ -94,6 +102,7 @@ export interface ReservationLedgerOptions {
 export interface ReservationTransactionRequest {
   readonly owner: EntityId;
   readonly jobId: number;
+  readonly jobGeneration?: number;
   readonly createdTick: Tick;
   readonly leaseExpiryTick: Tick;
   readonly claims: readonly ReservationClaimRequest[];
@@ -118,6 +127,40 @@ export interface ReservationAcquireIntoOutput {
   claimCount: number;
   version: number;
   activeCount: number;
+}
+
+export interface ReservationReleaseIntoOutput {
+  ok: boolean;
+  reason: ReservationReason | undefined;
+  claimIndex: number;
+  claimId: number;
+  releasedCount: number;
+  version: number;
+  activeCount: number;
+}
+
+export interface ReservationClaimsIntoOutput {
+  ok: boolean;
+  reason: ReservationReason | undefined;
+  claimIndex: number;
+  claimId: number;
+  claimCount: number;
+  version: number;
+  activeCount: number;
+  readonly channelCodes: Uint8Array;
+  readonly ownerIndexes: Uint32Array;
+  readonly ownerGenerations: Uint32Array;
+  readonly jobIds: Uint32Array;
+  readonly jobGenerations: Uint32Array;
+  readonly hasTargetFlags: Uint8Array;
+  readonly targetIndexes: Uint32Array;
+  readonly targetGenerations: Uint32Array;
+  readonly cellIndexes: Uint32Array;
+  readonly slotIds: Uint32Array;
+  readonly amounts: Uint32Array;
+  readonly allocationEpochs: Uint32Array;
+  readonly createdTicks: Float64Array;
+  readonly leaseExpiryTicks: Float64Array;
 }
 
 export type ReservationClaimRequest =
@@ -153,6 +196,8 @@ export interface ReservationRecordSnapshot {
   readonly channel: ReservationChannel;
   readonly owner: EntityId;
   readonly jobId: number;
+  readonly jobGeneration: number;
+  readonly allocationEpoch: number;
   readonly amount: number;
   readonly createdTick: Tick;
   readonly leaseExpiryTick: Tick;
@@ -193,6 +238,17 @@ export interface ReservationLedgerMetrics {
   readonly interactionReservationCount: number;
   readonly capacityReservationCount: number;
 }
+
+interface ReservationClaimValidationOutput {
+  ok: boolean;
+  reason: ReservationReason | undefined;
+  claimIndex: number;
+  claimId: number;
+}
+
+const RESERVATION_EXACT_CLAIM_CAPACITY = 8;
+const RESERVATION_LEDGER_LAST_ACQUIRE_VERSION = 0xffff_fffd;
+const RESERVATION_LEDGER_MAX_VERSION = 0xffff_ffff;
 
 type PreparedClaim =
   | {
@@ -264,6 +320,8 @@ export class ReservationLedger implements LocationLifecycleHooks {
   private readonly targetGeneration: Uint32Array;
   private readonly hasTarget: Uint8Array;
   private readonly jobId: Uint32Array;
+  private readonly jobGeneration: Uint32Array;
+  private readonly allocationEpoch: Uint32Array;
   private readonly amount: Uint32Array;
   private readonly createdTick: Float64Array;
   private readonly leaseExpiryTick: Float64Array;
@@ -317,6 +375,8 @@ export class ReservationLedger implements LocationLifecycleHooks {
     this.targetGeneration = new Uint32Array(options.capacity);
     this.hasTarget = new Uint8Array(options.capacity);
     this.jobId = new Uint32Array(options.capacity);
+    this.jobGeneration = new Uint32Array(options.capacity);
+    this.allocationEpoch = new Uint32Array(options.capacity);
     this.amount = new Uint32Array(options.capacity);
     this.createdTick = new Float64Array(options.capacity);
     this.leaseExpiryTick = new Float64Array(options.capacity);
@@ -349,6 +409,9 @@ export class ReservationLedger implements LocationLifecycleHooks {
     request: ReservationTransactionRequest,
     registry: EntityRegistry,
   ): ReservationAcquireResult {
+    if (this.ledgerVersion > RESERVATION_LEDGER_LAST_ACQUIRE_VERSION) {
+      return { ok: false, reason: "reservation_ledger_version_exhausted" };
+    }
     const validation = this.validateTransactionHeader(request, registry);
 
     if (!validation.ok) {
@@ -410,13 +473,15 @@ export class ReservationLedger implements LocationLifecycleHooks {
 
     const claimIds: number[] = [];
 
+    const allocationEpoch = this.ledgerVersion + 1;
+    const jobGeneration = request.jobGeneration ?? 0;
     for (const claim of prepared) {
       const claimId = this.allocateClaimId();
-      this.writePreparedClaim(claimId, request, claim);
+      this.writePreparedClaim(claimId, request, claim, jobGeneration, allocationEpoch);
       claimIds.push(claimId);
     }
 
-    this.ledgerVersion += 1;
+    this.ledgerVersion = allocationEpoch;
     this.acquiredTotal += claimIds.length;
 
     return {
@@ -435,6 +500,10 @@ export class ReservationLedger implements LocationLifecycleHooks {
     output: ReservationAcquireIntoOutput,
   ): void {
     this.resetAcquireIntoOutput(claimIdOutput, output);
+    if (this.ledgerVersion > RESERVATION_LEDGER_LAST_ACQUIRE_VERSION) {
+      output.reason = "reservation_ledger_version_exhausted";
+      return;
+    }
     const claimCount = request.claims.length;
     if (!this.hasAcquireScratchCapacity(scratch, claimCount)) {
       output.reason = "reservation_scratch_capacity_exhausted";
@@ -467,12 +536,13 @@ export class ReservationLedger implements LocationLifecycleHooks {
       return;
     }
 
+    const allocationEpoch = this.ledgerVersion + 1;
     for (let claimIndex = 0; claimIndex < claimCount; claimIndex += 1) {
       const claimId = this.allocateClaimId();
-      this.writePreparedClaimInto(claimId, request, scratch, claimIndex);
+      this.writePreparedClaimInto(claimId, request, scratch, claimIndex, allocationEpoch);
       claimIdOutput[claimIndex] = claimId;
     }
-    this.ledgerVersion += 1;
+    this.ledgerVersion = allocationEpoch;
     this.acquiredTotal += claimCount;
     output.ok = true;
     output.reason = undefined;
@@ -484,6 +554,9 @@ export class ReservationLedger implements LocationLifecycleHooks {
   }
 
   releaseClaims(claimIds: readonly number[]): ReservationReleaseResult {
+    if (claimIds.length > 0 && this.ledgerVersion === RESERVATION_LEDGER_MAX_VERSION) {
+      return { ok: false, reason: "reservation_ledger_version_exhausted" };
+    }
     for (const claimId of claimIds) {
       if (!this.isValidClaimId(claimId)) {
         return { ok: false, reason: "reservation_claim_id_invalid", claimId };
@@ -505,8 +578,103 @@ export class ReservationLedger implements LocationLifecycleHooks {
     return this.finishRelease(releasedCount);
   }
 
+  releaseClaimsInto(
+    claimIds: Uint32Array,
+    expectedAllocationEpochs: Uint32Array,
+    claimCount: number,
+    expectedOwner: EntityId,
+    expectedJobId: number,
+    expectedJobGeneration: number,
+    expectedLedgerVersion: number,
+    output: ReservationReleaseIntoOutput,
+  ): void {
+    this.resetReleaseClaimsIntoOutput(output);
+    if (
+      !this.validateExactClaimHeader(
+        claimIds,
+        expectedAllocationEpochs,
+        claimCount,
+        expectedOwner,
+        expectedJobId,
+        expectedJobGeneration,
+        expectedLedgerVersion,
+        true,
+        output,
+      ) ||
+      !this.validateExactClaimPrefix(
+        claimIds,
+        expectedAllocationEpochs,
+        claimCount,
+        expectedOwner,
+        expectedJobId,
+        expectedJobGeneration,
+        output,
+      )
+    ) {
+      return;
+    }
+    for (let claimIndex = claimCount - 1; claimIndex >= 0; claimIndex -= 1) {
+      this.releaseClaimNoVersion(claimIds[claimIndex] ?? RESERVATION_CLAIM_NONE);
+    }
+    this.ledgerVersion += 1;
+    this.releasedTotal += claimCount;
+    output.ok = true;
+    output.releasedCount = claimCount;
+    output.version = this.ledgerVersion;
+    output.activeCount = this.currentActiveCount;
+  }
+
+  readActiveClaimsInto(
+    claimIds: Uint32Array,
+    expectedAllocationEpochs: Uint32Array,
+    claimCount: number,
+    expectedOwner: EntityId,
+    expectedJobId: number,
+    expectedJobGeneration: number,
+    expectedCurrentLedgerVersion: number,
+    output: ReservationClaimsIntoOutput,
+  ): void {
+    this.resetActiveClaimsIntoOutput(output);
+    if (!this.hasExactClaimsOutputShape(output)) {
+      output.reason = "reservation_claim_output_too_small";
+      return;
+    }
+    if (
+      !this.validateExactClaimHeader(
+        claimIds,
+        expectedAllocationEpochs,
+        claimCount,
+        expectedOwner,
+        expectedJobId,
+        expectedJobGeneration,
+        expectedCurrentLedgerVersion,
+        false,
+        output,
+      ) ||
+      !this.validateExactClaimPrefix(
+        claimIds,
+        expectedAllocationEpochs,
+        claimCount,
+        expectedOwner,
+        expectedJobId,
+        expectedJobGeneration,
+        output,
+      )
+    ) {
+      return;
+    }
+    for (let claimIndex = 0; claimIndex < claimCount; claimIndex += 1) {
+      this.writeActiveClaimInto(claimIds[claimIndex] ?? RESERVATION_CLAIM_NONE, claimIndex, output);
+    }
+    output.ok = true;
+    output.claimCount = claimCount;
+  }
+
   releaseReservationsForEntity(entity: EntityId): number {
-    if (!this.isEntityIndexInRange(entity.index)) {
+    if (
+      !this.isEntityIndexInRange(entity.index) ||
+      this.ledgerVersion === RESERVATION_LEDGER_MAX_VERSION
+    ) {
       return 0;
     }
 
@@ -547,6 +715,9 @@ export class ReservationLedger implements LocationLifecycleHooks {
     if (!this.isEntityIndexInRange(owner.index) || !isSafeUint32(jobId)) {
       return { ok: false, reason: "reservation_job_id_invalid" };
     }
+    if (this.ledgerVersion === RESERVATION_LEDGER_MAX_VERSION) {
+      return { ok: false, reason: "reservation_ledger_version_exhausted" };
+    }
 
     let releasedCount = 0;
     let claimId = this.ownerHead[owner.index] ?? -1;
@@ -554,7 +725,11 @@ export class ReservationLedger implements LocationLifecycleHooks {
     while (claimId >= 0) {
       const next = this.ownerNext[claimId] ?? -1;
 
-      if (this.isOwner(claimId, owner) && (this.jobId[claimId] ?? 0) === jobId) {
+      if (
+        this.isOwner(claimId, owner) &&
+        (this.jobId[claimId] ?? 0) === jobId &&
+        (this.jobGeneration[claimId] ?? 0) === 0
+      ) {
         if (this.releaseClaimNoVersion(claimId)) {
           releasedCount += 1;
         }
@@ -673,7 +848,7 @@ export class ReservationLedger implements LocationLifecycleHooks {
     registry: EntityRegistry | undefined,
   ): ReservationReleaseResult {
     for (const record of snapshot.records) {
-      const restored = this.restoreRecord(record, registry);
+      const restored = this.restoreRecord(record, registry, snapshot.ledgerVersion);
 
       if (!restored.ok) {
         return restored;
@@ -689,6 +864,192 @@ export class ReservationLedger implements LocationLifecycleHooks {
       version: this.ledgerVersion,
       activeCount: this.currentActiveCount,
     };
+  }
+
+  private resetReleaseClaimsIntoOutput(output: ReservationReleaseIntoOutput): void {
+    output.ok = false;
+    output.reason = undefined;
+    output.claimIndex = RESERVATION_CLAIM_NONE;
+    output.claimId = RESERVATION_CLAIM_NONE;
+    output.releasedCount = 0;
+    output.version = this.ledgerVersion;
+    output.activeCount = this.currentActiveCount;
+  }
+
+  private resetActiveClaimsIntoOutput(output: ReservationClaimsIntoOutput): void {
+    output.ok = false;
+    output.reason = undefined;
+    output.claimIndex = RESERVATION_CLAIM_NONE;
+    output.claimId = RESERVATION_CLAIM_NONE;
+    output.claimCount = 0;
+    output.version = this.ledgerVersion;
+    output.activeCount = this.currentActiveCount;
+    output.channelCodes.fill(0);
+    output.ownerIndexes.fill(RESERVATION_CLAIM_NONE);
+    output.ownerGenerations.fill(0);
+    output.jobIds.fill(RESERVATION_CLAIM_NONE);
+    output.jobGenerations.fill(0);
+    output.hasTargetFlags.fill(0);
+    output.targetIndexes.fill(RESERVATION_CLAIM_NONE);
+    output.targetGenerations.fill(0);
+    output.cellIndexes.fill(RESERVATION_CLAIM_NONE);
+    output.slotIds.fill(RESERVATION_CLAIM_NONE);
+    output.amounts.fill(0);
+    output.allocationEpochs.fill(0);
+    output.createdTicks.fill(0);
+    output.leaseExpiryTicks.fill(0);
+  }
+
+  private hasExactClaimsOutputShape(output: ReservationClaimsIntoOutput): boolean {
+    return (
+      output.channelCodes.length === RESERVATION_EXACT_CLAIM_CAPACITY &&
+      output.ownerIndexes.length === RESERVATION_EXACT_CLAIM_CAPACITY &&
+      output.ownerGenerations.length === RESERVATION_EXACT_CLAIM_CAPACITY &&
+      output.jobIds.length === RESERVATION_EXACT_CLAIM_CAPACITY &&
+      output.jobGenerations.length === RESERVATION_EXACT_CLAIM_CAPACITY &&
+      output.hasTargetFlags.length === RESERVATION_EXACT_CLAIM_CAPACITY &&
+      output.targetIndexes.length === RESERVATION_EXACT_CLAIM_CAPACITY &&
+      output.targetGenerations.length === RESERVATION_EXACT_CLAIM_CAPACITY &&
+      output.cellIndexes.length === RESERVATION_EXACT_CLAIM_CAPACITY &&
+      output.slotIds.length === RESERVATION_EXACT_CLAIM_CAPACITY &&
+      output.amounts.length === RESERVATION_EXACT_CLAIM_CAPACITY &&
+      output.allocationEpochs.length === RESERVATION_EXACT_CLAIM_CAPACITY &&
+      output.createdTicks.length === RESERVATION_EXACT_CLAIM_CAPACITY &&
+      output.leaseExpiryTicks.length === RESERVATION_EXACT_CLAIM_CAPACITY
+    );
+  }
+
+  private validateExactClaimHeader(
+    claimIds: Uint32Array,
+    expectedAllocationEpochs: Uint32Array,
+    claimCount: number,
+    expectedOwner: EntityId,
+    expectedJobId: number,
+    expectedJobGeneration: number,
+    expectedLedgerVersion: number,
+    requireVersionHeadroom: boolean,
+    output: ReservationClaimValidationOutput,
+  ): boolean {
+    if (
+      !Number.isSafeInteger(claimCount) ||
+      claimCount < 1 ||
+      claimCount > RESERVATION_EXACT_CLAIM_CAPACITY ||
+      claimIds.length < claimCount ||
+      expectedAllocationEpochs.length < claimCount
+    ) {
+      output.reason = "reservation_claim_count_invalid";
+      return false;
+    }
+    if (
+      !isIndexInRange(expectedOwner.index, this.entityCapacity) ||
+      !isSafeUint32(expectedOwner.generation)
+    ) {
+      output.reason = "reservation_claim_owner_mismatch";
+      return false;
+    }
+    if (!isSafeUint32(expectedJobId)) {
+      output.reason = "reservation_claim_job_mismatch";
+      return false;
+    }
+    if (!isSafeUint32(expectedJobGeneration)) {
+      output.reason = "reservation_claim_job_generation_mismatch";
+      return false;
+    }
+    if (!isSafeUint32(expectedLedgerVersion) || expectedLedgerVersion !== this.ledgerVersion) {
+      output.reason = "reservation_ledger_version_mismatch";
+      return false;
+    }
+    if (requireVersionHeadroom && this.ledgerVersion === RESERVATION_LEDGER_MAX_VERSION) {
+      output.reason = "reservation_ledger_version_exhausted";
+      return false;
+    }
+    return true;
+  }
+
+  private validateExactClaimPrefix(
+    claimIds: Uint32Array,
+    expectedAllocationEpochs: Uint32Array,
+    claimCount: number,
+    expectedOwner: EntityId,
+    expectedJobId: number,
+    expectedJobGeneration: number,
+    output: ReservationClaimValidationOutput,
+  ): boolean {
+    for (let claimIndex = 0; claimIndex < claimCount; claimIndex += 1) {
+      const claimId = claimIds[claimIndex] ?? RESERVATION_CLAIM_NONE;
+      output.claimIndex = claimIndex;
+      output.claimId = claimId;
+      for (let priorIndex = 0; priorIndex < claimIndex; priorIndex += 1) {
+        if ((claimIds[priorIndex] ?? RESERVATION_CLAIM_NONE) === claimId) {
+          output.reason = "reservation_claim_duplicate";
+          return false;
+        }
+      }
+      if (!this.isValidClaimId(claimId)) {
+        output.reason = "reservation_claim_id_invalid";
+        return false;
+      }
+      if ((this.active[claimId] ?? 0) !== 1) {
+        output.reason = "reservation_claim_not_active";
+        return false;
+      }
+      if (!this.isOwner(claimId, expectedOwner)) {
+        output.reason = "reservation_claim_owner_mismatch";
+        return false;
+      }
+      if ((this.jobId[claimId] ?? 0) !== expectedJobId) {
+        output.reason = "reservation_claim_job_mismatch";
+        return false;
+      }
+      if ((this.jobGeneration[claimId] ?? 0) !== expectedJobGeneration) {
+        output.reason = "reservation_claim_job_generation_mismatch";
+        return false;
+      }
+      const expectedEpoch = expectedAllocationEpochs[claimIndex] ?? 0;
+      if (
+        !isPositiveUint32(expectedEpoch) ||
+        (this.allocationEpoch[claimId] ?? 0) !== expectedEpoch
+      ) {
+        output.reason = "reservation_claim_epoch_mismatch";
+        return false;
+      }
+    }
+    output.claimIndex = RESERVATION_CLAIM_NONE;
+    output.claimId = RESERVATION_CLAIM_NONE;
+    return true;
+  }
+
+  private writeActiveClaimInto(
+    claimId: number,
+    claimIndex: number,
+    output: ReservationClaimsIntoOutput,
+  ): void {
+    const code = this.readChannelCode(claimId);
+    const hasTarget = this.hasTarget[claimId] ?? 0;
+    output.channelCodes[claimIndex] = code;
+    output.ownerIndexes[claimIndex] = this.ownerIndex[claimId] ?? RESERVATION_CLAIM_NONE;
+    output.ownerGenerations[claimIndex] = this.ownerGeneration[claimId] ?? 0;
+    output.jobIds[claimIndex] = this.jobId[claimId] ?? RESERVATION_CLAIM_NONE;
+    output.jobGenerations[claimIndex] = this.jobGeneration[claimId] ?? 0;
+    output.hasTargetFlags[claimIndex] = hasTarget;
+    output.targetIndexes[claimIndex] =
+      hasTarget === 1
+        ? (this.targetIndex[claimId] ?? RESERVATION_CLAIM_NONE)
+        : RESERVATION_CLAIM_NONE;
+    output.targetGenerations[claimIndex] =
+      hasTarget === 1 ? (this.targetGeneration[claimId] ?? 0) : 0;
+    output.cellIndexes[claimIndex] =
+      code === RESERVATION_CELL
+        ? (this.key[claimId] ?? RESERVATION_CLAIM_NONE)
+        : RESERVATION_CLAIM_NONE;
+    output.slotIds[claimIndex] =
+      code === RESERVATION_INTERACTION_SPOT || code === RESERVATION_CAPACITY
+        ? (this.slot[claimId] ?? RESERVATION_CLAIM_NONE)
+        : RESERVATION_CLAIM_NONE;
+    output.amounts[claimIndex] = this.amount[claimId] ?? 0;
+    output.allocationEpochs[claimIndex] = this.allocationEpoch[claimId] ?? 0;
+    output.createdTicks[claimIndex] = this.createdTick[claimId] ?? 0;
+    output.leaseExpiryTicks[claimIndex] = this.leaseExpiryTick[claimId] ?? 0;
   }
 
   private validateTransactionHeader(
@@ -708,6 +1069,10 @@ export class ReservationLedger implements LocationLifecycleHooks {
 
     if (!isSafeUint32(request.jobId)) {
       return { ok: false, reason: "reservation_job_id_invalid" };
+    }
+
+    if (request.jobGeneration !== undefined && !isPositiveUint32(request.jobGeneration)) {
+      return { ok: false, reason: "reservation_claim_job_generation_mismatch" };
     }
 
     if (!isSafeTick(request.createdTick)) {
@@ -773,6 +1138,11 @@ export class ReservationLedger implements LocationLifecycleHooks {
     }
     if (!isSafeUint32(request.jobId)) {
       output.reason = "reservation_job_id_invalid";
+      this.conflictTotal += 1;
+      return false;
+    }
+    if (request.jobGeneration !== undefined && !isPositiveUint32(request.jobGeneration)) {
+      output.reason = "reservation_claim_job_generation_mismatch";
       this.conflictTotal += 1;
       return false;
     }
@@ -1004,6 +1374,7 @@ export class ReservationLedger implements LocationLifecycleHooks {
     request: ReservationTransactionRequest,
     scratch: ReservationAcquireIntoScratch,
     claimIndex: number,
+    allocationEpoch: number,
   ): void {
     const code = readPreparedChannelCode(scratch.channelCodes[claimIndex] ?? 0);
     const key = scratch.keys[claimIndex] ?? 0;
@@ -1013,6 +1384,8 @@ export class ReservationLedger implements LocationLifecycleHooks {
     this.ownerIndex[claimId] = request.owner.index;
     this.ownerGeneration[claimId] = request.owner.generation;
     this.jobId[claimId] = request.jobId;
+    this.jobGeneration[claimId] = request.jobGeneration ?? 0;
+    this.allocationEpoch[claimId] = allocationEpoch;
     this.amount[claimId] = amount;
     this.createdTick[claimId] = request.createdTick;
     this.leaseExpiryTick[claimId] = request.leaseExpiryTick;
@@ -1275,12 +1648,16 @@ export class ReservationLedger implements LocationLifecycleHooks {
     claimId: number,
     request: ReservationTransactionRequest,
     claim: PreparedClaim,
+    jobGeneration: number,
+    allocationEpoch: number,
   ): void {
     this.active[claimId] = 1;
     this.channelCode[claimId] = claim.channelCode;
     this.ownerIndex[claimId] = request.owner.index;
     this.ownerGeneration[claimId] = request.owner.generation;
     this.jobId[claimId] = request.jobId;
+    this.jobGeneration[claimId] = jobGeneration;
+    this.allocationEpoch[claimId] = allocationEpoch;
     this.amount[claimId] = claim.amount;
     this.createdTick[claimId] = request.createdTick;
     this.leaseExpiryTick[claimId] = request.leaseExpiryTick;
@@ -1307,6 +1684,7 @@ export class ReservationLedger implements LocationLifecycleHooks {
   private restoreRecord(
     record: ReservationRecordSnapshot,
     registry: EntityRegistry | undefined,
+    snapshotLedgerVersion: number,
   ): ReservationReleaseResult {
     if (!this.isValidClaimId(record.claimId) || (this.active[record.claimId] ?? 0) === 1) {
       return { ok: false, reason: "reservation_claim_id_invalid", claimId: record.claimId };
@@ -1314,6 +1692,17 @@ export class ReservationLedger implements LocationLifecycleHooks {
 
     if (!isSafeUint32(record.jobId)) {
       return { ok: false, reason: "reservation_job_id_invalid" };
+    }
+
+    if (!isSafeUint32(record.jobGeneration)) {
+      return { ok: false, reason: "reservation_claim_job_generation_mismatch" };
+    }
+
+    if (
+      !isPositiveUint32(record.allocationEpoch) ||
+      record.allocationEpoch > snapshotLedgerVersion
+    ) {
+      return { ok: false, reason: "reservation_claim_epoch_mismatch" };
     }
 
     if (!isPositiveUint32(record.amount)) {
@@ -1350,6 +1739,8 @@ export class ReservationLedger implements LocationLifecycleHooks {
         claims: [],
       },
       prepared.claim,
+      record.jobGeneration,
+      record.allocationEpoch,
     );
     this.nextClaimId = Math.max(this.nextClaimId, record.claimId + 1);
 
@@ -1556,6 +1947,8 @@ export class ReservationLedger implements LocationLifecycleHooks {
     this.active[claimId] = 0;
     this.channelCode[claimId] = 0;
     this.hasTarget[claimId] = 0;
+    this.jobGeneration[claimId] = 0;
+    this.allocationEpoch[claimId] = 0;
     this.ownerNext[claimId] = -1;
     this.ownerPrevious[claimId] = -1;
     this.targetNext[claimId] = -1;
@@ -1682,6 +2075,8 @@ export class ReservationLedger implements LocationLifecycleHooks {
         generation: this.ownerGeneration[claimId] ?? 0,
       },
       jobId: this.jobId[claimId] ?? 0,
+      jobGeneration: this.jobGeneration[claimId] ?? 0,
+      allocationEpoch: this.allocationEpoch[claimId] ?? 0,
       amount: this.amount[claimId] ?? 0,
       createdTick: this.createdTick[claimId] ?? 0,
       leaseExpiryTick: this.leaseExpiryTick[claimId] ?? 0,
@@ -1812,6 +2207,8 @@ export class ReservationLedger implements LocationLifecycleHooks {
     this.active.fill(0);
     this.channelCode.fill(0);
     this.hasTarget.fill(0);
+    this.jobGeneration.fill(0);
+    this.allocationEpoch.fill(0);
     this.ownerHead.fill(-1);
     this.ownerNext.fill(-1);
     this.ownerPrevious.fill(-1);

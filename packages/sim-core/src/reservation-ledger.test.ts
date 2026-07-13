@@ -1,15 +1,28 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  RESERVATION_CAPACITY,
+  RESERVATION_CELL,
+  RESERVATION_CLAIM_NONE,
+  RESERVATION_ENTITY,
+  RESERVATION_INTERACTION_SPOT,
   RESERVATION_ITEM_QUANTITY,
+  RESERVATION_LEDGER_SNAPSHOT_VERSION,
   createEntityRegistry,
   createJobCoreStore,
   createLocationStore,
   createMapGrid,
   createReservationLedger,
+  initializeGameSessionRuntime,
   restoreReservationLedger,
   type EntityId,
+  type ReservationAcquireIntoOutput,
+  type ReservationAcquireIntoScratch,
   type ReservationClaimRequest,
+  type ReservationClaimsIntoOutput,
+  type ReservationLedgerSnapshotInput,
+  type ReservationReleaseIntoOutput,
+  type ReservationTransactionRequest,
 } from "./index";
 
 describe("reservation ledger", () => {
@@ -621,6 +634,546 @@ describe("reservation ledger", () => {
     });
     expect(ledger.createSnapshot()).toStrictEqual(before);
   });
+
+  it("normalizes legacy generation zero and protects positive-generation claims", () => {
+    const { registry, ledger, owner } = createFixture();
+    const legacy = acquireOrThrow(ledger, registry, request(owner, 200, 1));
+    const autonomous = acquireOrThrow(ledger, registry, request(owner, 201, 2, 17));
+    expect(ledger.readRecord(legacy.claimIds[0] ?? -1)).toMatchObject({
+      jobGeneration: 0,
+      allocationEpoch: 1,
+    });
+    expect(ledger.readRecord(autonomous.claimIds[0] ?? -1)).toMatchObject({
+      jobGeneration: 17,
+      allocationEpoch: 2,
+    });
+    expect(ledger.createSnapshot()).toMatchObject({
+      snapshotVersion: RESERVATION_LEDGER_SNAPSHOT_VERSION,
+      records: [
+        { jobGeneration: 0, allocationEpoch: 1 },
+        { jobGeneration: 17, allocationEpoch: 2 },
+      ],
+    });
+    expect(ledger.acquire(request(owner, 202, 3, 0), registry)).toStrictEqual({
+      ok: false,
+      reason: "reservation_claim_job_generation_mismatch",
+    });
+
+    expect(ledger.releaseReservationsForOwnerJob(owner, 201)).toMatchObject({
+      ok: true,
+      releasedCount: 0,
+    });
+    expect(ledger.activeCount).toBe(2);
+    expect(ledger.releaseReservationsForOwnerJob(owner, 200)).toMatchObject({
+      ok: true,
+      releasedCount: 1,
+    });
+    const output = createReleaseIntoOutput();
+    ledger.releaseClaimsInto(
+      Uint32Array.of(autonomous.claimIds[0] ?? RESERVATION_CLAIM_NONE),
+      Uint32Array.of(2),
+      1,
+      owner,
+      201,
+      17,
+      ledger.version,
+      output,
+    );
+    expect(output).toMatchObject({ ok: true, releasedCount: 1, activeCount: 0 });
+  });
+
+  it("reads all five exact claim channels into reusable fourteen-lane output", () => {
+    const { registry, ledger, owner, item, buildSite } = createFixture();
+    const createdTick = 0x1_0000_0000 + 5;
+    const acquired = acquireOrThrow(ledger, registry, {
+      owner,
+      jobId: 210,
+      jobGeneration: 9,
+      createdTick,
+      leaseExpiryTick: createdTick + 20,
+      claims: [
+        { channel: "entity", target: buildSite },
+        { channel: "cell", cellIndex: 7 },
+        { channel: "item_quantity", item, amount: 2, availableAmount: 8 },
+        { channel: "interaction_spot", target: buildSite, spotId: 3 },
+        { channel: "capacity", target: buildSite, capacityId: 4, amount: 3, capacity: 9 },
+      ],
+    });
+    const claimIds = new Uint32Array(8);
+    const epochs = new Uint32Array(8);
+    claimIds.fill(77);
+    epochs.fill(88);
+    for (let index = 0; index < acquired.claimIds.length; index += 1) {
+      claimIds[index] = acquired.claimIds[index] ?? RESERVATION_CLAIM_NONE;
+      epochs[index] = acquired.version;
+    }
+    const inputIdsBefore = claimIds.slice();
+    const inputEpochsBefore = epochs.slice();
+    const output = createClaimsIntoOutput();
+    const identities = readClaimsLaneIdentities(output);
+    output.channelCodes.fill(255);
+    output.createdTicks.fill(-1);
+
+    ledger.readActiveClaimsInto(claimIds, epochs, 5, owner, 210, 9, ledger.version, output);
+
+    expect(output).toMatchObject({
+      ok: true,
+      claimCount: 5,
+      version: 1,
+      activeCount: 5,
+    });
+    expect([...output.channelCodes]).toEqual([
+      RESERVATION_ENTITY,
+      RESERVATION_CELL,
+      RESERVATION_ITEM_QUANTITY,
+      RESERVATION_INTERACTION_SPOT,
+      RESERVATION_CAPACITY,
+      0,
+      0,
+      0,
+    ]);
+    expect([...output.hasTargetFlags]).toEqual([1, 0, 1, 1, 1, 0, 0, 0]);
+    expect([...output.cellIndexes]).toEqual([
+      RESERVATION_CLAIM_NONE,
+      7,
+      RESERVATION_CLAIM_NONE,
+      RESERVATION_CLAIM_NONE,
+      RESERVATION_CLAIM_NONE,
+      RESERVATION_CLAIM_NONE,
+      RESERVATION_CLAIM_NONE,
+      RESERVATION_CLAIM_NONE,
+    ]);
+    expect([...output.slotIds]).toEqual([
+      RESERVATION_CLAIM_NONE,
+      RESERVATION_CLAIM_NONE,
+      RESERVATION_CLAIM_NONE,
+      3,
+      4,
+      RESERVATION_CLAIM_NONE,
+      RESERVATION_CLAIM_NONE,
+      RESERVATION_CLAIM_NONE,
+    ]);
+    expect([...output.amounts]).toEqual([1, 1, 2, 1, 3, 0, 0, 0]);
+    expect([...output.jobGenerations]).toEqual([9, 9, 9, 9, 9, 0, 0, 0]);
+    expect([...output.allocationEpochs]).toEqual([1, 1, 1, 1, 1, 0, 0, 0]);
+    expect([...output.createdTicks]).toEqual([
+      createdTick,
+      createdTick,
+      createdTick,
+      createdTick,
+      createdTick,
+      0,
+      0,
+      0,
+    ]);
+    expectClaimsLaneIdentities(output, identities);
+    expect(claimIds).toStrictEqual(inputIdsBefore);
+    expect(epochs).toStrictEqual(inputEpochsBefore);
+  });
+
+  it("rejects exact release prefix failures before any claim or metric mutation", () => {
+    const { registry, ledger, owner } = createFixture();
+    const acquired = acquireOrThrow(ledger, registry, {
+      owner,
+      jobId: 220,
+      jobGeneration: 5,
+      createdTick: 1,
+      leaseExpiryTick: 20,
+      claims: [
+        { channel: "cell", cellIndex: 10 },
+        { channel: "cell", cellIndex: 11 },
+        { channel: "cell", cellIndex: 12 },
+      ],
+    });
+    const ids = Uint32Array.from(acquired.claimIds);
+    const epochs = new Uint32Array([1, 1, 1]);
+    const output = createReleaseIntoOutput();
+    const beforeSnapshot = ledger.createSnapshot();
+    const beforeMetrics = ledger.createMetrics();
+    const assertFailure = (
+      claimIds: Uint32Array,
+      expectedEpochs: Uint32Array,
+      count: number,
+      expectedOwner: EntityId,
+      jobId: number,
+      generation: number,
+      version: number,
+      reason: string,
+      claimIndex = RESERVATION_CLAIM_NONE,
+    ): void => {
+      ledger.releaseClaimsInto(
+        claimIds,
+        expectedEpochs,
+        count,
+        expectedOwner,
+        jobId,
+        generation,
+        version,
+        output,
+      );
+      expect(output).toMatchObject({ ok: false, reason, claimIndex, releasedCount: 0 });
+      expect(ledger.createSnapshot()).toStrictEqual(beforeSnapshot);
+      expect(ledger.createMetrics()).toStrictEqual(beforeMetrics);
+    };
+
+    for (const count of [0, -1, 1.5, 9]) {
+      assertFailure(ids, epochs, count, owner, 220, 5, 1, "reservation_claim_count_invalid");
+    }
+    assertFailure(
+      ids.subarray(0, 2),
+      epochs,
+      3,
+      owner,
+      220,
+      5,
+      1,
+      "reservation_claim_count_invalid",
+    );
+    assertFailure(
+      new Uint32Array([ids[0] ?? 0, ids[0] ?? 0, ids[2] ?? 0]),
+      epochs,
+      3,
+      owner,
+      220,
+      5,
+      1,
+      "reservation_claim_duplicate",
+      1,
+    );
+    for (let index = 0; index < 3; index += 1) {
+      const invalid = ids.slice();
+      invalid[index] = RESERVATION_CLAIM_NONE;
+      assertFailure(invalid, epochs, 3, owner, 220, 5, 1, "reservation_claim_id_invalid", index);
+    }
+    assertFailure(
+      ids,
+      epochs,
+      3,
+      { ...owner, generation: owner.generation + 1 },
+      220,
+      5,
+      1,
+      "reservation_claim_owner_mismatch",
+      0,
+    );
+    assertFailure(ids, epochs, 3, owner, 221, 5, 1, "reservation_claim_job_mismatch", 0);
+    assertFailure(ids, epochs, 3, owner, 220, 6, 1, "reservation_claim_job_generation_mismatch", 0);
+    assertFailure(
+      ids,
+      new Uint32Array([1, 2, 1]),
+      3,
+      owner,
+      220,
+      5,
+      1,
+      "reservation_claim_epoch_mismatch",
+      1,
+    );
+    assertFailure(ids, epochs, 3, owner, 220, 5, 0, "reservation_ledger_version_mismatch");
+  });
+
+  it("rejects exact read failures without writing a partial prefix", () => {
+    const { registry, ledger, owner } = createFixture();
+    const acquired = acquireOrThrow(ledger, registry, {
+      owner,
+      jobId: 225,
+      jobGeneration: 6,
+      createdTick: 1,
+      leaseExpiryTick: 20,
+      claims: [
+        { channel: "cell", cellIndex: 13 },
+        { channel: "cell", cellIndex: 14 },
+        { channel: "cell", cellIndex: 15 },
+      ],
+    });
+    const ids = Uint32Array.from(acquired.claimIds);
+    const output = createClaimsIntoOutput();
+    const identities = readClaimsLaneIdentities(output);
+    output.channelCodes.fill(99);
+    output.jobIds.fill(99);
+
+    ledger.readActiveClaimsInto(ids, new Uint32Array([1, 2, 1]), 3, owner, 225, 6, 1, output);
+
+    expect(output).toMatchObject({
+      ok: false,
+      reason: "reservation_claim_epoch_mismatch",
+      claimIndex: 1,
+      claimId: ids[1],
+      claimCount: 0,
+      version: 1,
+      activeCount: 3,
+    });
+    expect([...output.channelCodes]).toEqual([0, 0, 0, 0, 0, 0, 0, 0]);
+    expect([...output.jobIds]).toEqual([
+      RESERVATION_CLAIM_NONE,
+      RESERVATION_CLAIM_NONE,
+      RESERVATION_CLAIM_NONE,
+      RESERVATION_CLAIM_NONE,
+      RESERVATION_CLAIM_NONE,
+      RESERVATION_CLAIM_NONE,
+      RESERVATION_CLAIM_NONE,
+      RESERVATION_CLAIM_NONE,
+    ]);
+    expectClaimsLaneIdentities(output, identities);
+
+    const malformed = { ...createClaimsIntoOutput(), channelCodes: new Uint8Array(7) };
+    ledger.readActiveClaimsInto(ids, new Uint32Array([1, 1, 1]), 3, owner, 225, 6, 1, malformed);
+    expect(malformed).toMatchObject({
+      ok: false,
+      reason: "reservation_claim_output_too_small",
+      claimCount: 0,
+    });
+    expect(ledger.activeCount).toBe(3);
+  });
+
+  it("releases full-capacity exact claims in reverse and preserves allocation order", () => {
+    const registry = createEntityRegistry({ capacity: 2 });
+    const owner = allocateOrThrow(registry);
+    const ledger = createReservationLedger({ capacity: 8, entityCapacity: 2, cellCount: 32 });
+    const claims: ReservationClaimRequest[] = [];
+    for (let cellIndex = 0; cellIndex < 8; cellIndex += 1) {
+      claims.push({ channel: "cell", cellIndex });
+    }
+    const acquired = acquireOrThrow(ledger, registry, {
+      owner,
+      jobId: 230,
+      jobGeneration: 4,
+      createdTick: 1,
+      leaseExpiryTick: 10,
+      claims,
+    });
+    const ids = Uint32Array.from(acquired.claimIds);
+    const epochs = new Uint32Array(8);
+    epochs.fill(acquired.version);
+    const output = createReleaseIntoOutput();
+    const identity = output;
+    ledger.releaseClaimsInto(ids, epochs, 8, owner, 230, 4, 1, output);
+    expect(output).toMatchObject({ ok: true, releasedCount: 8, version: 2, activeCount: 0 });
+    expect(output).toBe(identity);
+    expect(ledger.createMetrics()).toMatchObject({ releasedCount: 8, activeCount: 0 });
+
+    const reacquired = acquireOrThrow(ledger, registry, {
+      owner,
+      jobId: 231,
+      jobGeneration: 5,
+      createdTick: 2,
+      leaseExpiryTick: 11,
+      claims,
+    });
+    expect(reacquired.claimIds).toEqual(acquired.claimIds);
+    expect(reacquired.version).toBe(3);
+    for (const claimId of reacquired.claimIds) {
+      expect(ledger.readRecord(claimId)?.allocationEpoch).toBe(3);
+    }
+  });
+
+  it("rejects recycled claim and job-slot ABA while accepting current exact custody", () => {
+    const { registry, ledger, owner } = createFixture();
+    const first = acquireOrThrow(ledger, registry, request(owner, 240, 5, 1));
+    const firstId = first.claimIds[0] ?? RESERVATION_CLAIM_NONE;
+    const released = createReleaseIntoOutput();
+    ledger.releaseClaimsInto(
+      Uint32Array.of(firstId),
+      Uint32Array.of(1),
+      1,
+      owner,
+      240,
+      1,
+      1,
+      released,
+    );
+    expect(released.ok).toBe(true);
+    const second = acquireOrThrow(ledger, registry, request(owner, 240, 6, 2));
+    expect(second.claimIds[0]).toBe(firstId);
+    expect(ledger.readRecord(firstId)).toMatchObject({ jobGeneration: 2, allocationEpoch: 3 });
+
+    const stale = createReleaseIntoOutput();
+    ledger.releaseClaimsInto(
+      Uint32Array.of(firstId),
+      Uint32Array.of(1),
+      1,
+      owner,
+      240,
+      2,
+      3,
+      stale,
+    );
+    expect(stale).toMatchObject({ ok: false, reason: "reservation_claim_epoch_mismatch" });
+    ledger.releaseClaimsInto(
+      Uint32Array.of(firstId),
+      Uint32Array.of(3),
+      1,
+      owner,
+      240,
+      1,
+      3,
+      stale,
+    );
+    expect(stale).toMatchObject({
+      ok: false,
+      reason: "reservation_claim_job_generation_mismatch",
+    });
+    expect(ledger.releaseReservationsForOwnerJob(owner, 240)).toMatchObject({
+      ok: true,
+      releasedCount: 0,
+    });
+    ledger.releaseClaimsInto(
+      Uint32Array.of(firstId),
+      Uint32Array.of(3),
+      1,
+      owner,
+      240,
+      2,
+      3,
+      stale,
+    );
+    expect(stale).toMatchObject({ ok: true, releasedCount: 1, activeCount: 0 });
+  });
+
+  it("increments snapshot schema and rejects old, mixed, future and wrapped custody", () => {
+    const { registry, ledger, owner } = createFixture();
+    acquireOrThrow(ledger, registry, request(owner, 250, 8, 3));
+    const snapshot = ledger.createSnapshot();
+    expect(snapshot.snapshotVersion).toBe(2);
+    expect(restoreReservationLedger(snapshot, registry).createSnapshot()).toStrictEqual(snapshot);
+    expect(ledger.restoreFromSnapshot({ ...snapshot, snapshotVersion: 1 }, registry)).toStrictEqual(
+      {
+        ok: false,
+        reason: "reservation_snapshot_version_unsupported",
+      },
+    );
+    const record = snapshot.records[0] ?? failMissingRecord();
+    const { allocationEpoch: _epoch, ...oldRecord } = record;
+    void _epoch;
+    const mixed = { ...snapshot, records: [oldRecord] };
+    // @ts-expect-error Deliberately exercises a schema-v2 record with the epoch lane omitted.
+    expect(ledger.restoreFromSnapshot(mixed, registry)).toMatchObject({
+      ok: false,
+      reason: "reservation_claim_epoch_mismatch",
+    });
+    for (const allocationEpoch of [0, snapshot.ledgerVersion + 1, 0x1_0000_0000]) {
+      expect(
+        ledger.restoreFromSnapshot(
+          { ...snapshot, records: [{ ...record, allocationEpoch }] },
+          registry,
+        ),
+      ).toMatchObject({ ok: false, reason: "reservation_claim_epoch_mismatch" });
+    }
+    expect(
+      ledger.restoreFromSnapshot(
+        { ...snapshot, records: [{ ...record, jobGeneration: 0x1_0000_0000 }] },
+        registry,
+      ),
+    ).toMatchObject({ ok: false, reason: "reservation_claim_job_generation_mismatch" });
+  });
+
+  it("enforces fffc-through-ffff acquire and release version boundaries", () => {
+    for (const baseVersion of [0xffff_fffc, 0xffff_fffd]) {
+      const { registry, ledger, owner } = createFixture();
+      restoreVersionOrThrow(ledger, registry, baseVersion);
+      const acquired = acquireOrThrow(ledger, registry, request(owner, 260, 1, 7));
+      const claimId = acquired.claimIds[0] ?? RESERVATION_CLAIM_NONE;
+      expect(acquired.version).toBe(baseVersion + 1);
+      expect(ledger.readRecord(claimId)?.allocationEpoch).toBe(baseVersion + 1);
+      const output = createReleaseIntoOutput();
+      ledger.releaseClaimsInto(
+        Uint32Array.of(claimId),
+        Uint32Array.of(baseVersion + 1),
+        1,
+        owner,
+        260,
+        7,
+        baseVersion + 1,
+        output,
+      );
+      expect(output).toMatchObject({ ok: true, version: baseVersion + 2, activeCount: 0 });
+    }
+
+    for (const version of [0xffff_fffe, 0xffff_ffff]) {
+      const { registry, ledger, owner } = createFixture();
+      restoreVersionOrThrow(ledger, registry, version);
+      const before = ledger.createMetrics();
+      expect(ledger.acquire(request(owner, 261, 2, 7), registry)).toStrictEqual({
+        ok: false,
+        reason: "reservation_ledger_version_exhausted",
+      });
+      const claimIds = new Uint32Array(1);
+      const output = createAcquireIntoOutput();
+      ledger.acquireInto(
+        request(owner, 262, 3, 7),
+        registry,
+        createAcquireIntoScratch(1),
+        claimIds,
+        output,
+      );
+      expect(output).toMatchObject({
+        ok: false,
+        reason: "reservation_ledger_version_exhausted",
+        version,
+      });
+      expect(claimIds[0]).toBe(RESERVATION_CLAIM_NONE);
+      expect(ledger.createMetrics()).toStrictEqual(before);
+    }
+
+    const { registry, ledger, owner } = createFixture();
+    const acquired = acquireOrThrow(ledger, registry, request(owner, 263, 4, 7));
+    const snapshot = ledger.createSnapshot();
+    restoreSnapshotOrThrow(ledger, { ...snapshot, ledgerVersion: 0xffff_ffff }, registry);
+    const claimId = acquired.claimIds[0] ?? RESERVATION_CLAIM_NONE;
+    const readOutput = createClaimsIntoOutput();
+    ledger.readActiveClaimsInto(
+      Uint32Array.of(claimId),
+      Uint32Array.of(1),
+      1,
+      owner,
+      263,
+      7,
+      0xffff_ffff,
+      readOutput,
+    );
+    expect(readOutput.ok).toBe(true);
+    const releaseOutput = createReleaseIntoOutput();
+    ledger.releaseClaimsInto(
+      Uint32Array.of(claimId),
+      Uint32Array.of(1),
+      1,
+      owner,
+      263,
+      7,
+      0xffff_ffff,
+      releaseOutput,
+    );
+    expect(releaseOutput).toMatchObject({
+      ok: false,
+      reason: "reservation_ledger_version_exhausted",
+      releasedCount: 0,
+    });
+    expect(ledger.activeCount).toBe(1);
+  });
+
+  it("hashes job generation and allocation epoch as independent canonical facts", () => {
+    const generationA = createRuntimeOrThrow("reservation-hash-generation");
+    const generationB = createRuntimeOrThrow("reservation-hash-generation");
+    acquireRuntimeCell(generationA, 270, 1, 20);
+    acquireRuntimeCell(generationB, 270, 2, 20);
+    expect(generationA.createWorldHash()).not.toBe(generationB.createWorldHash());
+    expect(generationA.createReadModelHash()).not.toBe(generationB.createReadModelHash());
+
+    const epochA = createRuntimeOrThrow("reservation-hash-epoch");
+    const epochB = createRuntimeOrThrow("reservation-hash-epoch");
+    const targetA = acquireRuntimeCell(epochA, 271, 3, 21);
+    const unrelatedA = acquireRuntimeCell(epochA, 272, undefined, 22);
+    epochA.owners.reservations.releaseClaims(unrelatedA.claimIds);
+    const unrelatedB = acquireRuntimeCell(epochB, 272, undefined, 22);
+    epochB.owners.reservations.releaseClaims(unrelatedB.claimIds);
+    const targetB = acquireRuntimeCell(epochB, 271, 3, 21);
+    expect(targetA.claimIds).toEqual(targetB.claimIds);
+    expect(epochA.owners.reservations.version).toBe(epochB.owners.reservations.version);
+    expect(epochA.owners.reservations.readRecord(0)?.allocationEpoch).toBe(1);
+    expect(epochB.owners.reservations.readRecord(0)?.allocationEpoch).toBe(3);
+    expect(epochA.createWorldHash()).not.toBe(epochB.createWorldHash());
+    expect(epochA.createReadModelHash()).not.toBe(epochB.createReadModelHash());
+  });
 });
 
 function createFixture(): {
@@ -636,6 +1189,171 @@ function createFixture(): {
   const buildSite = allocateOrThrow(registry);
   const ledger = createReservationLedger({ capacity: 32, entityCapacity: 16, cellCount: 64 });
   return { registry, ledger, owner, item, buildSite };
+}
+
+type TestLedger = ReturnType<typeof createReservationLedger>;
+type TestRegistry = ReturnType<typeof createEntityRegistry>;
+type AcquiredReservation = Extract<ReturnType<TestLedger["acquire"]>, { readonly ok: true }>;
+type TestGameSessionRuntime = Extract<
+  ReturnType<typeof initializeGameSessionRuntime>,
+  { readonly ok: true }
+>["runtime"];
+type ClaimsLaneIdentities = ReturnType<typeof readClaimsLaneIdentities>;
+
+function request(
+  owner: EntityId,
+  jobId: number,
+  cellIndex: number,
+  jobGeneration?: number,
+): ReservationTransactionRequest {
+  const base = {
+    owner,
+    jobId,
+    createdTick: 1,
+    leaseExpiryTick: 30,
+    claims: [{ channel: "cell" as const, cellIndex }],
+  };
+  return jobGeneration === undefined ? base : { ...base, jobGeneration };
+}
+
+function acquireOrThrow(
+  ledger: TestLedger,
+  registry: TestRegistry,
+  transaction: ReservationTransactionRequest,
+): AcquiredReservation {
+  const result = ledger.acquire(transaction, registry);
+  if (!result.ok) throw new Error(result.reason);
+  return result;
+}
+
+function createReleaseIntoOutput(): ReservationReleaseIntoOutput {
+  return {
+    ok: false,
+    reason: undefined,
+    claimIndex: 0,
+    claimId: 0,
+    releasedCount: 0,
+    version: 0,
+    activeCount: 0,
+  };
+}
+
+function createClaimsIntoOutput(): ReservationClaimsIntoOutput {
+  return {
+    ok: false,
+    reason: undefined,
+    claimIndex: 0,
+    claimId: 0,
+    claimCount: 0,
+    version: 0,
+    activeCount: 0,
+    channelCodes: new Uint8Array(8),
+    ownerIndexes: new Uint32Array(8),
+    ownerGenerations: new Uint32Array(8),
+    jobIds: new Uint32Array(8),
+    jobGenerations: new Uint32Array(8),
+    hasTargetFlags: new Uint8Array(8),
+    targetIndexes: new Uint32Array(8),
+    targetGenerations: new Uint32Array(8),
+    cellIndexes: new Uint32Array(8),
+    slotIds: new Uint32Array(8),
+    amounts: new Uint32Array(8),
+    allocationEpochs: new Uint32Array(8),
+    createdTicks: new Float64Array(8),
+    leaseExpiryTicks: new Float64Array(8),
+  };
+}
+
+function readClaimsLaneIdentities(output: ReservationClaimsIntoOutput): readonly object[] {
+  return [
+    output.channelCodes,
+    output.ownerIndexes,
+    output.ownerGenerations,
+    output.jobIds,
+    output.jobGenerations,
+    output.hasTargetFlags,
+    output.targetIndexes,
+    output.targetGenerations,
+    output.cellIndexes,
+    output.slotIds,
+    output.amounts,
+    output.allocationEpochs,
+    output.createdTicks,
+    output.leaseExpiryTicks,
+  ];
+}
+
+function expectClaimsLaneIdentities(
+  output: ReservationClaimsIntoOutput,
+  identities: ClaimsLaneIdentities,
+): void {
+  const after = readClaimsLaneIdentities(output);
+  for (let index = 0; index < identities.length; index += 1) {
+    expect(after[index]).toBe(identities[index]);
+  }
+}
+
+function createAcquireIntoScratch(capacity: number): ReservationAcquireIntoScratch {
+  return {
+    channelCodes: new Uint8Array(capacity),
+    keys: new Float64Array(capacity),
+    amounts: new Uint32Array(capacity),
+    limits: new Uint32Array(capacity),
+    targetIndexes: new Uint32Array(capacity),
+    targetGenerations: new Uint32Array(capacity),
+    hasTargets: new Uint8Array(capacity),
+    slots: new Uint32Array(capacity),
+  };
+}
+
+function createAcquireIntoOutput(): ReservationAcquireIntoOutput {
+  return {
+    ok: false,
+    reason: undefined,
+    claimIndex: 0,
+    conflictingClaimId: 0,
+    claimCount: 0,
+    version: 0,
+    activeCount: 0,
+  };
+}
+
+function restoreVersionOrThrow(
+  ledger: TestLedger,
+  registry: TestRegistry,
+  ledgerVersion: number,
+): void {
+  restoreSnapshotOrThrow(ledger, { ...ledger.createSnapshot(), ledgerVersion }, registry);
+}
+
+function restoreSnapshotOrThrow(
+  ledger: TestLedger,
+  snapshot: ReservationLedgerSnapshotInput,
+  registry: TestRegistry,
+): void {
+  const restored = ledger.restoreFromSnapshot(snapshot, registry);
+  if (!restored.ok) throw new Error(restored.reason);
+}
+
+function createRuntimeOrThrow(seed: string): TestGameSessionRuntime {
+  const initialized = initializeGameSessionRuntime({ seed });
+  if (!initialized.ok) throw new Error(initialized.reason);
+  return initialized.runtime;
+}
+
+function acquireRuntimeCell(
+  runtime: TestGameSessionRuntime,
+  jobId: number,
+  jobGeneration: number | undefined,
+  cellIndex: number,
+): AcquiredReservation {
+  const resident = runtime.owners.residents.read(0);
+  if (resident === undefined) throw new Error("missing resident zero");
+  return acquireOrThrow(
+    runtime.owners.reservations,
+    runtime.owners.entities,
+    request(resident.entity, jobId, cellIndex, jobGeneration),
+  );
 }
 
 function allocateMany(

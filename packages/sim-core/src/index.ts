@@ -1741,6 +1741,7 @@ export type {
   ReservationChannel,
   ReservationChannelCode,
   ReservationClaimRequest,
+  ReservationClaimsIntoOutput,
   ReservationLedgerMetrics,
   ReservationLedgerOptions,
   ReservationLedgerSnapshot,
@@ -1748,6 +1749,7 @@ export type {
   ReservationReason,
   ReservationRecordSnapshot,
   ReservationRecordView,
+  ReservationReleaseIntoOutput,
   ReservationReleaseResult,
   ReservationTransactionRequest,
 } from "./reservation-ledger";
