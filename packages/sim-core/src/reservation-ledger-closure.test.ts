@@ -57,17 +57,40 @@ describe("ReservationLedger exact custody TypeChecker closure", () => {
     );
   });
 
-  it("rejects same-name calls on a foreign receiver and unresolved calls", () => {
-    const foreign = auditSyntheticRoot(`
-      interface ForeignLedger { releaseClaimNoVersion(claimId: number): boolean; }
-      function root(receiver: ForeignLedger): void { receiver.releaseClaimNoVersion(1); }
+  it("rejects a same-source foreign same-name receiver through the formal auditor", () => {
+    const context = createSyntheticAuditContext(`
+      class ForeignLedger { releaseClaimNoVersion(claimId: number): boolean { return claimId >= 0; } }
+      class ReservationLedger {
+        releaseClaimsInto(receiver: ForeignLedger): void { receiver.releaseClaimNoVersion(1); }
+      }
     `);
-    const unresolved = auditSyntheticRoot(`
-      function root(receiver: unknown): void { receiver.missing(); }
-    `);
+    const result = auditMethodClosure(context, "releaseClaimsInto");
 
-    expect(foreign).toContain("foreign project receiver ForeignLedger.releaseClaimNoVersion");
-    expect(unresolved).toContain("unresolved call receiver.missing");
+    expect(result.violations).toContain(
+      "ReservationLedger.releaseClaimsInto: foreign project receiver ForeignLedger.releaseClaimNoVersion",
+    );
+  });
+
+  it("rejects a non-this same-class receiver through the formal auditor", () => {
+    const context = createSyntheticAuditContext(`
+      class ReservationLedger { releaseClaimsInto(receiver: ReservationLedger): void { receiver.releaseClaimNoVersion(1); } releaseClaimNoVersion(claimId: number): boolean { return claimId >= 0; } }
+    `);
+    const result = auditMethodClosure(context, "releaseClaimsInto");
+
+    expect(result.violations).toContain(
+      "ReservationLedger.releaseClaimsInto: non-this project receiver receiver.releaseClaimNoVersion",
+    );
+  });
+
+  it("fails an unresolved receiver closed through the formal auditor", () => {
+    const context = createSyntheticAuditContext(`
+      class ReservationLedger { releaseClaimsInto(receiver: unknown): void { receiver.missing(); } }
+    `);
+    const result = auditMethodClosure(context, "releaseClaimsInto");
+
+    expect(result.violations).toContain(
+      "ReservationLedger.releaseClaimsInto: unresolved call receiver.missing",
+    );
   });
 
   it.each([
@@ -145,6 +168,11 @@ function auditMethodClosure(context: AuditContext, rootName: string): ClosureAud
       const targetSource = target.getSourceFile();
       const targetName = declarationName(target);
       if (targetSource === context.sourceFile) {
+        const receiverViolation = projectReceiverViolation(context, call, target);
+        if (receiverViolation !== undefined) {
+          violations.push(`${declarationLabel(declaration)}: ${receiverViolation}`);
+          return;
+        }
         if (BROAD_OR_MATERIALIZING_CALLS.has(targetName)) {
           violations.push(`${declarationLabel(declaration)}: broad call ${targetName}`);
           return;
@@ -160,6 +188,25 @@ function auditMethodClosure(context: AuditContext, rootName: string): ClosureAud
     });
   }
   return { reached, violations };
+}
+
+function projectReceiverViolation(
+  context: AuditContext,
+  call: ts.CallExpression,
+  target: ts.SignatureDeclaration,
+): string | undefined {
+  const owner = target.parent;
+  if (owner === context.ledgerClass) {
+    if (
+      !ts.isPropertyAccessExpression(call.expression) ||
+      call.expression.expression.kind !== ts.SyntaxKind.ThisKeyword
+    ) {
+      return `non-this project receiver ${call.expression.getText()}`;
+    }
+    return undefined;
+  }
+  if (owner === context.sourceFile && ts.isIdentifier(call.expression)) return undefined;
+  return `foreign project receiver ${declarationLabel(target)}`;
 }
 
 function scanForbiddenConstruction(
@@ -304,23 +351,6 @@ function findFunction(sourceFile: ts.SourceFile, name: string): ts.FunctionDecla
   return declaration;
 }
 
-function auditSyntheticRoot(source: string): readonly string[] {
-  const context = createSyntheticContext(source);
-  const root = findFunction(context.sourceFile, "root");
-  const violations: string[] = [];
-  visitCalls(root, (call) => {
-    const target = context.checker.getResolvedSignature(call)?.getDeclaration();
-    if (target === undefined) {
-      violations.push(`unresolved call ${call.expression.getText()}`);
-      return;
-    }
-    if (!target.getSourceFile().isDeclarationFile) {
-      violations.push(`foreign project receiver ${declarationLabel(target)}`);
-    }
-  });
-  return violations;
-}
-
 function createSyntheticContext(source: string): {
   readonly checker: ts.TypeChecker;
   readonly sourceFile: ts.SourceFile;
@@ -346,6 +376,16 @@ function createSyntheticContext(source: string): {
   const sourceFile = program.getSourceFile(fileName);
   if (sourceFile === undefined) throw new Error("missing synthetic source");
   return { checker: program.getTypeChecker(), sourceFile };
+}
+
+function createSyntheticAuditContext(source: string): AuditContext {
+  const context = createSyntheticContext(source);
+  const ledgerClass = context.sourceFile.statements.find(
+    (statement): statement is ts.ClassDeclaration =>
+      ts.isClassDeclaration(statement) && statement.name?.text === "ReservationLedger",
+  );
+  if (ledgerClass === undefined) throw new Error("missing synthetic ReservationLedger class");
+  return { ...context, ledgerClass };
 }
 
 function formatDiagnostic(diagnostic: ts.Diagnostic): string {

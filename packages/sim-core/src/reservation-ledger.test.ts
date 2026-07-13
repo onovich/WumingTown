@@ -753,7 +753,7 @@ describe("reservation ledger", () => {
       RESERVATION_CLAIM_NONE,
       RESERVATION_CLAIM_NONE,
     ]);
-    expect([...output.amounts]).toEqual([1, 1, 2, 1, 3, 0, 0, 0]);
+    expect([...output.amounts]).toEqual([0, 0, 2, 0, 3, 0, 0, 0]);
     expect([...output.jobGenerations]).toEqual([9, 9, 9, 9, 9, 0, 0, 0]);
     expect([...output.allocationEpochs]).toEqual([1, 1, 1, 1, 1, 0, 0, 0]);
     expect([...output.createdTicks]).toEqual([

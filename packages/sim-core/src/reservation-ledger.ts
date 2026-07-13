@@ -1046,7 +1046,10 @@ export class ReservationLedger implements LocationLifecycleHooks {
       code === RESERVATION_INTERACTION_SPOT || code === RESERVATION_CAPACITY
         ? (this.slot[claimId] ?? RESERVATION_CLAIM_NONE)
         : RESERVATION_CLAIM_NONE;
-    output.amounts[claimIndex] = this.amount[claimId] ?? 0;
+    output.amounts[claimIndex] =
+      code === RESERVATION_ITEM_QUANTITY || code === RESERVATION_CAPACITY
+        ? (this.amount[claimId] ?? 0)
+        : 0;
     output.allocationEpochs[claimIndex] = this.allocationEpoch[claimId] ?? 0;
     output.createdTicks[claimIndex] = this.createdTick[claimId] ?? 0;
     output.leaseExpiryTicks[claimIndex] = this.leaseExpiryTick[claimId] ?? 0;
