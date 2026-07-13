@@ -1,0 +1,12 @@
+{
+  "id": "MSG-MRIY6B1H-DD2071",
+  "from": "simulation-engineer",
+  "to": "project-director",
+  "taskId": "WM-0170",
+  "kind": "blocker",
+  "subject": "WM-0170 blocked",
+  "body": "Independent B3 PLAN PASS at 7a483fc54701eeddb0e3285929dadb2971880075 requires exactly two serial repairs: WM-0182 ReservationLedger exact custody, then WM-0183 claim-ready owners, JobCore token custody and historical-driver adoption. Preserve B2 checkpoint 59c9731 and the approved B3 plan; resume WM-0170 only after both prerequisites are independently verified, integrated and done and the exact resume audit passes.",
+  "artifacts": [],
+  "createdAt": "2026-07-13T08:15:25.541Z",
+  "acknowledgedAt": "2026-07-13T08:15:55.660Z"
+}

@@ -1,0 +1,99 @@
+{
+  "id": "WM-0182",
+  "title": "ReservationLedger exact claim custody and allocation epochs",
+  "summary": "Add generation-aware exact claim custody APIs and independently rooted allocation-free release/read closure for WM-0170 and WM-0171.",
+  "state": "ready",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": ["WM-0177"],
+  "docs": [
+    "AGENTS.md",
+    ".agents/skills/wuming-town-agent-workflow/SKILL.md",
+    "coordination/tasks/WM-0170.json",
+    "coordination/reports/WM-0170-plan.md",
+    "coordination/tasks/WM-0177.json",
+    "coordination/reports/WM-0177.md",
+    "coordination/decisions/ADR-0018.md",
+    "docs/05_tech/13_autonomous_town_life_architecture.md",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "packages/sim-core/src/reservation-ledger.ts",
+    "packages/sim-core/src/game-session-hash-owner-fields.ts"
+  ],
+  "acceptance": [
+    "ReservationTransactionRequest accepts optional uint32 jobGeneration for source compatibility, normalizes an omitted value to required record value 0 for legacy callers, and requires a positive exact JobCore token generation for autonomous claims; record views, snapshots, hashes, restore validation and every exact read/release path preserve the required scalar",
+    "Every active reservation record owns a positive uint32 allocationEpoch equal to the successful transaction's post-acquire ledger version; recycled claim ids receive a different epoch, zero/future/wrapped epochs reject, the ReservationLedger snapshot schema version increments, and old-shape restore is rejected rather than synthesized",
+    "releaseClaimsInto uses caller-owned id/epoch inputs and output, validates exact integer count 1..8, both input lengths, duplicates, owner EntityId, job id/generation, allocation epochs, current ledger version and version headroom all-before-any, reports the first deterministic index/id/reason, and releases only the exact prefix in reverse order with one truthful version/count/metric commit",
+    "readActiveClaimsInto is allocation-free and read-only, validates the same exact prefix/binding/epoch contract against a freshly sampled current ledger version, resets and fills fourteen exact length-eight output lanes in input order, preserves Float64 safe created/lease Ticks, and accepts no partial prefix",
+    "Every claim-creating acquire rejects current ledger versions 0xffff_fffe and 0xffffffff before mutation, exact release may consume the final legal bump, no version or epoch wraps, and focused boundary tests cover fffc through ffff plus fresh, reused and full-capacity compensation ordering",
+    "Legacy acquire/release behavior and signatures remain compatible, no positive-generation claim can be matched by broad legacy owner/job cleanup, the public package entry exports only the reviewed new contracts, and snapshot/restore/hash tests cover mixed old shape, wrong generation and recycled claim ABA",
+    "A receiver-exact TypeScript TypeChecker closure independently roots releaseClaimsInto and readActiveClaimsInto and proves caller-owned output identity, prefix-only bounded loops, no for-of, Set, object/array/closure/string allocation, unresolved receiver, broad release or materializing compatibility API on either reachable body",
+    "The task changes only the frozen ReservationLedger custody files, their focused/closure/hash/export tests and its own coordination artifacts; it does not edit ResidentAutonomyStore, JobCore, claim-ready domain owners, historical drivers, GameSession integration, protocol/product files, dependencies or benchmarks"
+  ],
+  "requiredChecks": [
+    "corepack pnpm typecheck",
+    "corepack pnpm exec vitest run packages/sim-core/src/reservation-ledger.test.ts packages/sim-core/src/reservation-ledger-closure.test.ts packages/sim-core/src/owner-hot-path-surfaces.test.ts",
+    "corepack pnpm exec prettier --check packages/sim-core/src/reservation-ledger.ts packages/sim-core/src/reservation-ledger.test.ts packages/sim-core/src/reservation-ledger-closure.test.ts packages/sim-core/src/game-session-hash-owner-fields.ts packages/sim-core/src/index.ts coordination/tasks/WM-0182.json coordination/reports/WM-0182.md",
+    "corepack pnpm boundaries:check",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality"
+  ],
+  "branch": "task/WM-0182-reservationledger-exact-claim-custody-and-alloca",
+  "createdAt": "2026-07-13T08:08:27.691Z",
+  "updatedAt": "2026-07-13T08:09:09.341Z",
+  "history": [
+    {
+      "at": "2026-07-13T08:08:27.691Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    },
+    {
+      "at": "2026-07-13T08:09:09.341Z",
+      "actor": "project-director",
+      "action": "refine-approved-prerequisite",
+      "details": "Created as the first of exactly two serial prerequisites after independent B3 PLAN PASS at 7a483fc54701eeddb0e3285929dadb2971880075; exclusively owns ReservationLedger claim custody and is ready because WM-0177 is done."
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "pr-2-autonomous-town-life-core-prerequisite-1",
+  "planningTask": "WM-0170",
+  "architectureDecision": "coordination/decisions/ADR-0018.md",
+  "approvedPlan": {
+    "checkpoint": "7a483fc54701eeddb0e3285929dadb2971880075",
+    "path": "coordination/reports/WM-0170-plan.md",
+    "verdict": "B3 PLAN PASS"
+  },
+  "repairFor": ["WM-0170", "WM-0171"],
+  "writeOwnership": [
+    "packages/sim-core/src/reservation-ledger.ts",
+    "packages/sim-core/src/reservation-ledger.test.ts",
+    "packages/sim-core/src/reservation-ledger-closure.test.ts",
+    "packages/sim-core/src/game-session-hash-owner-fields.ts",
+    "packages/sim-core/src/owner-hot-path-surfaces.test.ts",
+    "packages/sim-core/src/index.ts",
+    "coordination/tasks/WM-0182.json",
+    "coordination/reports/WM-0182*.md"
+  ],
+  "allowedPaths": [
+    "packages/sim-core/src/reservation-ledger.ts",
+    "packages/sim-core/src/reservation-ledger.test.ts",
+    "packages/sim-core/src/reservation-ledger-closure.test.ts",
+    "packages/sim-core/src/game-session-hash-owner-fields.ts",
+    "packages/sim-core/src/owner-hot-path-surfaces.test.ts",
+    "packages/sim-core/src/index.ts",
+    "coordination/tasks/WM-0182.json",
+    "coordination/reports/WM-0182*.md"
+  ],
+  "forbiddenPaths": [
+    "packages/sim-core/src/game-session-autonomy*.ts or any WM-0170 production/test file",
+    "packages/sim-core/src/job-core.ts, item-stack-store.ts, storage-logistics-index.ts, m3-*.ts, hauling-jobs.ts or m4-lamp-network.ts",
+    "GameSession runtime/tick/initializer/product construction, packages/sim-protocol/**, packages/sim-worker/**, apps/**, renderer or UI files",
+    "broad owner/job reservation cleanup for positive-generation claims, a new runtime dependency, benchmark/baseline/admission changes or release actions"
+  ],
+  "executionLane": "simulation-engineer; Spark is prohibited because this task changes authoritative ReservationLedger schema, ABA identity, snapshot/hash/restore and public owner contracts",
+  "singleWriterRule": "WM-0182 is the sole ready repair writer. WM-0183 remains proposed behind WM-0182, and WM-0170 retains its original owner/checkpoint while blocked until both prerequisites are independently verified, integrated and done.",
+  "integrationOrder": "First prerequisite. Independent reviewer verification, project-director integration and done are mandatory before WM-0183 may become ready."
+}
