@@ -2,14 +2,10 @@
   "id": "WM-0170",
   "title": "PR-2 autonomous decision state and indexed work selection",
   "summary": "Implement explicit serializable resident autonomy state, structured reasons, schedule/need/capability arbitration and bounded indexed Top-K offer/path/reservation selection in sim-core without product projection changes.",
-  "state": "in_progress",
+  "state": "blocked",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
-  "dependsOn": [
-    "WM-0169",
-    "WM-0177",
-    "WM-0181"
-  ],
+  "dependsOn": ["WM-0169", "WM-0177", "WM-0181", "WM-0182", "WM-0183"],
   "docs": [
     "AGENTS.md",
     ".agents/skills/wuming-town-agent-workflow/SKILL.md",
@@ -50,7 +46,7 @@
   ],
   "branch": "task/WM-0170-pr-2-autonomous-decision-state-and-indexed-work-",
   "createdAt": "2026-07-11T07:53:17.870Z",
-  "updatedAt": "2026-07-12T21:59:38.154Z",
+  "updatedAt": "2026-07-13T08:15:25.540Z",
   "history": [
     {
       "at": "2026-07-11T07:53:17.871Z",
@@ -111,6 +107,18 @@
       "actor": "simulation-engineer",
       "action": "unblock",
       "details": "WM-0181 food/rest/medical caller-owned exact-index prerequisite is verified, integrated and done; resume the unchanged WM-0170 contract."
+    },
+    {
+      "at": "2026-07-13T08:15:23.000Z",
+      "actor": "project-director",
+      "action": "route-b3-serial-prerequisites",
+      "details": "Independent reviewer returned B3 PLAN PASS for checkpoint 7a483fc54701eeddb0e3285929dadb2971880075. Created exactly two serial repairs: ready WM-0182 exclusively owns ReservationLedger custody, then proposed WM-0183 owns claim-ready owners, reusable JobCore token custody and historical-driver adoption."
+    },
+    {
+      "at": "2026-07-13T08:15:25.540Z",
+      "actor": "simulation-engineer",
+      "action": "block",
+      "details": "Independent B3 PLAN PASS at 7a483fc54701eeddb0e3285929dadb2971880075 requires exactly two serial repairs: WM-0182 ReservationLedger exact custody, then WM-0183 claim-ready owners, JobCore token custody and historical-driver adoption. Preserve B2 checkpoint 59c9731 and the approved B3 plan; resume WM-0170 only after both prerequisites are independently verified, integrated and done and the exact resume audit passes."
     }
   ],
   "milestone": "Post-M8",
@@ -138,19 +146,27 @@
     "save format/load implementation, new runtime dependency, PR-3 command/building/priority scope or release action"
   ],
   "executionLane": "simulation-engineer; Spark is prohibited because the task defines deterministic AI state, path/reservation ownership and hot-loop behavior",
-  "repairTasks": [
-    "WM-0177",
-    "WM-0181"
-  ],
+  "repairTasks": ["WM-0177", "WM-0181", "WM-0182", "WM-0183"],
   "resumeProcedure": [
-    "WM-0181 must be independently reviewed as verified, integrated and marked done after its WM-0177 dependency.",
-    "The original simulation-engineer must run: node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs unblock --id WM-0170 --agent simulation-engineer --summary \"WM-0181 food/rest/medical caller-owned exact-index prerequisite is verified, integrated and done; resume the unchanged WM-0170 contract.\"",
-    "After unblock, rerun the complete public owner API audit from coordination/reports/WM-0170-plan.md against ordinary WorkOffer/path/reservation/ability surfaces and the integrated food/rest/medical Into surfaces, including owner/row/index/backlog and caregiver ability bases.",
-    "Revise the dirty B1 selection contract to persist numeric candidateSourceCode, pendingJobId and a generic source-local candidate basis; provide explicit caller-owned claim-plan header/transaction/claim-slot scratch and coordinator-owned five-lane arbitration.",
-    "Only if that audit and the repaired B1 review pass may WM-0170 resume coordinator implementation under the original acceptance without lowering allocation, owner-version, cap, atomicity, path, determinism or scope thresholds."
+    "WM-0182 must be independently reviewed as verified, integrated and marked done before WM-0183 may be promoted or claimed.",
+    "WM-0183 must then be independently reviewed as verified, integrated and marked done while consuming only WM-0182's public ReservationLedger contract.",
+    "The original simulation-engineer must unblock WM-0170 with a summary naming both done prerequisites and preserving the B2 implementation checkpoint 59c9731 plus the approved B3 plan checkpoint 7a483fc54701eeddb0e3285929dadb2971880075.",
+    "Before any B3 edit, read the exact approved plan blob at 7a483fc54701eeddb0e3285929dadb2971880075:coordination/reports/WM-0170-plan.md, rerun the B2 focused tests, typecheck and receiver-exact closure, and audit the integrated ReservationLedger/owner/JobCore/driver signatures against the plan.",
+    "Only after that audit passes may the original owner implement B3 strictly inside WM-0170 allowedPaths; WM-0170 must not edit ReservationLedger, claim-ready owner, JobCore or historical-driver files owned by WM-0182/WM-0183."
   ],
-  "singleWriterRule": "WM-0181 is the sole ready repair writer. WM-0170 remains blocked with its original simulation-engineer owner and Phase A/B1 checkpoint until WM-0181 is verified/integrated/done and the exact resume procedure passes; WM-0171..WM-0175 retain their existing dependencies.",
+  "singleWriterRule": "WM-0182 is the sole ready repair writer. WM-0183 remains proposed behind WM-0182, and WM-0170 remains blocked with its original simulation-engineer owner, B2 checkpoint 59c9731 and approved B3 plan checkpoint until both prerequisites are independently verified, integrated and done; WM-0171..WM-0175 retain their existing dependencies.",
+  "approvedB3Plan": {
+    "checkpoint": "7a483fc54701eeddb0e3285929dadb2971880075",
+    "path": "coordination/reports/WM-0170-plan.md",
+    "verdict": "B3 PLAN PASS"
+  },
   "claimedBy": "simulation-engineer",
   "threadLabel": "Tally WM-0170",
-  "blocker": null
+  "blocker": {
+    "by": "simulation-engineer",
+    "to": "project-director",
+    "reason": "Independent B3 PLAN PASS at 7a483fc54701eeddb0e3285929dadb2971880075 requires exactly two serial repairs: WM-0182 ReservationLedger exact custody, then WM-0183 claim-ready owners, JobCore token custody and historical-driver adoption. Preserve B2 checkpoint 59c9731 and the approved B3 plan; resume WM-0170 only after both prerequisites are independently verified, integrated and done and the exact resume audit passes.",
+    "previousState": "in_progress",
+    "at": "2026-07-13T08:15:25.540Z"
+  }
 }
