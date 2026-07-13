@@ -1,4 +1,4 @@
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
 
 import {
   AUTONOMY_REASON_BLOCKED_SCHEDULE_CLOSED,
@@ -44,6 +44,7 @@ import {
   AUTONOMY_ORDINARY_MAX_BUCKETS,
   AUTONOMY_REAL_SOURCE_COUNT,
   AUTONOMY_SCHEDULE_CODE_COUNT,
+  AUTONOMY_B2_HOT_FREE_AUDIT_TARGETS,
   ResidentAutonomyCoordinator,
   bindAutonomyClaimSlotInto,
   createAutonomyDecisionPolicy,
@@ -53,11 +54,14 @@ import {
   type AutonomyClaimSlotScratch,
   type AutonomyClaimSlotScratchTuple,
   type AutonomyDecisionOutput,
+  type AutonomyDecisionMetricsOutput,
   type AutonomyDecisionPolicyInput,
+  type AutonomyDecisionRequest,
   type AutonomyDecisionScratch,
   type AutonomyGlobalRetainedLanes,
   type AutonomyCandidateLane,
   type AutonomyJobFactsLane,
+  type AutonomyPathBasisLane,
   type AutonomyScheduleFactsLane,
   type AutonomyWakeFactsLane,
   type ResidentAutonomyCoordinatorDependencies,
@@ -69,6 +73,11 @@ import {
   AUTONOMY_CANDIDATE_SOURCE_ORDINARY,
   AUTONOMY_CANDIDATE_SOURCE_REST,
   AUTONOMY_CANDIDATE_SOURCE_WAIT,
+  AUTONOMY_DECISION_DEFERRED,
+  AUTONOMY_DECISION_FAILED,
+  AUTONOMY_DECISION_INTERRUPTION_REQUESTED,
+  AUTONOMY_DECISION_KEEP_WORKING,
+  AUTONOMY_DECISION_WAIT,
   AUTONOMY_INTERRUPTION_POLICY_AT_SAFE_POINT,
   AUTONOMY_INTERRUPTION_POLICY_IMMEDIATE,
   AUTONOMY_INTERRUPTION_POLICY_NONE,
@@ -114,16 +123,17 @@ import { createEntityRegistry } from "./entity-id";
 import { createM3FoodAvailabilityStore } from "./m3-food";
 import {
   M3_ABILITY_MANIPULATION,
+  M3_ABILITY_MOVEMENT,
   M3_ABILITY_STAMINA,
   createM3AbilityCacheStore,
   createM3HealthConditionStore,
   type M3AbilityQueryIntoOutput,
 } from "./m3-health";
 import { createM3MedicalCareStore } from "./m3-medical-care";
-import { createNeedStore } from "./m3-needs";
+import { NEED_LANE_SAFETY, createNeedStore } from "./m3-needs";
 import { createRestCandidateIndex, createRestSleepStore } from "./m3-rest-sleep";
-import { createMapGrid } from "./map-grid";
-import { createGridPathfinder, type PathSearchIntoOutput } from "./pathing";
+import { MAP_TERRAIN_BLOCKED, createMapGrid } from "./map-grid";
+import { createGridPathfinder, type PathRequest, type PathSearchIntoOutput } from "./pathing";
 import {
   createReservationLedger,
   type ReservationAcquireIntoOutput,
@@ -394,12 +404,636 @@ it("runs the read-only ordinary owner through raw Top-12, one full score per row
   expect(scratch.globalRetained.scoreInvocationCounts.slice(0, 12)).toEqual(
     new Uint8Array(12).fill(1),
   );
+  expect(scratch.needValues).toEqual(new Uint16Array([500, 500, 500, 500, 500]));
+  for (const version of scratch.needOwnerVersions) expect(version).toBeGreaterThan(0);
   expect(scratch.globalRetained.candidateIds).toBe(retainedIdentity);
   expect(scratch.selectedRouteCells).toBe(routeIdentity);
   expect(scratch.selectedRouteCells[output.routeCellCount]).toBe(AUTONOMY_REF_NONE);
   expect(fixture.dependencies.autonomyStore.createSnapshot()).toEqual(autonomyBefore);
   expect(fixture.dependencies.reservations.createSnapshot()).toEqual(reservationBefore);
   expect(fixture.claimPlanReadCount.value).toBe(0);
+});
+
+it("documents the raw Top-12 approximation and enforces N=1..4 shared source quotas", () => {
+  const approximation = createCoordinatorFixture(12, 12, 2);
+  const approximationScratch = createDecisionScratch();
+  const approximationOutput = createDecisionOutput();
+  approximation.coordinator.decideInto(
+    createDecisionRequest(0, 90),
+    approximationScratch,
+    approximationOutput,
+  );
+  expect(approximationOutput).toMatchObject({
+    ok: true,
+    visitedCount: 24,
+    retainedCount: 12,
+    scoredCount: 12,
+    approximationDropCount: 12,
+  });
+  expect(approximationScratch.globalRetained.sourceCodes).toEqual(new Uint8Array(12).fill(2));
+  expect(approximationScratch.globalRetained.scoreInvocationCounts).toEqual(
+    new Uint8Array(12).fill(1),
+  );
+  expect(approximationScratch.ordinaryOutput.selectedCount).toBe(12);
+  expect(approximationScratch.globalRetained.candidateIds.includes(0)).toBe(true);
+  expect(
+    containsUint8Value(
+      approximationScratch.globalRetained.sourceCodes,
+      AUTONOMY_CANDIDATE_SOURCE_ORDINARY,
+    ),
+  ).toBe(false);
+  const droppedOrdinaryWouldScore = 10_000 - 0 + 200 + 500 + 20 + 1_000;
+  expect(droppedOrdinaryWouldScore).toBeGreaterThan(
+    approximationScratch.globalRetained.commonScores[0] ?? Number.MAX_SAFE_INTEGER,
+  );
+
+  for (let enabled = 1; enabled <= 4; enabled += 1) {
+    const fixture = createCoordinatorFixture(12, 12, enabled);
+    const scratch = createDecisionScratch();
+    const output = createDecisionOutput();
+    fixture.coordinator.decideInto(createDecisionRequest(0, 100 + enabled), scratch, output);
+    const expectedQuota = enabled <= 2 ? 12 : enabled === 3 ? 8 : 6;
+    expect(
+      scratch.ordinaryOptions.candidateCap,
+      `enabled=${String(enabled)} reason=${String(output.reasonCode)} medical=${String(scratch.medicalOutput.reason)}`,
+    ).toBe(expectedQuota);
+    if (enabled >= 2) expect(scratch.restQuery.candidateCap).toBe(expectedQuota);
+    if (enabled >= 3) expect(scratch.foodQuery.candidateCap).toBe(expectedQuota);
+    if (enabled >= 4) expect(scratch.medicalOptions.candidateCap).toBe(expectedQuota);
+    expect(scratch.globalBudget.visitedCount).toBeLessThanOrEqual(AUTONOMY_MAX_VISITED_CANDIDATES);
+    expect(scratch.globalRetained.count).toBeLessThanOrEqual(AUTONOMY_MAX_RETAINED_CANDIDATES);
+    expect(sumUint8(scratch.globalRetained.scoreInvocationCounts)).toBe(
+      scratch.globalRetained.count,
+    );
+  }
+});
+
+it("reorders retained raw candidates by candidate-specific common distance with stable row ties", () => {
+  const fixture = createCoordinatorFixture(0, 0, 1, 1, true, 1_000);
+  const mutation = createOfferMutationOutputForAutonomy();
+  fixture.dependencies.workOffers.registerOfferInto(
+    {
+      offerId: 0,
+      workType: 0,
+      regionId: 0,
+      defId: 0,
+      urgencyBucket: 0,
+      permissionId: 0,
+      targetId: 30,
+      targetCellIndex: 15,
+      scoreMilli: 10_000,
+      ownerVersion: 1,
+    },
+    mutation,
+  );
+  expect(mutation.ok).toBe(true);
+  fixture.dependencies.workOffers.registerOfferInto(
+    {
+      offerId: 1,
+      workType: 0,
+      regionId: 0,
+      defId: 0,
+      urgencyBucket: 0,
+      permissionId: 0,
+      targetId: 31,
+      targetCellIndex: 1,
+      scoreMilli: 9_999,
+      ownerVersion: 1,
+    },
+    mutation,
+  );
+  expect(mutation.ok).toBe(true);
+  const scratch = createDecisionScratch();
+  const output = createDecisionOutput();
+  fixture.coordinator.decideInto(createDecisionRequest(0, 95), scratch, output);
+  expect(output.candidateId).toBe(1);
+  expect(scratch.globalRetained.rawScores[0]).toBeLessThan(
+    scratch.globalRetained.rawScores[1] ?? 0,
+  );
+  expect(scratch.globalRetained.commonScores[0]).toBeGreaterThan(
+    scratch.globalRetained.commonScores[1] ?? Number.MAX_SAFE_INTEGER,
+  );
+
+  const tie = createCoordinatorFixture(0);
+  tie.dependencies.workOffers.registerOfferInto(
+    {
+      offerId: 5,
+      workType: 0,
+      regionId: 0,
+      defId: 0,
+      urgencyBucket: 0,
+      permissionId: 0,
+      targetId: 40,
+      targetCellIndex: 1,
+      scoreMilli: 1_000,
+      ownerVersion: 1,
+    },
+    mutation,
+  );
+  tie.dependencies.workOffers.registerOfferInto(
+    {
+      offerId: 2,
+      workType: 0,
+      regionId: 0,
+      defId: 0,
+      urgencyBucket: 0,
+      permissionId: 0,
+      targetId: 41,
+      targetCellIndex: 1,
+      scoreMilli: 1_000,
+      ownerVersion: 1,
+    },
+    mutation,
+  );
+  const tieOutput = createDecisionOutput();
+  tie.coordinator.decideInto(createDecisionRequest(0, 96), createDecisionScratch(), tieOutput);
+  expect(tieOutput.candidateId).toBe(2);
+});
+
+it("rotates all eight ordinary hauling and lamp descriptors without request-sequence influence", () => {
+  const fixture = createCoordinatorFixture(0, 0, 1, AUTONOMY_ORDINARY_MAX_BUCKETS);
+  const mutation = createOfferMutationOutputForAutonomy();
+  for (let descriptor = 0; descriptor < AUTONOMY_ORDINARY_MAX_BUCKETS; descriptor += 1) {
+    fixture.dependencies.workOffers.registerOfferInto(
+      {
+        offerId: descriptor,
+        workType: descriptor % 2,
+        regionId: 0,
+        defId: Math.floor(descriptor / 2) % 2,
+        urgencyBucket: Math.floor(descriptor / 4) % 2,
+        permissionId: 0,
+        targetId: 20 + descriptor,
+        targetCellIndex: descriptor + 1,
+        scoreMilli: 1_000 + descriptor,
+        ownerVersion: 1,
+      },
+      mutation,
+    );
+    expect(mutation.ok).toBe(true);
+  }
+  fixture.dependencies.scheduleFacts.allowedWorkTypeMasks[0] = 3;
+
+  const firstScratch = createDecisionScratch();
+  const firstOutput = createDecisionOutput();
+  fixture.coordinator.decideInto(createDecisionRequest(0, 1), firstScratch, firstOutput);
+  const repeatedScratch = createDecisionScratch();
+  const repeatedOutput = createDecisionOutput();
+  fixture.coordinator.decideInto(
+    createDecisionRequest(0, 999_999),
+    repeatedScratch,
+    repeatedOutput,
+  );
+  expect(firstOutput.candidateId).toBe(0);
+  expect(repeatedOutput.candidateId).toBe(0);
+  expect(repeatedScratch.ordinaryOptions.workType).toBe(firstScratch.ordinaryOptions.workType);
+
+  const seen = new Uint8Array(AUTONOMY_ORDINARY_MAX_BUCKETS);
+  seen[0] = 1;
+  let haulingQueries = firstScratch.ordinaryOptions.workType === 0 ? 1 : 0;
+  let lampQueries = firstScratch.ordinaryOptions.workType === 1 ? 1 : 0;
+  for (let descriptor = 1; descriptor < AUTONOMY_ORDINARY_MAX_BUCKETS; descriptor += 1) {
+    const tick = descriptor * 30;
+    setCoordinatorFactTick(fixture.dependencies, tick);
+    const scratch = createDecisionScratch();
+    const output = createDecisionOutput();
+    fixture.coordinator.decideInto(
+      createDecisionRequest(tick, 1_000 + descriptor),
+      scratch,
+      output,
+    );
+    expect(output.candidateId).toBe(descriptor);
+    seen[descriptor] = 1;
+    if (scratch.ordinaryOptions.workType === 0) haulingQueries += 1;
+    else lampQueries += 1;
+  }
+  expect(seen).toEqual(new Uint8Array(AUTONOMY_ORDINARY_MAX_BUCKETS).fill(1));
+  expect(haulingQueries).toBe(4);
+  expect(lampQueries).toBe(4);
+});
+
+it("fails stale schedule, job, generation, and inactive-Need pregates before owner ingress", () => {
+  const staleSchedule = createCoordinatorFixture(12);
+  Reflect.set(staleSchedule.dependencies.scheduleFacts, "sourceTick", 1);
+  expectPregateFailure(staleSchedule, 0);
+
+  const staleJob = createCoordinatorFixture(12);
+  Reflect.set(staleJob.dependencies.jobFacts, "sourceTick", 1);
+  expectPregateFailure(staleJob, 0);
+
+  const staleGeneration = createCoordinatorFixture(12);
+  staleGeneration.dependencies.wakeFacts.residentGenerations[0] = 2;
+  expectPregateFailure(staleGeneration, 0);
+
+  const invalidScheduleCode = createCoordinatorFixture(12);
+  invalidScheduleCode.dependencies.scheduleFacts.scheduleCodes[0] = 4;
+  expectPregateFailure(invalidScheduleCode, 0);
+
+  const invalidPermission = createCoordinatorFixture(12);
+  invalidPermission.dependencies.scheduleFacts.permissionIds[0] = 2;
+  expectPregateFailure(invalidPermission, 0);
+
+  const inactiveNeed = createCoordinatorFixture(12, 0, 1, 1, false);
+  const scratch = createDecisionScratch();
+  const output = createDecisionOutput();
+  inactiveNeed.coordinator.decideInto(createDecisionRequest(0, 5), scratch, output);
+  expect(output).toMatchObject({
+    ok: false,
+    decisionKind: AUTONOMY_DECISION_FAILED,
+    visitedCount: 0,
+    retainedCount: 0,
+    scoredCount: 0,
+  });
+  expect(scratch.ordinaryOptions.candidateCap).toBe(1);
+});
+
+it("applies hard safety, movement, source ability, permission, and empty-owner semantics", () => {
+  const movementDenied = createCoordinatorFixture(12);
+  expect(movementDenied.dependencies.abilities.setBaseAbility(0, M3_ABILITY_MOVEMENT, 0)).toEqual({
+    ok: true,
+  });
+  expectPregateFailure(movementDenied, 0);
+
+  const ordinaryAbilityDenied = createCoordinatorFixture(12);
+  expect(
+    ordinaryAbilityDenied.dependencies.abilities.setBaseAbility(0, M3_ABILITY_MANIPULATION, 0),
+  ).toEqual({ ok: true });
+  const abilityScratch = createDecisionScratch();
+  const abilityOutput = createDecisionOutput();
+  ordinaryAbilityDenied.coordinator.decideInto(
+    createDecisionRequest(0, 6),
+    abilityScratch,
+    abilityOutput,
+  );
+  expect(abilityOutput).toMatchObject({
+    ok: true,
+    decisionKind: AUTONOMY_DECISION_WAIT,
+    visitedCount: 0,
+    retainedCount: 0,
+    scoredCount: 0,
+    exactPathCount: 0,
+  });
+
+  const safetyEmergency = createCoordinatorFixture(12);
+  expect(
+    safetyEmergency.dependencies.needs.setLane(
+      { actorId: 0, lane: NEED_LANE_SAFETY, tick: 0, reason: "need.manual_set" },
+      50,
+    ),
+  ).toMatchObject({ ok: true });
+  const safetyScratch = createDecisionScratch();
+  const safetyOutput = createDecisionOutput();
+  safetyEmergency.coordinator.decideInto(createDecisionRequest(0, 7), safetyScratch, safetyOutput);
+  expect(safetyOutput).toMatchObject({
+    ok: true,
+    decisionKind: AUTONOMY_DECISION_WAIT,
+    visitedCount: 0,
+    selectedCount: 0,
+  });
+  expect(safetyScratch.needValues[NEED_LANE_SAFETY]).toBe(50);
+
+  const permissionDenied = createCoordinatorFixture(12);
+  permissionDenied.dependencies.scheduleFacts.allowedWorkTypeMasks[0] = 0;
+  const permissionOutput = createDecisionOutput();
+  permissionDenied.coordinator.decideInto(
+    createDecisionRequest(0, 8),
+    createDecisionScratch(),
+    permissionOutput,
+  );
+  expect(permissionOutput).toMatchObject({
+    ok: true,
+    decisionKind: AUTONOMY_DECISION_WAIT,
+    visitedCount: 0,
+  });
+
+  const empty = createCoordinatorFixture(0);
+  const emptyOutput = createDecisionOutput();
+  empty.coordinator.decideInto(createDecisionRequest(0, 9), createDecisionScratch(), emptyOutput);
+  expect(emptyOutput).toMatchObject({
+    ok: true,
+    decisionKind: AUTONOMY_DECISION_WAIT,
+    visitedCount: 0,
+    retainedCount: 0,
+    scoredCount: 0,
+    selectedCount: 0,
+    exactPathCount: 0,
+  });
+});
+
+it("keeps active work free, consumes interruptions/selections, honors retry/cadence, and rejects rollback", () => {
+  const active = createCoordinatorFixture(12);
+  active.dependencies.jobFacts.activeFlags[0] = 1;
+  active.dependencies.jobFacts.jobIds[0] = 42;
+  active.dependencies.jobFacts.jobVersions[0] = 1;
+  const keepOutput = createDecisionOutput();
+  active.coordinator.decideInto(createDecisionRequest(0, 10), createDecisionScratch(), keepOutput);
+  expect(keepOutput.decisionKind).toBe(AUTONOMY_DECISION_KEEP_WORKING);
+  const keepMetrics = createDecisionMetricsOutput();
+  active.coordinator.readMetricsInto(keepMetrics);
+  expect(keepMetrics.decisionsUsedThisTick).toBe(0);
+
+  const interrupted = createCoordinatorFixture(12);
+  interrupted.dependencies.jobFacts.activeFlags[0] = 1;
+  interrupted.dependencies.jobFacts.jobIds[0] = 43;
+  interrupted.dependencies.jobFacts.jobVersions[0] = 1;
+  interrupted.dependencies.jobFacts.interruptionPolicyCodes[0] =
+    AUTONOMY_INTERRUPTION_POLICY_IMMEDIATE;
+  expect(
+    interrupted.dependencies.needs.setLane(
+      { actorId: 0, lane: NEED_LANE_SAFETY, tick: 0, reason: "need.manual_set" },
+      50,
+    ),
+  ).toMatchObject({ ok: true });
+  const interruptedOutput = createDecisionOutput();
+  interrupted.coordinator.decideInto(
+    createDecisionRequest(0, 11),
+    createDecisionScratch(),
+    interruptedOutput,
+  );
+  expect(interruptedOutput.decisionKind).toBe(AUTONOMY_DECISION_INTERRUPTION_REQUESTED);
+  const interruptedMetrics = createDecisionMetricsOutput();
+  interrupted.coordinator.readMetricsInto(interruptedMetrics);
+  expect(interruptedMetrics.decisionsUsedThisTick).toBe(1);
+
+  const retry = createCoordinatorFixture(12);
+  const retryInput = createWaitRefreshInput();
+  retryInput.retryTick = 30;
+  retry.dependencies.autonomyStore.refreshIdleInto(retryInput, createStoreOutput());
+  const retryOutput = createDecisionOutput();
+  retry.coordinator.decideInto(createDecisionRequest(0, 12), createDecisionScratch(), retryOutput);
+  expect(retryOutput.decisionKind).toBe(AUTONOMY_DECISION_DEFERRED);
+
+  const cadence = createCoordinatorFixture(12);
+  cadence.dependencies.wakeFacts.wakeMasks[0] = 0;
+  setCoordinatorFactTick(cadence.dependencies, 1);
+  const cadenceOutput = createDecisionOutput();
+  cadence.coordinator.decideInto(
+    createDecisionRequest(1, 13),
+    createDecisionScratch(),
+    cadenceOutput,
+  );
+  expect(cadenceOutput.decisionKind).toBe(AUTONOMY_DECISION_DEFERRED);
+
+  const rollback = createCoordinatorFixture(12);
+  setCoordinatorFactTick(rollback.dependencies, 30);
+  rollback.coordinator.decideInto(
+    createDecisionRequest(30, 14),
+    createDecisionScratch(),
+    createDecisionOutput(),
+  );
+  setCoordinatorFactTick(rollback.dependencies, 0);
+  const rollbackOutput = createDecisionOutput();
+  rollback.coordinator.decideInto(
+    createDecisionRequest(0, 15),
+    createDecisionScratch(),
+    rollbackOutput,
+  );
+  expect(rollbackOutput.decisionKind).toBe(AUTONOMY_DECISION_FAILED);
+
+  const cap = createCoordinatorFixture(12);
+  cap.coordinator.decideInto(
+    createDecisionRequest(0, 16),
+    createDecisionScratch(),
+    createDecisionOutput(),
+  );
+  cap.coordinator.decideInto(
+    createDecisionRequest(0, 17),
+    createDecisionScratch(),
+    createDecisionOutput(),
+  );
+  const thirdOutput = createDecisionOutput();
+  cap.coordinator.decideInto(createDecisionRequest(0, 18), createDecisionScratch(), thirdOutput);
+  expect(thirdOutput.decisionKind).toBe(AUTONOMY_DECISION_DEFERRED);
+});
+
+it("attempts exactly zero through four real paths in common-score order and clears route tails", () => {
+  const empty = createCoordinatorFixture(0);
+  const emptyOutput = createDecisionOutput();
+  empty.coordinator.decideInto(createDecisionRequest(0, 200), createDecisionScratch(), emptyOutput);
+  expect(emptyOutput.exactPathCount).toBe(0);
+
+  for (
+    let expectedAttempts = 1;
+    expectedAttempts <= AUTONOMY_MAX_EXACT_PATHS;
+    expectedAttempts += 1
+  ) {
+    const fixture = createCoordinatorFixture(12);
+    for (let cell = 1; cell < expectedAttempts; cell += 1) blockCell(fixture, cell);
+    const scratch = createDecisionScratch();
+    scratch.selectedRouteCells.fill(123);
+    const routeIdentity = scratch.selectedRouteCells;
+    const output = createDecisionOutput();
+    fixture.coordinator.decideInto(
+      createDecisionRequest(0, 210 + expectedAttempts),
+      scratch,
+      output,
+    );
+    expect(output.exactPathCount).toBe(expectedAttempts);
+    expect(output.selectedCount).toBe(1);
+    expect(output.candidateId).toBe(expectedAttempts - 1);
+    expect(scratch.selectedRouteCells).toBe(routeIdentity);
+    expect(scratch.selectedRouteCells[output.routeCellCount]).toBe(AUTONOMY_REF_NONE);
+  }
+
+  const capped = createCoordinatorFixture(12);
+  for (let cell = 1; cell <= AUTONOMY_MAX_EXACT_PATHS; cell += 1) blockCell(capped, cell);
+  const cappedOutput = createDecisionOutput();
+  capped.coordinator.decideInto(
+    createDecisionRequest(0, 220),
+    createDecisionScratch(),
+    cappedOutput,
+  );
+  expect(cappedOutput).toMatchObject({
+    ok: true,
+    decisionKind: AUTONOMY_DECISION_WAIT,
+    exactPathCount: AUTONOMY_MAX_EXACT_PATHS,
+    selectedCount: 0,
+  });
+});
+
+it("rejects each of five stale path bases and excludes maxNodeExpansions from basis identity", () => {
+  const basisFields: readonly (keyof AutonomyPathBasisLane)[] = [
+    "mapVersion",
+    "navigationVersion",
+    "regionVersion",
+    "roomVersion",
+    "regionGraphVersion",
+  ];
+  for (const field of basisFields) {
+    const fixture = createCoordinatorFixture(12);
+    const spy = vi
+      .spyOn(fixture.dependencies.pathfinder, "findPathInto")
+      .mockImplementation((_grid, request, route, output) => {
+        writeSuccessfulPathMock(request, route, output, 1);
+        fixture.dependencies.pathBasis[field] += 1;
+      });
+    const output = createDecisionOutput();
+    fixture.coordinator.decideInto(createDecisionRequest(0, 300), createDecisionScratch(), output);
+    expect(output).toMatchObject({
+      ok: true,
+      decisionKind: AUTONOMY_DECISION_WAIT,
+      exactPathCount: AUTONOMY_MAX_EXACT_PATHS,
+      selectedCount: 0,
+    });
+    const metrics = createDecisionMetricsOutput();
+    fixture.coordinator.readMetricsInto(metrics);
+    expect(metrics.stalePathCount).toBe(AUTONOMY_MAX_EXACT_PATHS);
+    spy.mockRestore();
+  }
+
+  const stable = createCoordinatorFixture(12);
+  const sequences = new Float64Array(AUTONOMY_MAX_EXACT_PATHS);
+  let callCount = 0;
+  const stableSpy = vi
+    .spyOn(stable.dependencies.pathfinder, "findPathInto")
+    .mockImplementation((_grid, request, route, output) => {
+      sequences[callCount] = request.requestSequence;
+      callCount += 1;
+      if (callCount < AUTONOMY_MAX_EXACT_PATHS) writeFailedPathMock(request, output, 2);
+      else writeSuccessfulPathMock(request, route, output, 2);
+      Reflect.set(request, "maxNodeExpansions", (request.maxNodeExpansions ?? 0) + 1);
+    });
+  const stableScratch = createDecisionScratch();
+  const stableOutput = createDecisionOutput();
+  stable.coordinator.decideInto(createDecisionRequest(0, 400), stableScratch, stableOutput);
+  expect(stableOutput).toMatchObject({
+    selectedCount: 1,
+    exactPathCount: AUTONOMY_MAX_EXACT_PATHS,
+    nodeExpansions: 8,
+  });
+  expect(sequences).toEqual(new Float64Array([400, 401, 402, 403]));
+  expect(stableScratch.selectedRouteCells[stableOutput.routeCellCount]).toBe(AUTONOMY_REF_NONE);
+  stableSpy.mockRestore();
+});
+
+it("accumulates real path node budgets across four bounded failures", () => {
+  const fixture = createCoordinatorFixture(0);
+  const mutation = createOfferMutationOutputForAutonomy();
+  for (let offerId = 0; offerId < AUTONOMY_MAX_EXACT_PATHS; offerId += 1) {
+    fixture.dependencies.workOffers.registerOfferInto(
+      {
+        offerId,
+        workType: 0,
+        regionId: 0,
+        defId: 0,
+        urgencyBucket: 0,
+        permissionId: 0,
+        targetId: 50 + offerId,
+        targetCellIndex: 15 - offerId,
+        scoreMilli: 2_000 - offerId,
+        ownerVersion: 1,
+      },
+      mutation,
+    );
+    expect(mutation.ok).toBe(true);
+  }
+  const request = createDecisionRequest(0, 500);
+  Reflect.set(request, "maxNodeExpansions", 1);
+  const output = createDecisionOutput();
+  fixture.coordinator.decideInto(request, createDecisionScratch(), output);
+  expect(output).toMatchObject({
+    decisionKind: AUTONOMY_DECISION_WAIT,
+    exactPathCount: AUTONOMY_MAX_EXACT_PATHS,
+    nodeExpansions: AUTONOMY_MAX_EXACT_PATHS,
+    selectedCount: 0,
+  });
+});
+
+it("closes the coordinator hot surface over Into owners without allocation, legacy calls, or scans", () => {
+  const forbidden = [
+    "new ",
+    "=>",
+    ".map(",
+    ".filter(",
+    ".reduce(",
+    ".flatMap(",
+    ".sort(",
+    "readActorNeeds(",
+    ".selectCandidates(",
+    ".selectTreatmentRequests(",
+    ".selectTopOffers(",
+    ".findPath(",
+    ".queryAbility(",
+    ".acquire(",
+    ".acquireInto(",
+    ".transitionInto(",
+    ".refreshIdleInto(",
+    ".readPlanInto(",
+    ".forEachAliveAscending(",
+    "Math.random(",
+    "Date.now(",
+    "performance.now(",
+  ];
+  const prototype = ResidentAutonomyCoordinator.prototype;
+  for (const name of Object.getOwnPropertyNames(prototype)) {
+    if (name === "constructor") continue;
+    const target: unknown = Reflect.get(prototype, name);
+    expect(typeof target, name).toBe("function");
+    if (typeof target === "function") assertNoForbiddenHotSource(name, target, forbidden);
+  }
+  expect(AUTONOMY_B2_HOT_FREE_AUDIT_TARGETS.length).toBeGreaterThan(40);
+  for (const target of AUTONOMY_B2_HOT_FREE_AUDIT_TARGETS) {
+    expect(typeof target).toBe("function");
+    if (typeof target === "function") assertNoForbiddenHotSource(target.name, target, forbidden);
+  }
+});
+
+it("preserves every caller scratch identity and invokes no B3 mutation or global-scan surface", () => {
+  const fixture = createCoordinatorFixture(12);
+  const scratch = createDecisionScratch();
+  const autonomyBefore = fixture.dependencies.autonomyStore.createSnapshot();
+  const reservationBefore = fixture.dependencies.reservations.createSnapshot();
+  const transitionSpy = vi.spyOn(fixture.dependencies.autonomyStore, "transitionInto");
+  const refreshSpy = vi.spyOn(fixture.dependencies.autonomyStore, "refreshIdleInto");
+  const acquireSpy = vi.spyOn(fixture.dependencies.reservations, "acquireInto");
+  const scanSpy = vi.spyOn(fixture.dependencies.entities, "forEachAliveAscending");
+  const globalRetained = scratch.globalRetained;
+  const sourceCodes = globalRetained.sourceCodes;
+  const admissionKeys = globalRetained.cheapAdmissionKeys;
+  const commonScores = globalRetained.commonScores;
+  const scorerCounts = globalRetained.scoreInvocationCounts;
+  const needValues = scratch.needValues;
+  const needVersions = scratch.needOwnerVersions;
+  const foodRows = scratch.foodScratch.stackIds;
+  const restRows = scratch.restScratch.fixtureIds;
+  const medicalRows = scratch.medicalScratch.requestIds;
+  const ordinaryRows = scratch.ordinaryScratch.selectedOfferIds;
+  const pathRoute = scratch.pathRouteCells;
+  const selectedRoute = scratch.selectedRouteCells;
+  const selectedBasis = scratch.selectedBasis;
+  const abilityOutput = scratch.abilityOutput;
+  const residentOutput = scratch.residentReadOutput;
+
+  fixture.coordinator.decideInto(createDecisionRequest(0, 600), scratch, createDecisionOutput());
+  setCoordinatorFactTick(fixture.dependencies, 30);
+  fixture.coordinator.decideInto(createDecisionRequest(30, 601), scratch, createDecisionOutput());
+
+  expect(scratch.globalRetained).toBe(globalRetained);
+  expect(scratch.globalRetained.sourceCodes).toBe(sourceCodes);
+  expect(scratch.globalRetained.cheapAdmissionKeys).toBe(admissionKeys);
+  expect(scratch.globalRetained.commonScores).toBe(commonScores);
+  expect(scratch.globalRetained.scoreInvocationCounts).toBe(scorerCounts);
+  expect(scratch.needValues).toBe(needValues);
+  expect(scratch.needOwnerVersions).toBe(needVersions);
+  expect(scratch.foodScratch.stackIds).toBe(foodRows);
+  expect(scratch.restScratch.fixtureIds).toBe(restRows);
+  expect(scratch.medicalScratch.requestIds).toBe(medicalRows);
+  expect(scratch.ordinaryScratch.selectedOfferIds).toBe(ordinaryRows);
+  expect(scratch.pathRouteCells).toBe(pathRoute);
+  expect(scratch.selectedRouteCells).toBe(selectedRoute);
+  expect(scratch.selectedBasis).toBe(selectedBasis);
+  expect(scratch.abilityOutput).toBe(abilityOutput);
+  expect(scratch.residentReadOutput).toBe(residentOutput);
+  expect(transitionSpy).not.toHaveBeenCalled();
+  expect(refreshSpy).not.toHaveBeenCalled();
+  expect(acquireSpy).not.toHaveBeenCalled();
+  expect(scanSpy).not.toHaveBeenCalled();
+  expect(fixture.claimPlanReadCount.value).toBe(0);
+  expect(fixture.dependencies.autonomyStore.createSnapshot()).toEqual(autonomyBefore);
+  expect(fixture.dependencies.reservations.createSnapshot()).toEqual(reservationBefore);
+  transitionSpy.mockRestore();
+  refreshSpy.mockRestore();
+  acquireSpy.mockRestore();
+  scanSpy.mockRestore();
 });
 
 it("registers and reads one idle resident through caller-owned outputs", () => {
@@ -1846,13 +2480,22 @@ interface MutableCounter {
   value: number;
 }
 
-function createCoordinatorFixture(offerCount: number): {
+interface CoordinatorFixture {
   readonly coordinator: ResidentAutonomyCoordinator;
   readonly dependencies: ResidentAutonomyCoordinatorDependencies;
   readonly claimPlanReadCount: MutableCounter;
-} {
+}
+
+function createCoordinatorFixture(
+  offerCount: number,
+  restCount = 0,
+  enabledSourceCount = 1,
+  ordinaryDescriptorCount = 1,
+  registerNeedActor = true,
+  ordinaryDistanceWeight = 0,
+): CoordinatorFixture {
   const actorCapacity = 2;
-  const entities = createEntityRegistry({ capacity: 4 });
+  const entities = createEntityRegistry({ capacity: 64 });
   const allocation = entities.allocate();
   if (!allocation.ok) throw new Error("test resident allocation failed");
   const autonomyStore = new ResidentAutonomyStore(actorCapacity);
@@ -1860,17 +2503,18 @@ function createCoordinatorFixture(offerCount: number): {
   autonomyStore.registerResidentInto(0, allocation.entity.generation, 0, storeOutput);
   expect(storeOutput.ok).toBe(true);
   const needs = createNeedStore({ actorCapacity, updateIntervalTicks: 8 });
-  expect(
-    needs.registerActor({
-      actorId: 0,
-      hunger: 500,
-      rest: 500,
-      comfort: 500,
-      social: 500,
-      safety: 500,
-      sourceTick: 0,
-    }),
-  ).toMatchObject({ ok: true });
+  if (registerNeedActor)
+    expect(
+      needs.registerActor({
+        actorId: 0,
+        hunger: 500,
+        rest: 500,
+        comfort: 500,
+        social: 500,
+        safety: 500,
+        sourceTick: 0,
+      }),
+    ).toMatchObject({ ok: true });
   const healthConditions = createM3HealthConditionStore({
     actorCapacity,
     conditionCapacity: 4,
@@ -1878,7 +2522,7 @@ function createCoordinatorFixture(offerCount: number): {
   });
   const abilities = createM3AbilityCacheStore({ actorCapacity, dirtyCapacity: 8 });
   const map = createMapGrid({ width: 4, height: 4, chunkSize: 2 });
-  const reservations = createReservationLedger({ capacity: 32, entityCapacity: 4, cellCount: 16 });
+  const reservations = createReservationLedger({ capacity: 64, entityCapacity: 64, cellCount: 16 });
   const workOffers = createWorkOfferIndex({
     capacity: 32,
     workTypeCapacity: 2,
@@ -1894,18 +2538,51 @@ function createCoordinatorFixture(offerCount: number): {
         offerId,
         workType: 0,
         regionId: 0,
-        defId: 1,
-        urgencyBucket: 1,
+        defId: 0,
+        urgencyBucket: 0,
         permissionId: 0,
         targetId: offerId + 10,
         targetCellIndex: (offerId % 15) + 1,
-        scoreMilli: 10_000 - offerId,
+        scoreMilli: (restCount > 0 ? 9_999 : 10_000) - offerId,
         ownerVersion: 1,
       },
       mutation,
     );
     expect(mutation.ok).toBe(true);
   }
+  const restStore = createRestSleepStore(12, 2, 2);
+  const restCandidates = createRestCandidateIndex({
+    fixtureCapacity: 12,
+    regionCapacity: 2,
+    permissionCapacity: 2,
+  });
+  for (let fixtureId = 0; fixtureId < restCount; fixtureId += 1) {
+    const fixtureAllocation = entities.allocate();
+    if (!fixtureAllocation.ok) throw new Error("test fixture allocation failed");
+    expect(
+      restStore.registerFixture(
+        {
+          fixtureId,
+          entity: fixtureAllocation.entity,
+          kind: "clinic_mat",
+          restKind: "rest",
+          regionId: 0,
+          targetCellIndex: 15,
+          interactionSpotId: fixtureId,
+          scheduleWindow: "dawn",
+          weatherExposure: "indoor",
+          permissionId: 0,
+          recoveryPerTickQ16: 10 << 16,
+          baseScoreMilli: 10_000,
+        },
+        entities,
+      ),
+    ).toMatchObject({ ok: true });
+    expect(restCandidates.markFixtureDirty(fixtureId)).toMatchObject({ ok: true });
+  }
+  expect(restCandidates.refreshDirty(restStore, Math.max(restCount, 1))).toMatchObject({
+    ok: true,
+  });
   const generation = allocation.entity.generation;
   const scheduleFacts = createScheduleFacts(actorCapacity, generation, 0);
   const jobFacts = createJobFacts(actorCapacity, generation, 0);
@@ -1918,12 +2595,8 @@ function createCoordinatorFixture(offerCount: number): {
     jobFacts,
     wakeFacts,
     food: createM3FoodAvailabilityStore(12, 2, 2),
-    restStore: createRestSleepStore(12, 2, 2),
-    restCandidates: createRestCandidateIndex({
-      fixtureCapacity: 12,
-      regionCapacity: 2,
-      permissionCapacity: 2,
-    }),
+    restStore,
+    restCandidates,
     medical: createM3MedicalCareStore({
       requestCapacity: 12,
       actorCapacity,
@@ -1952,7 +2625,27 @@ function createCoordinatorFixture(offerCount: number): {
       },
     },
   };
-  const policy = createOrdinaryOnlyPolicyInput();
+  if (enabledSourceCount >= 4) {
+    expect(
+      dependencies.medical.updateCaregiverStateFromAbility(
+        {
+          caregiverId: 0,
+          regionId: 0,
+          permissionId: 0,
+          ability: 4,
+          minimumValue: 100,
+          allowed: true,
+        },
+        healthConditions,
+        abilities,
+      ),
+    ).toMatchObject({ ok: true });
+  }
+  const policy = createEnabledSourcePolicyInput(
+    enabledSourceCount,
+    ordinaryDescriptorCount,
+    ordinaryDistanceWeight,
+  );
   return {
     coordinator: new ResidentAutonomyCoordinator(dependencies, policy),
     dependencies,
@@ -1960,17 +2653,39 @@ function createCoordinatorFixture(offerCount: number): {
   };
 }
 
-function createOrdinaryOnlyPolicyInput(): AutonomyDecisionPolicyInput {
+function createEnabledSourcePolicyInput(
+  enabledSourceCount: number,
+  ordinaryDescriptorCount: number,
+  ordinaryDistanceWeight: number,
+): AutonomyDecisionPolicyInput {
   const policy = createDecisionPolicyInput();
   policy.sourceEnabledFlags.fill(0);
-  policy.ordinaryDescriptorCounts.fill(1);
-  policy.ordinaryWorkTypes.fill(0);
-  policy.ordinaryDefinitionIds.fill(1);
-  policy.ordinaryUrgencyBuckets.fill(1);
+  policy.ordinaryDescriptorCounts.fill(ordinaryDescriptorCount);
+  for (let table = 0; table < policy.policyClassCount * AUTONOMY_SCHEDULE_CODE_COUNT; table += 1) {
+    const base = table * AUTONOMY_ORDINARY_MAX_BUCKETS;
+    for (let descriptor = 0; descriptor < ordinaryDescriptorCount; descriptor += 1) {
+      const lane = base + descriptor;
+      policy.ordinaryWorkTypes[lane] = descriptor % 2;
+      policy.ordinaryDefinitionIds[lane] = Math.floor(descriptor / 2) % 2;
+      policy.ordinaryUrgencyBuckets[lane] = Math.floor(descriptor / 4) % 2;
+    }
+  }
   policy.ordinaryRequiredAbilityIds.fill(M3_ABILITY_MANIPULATION);
   policy.ordinaryMinimumAbilityValues.fill(100);
-  for (let table = 0; table < policy.policyClassCount * AUTONOMY_SCHEDULE_CODE_COUNT; table += 1)
+  policy.sourceDistanceWeights[3] = ordinaryDistanceWeight;
+  for (let table = 0; table < policy.policyClassCount * AUTONOMY_SCHEDULE_CODE_COUNT; table += 1) {
     policy.sourceEnabledFlags[table * AUTONOMY_REAL_SOURCE_COUNT + 3] = 1;
+    if (enabledSourceCount >= 2)
+      policy.sourceEnabledFlags[table * AUTONOMY_REAL_SOURCE_COUNT + 1] = 1;
+    if (enabledSourceCount >= 3) policy.sourceEnabledFlags[table * AUTONOMY_REAL_SOURCE_COUNT] = 1;
+    if (enabledSourceCount >= 4)
+      policy.sourceEnabledFlags[table * AUTONOMY_REAL_SOURCE_COUNT + 2] = 1;
+  }
+  if (enabledSourceCount >= 2) {
+    policy.sourceHardPriorities[1] = 0;
+    policy.sourceHardPriorities[3] = 0;
+    policy.sourceDistanceWeights[1] = 1_000;
+  }
   return policy;
 }
 
@@ -2635,6 +3350,152 @@ function createDecisionOutput(): AutonomyDecisionOutput {
     exactPathCount: 0,
     nodeExpansions: 0,
   };
+}
+
+function createDecisionRequest(
+  tick: number,
+  requestSequenceStart: number,
+): AutonomyDecisionRequest {
+  return {
+    tick,
+    residentIndex: 0,
+    residentGeneration: 1,
+    originCellIndex: 0,
+    originRegionId: 0,
+    requestSequenceStart,
+    maxNodeExpansions: 64,
+  };
+}
+
+function expectPregateFailure(fixture: CoordinatorFixture, tick: number): void {
+  const scratch = createDecisionScratch();
+  const output = createDecisionOutput();
+  fixture.coordinator.decideInto(createDecisionRequest(tick, 1), scratch, output);
+  expect(output).toMatchObject({
+    ok: false,
+    decisionKind: AUTONOMY_DECISION_FAILED,
+    visitedCount: 0,
+    retainedCount: 0,
+    scoredCount: 0,
+    exactPathCount: 0,
+  });
+  expect(scratch.ordinaryOptions.candidateCap).toBe(1);
+}
+
+function createDecisionMetricsOutput(): AutonomyDecisionMetricsOutput {
+  return {
+    tick: 0,
+    decisionsUsedThisTick: 0,
+    decisionStartCount: 0,
+    claimedCount: 0,
+    waitCount: 0,
+    keepWorkingCount: 0,
+    interruptionRequestCount: 0,
+    failedCount: 0,
+    deferredCount: 0,
+    visitedCount: 0,
+    scoredCount: 0,
+    retainedCount: 0,
+    selectedCount: 0,
+    approximationDropCount: 0,
+    candidateCapHitCount: 0,
+    retainedCapHitCount: 0,
+    exactPathCount: 0,
+    exactPathCapHitCount: 0,
+    nodeExpansionCount: 0,
+    staleNeedCount: 0,
+    staleScheduleCount: 0,
+    staleCapabilityCount: 0,
+    staleCandidateCount: 0,
+    stalePathCount: 0,
+    staleJobCount: 0,
+    reservationConflictCount: 0,
+    decisionDeferralCount: 0,
+    lastReasonCode: AUTONOMY_REASON_NONE,
+  };
+}
+
+function setCoordinatorFactTick(
+  dependencies: ResidentAutonomyCoordinatorDependencies,
+  tick: number,
+): void {
+  Reflect.set(dependencies.scheduleFacts, "sourceTick", tick);
+  Reflect.set(dependencies.jobFacts, "sourceTick", tick);
+  Reflect.set(dependencies.wakeFacts, "sourceTick", tick);
+}
+
+function blockCell(fixture: CoordinatorFixture, cellIndex: number): void {
+  const x = cellIndex % fixture.dependencies.map.width;
+  const y = Math.floor(cellIndex / fixture.dependencies.map.width);
+  expect(fixture.dependencies.map.updateCell(x, y, { terrain: MAP_TERRAIN_BLOCKED })).toMatchObject(
+    {
+      ok: true,
+    },
+  );
+  fixture.dependencies.pathBasis.mapVersion = fixture.dependencies.map.globalVersion;
+}
+
+function writeSuccessfulPathMock(
+  request: PathRequest,
+  route: Uint32Array,
+  output: PathSearchIntoOutput,
+  nodeExpansions: number,
+): void {
+  route.fill(AUTONOMY_REF_NONE);
+  route[0] = request.startCellIndex;
+  route[1] = request.goalCellIndex;
+  writePathMockBasis(request, output);
+  output.ok = true;
+  output.reason = undefined;
+  output.pathCellCount = 2;
+  output.pathCostMilli = 1_000;
+  output.nodeExpansions = nodeExpansions;
+}
+
+function writeFailedPathMock(
+  request: PathRequest,
+  output: PathSearchIntoOutput,
+  nodeExpansions: number,
+): void {
+  writePathMockBasis(request, output);
+  output.ok = false;
+  output.reason = "path_no_route";
+  output.pathCellCount = 0;
+  output.pathCostMilli = 0;
+  output.nodeExpansions = nodeExpansions;
+}
+
+function writePathMockBasis(request: PathRequest, output: PathSearchIntoOutput): void {
+  output.requestSequence = request.requestSequence;
+  output.startCellIndex = request.startCellIndex;
+  output.goalCellIndex = request.goalCellIndex;
+  output.mapVersion = request.basis.mapVersion;
+  output.navigationVersion = request.basis.navigationVersion;
+  output.regionVersion = request.basis.regionVersion;
+  output.roomVersion = request.basis.roomVersion;
+  output.regionGraphVersion = request.basis.regionGraphVersion;
+}
+
+function assertNoForbiddenHotSource(
+  label: string,
+  target: unknown,
+  forbidden: readonly string[],
+): void {
+  if (typeof target !== "function") throw new Error("hot audit target is not callable");
+  const source = Function.prototype.toString.call(target);
+  for (const pattern of forbidden)
+    expect(source.includes(pattern), `${label}: ${pattern}`).toBe(false);
+}
+
+function containsUint8Value(lane: Uint8Array, expected: number): boolean {
+  for (const value of lane) if (value === expected) return true;
+  return false;
+}
+
+function sumUint8(lane: Uint8Array): number {
+  let sum = 0;
+  for (const value of lane) sum += value;
+  return sum;
 }
 
 function createDecisionPolicyInput(): AutonomyDecisionPolicyInput {

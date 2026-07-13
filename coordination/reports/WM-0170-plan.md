@@ -157,6 +157,40 @@ integrated and marked done before this resume. The resumed audit now passes for
   order. Metrics expose totals, each cap hit, exact paths, node expansions, stale classes,
   reservation conflicts and decision deferrals.
 
+## Canvas-approved B2 execution and final implementation
+
+The initial five-head merge was rejected because candidate-specific distance,
+continuity and retry can reverse owner raw order. Canvas approved the following
+bounded two-stage coordinator and then passed the revised B2 plan:
+
+1. Validate the construction-only policy and defensively copy every typed lane.
+   Ordinary policy has 1..8 exact descriptors per class/schedule and rotates by
+   authoritative tick/fixed cadence plus stable resident identity; caller path
+   sequence never affects work selection.
+2. Validate resident, schedule/job/wake source tick/generation/capacity/codes,
+   active Need actor and all five need lanes, consciousness/movement, active job,
+   per-source ability/permission and exact owner bucket. Safety is a hard gate.
+3. Count enabled real sources and assign deterministic quotas: N=1 -> 12,
+   N=2 -> 12 each, N=3 -> 8 each, N=4 -> 6 each. Owner actual visits sum to
+   at most 24; `candidateCap === maxSelected === quota`.
+4. Compute only `ownerRaw + sourceHardPriority` during ingress and maintain one
+   coordinator-owned fixed raw Top-12. Physical 12-row Food/Rest/Medical Into
+   arrays are owner-API buffers, not independent budgets.
+5. Run the complete checked common scorer exactly once for each retained row,
+   so `retainedCount === scoredCount <= 12`; reorder the same lanes in place by
+   common score descending then row, target and slot ascending. Raw rank 13 is
+   allowed to be a documented approximation loss.
+6. Attempt exact paths in that final order, at most four, incrementing path-only
+   request sequence, clearing route tails, accumulating node expansions and
+   rejecting changes to map/navigation/region/room/region-graph basis.
+   `maxNodeExpansions` is not a basis.
+7. Keep B2 read-only. No claim-plan read, acquire/release, autonomy transition,
+   idle refresh, Job/world mutation or B3 revalidation/publication is performed.
+
+Implementation landed first at checkpoint `ca23f19` and the final A-E matrix is
+recorded in `coordination/reports/WM-0170.md`. B2 stops after its final pushed
+checkpoint for independent Canvas review; it does not run `taskctl complete`.
+
 ## Implementation stop lines
 
 - Stop and block if any required operation needs a sixth product/test file,

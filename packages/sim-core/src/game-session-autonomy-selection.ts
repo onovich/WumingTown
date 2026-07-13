@@ -22,6 +22,7 @@ import {
   AUTONOMY_DECISION_NONE,
   AUTONOMY_DECISION_WAIT,
   AUTONOMY_INTERRUPTION_POLICY_AT_SAFE_POINT,
+  AUTONOMY_INTERRUPTION_POLICY_EMERGENCY_ONLY,
   AUTONOMY_INTERRUPTION_POLICY_IMMEDIATE,
   AUTONOMY_MAX_EXACT_PATHS,
   AUTONOMY_MAX_RETAINED_CANDIDATES,
@@ -396,6 +397,14 @@ function validateSourceScoreBounds(input: AutonomyDecisionPolicyInput, sourceInd
   );
   maximum = checkedAdd(maximum, input.sourceContinuityBonuses[sourceIndex] ?? 0, "score");
   maximum = checkedAdd(maximum, input.sourceRetryPenalties[sourceIndex] ?? 0, "score");
+  if (sourceIndex === 3) {
+    let maximumOrdinaryAdjustment = 0;
+    for (const value of input.ordinaryBaseScoreAdjustments) {
+      const adjustment = absoluteSafe(value);
+      if (adjustment > maximumOrdinaryAdjustment) maximumOrdinaryAdjustment = adjustment;
+    }
+    maximum = checkedAdd(maximum, maximumOrdinaryAdjustment, "score");
+  }
   maximum = checkedAdd(
     maximum,
     checkedProduct(
@@ -1214,6 +1223,7 @@ export class ResidentAutonomyCoordinator {
     if (
       emergency &&
       (interruption === AUTONOMY_INTERRUPTION_POLICY_IMMEDIATE ||
+        interruption === AUTONOMY_INTERRUPTION_POLICY_EMERGENCY_ONLY ||
         (interruption === AUTONOMY_INTERRUPTION_POLICY_AT_SAFE_POINT && safePoint === 1))
     ) {
       if (!this.consumeDecisionSlot()) {
@@ -1309,7 +1319,7 @@ export class ResidentAutonomyCoordinator {
   private ordinaryDescriptorIndex(request: AutonomyDecisionRequest, tableIndex: number): number {
     const count = this.policy.ordinaryDescriptorCounts[tableIndex] ?? 1;
     const epoch = Math.floor(request.tick / this.policy.ordinaryDecisionCadenceTicks);
-    return (epoch + request.residentIndex) % count;
+    return ((epoch % count) + (request.residentIndex % count)) % count;
   }
 
   private querySource(
@@ -1497,7 +1507,8 @@ export class ResidentAutonomyCoordinator {
       )
     )
       return false;
-    if (!scratch.medicalOutput.ok) return false;
+    if (!scratch.medicalOutput.ok)
+      return scratch.medicalOutput.reason === "medical.selection_empty";
     if (
       scratch.medicalOutput.caregiverAbility !== ability ||
       scratch.medicalOutput.caregiverMinimumValue !== minimum ||
@@ -1696,6 +1707,13 @@ export class ResidentAutonomyCoordinator {
         scratch.pathOutput,
       );
       scratch.globalBudget.exactPathCount += 1;
+      if (
+        !Number.isSafeInteger(scratch.pathOutput.nodeExpansions) ||
+        scratch.pathOutput.nodeExpansions < 0
+      ) {
+        this.finishFailure(output, AUTONOMY_REASON_FAILED_INVARIANT);
+        return;
+      }
       const nextExpansions = safeScoreAdd(nodeExpansions, scratch.pathOutput.nodeExpansions);
       if (!Number.isSafeInteger(nextExpansions)) {
         this.finishFailure(output, AUTONOMY_REASON_FAILED_INVARIANT);
@@ -2044,7 +2062,7 @@ function hasCurrentDecisionFacts(
     wakeMask > AUTONOMY_WAKE_MASK_ALL ||
     !isBinary(active) ||
     !isBinary(safePoint) ||
-    interruption > AUTONOMY_INTERRUPTION_POLICY_AT_SAFE_POINT
+    interruption > AUTONOMY_INTERRUPTION_POLICY_EMERGENCY_ONLY
   )
     return false;
   const permission = schedule.permissionIds[index] ?? AUTONOMY_REF_NONE;
@@ -2614,3 +2632,49 @@ function resetVersionBasis(basis: AutonomyVersionBasis): void {
   basis.reservationVersion = 0;
   basis.jobVersion = 0;
 }
+
+/** Direct-module audit roots; intentionally not exported from the sim-core package root. */
+export const AUTONOMY_B2_HOT_FREE_AUDIT_TARGETS: readonly unknown[] = Object.freeze([
+  resetDecisionOutput,
+  resetDecisionScratch,
+  clearRetainedLanes,
+  isValidDecisionRequest,
+  hasCurrentDecisionFacts,
+  hasEmergencyNeed,
+  calculateSourceVisitQuota,
+  recordOwnerVisit,
+  decodeRestKind,
+  decodeNeedLane,
+  decodeScheduleWindow,
+  decodeWeatherExposure,
+  writeRestEnvironment,
+  isUint32,
+  isBinary,
+  isCellIndex,
+  safeScoreAdd,
+  safeScoreMultiply,
+  selectRawAdmissionIndex,
+  isIncomingBeforeRow,
+  writeAdmissionRow,
+  bubbleRawAdmissionUp,
+  reorderRetainedByCommonScore,
+  isRetainedRowBefore,
+  swapRetainedRows,
+  swapUint8,
+  swapUint16,
+  swapUint32,
+  swapFloat64,
+  calculateCommonScore,
+  manhattanDistance,
+  writePathRequest,
+  hasCurrentPathBasis,
+  copySelectedRoute,
+  publishSelectedCandidate,
+  decodeCandidateSource,
+  writeSelectedBasis,
+  writeSelectedFoodBasis,
+  writeSelectedRestBasis,
+  writeSelectedMedicalBasis,
+  writeSelectedOrdinaryBasis,
+  resetVersionBasis,
+]);
