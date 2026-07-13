@@ -289,3 +289,237 @@ STALE_OWNER`. Only the top-level `STALE_CAPABILITY` branch increments
   ability owner is modified as a workaround.
 - No GameSession integration, protocol, Worker, Web/Pixi/HUD, save, dependency,
   PR-3 or release surface is changed.
+
+## B3 plan gate after the passed B2 checkpoint
+
+Canvas passed B2 at checkpoint `59c9731`. The B3 API/architecture audit is
+read-only and freezes the decisions below. This section supersedes any earlier
+wording that could be read as allowing WM-0170 to create a JobCore job or enter
+`moving`/`working`. No B3 product implementation starts until Canvas accepts
+this plan and the strict prerequisite below is independently implemented,
+reviewed and integrated.
+
+### Frozen B3 endpoint and WM-0171 handoff
+
+1. WM-0170 B3 may perform exactly one successful state publication:
+   expected `idle` row/version `r` to `claiming` row/version `r + 1`.
+2. The published claiming row has `jobId = NONE`,
+   `pendingJobId = claimPlan.transaction.jobId`, the already-selected bounded
+   route, the exact claim ids returned by the one successful acquire, reason
+   `RESERVATION_ACQUIRED`, and reservation basis equal to the successful
+   acquire output version. It preserves the selected source, candidate, target
+   and every revalidated owner/path basis.
+3. WM-0170 must not publish `moving` or `working`. Those states require an
+   active JobCore job and required claims under ADR-0018 and the integrated
+   architecture; WM-0170 is forbidden to mutate JobCore or GameSession and
+   therefore cannot prove that invariant.
+4. WM-0171 owns the second publication after real JobCore creation/entry:
+   expected claiming row/version `r + 1` to `moving` or `working` row/version
+   `r + 2`, bind `jobId = pendingJobId`, clear `pendingJobId`, bind a real
+   positive JobCore `jobVersion` and interruption policy, and preserve the
+   route/claims without a release/reacquire gap.
+5. While WM-0170 still has `jobId = NONE`, the current Store policy requires
+   `interruptionPolicy = NONE` and `basis.jobVersion = 0`. B3 therefore treats
+   any supposedly inactive Job projection with a job id, policy or non-zero
+   version as stale before mutation; it does not fabricate a future binding.
+
+### Strict prerequisite: exact zero-allocation claim compensation
+
+The current `ReservationLedger.acquireInto` is suitable for the forward
+transaction, but neither current rollback entry point is suitable for B3.
+`releaseClaims(readonly number[])` and `releaseReservationsForOwnerJob` return
+new result objects; the former also uses `for-of` and does not reject duplicate
+ids before mutation. Claim ids are allocated only by the successful acquire,
+so pre-acquire Store validation can check shape and predicted version but
+cannot validate the exact ids that will be published or make an injected
+post-acquire failure impossible.
+
+Before B3 resumes, an independently owned prerequisite must add and review the
+minimum generic ledger surface below. Beacon will coordinate that task only
+after Canvas formally accepts this plan; WM-0170 does not create or modify its
+task JSON.
+
+```ts
+interface ReservationReleaseIntoOutput {
+  ok: boolean;
+  reason: ReservationReason | undefined;
+  claimId: number;
+  releasedCount: number;
+  version: number;
+  activeCount: number;
+}
+
+releaseClaimsInto(
+  claimIds: Uint32Array,
+  claimCount: number,
+  output: ReservationReleaseIntoOutput,
+): void;
+```
+
+The exact accepted naming may follow ledger conventions, but the reviewed
+contract must satisfy all of these mechanical requirements:
+
+- reset the caller-owned output on every call and allocate no object, array,
+  closure or string on the reachable call chain;
+- reject an invalid count, `NONE`/out-of-range id, inactive id or duplicate id
+  before releasing any claim;
+- on success release exactly the first `claimCount` ids, update every channel,
+  owner/target link, capacity amount, active count, free lane and metric exactly
+  once, then advance ledger version exactly once when the count is non-zero;
+- on failure leave all authoritative claims, counts, links, amounts, free lanes,
+  version and release metrics unchanged and return the first deterministic
+  offending id/reason in the reused output;
+- use index-bounded loops rather than `for-of`, preserve the input/output/typed-
+  lane identities, and expose the API from the existing package public entry;
+- prove invalid-first, invalid-middle, invalid-last, inactive, duplicate and
+  mixed-channel atomic rejection; exact entity/cell/interaction/item/capacity
+  success; output reuse; version/metric behavior; full-capacity/reused-id
+  behavior; and a TypeChecker-based allocation-free transitive closure.
+
+This prerequisite is a stop line, not an optional optimization. A successful
+acquire followed by exact Store validation or publication failure cannot be
+safely compensated under the WM-0170 hot-path rules without it.
+
+### Exact B3 resume procedure after prerequisite integration
+
+1. Confirm Canvas plan PASS, prerequisite task `done`, prerequisite integration
+   reachable from current `main`, clean single worktree, and WM-0170 still owned
+   by Tally/in progress. Run workflow validation/status; do not reclaim or
+   complete the task.
+2. Rebase or otherwise refresh the existing WM-0170 branch only through the
+   project workflow chosen by Beacon, then rerun the B2 focused suite,
+   typecheck and closure audit unchanged. Stop on any baseline regression.
+3. Re-read the integrated `releaseClaimsInto` implementation, public export,
+   tests and independent review. Verify its actual signature against this
+   contract and add it to the B3 TypeChecker closure before editing coordinator
+   production code.
+4. Implement B3 only in the already-approved autonomy selection/types/store
+   modules and focused autonomy test/report unless Canvas explicitly approves a
+   narrower revised file list. Do not modify ReservationLedger again inside
+   WM-0170.
+5. Execute the ordered revalidation, plan, prevalidation, acquire, exact
+   publication and compensation sequence below; run the complete B3 matrix and
+   scoped gates; update the report; push a B3 checkpoint and stop for independent
+   Canvas implementation review. Do not run `taskctl complete` until that review
+   passes.
+
+### Ordered B3 hot-path sequence
+
+Every call uses construction-time injected owners plus caller-owned scratch and
+outputs. No world, LocationStore, item/target owner, JobCore or GameSession state
+is changed by this sequence.
+
+1. Re-read the resident autonomy row. Require the same resident generation,
+   `idle` state, row version and Store version selected by B2.
+2. Re-read active actor identity, all five Need values and their owner versions,
+   schedule/work/permission/meal/weather facts, wake facts, consciousness,
+   movement, the selected-source ability and the inactive Job projection.
+   Compare every value and version retained by B2; re-apply the hard safety
+   gates. Failure stops before claim-plan access.
+3. Re-read the selected owner row and its index/source basis using the matrix
+   below. The candidate id, target id/cell and source-local policy facts must
+   still match B2 exactly. Failure stops before claim-plan access.
+4. Re-read the complete path basis and verify map, navigation, region, room and
+   region-graph versions, route length `1..128`, valid route cells, target-cell
+   endpoint and cleared tail. Failure stops before claim-plan access.
+5. Reset the fixed claim-plan output and call
+   `claimPlans.readPlanInto(...)` exactly once. Validate the returned header,
+   fixed refs, aliases, transaction and fixed claim slots without allocation.
+6. Build a provisional claiming transition in existing scratch, using valid
+   placeholders for the not-yet-known claim ids and predicted success ledger
+   version `current + 1`. Call `validateTransitionInto` before acquire. This
+   proves all caller-controlled Store shape relations but is not treated as
+   proof of the future exact claim ids.
+7. Call `ReservationLedger.acquireInto` exactly once. On failure, publish no
+   autonomy row and classify the returned structured reservation reason.
+8. On success, copy exactly `output.claimCount` returned ids into the fixed
+   transition claim lane, clear its tail, bind the actual acquire version and
+   re-run `validateTransitionInto` against the exact claiming row.
+9. Call `transitionInto` once only after exact validation. Success publishes the
+   claiming endpoint defined above. Any exact validation or transition failure
+   calls integrated `releaseClaimsInto` once with precisely the ids/count from
+   this acquire and returns a structured publication/compensation result.
+10. A compensation failure is a fail-closed invariant breach: retain the exact
+    acquire/release evidence in caller-owned output/metrics, publish no autonomy
+    row, perform no broad owner/job cleanup, and surface the failure for the
+    authoritative caller. B3 must never silently continue with leaked claims.
+
+### Selected-source revalidation matrix
+
+| Source | Required fresh reads and exact relations before plan access |
+| --- | --- |
+| Food | `readPortionInto(candidateId, output)`; active/linked/safe/permission/schedule and available amount remain valid; stack/target/cell match; `foodAvailabilityVersion` equals selected owner/index basis, `itemStoreVersion` equals selected row/item basis, meal-window id/version match, and both current/selected dirty backlog are zero. |
+| Rest | `readFixtureInto(candidateId, output)` plus a fresh bounded `RestCandidateIndex.selectCandidatesInto` with the retained B2 query/environment; find the same fixture in the caller-owned result; source/store/current/cached row versions, index version, zero backlog, target/entity/kind/region/spot/schedule/weather/exposure/outdoor/permission facts all match. A row read alone is insufficient because it does not expose index source/backlog facts. |
+| Medical | `readPatientRequestInto` for the candidate, `readCaregiverStateInto` for the selected caregiver, and fresh `queryAbilityInto`; patient/caregiver/condition/health/medical/base-ability/actor-condition versions and all target/region/permission/treatment/stock/amount facts match; caregiver remains valid/allowed and ability remains at least the selected minimum. |
+| Ordinary | `WorkOfferIndex.readOfferInto(candidateId, output)`; owner, row and index versions, work type, region, definition, urgency, permission, target id/cell, score and the selected descriptor/query fields match exactly. |
+
+Need, schedule, wake, capability, Job and path validation are common to all
+four sources and run once, not once per owner. The B2 snapshot must retain a
+baseline for every compared fact. In particular, before implementation the B3
+types/store snapshot lane adds the wake event version captured at selection;
+comparing only current wake facts without a retained version is prohibited.
+This is an autonomy-owned basis addition, not a generic wake-owner edit.
+
+### Claim-plan structural acceptance
+
+After the single plan call and before acquire, all of the following must hold:
+
+- output/header/transaction/claims-array/ref/slot identities are unchanged from
+  construction; transaction owner aliases the fixed owner ref; every emitted
+  claim aliases one of the eight fixed slot refs and no slot is repeated;
+- header is successful and exactly echoes selected source, candidate, target
+  and target cell; `pendingJobId` is valid and equals
+  `transaction.jobId`; transaction owner is the exact resident;
+- `createdTick` equals the request tick, lease expiry is not earlier, and
+  `header.claimCount === transaction.claims.length` is in `1..8` and fits every
+  reservation/transition output capacity;
+- there are no holes, duplicate claim objects or cross-slot target/item aliases;
+  every source-required entity, cell, interaction, quantity or capacity claim
+  refers to the revalidated owner facts; route and target remain consistent;
+- a failed or malformed plan never reaches acquire. The fixed plan output is
+  reset so no prior pending id, ref, claim or scalar can leak into the result.
+
+### Mechanical failure and call-count matrix
+
+| Case | Plan / acquire / transition / release calls | Required authoritative result |
+| --- | --- | --- |
+| Any autonomy, Need, schedule/wake, capability, owner, Job or path stale basis | `0 / 0 / 0 / 0` | AutonomyStore and ledger snapshots unchanged; increment exactly the matching stale class once; retain B2 actual visited/ingress/retained/scored/path work without a second budget aggregation. |
+| Claim-plan failure or malformed aliases/header/claims | `1 / 0 / 0 / 0` | Both snapshots unchanged; return exact plan/invariant reason; do not count a reservation conflict. |
+| Provisional Store validation failure | `1 / 0 / 0 / 0` | Both snapshots unchanged; return structured publication-shape failure. |
+| Acquire conflict, shortage, capacity or invalid transaction | `1 / 1 / 0 / 0` | AutonomyStore unchanged; no partial claims/amounts/active-count change; claim-id output tail reset to `NONE`; increment reservation conflict only for the defined conflict/shortage/capacity classes. |
+| Successful acquire and claiming publication | `1 / 1 / 1 / 0` | One claiming row at `r + 1`; exact active claim ids/count and acquire version persisted; no Job/world/position/item/target mutation. |
+| Successful acquire, then exact validation or injected transition failure | `1 / 1 / 0..1 / 1` | AutonomyStore snapshot exactly unchanged; active records/counts/channel amounts restored to pre-acquire semantics by exact compensation. Ledger version and acquired/released metrics truthfully advance for acquire plus release and are not asserted byte-identical. |
+| Compensation rejection/failure | `1 / 1 / 0..1 / 1` | No autonomy publication or broad cleanup; fail closed with exact acquired ids and rollback reason exposed; test-only injection proves this branch cannot be reported as success. |
+
+Every branch also proves scratch/output/typed-array/ref identities, deterministic
+reason and metric deltas, cleared unused tails, one selected resident only and
+zero legacy materializer calls. Acquire rejection tests cover first/middle/last
+claim failures and prove transaction atomicity rather than only active count.
+
+### B3 allocation and boundary closure gate
+
+The existing TypeScript `Program`/`TypeChecker` BFS is extended from
+`ResidentAutonomyCoordinator.decideInto` through all newly reachable B3
+declarations and accessors. The positive manifest must include at least
+`validateTransitionInto`, `transitionInto`, the concrete fixed claim-plan
+provider(s), `acquireInto`, integrated `releaseClaimsInto`, Food/Rest/Medical/
+Ordinary fresh reads, Rest fresh indexed selection and ability query. It keeps
+receiver-exact identity, complete declaration/accessor scanning, duplicate-free
+manifest/digest and zero unresolved or unexpected calls.
+
+`AutonomyClaimPlanSource.readPlanInto` is a dynamic interface boundary; the
+checker must not pretend that its interface declaration supplies a concrete
+body. Each construction-approved provider is separately audited as a fixed
+caller-owned Into closure, and a fake same-name receiver/provider must fail
+closed. Synthetic negatives cover allocation, interpolation/concatenation,
+higher-order calls, `for-of`, spread/rest, async/generator syntax, allocating
+getters/setters and unresolved dynamic receivers.
+
+The production closure forbids `releaseClaims`,
+`releaseReservationsForOwnerJob`, reservation `createMetrics`/`createSnapshot`,
+legacy materializing owner APIs, unbounded scans/sorts and all JobCore, world,
+LocationStore, item/target owner or GameSession mutation. Snapshot creation is
+test-only. Final B3 gates are scoped typecheck, the complete focused autonomy
+suite, prerequisite ledger regression suite, allocation/closure negatives,
+package-boundary checks and updated WM-0170 report evidence, followed by an
+independent Canvas review checkpoint.
