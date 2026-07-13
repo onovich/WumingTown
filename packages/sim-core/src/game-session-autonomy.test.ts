@@ -5,6 +5,7 @@ import {
   AUTONOMY_REASON_BLOCKED_SCHEDULE_CLOSED,
   AUTONOMY_REASON_CAPABILITY_MOVEMENT_DENIED,
   AUTONOMY_REASON_CAPABILITY_PERMISSION_DENIED,
+  AUTONOMY_REASON_CAPABILITY_STALE_BASIS,
   AUTONOMY_REASON_CAPABILITY_TREATMENT_DENIED,
   AUTONOMY_REASON_FAILED_INVARIANT,
   AUTONOMY_REASON_IDLE_RETRY_BACKOFF,
@@ -754,6 +755,127 @@ it("preserves actual budget when the second or third enabled source becomes stal
   }
 });
 
+it("classifies source ability stale for every owner without losing prior work or identities", () => {
+  const cases = [
+    { sourceIndex: 0, mask: 1, expectedVisited: 0, expectedIngress: 0 },
+    { sourceIndex: 1, mask: 3, expectedVisited: 2, expectedIngress: 0 },
+    { sourceIndex: 2, mask: 7, expectedVisited: 10, expectedIngress: 8 },
+    { sourceIndex: 3, mask: 15, expectedVisited: 8, expectedIngress: 6 },
+  ] as const;
+  for (const scenario of cases) {
+    const fixture = createCoordinatorFixture(
+      0,
+      12,
+      scenario.sourceIndex + 1,
+      1,
+      true,
+      0,
+      scenario.mask,
+    );
+    const scratch = createDecisionScratch();
+    const output = createDecisionOutput();
+    const autonomyBefore = fixture.dependencies.autonomyStore.createSnapshot();
+    const reservationBefore = fixture.dependencies.reservations.createSnapshot();
+    const globalRetained = scratch.globalRetained;
+    const abilityOutput = scratch.abilityOutput;
+    const sourceScratch = readSourceScratchIdentity(scratch, scenario.sourceIndex);
+    let coordinatorAbilityQueryCount = 0;
+    const abilitySpy = vi
+      .spyOn(fixture.dependencies.abilities, "queryAbilityInto")
+      .mockImplementation((actorId, ability, _health, threshold, abilityQueryOutput) => {
+        if (abilityQueryOutput === abilityOutput) coordinatorAbilityQueryCount += 1;
+        const stale =
+          abilityQueryOutput === abilityOutput &&
+          coordinatorAbilityQueryCount === scenario.sourceIndex + 3;
+        writeAbilityQueryMock(abilityQueryOutput, actorId, ability, threshold, stale);
+      });
+    const foodSpy = vi
+      .spyOn(fixture.dependencies.food, "selectCandidatesInto")
+      .mockImplementation((_query, _foodScratch, foodOutput) => {
+        foodOutput.ok = true;
+        foodOutput.reason = undefined;
+        foodOutput.visitedCount = scenario.sourceIndex === 0 ? 0 : 2;
+        foodOutput.selectedCount = 0;
+        foodOutput.candidateCapHit = false;
+        foodOutput.dirtyBacklog = 0;
+      });
+    fixture.coordinator.decideInto(
+      createDecisionRequest(0, 220 + scenario.sourceIndex),
+      scratch,
+      output,
+    );
+    expect(coordinatorAbilityQueryCount).toBe(scenario.sourceIndex + 3);
+    expect(output).toMatchObject({
+      ok: false,
+      decisionKind: AUTONOMY_DECISION_FAILED,
+      reasonCode: AUTONOMY_REASON_CAPABILITY_STALE_BASIS,
+      visitedCount: scenario.expectedVisited,
+      ingressCount: scenario.expectedIngress,
+      retainedCount: scenario.expectedIngress,
+      scoredCount: 0,
+      selectedCount: 0,
+      exactPathCount: 0,
+      nodeExpansions: 0,
+    });
+    const metrics = createDecisionMetricsOutput();
+    fixture.coordinator.readMetricsInto(metrics);
+    expect(metrics).toMatchObject({
+      failedCount: 1,
+      visitedCount: scenario.expectedVisited,
+      ingressCount: scenario.expectedIngress,
+      retainedCount: scenario.expectedIngress,
+      staleCapabilityCount: 1,
+      staleCandidateCount: 0,
+      lastReasonCode: AUTONOMY_REASON_CAPABILITY_STALE_BASIS,
+    });
+    expect(scratch.globalRetained).toBe(globalRetained);
+    expect(scratch.abilityOutput).toBe(abilityOutput);
+    expect(readSourceScratchIdentity(scratch, scenario.sourceIndex)).toBe(sourceScratch);
+    expect(fixture.dependencies.autonomyStore.createSnapshot()).toEqual(autonomyBefore);
+    expect(fixture.dependencies.reservations.createSnapshot()).toEqual(reservationBefore);
+    foodSpy.mockRestore();
+    abilitySpy.mockRestore();
+  }
+});
+
+it("runs every real source owner dynamically without replacing scratch or mutating stores", () => {
+  for (let sourceIndex = 0; sourceIndex < AUTONOMY_REAL_SOURCE_COUNT; sourceIndex += 1) {
+    const fixture = createCoordinatorFixture(
+      sourceIndex === 3 ? 12 : 0,
+      sourceIndex === 1 ? 12 : 0,
+      1,
+      1,
+      true,
+      0,
+      1 << sourceIndex,
+    );
+    const scratch = createDecisionScratch();
+    const output = createDecisionOutput();
+    const autonomyBefore = fixture.dependencies.autonomyStore.createSnapshot();
+    const reservationBefore = fixture.dependencies.reservations.createSnapshot();
+    const globalRetained = scratch.globalRetained;
+    const sourceScratch = readSourceScratchIdentity(scratch, sourceIndex);
+    const sourceOutput = readSourceOutputIdentity(scratch, sourceIndex);
+    const ownerSpy =
+      sourceIndex === 0
+        ? vi.spyOn(fixture.dependencies.food, "selectCandidatesInto")
+        : sourceIndex === 1
+          ? vi.spyOn(fixture.dependencies.restCandidates, "selectCandidatesInto")
+          : sourceIndex === 2
+            ? vi.spyOn(fixture.dependencies.medical, "selectTreatmentRequestsInto")
+            : vi.spyOn(fixture.dependencies.workOffers, "selectTopOffersInto");
+    fixture.coordinator.decideInto(createDecisionRequest(0, 240 + sourceIndex), scratch, output);
+    expect(output.ok).toBe(true);
+    expect(ownerSpy).toHaveBeenCalledTimes(1);
+    expect(scratch.globalRetained).toBe(globalRetained);
+    expect(readSourceScratchIdentity(scratch, sourceIndex)).toBe(sourceScratch);
+    expect(readSourceOutputIdentity(scratch, sourceIndex)).toBe(sourceOutput);
+    expect(fixture.dependencies.autonomyStore.createSnapshot()).toEqual(autonomyBefore);
+    expect(fixture.dependencies.reservations.createSnapshot()).toEqual(reservationBefore);
+    ownerSpy.mockRestore();
+  }
+});
+
 it("applies hard safety, movement, source ability, permission, and empty-owner semantics", () => {
   const movementDenied = createCoordinatorFixture(12);
   expect(movementDenied.dependencies.abilities.setBaseAbility(0, M3_ABILITY_MOVEMENT, 0)).toEqual({
@@ -1222,16 +1344,76 @@ it("closes decideInto by declaration identity over exact allocation-free owner r
   const audit = auditAutonomyDecisionClosure();
   expect(audit.unresolved).toEqual([]);
   expect(audit.forbidden).toEqual([]);
-  expect(audit.declarationCount).toBe(239);
   expect(audit.perFile).toEqual(AUTONOMY_HOT_EXPECTED_PER_FILE);
+  expect(audit.declarationCount).toBe(242);
+  expect(audit.accessorRoots).toEqual(AUTONOMY_HOT_EXPECTED_ACCESSOR_ROOTS);
   expect(audit.dynamicOwnerRoots).toEqual(AUTONOMY_HOT_EXPECTED_DYNAMIC_OWNER_ROOTS);
   expect(audit.nativeCallKeys).toEqual(AUTONOMY_HOT_EXPECTED_NATIVE_CALL_KEYS);
-  expect(audit.manifestDigest).toBe("d02dea82-d7357816");
+  expect(audit.manifestDigest).toBe("35ee66c9-b731fe5d");
 
   expect(readExpectedDynamicOwnerRoot("fake.selectCandidatesInto")).toBeUndefined();
   expect(readExpectedDynamicOwnerRoot("this.dependencies.food.selectCandidatesInto")).toBe(
     "M3FoodAvailabilityStore.selectCandidatesInto",
   );
+});
+
+it("fails closed through the same checker BFS for accessors and forbidden declaration syntax", () => {
+  const allocatingGetter = auditSyntheticAutonomyClosure(
+    "class Owner { get version(): number { const value = {}; return 1; } } function root(owner: Owner): number { return owner.version; }",
+  );
+  expect(allocatingGetter.declarationCount).toBe(2);
+  expect(allocatingGetter.unresolved).toEqual([]);
+  expect(allocatingGetter.forbidden).toContain("Owner.get version: object literal");
+
+  const allocatingSetter = auditSyntheticAutonomyClosure(
+    "class Owner { set version(input: number) { const value = { input }; } } function root(owner: Owner): void { owner.version = 1; }",
+  );
+  expect(allocatingSetter.declarationCount).toBe(2);
+  expect(allocatingSetter.unresolved).toEqual([]);
+  expect(allocatingSetter.forbidden).toContain("Owner.set version: object literal");
+
+  const compoundAccessor = auditSyntheticAutonomyClosure(
+    "class Owner { private current = 0; get version(): number { return this.current; } set version(input: number) { this.current = input; } } function root(owner: Owner): void { owner.version += 1; }",
+  );
+  expect(compoundAccessor.declarationCount).toBe(3);
+  expect(compoundAccessor.unresolved).toEqual([]);
+  expect(compoundAccessor.forbidden).toEqual([]);
+
+  const fakeReceiver = auditSyntheticAutonomyClosure(
+    "class ExpectedOwner { selectCandidatesInto(): number { return 1; } } class FakeOwner { selectCandidatesInto(): object { return {}; } } function root(fake: FakeOwner): object { return fake.selectCandidatesInto(); }",
+  );
+  expect(fakeReceiver.declarationCount).toBe(2);
+  expect(fakeReceiver.unresolved).toEqual([]);
+  expect(fakeReceiver.forbidden).toContain("FakeOwner.selectCandidatesInto: object literal");
+
+  const syntaxCases = [
+    {
+      source:
+        "function root(values: number[]): number { let total = 0; for (const value of values) total += value; return total; }",
+      category: "root: for-of statement",
+    },
+    {
+      source: "function root(values: number[]): number[] { return [...values]; }",
+      category: "root: spread syntax",
+    },
+    {
+      source: "function root(...values: number[]): number { return values.length; }",
+      category: "root: rest syntax",
+    },
+    {
+      source: "async function root(): Promise<void> {}",
+      category: "root: async declaration",
+    },
+    {
+      source: "function* root(): Generator<number> { yield 1; }",
+      category: "root: generator declaration",
+    },
+  ] as const;
+  for (const fixture of syntaxCases) {
+    const audit = auditSyntheticAutonomyClosure(fixture.source);
+    expect(audit.unresolved, fixture.category).toEqual([]);
+    expect(audit.forbidden, fixture.category).toContain(fixture.category);
+  }
 });
 
 it("preserves every caller scratch identity and invokes no B3 mutation or global-scan surface", () => {
@@ -3565,6 +3747,40 @@ function createAbilityOutputForAutonomy(): M3AbilityQueryIntoOutput {
   };
 }
 
+function writeAbilityQueryMock(
+  output: M3AbilityQueryIntoOutput,
+  actorId: number,
+  ability: number,
+  threshold: number,
+  stale: boolean,
+): void {
+  output.ok = !stale;
+  output.reason = stale ? "ability.cache_stale_basis" : "ability.cache_hit";
+  output.actorId = actorId;
+  output.ability = ability;
+  output.value = stale ? 0 : 1_000;
+  output.threshold = threshold;
+  output.baseValue = 1_000;
+  output.conditionPenalty = 0;
+  output.actorConditionVersion = 0;
+  output.baseAbilityVersion = 0;
+  output.visitedConditionCount = 0;
+}
+
+function readSourceScratchIdentity(scratch: AutonomyDecisionScratch, sourceIndex: number): object {
+  if (sourceIndex === 0) return scratch.foodScratch;
+  if (sourceIndex === 1) return scratch.restScratch;
+  if (sourceIndex === 2) return scratch.medicalScratch;
+  return scratch.ordinaryScratch;
+}
+
+function readSourceOutputIdentity(scratch: AutonomyDecisionScratch, sourceIndex: number): object {
+  if (sourceIndex === 0) return scratch.foodOutput;
+  if (sourceIndex === 1) return scratch.restOutput;
+  if (sourceIndex === 2) return scratch.medicalOutput;
+  return scratch.ordinaryOutput;
+}
+
 function createReservationScratchForAutonomy(): ReservationAcquireIntoScratch {
   return {
     channelCodes: new Uint8Array(AUTONOMY_MAX_CLAIM_REFS),
@@ -3757,11 +3973,18 @@ function writePathMockBasis(request: PathRequest, output: PathSearchIntoOutput):
 interface AutonomyHotClosureAudit {
   readonly declarationCount: number;
   readonly perFile: Readonly<Record<string, number>>;
+  readonly accessorRoots: readonly string[];
   readonly dynamicOwnerRoots: readonly string[];
   readonly nativeCallKeys: readonly string[];
   readonly manifestDigest: string;
   readonly unresolved: readonly string[];
   readonly forbidden: readonly string[];
+}
+
+interface AutonomyHotAuditScope {
+  readonly readFileName: (source: ts.SourceFile) => string | undefined;
+  readonly allowedNativeCallKeys: ReadonlySet<string>;
+  readonly dynamicOwnerSourceFile?: string;
 }
 
 const AUTONOMY_HOT_EXPECTED_PER_FILE: Readonly<Record<string, number>> = {
@@ -3770,12 +3993,13 @@ const AUTONOMY_HOT_EXPECTED_PER_FILE: Readonly<Record<string, number>> = {
   "game-session-autonomy-selection.ts": 91,
   "game-session-autonomy-store.ts": 18,
   "m3-food.ts": 15,
-  "m3-health.ts": 10,
+  "m3-health.ts": 11,
   "m3-medical-care.ts": 29,
   "m3-needs.ts": 5,
-  "m3-rest-sleep.ts": 35,
+  "m3-rest-sleep.ts": 36,
   "map-grid.ts": 8,
   "pathing.ts": 13,
+  "reservation-ledger.ts": 1,
   "work-offers.ts": 10,
 };
 
@@ -3800,6 +4024,12 @@ const AUTONOMY_HOT_EXPECTED_DYNAMIC_OWNER_ROOT_MAP: ReadonlyMap<string, string> 
   ],
   ["this.dependencies.workOffers.selectTopOffersInto", "WorkOfferIndex.selectTopOffersInto"],
 ]);
+
+const AUTONOMY_HOT_EXPECTED_ACCESSOR_ROOTS = [
+  "M3HealthConditionStore.get storeVersion",
+  "ReservationLedger.get version",
+  "RestSleepStore.get version",
+] as const;
 
 const AUTONOMY_HOT_EXPECTED_DYNAMIC_OWNER_ROOTS = sortAuditStrings(
   Array.from(
@@ -3865,7 +4095,6 @@ const AUTONOMY_HOT_FORBIDDEN_PROPERTY_CALLS = new Set([
 
 function auditAutonomyDecisionClosure(): AutonomyHotClosureAudit {
   const program = createAutonomyHotAuditProgram();
-  const checker = program.getTypeChecker();
   const source = program
     .getSourceFiles()
     .find((candidate) =>
@@ -3875,9 +4104,58 @@ function auditAutonomyDecisionClosure(): AutonomyHotClosureAudit {
     );
   if (source === undefined) throw new Error("autonomy selection source is missing from Program");
   const root = findAutonomyDecisionRoot(source);
+  return auditAutonomyHotClosure(program, root, {
+    readFileName: readAutonomySourceFileName,
+    allowedNativeCallKeys: AUTONOMY_HOT_EXPECTED_NATIVE_CALL_KEY_SET,
+    dynamicOwnerSourceFile: "game-session-autonomy-selection.ts",
+  });
+}
+
+function auditSyntheticAutonomyClosure(sourceText: string): AutonomyHotClosureAudit {
+  const fileName = "/synthetic/autonomy-hot-negative.ts";
+  const options: ts.CompilerOptions = {
+    module: ts.ModuleKind.ESNext,
+    noLib: true,
+    noResolve: true,
+    strict: true,
+    target: ts.ScriptTarget.ESNext,
+  };
+  const source = ts.createSourceFile(
+    fileName,
+    sourceText,
+    options.target ?? ts.ScriptTarget.ESNext,
+    true,
+    ts.ScriptKind.TS,
+  );
+  const host = ts.createCompilerHost(options, true);
+  host.fileExists = (requestedName: string): boolean =>
+    normalizeAuditPath(requestedName) === fileName;
+  host.readFile = (requestedName: string): string | undefined =>
+    normalizeAuditPath(requestedName) === fileName ? sourceText : undefined;
+  host.getSourceFile = (requestedName: string): ts.SourceFile | undefined =>
+    normalizeAuditPath(requestedName) === fileName ? source : undefined;
+  const program = ts.createProgram([fileName], options, host);
+  const root = source.statements.find(
+    (statement): statement is ts.FunctionDeclaration =>
+      ts.isFunctionDeclaration(statement) && statement.name?.text === "root",
+  );
+  if (root === undefined) throw new Error("synthetic hot audit root was not found");
+  return auditAutonomyHotClosure(program, root, {
+    readFileName: (candidate) => (candidate === source ? "synthetic.ts" : undefined),
+    allowedNativeCallKeys: new Set<string>(),
+  });
+}
+
+function auditAutonomyHotClosure(
+  program: ts.Program,
+  root: ts.SignatureDeclaration,
+  scope: AutonomyHotAuditScope,
+): AutonomyHotClosureAudit {
+  const checker = program.getTypeChecker();
   const queue: ts.SignatureDeclaration[] = [root];
   const reached = new Set<ts.SignatureDeclaration>();
   const manifestKeys = new Set<string>();
+  const accessorRoots = new Set<string>();
   const dynamicOwnerRoots = new Set<string>();
   const nativeCallKeys = new Set<string>();
   const unresolved = new Set<string>();
@@ -3887,7 +4165,7 @@ function auditAutonomyDecisionClosure(): AutonomyHotClosureAudit {
     if (reached.has(declaration)) continue;
     reached.add(declaration);
     const body = readAutonomyCallableBody(declaration);
-    const fileName = readAutonomySourceFileName(declaration.getSourceFile());
+    const fileName = scope.readFileName(declaration.getSourceFile());
     const label = readAutonomyCallableLabel(declaration);
     if (body === undefined || fileName === undefined) {
       unresolved.add(`${label}: callable body is outside packages/sim-core/src`);
@@ -3898,11 +4176,12 @@ function auditAutonomyDecisionClosure(): AutonomyHotClosureAudit {
       unresolved.add(`${manifestKey}: duplicate declaration label`);
     manifestKeys.add(manifestKey);
     perFile[fileName] = (perFile[fileName] ?? 0) + 1;
-    auditAutonomyHotBody(
-      body,
+    auditAutonomyHotDeclaration(
       declaration,
       checker,
+      scope,
       queue,
+      accessorRoots,
       dynamicOwnerRoots,
       nativeCallKeys,
       unresolved,
@@ -3913,6 +4192,7 @@ function auditAutonomyDecisionClosure(): AutonomyHotClosureAudit {
   return {
     declarationCount: reached.size,
     perFile,
+    accessorRoots: sortAuditStrings(Array.from(accessorRoots)),
     dynamicOwnerRoots: sortAuditStrings(Array.from(dynamicOwnerRoots)),
     nativeCallKeys: sortAuditStrings(Array.from(nativeCallKeys)),
     manifestDigest: hashAutonomyHotManifest(sortedManifest),
@@ -3955,20 +4235,21 @@ function findAutonomyDecisionRoot(source: ts.SourceFile): ts.MethodDeclaration {
   throw new Error("ResidentAutonomyCoordinator.decideInto declaration was not found");
 }
 
-function auditAutonomyHotBody(
-  body: ts.ConciseBody,
+function auditAutonomyHotDeclaration(
   caller: ts.SignatureDeclaration,
   checker: ts.TypeChecker,
+  scope: AutonomyHotAuditScope,
   queue: ts.SignatureDeclaration[],
+  accessorRoots: Set<string>,
   dynamicOwnerRoots: Set<string>,
   nativeCallKeys: Set<string>,
   unresolved: Set<string>,
   forbidden: Set<string>,
 ): void {
   const callerLabel = readAutonomyCallableLabel(caller);
-  const callerFile = readAutonomySourceFileName(caller.getSourceFile());
+  const callerFile = scope.readFileName(caller.getSourceFile());
   function visit(node: ts.Node): void {
-    const category = readForbiddenAutonomyHotNode(node);
+    const category = readForbiddenAutonomyHotNode(node, caller);
     if (category !== undefined) forbidden.add(`${callerLabel}: ${category}`);
     if (ts.isCallExpression(node)) {
       const signature = checker.getResolvedSignature(node);
@@ -3978,10 +4259,10 @@ function auditAutonomyHotBody(
       } else if (target.kind === ts.SyntaxKind.JSDocSignature) {
         unresolved.add(`${callerLabel}: JSDoc-only call ${node.expression.getText()}`);
       } else {
-        const targetFile = readAutonomySourceFileName(target.getSourceFile());
+        const targetFile = scope.readFileName(target.getSourceFile());
         if (targetFile === undefined) {
           const nativeKey = readAutonomyNativeCallKey(node);
-          if (nativeKey === undefined || !AUTONOMY_HOT_EXPECTED_NATIVE_CALL_KEY_SET.has(nativeKey))
+          if (nativeKey === undefined || !scope.allowedNativeCallKeys.has(nativeKey))
             unresolved.add(`${callerLabel}: unexpected external call ${node.expression.getText()}`);
           else nativeCallKeys.add(nativeKey);
         } else {
@@ -3990,7 +4271,7 @@ function auditAutonomyHotBody(
             unresolved.add(`${callerLabel}: project call has no body ${node.expression.getText()}`);
           else queue.push(target);
           if (
-            callerFile === "game-session-autonomy-selection.ts" &&
+            callerFile === scope.dynamicOwnerSourceFile &&
             targetFile !== callerFile &&
             ts.isPropertyAccessExpression(node.expression)
           ) {
@@ -4000,9 +4281,70 @@ function auditAutonomyHotBody(
         }
       }
     }
+    if (ts.isPropertyAccessExpression(node)) {
+      const accessors = readAutonomyPropertyAccessors(node, checker);
+      for (const accessor of accessors) {
+        const targetFile = scope.readFileName(accessor.getSourceFile());
+        if (targetFile === undefined) {
+          unresolved.add(`${callerLabel}: unexpected external accessor ${node.getText()}`);
+        } else {
+          queue.push(accessor);
+          accessorRoots.add(readAutonomyCallableLabel(accessor));
+        }
+      }
+    }
     ts.forEachChild(node, visit);
   }
-  visit(body);
+  visit(caller);
+}
+
+function readAutonomyPropertyAccessors(
+  access: ts.PropertyAccessExpression,
+  checker: ts.TypeChecker,
+): readonly ts.AccessorDeclaration[] {
+  const symbol = checker.getSymbolAtLocation(access.name);
+  const declarations = symbol?.getDeclarations();
+  if (declarations === undefined) return [];
+  const read = isAutonomyAccessorRead(access);
+  const write = isAutonomyAccessorWrite(access);
+  const accessors: ts.AccessorDeclaration[] = [];
+  for (const declaration of declarations) {
+    if (read && ts.isGetAccessorDeclaration(declaration)) accessors.push(declaration);
+    if (write && ts.isSetAccessorDeclaration(declaration)) accessors.push(declaration);
+  }
+  return accessors;
+}
+
+function isAutonomyAccessorRead(access: ts.PropertyAccessExpression): boolean {
+  const parent = access.parent;
+  if (
+    ts.isBinaryExpression(parent) &&
+    parent.left === access &&
+    isAutonomyAssignmentOperator(parent.operatorToken.kind)
+  )
+    return parent.operatorToken.kind !== ts.SyntaxKind.EqualsToken;
+  return true;
+}
+
+function isAutonomyAccessorWrite(access: ts.PropertyAccessExpression): boolean {
+  const parent = access.parent;
+  if (
+    ts.isBinaryExpression(parent) &&
+    parent.left === access &&
+    isAutonomyAssignmentOperator(parent.operatorToken.kind)
+  )
+    return true;
+  if (ts.isPrefixUnaryExpression(parent) || ts.isPostfixUnaryExpression(parent))
+    return (
+      parent.operand === access &&
+      (parent.operator === ts.SyntaxKind.PlusPlusToken ||
+        parent.operator === ts.SyntaxKind.MinusMinusToken)
+    );
+  return false;
+}
+
+function isAutonomyAssignmentOperator(kind: ts.SyntaxKind): boolean {
+  return kind >= ts.SyntaxKind.FirstAssignment && kind <= ts.SyntaxKind.LastAssignment;
 }
 
 function readAutonomyCallableBody(
@@ -4030,7 +4372,12 @@ function readAutonomyCallableLabel(declaration: ts.SignatureDeclaration): string
     const owner = ts.isClassDeclaration(declaration.parent)
       ? (declaration.parent.name?.text ?? "<anonymous-class>")
       : "<non-class>";
-    return `${owner}.${declaration.name.getText()}`;
+    const accessorPrefix = ts.isGetAccessorDeclaration(declaration)
+      ? "get "
+      : ts.isSetAccessorDeclaration(declaration)
+        ? "set "
+        : "";
+    return `${owner}.${accessorPrefix}${declaration.name.getText()}`;
   }
   if (ts.isConstructorDeclaration(declaration)) {
     const owner = ts.isClassDeclaration(declaration.parent)
@@ -4063,12 +4410,32 @@ function readExpectedDynamicOwnerRoot(receiver: string): string | undefined {
   return AUTONOMY_HOT_EXPECTED_DYNAMIC_OWNER_ROOT_MAP.get(receiver);
 }
 
-function readForbiddenAutonomyHotNode(node: ts.Node): string | undefined {
+function readForbiddenAutonomyHotNode(
+  node: ts.Node,
+  root: ts.SignatureDeclaration,
+): string | undefined {
+  if (ts.isForOfStatement(node)) return "for-of statement";
+  if (ts.isSpreadElement(node) || ts.isSpreadAssignment(node)) return "spread syntax";
+  if ((ts.isParameter(node) || ts.isBindingElement(node)) && node.dotDotDotToken !== undefined)
+    return "rest syntax";
+  if (
+    ts.canHaveModifiers(node) &&
+    ts.getModifiers(node)?.some((modifier) => modifier.kind === ts.SyntaxKind.AsyncKeyword) === true
+  )
+    return "async declaration";
+  if (
+    (ts.isFunctionDeclaration(node) ||
+      ts.isMethodDeclaration(node) ||
+      ts.isFunctionExpression(node)) &&
+    node.asteriskToken !== undefined
+  )
+    return "generator declaration";
   if (ts.isNewExpression(node)) return "new expression";
   if (ts.isObjectLiteralExpression(node)) return "object literal";
   if (ts.isArrayLiteralExpression(node)) return "array literal";
-  if (ts.isArrowFunction(node)) return "nested arrow function";
-  if (ts.isFunctionDeclaration(node) || ts.isFunctionExpression(node)) return "nested function";
+  if (node !== root && ts.isArrowFunction(node)) return "nested arrow function";
+  if (node !== root && (ts.isFunctionDeclaration(node) || ts.isFunctionExpression(node)))
+    return "nested function";
   if (ts.isClassDeclaration(node) || ts.isClassExpression(node)) return "nested class";
   if (ts.isTaggedTemplateExpression(node)) return "tagged template";
   if (ts.isTemplateExpression(node) || ts.isNoSubstitutionTemplateLiteral(node))

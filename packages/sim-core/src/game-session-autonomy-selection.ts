@@ -127,6 +127,16 @@ const AUTONOMY_FACT_STALE_JOB = 5;
 const AUTONOMY_FACT_STALE_WAKE = 6;
 type AutonomyFactValidationCode = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
+const AUTONOMY_SOURCE_QUERY_OK = 0;
+const AUTONOMY_SOURCE_QUERY_STALE_CAPABILITY = 1;
+const AUTONOMY_SOURCE_QUERY_STALE_OWNER = 2;
+type AutonomySourceQueryResult = 0 | 1 | 2;
+
+const AUTONOMY_SOURCE_ABILITY_ALLOWED = 0;
+const AUTONOMY_SOURCE_ABILITY_DENIED = 1;
+const AUTONOMY_SOURCE_ABILITY_STALE = 2;
+type AutonomySourceAbilityQueryResult = 0 | 1 | 2;
+
 /** Construction-only input. The coordinator validates and defensively copies every lane. */
 export interface AutonomyDecisionPolicyInput {
   readonly actorCapacity: number;
@@ -1276,7 +1286,13 @@ export class ResidentAutonomyCoordinator {
       if (!this.isSourceEnabled(request, scratch, tableIndex, sourceIndex)) continue;
       const quota = calculateSourceVisitQuota(enabledCount, enabledRank);
       enabledRank += 1;
-      if (!this.querySource(request, scratch, tableIndex, sourceIndex, quota)) {
+      const queryResult = this.querySource(request, scratch, tableIndex, sourceIndex, quota);
+      if (queryResult === AUTONOMY_SOURCE_QUERY_STALE_CAPABILITY) {
+        this.metrics.staleCapabilityCount += 1;
+        this.finishFailureWithBudget(scratch, output, AUTONOMY_REASON_CAPABILITY_STALE_BASIS);
+        return false;
+      }
+      if (queryResult === AUTONOMY_SOURCE_QUERY_STALE_OWNER) {
         this.metrics.staleCandidateCount += 1;
         this.finishFailureWithBudget(scratch, output, AUTONOMY_REASON_OFFER_STALE_OWNER);
         return false;
@@ -1365,7 +1381,7 @@ export class ResidentAutonomyCoordinator {
     tableIndex: number,
     sourceIndex: number,
     quota: number,
-  ): boolean {
+  ): AutonomySourceQueryResult {
     if (sourceIndex === 0) return this.queryFood(request, scratch, tableIndex, quota);
     if (sourceIndex === 1) return this.queryRest(request, scratch, tableIndex, quota);
     if (sourceIndex === 2) return this.queryMedical(request, scratch, tableIndex, quota);
@@ -1378,7 +1394,7 @@ export class ResidentAutonomyCoordinator {
     ability: number,
     minimum: number,
     denialReason: AutonomyReasonCode,
-  ): number {
+  ): AutonomySourceAbilityQueryResult {
     this.dependencies.abilities.queryAbilityInto(
       request.residentIndex,
       ability,
@@ -1386,13 +1402,11 @@ export class ResidentAutonomyCoordinator {
       minimum,
       scratch.abilityOutput,
     );
-    if (scratch.abilityOutput.ok) return 0;
-    if (scratch.abilityOutput.reason === "ability.cache_stale_basis") {
-      this.metrics.staleCapabilityCount += 1;
-      return 2;
-    }
+    if (scratch.abilityOutput.ok) return AUTONOMY_SOURCE_ABILITY_ALLOWED;
+    if (scratch.abilityOutput.reason === "ability.cache_stale_basis")
+      return AUTONOMY_SOURCE_ABILITY_STALE;
     this.recordDecisionRejection(denialReason);
-    return 1;
+    return AUTONOMY_SOURCE_ABILITY_DENIED;
   }
 
   private queryFood(
@@ -1400,7 +1414,7 @@ export class ResidentAutonomyCoordinator {
     scratch: AutonomyDecisionScratch,
     tableIndex: number,
     quota: number,
-  ): boolean {
+  ): AutonomySourceQueryResult {
     const ability = this.policy.sourceAbilityIds[0] ?? 0;
     const minimum = this.policy.sourceMinimumAbilityValues[0] ?? 0;
     const abilityResult = this.querySourceAbility(
@@ -1410,7 +1424,9 @@ export class ResidentAutonomyCoordinator {
       minimum,
       AUTONOMY_REASON_CAPABILITY_MOVEMENT_DENIED,
     );
-    if (abilityResult !== 0) return abilityResult === 1;
+    if (abilityResult === AUTONOMY_SOURCE_ABILITY_STALE)
+      return AUTONOMY_SOURCE_QUERY_STALE_CAPABILITY;
+    if (abilityResult === AUTONOMY_SOURCE_ABILITY_DENIED) return AUTONOMY_SOURCE_QUERY_OK;
     this.writeFoodQuery(request, scratch, tableIndex, quota);
     this.dependencies.food.selectCandidatesInto(
       scratch.foodQuery,
@@ -1425,10 +1441,13 @@ export class ResidentAutonomyCoordinator {
         quota,
       )
     )
-      return false;
-    if (!scratch.foodOutput.ok || scratch.foodOutput.dirtyBacklog !== 0) return false;
+      return AUTONOMY_SOURCE_QUERY_STALE_OWNER;
+    if (!scratch.foodOutput.ok || scratch.foodOutput.dirtyBacklog !== 0)
+      return AUTONOMY_SOURCE_QUERY_STALE_OWNER;
     if (scratch.foodOutput.candidateCapHit) this.metrics.candidateCapHitCount += 1;
-    return this.admitFoodRows(request, scratch, ability);
+    return this.admitFoodRows(request, scratch, ability)
+      ? AUTONOMY_SOURCE_QUERY_OK
+      : AUTONOMY_SOURCE_QUERY_STALE_OWNER;
   }
 
   private writeFoodQuery(
@@ -1477,7 +1496,7 @@ export class ResidentAutonomyCoordinator {
     scratch: AutonomyDecisionScratch,
     tableIndex: number,
     quota: number,
-  ): boolean {
+  ): AutonomySourceQueryResult {
     const ability = this.policy.sourceAbilityIds[1] ?? 0;
     const minimum = this.policy.sourceMinimumAbilityValues[1] ?? 0;
     const abilityResult = this.querySourceAbility(
@@ -1487,7 +1506,9 @@ export class ResidentAutonomyCoordinator {
       minimum,
       AUTONOMY_REASON_CAPABILITY_MOVEMENT_DENIED,
     );
-    if (abilityResult !== 0) return abilityResult === 1;
+    if (abilityResult === AUTONOMY_SOURCE_ABILITY_STALE)
+      return AUTONOMY_SOURCE_QUERY_STALE_CAPABILITY;
+    if (abilityResult === AUTONOMY_SOURCE_ABILITY_DENIED) return AUTONOMY_SOURCE_QUERY_OK;
     this.writeRestQuery(request, scratch, tableIndex, quota);
     this.dependencies.restCandidates.selectCandidatesInto(
       scratch.restQuery,
@@ -1504,10 +1525,13 @@ export class ResidentAutonomyCoordinator {
         quota,
       )
     )
-      return false;
-    if (!scratch.restOutput.ok || scratch.restOutput.dirtyBacklog !== 0) return false;
+      return AUTONOMY_SOURCE_QUERY_STALE_OWNER;
+    if (!scratch.restOutput.ok || scratch.restOutput.dirtyBacklog !== 0)
+      return AUTONOMY_SOURCE_QUERY_STALE_OWNER;
     if (scratch.restOutput.candidateCapHit) this.metrics.candidateCapHitCount += 1;
-    return this.admitRestRows(request, scratch, ability);
+    return this.admitRestRows(request, scratch, ability)
+      ? AUTONOMY_SOURCE_QUERY_OK
+      : AUTONOMY_SOURCE_QUERY_STALE_OWNER;
   }
 
   private writeRestQuery(
@@ -1560,11 +1584,13 @@ export class ResidentAutonomyCoordinator {
     scratch: AutonomyDecisionScratch,
     tableIndex: number,
     quota: number,
-  ): boolean {
+  ): AutonomySourceQueryResult {
     const ability = this.policy.sourceAbilityIds[2] ?? 0;
     const minimum = this.policy.sourceMinimumAbilityValues[2] ?? 0;
     const caregiverResult = this.prepareMedicalCaregiver(request, scratch, ability, minimum);
-    if (caregiverResult !== 0) return caregiverResult === 1;
+    if (caregiverResult === AUTONOMY_SOURCE_ABILITY_STALE)
+      return AUTONOMY_SOURCE_QUERY_STALE_CAPABILITY;
+    if (caregiverResult === AUTONOMY_SOURCE_ABILITY_DENIED) return AUTONOMY_SOURCE_QUERY_OK;
     const options = scratch.medicalOptions;
     options.caregiverId = request.residentIndex;
     options.regionId = request.originRegionId;
@@ -1588,12 +1614,12 @@ export class ResidentAutonomyCoordinator {
         quota,
       )
     )
-      return false;
+      return AUTONOMY_SOURCE_QUERY_STALE_OWNER;
     if (!scratch.medicalOutput.ok)
-      return scratch.medicalOutput.reason === "medical.selection_empty";
-    if (!this.hasCurrentMedicalSelection(scratch, ability, minimum)) return false;
-    if (scratch.medicalOutput.candidateCapHit) this.metrics.candidateCapHitCount += 1;
-    return this.admitMedicalRows(request, scratch, ability);
+      return scratch.medicalOutput.reason === "medical.selection_empty"
+        ? AUTONOMY_SOURCE_QUERY_OK
+        : AUTONOMY_SOURCE_QUERY_STALE_OWNER;
+    return this.admitMedicalRows(request, scratch, ability, minimum);
   }
 
   private prepareMedicalCaregiver(
@@ -1601,14 +1627,14 @@ export class ResidentAutonomyCoordinator {
     scratch: AutonomyDecisionScratch,
     ability: number,
     minimum: number,
-  ): number {
+  ): AutonomySourceAbilityQueryResult {
     this.dependencies.medical.readCaregiverStateInto(
       request.residentIndex,
       scratch.medicalCaregiverReadOutput,
     );
     if (!scratch.medicalCaregiverReadOutput.ok || !scratch.medicalCaregiverReadOutput.valid) {
       this.recordDecisionRejection(AUTONOMY_REASON_CAPABILITY_TREATMENT_DENIED);
-      return 1;
+      return AUTONOMY_SOURCE_ABILITY_DENIED;
     }
     if (
       !scratch.medicalCaregiverReadOutput.allowed ||
@@ -1616,7 +1642,7 @@ export class ResidentAutonomyCoordinator {
         (this.dependencies.scheduleFacts.permissionIds[request.residentIndex] ?? 0)
     ) {
       this.recordDecisionRejection(AUTONOMY_REASON_CAPABILITY_PERMISSION_DENIED);
-      return 1;
+      return AUTONOMY_SOURCE_ABILITY_DENIED;
     }
     if (
       scratch.medicalCaregiverReadOutput.regionId !== request.originRegionId ||
@@ -1624,7 +1650,7 @@ export class ResidentAutonomyCoordinator {
       scratch.medicalCaregiverReadOutput.minimumValue !== minimum
     ) {
       this.recordDecisionRejection(AUTONOMY_REASON_CAPABILITY_TREATMENT_DENIED);
-      return 1;
+      return AUTONOMY_SOURCE_ABILITY_DENIED;
     }
     const abilityResult = this.querySourceAbility(
       request,
@@ -1658,7 +1684,11 @@ export class ResidentAutonomyCoordinator {
     request: AutonomyDecisionRequest,
     scratch: AutonomyDecisionScratch,
     ability: number,
-  ): boolean {
+    minimum: number,
+  ): AutonomySourceQueryResult {
+    if (!this.hasCurrentMedicalSelection(scratch, ability, minimum))
+      return AUTONOMY_SOURCE_QUERY_STALE_OWNER;
+    if (scratch.medicalOutput.candidateCapHit) this.metrics.candidateCapHitCount += 1;
     for (let row = 0; row < scratch.medicalOutput.selectedCount; row += 1) {
       if (
         !this.admitRow(
@@ -1674,9 +1704,9 @@ export class ResidentAutonomyCoordinator {
           ability,
         )
       )
-        return false;
+        return AUTONOMY_SOURCE_QUERY_STALE_OWNER;
     }
-    return true;
+    return AUTONOMY_SOURCE_QUERY_OK;
   }
 
   private queryOrdinary(
@@ -1684,7 +1714,7 @@ export class ResidentAutonomyCoordinator {
     scratch: AutonomyDecisionScratch,
     tableIndex: number,
     quota: number,
-  ): boolean {
+  ): AutonomySourceQueryResult {
     const descriptor = this.ordinaryDescriptorIndex(request, tableIndex);
     const descriptorLane = tableIndex * AUTONOMY_ORDINARY_MAX_BUCKETS + descriptor;
     const ability = this.policy.ordinaryRequiredAbilityIds[descriptorLane] ?? 0;
@@ -1696,7 +1726,9 @@ export class ResidentAutonomyCoordinator {
       minimum,
       AUTONOMY_REASON_CAPABILITY_MOVEMENT_DENIED,
     );
-    if (abilityResult !== 0) return abilityResult === 1;
+    if (abilityResult === AUTONOMY_SOURCE_ABILITY_STALE)
+      return AUTONOMY_SOURCE_QUERY_STALE_CAPABILITY;
+    if (abilityResult === AUTONOMY_SOURCE_ABILITY_DENIED) return AUTONOMY_SOURCE_QUERY_OK;
     this.writeOrdinaryOptions(request, scratch, descriptorLane, quota);
     this.dependencies.workOffers.selectTopOffersInto(
       scratch.ordinaryOptions,
@@ -1711,10 +1743,12 @@ export class ResidentAutonomyCoordinator {
         quota,
       )
     )
-      return false;
-    if (!scratch.ordinaryOutput.ok) return false;
+      return AUTONOMY_SOURCE_QUERY_STALE_OWNER;
+    if (!scratch.ordinaryOutput.ok) return AUTONOMY_SOURCE_QUERY_STALE_OWNER;
     if (scratch.ordinaryOutput.rejectedByCandidateCap > 0) this.metrics.candidateCapHitCount += 1;
-    return this.admitOrdinaryRows(request, scratch, descriptor, ability);
+    return this.admitOrdinaryRows(request, scratch, descriptor, ability)
+      ? AUTONOMY_SOURCE_QUERY_OK
+      : AUTONOMY_SOURCE_QUERY_STALE_OWNER;
   }
 
   private writeOrdinaryOptions(

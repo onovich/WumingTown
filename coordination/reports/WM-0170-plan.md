@@ -222,7 +222,7 @@ are closed as follows:
    identity through private/free helpers and concrete owner methods, rejects
    every unresolved or unexpected external call, and checks every reached body
    with an AST allocation/string/higher-order visitor.
-6. The final fixed closure is 239 declarations: 91 selection declarations plus
+6. The first repaired closure was 239 declarations: 91 selection declarations plus
    148 owner declarations, zero unresolved calls, 13 receiver-exact dynamic
    owner roots and exactly 34 approved native keys (29 typed-array `fill`, two
    `Number`, three `Math`). The duplicate-free manifest digest is
@@ -232,6 +232,41 @@ are closed as follows:
    Food/Rest/Ordinary option writers. The remaining explicit structural audit
    is recorded function by function in the report with its fixed bound and why
    further splitting would only fragment straight-line validation/comparison.
+
+## Canvas second B2 repair plan and completed evidence
+
+Canvas returned a second `CHANGES REQUESTED / B2 PHASE FAIL` on checkpoint
+`8f7f360`. Only two blockers are repaired; B3, generic owner edits,
+`taskctl complete`, integration and merge remain prohibited.
+
+1. Source ability querying now has a fixed numeric
+   `ALLOWED / DENIED / STALE` result, while each Food/Rest/Medical/Ordinary
+   wrapper returns the fixed source result `OK / STALE_CAPABILITY /
+STALE_OWNER`. Only the top-level `STALE_CAPABILITY` branch increments
+   capability stale and terminates with `CAPABILITY_STALE_BASIS`; only
+   `STALE_OWNER` increments candidate stale. Four parameterized regressions make
+   the two hard ability queries succeed and the target source ability query
+   stale. They preserve prior source budgets at visited/ingress `0/0`, `2/0`,
+   `10/8` and `8/6` for Food through Ordinary, keep scratch identities and prove
+   AutonomyStore/ReservationLedger snapshots unchanged.
+2. The same TypeChecker BFS now resolves actual get/set accessor identity for
+   reads, assignments and compound updates, and scans each complete declaration
+   rather than only its body. It rejects for-of, spread/rest, async and generator
+   syntax in addition to the existing allocation/string/higher-order checks.
+   In-memory fixtures run through that same Program/BFS/scanner path and prove
+   allocating getter, allocating setter, compound get+set, a real checker-bound
+   fake receiver and every new syntax category behave fail closed.
+3. Canvas predicted 241 declarations, but the complete resolver found a third
+   real reachable getter: `M3HealthConditionStore.get storeVersion`, reached
+   through Medical selection, alongside `ReservationLedger.get version` and
+   `RestSleepStore.get version`. The truthful final manifest is therefore 242:
+   91 selection plus 151 owner declarations, zero unresolved calls, 13 dynamic
+   owner roots, three accessor roots and the same 34 native keys. Its fixed
+   duplicate-free digest is `35ee66c9-b731fe5d`.
+4. Independent positive dynamics call each real source owner once: Food empty
+   candidate query, Rest real fixture query, Medical valid-caregiver empty
+   request query and Ordinary real offer query. Each preserves source
+   scratch/output/global-retained identity and both authoritative snapshots.
 
 ## Implementation stop lines
 
