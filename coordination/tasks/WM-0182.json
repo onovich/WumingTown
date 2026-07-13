@@ -2,7 +2,7 @@
   "id": "WM-0182",
   "title": "ReservationLedger exact claim custody and allocation epochs",
   "summary": "Add generation-aware exact claim custody APIs and independently rooted allocation-free release/read closure for WM-0170 and WM-0171.",
-  "state": "in_progress",
+  "state": "changes_requested",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": ["WM-0177"],
@@ -44,7 +44,7 @@
   ],
   "branch": "task/WM-0182-reservationledger-exact-claim-custody-and-alloca",
   "createdAt": "2026-07-13T08:08:27.691Z",
-  "updatedAt": "2026-07-13T08:55:30.169Z",
+  "updatedAt": "2026-07-13T09:10:29.856Z",
   "history": [
     {
       "at": "2026-07-13T08:08:27.691Z",
@@ -81,6 +81,18 @@
       "actor": "project-director",
       "action": "unblock",
       "details": "Approved exact golden-only scope refinement after MSG-MRIZF57K-B91F07: one Worker test file, two deterministic literals, no Worker production changes."
+    },
+    {
+      "at": "2026-07-13T09:00:11.248Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented generation-aware ReservationLedger exact claim custody with allocation epochs, allocation-free exact release/read closures, snapshot v2/hash/restore/export coverage, version and ABA boundaries, and the director-approved Worker golden update; 44 focused tests, 15 Worker tests, all gates, and 522-test quality pass"
+    },
+    {
+      "at": "2026-07-13T09:10:29.856Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: packages/sim-core/src/reservation-ledger.ts:1049 makes readActiveClaimsInto expose internal amount=1 for ENTITY, CELL, and INTERACTION_SPOT, contradicting approved WM-0170 plan blob line 526 that only ITEM_QUANTITY/CAPACITY carry amount; packages/sim-core/src/reservation-ledger.test.ts:756 locks the wrong [1,1,2,1,3] result. Normalize non-quantity/capacity amounts to zero and add exact [0,0,2,0,3] regression. High: packages/sim-core/src/reservation-ledger-closure.test.ts:147-152 accepts every same-source resolved target without checking receiver identity, while the foreign-receiver negative at 307-318 uses a different auditor, so the two formal roots are not proven receiver-exact. Enforce receiver-exact traversal in the production closure auditor and exercise a same-source foreign/same-name receiver through that same path. Typecheck, 44 focused tests, 15 Worker tests, boundaries, handoff, taskctl validate/status, diff checks, and full quality 522 passed; scoped pnpm-exec shims failed in this Windows shell and direct locked .CMD equivalents passed, except current taskctl-complete WM-0182.json formatting drift."
     }
   ],
   "milestone": "Post-M8",
@@ -126,5 +138,12 @@
   "integrationOrder": "First prerequisite. Independent reviewer verification, project-director integration and done are mandatory before WM-0183 may become ready.",
   "claimedBy": "simulation-engineer",
   "threadLabel": "Tally WM-0182",
-  "blocker": null
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0182.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "changes_requested",
+    "summary": "High: packages/sim-core/src/reservation-ledger.ts:1049 makes readActiveClaimsInto expose internal amount=1 for ENTITY, CELL, and INTERACTION_SPOT, contradicting approved WM-0170 plan blob line 526 that only ITEM_QUANTITY/CAPACITY carry amount; packages/sim-core/src/reservation-ledger.test.ts:756 locks the wrong [1,1,2,1,3] result. Normalize non-quantity/capacity amounts to zero and add exact [0,0,2,0,3] regression. High: packages/sim-core/src/reservation-ledger-closure.test.ts:147-152 accepts every same-source resolved target without checking receiver identity, while the foreign-receiver negative at 307-318 uses a different auditor, so the two formal roots are not proven receiver-exact. Enforce receiver-exact traversal in the production closure auditor and exercise a same-source foreign/same-name receiver through that same path. Typecheck, 44 focused tests, 15 Worker tests, boundaries, handoff, taskctl validate/status, diff checks, and full quality 522 passed; scoped pnpm-exec shims failed in this Windows shell and direct locked .CMD equivalents passed, except current taskctl-complete WM-0182.json formatting drift.",
+    "at": "2026-07-13T09:10:29.855Z"
+  }
 }

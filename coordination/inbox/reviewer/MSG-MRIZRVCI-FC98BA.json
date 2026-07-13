@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MRIZRVCI-FC98BA",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0182",
+  "kind": "review-request",
+  "subject": "WM-0182 ready for review",
+  "body": "Implemented generation-aware ReservationLedger exact claim custody with allocation epochs, allocation-free exact release/read closures, snapshot v2/hash/restore/export coverage, version and ABA boundaries, and the director-approved Worker golden update; 44 focused tests, 15 Worker tests, all gates, and 522-test quality pass",
+  "artifacts": [
+    "coordination/reports/WM-0182.md",
+    "task/WM-0182-reservationledger-exact-claim-custody-and-alloca"
+  ],
+  "createdAt": "2026-07-13T09:00:11.250Z",
+  "acknowledgedAt": "2026-07-13T09:11:45.844Z"
+}

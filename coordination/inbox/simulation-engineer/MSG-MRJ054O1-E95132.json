@@ -1,0 +1,14 @@
+{
+  "id": "MSG-MRJ054O1-E95132",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0182",
+  "kind": "changes-requested",
+  "subject": "WM-0182 review: changes_requested",
+  "body": "High: packages/sim-core/src/reservation-ledger.ts:1049 makes readActiveClaimsInto expose internal amount=1 for ENTITY, CELL, and INTERACTION_SPOT, contradicting approved WM-0170 plan blob line 526 that only ITEM_QUANTITY/CAPACITY carry amount; packages/sim-core/src/reservation-ledger.test.ts:756 locks the wrong [1,1,2,1,3] result. Normalize non-quantity/capacity amounts to zero and add exact [0,0,2,0,3] regression. High: packages/sim-core/src/reservation-ledger-closure.test.ts:147-152 accepts every same-source resolved target without checking receiver identity, while the foreign-receiver negative at 307-318 uses a different auditor, so the two formal roots are not proven receiver-exact. Enforce receiver-exact traversal in the production closure auditor and exercise a same-source foreign/same-name receiver through that same path. Typecheck, 44 focused tests, 15 Worker tests, boundaries, handoff, taskctl validate/status, diff checks, and full quality 522 passed; scoped pnpm-exec shims failed in this Windows shell and direct locked .CMD equivalents passed, except current taskctl-complete WM-0182.json formatting drift.",
+  "artifacts": [
+    "coordination/reports/WM-0182.md"
+  ],
+  "createdAt": "2026-07-13T09:10:29.857Z",
+  "acknowledgedAt": "2026-07-13T09:11:45.891Z"
+}
