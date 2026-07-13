@@ -862,15 +862,16 @@ schema. The caller-reused output resets before every call and returns `ok`, exac
 reason, full token, JobCore/driver versions, both active counts, JobCore running/
 reserved/current-tombstone/cumulative-terminal counts, and the complete
 post-call driver current metrics and cumulative counters.
-Before adoption, the expected JobCore slot and driver versions must be at most
-`0xffff_fffd`,
-reserving one bump for adoption and one for guarded rollback. Distinct
-`job_core_version_exhausted` and driver-specific `*_version_exhausted` reasons
-reject all-before-any; the freshly sampled global JobCore version must likewise
-be at most `0xffff_fffd`. Success slot/driver versions must equal both predicted
-`prior + 1` values; a successful later rollback must equal both `prior + 2`
-values. The returned global JobCore version is truthful but is not compared to
-the older claiming row after unrelated slot mutations.
+Before adoption, expected JobCore slot and freshly sampled global versions must
+both be at most `0xffff_fffc`, reserving one bump for adoption, one for guarded
+rollback and one for the now-mandatory exact token release after successful
+rollback. The driver version may be at most `0xffff_fffd`, because rollback is
+its final mutation before cleanup. Distinct `job_core_version_exhausted` and
+driver-specific `*_version_exhausted` reasons reject all-before-any. Success
+slot/driver versions equal predicted `prior + 1`; successful rollback equals
+`prior + 2`, leaving JobCore at most `0xffff_fffe` for exact token release to
+`0xffff_ffff`. The returned global JobCore version is truthful but is not
+compared to the older claiming row after unrelated slot mutations.
 
 The prerequisite also adds a version/state-guarded
 `rollbackNewlyAdopted...Into` for each driver plus the minimum JobCore rollback
@@ -991,8 +992,8 @@ so only after the claiming row exists.
    passes.
 6. WM-0171 starts only after WM-0170's normal final review/integration. Its
    first claiming-handoff fixture must prove prevalidated claiming-to-moving
-   shape, combined create/adopt, exactly-once guarded rollback and conditional-
-   headroom retained-claim retry behavior
+   shape, combined create/adopt, ordinary-rejection next-Tick retry and
+   exactly-once guarded rollback-to-cleanup behavior
    for Eating, Rest, Hauling and Treatment before any full-day integration is
    allowed to treat a claiming row as an active job.
 
@@ -1262,12 +1263,13 @@ explicit token scalars into its header/transaction; it has no sequence
 source. Tests prove two-resident ordering, range/capacity exhaustion, legacy
 range rejection, generation exhaustion/non-reuse, reserve/release version
 deltas, terminal reuse, owner mismatch/owner-busy, release-failure owner lookup
-and snapshot/hash/restore roundtrip. Exact boundary fixtures cover
-`0xffff_fffc`, `0xffff_fffd`, `0xffff_fffe` and `0xffff_ffff`: B3 accepts only
-global/slot pre-reserve values through `fffc`; WM-0171 accepts fresh global/
-slot/driver values through `fffd`; adoption and guarded rollback may truthfully
-consume `fffe` then `ffff`; each higher entry rejects before mutation and no
-counter wraps.
+and snapshot/hash/restore roundtrip. Exact JobCore boundary fixtures cover
+`0xffff_fffb` through `0xffff_ffff`: B3 accepts global/slot pre-reserve only
+through `fffb`; the resulting claiming token is at most `fffc`; WM-0171 accepts
+fresh JobCore global/slot only through `fffc` and driver through `fffd`. At the
+boundary JobCore adoption/rollback consume `fffd` then `fffe`, leaving exact
+token release to consume `ffff`; driver adoption/rollback may consume `fffe`
+then `ffff`. Every higher entry rejects before mutation and no counter wraps.
 
 `claimFacts` is a fixed construction-owned caller scratch whose identity never
 changes. This plan freezes its complete schema; `AutonomyClaimFactsLanes` uses
@@ -1581,11 +1583,11 @@ ReservationLedger and final Autonomy Store row may mutate as specified below.
    once. It must exactly equal the B2
    `reservationVersion` and be at most `0xffff_fffd`; the upper bound reserves
    one uint32 increment for acquire and one for possible compensation. Capture
-   the current active count. Freshly read JobCore global version must be at most
-   `0xffff_fffc`, and token selection must have a pre-reserve slot version at
-   most `0xffff_fffc`, so successful reserve still leaves two increments for
-   adoption plus guarded rollback. Any mismatch/exhaustion stops with no
-   mutation.
+   the current active count. Freshly read JobCore global version and the selected
+   pre-reserve slot version must both be at most `0xffff_fffb`. Successful
+   reserve therefore leaves the claiming token at most `0xffff_fffc`, preserving
+   three later increments for adoption, guarded rollback and mandatory exact
+   token release. Any mismatch/exhaustion stops with no mutation.
 6. Call `reserveAutonomyJobTokenInto` once in stable resident-decision order.
    Require exact owner, configured-range id, positive generation, expected
    global `+1`, eligible returned slot version, exact reserved/active/running/
@@ -1653,94 +1655,127 @@ release, cleanup or second acquire. This makes `prior`, `prior + 1` and optional
 
 ### Frozen WM-0171 claim-adoption handoff
 
-WM-0171 performs this separate sequence after reading a WM-0170 claiming row;
-it is not part of B3's acquire call count:
+WM-0170 adds durable claiming-handoff lanes to ResidentAutonomyStore:
+`handoffAttemptOrdinal`, Float64 `handoffAttemptTick`,
+`handoffAttemptPrepared`, and numeric last stage/result/reason. The immutable
+maximum is four attempts. Retry cadence is exactly the next safe Tick computed
+with checked `+1`; saturation is forbidden. B3 claiming publication initializes
+ordinal/Tick/stage/result to zero/`NONE` and prepared clear. Snapshot, canonical
+hash, restore, allocation-free read and transition validation preserve all
+lanes; restore rejects an ordinal above four, unsafe Tick, prepared-with-zero
+ordinal, prepared outside `ACTIVE` claiming, bad retry Tick or stage/result
+contradiction.
 
-1. Re-read the exact claiming row/version, resident generation, route, claim
-   ids/epochs/count, claim/job facts and all owner/policy bases. Require
-   `claimCustodyPhase = ACTIVE` with no pending cleanup outcome/reason,
-   `jobId = NONE`, a positive pending id/generation/slot version,
+After every owner/claim/token fact is fresh and immediately before adoption,
+WM-0171 calls allocation-free
+`prepareClaimAdoptionAttemptInto(expectedRowVersion, attemptTick, output)`. For a
+new attempt it persists ordinal `+1`, exact attempt Tick, checked next
+`retryTick`, `handoffAttemptPrepared = 1` and stage `PREPARED`, advancing the
+autonomy row/Store versions once. Before that write it prevalidates the complete
+successful moving/working transition, ordinary-reject close tail and
+rollback-success cleanup-entry tail. A restored prepared snapshot reuses the
+same ordinal/Tick/retry Tick and does not call prepare or increment again.
+
+WM-0171 then performs this separate sequence; it is not part of B3's acquire
+count:
+
+1. Re-read the exact claiming row/version, resident generation, route, claims,
+   claim/job facts and owner/policy bases. Require `claimCustodyPhase = ACTIVE`,
+   no pending cleanup outcome/reason, `jobId = NONE`, a positive pending token,
    `basis.jobVersion = 0`, `basis.driverVersion = 0`, the exact owner-affine
-   JobCore `RESERVED` token at that slot version, and no active JobCore or
-   selected driver row for that token.
-2. Re-read every dynamic owner fact and exact immutable policy manifest named
-   above. Freshly read the current ledger version and call
-   `readActiveClaimsInto` once with that batch-consistency version and the row's
-   exact ids/epochs/count, resident owner and pending token generation. The
-   current global version may differ from the historical claiming reservation
-   basis because of unrelated ledger work. Mechanically compare the complete
-   claim record prefix, job generation, created/lease ticks and reset tail to the
-   claiming bundle; never reconstruct owner-domain facts from a claim record.
-3. Build the exact concrete driver input from the row's dynamic ids/facts plus
-   the explicitly reviewed immutable policy. Before driver mutation, build and
-   validate the expected claiming-to-moving/working transition. It uses the
-   predicted next JobCore slot and selected driver store versions, copies the
-   active job generation, clears all pending-token lanes and preserves exact
-   route/claim-id/epoch custody. Require freshly sampled global JobCore, exact
-   slot and driver versions all at most `0xffff_fffd` before adoption. A
-   prediction mismatch stops before adoption.
-4. Call the one matching combined adoption root exactly once. A normal
-   validation/JobCore-create failure is all-before-any: driver and JobCore
-   remain inactive/`RESERVED`, the autonomy row remains claiming and the claims
-   remain active; unrelated global owner versions may continue to change. Keep
-   that exact retained claiming row, token and claim set unchanged; do not call
-   release or publish a claim-cleared row while the rejection remains within the
-   bounded retry/lease policy. It becomes retry-capable only after the fresh
-   descriptor/owner/token/lease/retry/headroom checks above, never by label
-   alone. Reaching the adoption retry limit is itself permanent stale and enters
-   the separately persisted `beginClaimCleanupInto` protocol, as do the other
-   permanent classifications below; none is adoption rollback.
-   There is no broad cleanup, legacy reserve, second acquire or release/
-   reacquire retry. A later deterministic retry must re-read all bases and
-   claims from scratch.
-5. On adoption success, call exactly two committed-state reads: the matching
-   `JobCoreStore.readJobInto` and the one selected driver's
-   `readAdoptedJobInto` chosen from the five available public committed-read
-   surfaces (one JobCore plus Eating, Rest, Hauling or Treatment). Do not call
-   all five. Those two reads verify the exact token/kind/target/policy/ticks/
-   step/status/progress/carried scalars, claim id/epoch prefix, owner bases,
-   counts, metrics and returned slot/driver versions. The ledger remains unmutated by
-   adoption, though its unrelated global version is not a durable guard. Only then
-   publish the prevalidated autonomy `moving`/`working` row with
-   `jobId/jobGeneration` copied from the pending token, all pending lanes cleared
-   and exact returned JobCore-slot/driver versions. Success performs zero ledger release/acquire calls, so claim
-   custody has no gap.
-6. If any success-shaped adoption output is malformed, either post-adoption Into
-   read rejects or mismatches, or the final autonomy transition rejects, call the
-   matching `rollbackNewlyAdopted...Into` exactly once—never once per failed
-   proof. A
-   successful rollback proves the driver row inactive and JobCore token restored
-   to the exact same `RESERVED` generation at predicted slot version `prior + 2`,
-   with the ledger, claiming row and exact claim set unchanged. Re-read fresh
-   global JobCore, slot and driver versions: only when all remain at most
-   `0xffff_fffd` may that row be called retry-capable. Otherwise return distinct
-   `autonomy_adoption_retry_version_exhausted` fatal evidence, prohibit an
-   unconditional retry and enter `beginClaimCleanupInto` with the reviewed
-   blocked/failed outcome while the token is again exact `RESERVED`. If the
-   guarded rollback rejects, likewise do
-   not release claims, invoke JobCore terminal/broad cleanup or publish moving/
-   working: preserve the matching RUNNING driver/job plus claims and claiming row
-   as fail-closed evidence and
-   surface an invariant breach for authoritative recovery. A rollback rejection
-   can never be reported as a successful handoff.
+   JobCore `RESERVED` token proven by one exact-id
+   `readAutonomyJobTokenInto` call and no selected driver row. An unprepared row
+   must have `request.tick >= retryTick`; a restored prepared row must satisfy
+   the frozen attempt invariants above.
+2. Re-read every dynamic owner fact and immutable policy manifest. Freshly read
+   the ledger and call `readActiveClaimsInto` once with current batch version and
+   exact ids/epochs/count/owner/token generation. Compare the full record prefix,
+   created/lease Ticks and reset tail; never reconstruct domain facts from claim
+   records.
+3. Build the exact concrete driver input and the expected post-adoption
+   transition. Require fresh JobCore global and slot versions at most
+   `0xffff_fffc`, driver version at most `0xffff_fffd`, exact predicted versions,
+   route and claim custody. Build and prevalidate ordinary-reject and
+   rollback-cleanup tails as well. Any mismatch stops before attempt prepare.
+4. If not restored prepared, call `prepareClaimAdoptionAttemptInto` once. Read
+   back/reuse the exact prepared row; a malformed output or wrong ordinal/Tick/
+   row version stops before concrete adoption. No snapshot/callback/await or
+   owner interleaving is reachable from preparation through the following
+   concrete call and close/tail decision. If fresh revalidation invalidates a
+   restored prepared attempt, call the same non-failing reject-close once without
+   concrete adoption; it reuses that ordinal and applies the identical `<4`/
+   fourth-attempt phase rule.
+5. Call the one matching combined adoption root once. Internally it calls exactly
+   one concrete driver adoption. A normal all-before-any rejection leaves
+   domain owners, driver, JobCore token and claims unchanged, then executes the
+   prevalidated non-failing reject-close tail. That tail records exact
+   stage/result/reason and clears prepared. With ordinal below four, custody
+   remains `ACTIVE` and the next attempt cannot start before persisted
+   `retryTick`; at ordinal four the same tail instead writes reviewed
+   `CLAIM_RELEASE_PENDING`, pending outcome/reason and cleanup start, with claim/
+   token cleanup ordinals zero and prepared flags clear. The autonomy claiming
+   row therefore truthfully changes for attempt audit even though token/claims
+   and domain owners do not. Every later ordinary retry re-reads all facts and a
+   repeated same-Tick or stale prepared nonce cannot increment or adopt again.
+6. On adoption success, call exactly two committed-state reads: matching
+   `JobCoreStore.readJobInto` and the selected driver's `readAdoptedJobInto`, not
+   all five surfaces. After exact proof, the prevalidated autonomy transition
+   publishes `moving`/`working`, clears pending token and
+   `handoffAttemptPrepared`, and retains ordinal/Tick plus successful stage/result
+   audit. Ledger custody has no release/reacquire gap.
+7. If success output, either committed read or autonomy publication fails, call
+   the one WM-0171 rollback composite exactly once. It invokes exactly one
+   concrete guarded rollback. Rejection runs no cleanup tail and preserves the
+   matching RUNNING driver/JobCore, claims and prepared claiming evidence as a
+   structured fatal/manual-recovery state. Concrete rollback success advances
+   JobCore and driver from `s + 1` to `s + 2`, restoring the same exact
+   `RESERVED` token. In that same synchronous call—with no callback, `await`,
+   interleaving or snapshot point—the already-prevalidated package-internal
+   non-failing Store tail updates both `pendingJobSlotVersion` and
+   `basis.jobSlotVersion` to `s + 2`, preserves pending id/generation and exact
+   claims, closes handoff prepared/audit, writes reviewed `FAILED`/`BLOCKED`
+   reason, cleanup start and `CLAIM_RELEASE_PENDING`, and initializes both
+   cleanup attempt ordinals/Ticks/prepared flags clear. It advances autonomy
+   row/Store versions once. Successful rollback is never retryable and never
+   returns to `ACTIVE`; cleanup now owns exact claim-then-token release.
 
-Focused tests inject JobCore-create failure, each adoption precondition,
-success-output and post-read mismatch, final autonomy-transition failure,
-rollback version/state mismatch,
-unrelated ledger/JobCore global mutation, old-token/old-claim ABA and retry. They
-prove exact call counts, zero ledger release/acquire calls,
-no partial driver/JobCore writes, unchanged claiming row/claim records on a
-successful rollback, no orphaned or prematurely released claims, and that no
-failure branch enters `moving` or `working`.
+The seven-column handoff matrix below remains the external contract. Its
+`adopt = 1` means one WM-0171 combined adoption root containing exactly one
+concrete adoption; `rollback = 1` means one rollback composite containing
+exactly one concrete rollback and, only on concrete success, its mandatory
+non-failing cleanup-entry tail. The internal call matrix is separately exact:
 
-This is the exact WM-0171 compensation rule: undo only the newly adopted
-driver/JobCore pair and retain the pre-existing claiming claim custody. Releasing
-those claims while leaving the claiming row would create an invalid row that
-references inactive ids, so no WM-0171 failure branch calls
-`releaseClaimsInto`. Exact ledger release remains the B3 pre-publication
-compensation surface defined above. The only post-publication exception is the
-separate durable claiming-custody abandonment protocol below; it first changes
-the row's custody phase and is never presented as adoption rollback.
+| Internal handoff case                                       | attempt-prepare | concrete-adopt | reject-close | concrete-rollback | rollback-cleanup-tail | Required result                                                             |
+| ----------------------------------------------------------- | --------------: | -------------: | -----------: | ----------------: | --------------------: | --------------------------------------------------------------------------- |
+| Fresh facts reject before preparation                       |             `0` |            `0` |          `0` |               `0` |                   `0` | All attempt/domain/token/claim state unchanged.                             |
+| New attempt prepared; snapshot boundary                     |             `1` |            `0` |          `0` |               `0` |                   `0` | Durable ordinal/Tick/next retry Tick/prepared.                              |
+| Restored prepared attempt becomes stale before adoption     |             `0` |            `0` |          `1` |               `0` |                   `0` | Same ordinal closes with exact stale result; domain/token/claims unchanged. |
+| Restored prepared ordinary reject, ordinal below four       |             `0` |            `1` |          `1` |               `0` |                   `0` | Same ordinal closes; `ACTIVE`, token/claims unchanged.                      |
+| New ordinary reject, ordinal below four                     |             `1` |            `1` |          `1` |               `0` |                   `0` | New ordinal closes; retry only next safe Tick.                              |
+| New fourth ordinary reject                                  |             `1` |            `1` |          `1` |               `0` |                   `0` | Same reject tail enters claim cleanup.                                      |
+| Restored prepared fourth ordinary reject                    |             `0` |            `1` |          `1` |               `0` |                   `0` | Same ordinal; same reject tail enters claim cleanup.                        |
+| New attempt adopts and publishes                            |             `1` |            `1` |          `0` |               `0` |                   `0` | External autonomy transition closes prepared successful.                    |
+| Restored prepared attempt adopts and publishes              |             `0` |            `1` |          `0` |               `0` |                   `0` | Same ordinal; external transition closes successful.                        |
+| New attempt proof/publication fails; rollback succeeds      |             `1` |            `1` |          `0` |               `1` |                   `1` | Exact `s -> s+1 -> s+2`; mandatory claim cleanup entry.                     |
+| Restored attempt proof/publication fails; rollback succeeds |             `0` |            `1` |          `0` |               `1` |                   `1` | Same ordinal; mandatory claim cleanup entry.                                |
+| New attempt proof/publication fails; rollback rejects       |             `1` |            `1` |          `0` |               `1` |                   `0` | Fatal RUNNING evidence; no false cleanup entry.                             |
+| Restored attempt proof/publication fails; rollback rejects  |             `0` |            `1` |          `0` |               `1` |                   `0` | Same fatal RUNNING evidence.                                                |
+
+Focused tests freeze same-Tick rejection, same-reason attempts on successive safe
+Ticks, prepared snapshot resume without double increment, exact ordinal four,
+success audit, every output/read/publication failure, concrete rollback rejection
+and successful `s -> s + 1 -> s + 2` cleanup entry. They prove exact internal and
+external call counts, zero handoff ledger release/acquire calls, unchanged
+domain/token/claims on ordinary rejection, exact updated token versions after
+rollback, snapshot/hash/restore/read roundtrip and cleanup resumption against the
+`s + 2` token.
+
+This compensation rule undoes only the newly adopted driver/JobCore pair, then
+durably transfers the still-active claiming custody to cleanup. No adoption/
+rollback branch directly calls `releaseClaimsInto`, broad cleanup or a second
+acquire. Concrete rollback rejection preserves fatal RUNNING evidence; concrete
+rollback success always enters the exact claim-then-token abandonment protocol
+below and can never masquerade as a retryable handoff.
 
 ### Durable claiming-custody abandonment
 
@@ -1776,21 +1811,24 @@ A normal adoption rejection is retryable only while all of these remain true:
 the descriptor and immutable policy are still registered, the selected owner
 and exact entity generation remain valid, the token is exact `RESERVED`, the
 lease has not expired, the configured bounded retry count and `retryTick` have
-not been exhausted, and fresh JobCore/driver headroom permits adoption plus one
-guarded rollback. Retryable staleness stays `ACTIVE`, advances only the reviewed
-bounded retry schedule and always re-reads owner/policy/claim/token facts. It is
+not been exhausted, `handoffAttemptOrdinal < 4`, and fresh JobCore/driver
+headroom permits adoption plus rollback and token release. Retryable staleness
+stays `ACTIVE`; its non-failing reject-close records the attempt and enforces the
+next checked safe Tick. It always re-reads owner/policy/claim/token facts and is
 not an unbounded “try later” label.
 
-Lease expiry, adoption retry-limit exhaustion, an unregistered descriptor/
-policy, a permanently invalid owner/entity generation, explicit cancel/
-interrupt, or a structured fatal JobCore/driver headroom result while the exact
-token is still `RESERVED` enters `beginClaimCleanupInto` while the row remains
-`claiming`. The caller supplies reviewed `BLOCKED`, `FAILED` or `INTERRUPTED` and
-an exact reason. The root validates the fresh row/version, full token, claim
-prefix, outcome/reason and safe start Tick, prevalidates later shapes, then
-commits `CLAIM_RELEASE_PENDING` with both attempt ordinals zero and prepared
-flags clear. It samples or mutates neither ledger nor JobCore. Re-entry with a
-conflicting outcome/reason rejects all-before-any.
+Lease expiry, an unregistered descriptor/policy, a permanently invalid owner/
+entity generation, explicit cancel/interrupt, or structured fatal JobCore/
+driver headroom while the exact token is `RESERVED` enters
+`beginClaimCleanupInto`. Adoption attempt four enters the same durable state
+through its already-prevalidated reject-close tail, and successful guarded
+rollback enters through its package-internal rollback-cleanup tail. All three
+routes leave the row `claiming`, supply reviewed `BLOCKED`, `FAILED` or
+`INTERRUPTED` plus exact reason, and commit `CLAIM_RELEASE_PENDING` with claim/
+token cleanup ordinals/Ticks/prepared flags clear. The standalone begin root
+validates the fresh row/version, full token, claims, outcome/reason and safe start
+Tick; it samples or mutates neither ledger nor JobCore. Conflicting re-entry
+rejects all-before-any.
 
 Cleanup then follows this exact persisted sequence:
 
@@ -1817,17 +1855,20 @@ Cleanup then follows this exact persisted sequence:
    `TOKEN_RELEASE_PENDING`, records returned release version/count and the exact
    released id/epoch audit, retains the pending token, and initializes token
    attempt lanes clear. No driver/domain root runs.
-4. From `TOKEN_RELEASE_PENDING`, read the token by exact id; if that evidence is
-   unavailable/stale, use the JobCore O(1)
-   `readAutonomyJobTokenForOwnerInto` recovery and require the same exact full
-   owner/id/generation in `RESERVED`. With `tokenAttemptPrepared = 0` and ordinal
-   below eight, `prepareTokenReleaseAttemptInto` persists checked ordinal `+1`,
-   safe Tick, current JobCore global and slot versions, full token and
-   `prepared = 1` before the token release—even when both versions equal a prior
-   rejected attempt. It prevalidates both non-failing audit/final tails.
-5. Snapshot restore with `tokenAttemptPrepared = 1` reuses that exact ordinal/
-   Tick/token/versions without increment. A changed current token/owner/global/
-   slot version closes the attempt through the non-failing audit tail without a
+4. From `TOKEN_RELEASE_PENDING`, check the token-attempt limit before any token
+   read. When below eight, every new or restored-prepared path first calls exact
+   `readAutonomyJobTokenInto` once with retained id/generation/owner/slot version.
+   Only if that read fails or the immediate id evidence is unavailable may it
+   call O(1) `readAutonomyJobTokenForOwnerInto` once; recovery must return the
+   same full token in `RESERVED`. With `tokenAttemptPrepared = 0`, only that exact
+   id-or-recovered result may feed `prepareTokenReleaseAttemptInto`, which
+   persists ordinal `+1`, safe Tick, current JobCore global/slot versions, full
+   token and `prepared = 1` before release—even when versions equal a prior
+   rejection. It prevalidates both non-failing audit/final tails.
+5. Snapshot restore with `tokenAttemptPrepared = 1` still performs the exact-id
+   read first and optional recovery, then reuses the persisted ordinal/Tick/
+   token/versions without increment. A changed current token/owner/global/slot
+   version closes the attempt through the non-failing audit tail without a
    release. Exact equality permits one
    `releaseReservedAutonomyJobTokenInto`. Rejection changes no JobCore state;
    the non-failing audit tail records the reason/current versions, clears
@@ -1850,27 +1891,28 @@ The cleanup call matrix counts each root/tail independently. “Claim phase
 commit” is the non-failing claim reject audit or success phase commit; “token
 audit tail” is reject/stale closure only:
 
-| Custody case                                                        | begin | claim prepare | ledger release | claim phase commit | token prepare | owner recovery | token release | token audit tail | final publish | Required result                                             |
-| ------------------------------------------------------------------- | ----: | ------------: | -------------: | -----------------: | ------------: | -------------: | ------------: | ---------------: | ------------: | ----------------------------------------------------------- |
-| Retryable adoption stale before retry/lease bound                   |   `0` |           `0` |            `0` |                `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Remain `ACTIVE`.                                            |
-| Permanent trigger, including adoption retry-limit exhaustion        |   `1` |           `0` |            `0` |                `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Durable unprepared `CLAIM_RELEASE_PENDING`.                 |
-| New claim attempt prepared; snapshot boundary                       |   `0` |           `1` |            `0` |                `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Ordinal/Tick/current ledger version durable before release. |
-| Restored claim-prepared snapshot; owner version changed             |   `0` |           `0` |            `0` |                `1` |           `0` |            `0` |           `0` |              `0` |           `0` | Same ordinal closed stale; no ledger call.                  |
-| Restored claim-prepared snapshot; same version; ledger rejects      |   `0` |           `0` |            `1` |                `1` |           `0` |            `0` |           `0` |              `0` |           `0` | Same ordinal reused then closed; owner unchanged.           |
-| Next new claim attempt rejects at the same ledger version           |   `0` |           `1` |            `1` |                `1` |           `0` |            `0` |           `0` |              `0` |           `0` | New ordinal counted despite same owner version.             |
-| New claim attempt succeeds                                          |   `0` |           `1` |            `1` |                `1` |           `0` |            `0` |           `0` |              `0` |           `0` | Same-call durable token-pending phase; claims gone once.    |
-| Restored claim-prepared attempt succeeds                            |   `0` |           `0` |            `1` |                `1` |           `0` |            `0` |           `0` |              `0` |           `0` | Same ordinal; same-call durable token-pending phase.        |
-| Restored exact claim is wrong-epoch/missing/fatal                   |   `0` |           `0` |            `1` |                `1` |           `0` |            `0` |           `0` |              `0` |           `0` | Closed fatal claim pending; manual repair only.             |
-| Claim attempt limit already reached                                 |   `0` |           `0` |            `0` |                `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Stay claim pending; no broad/token release.                 |
-| New token attempt prepared by exact id read; snapshot boundary      |   `0` |           `0` |            `0` |                `0` |           `1` |            `0` |           `0` |              `0` |           `0` | Ordinal/Tick/current JobCore versions durable.              |
-| New token attempt prepared after owner recovery; snapshot boundary  |   `0` |           `0` |            `0` |                `0` |           `1` |            `1` |           `0` |              `0` |           `0` | Recovered token exactly equals custody.                     |
-| Restored token-prepared snapshot; owner/token version changed       |   `0` |           `0` |            `0` |                `0` |           `0` |            `0` |           `0` |              `1` |           `0` | Same ordinal closed stale; no JobCore call.                 |
-| Restored token-prepared snapshot; same versions; release rejects    |   `0` |           `0` |            `0` |                `0` |           `0` |            `0` |           `1` |              `1` |           `0` | Same ordinal reused then closed; JobCore unchanged.         |
-| Next new token attempt rejects at the same versions                 |   `0` |           `0` |            `0` |                `0` |           `1` |            `0` |           `1` |              `1` |           `0` | New ordinal counted despite same owner versions.            |
-| New token attempt succeeds by exact id read                         |   `0` |           `0` |            `0` |                `0` |           `1` |            `0` |           `1` |              `0` |           `1` | Same-call terminal publish; custody `NONE`.                 |
-| Restored token-prepared attempt succeeds after exact owner recovery |   `0` |           `0` |            `0` |                `0` |           `0` |            `1` |           `1` |              `0` |           `1` | Same ordinal; same-call terminal publish.                   |
-| Owner recovery returns a different live generation/token            |   `0` |           `0` |            `0` |                `0` |           `0` |            `1` |           `0` |              `0` |           `0` | Structured fatal token pending; no guessed release.         |
-| Token attempt limit already reached                                 |   `0` |           `0` |            `0` |                `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Stay token pending; ledger never repeats.                   |
+| Custody case                                                      | begin | claim prepare | ledger release | claim phase commit | token-id-read | token prepare | owner recovery | token release | token audit tail | final publish | Required result                                                   |
+| ----------------------------------------------------------------- | ----: | ------------: | -------------: | -----------------: | ------------: | ------------: | -------------: | ------------: | ---------------: | ------------: | ----------------------------------------------------------------- |
+| Retryable adoption stale before retry/lease bound                 |   `0` |           `0` |            `0` |                `0` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Remain `ACTIVE`.                                                  |
+| Standalone lease/policy/owner/cancel/headroom trigger             |   `1` |           `0` |            `0` |                `0` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Durable unprepared `CLAIM_RELEASE_PENDING`.                       |
+| Fourth handoff reject or successful rollback cleanup-entry tail   |   `0` |           `0` |            `0` |                `0` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Entry counted by the internal handoff matrix; cleanup is durable. |
+| New claim attempt prepared; snapshot boundary                     |   `0` |           `1` |            `0` |                `0` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Ordinal/Tick/current ledger version durable before release.       |
+| Restored claim-prepared snapshot; owner version changed           |   `0` |           `0` |            `0` |                `1` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Same ordinal closed stale; no ledger call.                        |
+| Restored claim-prepared snapshot; same version; ledger rejects    |   `0` |           `0` |            `1` |                `1` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Same ordinal reused then closed; owner unchanged.                 |
+| Next new claim attempt rejects at the same ledger version         |   `0` |           `1` |            `1` |                `1` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | New ordinal counted despite same owner version.                   |
+| New claim attempt succeeds                                        |   `0` |           `1` |            `1` |                `1` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Same-call durable token-pending phase; claims gone once.          |
+| Restored claim-prepared attempt succeeds                          |   `0` |           `0` |            `1` |                `1` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Same ordinal; same-call durable token-pending phase.              |
+| Restored exact claim is wrong-epoch/missing/fatal                 |   `0` |           `0` |            `1` |                `1` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Closed fatal claim pending; manual repair only.                   |
+| Claim attempt limit already reached                               |   `0` |           `0` |            `0` |                `0` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Stay claim pending; no broad/token release.                       |
+| New token attempt prepared by exact id read; snapshot boundary    |   `0` |           `0` |            `0` |                `0` |           `1` |           `1` |            `0` |           `0` |              `0` |           `0` | Ordinal/Tick/current JobCore versions durable.                    |
+| New token exact-id output lost; owner recovery prepares; snapshot |   `0` |           `0` |            `0` |                `0` |           `1` |           `1` |            `1` |           `0` |              `0` |           `0` | Recovered token exactly equals custody.                           |
+| Restored token-prepared snapshot; owner/token version changed     |   `0` |           `0` |            `0` |                `0` |           `1` |           `0` |            `0` |           `0` |              `1` |           `0` | Same ordinal closed stale; no JobCore mutation.                   |
+| Restored token-prepared snapshot; same versions; release rejects  |   `0` |           `0` |            `0` |                `0` |           `1` |           `0` |            `0` |           `1` |              `1` |           `0` | Same ordinal reused then closed; JobCore unchanged.               |
+| Next new token attempt rejects at the same versions               |   `0` |           `0` |            `0` |                `0` |           `1` |           `1` |            `0` |           `1` |              `1` |           `0` | New ordinal counted despite same owner versions.                  |
+| New token attempt succeeds by exact id read                       |   `0` |           `0` |            `0` |                `0` |           `1` |           `1` |            `0` |           `1` |              `0` |           `1` | Same-call terminal publish; custody `NONE`.                       |
+| Restored token exact-id output lost; owner recovery then succeeds |   `0` |           `0` |            `0` |                `0` |           `1` |           `0` |            `1` |           `1` |              `0` |           `1` | Same ordinal; same-call terminal publish.                         |
+| Owner recovery returns a different live generation/token          |   `0` |           `0` |            `0` |                `0` |           `1` |           `0` |            `1` |           `0` |              `0` |           `0` | Structured fatal token pending; no guessed release.               |
+| Token attempt limit already reached                               |   `0` |           `0` |            `0` |                `0` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Stay token pending; ledger never repeats.                         |
 
 Begin, every new prepare, every reject/stale audit tail, claim-success phase
 commit and final publication each advance ResidentAutonomyStore row/Store
@@ -1964,6 +2006,7 @@ count. No validator reads beyond the count, and no publication may reorder ids.
 | job                 | `jobId = NONE`, active `jobGeneration = 0`; pending id/generation equal header, generation-bearing transaction and exact owner-affine `RESERVED` token; pending slot version exact; interruption policy `NONE`; active JobCore/driver basis both `0`                                                                               |
 | route               | exact B2 selected route, count `1..128`, cursor `0`, endpoint equal target cell, tail `NONE`                                                                                                                                                                                                                                       |
 | claims              | `claimCount = header = transaction.length = acquire output count` in `1..8`; exact acquire id prefix in acquire order and parallel epoch prefix all `prior + 1`; id tail `NONE`, epoch tail zero; every ledger record carries the same pending job generation                                                                      |
+| handoff             | `handoffAttemptOrdinal = 0`, `handoffAttemptTick = 0`, `handoffAttemptPrepared = 0`, last stage/result/reason `NONE`; first attempt is eligible at the existing `retryTick = request.tick`, later prepares persist checked next-Tick cadence                                                                                       |
 | custody             | `claimCustodyPhase = ACTIVE`; pending outcome/reason `NONE`; cleanup start and both phase-specific attempt ordinals/Ticks/prepared flags/owner versions zero; last-attempt result `NONE`; `releaseVersion` and released-claim audit count zero with id `NONE`/epoch-zero tail                                                      |
 | claim/job facts     | fixed `AutonomyClaimFactsLanes` and `AutonomyJobFactsLanes` exact copies of the fresh validated owner/policy facts; exact prefixes/target slot present, both tails reset, no mutable owner totals or object/reference identity                                                                                                     |
 | decision facts      | exact revalidated need lane/value, ability and schedule code selected by B2                                                                                                                                                                                                                                                        |
@@ -1995,7 +2038,7 @@ remain active.
 | Case                                                                                                                                                 | Plan / acquire / transition / release calls | Required authoritative result                                                                                                                                                                                                                                                         |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Any autonomy, actor/entity generation, Need, schedule/wake, capability, selected owner/ref, job-fact/policy manifest, Job or path stale basis        | `0 / 0 / 0 / 0`                             | AutonomyStore and ledger unchanged; increment exactly the matching stale class once; retain B2 actual visited/ingress/retained/scored/path work without a second budget aggregation.                                                                                                  |
-| Ledger differs/exceeds `0xffff_fffd`, JobCore global exceeds `0xffff_fffc`, or lease safe-add fails                                                  | `0 / 0 / 0 / 0`                             | Autonomy, ledger and JobCore unchanged; exact stale/version-exhausted/tick reason; no token/provider call and no hidden saturated lease.                                                                                                                                              |
+| Ledger differs/exceeds `0xffff_fffd`, JobCore global or selected slot exceeds `0xffff_fffb`, or lease safe-add fails                                 | `0 / 0 / 0 / 0`                             | Autonomy, ledger and JobCore unchanged; exact stale/version-exhausted/tick reason; no token/provider call and no hidden saturated lease.                                                                                                                                              |
 | Claim-plan failure or malformed aliases/header/claims                                                                                                | `1 / 0 / 0 / 0`                             | Both snapshots unchanged; return exact plan/invariant reason; do not count a reservation conflict.                                                                                                                                                                                    |
 | Plan count is `0`, negative, fractional, `>8`, exceeds fixed capacity or differs across header/transaction                                           | `1 / 0 / 0 / 0`                             | Both owners unchanged; exact plan-count invariant reason. These are rejected before the ledger and separately exercise the prerequisite release count reasons.                                                                                                                        |
 | A required ref is inactive/stale, claim created/lease tick differs or `transitionTargetSlot` is wrong                                                | `1 / 0 / 0 / 0`                             | Both owners unchanged; exact stale-channel-ref, claim-tick or plan-reference invariant reason.                                                                                                                                                                                        |
@@ -2012,21 +2055,23 @@ WM-0171 uses exactly these seven independently counted columns. “JobCore read�
 means the one matching running-row read; “selected-driver read” means only the
 one driver chosen from Eating/Rest/Hauling/Treatment, never all four:
 
-| Handoff case                                                    | claim-read | adopt | JobCore-read | selected-driver-read | autonomy-transition | rollback | ledger-release | Required authoritative result                                                                                            |
-| --------------------------------------------------------------- | ---------: | ----: | -----------: | -------------------: | ------------------: | -------: | -------------: | ------------------------------------------------------------------------------------------------------------------------ |
-| Owner/policy/claim basis stops before or after the read         |     `0..1` |   `0` |          `0` |                  `0` |                 `0` |      `0` |            `0` | Claiming row, driver, JobCore and ledger unchanged; exact stale class. A successful claim read is read-only.             |
-| Combined adoption validation or atomic JobCore creation rejects |        `1` |   `1` |          `0` |                  `0` |                 `0` |      `0` |            `0` | Driver inactive and token exact `RESERVED`; retry only while the bounded retry/lease policy permits.                     |
-| Adoption succeeds but success output itself is malformed        |        `1` |   `1` |          `0` |                  `0` |                 `0` |      `1` |            `0` | One guarded rollback attempt; success restores exact `RESERVED`, rejection preserves fatal RUNNING evidence.             |
-| Matching JobCore committed read rejects/mismatches              |        `1` |   `1` |          `1` |                  `0` |                 `0` |      `1` |            `0` | No selected-driver read or autonomy publication; exactly one guarded rollback.                                           |
-| Selected-driver committed read rejects/mismatches               |        `1` |   `1` |          `1` |                  `1` |                 `0` |      `1` |            `0` | No autonomy publication; exactly one guarded rollback.                                                                   |
-| Final autonomy transition rejects                               |        `1` |   `1` |          `1` |                  `1` |                 `1` |      `1` |            `0` | Exactly one guarded rollback; a successful rollback restores the retained claiming custody.                              |
-| Adoption and autonomy publication succeed                       |        `1` |   `1` |          `1` |                  `1` |                 `1` |      `0` |            `0` | Exact generation-aware driver and JobCore `RUNNING/path_to_source`; autonomy binds returned versions with no ledger gap. |
+| Handoff case                                                    | claim-read | adopt | JobCore-read | selected-driver-read | autonomy-transition | rollback | ledger-release | Required authoritative result                                                                                                       |
+| --------------------------------------------------------------- | ---------: | ----: | -----------: | -------------------: | ------------------: | -------: | -------------: | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Owner/policy/claim basis stops before or after the read         |     `0..1` |   `0` |          `0` |                  `0` |                 `0` |      `0` |            `0` | Domain, driver, token and claims unchanged; a restored prepared attempt may close its Store audit. A claim read is read-only.       |
+| Combined adoption validation or atomic JobCore creation rejects |        `1` |   `1` |          `0` |                  `0` |                 `0` |      `0` |            `0` | Domain/token/claims unchanged; non-failing close records the attempt. Ordinal `<4` stays `ACTIVE`; ordinal `4` enters cleanup.      |
+| Adoption succeeds but success output itself is malformed        |        `1` |   `1` |          `0` |                  `0` |                 `0` |      `1` |            `0` | Rollback composite once: success restores exact `RESERVED` at `s+2` and enters cleanup; rejection preserves fatal RUNNING evidence. |
+| Matching JobCore committed read rejects/mismatches              |        `1` |   `1` |          `1` |                  `0` |                 `0` |      `1` |            `0` | No selected-driver read/publication; rollback success enters cleanup, rejection preserves fatal RUNNING evidence.                   |
+| Selected-driver committed read rejects/mismatches               |        `1` |   `1` |          `1` |                  `1` |                 `0` |      `1` |            `0` | No autonomy publication; rollback success enters cleanup with exact `s+2` token.                                                    |
+| Final autonomy transition rejects                               |        `1` |   `1` |          `1` |                  `1` |                 `1` |      `1` |            `0` | Rollback success synchronously enters cleanup; rollback rejection preserves fatal RUNNING evidence.                                 |
+| Adoption and autonomy publication succeed                       |        `1` |   `1` |          `1` |                  `1` |                 `1` |      `0` |            `0` | Exact generation-aware RUNNING job; autonomy closes prepared and retains successful attempt audit with no ledger gap.               |
 
 Thus successful handoff is exactly `1/1/1/1/1/0/0`; every failure column is its
 actual `0`, `1` or the single pre-read `0..1`, never an aggregated proof bundle.
-Ordinary handoff/rollback has zero ledger release. A permanent-stale claiming
-row may later release through the separately persisted custody-abandonment
-matrix above; that call is not charged to or hidden inside a handoff attempt.
+Every handoff/rollback invocation has zero ledger release. A fourth reject,
+successful rollback cleanup-entry tail or standalone permanent trigger may
+subsequently release through the separately persisted custody-abandonment
+matrix above; that later call is not charged to or hidden inside a handoff
+attempt.
 
 Normal terminal uses a separate exact matrix (`new domain effect / exact claim
 release / non-failing driver+JobCore+autonomy commits`):
@@ -2059,8 +2104,10 @@ Patrol/Refill fixtures prove structured unmapped failure with zero plan/acquire.
 Driver fixtures prove every current/cumulative count delta, origin-shadow
 replacement, Float64 Tick above uint32, unsafe/time-reversed Tick rejection,
 effect-phase snapshot/hash roundtrip and duplicate pickup/consume/recover/
-deliver/return/treat/terminal calls. Version fixtures cover all four
-`fffc..ffff` values for ledger global, JobCore global/slot and every driver.
+deliver/return/treat/terminal calls. Version fixtures cover ledger/driver
+`fffc..ffff` and every JobCore global/slot value `fffb..ffff`, from pre-reserve
+`fffb` to reserved `fffc`, adopted `fffd`, rolled back `fffe` and final exact
+token release `ffff`.
 Acquire rejection tests cover first/middle/last
 claim failures and prove transaction atomicity rather than only active count.
 The release prerequisite separately covers count `0`, negative, fractional,
@@ -2075,8 +2122,7 @@ The existing TypeScript `Program`/`TypeChecker` BFS is extended from
 declarations and accessors. The positive manifest must include at least
 `validateTransitionInto`, `transitionInto`, the concrete fixed claim-plan
 provider(s), `acquireInto`, integrated `releaseClaimsInto`, JobCore token
-reserve/release/id-read/owner-read, Food/Rest/Medical/
-Ordinary-Hauling fresh claim/job-fact reads,
+reserve/release, Food/Rest/Medical/Ordinary-Hauling fresh claim/job-fact reads,
 the exact ItemStack Into read, bounded Medical stock and patient-interaction
 surfaces, immutable Rest/treatment/Hauling policy receivers, the one concrete
 Hauling resolver, Rest fresh indexed selection and ability query. It keeps
@@ -2118,19 +2164,26 @@ called once before adoption.
 The second prerequisite separately audits each claim-ready owner,
 `M4LampNetworkStore.readLampInto`, both ItemStack/Lamp read-only prepare roots and
 both package-internal non-failing prepared commits, JobCore token/state/tombstone
-roots,
+roots, and independently roots both `readAutonomyJobTokenInto` and
+`readAutonomyJobTokenForOwnerInto`,
 `JobCoreStore.createRunningJobInto`, all five allocation-free committed-state
 reads, all four combined adoption/rollback roots, every listed autonomous driver
 mutation, effect-phase/domain owner closure, exact generation-aware terminal
 cleanup and legacy reserve lane synchronization. WM-0171 extends its claiming-
-handoff closure through `readActiveClaimsInto`, the matching JobCore read and the
-exact one concrete driver adoption/read/rollback receiver selected by each
+handoff closure through `readActiveClaimsInto`,
+`readAutonomyJobTokenInto`, the matching JobCore committed-state read, every
+durable handoff-attempt prepare/close and rollback-cleanup tail, and the exact
+one concrete driver adoption/read/rollback receiver selected by each
 construction site. It rejects legacy `createJob`+reserve, `enterStep`, every
 handoff acquire/release/broad cleanup, hidden policy receivers and unresolved
-same-name methods. The separately rooted custody-abandonment closure permits
-only begin, phase-specific durable attempt prepare/resume, phase-gated exact
-ledger release, claim audit/phase tail, O(1) token owner recovery, exact token
-release, token audit tail and final non-failing Store publish. Its separately audited normal-terminal closure permits only
+same-name methods. The separately rooted custody-abandonment closure explicitly
+roots `prepareClaimAdoptionAttemptInto`, the handoff reject-close tail, the
+rollback-cleanup entry tail and `beginClaimCleanupInto`; after cleanup entry it
+permits only phase-specific durable cleanup-attempt prepare/resume, phase-gated
+exact ledger release, claim audit/phase tail, exact-id
+`readAutonomyJobTokenInto`, conditional O(1)
+`readAutonomyJobTokenForOwnerInto` recovery, exact token release, token audit
+tail and final non-failing Store publish. Its separately audited normal-terminal closure permits only
 the exact prevalidated same-token release followed by non-failing driver/
 JobCore/autonomy terminal commits. A registered Lamp construction adds the Lamp
 claim-facts/read/prepare receivers, the two prepared commits and exact driver
