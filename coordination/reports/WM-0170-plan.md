@@ -1666,15 +1666,34 @@ lanes; restore rejects an ordinal above four, unsafe Tick, prepared-with-zero
 ordinal, prepared outside `ACTIVE` claiming, bad retry Tick or stage/result
 contradiction.
 
+WM-0171 freezes two mutually exclusive allocation-free Store close surfaces for
+one prepared handoff nonce. `handoffRetryClose` accepts only a reviewed
+retryable result, reuses the current ordinal, records exact stage/result/reason
+and clears prepared; ordinal below four remains `ACTIVE`, while ordinal four
+enters claim cleanup. The independent `handoffPermanentCleanupClose` accepts
+only lease expiry, unregistered policy/descriptor, permanently invalid owner or
+entity generation, cancel/interrupt, or fatal JobCore/driver headroom. At any
+prepared ordinal `1..4` it reuses that nonce, clears prepared, records exact
+stage/result/reason, preserves the full `RESERVED` token and exact active claim
+prefix, and writes reviewed outcome/reason, cleanup start and
+`CLAIM_RELEASE_PENDING` with both cleanup attempt ordinals/Ticks/prepared flags
+clear. Its success advances the autonomy row/Store versions once. There is no
+branch or fallback from permanent close into retry close.
+
 After every owner/claim/token fact is fresh and immediately before adoption,
 WM-0171 calls allocation-free
 `prepareClaimAdoptionAttemptInto(expectedRowVersion, attemptTick, output)`. For a
 new attempt it persists ordinal `+1`, exact attempt Tick, checked next
 `retryTick`, `handoffAttemptPrepared = 1` and stage `PREPARED`, advancing the
-autonomy row/Store versions once. Before that write it prevalidates the complete
-successful moving/working transition, ordinary-reject close tail and
-rollback-success cleanup-entry tail. A restored prepared snapshot reuses the
-same ordinal/Tick/retry Tick and does not call prepare or increment again.
+autonomy row/Store versions once. Before that write it fixes the exact prepared
+row/nonce and prevalidates the complete successful moving/working transition,
+`handoffRetryClose`, `handoffPermanentCleanupClose` and rollback-success
+cleanup-entry tail. The permanent close is frozen as a receiver-exact,
+allocation-free, all-before-any Store root because it runs before any
+cross-owner mutation; it validates the complete close row before mutation. A
+rejection preserves the prepared fatal evidence and may never call the retry
+close. A restored prepared snapshot reuses the same ordinal/Tick/retry Tick and
+does not call prepare or increment again.
 
 WM-0171 then performs this separate sequence; it is not part of B3's acquire
 count:
@@ -1695,20 +1714,32 @@ count:
 3. Build the exact concrete driver input and the expected post-adoption
    transition. Require fresh JobCore global and slot versions at most
    `0xffff_fffc`, driver version at most `0xffff_fffd`, exact predicted versions,
-   route and claim custody. Build and prevalidate ordinary-reject and
-   rollback-cleanup tails as well. Any mismatch stops before attempt prepare.
-4. If not restored prepared, call `prepareClaimAdoptionAttemptInto` once. Read
-   back/reuse the exact prepared row; a malformed output or wrong ordinal/Tick/
-   row version stops before concrete adoption. No snapshot/callback/await or
-   owner interleaving is reachable from preparation through the following
-   concrete call and close/tail decision. If fresh revalidation invalidates a
-   restored prepared attempt, call the same non-failing reject-close once without
-   concrete adoption; it reuses that ordinal and applies the identical `<4`/
-   fourth-attempt phase rule.
-5. Call the one matching combined adoption root once. Internally it calls exactly
+   route and claim custody. Build and prevalidate both classified close surfaces
+   and the rollback-cleanup tail as well.
+4. Classify every pre-adoption revalidation failure from steps 1-3 immediately
+   from one reviewed table, before either a new prepare or restored concrete
+   adoption; a failed step never evaluates a later one.
+   A fresh unprepared retryable failure returns with attempt/domain/token/claim
+   state unchanged; a fresh permanent failure calls standalone
+   `beginClaimCleanupInto` once and never creates or increments a handoff nonce.
+   A restored prepared row with retryable staleness calls `handoffRetryClose` once:
+   ordinal below four remains `ACTIVE`, while ordinal four enters cleanup.
+   Lease expiry, unregistered policy/descriptor, permanent owner/entity invalid,
+   cancel/interrupt or fatal headroom instead calls
+   `handoffPermanentCleanupClose` once at any ordinal `1..4`, entering cleanup
+   with the same nonce. Neither restored path calls concrete adoption. A
+   permanent classification may not fall through to retry, standalone begin or
+   a new prepare; an unrecognized/invariant close failure preserves structured
+   fatal prepared evidence.
+5. With no classified failure, if not restored prepared, call
+   `prepareClaimAdoptionAttemptInto` once. Read back/reuse the exact prepared row;
+   a malformed output or wrong ordinal/Tick/row version stops before concrete
+   adoption. No snapshot/callback/await or owner interleaving is reachable from
+   preparation through the following concrete call and close/tail decision.
+6. Call the one matching combined adoption root once. Internally it calls exactly
    one concrete driver adoption. A normal all-before-any rejection leaves
    domain owners, driver, JobCore token and claims unchanged, then executes the
-   prevalidated non-failing reject-close tail. That tail records exact
+   prevalidated non-failing `handoffRetryClose`. That tail records exact
    stage/result/reason and clears prepared. With ordinal below four, custody
    remains `ACTIVE` and the next attempt cannot start before persisted
    `retryTick`; at ordinal four the same tail instead writes reviewed
@@ -1717,13 +1748,13 @@ count:
    row therefore truthfully changes for attempt audit even though token/claims
    and domain owners do not. Every later ordinary retry re-reads all facts and a
    repeated same-Tick or stale prepared nonce cannot increment or adopt again.
-6. On adoption success, call exactly two committed-state reads: matching
+7. On adoption success, call exactly two committed-state reads: matching
    `JobCoreStore.readJobInto` and the selected driver's `readAdoptedJobInto`, not
    all five surfaces. After exact proof, the prevalidated autonomy transition
    publishes `moving`/`working`, clears pending token and
    `handoffAttemptPrepared`, and retains ordinal/Tick plus successful stage/result
    audit. Ledger custody has no release/reacquire gap.
-7. If success output, either committed read or autonomy publication fails, call
+8. If success output, either committed read or autonomy publication fails, call
    the one WM-0171 rollback composite exactly once. It invokes exactly one
    concrete guarded rollback. Rejection runs no cleanup tail and preserves the
    matching RUNNING driver/JobCore, claims and prepared claiming evidence as a
@@ -1745,30 +1776,41 @@ concrete adoption; `rollback = 1` means one rollback composite containing
 exactly one concrete rollback and, only on concrete success, its mandatory
 non-failing cleanup-entry tail. The internal call matrix is separately exact:
 
-| Internal handoff case                                       | attempt-prepare | concrete-adopt | reject-close | concrete-rollback | rollback-cleanup-tail | Required result                                                             |
-| ----------------------------------------------------------- | --------------: | -------------: | -----------: | ----------------: | --------------------: | --------------------------------------------------------------------------- |
-| Fresh facts reject before preparation                       |             `0` |            `0` |          `0` |               `0` |                   `0` | All attempt/domain/token/claim state unchanged.                             |
-| New attempt prepared; snapshot boundary                     |             `1` |            `0` |          `0` |               `0` |                   `0` | Durable ordinal/Tick/next retry Tick/prepared.                              |
-| Restored prepared attempt becomes stale before adoption     |             `0` |            `0` |          `1` |               `0` |                   `0` | Same ordinal closes with exact stale result; domain/token/claims unchanged. |
-| Restored prepared ordinary reject, ordinal below four       |             `0` |            `1` |          `1` |               `0` |                   `0` | Same ordinal closes; `ACTIVE`, token/claims unchanged.                      |
-| New ordinary reject, ordinal below four                     |             `1` |            `1` |          `1` |               `0` |                   `0` | New ordinal closes; retry only next safe Tick.                              |
-| New fourth ordinary reject                                  |             `1` |            `1` |          `1` |               `0` |                   `0` | Same reject tail enters claim cleanup.                                      |
-| Restored prepared fourth ordinary reject                    |             `0` |            `1` |          `1` |               `0` |                   `0` | Same ordinal; same reject tail enters claim cleanup.                        |
-| New attempt adopts and publishes                            |             `1` |            `1` |          `0` |               `0` |                   `0` | External autonomy transition closes prepared successful.                    |
-| Restored prepared attempt adopts and publishes              |             `0` |            `1` |          `0` |               `0` |                   `0` | Same ordinal; external transition closes successful.                        |
-| New attempt proof/publication fails; rollback succeeds      |             `1` |            `1` |          `0` |               `1` |                   `1` | Exact `s -> s+1 -> s+2`; mandatory claim cleanup entry.                     |
-| Restored attempt proof/publication fails; rollback succeeds |             `0` |            `1` |          `0` |               `1` |                   `1` | Same ordinal; mandatory claim cleanup entry.                                |
-| New attempt proof/publication fails; rollback rejects       |             `1` |            `1` |          `0` |               `1` |                   `0` | Fatal RUNNING evidence; no false cleanup entry.                             |
-| Restored attempt proof/publication fails; rollback rejects  |             `0` |            `1` |          `0` |               `1` |                   `0` | Same fatal RUNNING evidence.                                                |
+| Internal handoff case                                       | attempt-prepare | concrete-adopt | retry-close | permanent-close | concrete-rollback | rollback-cleanup-tail | Required result                                                         |
+| ----------------------------------------------------------- | --------------: | -------------: | ----------: | --------------: | ----------------: | --------------------: | ----------------------------------------------------------------------- |
+| Fresh retryable basis rejects before preparation            |             `0` |            `0` |         `0` |             `0` |               `0` |                   `0` | All attempt/domain/token/claim state unchanged.                         |
+| Fresh permanent basis rejects before preparation            |             `0` |            `0` |         `0` |             `0` |               `0` |                   `0` | Standalone begin is counted only in cleanup; no new handoff nonce.      |
+| New attempt prepared; snapshot boundary                     |             `1` |            `0` |         `0` |             `0` |               `0` |                   `0` | Durable ordinal/Tick/next retry Tick/prepared.                          |
+| Restored prepared retryable stale, ordinal below four       |             `0` |            `0` |         `1` |             `0` |               `0` |                   `0` | Same nonce closes retryable; `ACTIVE`, token/claims unchanged.          |
+| Restored prepared retryable stale, ordinal four             |             `0` |            `0` |         `1` |             `0` |               `0` |                   `0` | Same nonce closes retryable directly into claim cleanup.                |
+| Restored prepared permanent basis, any ordinal `1..4`       |             `0` |            `0` |         `0` |             `1` |               `0` |                   `0` | Same nonce closes permanent directly into claim cleanup.                |
+| Restored permanent close validation rejects                 |             `0` |            `0` |         `0` |             `1` |               `0` |                   `0` | Prepared fatal evidence retained; no retry close, begin or new prepare. |
+| Restored prepared ordinary adopt reject, ordinal below four |             `0` |            `1` |         `1` |             `0` |               `0` |                   `0` | Same nonce closes retryable; `ACTIVE`, token/claims unchanged.          |
+| New ordinary adopt reject, ordinal below four               |             `1` |            `1` |         `1` |             `0` |               `0` |                   `0` | New nonce closes; retry only next safe Tick.                            |
+| New fourth ordinary adopt reject                            |             `1` |            `1` |         `1` |             `0` |               `0` |                   `0` | Same retry close enters claim cleanup.                                  |
+| Restored prepared fourth ordinary adopt reject              |             `0` |            `1` |         `1` |             `0` |               `0` |                   `0` | Same nonce; same retry close enters claim cleanup.                      |
+| New attempt adopts and publishes                            |             `1` |            `1` |         `0` |             `0` |               `0` |                   `0` | External autonomy transition closes prepared successful.                |
+| Restored prepared attempt adopts and publishes              |             `0` |            `1` |         `0` |             `0` |               `0` |                   `0` | Same nonce; external transition closes successful.                      |
+| New attempt proof/publication fails; rollback succeeds      |             `1` |            `1` |         `0` |             `0` |               `1` |                   `1` | Exact `s -> s+1 -> s+2`; mandatory claim cleanup entry.                 |
+| Restored attempt proof/publication fails; rollback succeeds |             `0` |            `1` |         `0` |             `0` |               `1` |                   `1` | Same nonce; mandatory claim cleanup entry.                              |
+| New attempt proof/publication fails; rollback rejects       |             `1` |            `1` |         `0` |             `0` |               `1` |                   `0` | Fatal RUNNING evidence; no false cleanup entry.                         |
+| Restored attempt proof/publication fails; rollback rejects  |             `0` |            `1` |         `0` |             `0` |               `1` |                   `0` | Same fatal RUNNING evidence.                                            |
 
 Focused tests freeze same-Tick rejection, same-reason attempts on successive safe
 Ticks, prepared snapshot resume without double increment, exact ordinal four,
 success audit, every output/read/publication failure, concrete rollback rejection
-and successful `s -> s + 1 -> s + 2` cleanup entry. They prove exact internal and
-external call counts, zero handoff ledger release/acquire calls, unchanged
-domain/token/claims on ordinary rejection, exact updated token versions after
-rollback, snapshot/hash/restore/read roundtrip and cleanup resumption against the
-`s + 2` token.
+and successful `s -> s + 1 -> s + 2` cleanup entry. At every prepared ordinal
+`1..4`, snapshot/hash/restore/read fixtures independently inject lease expiry,
+policy/descriptor removal, permanent owner/entity invalidation,
+cancel/interrupt and fatal headroom; each proves permanent-close `1`, retry-close
+`0`, exact token/claims retained, immediate cleanup entry and post-close
+snapshot/hash/read/restore roundtrip. Paired retryable fixtures prove
+permanent-close `0`, retry-close `1`, `ACTIVE` below four and cleanup only at
+four. All fixtures prove exact internal and external call
+counts, zero handoff ledger release/acquire calls, no permanent-to-retry
+fallthrough and an injected permanent-close validation rejection retaining the
+prepared fatal evidence with no begin/new prepare. They also prove exact updated
+token versions after rollback and cleanup resumption against the `s + 2` token.
 
 This compensation rule undoes only the newly adopted driver/JobCore pair, then
 durably transfers the still-active claiming custody to cleanup. No adoption/
@@ -1807,28 +1849,31 @@ contradiction, phase/state mismatch or impossible attempt/result value. The
 fixed claims and pending token remain authoritative custody, never an object or
 reverse lookup.
 
-A normal adoption rejection is retryable only while all of these remain true:
-the descriptor and immutable policy are still registered, the selected owner
-and exact entity generation remain valid, the token is exact `RESERVED`, the
-lease has not expired, the configured bounded retry count and `retryTick` have
-not been exhausted, `handoffAttemptOrdinal < 4`, and fresh JobCore/driver
-headroom permits adoption plus rollback and token release. Retryable staleness
-stays `ACTIVE`; its non-failing reject-close records the attempt and enforces the
-next checked safe Tick. It always re-reads owner/policy/claim/token facts and is
-not an unbounded “try later” label.
+A normal adoption rejection belongs to the retryable class only while the
+descriptor and immutable policy remain registered, the selected owner and exact
+entity generation remain valid, the token is exact `RESERVED`, the lease has not
+expired, and fresh JobCore/driver headroom permits adoption plus rollback and
+token release. Eligibility for another attempt additionally requires the
+persisted ordinal below four and an unexhausted checked `retryTick`/bounded retry
+count. `handoffRetryClose` handles both terminalities: below four it keeps
+`ACTIVE` and enforces the next safe Tick; at ordinal four it enters cleanup
+without reclassifying the reason as permanent. It always re-reads owner/policy/
+claim/token facts and is not an unbounded “try later” label. None of the
+permanent classes below satisfies the retryable-class predicate.
 
 Lease expiry, an unregistered descriptor/policy, a permanently invalid owner/
 entity generation, explicit cancel/interrupt, or structured fatal JobCore/
-driver headroom while the exact token is `RESERVED` enters
-`beginClaimCleanupInto`. Adoption attempt four enters the same durable state
-through its already-prevalidated reject-close tail, and successful guarded
-rollback enters through its package-internal rollback-cleanup tail. All three
-routes leave the row `claiming`, supply reviewed `BLOCKED`, `FAILED` or
-`INTERRUPTED` plus exact reason, and commit `CLAIM_RELEASE_PENDING` with claim/
-token cleanup ordinals/Ticks/prepared flags clear. The standalone begin root
-validates the fresh row/version, full token, claims, outcome/reason and safe start
-Tick; it samples or mutates neither ledger nor JobCore. Conflicting re-entry
-rejects all-before-any.
+driver headroom while the exact token is `RESERVED` enters cleanup by exactly
+one route. A fresh unprepared row calls standalone `beginClaimCleanupInto`; a
+restored prepared row calls `handoffPermanentCleanupClose` at its current nonce
+and never falls into retry or begin. Adoption attempt four enters through
+`handoffRetryClose`, and successful guarded rollback enters through its
+package-internal rollback-cleanup tail. All four routes leave the row `claiming`,
+supply reviewed `BLOCKED`, `FAILED` or `INTERRUPTED` plus exact reason, and
+commit `CLAIM_RELEASE_PENDING` with claim/token cleanup ordinals/Ticks/prepared
+flags clear. The standalone begin root validates the fresh row/version, full
+token, claims, outcome/reason and safe start Tick; it samples or mutates neither
+ledger nor JobCore. Conflicting re-entry rejects all-before-any.
 
 Cleanup then follows this exact persisted sequence:
 
@@ -1891,28 +1936,28 @@ The cleanup call matrix counts each root/tail independently. “Claim phase
 commit” is the non-failing claim reject audit or success phase commit; “token
 audit tail” is reject/stale closure only:
 
-| Custody case                                                      | begin | claim prepare | ledger release | claim phase commit | token-id-read | token prepare | owner recovery | token release | token audit tail | final publish | Required result                                                   |
-| ----------------------------------------------------------------- | ----: | ------------: | -------------: | -----------------: | ------------: | ------------: | -------------: | ------------: | ---------------: | ------------: | ----------------------------------------------------------------- |
-| Retryable adoption stale before retry/lease bound                 |   `0` |           `0` |            `0` |                `0` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Remain `ACTIVE`.                                                  |
-| Standalone lease/policy/owner/cancel/headroom trigger             |   `1` |           `0` |            `0` |                `0` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Durable unprepared `CLAIM_RELEASE_PENDING`.                       |
-| Fourth handoff reject or successful rollback cleanup-entry tail   |   `0` |           `0` |            `0` |                `0` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Entry counted by the internal handoff matrix; cleanup is durable. |
-| New claim attempt prepared; snapshot boundary                     |   `0` |           `1` |            `0` |                `0` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Ordinal/Tick/current ledger version durable before release.       |
-| Restored claim-prepared snapshot; owner version changed           |   `0` |           `0` |            `0` |                `1` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Same ordinal closed stale; no ledger call.                        |
-| Restored claim-prepared snapshot; same version; ledger rejects    |   `0` |           `0` |            `1` |                `1` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Same ordinal reused then closed; owner unchanged.                 |
-| Next new claim attempt rejects at the same ledger version         |   `0` |           `1` |            `1` |                `1` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | New ordinal counted despite same owner version.                   |
-| New claim attempt succeeds                                        |   `0` |           `1` |            `1` |                `1` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Same-call durable token-pending phase; claims gone once.          |
-| Restored claim-prepared attempt succeeds                          |   `0` |           `0` |            `1` |                `1` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Same ordinal; same-call durable token-pending phase.              |
-| Restored exact claim is wrong-epoch/missing/fatal                 |   `0` |           `0` |            `1` |                `1` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Closed fatal claim pending; manual repair only.                   |
-| Claim attempt limit already reached                               |   `0` |           `0` |            `0` |                `0` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Stay claim pending; no broad/token release.                       |
-| New token attempt prepared by exact id read; snapshot boundary    |   `0` |           `0` |            `0` |                `0` |           `1` |           `1` |            `0` |           `0` |              `0` |           `0` | Ordinal/Tick/current JobCore versions durable.                    |
-| New token exact-id output lost; owner recovery prepares; snapshot |   `0` |           `0` |            `0` |                `0` |           `1` |           `1` |            `1` |           `0` |              `0` |           `0` | Recovered token exactly equals custody.                           |
-| Restored token-prepared snapshot; owner/token version changed     |   `0` |           `0` |            `0` |                `0` |           `1` |           `0` |            `0` |           `0` |              `1` |           `0` | Same ordinal closed stale; no JobCore mutation.                   |
-| Restored token-prepared snapshot; same versions; release rejects  |   `0` |           `0` |            `0` |                `0` |           `1` |           `0` |            `0` |           `1` |              `1` |           `0` | Same ordinal reused then closed; JobCore unchanged.               |
-| Next new token attempt rejects at the same versions               |   `0` |           `0` |            `0` |                `0` |           `1` |           `1` |            `0` |           `1` |              `1` |           `0` | New ordinal counted despite same owner versions.                  |
-| New token attempt succeeds by exact id read                       |   `0` |           `0` |            `0` |                `0` |           `1` |           `1` |            `0` |           `1` |              `0` |           `1` | Same-call terminal publish; custody `NONE`.                       |
-| Restored token exact-id output lost; owner recovery then succeeds |   `0` |           `0` |            `0` |                `0` |           `1` |           `0` |            `1` |           `1` |              `0` |           `1` | Same ordinal; same-call terminal publish.                         |
-| Owner recovery returns a different live generation/token          |   `0` |           `0` |            `0` |                `0` |           `1` |           `0` |            `1` |           `0` |              `0` |           `0` | Structured fatal token pending; no guessed release.               |
-| Token attempt limit already reached                               |   `0` |           `0` |            `0` |                `0` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Stay token pending; ledger never repeats.                         |
+| Custody case                                                       | begin | claim prepare | ledger release | claim phase commit | token-id-read | token prepare | owner recovery | token release | token audit tail | final publish | Required result                                                   |
+| ------------------------------------------------------------------ | ----: | ------------: | -------------: | -----------------: | ------------: | ------------: | -------------: | ------------: | ---------------: | ------------: | ----------------------------------------------------------------- |
+| Retryable-class adoption stale with ordinal below four             |   `0` |           `0` |            `0` |                `0` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Remain `ACTIVE`; next checked safe Tick only.                     |
+| Fresh standalone lease/policy/owner/entity/cancel/headroom trigger |   `1` |           `0` |            `0` |                `0` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Durable unprepared `CLAIM_RELEASE_PENDING`.                       |
+| Prepared permanent-close, fourth retry-close or rollback tail      |   `0` |           `0` |            `0` |                `0` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Entry counted by the internal handoff matrix; cleanup is durable. |
+| New claim attempt prepared; snapshot boundary                      |   `0` |           `1` |            `0` |                `0` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Ordinal/Tick/current ledger version durable before release.       |
+| Restored claim-prepared snapshot; owner version changed            |   `0` |           `0` |            `0` |                `1` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Same ordinal closed stale; no ledger call.                        |
+| Restored claim-prepared snapshot; same version; ledger rejects     |   `0` |           `0` |            `1` |                `1` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Same ordinal reused then closed; owner unchanged.                 |
+| Next new claim attempt rejects at the same ledger version          |   `0` |           `1` |            `1` |                `1` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | New ordinal counted despite same owner version.                   |
+| New claim attempt succeeds                                         |   `0` |           `1` |            `1` |                `1` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Same-call durable token-pending phase; claims gone once.          |
+| Restored claim-prepared attempt succeeds                           |   `0` |           `0` |            `1` |                `1` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Same ordinal; same-call durable token-pending phase.              |
+| Restored exact claim is wrong-epoch/missing/fatal                  |   `0` |           `0` |            `1` |                `1` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Closed fatal claim pending; manual repair only.                   |
+| Claim attempt limit already reached                                |   `0` |           `0` |            `0` |                `0` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Stay claim pending; no broad/token release.                       |
+| New token attempt prepared by exact id read; snapshot boundary     |   `0` |           `0` |            `0` |                `0` |           `1` |           `1` |            `0` |           `0` |              `0` |           `0` | Ordinal/Tick/current JobCore versions durable.                    |
+| New token exact-id output lost; owner recovery prepares; snapshot  |   `0` |           `0` |            `0` |                `0` |           `1` |           `1` |            `1` |           `0` |              `0` |           `0` | Recovered token exactly equals custody.                           |
+| Restored token-prepared snapshot; owner/token version changed      |   `0` |           `0` |            `0` |                `0` |           `1` |           `0` |            `0` |           `0` |              `1` |           `0` | Same ordinal closed stale; no JobCore mutation.                   |
+| Restored token-prepared snapshot; same versions; release rejects   |   `0` |           `0` |            `0` |                `0` |           `1` |           `0` |            `0` |           `1` |              `1` |           `0` | Same ordinal reused then closed; JobCore unchanged.               |
+| Next new token attempt rejects at the same versions                |   `0` |           `0` |            `0` |                `0` |           `1` |           `1` |            `0` |           `1` |              `1` |           `0` | New ordinal counted despite same owner versions.                  |
+| New token attempt succeeds by exact id read                        |   `0` |           `0` |            `0` |                `0` |           `1` |           `1` |            `0` |           `1` |              `0` |           `1` | Same-call terminal publish; custody `NONE`.                       |
+| Restored token exact-id output lost; owner recovery then succeeds  |   `0` |           `0` |            `0` |                `0` |           `1` |           `0` |            `1` |           `1` |              `0` |           `1` | Same ordinal; same-call terminal publish.                         |
+| Owner recovery returns a different live generation/token           |   `0` |           `0` |            `0` |                `0` |           `1` |           `0` |            `1` |           `0` |              `0` |           `0` | Structured fatal token pending; no guessed release.               |
+| Token attempt limit already reached                                |   `0` |           `0` |            `0` |                `0` |           `0` |           `0` |            `0` |           `0` |              `0` |           `0` | Stay token pending; ledger never repeats.                         |
 
 Begin, every new prepare, every reject/stale audit tail, claim-success phase
 commit and final publication each advance ResidentAutonomyStore row/Store
@@ -2055,23 +2100,26 @@ WM-0171 uses exactly these seven independently counted columns. “JobCore read�
 means the one matching running-row read; “selected-driver read” means only the
 one driver chosen from Eating/Rest/Hauling/Treatment, never all four:
 
-| Handoff case                                                    | claim-read | adopt | JobCore-read | selected-driver-read | autonomy-transition | rollback | ledger-release | Required authoritative result                                                                                                       |
-| --------------------------------------------------------------- | ---------: | ----: | -----------: | -------------------: | ------------------: | -------: | -------------: | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Owner/policy/claim basis stops before or after the read         |     `0..1` |   `0` |          `0` |                  `0` |                 `0` |      `0` |            `0` | Domain, driver, token and claims unchanged; a restored prepared attempt may close its Store audit. A claim read is read-only.       |
-| Combined adoption validation or atomic JobCore creation rejects |        `1` |   `1` |          `0` |                  `0` |                 `0` |      `0` |            `0` | Domain/token/claims unchanged; non-failing close records the attempt. Ordinal `<4` stays `ACTIVE`; ordinal `4` enters cleanup.      |
-| Adoption succeeds but success output itself is malformed        |        `1` |   `1` |          `0` |                  `0` |                 `0` |      `1` |            `0` | Rollback composite once: success restores exact `RESERVED` at `s+2` and enters cleanup; rejection preserves fatal RUNNING evidence. |
-| Matching JobCore committed read rejects/mismatches              |        `1` |   `1` |          `1` |                  `0` |                 `0` |      `1` |            `0` | No selected-driver read/publication; rollback success enters cleanup, rejection preserves fatal RUNNING evidence.                   |
-| Selected-driver committed read rejects/mismatches               |        `1` |   `1` |          `1` |                  `1` |                 `0` |      `1` |            `0` | No autonomy publication; rollback success enters cleanup with exact `s+2` token.                                                    |
-| Final autonomy transition rejects                               |        `1` |   `1` |          `1` |                  `1` |                 `1` |      `1` |            `0` | Rollback success synchronously enters cleanup; rollback rejection preserves fatal RUNNING evidence.                                 |
-| Adoption and autonomy publication succeed                       |        `1` |   `1` |          `1` |                  `1` |                 `1` |      `0` |            `0` | Exact generation-aware RUNNING job; autonomy closes prepared and retains successful attempt audit with no ledger gap.               |
+| Handoff case                                                    | claim-read | adopt | JobCore-read | selected-driver-read | autonomy-transition | rollback | ledger-release | Required authoritative result                                                                                                                                |
+| --------------------------------------------------------------- | ---------: | ----: | -----------: | -------------------: | ------------------: | -------: | -------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Retryable basis stops before preparation or adoption            |     `0..1` |   `0` |          `0` |                  `0` |                 `0` |      `0` |            `0` | Fresh state is unchanged; restored prepared uses `handoffRetryClose`, staying `ACTIVE` below four and entering cleanup at four.                              |
+| Permanent basis stops before preparation or adoption            |     `0..1` |   `0` |          `0` |                  `0` |                 `0` |      `0` |            `0` | Fresh unprepared uses standalone begin; restored prepared uses `handoffPermanentCleanupClose` at ordinal `1..4`. Both enter cleanup; seven counts unchanged. |
+| Combined adoption validation or atomic JobCore creation rejects |        `1` |   `1` |          `0` |                  `0` |                 `0` |      `0` |            `0` | Domain/token/claims unchanged; `handoffRetryClose` records the attempt. Ordinal `<4` stays `ACTIVE`; ordinal `4` enters cleanup.                             |
+| Adoption succeeds but success output itself is malformed        |        `1` |   `1` |          `0` |                  `0` |                 `0` |      `1` |            `0` | Rollback composite once: success restores exact `RESERVED` at `s+2` and enters cleanup; rejection preserves fatal RUNNING evidence.                          |
+| Matching JobCore committed read rejects/mismatches              |        `1` |   `1` |          `1` |                  `0` |                 `0` |      `1` |            `0` | No selected-driver read/publication; rollback success enters cleanup, rejection preserves fatal RUNNING evidence.                                            |
+| Selected-driver committed read rejects/mismatches               |        `1` |   `1` |          `1` |                  `1` |                 `0` |      `1` |            `0` | No autonomy publication; rollback success enters cleanup with exact `s+2` token.                                                                             |
+| Final autonomy transition rejects                               |        `1` |   `1` |          `1` |                  `1` |                 `1` |      `1` |            `0` | Rollback success synchronously enters cleanup; rollback rejection preserves fatal RUNNING evidence.                                                          |
+| Adoption and autonomy publication succeed                       |        `1` |   `1` |          `1` |                  `1` |                 `1` |      `0` |            `0` | Exact generation-aware RUNNING job; autonomy closes prepared and retains successful attempt audit with no ledger gap.                                        |
 
 Thus successful handoff is exactly `1/1/1/1/1/0/0`; every failure column is its
 actual `0`, `1` or the single pre-read `0..1`, never an aggregated proof bundle.
-Every handoff/rollback invocation has zero ledger release. A fourth reject,
-successful rollback cleanup-entry tail or standalone permanent trigger may
-subsequently release through the separately persisted custody-abandonment
-matrix above; that later call is not charged to or hidden inside a handoff
-attempt.
+`handoffRetryClose`, `handoffPermanentCleanupClose` and standalone begin are
+counted only in the internal/cleanup matrices and add no external column. Every
+handoff/rollback invocation has zero ledger release. A prepared permanent close,
+fourth retry close, successful rollback cleanup-entry tail or fresh standalone
+permanent trigger may subsequently release through the separately persisted
+custody-abandonment matrix above; that later call is not charged to or hidden
+inside a handoff attempt.
 
 Normal terminal uses a separate exact matrix (`new domain effect / exact claim
 release / non-failing driver+JobCore+autonomy commits`):
@@ -2172,15 +2220,17 @@ mutation, effect-phase/domain owner closure, exact generation-aware terminal
 cleanup and legacy reserve lane synchronization. WM-0171 extends its claiming-
 handoff closure through `readActiveClaimsInto`,
 `readAutonomyJobTokenInto`, the matching JobCore committed-state read, every
-durable handoff-attempt prepare/close and rollback-cleanup tail, and the exact
-one concrete driver adoption/read/rollback receiver selected by each
-construction site. It rejects legacy `createJob`+reserve, `enterStep`, every
+durable handoff-attempt prepare, `handoffRetryClose`,
+`handoffPermanentCleanupClose` and rollback-cleanup tail, and the exact one
+concrete driver adoption/read/rollback receiver selected by each construction
+site. It rejects legacy `createJob`+reserve, `enterStep`, every
 handoff acquire/release/broad cleanup, hidden policy receivers and unresolved
 same-name methods. The separately rooted custody-abandonment closure explicitly
-roots `prepareClaimAdoptionAttemptInto`, the handoff reject-close tail, the
-rollback-cleanup entry tail and `beginClaimCleanupInto`; after cleanup entry it
-permits only phase-specific durable cleanup-attempt prepare/resume, phase-gated
-exact ledger release, claim audit/phase tail, exact-id
+roots `prepareClaimAdoptionAttemptInto`, `handoffRetryClose`,
+`handoffPermanentCleanupClose`, the rollback-cleanup entry tail and
+`beginClaimCleanupInto`; it proves permanent close cannot reach retry or begin.
+After cleanup entry it permits only phase-specific durable cleanup-attempt
+prepare/resume, phase-gated exact ledger release, claim audit/phase tail, exact-id
 `readAutonomyJobTokenInto`, conditional O(1)
 `readAutonomyJobTokenForOwnerInto` recovery, exact token release, token audit
 tail and final non-failing Store publish. Its separately audited normal-terminal closure permits only
