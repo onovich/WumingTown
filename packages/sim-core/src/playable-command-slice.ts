@@ -583,6 +583,9 @@ export class PlayableCommandSliceRuntime {
     if (target !== undefined) {
       return this.reject(command, target);
     }
+    if (this.lampOrderActive || this.lampMarkerState !== JOB_MARKER_NONE) {
+      return this.reject(command, this.jobDriverReason(command.payload.target));
+    }
 
     const owner = this.fixture.pawns[0] ?? failMissingEntity();
     const created = this.fixture.jobCore.createJob(

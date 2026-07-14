@@ -75,6 +75,7 @@ export type WorkOfferMutationResult =
         | "work_offer_permission_out_of_range"
         | "work_offer_target_out_of_range"
         | "work_offer_score_out_of_range"
+        | "work_offer_index_version_exhausted"
       >;
     };
 
@@ -448,6 +449,10 @@ export class WorkOfferIndex {
       return { ok: false, reason: "work_offer_already_registered" };
     }
 
+    if (!this.canAdvanceVersions(input.offerId)) {
+      return { ok: false, reason: "work_offer_index_version_exhausted" };
+    }
+
     this.writeOffer(input);
     this.ownerVersions[input.offerId] = 0;
     this.insertOffer(input.offerId);
@@ -467,6 +472,10 @@ export class WorkOfferIndex {
       return { ok: false, reason: "work_offer_not_registered" };
     }
 
+    if (!this.canAdvanceVersions(input.offerId)) {
+      return { ok: false, reason: "work_offer_index_version_exhausted" };
+    }
+
     this.removeOfferFromCurrentBucket(input.offerId);
     this.writeOffer(input);
     this.insertOffer(input.offerId);
@@ -481,6 +490,10 @@ export class WorkOfferIndex {
 
     if (this.active[offerId] !== 1) {
       return { ok: false, reason: "work_offer_not_registered" };
+    }
+
+    if (!this.canAdvanceVersions(offerId)) {
+      return { ok: false, reason: "work_offer_index_version_exhausted" };
     }
 
     this.removeOfferFromCurrentBucket(offerId);

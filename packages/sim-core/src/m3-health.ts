@@ -79,6 +79,87 @@ export interface M3HealthConditionView extends M3HealthConditionInput {
   readonly conditionVersion: number;
 }
 
+export interface M3HealthConditionIntoOutput {
+  ok: boolean;
+  conditionId: number;
+  actorId: number;
+  defId: number;
+  kind: number;
+  bodyPart: number;
+  severity: number;
+  ageTicks: number;
+  sourceId: number;
+  componentFlags: number;
+  clueRef: number;
+  counterevidenceRef: number;
+  terminalState: number;
+  affectedAbilityMask: number;
+  storeVersion: number;
+  conditionVersion: number;
+  actorConditionVersion: number;
+  updateCount: number;
+  invalidationCount: number;
+  dirtyWriteCursor: number;
+  dirtyCount: number;
+  dirtyPeak: number;
+  dirtyCapacity: number;
+}
+
+export interface M3HealthTreatmentConditionDeltaPrepareInput {
+  readonly conditionId: number;
+  readonly expectedActorId: number;
+  readonly expectedDefId: number;
+  readonly expectedSeverity: number;
+  readonly expectedTerminalState: number;
+  readonly expectedAffectedAbilityMask: number;
+  readonly expectedStoreVersion: number;
+  readonly expectedConditionVersion: number;
+  readonly expectedActorConditionVersion: number;
+  readonly severityDelta: number;
+}
+
+export type M3HealthTreatmentPrepareReason =
+  | "condition.treatment_prepared"
+  | "condition.id_out_of_range"
+  | "condition.not_active"
+  | "condition.identity_stale"
+  | "condition.value_stale"
+  | "condition.version_stale"
+  | "condition.severity_out_of_range"
+  | "condition.terminal_state_out_of_range"
+  | "condition.version_exhausted"
+  | "condition.counter_exhausted"
+  | "condition.dirty_queue_overflow";
+
+export interface PreparedM3HealthTreatmentConditionDelta {
+  ok: boolean;
+  reason: M3HealthTreatmentPrepareReason;
+  conditionId: number;
+  actorId: number;
+  abilityMask: number;
+  previousSeverity: number;
+  nextSeverity: number;
+  previousTerminalState: number;
+  nextTerminalState: number;
+  previousStoreVersion: number;
+  nextStoreVersion: number;
+  previousConditionVersion: number;
+  nextConditionVersion: number;
+  previousActorConditionVersion: number;
+  nextActorConditionVersion: number;
+  previousUpdateCount: number;
+  nextUpdateCount: number;
+  previousInvalidationCount: number;
+  nextInvalidationCount: number;
+  previousDirtyWriteCursor: number;
+  nextDirtyWriteCursor: number;
+  previousDirtyCount: number;
+  nextDirtyCount: number;
+  previousDirtyPeak: number;
+  nextDirtyPeak: number;
+  invalidationWriteCount: number;
+}
+
 export type M3HealthConditionMutationResult =
   | {
       readonly ok: true;
@@ -171,6 +252,12 @@ export interface M3AbilityMetrics {
 type ValidationResult =
   | { readonly ok: true }
   | { readonly ok: false; readonly reason: M3HealthConditionReason };
+
+const M3_HEALTH_TREATMENT_COMMIT = Symbol("m3-health-treatment-commit");
+const M3_HEALTH_CONDITION_NONE = 0xffff_ffff;
+const UINT32_MAX = 0xffff_ffff;
+const UINT32_PREPARE_MAX = 0xffff_fffe;
+const ABILITY_INVALIDATION_REASON_CODE = encodeAbilityReason("ability.cache_invalidated");
 
 export class M3HealthConditionStore {
   readonly actorCapacity: number;
@@ -394,6 +481,115 @@ export class M3HealthConditionStore {
       actorConditionVersion: this.actorConditionVersions[actorId] ?? 0,
       conditionVersion: this.conditionVersions[conditionId] ?? 0,
     };
+  }
+
+  readConditionInto(conditionId: number, output: M3HealthConditionIntoOutput): void {
+    resetM3HealthConditionIntoOutput(conditionId, output);
+    if (!isIndexInRange(conditionId, this.conditionCapacity) || this.active[conditionId] !== 1) {
+      return;
+    }
+    const actorId = this.actorIds[conditionId] ?? 0;
+    output.ok = true;
+    output.conditionId = conditionId;
+    output.actorId = actorId;
+    output.defId = this.defIds[conditionId] ?? 0;
+    output.kind = this.kinds[conditionId] ?? 0;
+    output.bodyPart = this.bodyParts[conditionId] ?? 0;
+    output.severity = this.severities[conditionId] ?? 0;
+    output.ageTicks = this.ages[conditionId] ?? 0;
+    output.sourceId = this.sourceIds[conditionId] ?? 0;
+    output.componentFlags = this.componentFlags[conditionId] ?? 0;
+    output.clueRef = this.clueRefs[conditionId] ?? 0;
+    output.counterevidenceRef = this.counterevidenceRefs[conditionId] ?? 0;
+    output.terminalState = this.terminalStates[conditionId] ?? 0;
+    output.affectedAbilityMask = this.affectedAbilityMasks[conditionId] ?? 0;
+    output.storeVersion = this.version;
+    output.conditionVersion = this.conditionVersions[conditionId] ?? 0;
+    output.actorConditionVersion = this.actorConditionVersions[actorId] ?? 0;
+    output.updateCount = this.updateCount;
+    output.invalidationCount = this.invalidationCount;
+    output.dirtyWriteCursor = this.dirtyWriteCursor;
+    output.dirtyCount = this.dirtyCount;
+    output.dirtyPeak = this.dirtyPeak;
+    output.dirtyCapacity = this.abilityDirtyCapacity;
+  }
+
+  prepareTreatmentConditionDeltaInto(
+    input: M3HealthTreatmentConditionDeltaPrepareInput,
+    output: PreparedM3HealthTreatmentConditionDelta,
+  ): void {
+    resetPreparedM3HealthTreatment(output);
+    const conditionId = input.conditionId;
+    if (!isIndexInRange(conditionId, this.conditionCapacity))
+      return setTreatmentPrepareFailure(output, "condition.id_out_of_range");
+    if (this.active[conditionId] !== 1)
+      return setTreatmentPrepareFailure(output, "condition.not_active");
+    const actorId = this.actorIds[conditionId] ?? 0;
+    const abilityMask = this.affectedAbilityMasks[conditionId] ?? 0;
+    const previousSeverity = this.severities[conditionId] ?? 0;
+    const previousTerminalState = this.terminalStates[conditionId] ?? 0;
+    const previousConditionVersion = this.conditionVersions[conditionId] ?? 0;
+    const previousActorConditionVersion = this.actorConditionVersions[actorId] ?? 0;
+    const invalidationWriteCount = countAbilityMaskLanes(abilityMask);
+    const reason = validateTreatmentPrepare(
+      input,
+      actorId,
+      this.defIds[conditionId] ?? 0,
+      previousSeverity,
+      previousTerminalState,
+      abilityMask,
+      this.version,
+      previousConditionVersion,
+      previousActorConditionVersion,
+      this.updateCount,
+      this.invalidationCount,
+      invalidationWriteCount,
+      this.dirtyCount,
+      this.abilityDirtyCapacity,
+    );
+    if (reason !== undefined) return setTreatmentPrepareFailure(output, reason);
+    writePreparedM3HealthTreatment(
+      output,
+      conditionId,
+      actorId,
+      abilityMask,
+      previousSeverity,
+      input.severityDelta,
+      previousTerminalState,
+      this.version,
+      previousConditionVersion,
+      previousActorConditionVersion,
+      this.updateCount,
+      this.invalidationCount,
+      this.dirtyWriteCursor,
+      this.dirtyCount,
+      this.dirtyPeak,
+      this.abilityDirtyCapacity,
+      invalidationWriteCount,
+    );
+  }
+
+  [M3_HEALTH_TREATMENT_COMMIT](prepared: PreparedM3HealthTreatmentConditionDelta): void {
+    this.severities[prepared.conditionId] = prepared.nextSeverity;
+    this.terminalStates[prepared.conditionId] = prepared.nextTerminalState;
+    this.version = prepared.nextStoreVersion;
+    this.conditionVersions[prepared.conditionId] = prepared.nextConditionVersion;
+    this.actorConditionVersions[prepared.actorId] = prepared.nextActorConditionVersion;
+    this.updateCount = prepared.nextUpdateCount;
+    this.invalidationCount = prepared.nextInvalidationCount;
+    let writeCursor = prepared.previousDirtyWriteCursor;
+    for (let ability = 0; ability < M3_ABILITY_LANE_COUNT; ability += 1) {
+      if ((prepared.abilityMask & abilityMaskFor(ability)) !== 0) {
+        this.dirtyActors[writeCursor] = prepared.actorId;
+        this.dirtyAbilities[writeCursor] = ability;
+        this.dirtyVersions[writeCursor] = prepared.nextActorConditionVersion;
+        this.dirtyReasons[writeCursor] = ABILITY_INVALIDATION_REASON_CODE;
+        writeCursor = (writeCursor + 1) % this.abilityDirtyCapacity;
+      }
+    }
+    this.dirtyWriteCursor = prepared.nextDirtyWriteCursor;
+    this.dirtyCount = prepared.nextDirtyCount;
+    this.dirtyPeak = prepared.nextDirtyPeak;
   }
 
   computeAbilityPenalty(
@@ -647,6 +843,13 @@ export class M3HealthConditionStore {
     this.previousByActor[conditionId] = -1;
     this.nextByActor[conditionId] = -1;
   }
+}
+
+export function commitPreparedM3HealthTreatment(
+  store: M3HealthConditionStore,
+  prepared: PreparedM3HealthTreatmentConditionDelta,
+): void {
+  store[M3_HEALTH_TREATMENT_COMMIT](prepared);
 }
 
 export class M3AbilityCacheStore {
@@ -947,6 +1150,222 @@ export function createM3AbilityCacheStore(
   options: M3AbilityCacheStoreOptions,
 ): M3AbilityCacheStore {
   return new M3AbilityCacheStore(options);
+}
+
+function validateTreatmentPrepare(
+  input: M3HealthTreatmentConditionDeltaPrepareInput,
+  actorId: number,
+  defId: number,
+  severity: number,
+  terminalState: number,
+  abilityMask: number,
+  storeVersion: number,
+  conditionVersion: number,
+  actorConditionVersion: number,
+  updateCount: number,
+  invalidationCount: number,
+  invalidationWriteCount: number,
+  dirtyCount: number,
+  dirtyCapacity: number,
+): M3HealthTreatmentPrepareReason | undefined {
+  const basisReason = validateTreatmentPrepareBasis(
+    input,
+    actorId,
+    defId,
+    severity,
+    terminalState,
+    abilityMask,
+    storeVersion,
+    conditionVersion,
+    actorConditionVersion,
+  );
+  if (basisReason !== undefined) return basisReason;
+  return validateTreatmentPrepareHeadroom(
+    storeVersion,
+    conditionVersion,
+    actorConditionVersion,
+    updateCount,
+    invalidationCount,
+    invalidationWriteCount,
+    dirtyCount,
+    dirtyCapacity,
+  );
+}
+
+function validateTreatmentPrepareBasis(
+  input: M3HealthTreatmentConditionDeltaPrepareInput,
+  actorId: number,
+  defId: number,
+  severity: number,
+  terminalState: number,
+  abilityMask: number,
+  storeVersion: number,
+  conditionVersion: number,
+  actorConditionVersion: number,
+): M3HealthTreatmentPrepareReason | undefined {
+  if (input.expectedActorId !== actorId || input.expectedDefId !== defId)
+    return "condition.identity_stale";
+  if (
+    input.expectedSeverity !== severity ||
+    input.expectedTerminalState !== terminalState ||
+    input.expectedAffectedAbilityMask !== abilityMask
+  )
+    return "condition.value_stale";
+  if (
+    terminalState !== M3_HEALTH_CONDITION_ACTIVE &&
+    terminalState !== M3_HEALTH_CONDITION_RECOVERING
+  )
+    return "condition.terminal_state_out_of_range";
+  if (
+    !Number.isSafeInteger(input.severityDelta) ||
+    input.severityDelta <= 0 ||
+    input.severityDelta > 1000
+  )
+    return "condition.severity_out_of_range";
+  if (
+    input.expectedStoreVersion !== storeVersion ||
+    input.expectedConditionVersion !== conditionVersion ||
+    input.expectedActorConditionVersion !== actorConditionVersion
+  )
+    return "condition.version_stale";
+  return undefined;
+}
+
+function validateTreatmentPrepareHeadroom(
+  storeVersion: number,
+  conditionVersion: number,
+  actorConditionVersion: number,
+  updateCount: number,
+  invalidationCount: number,
+  invalidationWriteCount: number,
+  dirtyCount: number,
+  dirtyCapacity: number,
+): M3HealthTreatmentPrepareReason | undefined {
+  if (
+    storeVersion > UINT32_PREPARE_MAX ||
+    conditionVersion > UINT32_PREPARE_MAX ||
+    actorConditionVersion > UINT32_PREPARE_MAX
+  )
+    return "condition.version_exhausted";
+  if (updateCount > UINT32_PREPARE_MAX || invalidationCount > UINT32_MAX - invalidationWriteCount)
+    return "condition.counter_exhausted";
+  if (dirtyCount + invalidationWriteCount > dirtyCapacity) return "condition.dirty_queue_overflow";
+  return undefined;
+}
+
+function writePreparedM3HealthTreatment(
+  output: PreparedM3HealthTreatmentConditionDelta,
+  conditionId: number,
+  actorId: number,
+  abilityMask: number,
+  previousSeverity: number,
+  severityDelta: number,
+  previousTerminalState: number,
+  storeVersion: number,
+  conditionVersion: number,
+  actorConditionVersion: number,
+  updateCount: number,
+  invalidationCount: number,
+  dirtyWriteCursor: number,
+  dirtyCount: number,
+  dirtyPeak: number,
+  dirtyCapacity: number,
+  invalidationWriteCount: number,
+): void {
+  const nextSeverity = previousSeverity > severityDelta ? previousSeverity - severityDelta : 0;
+  const nextDirtyCount = dirtyCount + invalidationWriteCount;
+  output.ok = true;
+  output.reason = "condition.treatment_prepared";
+  output.conditionId = conditionId;
+  output.actorId = actorId;
+  output.abilityMask = abilityMask;
+  output.previousSeverity = previousSeverity;
+  output.nextSeverity = nextSeverity;
+  output.previousTerminalState = previousTerminalState;
+  output.nextTerminalState =
+    nextSeverity === 0 ? M3_HEALTH_CONDITION_RESOLVED : M3_HEALTH_CONDITION_RECOVERING;
+  output.previousStoreVersion = storeVersion;
+  output.nextStoreVersion = storeVersion + 1;
+  output.previousConditionVersion = conditionVersion;
+  output.nextConditionVersion = conditionVersion + 1;
+  output.previousActorConditionVersion = actorConditionVersion;
+  output.nextActorConditionVersion = actorConditionVersion + 1;
+  output.previousUpdateCount = updateCount;
+  output.nextUpdateCount = updateCount + 1;
+  output.previousInvalidationCount = invalidationCount;
+  output.nextInvalidationCount = invalidationCount + invalidationWriteCount;
+  output.previousDirtyWriteCursor = dirtyWriteCursor;
+  output.nextDirtyWriteCursor = (dirtyWriteCursor + invalidationWriteCount) % dirtyCapacity;
+  output.previousDirtyCount = dirtyCount;
+  output.nextDirtyCount = nextDirtyCount;
+  output.previousDirtyPeak = dirtyPeak;
+  output.nextDirtyPeak = dirtyPeak > nextDirtyCount ? dirtyPeak : nextDirtyCount;
+  output.invalidationWriteCount = invalidationWriteCount;
+}
+
+function setTreatmentPrepareFailure(
+  output: PreparedM3HealthTreatmentConditionDelta,
+  reason: M3HealthTreatmentPrepareReason,
+): void {
+  output.reason = reason;
+}
+
+function resetM3HealthConditionIntoOutput(
+  conditionId: number,
+  output: M3HealthConditionIntoOutput,
+): void {
+  output.ok = false;
+  output.conditionId = conditionId;
+  output.actorId = 0;
+  output.defId = 0;
+  output.kind = 0;
+  output.bodyPart = 0;
+  output.severity = 0;
+  output.ageTicks = 0;
+  output.sourceId = 0;
+  output.componentFlags = 0;
+  output.clueRef = 0;
+  output.counterevidenceRef = 0;
+  output.terminalState = 0;
+  output.affectedAbilityMask = 0;
+  output.storeVersion = 0;
+  output.conditionVersion = 0;
+  output.actorConditionVersion = 0;
+  output.updateCount = 0;
+  output.invalidationCount = 0;
+  output.dirtyWriteCursor = 0;
+  output.dirtyCount = 0;
+  output.dirtyPeak = 0;
+  output.dirtyCapacity = 0;
+}
+
+function resetPreparedM3HealthTreatment(output: PreparedM3HealthTreatmentConditionDelta): void {
+  output.ok = false;
+  output.reason = "condition.not_active";
+  output.conditionId = M3_HEALTH_CONDITION_NONE;
+  output.actorId = 0;
+  output.abilityMask = 0;
+  output.previousSeverity = 0;
+  output.nextSeverity = 0;
+  output.previousTerminalState = 0;
+  output.nextTerminalState = 0;
+  output.previousStoreVersion = 0;
+  output.nextStoreVersion = 0;
+  output.previousConditionVersion = 0;
+  output.nextConditionVersion = 0;
+  output.previousActorConditionVersion = 0;
+  output.nextActorConditionVersion = 0;
+  output.previousUpdateCount = 0;
+  output.nextUpdateCount = 0;
+  output.previousInvalidationCount = 0;
+  output.nextInvalidationCount = 0;
+  output.previousDirtyWriteCursor = 0;
+  output.nextDirtyWriteCursor = 0;
+  output.previousDirtyCount = 0;
+  output.nextDirtyCount = 0;
+  output.previousDirtyPeak = 0;
+  output.nextDirtyPeak = 0;
+  output.invalidationWriteCount = 0;
 }
 
 export function createM3HealthAbilityMask(abilities: readonly number[]): number {

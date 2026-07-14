@@ -45,6 +45,7 @@ export type M3FoodMutationResult =
 export interface M3FoodPortionInput {
   readonly stackId: number;
   readonly foodDefId: number;
+  readonly hungerRestore?: number;
   readonly regionId: number;
   readonly storageSlotId: number;
   readonly targetCellIndex: number;
@@ -59,6 +60,7 @@ export interface M3FoodPortionInput {
 }
 
 export interface M3FoodPortionView extends M3FoodPortionInput {
+  readonly hungerRestore: number;
   readonly availableAmount: number;
   readonly itemStoreVersion: number;
   readonly foodAvailabilityVersion: number;
@@ -70,6 +72,7 @@ export interface M3FoodPortionIntoOutput {
   reason: M3FoodReason | undefined;
   stackId: number;
   foodDefId: number;
+  hungerRestore: number;
   regionId: number;
   storageSlotId: number;
   targetCellIndex: number;
@@ -230,6 +233,7 @@ export class M3FoodAvailabilityStore {
   private readonly scheduleAllowedFlags: Uint8Array;
   private readonly linked: Uint8Array;
   private readonly foodDefIds: Uint32Array;
+  private readonly hungerRestores: Uint32Array;
   private readonly regionIds: Uint32Array;
   private readonly storageSlotIds: Uint32Array;
   private readonly targetCellIndexes: Uint32Array;
@@ -273,6 +277,7 @@ export class M3FoodAvailabilityStore {
     this.scheduleAllowedFlags = new Uint8Array(stackCapacity);
     this.linked = new Uint8Array(stackCapacity);
     this.foodDefIds = new Uint32Array(stackCapacity);
+    this.hungerRestores = new Uint32Array(stackCapacity);
     this.regionIds = new Uint32Array(stackCapacity);
     this.storageSlotIds = new Uint32Array(stackCapacity);
     this.targetCellIndexes = new Uint32Array(stackCapacity);
@@ -393,6 +398,7 @@ export class M3FoodAvailabilityStore {
     return {
       stackId,
       foodDefId: this.foodDefIds[stackId] ?? 0,
+      hungerRestore: this.hungerRestores[stackId] ?? 0,
       regionId: this.regionIds[stackId] ?? 0,
       storageSlotId: this.storageSlotIds[stackId] ?? 0,
       targetCellIndex: this.targetCellIndexes[stackId] ?? 0,
@@ -425,6 +431,7 @@ export class M3FoodAvailabilityStore {
     output.ok = true;
     output.active = true;
     output.foodDefId = this.foodDefIds[stackId] ?? 0;
+    output.hungerRestore = this.hungerRestores[stackId] ?? 0;
     output.regionId = this.regionIds[stackId] ?? 0;
     output.storageSlotId = this.storageSlotIds[stackId] ?? 0;
     output.targetCellIndex = this.targetCellIndexes[stackId] ?? 0;
@@ -663,6 +670,9 @@ export class M3FoodAvailabilityStore {
     if (!isIndexInRange(input.foodDefId, this.foodDefCapacity)) {
       return { ok: false, reason: "food_def_invalid" };
     }
+    if (input.hungerRestore !== undefined && !isPositiveSafeInteger(input.hungerRestore)) {
+      return { ok: false, reason: "food_score_invalid" };
+    }
     if (!isIndexInRange(input.regionId, this.regionCapacity)) {
       return { ok: false, reason: "food_region_invalid" };
     }
@@ -708,6 +718,7 @@ export class M3FoodAvailabilityStore {
 
   private writePortionConfig(input: M3FoodPortionInput): void {
     this.foodDefIds[input.stackId] = input.foodDefId;
+    this.hungerRestores[input.stackId] = input.hungerRestore ?? 1;
     this.regionIds[input.stackId] = input.regionId;
     this.storageSlotIds[input.stackId] = input.storageSlotId;
     this.targetCellIndexes[input.stackId] = input.targetCellIndex;
@@ -926,6 +937,7 @@ export class M3FoodAvailabilityStore {
     output.reason = undefined;
     output.stackId = stackId;
     output.foodDefId = 0;
+    output.hungerRestore = 0;
     output.regionId = 0;
     output.storageSlotId = 0;
     output.targetCellIndex = 0;

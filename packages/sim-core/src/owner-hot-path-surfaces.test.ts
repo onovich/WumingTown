@@ -778,6 +778,78 @@ describe("caller-owned owner hot-path surfaces", () => {
     }
   });
 
+  it("guards every legacy WorkOffer mutation with the shared allocation-free version preflight", () => {
+    const offers = createWorkOfferIndex({
+      capacity: 2,
+      workTypeCapacity: 1,
+      regionCapacity: 1,
+      defCapacity: 1,
+      urgencyBucketCount: 1,
+      permissionCapacity: 1,
+    });
+    const roots = [
+      {
+        entry: classAuditEntry("WorkOfferIndex", "work", offers, "registerOffer"),
+        calls: [
+          "validateInput",
+          "canAdvanceVersions",
+          "writeOffer",
+          "insertOffer",
+          "advanceVersions",
+        ],
+        writes: ["writeOffer", "insertOffer", "advanceVersions"],
+      },
+      {
+        entry: classAuditEntry("WorkOfferIndex", "work", offers, "updateOffer"),
+        calls: [
+          "validateInput",
+          "canAdvanceVersions",
+          "removeOfferFromCurrentBucket",
+          "writeOffer",
+          "insertOffer",
+          "advanceVersions",
+        ],
+        writes: ["removeOfferFromCurrentBucket", "writeOffer", "insertOffer", "advanceVersions"],
+      },
+      {
+        entry: classAuditEntry("WorkOfferIndex", "work", offers, "removeOffer"),
+        calls: ["canAdvanceVersions", "removeOfferFromCurrentBucket", "advanceVersions"],
+        writes: ["removeOfferFromCurrentBucket", "advanceVersions"],
+      },
+    ] as const;
+
+    for (const root of roots) {
+      expect(collectThisHotCallNames(root.entry.source), root.entry.label).toStrictEqual(
+        root.calls,
+      );
+      const preflightIndex = root.entry.source.indexOf("this.canAdvanceVersions(");
+      expect(preflightIndex, `${root.entry.label} shared preflight`).toBeGreaterThanOrEqual(0);
+      for (const write of root.writes) {
+        expect(
+          root.entry.source.indexOf(`this.${write}(`),
+          `${root.entry.label} must preflight before ${write}`,
+        ).toBeGreaterThan(preflightIndex);
+      }
+    }
+
+    for (const methodName of ["registerOfferInto", "updateOfferInto", "removeOfferInto"] as const) {
+      const source = readMethodSource(offers, methodName);
+      expect(source.indexOf("this.canAdvanceVersions("), methodName).toBeGreaterThanOrEqual(0);
+    }
+
+    for (const methodName of [
+      "canAdvanceVersions",
+      "advanceVersions",
+      "writeOffer",
+      "insertOffer",
+      "removeOfferFromCurrentBucket",
+      "createCompositeKeyForOffer",
+    ] as const) {
+      const source = readMethodSource(offers, methodName);
+      expect(containsForbiddenHotConstruction(source), methodName).toBeUndefined();
+    }
+  });
+
   it("detects every forbidden construction category without rejecting scalar hot syntax", () => {
     for (const fixture of FORBIDDEN_HOT_CONSTRUCTION_FIXTURES) {
       expect(containsForbiddenHotConstruction(fixture.source), fixture.label).toBe(
@@ -1527,6 +1599,14 @@ function collectHotCalls(source: string): readonly HotCall[] {
   }
   visit(parsed.body);
   return calls;
+}
+
+function collectThisHotCallNames(source: string): readonly string[] {
+  const names: string[] = [];
+  for (const call of collectHotCalls(source)) {
+    if (call.kind === "this") names.push(call.callName);
+  }
+  return names;
 }
 
 function readHotCall(node: ts.CallExpression, sourceFile: ts.SourceFile): HotCall {

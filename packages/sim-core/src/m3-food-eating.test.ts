@@ -8,6 +8,7 @@ import {
   M3_FOOD_STACK_NONE,
   NEED_LANE_HUNGER,
   calculateM3FoodConservationTotal,
+  createM3EatingJobHashFields,
   createEntityRegistry,
   createGridPathfinder,
   createItemStackStore,
@@ -21,14 +22,1564 @@ import {
   createReservationLedger,
   createStorageLogisticsIndex,
   createWorkOfferIndex,
+  formatCanonicalWorldHash,
+  restoreM3EatingJobDriverStore,
   resolveM3FoodPathCandidate,
+  RESERVATION_CLAIM_NONE,
+  RESERVATION_INTERACTION_SPOT,
+  RESERVATION_ITEM_QUANTITY,
   type EntityId,
+  type ExistingClaimsAdoptionControl,
+  type ItemStackQuantityAdditionPrepareInput,
+  type M3EatingClaimAdoptionOutput,
+  type M3EatingAdoptedPickupInput,
   type M3FoodPortionInput,
+  type M3EatingClaimAdoptionInput,
+  type M3EatingAdoptedJobIntoOutput,
   type PathVersionBasis,
   type StorageSlotInput,
+  type ReservationClaimsIntoOutput,
+  type JobTokenIntoOutput,
 } from "./index";
+import type { M3EatingAdoptedMutationOutput } from "./m3-eating-jobs";
+import type { NeedLaneMutationPrepareInput } from "./m3-needs";
 
 describe("M3 food availability and eating logistics", () => {
+  it("rejects out-of-capacity and truncated adopted create facts before JobCore mutation", () => {
+    const outOfBounds = createAdoptedEatingFixture(0, {
+      coreCapacity: 10,
+      autonomyJobStart: 8,
+      eatingCapacity: 8,
+    });
+    expect(outOfBounds.token.jobId).toBe(8);
+    expect(outOfBounds.adopted).toMatchObject({
+      ok: false,
+      reason: "eating_adoption_preflight_failed",
+    });
+    expect(outOfBounds.core.version).toBe(outOfBounds.token.version);
+    expect(outOfBounds.eating.createMetrics()).toMatchObject({ version: 0, activeCount: 0 });
+
+    const invalidAbility: Partial<M3EatingClaimAdoptionInput> = { abilityAllowed: false };
+    Reflect.set(invalidAbility, "abilityAllowed", 1);
+    const invalidFacts: readonly Partial<M3EatingClaimAdoptionInput>[] = [
+      { sourceStackId: 0x1_0000_0000 },
+      { storageSlotId: 0x1_0000_0000 },
+      { foodDefId: 0x1_0000_0000 },
+      { amount: 0x1_0000_0000 },
+      { hungerRestore: 0x1_0000_0000 },
+      { itemStoreVersion: 0x1_0000_0000 },
+      { foodAvailabilityVersion: 0x1_0000_0000 },
+      { mealWindowVersion: 0x1_0000_0000 },
+      { abilityAllowed: false },
+      invalidAbility,
+      { createdTick: -1 },
+    ];
+    for (const adoptionOverrides of invalidFacts) {
+      const fixture = createAdoptedEatingFixture(0, { adoptionOverrides });
+      expect(fixture.adopted).toMatchObject({
+        ok: false,
+        reason: "eating_adoption_preflight_failed",
+      });
+      expect(fixture.core.version).toBe(fixture.token.version);
+      expect(fixture.eating.createMetrics()).toMatchObject({ version: 0, activeCount: 0 });
+    }
+  });
+
+  it("adopts exact positive-generation claims and rolls back without touching ledger custody", () => {
+    const fixture = createAdoptedEatingFixture();
+    const { control, core, eating, claims, adopted: output } = fixture;
+    expect(output).toMatchObject({
+      ok: true,
+      jobGeneration: 1,
+      jobSlotVersion: 2,
+      activeCount: 1,
+      ownerIndex: fixture.owner.index,
+      ownerGeneration: fixture.owner.generation,
+    });
+    expect(output).toMatchObject({
+      jobCoreReservedCount: 0,
+      jobCoreActiveCount: 1,
+      jobCoreRunningCount: 1,
+      driverReservedCount: 1,
+      driverPickedUpCount: 0,
+      cumulativeConsumedCount: 0,
+      reservationAttemptCount: 0,
+    });
+    const rollback = createDriverOutput();
+    eating.rollbackNewlyAdoptedInto(
+      {
+        ...control,
+        expectedAdoptedJobSlotVersion: output.jobSlotVersion,
+        expectedAdoptedDriverVersion: output.driverVersion,
+      },
+      core,
+      rollback,
+    );
+    expect(rollback).toMatchObject({
+      ok: true,
+      jobSlotVersion: 3,
+      activeCount: 0,
+      ownerIndex: fixture.owner.index,
+      ownerGeneration: fixture.owner.generation,
+      jobCoreVersion: fixture.control.expectedJobCoreVersion + 2,
+      driverVersion: fixture.control.expectedDriverVersion + 2,
+    });
+    expect(rollback).toMatchObject({
+      jobCoreReservedCount: 1,
+      jobCoreActiveCount: 0,
+      jobCoreRunningCount: 0,
+      driverReservedCount: 0,
+    });
+    expect(claims).toMatchObject({ ok: true, claimCount: 2, version: fixture.ledger.version });
+    expect(fixture.ledger.createMetrics().activeCount).toBe(2);
+    const rollbackShadow = eating.createSnapshot();
+    expect(restoreM3EatingJobDriverStore(rollbackShadow).createSnapshot()).toStrictEqual(
+      rollbackShadow,
+    );
+  });
+
+  it("rejects forged rollback prior bases and noncanonical claim tails before either owner writes", () => {
+    for (const changed of ["driver", "slot", "core", "count", "tail"] as const) {
+      const fixture = createAdoptedEatingFixture();
+      const claimIds = new Uint32Array(fixture.control.claimIds);
+      if (changed === "tail") claimIds[7] = 123;
+      const control = {
+        ...fixture.control,
+        expectedAdoptedJobSlotVersion: fixture.adopted.jobSlotVersion,
+        expectedAdoptedDriverVersion: fixture.adopted.driverVersion,
+        expectedDriverVersion:
+          fixture.control.expectedDriverVersion + (changed === "driver" ? 1 : 0),
+        expectedJobSlotVersion:
+          fixture.control.expectedJobSlotVersion + (changed === "slot" ? 1 : 0),
+        expectedJobCoreVersion:
+          fixture.control.expectedJobCoreVersion + (changed === "core" ? 1 : 0),
+        claimCount: changed === "count" ? 1 : 2,
+        claimIds,
+      };
+      const before = {
+        core: fixture.core.createSnapshot(),
+        eating: fixture.eating.createSnapshot(),
+      };
+      const output = createDriverOutput();
+      fixture.eating.rollbackNewlyAdoptedInto(control, fixture.core, output);
+      expect(output).toMatchObject({
+        ok: false,
+        reason: "eating_rollback_preflight_failed",
+        ownerIndex: 0,
+        ownerGeneration: 0,
+      });
+      expect({
+        core: fixture.core.createSnapshot(),
+        eating: fixture.eating.createSnapshot(),
+      }).toStrictEqual(before);
+    }
+  });
+
+  it("exposes a full-token autonomous terminal root for phase-zero claim cleanup", () => {
+    const fixture = createAdoptedEatingFixture();
+    const output = createEatingMutationOutput();
+    fixture.eating.terminalAdoptedInto(
+      {
+        jobId: fixture.token.jobId,
+        jobGeneration: fixture.token.jobGeneration,
+        owner: fixture.owner,
+        expectedJobSlotVersion: fixture.adopted.jobSlotVersion,
+        expectedJobCoreVersion: fixture.adopted.jobCoreVersion,
+        expectedDriverVersion: fixture.adopted.driverVersion,
+        expectedCurrentLedgerVersion: fixture.ledger.version,
+        tick: 102,
+        outcome: "canceled",
+        failureReason: "cancelled",
+        itemAddition: createEatingItemAddition(fixture, 1),
+      },
+      fixture.items,
+      fixture.ledger,
+      fixture.core,
+      fixture.claims,
+      output,
+    );
+    expect(output).toMatchObject({ ok: true, cleanupPending: false, releasedClaimCount: 2 });
+    expect(fixture.ledger.createMetrics().activeCount).toBe(0);
+  });
+
+  it.each([
+    {
+      outcome: "canceled" as const,
+      failureReason: "cancelled" as const,
+      interruptionKind: undefined,
+    },
+    { outcome: "failed" as const, failureReason: "path" as const, interruptionKind: undefined },
+    {
+      outcome: "interrupted" as const,
+      failureReason: "cancelled" as const,
+      interruptionKind: "safe_point" as const,
+    },
+  ])("returns carried food once for adopted $outcome terminal", (terminalCase) => {
+    const fixture = createAdoptedEatingFixture();
+    const pickup = pickupAdoptedEating(fixture);
+    expect(pickup).toMatchObject({ ok: true, alreadyCommitted: false });
+    expect(fixture.items.readStack(2)).toMatchObject({ quantity: 2 });
+    const output = createEatingMutationOutput();
+    const terminalInput = {
+      jobId: fixture.token.jobId,
+      jobGeneration: fixture.token.jobGeneration,
+      owner: fixture.owner,
+      expectedJobSlotVersion: pickup.jobSlotVersion,
+      expectedJobCoreVersion: pickup.jobCoreVersion,
+      expectedDriverVersion: pickup.driverVersion,
+      expectedCurrentLedgerVersion: fixture.ledger.version,
+      tick: 103,
+      outcome: terminalCase.outcome,
+      failureReason: terminalCase.failureReason,
+      ...(terminalCase.interruptionKind === undefined
+        ? {}
+        : { interruptionKind: terminalCase.interruptionKind }),
+      itemAddition: createEatingItemAddition(fixture, 1),
+    };
+    fixture.eating.terminalAdoptedInto(
+      terminalInput,
+      fixture.items,
+      fixture.ledger,
+      fixture.core,
+      fixture.claims,
+      output,
+    );
+    expect(output).toMatchObject({
+      ok: true,
+      terminalOutcome: terminalCase.outcome,
+      cleanupPending: false,
+      releasedClaimCount: 2,
+    });
+    expect(fixture.items.readStack(2)).toMatchObject({ quantity: 3 });
+    const duplicate = {
+      ...terminalInput,
+      expectedJobSlotVersion: output.jobSlotVersion,
+      expectedJobCoreVersion: output.jobCoreVersion,
+      expectedDriverVersion: output.driverVersion,
+      expectedCurrentLedgerVersion: fixture.ledger.version,
+      tick: 104,
+      itemAddition: createEatingItemAddition(fixture, 1),
+    };
+    fixture.eating.terminalAdoptedInto(
+      duplicate,
+      fixture.items,
+      fixture.ledger,
+      fixture.core,
+      fixture.claims,
+      output,
+    );
+    expect(output).toMatchObject({
+      ok: true,
+      alreadyCommitted: true,
+      terminalOutcome: terminalCase.outcome,
+    });
+    expect(fixture.items.readStack(2)).toMatchObject({ quantity: 3 });
+    const terminalBeforeStale = {
+      items: fixture.items.createSnapshot(),
+      ledger: fixture.ledger.createSnapshot(),
+      core: fixture.core.createSnapshot(),
+      eating: fixture.eating.createSnapshot(),
+    };
+    fixture.eating.terminalAdoptedInto(
+      { ...duplicate, expectedJobSlotVersion: duplicate.expectedJobSlotVersion - 1, tick: 105 },
+      fixture.items,
+      fixture.ledger,
+      fixture.core,
+      fixture.claims,
+      output,
+    );
+    expect(output).toMatchObject({ ok: false, reason: "eating_step_invalid" });
+    expect({
+      items: fixture.items.createSnapshot(),
+      ledger: fixture.ledger.createSnapshot(),
+      core: fixture.core.createSnapshot(),
+      eating: fixture.eating.createSnapshot(),
+    }).toStrictEqual(terminalBeforeStale);
+  });
+
+  it("returns structured pickup duplicate only for a fresh exact caller basis", () => {
+    const fixture = createAdoptedEatingFixture();
+    const pickup = pickupAdoptedEating(fixture);
+    const before = {
+      items: fixture.items.createSnapshot(),
+      core: fixture.core.createSnapshot(),
+      eating: fixture.eating.createSnapshot(),
+      ledger: fixture.ledger.createSnapshot(),
+    };
+    const duplicate = createEatingMutationOutput();
+    fixture.eating.pickupAdoptedInto(
+      createEatingPickupInput(fixture, pickup, 103),
+      fixture.items,
+      fixture.ledger,
+      fixture.core,
+      fixture.claims,
+      duplicate,
+    );
+    expect(duplicate).toMatchObject({
+      ok: true,
+      alreadyCommitted: true,
+      driverVersion: pickup.driverVersion,
+      jobSlotVersion: pickup.jobSlotVersion,
+    });
+    expect({
+      items: fixture.items.createSnapshot(),
+      core: fixture.core.createSnapshot(),
+      eating: fixture.eating.createSnapshot(),
+      ledger: fixture.ledger.createSnapshot(),
+    }).toStrictEqual(before);
+
+    const stale = createEatingMutationOutput();
+    const staleInput = {
+      ...createEatingPickupInput(fixture, pickup, 104),
+      expectedCurrentLedgerVersion: fixture.ledger.version + 1,
+    };
+    fixture.eating.pickupAdoptedInto(
+      staleInput,
+      fixture.items,
+      fixture.ledger,
+      fixture.core,
+      fixture.claims,
+      stale,
+    );
+    expect(stale).toMatchObject({ ok: false, reason: "eating_step_invalid" });
+    expect({
+      items: fixture.items.createSnapshot(),
+      core: fixture.core.createSnapshot(),
+      eating: fixture.eating.createSnapshot(),
+      ledger: fixture.ledger.createSnapshot(),
+    }).toStrictEqual(before);
+  });
+
+  it("commits the Need effect once and retries only exact cleanup", () => {
+    const fixture = createAdoptedEatingFixture();
+    const pickup = pickupAdoptedEating(fixture);
+    expect(pickup.ok).toBe(true);
+    const liveLedger = fixture.ledger.createSnapshot();
+    expect(
+      fixture.ledger.restoreFromSnapshot(
+        { ...liveLedger, ledgerVersion: 0xffff_ffff },
+        fixture.registry,
+      ),
+    ).toMatchObject({ ok: true });
+    const needMutation: NeedLaneMutationPrepareInput = {
+      actorId: fixture.owner.index,
+      lane: NEED_LANE_HUNGER,
+      tick: 103,
+      reason: "need.external_delta" as const,
+      sourceSystemId: 3,
+      sourceEventId: fixture.token.jobId,
+      expectedStoreVersion: fixture.needs.version,
+      expectedLaneVersion: fixture.needs.readLaneOwnerVersion(
+        fixture.owner.index,
+        NEED_LANE_HUNGER,
+      ),
+      expectedValue: 300,
+      delta: 40,
+    };
+    const output = createEatingMutationOutput();
+    fixture.eating.consumeAdoptedInto(
+      {
+        jobId: fixture.token.jobId,
+        jobGeneration: fixture.token.jobGeneration,
+        owner: fixture.owner,
+        expectedJobSlotVersion: pickup.jobSlotVersion,
+        expectedJobCoreVersion: pickup.jobCoreVersion,
+        expectedDriverVersion: pickup.driverVersion,
+        expectedCurrentLedgerVersion: fixture.ledger.version,
+        tick: 103,
+        needMutation,
+      },
+      fixture.needs,
+      fixture.ledger,
+      fixture.core,
+      fixture.claims,
+      output,
+    );
+    expect(output).toMatchObject({ ok: false, cleanupPending: true, terminalOutcome: "consumed" });
+    const pendingDriverVersion = output.driverVersion;
+    expect(fixture.needs.readLaneValue(fixture.owner.index, NEED_LANE_HUNGER)).toBe(340);
+    expect(fixture.ledger.restoreFromSnapshot(liveLedger, fixture.registry)).toMatchObject({
+      ok: true,
+    });
+    const beforeOrdinaryRetry = {
+      needs: readEatingNeedBasis(fixture),
+      core: fixture.core.createSnapshot(),
+      eating: fixture.eating.createSnapshot(),
+      ledger: fixture.ledger.createSnapshot(),
+    };
+    fixture.eating.consumeAdoptedInto(
+      {
+        jobId: fixture.token.jobId,
+        jobGeneration: fixture.token.jobGeneration,
+        owner: fixture.owner,
+        expectedJobSlotVersion: pickup.jobSlotVersion,
+        expectedJobCoreVersion: pickup.jobCoreVersion,
+        expectedDriverVersion: pendingDriverVersion,
+        expectedCurrentLedgerVersion: fixture.ledger.version,
+        tick: 104,
+        needMutation,
+      },
+      fixture.needs,
+      fixture.ledger,
+      fixture.core,
+      fixture.claims,
+      output,
+    );
+    expect(output).toMatchObject({ ok: false, reason: "eating_step_invalid" });
+    expect({
+      needs: readEatingNeedBasis(fixture),
+      core: fixture.core.createSnapshot(),
+      eating: fixture.eating.createSnapshot(),
+      ledger: fixture.ledger.createSnapshot(),
+    }).toStrictEqual(beforeOrdinaryRetry);
+    fixture.eating.resumeCleanupInto(
+      {
+        jobId: fixture.token.jobId,
+        jobGeneration: fixture.token.jobGeneration,
+        owner: fixture.owner,
+        expectedJobSlotVersion: pickup.jobSlotVersion,
+        expectedJobCoreVersion: pickup.jobCoreVersion,
+        expectedDriverVersion: pendingDriverVersion,
+        expectedCurrentLedgerVersion: fixture.ledger.version,
+        tick: 104,
+        outcome: "consumed",
+        failureReason: "none",
+      },
+      fixture.ledger,
+      fixture.core,
+      output,
+    );
+    expect(output).toMatchObject({
+      ok: true,
+      cleanupPending: false,
+      terminalOutcome: "consumed",
+      releasedClaimCount: 2,
+    });
+    expect(fixture.needs.readLaneValue(fixture.owner.index, NEED_LANE_HUNGER)).toBe(340);
+    const finalDriverVersion = output.driverVersion;
+    fixture.eating.consumeAdoptedInto(
+      {
+        jobId: fixture.token.jobId,
+        jobGeneration: fixture.token.jobGeneration,
+        owner: fixture.owner,
+        expectedJobSlotVersion: output.jobSlotVersion,
+        expectedJobCoreVersion: output.jobCoreVersion,
+        expectedDriverVersion: output.driverVersion,
+        expectedCurrentLedgerVersion: fixture.ledger.version,
+        tick: 105,
+        needMutation,
+      },
+      fixture.needs,
+      fixture.ledger,
+      fixture.core,
+      fixture.claims,
+      output,
+    );
+    expect(output).toMatchObject({
+      ok: true,
+      alreadyCommitted: true,
+      terminalOutcome: "consumed",
+      driverVersion: finalDriverVersion,
+    });
+    expect(fixture.needs.readLaneValue(fixture.owner.index, NEED_LANE_HUNGER)).toBe(340);
+  });
+
+  it.each([
+    {
+      outcome: "canceled" as const,
+      failureReason: "cancelled" as const,
+      interruptionKind: undefined,
+    },
+    { outcome: "failed" as const, failureReason: "path" as const, interruptionKind: undefined },
+    {
+      outcome: "interrupted" as const,
+      failureReason: "cancelled" as const,
+      interruptionKind: "safe_point" as const,
+    },
+  ])("retries only exact cleanup after a returned $outcome effect", (terminalCase) => {
+    const fixture = createAdoptedEatingFixture();
+    const pickup = pickupAdoptedEating(fixture);
+    const liveLedger = fixture.ledger.createSnapshot();
+    expect(
+      fixture.ledger.restoreFromSnapshot(
+        { ...liveLedger, ledgerVersion: 0xffff_ffff },
+        fixture.registry,
+      ),
+    ).toMatchObject({ ok: true });
+    const output = createEatingMutationOutput();
+    const firstInput = {
+      jobId: fixture.token.jobId,
+      jobGeneration: fixture.token.jobGeneration,
+      owner: fixture.owner,
+      expectedJobSlotVersion: pickup.jobSlotVersion,
+      expectedJobCoreVersion: pickup.jobCoreVersion,
+      expectedDriverVersion: pickup.driverVersion,
+      expectedCurrentLedgerVersion: fixture.ledger.version,
+      tick: 103,
+      outcome: terminalCase.outcome,
+      failureReason: terminalCase.failureReason,
+      ...(terminalCase.interruptionKind === undefined
+        ? {}
+        : { interruptionKind: terminalCase.interruptionKind }),
+      itemAddition: createEatingItemAddition(fixture, 1),
+    };
+    fixture.eating.terminalAdoptedInto(
+      firstInput,
+      fixture.items,
+      fixture.ledger,
+      fixture.core,
+      fixture.claims,
+      output,
+    );
+    expect(output).toMatchObject({
+      ok: false,
+      cleanupPending: true,
+      terminalOutcome: terminalCase.outcome,
+    });
+    expect(fixture.items.readStack(2)).toMatchObject({ quantity: 3 });
+    const pendingVersion = output.driverVersion;
+    const pending = fixture.eating.createSnapshot();
+    const pendingRow = pending.rows[fixture.token.jobId];
+    expect(pendingRow).toMatchObject({ effectPhase: 2, cleanupPending: 1, returnedOnce: 1 });
+    const expectedCounters =
+      terminalCase.outcome === "failed"
+        ? { cumulativeFailedCount: 1 }
+        : terminalCase.outcome === "interrupted"
+          ? { cumulativeInterruptedCount: 1 }
+          : { cumulativeCanceledCount: 1 };
+    expect(pending).toMatchObject(expectedCounters);
+
+    const beforeOrdinary = {
+      item: fixture.items.createSnapshot(),
+      core: fixture.core.createSnapshot(),
+      eating: fixture.eating.createSnapshot(),
+      ledger: fixture.ledger.createSnapshot(),
+    };
+    fixture.eating.terminalAdoptedInto(
+      {
+        ...firstInput,
+        expectedDriverVersion: pendingVersion,
+        tick: 104,
+        itemAddition: createEatingItemAddition(fixture, 1),
+      },
+      fixture.items,
+      fixture.ledger,
+      fixture.core,
+      fixture.claims,
+      output,
+    );
+    expect(output).toMatchObject({ ok: false, reason: "eating_step_invalid" });
+    fixture.eating.pickupAdoptedInto(
+      createEatingPickupInput(
+        fixture,
+        {
+          jobSlotVersion: pickup.jobSlotVersion,
+          jobCoreVersion: pickup.jobCoreVersion,
+          driverVersion: pendingVersion,
+        },
+        104,
+      ),
+      fixture.items,
+      fixture.ledger,
+      fixture.core,
+      fixture.claims,
+      output,
+    );
+    expect(output).toMatchObject({ ok: false, reason: "eating_step_invalid" });
+    fixture.eating.consumeAdoptedInto(
+      {
+        jobId: fixture.token.jobId,
+        jobGeneration: fixture.token.jobGeneration,
+        owner: fixture.owner,
+        expectedJobSlotVersion: pickup.jobSlotVersion,
+        expectedJobCoreVersion: pickup.jobCoreVersion,
+        expectedDriverVersion: pendingVersion,
+        expectedCurrentLedgerVersion: fixture.ledger.version,
+        tick: 104,
+        needMutation: createEatingNeedMutation(fixture, 104),
+      },
+      fixture.needs,
+      fixture.ledger,
+      fixture.core,
+      fixture.claims,
+      output,
+    );
+    expect(output).toMatchObject({ ok: false, reason: "eating_step_invalid" });
+    expect({
+      item: fixture.items.createSnapshot(),
+      core: fixture.core.createSnapshot(),
+      eating: fixture.eating.createSnapshot(),
+      ledger: fixture.ledger.createSnapshot(),
+    }).toStrictEqual(beforeOrdinary);
+
+    expect(fixture.ledger.restoreFromSnapshot(liveLedger, fixture.registry)).toMatchObject({
+      ok: true,
+    });
+    const itemBeforeResume = fixture.items.createSnapshot();
+    fixture.eating.resumeCleanupInto(
+      {
+        jobId: fixture.token.jobId,
+        jobGeneration: fixture.token.jobGeneration,
+        owner: fixture.owner,
+        expectedJobSlotVersion: pickup.jobSlotVersion,
+        expectedJobCoreVersion: pickup.jobCoreVersion,
+        expectedDriverVersion: pendingVersion,
+        expectedCurrentLedgerVersion: fixture.ledger.version,
+        tick: 105,
+        outcome: terminalCase.outcome,
+        failureReason: terminalCase.failureReason,
+        ...(terminalCase.interruptionKind === undefined
+          ? {}
+          : { interruptionKind: terminalCase.interruptionKind }),
+      },
+      fixture.ledger,
+      fixture.core,
+      output,
+    );
+    expect(output).toMatchObject({
+      ok: true,
+      cleanupPending: false,
+      terminalOutcome: terminalCase.outcome,
+      releasedClaimCount: 2,
+    });
+    expect(fixture.items.createSnapshot()).toStrictEqual(itemBeforeResume);
+    expect(fixture.eating.createSnapshot()).toMatchObject(expectedCounters);
+    expect(fixture.eating.createMetrics()).toMatchObject(
+      terminalCase.outcome === "interrupted"
+        ? { interruptedCount: 1, currentInterruptedJobs: 1, canceledCount: 0 }
+        : terminalCase.outcome === "canceled"
+          ? { interruptedCount: 0, canceledCount: 1 }
+          : { interruptedCount: 0, failedCount: 1 },
+    );
+    const terminalRead = createEatingAdoptedJobOutput();
+    fixture.eating.readAdoptedJobInto(
+      fixture.token.jobId,
+      fixture.token.jobGeneration,
+      fixture.owner,
+      output.jobSlotVersion,
+      terminalRead,
+    );
+    expect(terminalRead).toMatchObject(
+      terminalCase.outcome === "interrupted"
+        ? { ok: true, interruptedCount: 1, currentInterruptedJobs: 1, canceledCount: 0 }
+        : terminalCase.outcome === "canceled"
+          ? { ok: true, interruptedCount: 0, canceledCount: 1 }
+          : { ok: true, interruptedCount: 0, failedCount: 1 },
+    );
+
+    const duplicateInput = {
+      ...firstInput,
+      expectedJobSlotVersion: output.jobSlotVersion,
+      expectedJobCoreVersion: output.jobCoreVersion,
+      expectedDriverVersion: output.driverVersion,
+      expectedCurrentLedgerVersion: fixture.ledger.version,
+      tick: 106,
+      itemAddition: createEatingItemAddition(fixture, 1),
+    };
+    const beforeDuplicate = {
+      item: fixture.items.createSnapshot(),
+      core: fixture.core.createSnapshot(),
+      eating: fixture.eating.createSnapshot(),
+      ledger: fixture.ledger.createSnapshot(),
+    };
+    fixture.eating.terminalAdoptedInto(
+      duplicateInput,
+      fixture.items,
+      fixture.ledger,
+      fixture.core,
+      fixture.claims,
+      output,
+    );
+    expect(output).toMatchObject({
+      ok: true,
+      alreadyCommitted: true,
+      terminalOutcome: terminalCase.outcome,
+    });
+    expect({
+      item: fixture.items.createSnapshot(),
+      core: fixture.core.createSnapshot(),
+      eating: fixture.eating.createSnapshot(),
+      ledger: fixture.ledger.createSnapshot(),
+    }).toStrictEqual(beforeDuplicate);
+  });
+
+  it("retries phase-zero terminal cleanup without a domain effect", () => {
+    const fixture = createAdoptedEatingFixture();
+    const liveLedger = fixture.ledger.createSnapshot();
+    expect(
+      fixture.ledger.restoreFromSnapshot(
+        { ...liveLedger, ledgerVersion: 0xffff_ffff },
+        fixture.registry,
+      ),
+    ).toMatchObject({ ok: true });
+    const output = createEatingMutationOutput();
+    fixture.eating.terminalAdoptedInto(
+      {
+        jobId: fixture.token.jobId,
+        jobGeneration: fixture.token.jobGeneration,
+        owner: fixture.owner,
+        expectedJobSlotVersion: fixture.adopted.jobSlotVersion,
+        expectedJobCoreVersion: fixture.adopted.jobCoreVersion,
+        expectedDriverVersion: fixture.adopted.driverVersion,
+        expectedCurrentLedgerVersion: fixture.ledger.version,
+        tick: 102,
+        outcome: "canceled",
+        failureReason: "cancelled",
+        itemAddition: createEatingItemAddition(fixture, 1),
+      },
+      fixture.items,
+      fixture.ledger,
+      fixture.core,
+      fixture.claims,
+      output,
+    );
+    expect(output).toMatchObject({ ok: false, cleanupPending: true, terminalOutcome: "canceled" });
+    expect(fixture.eating.createSnapshot().rows[fixture.token.jobId]).toMatchObject({
+      effectPhase: 2,
+      cleanupPending: 1,
+      returnedOnce: 0,
+      pickupOnce: 0,
+    });
+    const pendingVersion = output.driverVersion;
+    expect(fixture.ledger.restoreFromSnapshot(liveLedger, fixture.registry)).toMatchObject({
+      ok: true,
+    });
+    fixture.eating.resumeCleanupInto(
+      {
+        jobId: fixture.token.jobId,
+        jobGeneration: fixture.token.jobGeneration,
+        owner: fixture.owner,
+        expectedJobSlotVersion: fixture.adopted.jobSlotVersion,
+        expectedJobCoreVersion: fixture.adopted.jobCoreVersion,
+        expectedDriverVersion: pendingVersion,
+        expectedCurrentLedgerVersion: fixture.ledger.version,
+        tick: 103,
+        outcome: "canceled",
+        failureReason: "cancelled",
+      },
+      fixture.ledger,
+      fixture.core,
+      output,
+    );
+    expect(output).toMatchObject({ ok: true, releasedClaimCount: 2, terminalOutcome: "canceled" });
+    expect(fixture.eating.createSnapshot()).toMatchObject({ cumulativeCanceledCount: 1 });
+  });
+
+  it("roundtrips reserved and picked adopted rows with exact read and hash bases", () => {
+    const fixture = createAdoptedEatingFixture();
+    const reserved = fixture.eating.createSnapshot();
+    const restoredReserved = restoreM3EatingJobDriverStore(reserved);
+    expect(restoredReserved.createSnapshot()).toStrictEqual(reserved);
+    const read = createEatingAdoptedJobOutput();
+    const identity = read;
+    restoredReserved.readAdoptedJobInto(
+      fixture.token.jobId,
+      fixture.token.jobGeneration,
+      fixture.owner,
+      fixture.adopted.jobSlotVersion,
+      read,
+    );
+    expect(read).toBe(identity);
+    expect(read).toMatchObject({
+      ok: true,
+      active: true,
+      step: "reserved",
+      effectPhase: 0,
+      reservationVersion: fixture.ledger.version,
+      lastEffectTick: 101,
+    });
+    expect(Array.from(read.claimIds)).toStrictEqual(Array.from(fixture.ids.slice(0, 2)));
+    expect(Array.from(read.claimEpochs)).toStrictEqual(Array.from(fixture.epochs.slice(0, 2)));
+    expect(Array.from(read.claimCreatedTicks)).toStrictEqual([100, 100]);
+    expect(Array.from(read.claimLeaseExpiryTicks)).toStrictEqual([400, 400]);
+    expect(read).toMatchObject({
+      itemStoreVersion: fixture.items.version,
+      foodAvailabilityVersion: 1,
+      mealWindowVersion: 1,
+      abilityAllowed: true,
+      activeCount: 1,
+      reservedCount: 1,
+      reservationAttemptCount: 0,
+      cumulativeConsumedCount: 0,
+      terminalReason: "food.job_created",
+    });
+
+    const hash = (snapshot: typeof reserved): string =>
+      formatCanonicalWorldHash({
+        fields: createM3EatingJobHashFields(snapshot),
+        randomStreams: [],
+        queuedCommands: [],
+      });
+    const reservedRow = reserved.rows[fixture.token.jobId];
+    if (reservedRow === undefined) throw new Error("missing reserved eating row");
+    const changedRows = copyWithReplacement(reserved.rows, fixture.token.jobId, {
+      ...reservedRow,
+      reservationVersion: reservedRow.reservationVersion + 1,
+    });
+    expect(hash({ ...reserved, rows: changedRows })).not.toBe(hash(reserved));
+    const changedLeaseRows = copyWithReplacement(reserved.rows, fixture.token.jobId, {
+      ...reservedRow,
+      claimLeaseExpiryTicks: [
+        reservedRow.claimLeaseExpiryTicks[0] ?? 0,
+        (reservedRow.claimLeaseExpiryTicks[1] ?? 0) + 1,
+      ],
+    });
+    expect(hash({ ...reserved, rows: changedLeaseRows })).not.toBe(hash(reserved));
+
+    const pickup = pickupAdoptedEating(fixture);
+    expect(pickup.ok).toBe(true);
+    const picked = fixture.eating.createSnapshot();
+    expect(restoreM3EatingJobDriverStore(picked).createSnapshot()).toStrictEqual(picked);
+    expect(picked.rows[fixture.token.jobId]).toMatchObject({
+      active: 1,
+      effectPhase: 1,
+      stepCode: 3,
+      carriedDefId: GRAIN_BOWL,
+      carriedAmount: 1,
+      pickupOnce: 1,
+    });
+    const pickedRow = picked.rows[fixture.token.jobId];
+    if (pickedRow === undefined) throw new Error("missing picked eating row");
+    const badPickedRows = copyWithReplacement(picked.rows, fixture.token.jobId, {
+      ...pickedRow,
+      terminalReasonCode: 5,
+    });
+    expect(
+      createM3EatingJobDriverStore(picked.capacity).restoreFromSnapshot({
+        ...picked,
+        rows: badPickedRows,
+      }),
+    ).toMatchObject({ ok: false });
+  });
+
+  it("rejects persisted claim lifetime drift before any pickup mutation", () => {
+    const fixture = createAdoptedEatingFixture();
+    const snapshot = fixture.eating.createSnapshot();
+    const snapshotRow = snapshot.rows[fixture.token.jobId];
+    if (snapshotRow === undefined) throw new Error("missing eating row");
+    const rows = copyWithReplacement(snapshot.rows, fixture.token.jobId, {
+      ...snapshotRow,
+      claimLeaseExpiryTicks: [
+        snapshotRow.claimLeaseExpiryTicks[0] ?? 0,
+        (snapshotRow.claimLeaseExpiryTicks[1] ?? 0) + 1,
+      ],
+    });
+    const drifted = restoreM3EatingJobDriverStore({ ...snapshot, rows });
+    const before = {
+      items: fixture.items.createSnapshot(),
+      ledger: fixture.ledger.createSnapshot(),
+      core: fixture.core.createSnapshot(),
+      eating: drifted.createSnapshot(),
+    };
+    const output = createEatingMutationOutput();
+    drifted.pickupAdoptedInto(
+      createEatingPickupInput(fixture, fixture.adopted, 102),
+      fixture.items,
+      fixture.ledger,
+      fixture.core,
+      fixture.claims,
+      output,
+    );
+    expect(output).toMatchObject({ ok: false, reason: "eating_step_invalid" });
+    expect({
+      items: fixture.items.createSnapshot(),
+      ledger: fixture.ledger.createSnapshot(),
+      core: fixture.core.createSnapshot(),
+      eating: drifted.createSnapshot(),
+    }).toStrictEqual(before);
+  });
+
+  it("rejects cumulative counter exhaustion before domain, ledger, or JobCore writes", () => {
+    const terminalFixture = createAdoptedEatingFixture();
+    const terminalSnapshot = terminalFixture.eating.createSnapshot();
+    const terminalStore = restoreM3EatingJobDriverStore({
+      ...terminalSnapshot,
+      cumulativeCanceledCount: 0xffff_ffff,
+    });
+    const terminalBefore = {
+      items: terminalFixture.items.createSnapshot(),
+      ledger: terminalFixture.ledger.createSnapshot(),
+      core: terminalFixture.core.createSnapshot(),
+      eating: terminalStore.createSnapshot(),
+    };
+    const terminalOutput = createEatingMutationOutput();
+    terminalStore.terminalAdoptedInto(
+      {
+        jobId: terminalFixture.token.jobId,
+        jobGeneration: terminalFixture.token.jobGeneration,
+        owner: terminalFixture.owner,
+        expectedJobSlotVersion: terminalFixture.adopted.jobSlotVersion,
+        expectedJobCoreVersion: terminalFixture.adopted.jobCoreVersion,
+        expectedDriverVersion: terminalFixture.adopted.driverVersion,
+        expectedCurrentLedgerVersion: terminalFixture.ledger.version,
+        tick: 102,
+        outcome: "canceled",
+        failureReason: "cancelled",
+        itemAddition: createEatingItemAddition(terminalFixture, 1),
+      },
+      terminalFixture.items,
+      terminalFixture.ledger,
+      terminalFixture.core,
+      terminalFixture.claims,
+      terminalOutput,
+    );
+    expect(terminalOutput).toMatchObject({ ok: false, reason: "eating_version_exhausted" });
+    expect({
+      items: terminalFixture.items.createSnapshot(),
+      ledger: terminalFixture.ledger.createSnapshot(),
+      core: terminalFixture.core.createSnapshot(),
+      eating: terminalStore.createSnapshot(),
+    }).toStrictEqual(terminalBefore);
+
+    for (const counters of [
+      { consumedAmountTotal: 0xffff_ffff },
+      { cumulativeConsumedCount: 0xffff_ffff },
+    ]) {
+      const fixture = createAdoptedEatingFixture();
+      const pickup = pickupAdoptedEating(fixture);
+      const picked = fixture.eating.createSnapshot();
+      const exhausted = restoreM3EatingJobDriverStore({ ...picked, ...counters });
+      const before = {
+        needs: readEatingNeedBasis(fixture),
+        ledger: fixture.ledger.createSnapshot(),
+        core: fixture.core.createSnapshot(),
+        eating: exhausted.createSnapshot(),
+      };
+      const output = createEatingMutationOutput();
+      exhausted.consumeAdoptedInto(
+        {
+          jobId: fixture.token.jobId,
+          jobGeneration: fixture.token.jobGeneration,
+          owner: fixture.owner,
+          expectedJobSlotVersion: pickup.jobSlotVersion,
+          expectedJobCoreVersion: pickup.jobCoreVersion,
+          expectedDriverVersion: pickup.driverVersion,
+          expectedCurrentLedgerVersion: fixture.ledger.version,
+          tick: 103,
+          needMutation: createEatingNeedMutation(fixture, 103),
+        },
+        fixture.needs,
+        fixture.ledger,
+        fixture.core,
+        fixture.claims,
+        output,
+      );
+      expect(output).toMatchObject({ ok: false, reason: "eating_version_exhausted" });
+      expect({
+        needs: readEatingNeedBasis(fixture),
+        ledger: fixture.ledger.createSnapshot(),
+        core: fixture.core.createSnapshot(),
+        eating: exhausted.createSnapshot(),
+      }).toStrictEqual(before);
+    }
+  });
+
+  it("roundtrips cleanup-pending and terminal adopted rows", () => {
+    const cleanup = createAdoptedEatingFixture();
+    const pickup = pickupAdoptedEating(cleanup);
+    const liveLedger = cleanup.ledger.createSnapshot();
+    expect(
+      cleanup.ledger.restoreFromSnapshot(
+        { ...liveLedger, ledgerVersion: 0xffff_ffff },
+        cleanup.registry,
+      ),
+    ).toMatchObject({ ok: true });
+    const output = createEatingMutationOutput();
+    cleanup.eating.consumeAdoptedInto(
+      {
+        jobId: cleanup.token.jobId,
+        jobGeneration: cleanup.token.jobGeneration,
+        owner: cleanup.owner,
+        expectedJobSlotVersion: pickup.jobSlotVersion,
+        expectedJobCoreVersion: pickup.jobCoreVersion,
+        expectedDriverVersion: pickup.driverVersion,
+        expectedCurrentLedgerVersion: cleanup.ledger.version,
+        tick: 103,
+        needMutation: createEatingNeedMutation(cleanup, 103),
+      },
+      cleanup.needs,
+      cleanup.ledger,
+      cleanup.core,
+      cleanup.claims,
+      output,
+    );
+    expect(output).toMatchObject({ ok: false, cleanupPending: true, terminalOutcome: "consumed" });
+    const pending = cleanup.eating.createSnapshot();
+    expect(restoreM3EatingJobDriverStore(pending).createSnapshot()).toStrictEqual(pending);
+    expect(pending.rows[cleanup.token.jobId]).toMatchObject({
+      active: 1,
+      effectPhase: 2,
+      pendingTerminalOutcome: 4,
+      consumedDefId: GRAIN_BOWL,
+      consumedAmount: 1,
+    });
+    const pendingRow = pending.rows[cleanup.token.jobId];
+    if (pendingRow === undefined) throw new Error("missing pending eating row");
+    const badPendingRows = copyWithReplacement(pending.rows, cleanup.token.jobId, {
+      ...pendingRow,
+      terminalReasonCode: 3,
+    });
+    expect(
+      createM3EatingJobDriverStore(pending.capacity).restoreFromSnapshot({
+        ...pending,
+        rows: badPendingRows,
+      }),
+    ).toMatchObject({ ok: false });
+    const badConsumedTuple = copyWithReplacement(pending.rows, cleanup.token.jobId, {
+      ...pendingRow,
+      returnedOnce: 1,
+    });
+    expect(
+      createM3EatingJobDriverStore(pending.capacity).restoreFromSnapshot({
+        ...pending,
+        rows: badConsumedTuple,
+      }),
+    ).toMatchObject({ ok: false });
+
+    const terminal = createAdoptedEatingFixture();
+    const terminalOutput = createEatingMutationOutput();
+    terminal.eating.terminalAdoptedInto(
+      {
+        jobId: terminal.token.jobId,
+        jobGeneration: terminal.token.jobGeneration,
+        owner: terminal.owner,
+        expectedJobSlotVersion: terminal.adopted.jobSlotVersion,
+        expectedJobCoreVersion: terminal.adopted.jobCoreVersion,
+        expectedDriverVersion: terminal.adopted.driverVersion,
+        expectedCurrentLedgerVersion: terminal.ledger.version,
+        tick: 102,
+        outcome: "failed",
+        failureReason: "path",
+        itemAddition: createEatingItemAddition(terminal, 1),
+      },
+      terminal.items,
+      terminal.ledger,
+      terminal.core,
+      terminal.claims,
+      terminalOutput,
+    );
+    expect(terminalOutput.ok).toBe(true);
+    const tombstone = terminal.eating.createSnapshot();
+    expect(restoreM3EatingJobDriverStore(tombstone).createSnapshot()).toStrictEqual(tombstone);
+    expect(tombstone.rows[terminal.token.jobId]).toMatchObject({
+      active: 0,
+      effectPhase: 3,
+      stepCode: 6,
+      pendingTerminalOutcome: 2,
+      pendingTerminalFailure: 4,
+      reservationVersion: terminal.ledger.version,
+      claimIds: [RESERVATION_CLAIM_NONE, RESERVATION_CLAIM_NONE],
+      claimEpochs: [0, 0],
+    });
+    const tombstoneRow = tombstone.rows[terminal.token.jobId];
+    if (tombstoneRow === undefined) throw new Error("missing terminal eating row");
+    const badTerminalRows = copyWithReplacement(tombstone.rows, terminal.token.jobId, {
+      ...tombstoneRow,
+      terminalReasonCode: 4,
+    });
+    expect(
+      createM3EatingJobDriverStore(tombstone.capacity).restoreFromSnapshot({
+        ...tombstone,
+        rows: badTerminalRows,
+      }),
+    ).toMatchObject({ ok: false });
+  });
+
+  it.each(["cancel", "fail"] as const)(
+    "fails legacy %s closed for adopted jobs before item or claim mutation",
+    (operation) => {
+      const fixture = createAdoptedEatingFixture();
+      expect(pickupAdoptedEating(fixture).ok).toBe(true);
+      const unrelated = createFoodFixture(1);
+      const before = {
+        items: fixture.items.createSnapshot(),
+        ledger: fixture.ledger.createSnapshot(),
+        core: fixture.core.createSnapshot(),
+        eating: fixture.eating.createSnapshot(),
+      };
+      const result =
+        operation === "cancel"
+          ? fixture.eating.cancel(
+              fixture.token.jobId,
+              103,
+              fixture.items,
+              unrelated.food,
+              unrelated.storage,
+              fixture.ledger,
+              fixture.core,
+            )
+          : fixture.eating.fail(
+              fixture.token.jobId,
+              103,
+              "path",
+              fixture.items,
+              unrelated.food,
+              unrelated.storage,
+              fixture.ledger,
+              fixture.core,
+            );
+      expect(result).toStrictEqual({ ok: false, reason: "eating_step_invalid" });
+      expect({
+        items: fixture.items.createSnapshot(),
+        ledger: fixture.ledger.createSnapshot(),
+        core: fixture.core.createSnapshot(),
+        eating: fixture.eating.createSnapshot(),
+      }).toStrictEqual(before);
+    },
+  );
+
+  it("uses exact fffb-through-ffff driver headroom for adopted terminal closure", () => {
+    for (const version of [0xffff_fffb, 0xffff_fffc]) {
+      const fixture = createAdoptedEatingFixture(version);
+      expect(fixture.adopted.ok).toBe(true);
+      const output = createEatingMutationOutput();
+      fixture.eating.terminalAdoptedInto(
+        {
+          jobId: fixture.token.jobId,
+          jobGeneration: fixture.token.jobGeneration,
+          owner: fixture.owner,
+          expectedJobSlotVersion: fixture.adopted.jobSlotVersion,
+          expectedJobCoreVersion: fixture.adopted.jobCoreVersion,
+          expectedDriverVersion: fixture.adopted.driverVersion,
+          expectedCurrentLedgerVersion: fixture.ledger.version,
+          tick: 102,
+          outcome: "canceled",
+          failureReason: "cancelled",
+          itemAddition: createEatingItemAddition(fixture, 1),
+        },
+        fixture.items,
+        fixture.ledger,
+        fixture.core,
+        fixture.claims,
+        output,
+      );
+      expect(output).toMatchObject({ ok: true, driverVersion: version + 3 });
+    }
+    const terminalRejected = createAdoptedEatingFixture(0xffff_fffd);
+    const beforeTerminal = terminalRejected.eating.createSnapshot();
+    const rejectedOutput = createEatingMutationOutput();
+    terminalRejected.eating.terminalAdoptedInto(
+      {
+        jobId: terminalRejected.token.jobId,
+        jobGeneration: terminalRejected.token.jobGeneration,
+        owner: terminalRejected.owner,
+        expectedJobSlotVersion: terminalRejected.adopted.jobSlotVersion,
+        expectedJobCoreVersion: terminalRejected.adopted.jobCoreVersion,
+        expectedDriverVersion: terminalRejected.adopted.driverVersion,
+        expectedCurrentLedgerVersion: terminalRejected.ledger.version,
+        tick: 102,
+        outcome: "canceled",
+        failureReason: "cancelled",
+        itemAddition: createEatingItemAddition(terminalRejected, 1),
+      },
+      terminalRejected.items,
+      terminalRejected.ledger,
+      terminalRejected.core,
+      terminalRejected.claims,
+      rejectedOutput,
+    );
+    expect(rejectedOutput).toMatchObject({ ok: false, reason: "eating_version_exhausted" });
+    expect(terminalRejected.eating.createSnapshot()).toStrictEqual(beforeTerminal);
+    for (const version of [0xffff_fffe, 0xffff_ffff]) {
+      const fixture = createAdoptedEatingFixture(version);
+      expect(fixture.adopted).toMatchObject({ ok: false, reason: "eating_version_exhausted" });
+    }
+  });
+
+  it("clears terminal audit when the same slot is adopted by a new generation", () => {
+    const fixture = createAdoptedEatingFixture();
+    const terminal = createEatingMutationOutput();
+    fixture.eating.terminalAdoptedInto(
+      {
+        jobId: fixture.token.jobId,
+        jobGeneration: fixture.token.jobGeneration,
+        owner: fixture.owner,
+        expectedJobSlotVersion: fixture.adopted.jobSlotVersion,
+        expectedJobCoreVersion: fixture.adopted.jobCoreVersion,
+        expectedDriverVersion: fixture.adopted.driverVersion,
+        expectedCurrentLedgerVersion: fixture.ledger.version,
+        tick: 102,
+        outcome: "failed",
+        failureReason: "path",
+        itemAddition: createEatingItemAddition(fixture, 1),
+      },
+      fixture.items,
+      fixture.ledger,
+      fixture.core,
+      fixture.claims,
+      terminal,
+    );
+    expect(terminal.ok).toBe(true);
+
+    const token = createTokenOutputForAdoption();
+    fixture.core.reserveAutonomyJobTokenInto(fixture.core.version, fixture.owner, token);
+    expect(token).toMatchObject({ ok: true, jobId: fixture.token.jobId, jobGeneration: 2 });
+    const acquired = fixture.ledger.acquire(
+      {
+        owner: fixture.owner,
+        jobId: token.jobId,
+        jobGeneration: token.jobGeneration,
+        createdTick: 103,
+        leaseExpiryTick: 403,
+        claims: [
+          { channel: "item_quantity", item: fixture.itemEntity, amount: 1, availableAmount: 3 },
+          { channel: "interaction_spot", target: fixture.itemEntity, spotId: 7 },
+        ],
+      },
+      fixture.registry,
+    );
+    if (!acquired.ok) throw new Error(acquired.reason);
+    const ids = new Uint32Array(8);
+    ids.fill(RESERVATION_CLAIM_NONE);
+    const epochs = new Uint32Array(8);
+    for (let index = 0; index < 2; index += 1) {
+      ids[index] = acquired.claimIds[index] ?? RESERVATION_CLAIM_NONE;
+      epochs[index] = acquired.version;
+    }
+    const claims = createEatingClaims(fixture.owner, token.jobId, token.jobGeneration, 103);
+    fixture.ledger.readActiveClaimsInto(
+      ids,
+      epochs,
+      2,
+      fixture.owner,
+      token.jobId,
+      token.jobGeneration,
+      acquired.version,
+      claims,
+    );
+    const adopted = createDriverOutput();
+    fixture.eating.adoptExistingClaimsInto(
+      {
+        jobId: token.jobId,
+        jobGeneration: token.jobGeneration,
+        ownerIndex: fixture.owner.index,
+        ownerGeneration: fixture.owner.generation,
+        expectedJobSlotVersion: token.slotVersion,
+        expectedJobCoreVersion: fixture.core.version,
+        expectedDriverVersion: terminal.driverVersion,
+        claimCount: 2,
+        claimIds: ids,
+        claimEpochs: epochs,
+        claimLeaseExpiryTicks: new Float64Array(claims.leaseExpiryTicks),
+        claimCreatedTick: 103,
+        adoptionTick: 104,
+        reservationReadVersion: acquired.version,
+      },
+      {
+        jobId: token.jobId,
+        owner: fixture.owner,
+        sourceStackId: 2,
+        storageSlotId: 5,
+        foodDefId: GRAIN_BOWL,
+        amount: 1,
+        hungerRestore: 40,
+        itemStoreVersion: fixture.items.version,
+        foodAvailabilityVersion: 1,
+        mealWindowVersion: 1,
+        abilityAllowed: true,
+        createdTick: 103,
+        itemEntity: fixture.itemEntity,
+        interactionSpotId: 7,
+        readClaimIds: ids,
+        readClaimEpochs: epochs,
+        claims,
+      },
+      fixture.core,
+      adopted,
+    );
+    expect(adopted.ok).toBe(true);
+    const snapshot = fixture.eating.createSnapshot();
+    expect(snapshot.rows[token.jobId]).toMatchObject({
+      jobGeneration: 2,
+      active: 1,
+      effectPhase: 0,
+      stepCode: 2,
+      terminalReasonCode: 0,
+    });
+    expect(restoreM3EatingJobDriverStore(snapshot).createSnapshot()).toStrictEqual(snapshot);
+  });
+
+  it("rejects old or incoherent eating snapshots atomically", () => {
+    const fixture = createAdoptedEatingFixture();
+    const snapshot = fixture.eating.createSnapshot();
+    expect(fixture.eating.restoreFromSnapshot({ ...snapshot, snapshotVersion: 0 })).toStrictEqual({
+      ok: false,
+      reason: "eating_snapshot_invalid",
+    });
+    expect(fixture.eating.createSnapshot()).toStrictEqual(snapshot);
+
+    const snapshotRow = snapshot.rows[fixture.token.jobId];
+    if (snapshotRow === undefined) throw new Error("missing reserved eating row");
+    const rows = copyWithReplacement(snapshot.rows, fixture.token.jobId, {
+      ...snapshotRow,
+      carriedDefId: GRAIN_BOWL,
+      carriedAmount: 1,
+    });
+    expect(fixture.eating.restoreFromSnapshot({ ...snapshot, rows })).toStrictEqual({
+      ok: false,
+      reason: "eating_snapshot_invalid",
+    });
+    expect(fixture.eating.createSnapshot()).toStrictEqual(snapshot);
+
+    const zeroGenerationRows = copyWithReplacement(snapshot.rows, fixture.token.jobId, {
+      ...snapshotRow,
+      jobGeneration: 0,
+    });
+    expect(
+      fixture.eating.restoreFromSnapshot({ ...snapshot, rows: zeroGenerationRows }),
+    ).toStrictEqual({ ok: false, reason: "eating_snapshot_invalid" });
+    expect(fixture.eating.createSnapshot()).toStrictEqual(snapshot);
+
+    const reasonRows = copyWithReplacement(snapshot.rows, fixture.token.jobId, {
+      ...snapshotRow,
+      terminalReasonCode: 5,
+    });
+    expect(fixture.eating.restoreFromSnapshot({ ...snapshot, rows: reasonRows })).toStrictEqual({
+      ok: false,
+      reason: "eating_snapshot_invalid",
+    });
+    expect(fixture.eating.createSnapshot()).toStrictEqual(snapshot);
+  });
+
+  it("rejects positive-row conservation and cumulative counter corruption", () => {
+    const reservedFixture = createAdoptedEatingFixture();
+    const reserved = reservedFixture.eating.createSnapshot();
+    const reservedRow = reserved.rows[reservedFixture.token.jobId];
+    if (reservedRow === undefined) throw new Error("missing reserved eating row");
+    const reservedCorruptions = [
+      { ...reservedRow, amount: 0 },
+      { ...reservedRow, abilityAllowed: 0 },
+      { ...reservedRow, hungerRestore: 0x8000_0000 },
+      { ...reservedRow, claimIds: [reservedRow.claimIds[0] ?? 0, reservedRow.claimIds[0] ?? 0] },
+      { ...reservedRow, lastEffectTick: reservedRow.lastEffectTick + 1 },
+    ];
+    for (const corrupted of reservedCorruptions) {
+      const rows = copyWithReplacement(reserved.rows, corrupted.jobId, corrupted);
+      expect(
+        createM3EatingJobDriverStore(reserved.capacity).restoreFromSnapshot({ ...reserved, rows }),
+      ).toMatchObject({ ok: false });
+    }
+    expect(
+      createM3EatingJobDriverStore(reserved.capacity).restoreFromSnapshot({
+        ...reserved,
+        reservationFailures: reserved.reservationAttempts + 1,
+      }),
+    ).toMatchObject({ ok: false });
+
+    const pickedFixture = createAdoptedEatingFixture();
+    expect(pickupAdoptedEating(pickedFixture).ok).toBe(true);
+    const picked = pickedFixture.eating.createSnapshot();
+    const pickedRow = picked.rows[pickedFixture.token.jobId];
+    if (pickedRow === undefined) throw new Error("missing picked eating row");
+    const pickedRows = copyWithReplacement(picked.rows, pickedFixture.token.jobId, {
+      ...pickedRow,
+      carriedAmount: pickedRow.amount + 1,
+    });
+    expect(
+      createM3EatingJobDriverStore(picked.capacity).restoreFromSnapshot({
+        ...picked,
+        rows: pickedRows,
+      }),
+    ).toMatchObject({ ok: false });
+
+    const pendingFixture = createAdoptedEatingFixture();
+    const pickup = pickupAdoptedEating(pendingFixture);
+    const liveLedger = pendingFixture.ledger.createSnapshot();
+    expect(
+      pendingFixture.ledger.restoreFromSnapshot(
+        { ...liveLedger, ledgerVersion: 0xffff_ffff },
+        pendingFixture.registry,
+      ),
+    ).toMatchObject({ ok: true });
+    const output = createEatingMutationOutput();
+    pendingFixture.eating.consumeAdoptedInto(
+      {
+        jobId: pendingFixture.token.jobId,
+        jobGeneration: pendingFixture.token.jobGeneration,
+        owner: pendingFixture.owner,
+        expectedJobSlotVersion: pickup.jobSlotVersion,
+        expectedJobCoreVersion: pickup.jobCoreVersion,
+        expectedDriverVersion: pickup.driverVersion,
+        expectedCurrentLedgerVersion: pendingFixture.ledger.version,
+        tick: 103,
+        needMutation: createEatingNeedMutation(pendingFixture, 103),
+      },
+      pendingFixture.needs,
+      pendingFixture.ledger,
+      pendingFixture.core,
+      pendingFixture.claims,
+      output,
+    );
+    const pending = pendingFixture.eating.createSnapshot();
+    expect(
+      createM3EatingJobDriverStore(pending.capacity).restoreFromSnapshot({
+        ...pending,
+        cumulativeConsumedCount: 0,
+      }),
+    ).toMatchObject({ ok: false });
+    const pendingBefore = pendingFixture.eating.createSnapshot();
+    const pendingHash = formatCanonicalWorldHash({
+      fields: createM3EatingJobHashFields(pendingBefore),
+      randomStreams: [],
+      queuedCommands: [],
+    });
+    expect(
+      pendingFixture.eating.restoreFromSnapshot({ ...pending, consumedAmountTotal: 0 }),
+    ).toMatchObject({ ok: false });
+    expect(pendingFixture.eating.createSnapshot()).toStrictEqual(pendingBefore);
+    expect(
+      formatCanonicalWorldHash({
+        fields: createM3EatingJobHashFields(pendingFixture.eating.createSnapshot()),
+        randomStreams: [],
+        queuedCommands: [],
+      }),
+    ).toBe(pendingHash);
+    const pendingRow = pending.rows[pendingFixture.token.jobId];
+    if (pendingRow === undefined) throw new Error("missing pending eating row");
+    const pendingRows = copyWithReplacement(pending.rows, pendingFixture.token.jobId, {
+      ...pendingRow,
+      consumedDefId: pendingRow.foodDefId + 1,
+    });
+    expect(
+      createM3EatingJobDriverStore(pending.capacity).restoreFromSnapshot({
+        ...pending,
+        rows: pendingRows,
+      }),
+    ).toMatchObject({ ok: false });
+
+    const consumedRow = pending.rows[pendingFixture.token.jobId];
+    let secondRow = pending.rows[0];
+    if (secondRow?.jobId === pendingFixture.token.jobId) secondRow = pending.rows[1];
+    if (consumedRow === undefined || secondRow === undefined)
+      throw new Error("missing rows for consumed sum overflow");
+    let overflowRows = copyWithReplacement(pending.rows, consumedRow.jobId, {
+      ...consumedRow,
+      amount: 0xffff_ffff,
+      consumedAmount: 0xffff_ffff,
+    });
+    overflowRows = copyWithReplacement(overflowRows, secondRow.jobId, {
+      ...consumedRow,
+      jobId: secondRow.jobId,
+      amount: 0xffff_ffff,
+      consumedAmount: 0xffff_ffff,
+    });
+    expect(
+      createM3EatingJobDriverStore(pending.capacity).restoreFromSnapshot({
+        ...pending,
+        activeCount: 2,
+        cumulativeConsumedCount: 2,
+        consumedAmountTotal: 0xffff_ffff,
+        rows: overflowRows,
+      }),
+    ).toMatchObject({ ok: false });
+  });
+
+  it("rejects duplicate calls when committed JobCore payload Tick differs", () => {
+    const running = createAdoptedEatingFixture();
+    const pickup = pickupAdoptedEating(running);
+    const runningSnapshot = running.eating.createSnapshot();
+    const runningRow = runningSnapshot.rows[running.token.jobId];
+    if (runningRow === undefined) throw new Error("missing running eating row");
+    const runningRows = copyWithReplacement(runningSnapshot.rows, running.token.jobId, {
+      ...runningRow,
+      stepEnteredTick: runningRow.stepEnteredTick + 1,
+      lastEffectTick: runningRow.lastEffectTick + 1,
+    });
+    const driftedRunning = restoreM3EatingJobDriverStore({ ...runningSnapshot, rows: runningRows });
+    const runningBefore = {
+      items: running.items.createSnapshot(),
+      core: running.core.createSnapshot(),
+      eating: driftedRunning.createSnapshot(),
+      ledger: running.ledger.createSnapshot(),
+    };
+    const output = createEatingMutationOutput();
+    driftedRunning.pickupAdoptedInto(
+      createEatingPickupInput(running, pickup, 104),
+      running.items,
+      running.ledger,
+      running.core,
+      running.claims,
+      output,
+    );
+    expect(output).toMatchObject({ ok: false, reason: "eating_step_invalid" });
+    expect({
+      items: running.items.createSnapshot(),
+      core: running.core.createSnapshot(),
+      eating: driftedRunning.createSnapshot(),
+      ledger: running.ledger.createSnapshot(),
+    }).toStrictEqual(runningBefore);
+
+    const terminal = createAdoptedEatingFixture();
+    terminal.eating.terminalAdoptedInto(
+      {
+        jobId: terminal.token.jobId,
+        jobGeneration: terminal.token.jobGeneration,
+        owner: terminal.owner,
+        expectedJobSlotVersion: terminal.adopted.jobSlotVersion,
+        expectedJobCoreVersion: terminal.adopted.jobCoreVersion,
+        expectedDriverVersion: terminal.adopted.driverVersion,
+        expectedCurrentLedgerVersion: terminal.ledger.version,
+        tick: 102,
+        outcome: "canceled",
+        failureReason: "cancelled",
+        itemAddition: createEatingItemAddition(terminal, 1),
+      },
+      terminal.items,
+      terminal.ledger,
+      terminal.core,
+      terminal.claims,
+      output,
+    );
+    const terminalBasis = {
+      jobSlotVersion: output.jobSlotVersion,
+      jobCoreVersion: output.jobCoreVersion,
+      driverVersion: output.driverVersion,
+    };
+    const terminalSnapshot = terminal.eating.createSnapshot();
+    const terminalRow = terminalSnapshot.rows[terminal.token.jobId];
+    if (terminalRow === undefined) throw new Error("missing terminal eating row");
+    const terminalRows = copyWithReplacement(terminalSnapshot.rows, terminal.token.jobId, {
+      ...terminalRow,
+      stepEnteredTick: terminalRow.stepEnteredTick + 1,
+    });
+    const driftedTerminal = restoreM3EatingJobDriverStore({
+      ...terminalSnapshot,
+      rows: terminalRows,
+    });
+    const terminalBefore = {
+      items: terminal.items.createSnapshot(),
+      core: terminal.core.createSnapshot(),
+      eating: driftedTerminal.createSnapshot(),
+      ledger: terminal.ledger.createSnapshot(),
+    };
+    driftedTerminal.terminalAdoptedInto(
+      {
+        jobId: terminal.token.jobId,
+        jobGeneration: terminal.token.jobGeneration,
+        owner: terminal.owner,
+        expectedJobSlotVersion: terminalBasis.jobSlotVersion,
+        expectedJobCoreVersion: terminalBasis.jobCoreVersion,
+        expectedDriverVersion: terminalBasis.driverVersion,
+        expectedCurrentLedgerVersion: terminal.ledger.version,
+        tick: 104,
+        outcome: "canceled",
+        failureReason: "cancelled",
+        itemAddition: createEatingItemAddition(terminal, 1),
+      },
+      terminal.items,
+      terminal.ledger,
+      terminal.core,
+      terminal.claims,
+      output,
+    );
+    expect(output).toMatchObject({ ok: false, reason: "eating_step_invalid" });
+    expect({
+      items: terminal.items.createSnapshot(),
+      core: terminal.core.createSnapshot(),
+      eating: driftedTerminal.createSnapshot(),
+      ledger: terminal.ledger.createSnapshot(),
+    }).toStrictEqual(terminalBefore);
+  });
   it("reads reusable flat portion facts and exposes dirty backlog without a version advance", () => {
     const fixture = createFoodFixture(1, 3);
     fixture.food.rebuildFromStores(fixture.items, fixture.ledger);
@@ -91,6 +1642,7 @@ describe("M3 food availability and eating logistics", () => {
       reason: "food_stack_not_registered",
       stackId: 1,
       foodDefId: 0,
+      hungerRestore: 0,
       regionId: 0,
       storageSlotId: 0,
       targetCellIndex: 0,
@@ -117,6 +1669,7 @@ describe("M3 food availability and eating logistics", () => {
       reason: "food_stack_id_out_of_range",
       stackId: -1,
       foodDefId: 0,
+      hungerRestore: 0,
       regionId: 0,
       storageSlotId: 0,
       targetCellIndex: 0,
@@ -677,6 +2230,472 @@ describe("M3 food availability and eating logistics", () => {
   });
 });
 
+function createDriverOutput(): M3EatingClaimAdoptionOutput {
+  return {
+    ok: false,
+    reason: undefined,
+    jobId: RESERVATION_CLAIM_NONE,
+    jobGeneration: 0,
+    ownerIndex: 0,
+    ownerGeneration: 0,
+    jobSlotVersion: 0,
+    jobCoreVersion: 0,
+    driverVersion: 0,
+    activeCount: 0,
+    jobCoreReservedCount: 0,
+    jobCoreActiveCount: 0,
+    jobCoreRunningCount: 0,
+    jobCoreCurrentTombstoneCount: 0,
+    jobCoreCumulativeTerminalCount: 0,
+    driverReservedCount: 0,
+    driverPickedUpCount: 0,
+    driverConsumedCount: 0,
+    driverCanceledCount: 0,
+    driverFailedCount: 0,
+    driverInterruptedCount: 0,
+    currentInterruptedJobs: 0,
+    reservationAttemptCount: 0,
+    reservationFailureCount: 0,
+    cumulativeConsumedCount: 0,
+    cumulativeCanceledCount: 0,
+    cumulativeFailedCount: 0,
+    cumulativeInterruptedCount: 0,
+    consumedAmountTotal: 0,
+  };
+}
+
+function createTokenOutputForAdoption(): JobTokenIntoOutput {
+  return {
+    ok: false,
+    found: false,
+    reason: undefined,
+    jobId: RESERVATION_CLAIM_NONE,
+    jobGeneration: 0,
+    ownerIndex: 0,
+    ownerGeneration: 0,
+    ownerOccupied: false,
+    ownerLegacyLiveCount: 0,
+    state: "free" as const,
+    originState: "free" as const,
+    slotVersion: 0,
+    version: 0,
+    slotGenerationCounter: 0,
+    originShadowPresent: false,
+    originJobGeneration: 0,
+    originOwnerIndex: 0,
+    originOwnerGeneration: 0,
+    originJobKind: 0,
+    originTargetId: 0,
+    originStatus: undefined,
+    originFailureReason: "none" as const,
+    originCreatedTick: 0,
+    originTerminalTick: 0,
+    originEffectPhase: 0,
+    terminalEffectPhase: 0,
+    reservedCount: 0,
+    activeCount: 0,
+    runningCount: 0,
+    currentTombstoneCount: 0,
+    cumulativeTerminalCount: 0,
+  };
+}
+
+function createEatingClaims(
+  owner: EntityId,
+  jobId: number,
+  jobGeneration: number,
+  createdTick: number,
+): ReservationClaimsIntoOutput {
+  const output = {
+    ok: true,
+    reason: undefined,
+    claimIndex: RESERVATION_CLAIM_NONE,
+    claimId: RESERVATION_CLAIM_NONE,
+    claimCount: 2,
+    version: 8,
+    activeCount: 2,
+    channelCodes: new Uint8Array(8),
+    ownerIndexes: new Uint32Array(8),
+    ownerGenerations: new Uint32Array(8),
+    jobIds: new Uint32Array(8),
+    jobGenerations: new Uint32Array(8),
+    hasTargetFlags: new Uint8Array(8),
+    targetIndexes: new Uint32Array(8),
+    targetGenerations: new Uint32Array(8),
+    cellIndexes: new Uint32Array(8),
+    slotIds: new Uint32Array(8),
+    amounts: new Uint32Array(8),
+    allocationEpochs: new Uint32Array(8),
+    createdTicks: new Float64Array(8),
+    leaseExpiryTicks: new Float64Array(8),
+  };
+  output.channelCodes[0] = RESERVATION_ITEM_QUANTITY;
+  output.channelCodes[1] = RESERVATION_INTERACTION_SPOT;
+  for (let index = 0; index < 2; index += 1) {
+    output.ownerIndexes[index] = owner.index;
+    output.ownerGenerations[index] = owner.generation;
+    output.jobIds[index] = jobId;
+    output.jobGenerations[index] = jobGeneration;
+    output.hasTargetFlags[index] = 1;
+    output.targetIndexes[index] = 9;
+    output.targetGenerations[index] = 3;
+    output.allocationEpochs[index] = 8;
+    output.createdTicks[index] = createdTick;
+    output.leaseExpiryTicks[index] = 400;
+  }
+  output.amounts[0] = 1;
+  output.slotIds[1] = 7;
+  return output;
+}
+
+interface AdoptedEatingFixture {
+  readonly registry: ReturnType<typeof createEntityRegistry>;
+  readonly owner: EntityId;
+  readonly itemEntity: EntityId;
+  readonly items: ReturnType<typeof createItemStackStore>;
+  readonly core: ReturnType<typeof createJobCoreStore>;
+  readonly token: JobTokenIntoOutput;
+  readonly ledger: ReturnType<typeof createReservationLedger>;
+  readonly ids: Uint32Array;
+  readonly epochs: Uint32Array;
+  readonly claims: ReservationClaimsIntoOutput;
+  readonly control: ExistingClaimsAdoptionControl;
+  readonly eating: ReturnType<typeof createM3EatingJobDriverStore>;
+  readonly adopted: M3EatingClaimAdoptionOutput;
+  readonly needs: ReturnType<typeof createNeedStore>;
+}
+
+function createAdoptedEatingFixture(
+  initialDriverVersion = 0,
+  options: {
+    readonly coreCapacity?: number;
+    readonly autonomyJobStart?: number;
+    readonly eatingCapacity?: number;
+    readonly adoptionOverrides?: Partial<M3EatingClaimAdoptionInput>;
+  } = {},
+): AdoptedEatingFixture {
+  const registry = createEntityRegistry({ capacity: 16 });
+  const owner = allocate(registry);
+  const itemEntity = allocate(registry);
+  const items = createItemStackStore(8);
+  expect(
+    items.createStack(
+      { stackId: 2, entity: itemEntity, defId: GRAIN_BOWL, quantity: 3, capacity: 8 },
+      registry,
+    ),
+  ).toMatchObject({ ok: true });
+  const core = createJobCoreStore({
+    capacity: options.coreCapacity ?? 8,
+    ownerCapacity: 16,
+    autonomyJobStart: options.autonomyJobStart ?? 4,
+  });
+  const token = createTokenOutputForAdoption();
+  core.reserveAutonomyJobTokenInto(core.version, owner, token);
+  expect(token).toMatchObject({ ok: true, jobGeneration: 1 });
+  const ledger = createReservationLedger({ capacity: 16, entityCapacity: 16, cellCount: 32 });
+  const acquired = ledger.acquire(
+    {
+      owner,
+      jobId: token.jobId,
+      jobGeneration: token.jobGeneration,
+      createdTick: 100,
+      leaseExpiryTick: 400,
+      claims: [
+        { channel: "item_quantity", item: itemEntity, amount: 1, availableAmount: 3 },
+        { channel: "interaction_spot", target: itemEntity, spotId: 7 },
+      ],
+    },
+    registry,
+  );
+  if (!acquired.ok) throw new Error(acquired.reason);
+  const ids = new Uint32Array(8);
+  ids.fill(RESERVATION_CLAIM_NONE);
+  const epochs = new Uint32Array(8);
+  for (let index = 0; index < 2; index += 1) {
+    ids[index] = acquired.claimIds[index] ?? RESERVATION_CLAIM_NONE;
+    epochs[index] = acquired.version;
+  }
+  const claims = createEatingClaims(owner, token.jobId, token.jobGeneration, 100);
+  ledger.readActiveClaimsInto(
+    ids,
+    epochs,
+    2,
+    owner,
+    token.jobId,
+    token.jobGeneration,
+    acquired.version,
+    claims,
+  );
+  expect(claims).toMatchObject({ ok: true, claimCount: 2, version: acquired.version });
+  const control = {
+    jobId: token.jobId,
+    jobGeneration: token.jobGeneration,
+    ownerIndex: owner.index,
+    ownerGeneration: owner.generation,
+    expectedJobSlotVersion: token.slotVersion,
+    expectedJobCoreVersion: core.version,
+    expectedDriverVersion: initialDriverVersion,
+    claimCount: 2,
+    claimIds: ids,
+    claimEpochs: epochs,
+    claimLeaseExpiryTicks: new Float64Array(claims.leaseExpiryTicks),
+    claimCreatedTick: 100,
+    adoptionTick: 101,
+    reservationReadVersion: acquired.version,
+  };
+  const emptyEating = createM3EatingJobDriverStore(options.eatingCapacity ?? 8);
+  const eating =
+    initialDriverVersion === 0
+      ? emptyEating
+      : restoreM3EatingJobDriverStore({
+          ...emptyEating.createSnapshot(),
+          storeVersion: initialDriverVersion,
+        });
+  const adopted = createDriverOutput();
+  eating.adoptExistingClaimsInto(
+    control,
+    {
+      jobId: token.jobId,
+      owner,
+      sourceStackId: 2,
+      storageSlotId: 5,
+      foodDefId: GRAIN_BOWL,
+      amount: 1,
+      hungerRestore: 40,
+      itemStoreVersion: items.version,
+      foodAvailabilityVersion: 1,
+      mealWindowVersion: 1,
+      abilityAllowed: true,
+      createdTick: 100,
+      itemEntity,
+      interactionSpotId: 7,
+      claims,
+      readClaimIds: ids,
+      readClaimEpochs: epochs,
+      ...options.adoptionOverrides,
+    },
+    core,
+    adopted,
+  );
+  const needs = createNeedStore({ actorCapacity: 16, updateIntervalTicks: 8 });
+  expect(
+    needs.registerActor({
+      actorId: owner.index,
+      hunger: 300,
+      rest: 500,
+      comfort: 600,
+      social: 600,
+      safety: 700,
+      sourceTick: 0,
+    }),
+  ).toMatchObject({ ok: true });
+  return {
+    registry,
+    owner,
+    itemEntity,
+    items,
+    core,
+    token,
+    ledger,
+    ids,
+    epochs,
+    claims,
+    control,
+    eating,
+    adopted,
+    needs,
+  };
+}
+
+function createEatingMutationOutput(): M3EatingAdoptedMutationOutput {
+  return {
+    ok: false,
+    reason: undefined,
+    jobId: RESERVATION_CLAIM_NONE,
+    jobGeneration: 0,
+    jobSlotVersion: 0,
+    jobCoreVersion: 0,
+    driverVersion: 0,
+    reservationVersion: 0,
+    itemRowVersion: 0,
+    itemStoreVersion: 0,
+    needLaneVersion: 0,
+    needStoreVersion: 0,
+    cleanupPending: false,
+    alreadyCommitted: false,
+    releasedClaimCount: 0,
+    terminalOutcome: undefined,
+  };
+}
+
+function createEatingAdoptedJobOutput(): M3EatingAdoptedJobIntoOutput {
+  return {
+    ok: false,
+    reason: undefined,
+    active: false,
+    jobId: RESERVATION_CLAIM_NONE,
+    jobGeneration: 0,
+    ownerIndex: 0,
+    ownerGeneration: 0,
+    sourceStackId: 0,
+    storageSlotId: 0,
+    foodDefId: 0,
+    amount: 0,
+    hungerRestore: 0,
+    itemEntityIndex: 0,
+    itemEntityGeneration: 0,
+    interactionSpotId: 0,
+    itemStoreVersion: 0,
+    foodAvailabilityVersion: 0,
+    mealWindowVersion: 0,
+    abilityAllowed: false,
+    claimIds: new Uint32Array(2),
+    claimEpochs: new Uint32Array(2),
+    claimCreatedTicks: new Float64Array(2),
+    claimLeaseExpiryTicks: new Float64Array(2),
+    createdTick: 0,
+    stepEnteredTick: 0,
+    step: "unassigned",
+    carriedDefId: RESERVATION_CLAIM_NONE,
+    carriedAmount: 0,
+    consumedDefId: RESERVATION_CLAIM_NONE,
+    consumedAmount: 0,
+    jobSlotVersion: 0,
+    driverVersion: 0,
+    reservationVersion: 0,
+    effectPhase: 0,
+    cleanupPending: 0,
+    returnedOnce: 0,
+    pickupCommitted: false,
+    lastEffectTick: 0,
+    pendingOutcome: undefined,
+    pendingFailure: "none",
+    pendingInterruption: undefined,
+    terminalReason: "food.job_created",
+    activeCount: 0,
+    reservedCount: 0,
+    pickedUpCount: 0,
+    consumedCount: 0,
+    canceledCount: 0,
+    failedCount: 0,
+    interruptedCount: 0,
+    currentInterruptedJobs: 0,
+    reservationAttemptCount: 0,
+    reservationFailureCount: 0,
+    cumulativeConsumedCount: 0,
+    cumulativeCanceledCount: 0,
+    cumulativeFailedCount: 0,
+    cumulativeInterruptedCount: 0,
+    consumedAmountTotal: 0,
+  };
+}
+
+function createEatingNeedMutation(
+  fixture: ReturnType<typeof createAdoptedEatingFixture>,
+  tick: number,
+): NeedLaneMutationPrepareInput {
+  return {
+    actorId: fixture.owner.index,
+    lane: NEED_LANE_HUNGER,
+    tick,
+    reason: "need.external_delta",
+    sourceSystemId: 3,
+    sourceEventId: fixture.token.jobId,
+    expectedStoreVersion: fixture.needs.version,
+    expectedLaneVersion: fixture.needs.readLaneOwnerVersion(fixture.owner.index, NEED_LANE_HUNGER),
+    expectedValue: fixture.needs.readLaneValue(fixture.owner.index, NEED_LANE_HUNGER),
+    delta: 40,
+  };
+}
+
+function readEatingNeedBasis(fixture: ReturnType<typeof createAdoptedEatingFixture>): {
+  readonly version: number;
+  readonly laneVersion: number;
+  readonly value: number;
+} {
+  return {
+    version: fixture.needs.version,
+    laneVersion: fixture.needs.readLaneOwnerVersion(fixture.owner.index, NEED_LANE_HUNGER),
+    value: fixture.needs.readLaneValue(fixture.owner.index, NEED_LANE_HUNGER),
+  };
+}
+
+function createEatingItemAddition(
+  fixture: ReturnType<typeof createAdoptedEatingFixture>,
+  amount: number,
+): ItemStackQuantityAdditionPrepareInput {
+  const stack = fixture.items.readStack(2, fixture.ledger);
+  if (stack === undefined) throw new Error("missing adopted eating stack");
+  return {
+    stackId: stack.stackId,
+    entityIndex: stack.entity.index,
+    entityGeneration: stack.entity.generation,
+    defId: stack.defId,
+    quantity: stack.quantity,
+    capacity: stack.capacity,
+    amount,
+    expectedRowVersion: stack.rowVersion,
+    expectedStoreVersion: stack.storeVersion,
+    expectedReservationVersion: fixture.ledger.version,
+  };
+}
+
+function pickupAdoptedEating(
+  fixture: ReturnType<typeof createAdoptedEatingFixture>,
+): M3EatingAdoptedMutationOutput {
+  const output = createEatingMutationOutput();
+  fixture.eating.pickupAdoptedInto(
+    createEatingPickupInput(fixture, fixture.adopted, 102),
+    fixture.items,
+    fixture.ledger,
+    fixture.core,
+    fixture.claims,
+    output,
+  );
+  return output;
+}
+
+function createEatingPickupInput(
+  fixture: ReturnType<typeof createAdoptedEatingFixture>,
+  basis: Pick<M3EatingAdoptedMutationOutput, "jobSlotVersion" | "jobCoreVersion" | "driverVersion">,
+  tick: number,
+): M3EatingAdoptedPickupInput {
+  const stack = fixture.items.readStack(2, fixture.ledger);
+  if (stack === undefined) throw new Error("missing adopted eating pickup stack");
+  return {
+    jobId: fixture.token.jobId,
+    jobGeneration: fixture.token.jobGeneration,
+    owner: fixture.owner,
+    expectedJobSlotVersion: basis.jobSlotVersion,
+    expectedJobCoreVersion: basis.jobCoreVersion,
+    expectedDriverVersion: basis.driverVersion,
+    expectedCurrentLedgerVersion: fixture.ledger.version,
+    tick,
+    itemRemoval: {
+      stackId: stack.stackId,
+      entityIndex: stack.entity.index,
+      entityGeneration: stack.entity.generation,
+      defId: stack.defId,
+      quantity: stack.quantity,
+      reservedQuantity: stack.reservedQuantity,
+      ownedReservedQuantity: 1,
+      availableQuantity: stack.availableQuantity,
+      capacity: stack.capacity,
+      amount: 1,
+      expectedRowVersion: stack.rowVersion,
+      expectedStoreVersion: stack.storeVersion,
+      expectedReservationVersion: fixture.ledger.version,
+    },
+  };
+}
+
+function copyWithReplacement<T>(rows: readonly T[], index: number, replacement: T): T[] {
+  const copy: T[] = [];
+  for (const row of rows) copy.push(row);
+  copy[index] = replacement;
+  return copy;
+}
+
 const GRAIN_BOWL = 1;
 const REGION_YARD = 0;
 const PUBLIC_PERMISSION = 0;
@@ -735,6 +2754,7 @@ function createFoodPortionIntoOutput(): FoodPortionIntoOutput {
     reason: "food_score_invalid",
     stackId: 99,
     foodDefId: 99,
+    hungerRestore: 99,
     regionId: 99,
     storageSlotId: 99,
     targetCellIndex: 99,

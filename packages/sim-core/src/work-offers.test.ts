@@ -59,6 +59,150 @@ describe("WorkOfferIndex", () => {
     expect(index.createMetrics().activeOfferCount).toBe(0);
   });
 
+  it("advances global, row and combined legacy version boundaries exactly once", () => {
+    const versionCases = [
+      {
+        label: "global FFFE",
+        indexVersion: 0xffff_fffe,
+        rowVersion: 7,
+        nextIndexVersion: 0xffff_ffff,
+        nextRowVersion: 8,
+      },
+      {
+        label: "row FFFE",
+        indexVersion: 7,
+        rowVersion: 0xffff_fffe,
+        nextIndexVersion: 8,
+        nextRowVersion: 0xffff_ffff,
+      },
+      {
+        label: "both FFFE",
+        indexVersion: 0xffff_fffe,
+        rowVersion: 0xffff_fffe,
+        nextIndexVersion: 0xffff_ffff,
+        nextRowVersion: 0xffff_ffff,
+      },
+    ] as const;
+
+    for (const versionCase of versionCases) {
+      const registerIndex = createTestIndex(4);
+      setWorkOfferVersions(registerIndex, 0, versionCase.indexVersion, versionCase.rowVersion);
+      expect(registerIndex.registerOffer(createOffer()), versionCase.label).toEqual({ ok: true });
+      expect(readOfferVersions(registerIndex, 0), versionCase.label).toEqual({
+        indexVersion: versionCase.nextIndexVersion,
+        rowVersion: versionCase.nextRowVersion,
+        ownerVersion: 0,
+      });
+
+      const updateIndex = createTestIndex(4);
+      expect(updateIndex.registerOffer(createOffer())).toEqual({ ok: true });
+      setWorkOfferVersions(updateIndex, 0, versionCase.indexVersion, versionCase.rowVersion);
+      expect(updateIndex.updateOffer(createOffer()), versionCase.label).toEqual({ ok: true });
+      expect(readOfferVersions(updateIndex, 0), versionCase.label).toEqual({
+        indexVersion: versionCase.nextIndexVersion,
+        rowVersion: versionCase.nextRowVersion,
+        ownerVersion: 0,
+      });
+
+      const removeIndex = createTestIndex(4);
+      expect(removeIndex.registerOffer(createOffer())).toEqual({ ok: true });
+      setWorkOfferVersions(removeIndex, 0, versionCase.indexVersion, versionCase.rowVersion);
+      expect(removeIndex.removeOffer(0), versionCase.label).toEqual({ ok: true });
+      expect(removeIndex.indexVersion, versionCase.label).toBe(versionCase.nextIndexVersion);
+      expect(readPrivateUint32Lane(removeIndex, "rowVersions")[0], versionCase.label).toBe(
+        versionCase.nextRowVersion,
+      );
+    }
+  });
+
+  it("continues the historical row version when re-registering an inactive tombstone", () => {
+    const index = createTestIndex(4);
+    expect(index.registerOffer(createOffer())).toEqual({ ok: true });
+    expect(index.removeOffer(0)).toEqual({ ok: true });
+    setWorkOfferVersions(index, 0, 0xffff_fffe, 0xffff_fffe);
+
+    expect(index.registerOffer(createOffer({ scoreMilli: 2_000 }))).toEqual({ ok: true });
+    expect(readOfferVersions(index, 0)).toEqual({
+      indexVersion: 0xffff_ffff,
+      rowVersion: 0xffff_ffff,
+      ownerVersion: 0,
+    });
+
+    const exhausted = createTestIndex(4);
+    expect(exhausted.registerOffer(createOffer())).toEqual({ ok: true });
+    expect(exhausted.removeOffer(0)).toEqual({ ok: true });
+    setWorkOfferVersions(exhausted, 0, 8, 0xffff_ffff);
+    const before = captureWorkOfferState(exhausted);
+    expect(exhausted.registerOffer(createOffer())).toEqual({
+      ok: false,
+      reason: "work_offer_index_version_exhausted",
+    });
+    expect(captureWorkOfferState(exhausted)).toStrictEqual(before);
+  });
+
+  it("rejects exhausted legacy mutations before changing any offer or bucket state", () => {
+    const versionCases = [
+      { label: "global", indexVersion: 0xffff_ffff, rowVersion: 8 },
+      { label: "row", indexVersion: 8, rowVersion: 0xffff_ffff },
+      { label: "both", indexVersion: 0xffff_ffff, rowVersion: 0xffff_ffff },
+    ] as const;
+
+    for (const versionCase of versionCases) {
+      const registerIndex = createTestIndex(4);
+      setWorkOfferVersions(registerIndex, 0, versionCase.indexVersion, versionCase.rowVersion);
+      const registerBefore = captureWorkOfferState(registerIndex);
+      expect(registerIndex.registerOffer(createOffer()), versionCase.label).toEqual({
+        ok: false,
+        reason: "work_offer_index_version_exhausted",
+      });
+      expect(captureWorkOfferState(registerIndex), versionCase.label).toStrictEqual(registerBefore);
+
+      const updateIndex = createTestIndex(4);
+      expect(updateIndex.registerOffer(createOffer())).toEqual({ ok: true });
+      setWorkOfferVersions(updateIndex, 0, versionCase.indexVersion, versionCase.rowVersion);
+      const updateBefore = captureWorkOfferState(updateIndex);
+      expect(
+        updateIndex.updateOffer(createOffer({ regionId: 4, scoreMilli: 8_000 })),
+        versionCase.label,
+      ).toEqual({ ok: false, reason: "work_offer_index_version_exhausted" });
+      expect(captureWorkOfferState(updateIndex), versionCase.label).toStrictEqual(updateBefore);
+
+      const removeIndex = createTestIndex(4);
+      expect(removeIndex.registerOffer(createOffer())).toEqual({ ok: true });
+      setWorkOfferVersions(removeIndex, 0, versionCase.indexVersion, versionCase.rowVersion);
+      const removeBefore = captureWorkOfferState(removeIndex);
+      expect(removeIndex.removeOffer(0), versionCase.label).toEqual({
+        ok: false,
+        reason: "work_offer_index_version_exhausted",
+      });
+      expect(captureWorkOfferState(removeIndex), versionCase.label).toStrictEqual(removeBefore);
+    }
+  });
+
+  it("preserves validation and registration precedence at exhausted versions", () => {
+    const index = createTestIndex(4);
+    expect(index.registerOffer(createOffer())).toEqual({ ok: true });
+    setWorkOfferVersions(index, 0, 0xffff_ffff, 0xffff_ffff);
+
+    expect(index.registerOffer(createOffer({ offerId: 99 }))).toEqual({
+      ok: false,
+      reason: "work_offer_id_out_of_range",
+    });
+    expect(index.registerOffer(createOffer())).toEqual({
+      ok: false,
+      reason: "work_offer_already_registered",
+    });
+    expect(index.updateOffer(createOffer({ scoreMilli: Number.POSITIVE_INFINITY }))).toEqual({
+      ok: false,
+      reason: "work_offer_score_out_of_range",
+    });
+    expect(index.updateOffer(createOffer({ offerId: 1 }))).toEqual({
+      ok: false,
+      reason: "work_offer_not_registered",
+    });
+    expect(index.removeOffer(1)).toEqual({ ok: false, reason: "work_offer_not_registered" });
+  });
+
   it("separates candidates by work type, region, def, urgency and permission", () => {
     const index = createTestIndex(16);
     expect(index.registerOffer(createOffer({ offerId: 1, permissionId: 1 }))).toEqual({ ok: true });
@@ -583,6 +727,98 @@ describe("WorkOfferIndex", () => {
     });
   });
 });
+
+function setWorkOfferVersions(
+  index: ReturnType<typeof createWorkOfferIndex>,
+  offerId: number,
+  indexVersion: number,
+  rowVersion: number,
+): void {
+  Reflect.set(index, "indexVersionValue", indexVersion);
+  readPrivateUint32Lane(index, "rowVersions")[offerId] = rowVersion;
+}
+
+function readOfferVersions(
+  index: ReturnType<typeof createWorkOfferIndex>,
+  offerId: number,
+): { readonly indexVersion: number; readonly rowVersion: number; readonly ownerVersion: number } {
+  const offer = index.readOffer(offerId);
+  if (offer === undefined) {
+    throw new Error("expected active work offer");
+  }
+  return {
+    indexVersion: index.indexVersion,
+    rowVersion: readPrivateUint32Lane(index, "rowVersions")[offerId] ?? 0,
+    ownerVersion: readPrivateUint32Lane(index, "ownerVersions")[offerId] ?? 0,
+  };
+}
+
+function readPrivateUint32Lane(
+  index: ReturnType<typeof createWorkOfferIndex>,
+  property: string,
+): Uint32Array {
+  const value: unknown = Reflect.get(index, property);
+  if (!(value instanceof Uint32Array)) {
+    throw new Error(`expected ${property} to be Uint32Array`);
+  }
+  return value;
+}
+
+function readPrivateInt32Lane(
+  index: ReturnType<typeof createWorkOfferIndex>,
+  property: string,
+): Int32Array {
+  const value: unknown = Reflect.get(index, property);
+  if (!(value instanceof Int32Array)) {
+    throw new Error(`expected ${property} to be Int32Array`);
+  }
+  return value;
+}
+
+function readPrivateUint8Lane(
+  index: ReturnType<typeof createWorkOfferIndex>,
+  property: string,
+): Uint8Array {
+  const value: unknown = Reflect.get(index, property);
+  if (!(value instanceof Uint8Array)) {
+    throw new Error(`expected ${property} to be Uint8Array`);
+  }
+  return value;
+}
+
+function captureQuery(index: ReturnType<typeof createWorkOfferIndex>, regionId: number): unknown {
+  const output = new Uint32Array(index.capacity);
+  return {
+    result: index.queryCandidates(createQuery({ regionId }), output),
+    output: Array.from(output),
+  };
+}
+
+function captureWorkOfferState(index: ReturnType<typeof createWorkOfferIndex>): unknown {
+  return {
+    indexVersion: index.indexVersion,
+    activeOfferCount: index.activeOfferCount,
+    metrics: index.createMetrics(),
+    rows: Array.from({ length: index.capacity }, (_, offerId) => index.readOffer(offerId)),
+    active: Array.from(readPrivateUint8Lane(index, "active")),
+    workTypes: Array.from(readPrivateUint32Lane(index, "workTypes")),
+    regionIds: Array.from(readPrivateUint32Lane(index, "regionIds")),
+    defIds: Array.from(readPrivateUint32Lane(index, "defIds")),
+    urgencyBuckets: Array.from(readPrivateUint32Lane(index, "urgencyBuckets")),
+    permissionIds: Array.from(readPrivateUint32Lane(index, "permissionIds")),
+    targetIds: Array.from(readPrivateUint32Lane(index, "targetIds")),
+    targetCellIndexes: Array.from(readPrivateUint32Lane(index, "targetCellIndexes")),
+    scoresMilli: Array.from(readPrivateInt32Lane(index, "scoresMilli")),
+    ownerVersions: Array.from(readPrivateUint32Lane(index, "ownerVersions")),
+    rowVersions: Array.from(readPrivateUint32Lane(index, "rowVersions")),
+    bucketHeads: Array.from(readPrivateInt32Lane(index, "bucketHeads")),
+    bucketCounts: Array.from(readPrivateUint32Lane(index, "bucketCounts")),
+    nextOffer: Array.from(readPrivateInt32Lane(index, "nextOffer")),
+    previousOffer: Array.from(readPrivateInt32Lane(index, "previousOffer")),
+    region2Query: captureQuery(index, 2),
+    region4Query: captureQuery(index, 4),
+  };
+}
 
 function createTestIndex(capacity: number): ReturnType<typeof createWorkOfferIndex> {
   return createWorkOfferIndex({

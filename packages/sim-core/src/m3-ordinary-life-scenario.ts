@@ -869,7 +869,7 @@ function handleMedicalCare(fixture: ScenarioFixture, tick: Tick): void {
   );
   if (selected.ok) {
     fixture.medicalCandidateVisitedCount += selected.visitedCount;
-    runTreatmentJob(fixture, tick + 30);
+    runTreatmentJob(fixture, tick);
   }
 }
 
@@ -937,7 +937,7 @@ function handleMealWindow(fixture: ScenarioFixture, tick: Tick): void {
       }),
     );
   }
-  runEatingJob(fixture, tick + 30);
+  runEatingJob(fixture, tick);
   mustOk(
     fixture.mood.applyThought({
       actorId: ACTOR_YAO,
@@ -953,11 +953,11 @@ function handleMealWindow(fixture: ScenarioFixture, tick: Tick): void {
       stackKey: 0x56_0002,
     }),
   );
-  applySocialEvent(fixture, 1, tick + 20, ACTOR_YAO, ACTOR_LIN, "meal_shared", 180);
+  applySocialEvent(fixture, 1, tick, ACTOR_YAO, ACTOR_LIN, "meal_shared", 180);
   applySocialEvent(
     fixture,
     EVENT_WORK_BURDEN_SHIFTED,
-    tick + 25,
+    tick,
     ACTOR_YAO,
     ACTOR_LIN,
     "work_burden_shifted",
@@ -1008,14 +1008,7 @@ function handleEveningRest(fixture: ScenarioFixture, tick: Tick): void {
       }),
     );
   }
-  runRestJob(fixture, tick + 30);
-  handleAssignWork(fixture, {
-    tick: 19_600,
-    sequence: 99,
-    kind: "assign.work",
-    actorId: ACTOR_YAO,
-    targetId: DEF_FIELD_TEND,
-  });
+  runRestJob(fixture, tick);
 }
 
 function runTreatmentJob(fixture: ScenarioFixture, tick: Tick): void {
@@ -1054,7 +1047,7 @@ function runTreatmentJob(fixture: ScenarioFixture, tick: Tick): void {
   mustOk(
     fixture.treatments.reserve(
       JOB_TREAT_YAO,
-      tick + 1,
+      tick,
       fixture.health,
       fixture.abilities,
       fixture.items,
@@ -1063,23 +1056,23 @@ function runTreatmentJob(fixture: ScenarioFixture, tick: Tick): void {
       fixture.registry,
     ),
   );
-  const path = createSuccessfulPath(pathBasis, tick + 2, CELL_CLINIC, CELL_CLINIC);
+  const path = createSuccessfulPath(pathBasis, tick, CELL_CLINIC, CELL_CLINIC);
   fixture.exactPathRequests += 1;
   mustOk(
     fixture.treatments.startPathing(
       JOB_TREAT_YAO,
-      tick + 2,
+      tick,
       path,
       pathBasis,
       fixture.ledger,
       fixture.jobCore,
     ),
   );
-  mustOk(fixture.treatments.beginTreatment(JOB_TREAT_YAO, tick + 3, fixture.jobCore));
+  mustOk(fixture.treatments.beginTreatment(JOB_TREAT_YAO, tick, fixture.jobCore));
   mustOk(
     fixture.treatments.tickTreatment(
       JOB_TREAT_YAO,
-      tick + 4,
+      tick,
       fixture.health,
       fixture.abilities,
       fixture.items,
@@ -1090,7 +1083,7 @@ function runTreatmentJob(fixture: ScenarioFixture, tick: Tick): void {
   mustOk(
     fixture.treatments.tickTreatment(
       JOB_TREAT_YAO,
-      tick + 5,
+      tick,
       fixture.health,
       fixture.abilities,
       fixture.items,
@@ -1102,7 +1095,7 @@ function runTreatmentJob(fixture: ScenarioFixture, tick: Tick): void {
   fixture.abilities.drainInvalidationBacklog(8);
   fixture.medical.removePatientRequest(REQUEST_YAO_SPRAIN);
   fixture.scenarioTrace.record(
-    createTrace(tick + 5, SYSTEM_MEDICAL, ACTOR_MIN, ACTOR_YAO, {
+    createTrace(tick, SYSTEM_MEDICAL, ACTOR_MIN, ACTOR_YAO, {
       reason: "medical.treatment_completed",
       selectedTargetId: CONDITION_YAO_SPRAIN,
       ownerVersionBasis: fixture.treatments.createMetrics().version,
@@ -1111,7 +1104,7 @@ function runTreatmentJob(fixture: ScenarioFixture, tick: Tick): void {
   mustOk(
     fixture.mood.applyThought({
       actorId: ACTOR_LIN,
-      tick: tick + 5,
+      tick,
       sourceKind: "social",
       sourceId: EVENT_CARE_RECEIVED,
       sourceVersion: fixture.relationships.graphVersion,
@@ -1127,7 +1120,7 @@ function runTreatmentJob(fixture: ScenarioFixture, tick: Tick): void {
   mustOk(
     fixture.mood.applyThought({
       actorId: ACTOR_MIN,
-      tick: tick + 5,
+      tick,
       sourceKind: "work",
       sourceId: JOB_TREAT_YAO,
       sourceVersion: fixture.treatments.createMetrics().version,
@@ -1140,21 +1133,13 @@ function runTreatmentJob(fixture: ScenarioFixture, tick: Tick): void {
     }),
   );
   fixture.scenarioTrace.record(
-    createTrace(tick + 5, SYSTEM_MOOD, ACTOR_LIN, ACTOR_YAO, {
+    createTrace(tick, SYSTEM_MOOD, ACTOR_LIN, ACTOR_YAO, {
       reason: "mood.thought_added",
       selectedTargetId: EVENT_CARE_RECEIVED,
       ownerVersionBasis: fixture.mood.version,
     }),
   );
-  applySocialEvent(
-    fixture,
-    EVENT_CARE_RECEIVED,
-    tick + 6,
-    ACTOR_YAO,
-    ACTOR_MIN,
-    "care_received",
-    160,
-  );
+  applySocialEvent(fixture, EVENT_CARE_RECEIVED, tick, ACTOR_YAO, ACTOR_MIN, "care_received", 160);
 }
 
 function runEatingJob(fixture: ScenarioFixture, tick: Tick): void {
@@ -1198,7 +1183,7 @@ function runEatingJob(fixture: ScenarioFixture, tick: Tick): void {
   mustOk(
     fixture.eating.reserveBeforePickup(
       JOB_EAT_YAO,
-      tick + 1,
+      tick,
       fixture.registry,
       fixture.items,
       fixture.food,
@@ -1210,7 +1195,7 @@ function runEatingJob(fixture: ScenarioFixture, tick: Tick): void {
   mustOk(
     fixture.eating.pickup(
       JOB_EAT_YAO,
-      tick + 2,
+      tick,
       fixture.items,
       fixture.food,
       fixture.storage,
@@ -1220,7 +1205,7 @@ function runEatingJob(fixture: ScenarioFixture, tick: Tick): void {
   mustOk(
     fixture.eating.consume(
       JOB_EAT_YAO,
-      tick + 3,
+      tick,
       fixture.needs,
       fixture.ledger,
       fixture.jobCore,
@@ -1230,7 +1215,7 @@ function runEatingJob(fixture: ScenarioFixture, tick: Tick): void {
   fixture.food.refreshDirty(fixture.items, fixture.ledger, 8);
   fixture.storage.refreshDirty(fixture.items, fixture.ledger, fixture.workOffers, 8);
   fixture.scenarioTrace.record(
-    createTrace(tick + 3, SYSTEM_FOOD, ACTOR_YAO, STACK_GRAIN_BOWL, {
+    createTrace(tick, SYSTEM_FOOD, ACTOR_YAO, STACK_GRAIN_BOWL, {
       reason: "food.consumed_integer_portion",
       candidateTotal: selectedFood.ok ? selectedFood.bucketCandidateCount : 0,
       visitedCount: selectedFood.ok ? selectedFood.visitedCount : 0,
@@ -1266,7 +1251,7 @@ function runRestJob(fixture: ScenarioFixture, tick: Tick): void {
   mustOk(
     fixture.restJobs.reserveFixture(
       JOB_REST_YAO,
-      tick + 1,
+      tick,
       tick + 300,
       fixture.restStore,
       fixture.registry,
@@ -1274,7 +1259,7 @@ function runRestJob(fixture: ScenarioFixture, tick: Tick): void {
       fixture.jobCore,
     ),
   );
-  mustOk(fixture.restJobs.beginRecovery(JOB_REST_YAO, tick + 2, fixture.jobCore));
+  mustOk(fixture.restJobs.beginRecovery(JOB_REST_YAO, tick, fixture.jobCore));
   for (let offset = 3; offset <= 16; offset += 1) {
     const job = fixture.jobCore.readJob(JOB_REST_YAO);
     if (job?.status !== "running") {
@@ -1283,7 +1268,7 @@ function runRestJob(fixture: ScenarioFixture, tick: Tick): void {
     mustOk(
       fixture.restJobs.tickRecovery(
         JOB_REST_YAO,
-        tick + offset,
+        tick,
         fixture.needs,
         fixture.jobCore,
         fixture.ledger,
@@ -1296,7 +1281,7 @@ function runRestJob(fixture: ScenarioFixture, tick: Tick): void {
 
 function advanceScenarioContext(fixture: ScenarioFixture, tick: Tick): M3EnvironmentProjection {
   const projection = fixture.environment.advanceToTick(tick, fixture.streams);
-  fixture.needs.processScheduledUpdates(tick, NEED_SCHEDULE_DELTAS, 8, fixture.needIndex);
+  mustOk(fixture.needs.processScheduledUpdates(tick, NEED_SCHEDULE_DELTAS, 8, fixture.needIndex));
   fixture.needIndex.refreshDirty(fixture.needs, 16);
   fixture.mood.refreshDirtyActors(8);
   fixture.mood.processScheduledMoodUpdates(tick, 8);
@@ -1893,7 +1878,8 @@ function createCommandStream(): readonly ScenarioCommand[] {
     command(7_200, 7, "meal.window", ACTOR_NONE, MEAL_WINDOW_MIDDAY),
     command(12_000, 8, "checkpoint.save", ACTOR_NONE, TARGET_NONE),
     command(18_000, 9, "time.window", ACTOR_NONE, TARGET_NONE),
-    command(36_000, 10, "scenario.end_day", ACTOR_NONE, TARGET_NONE),
+    command(19_600, 10, "assign.work", ACTOR_YAO, DEF_FIELD_TEND),
+    command(36_000, 11, "scenario.end_day", ACTOR_NONE, TARGET_NONE),
   ]);
 }
 

@@ -12,9 +12,12 @@ import {
   NEED_LANE_REST,
   NEED_LANE_SAFETY,
   NEED_LANE_SOCIAL,
+  createNeedStoreHashFields,
   type NeedLane,
 } from "./m3-needs";
+import { createM4LampNetworkHashFields } from "./m4-lamp-network";
 import type { Tick } from "./time";
+import { createStorageLogisticsHashFields } from "./storage-logistics-index";
 import type { CanonicalWorldField } from "./world-hash";
 
 const NEED_LANES: readonly NeedLane[] = [
@@ -39,7 +42,18 @@ export function appendGameSessionOwnerHashFields(
 ): void {
   appendFields(fields, context.owners.map.createHashFields(`${namespace}.map`));
   appendResidents(fields, context, namespace);
+  appendFields(
+    fields,
+    createNeedStoreHashFields(context.owners.needs.createSnapshot(), `${namespace}.needs`),
+  );
   appendResourcesAndStorage(fields, context, namespace);
+  appendFields(
+    fields,
+    createStorageLogisticsHashFields(
+      context.owners.storage.createSnapshot(),
+      `${namespace}.storage`,
+    ),
+  );
   appendJobAndReservationRecords(fields, context, namespace);
   appendWorkOffers(fields, context, namespace);
   appendRestFixtures(fields, context, namespace);
@@ -85,7 +99,7 @@ function appendNeedLanes(
       value: context.owners.needs.readLaneValue(residentId, lane),
     });
     fields.push({
-      name: `${lanePrefix}.ownerVersion`,
+      name: `${lanePrefix}.laneVersion`,
       value: context.owners.needs.readLaneOwnerVersion(residentId, lane),
     });
     fields.push({
@@ -121,6 +135,12 @@ function appendResourcesAndStorage(
     fields.push({ name: `${prefix}.quantity`, value: stack.quantity });
     fields.push({ name: `${prefix}.capacity`, value: stack.capacity });
     fields.push({ name: `${prefix}.reservedQuantity`, value: stack.reservedQuantity });
+    fields.push({ name: `${prefix}.item.rowVersion`, value: stack.rowVersion });
+    fields.push({ name: `${prefix}.item.storeVersion`, value: stack.storeVersion });
+    fields.push({
+      name: `${prefix}.item.reservationVersion`,
+      value: stack.reservationVersion,
+    });
     appendLocation(fields, context, stack.entity, `${prefix}.stackLocation`);
     const storageEntity = context.references.resourceStorageEntities[slot];
     if (storageEntity !== undefined) {
@@ -133,6 +153,11 @@ function appendResourcesAndStorage(
     fields.push({ name: `${prefix}.availableSupply`, value: storage.availableSupply });
     fields.push({ name: `${prefix}.availableCapacity`, value: storage.availableCapacity });
     fields.push({ name: `${prefix}.offerActive`, value: storage.offerActive });
+    fields.push({ name: `${prefix}.storage.rowVersion`, value: storage.rowVersion });
+    fields.push({ name: `${prefix}.storage.indexVersion`, value: storage.indexVersion });
+    fields.push({ name: `${prefix}.storage.dirtyQueued`, value: storage.dirtyQueued });
+    fields.push({ name: `${prefix}.dirtyHead`, value: storage.dirtyHead });
+    fields.push({ name: `${prefix}.dirtyBacklog`, value: storage.dirtyBacklog });
   }
 }
 
@@ -256,42 +281,7 @@ function appendLamp(
 ): void {
   const snapshot = context.owners.lamps.createSnapshot();
   const prefix = `${namespace}.lamp`;
-  fields.push({ name: `${prefix}.ownerVersion`, value: snapshot.ownerVersion });
-  fields.push({ name: `${prefix}.activeLampCount`, value: snapshot.activeLampCount });
-  fields.push({ name: `${prefix}.activeGroupCount`, value: snapshot.activeGroupCount });
-  for (let groupId = 0; groupId < snapshot.groupCapacity; groupId += 1) {
-    fields.push({
-      name: `${prefix}.group.${String(groupId)}.active`,
-      value: snapshot.groupActive[groupId] ?? 0,
-    });
-    fields.push({
-      name: `${prefix}.group.${String(groupId)}.count`,
-      value: snapshot.groupLampCounts[groupId] ?? 0,
-    });
-    fields.push({
-      name: `${prefix}.group.${String(groupId)}.version`,
-      value: snapshot.groupVersions[groupId] ?? 0,
-    });
-  }
-  for (let lampId = 0; lampId < snapshot.lampCapacity; lampId += 1) {
-    if ((snapshot.active[lampId] ?? 0) === 0) continue;
-    const lampPrefix = `${prefix}.${String(lampId)}`;
-    fields.push({ name: `${lampPrefix}.groupId`, value: snapshot.groupIds[lampId] ?? 0 });
-    fields.push({ name: `${lampPrefix}.cellIndex`, value: snapshot.cellIndexes[lampId] ?? 0 });
-    fields.push({ name: `${lampPrefix}.roomId`, value: snapshot.roomIds[lampId] ?? 0 });
-    fields.push({ name: `${lampPrefix}.chunkIndex`, value: snapshot.chunkIndexes[lampId] ?? 0 });
-    fields.push({ name: `${lampPrefix}.tagMask`, value: snapshot.tagMasks[lampId] ?? 0 });
-    fields.push({ name: `${lampPrefix}.fuel`, value: snapshot.fuels[lampId] ?? 0 });
-    fields.push({ name: `${lampPrefix}.wick`, value: snapshot.wicks[lampId] ?? 0 });
-    fields.push({ name: `${lampPrefix}.damage`, value: snapshot.damages[lampId] ?? 0 });
-    fields.push({
-      name: `${lampPrefix}.maintenance`,
-      value: snapshot.maintenanceStates[lampId] ?? 0,
-    });
-    fields.push({ name: `${lampPrefix}.humanClaim`, value: snapshot.humanClaims[lampId] ?? 0 });
-    fields.push({ name: `${lampPrefix}.shadowGap`, value: snapshot.shadowGaps[lampId] ?? 0 });
-    fields.push({ name: `${lampPrefix}.version`, value: snapshot.lampVersions[lampId] ?? 0 });
-  }
+  appendFields(fields, createM4LampNetworkHashFields(snapshot, prefix));
   appendLocation(fields, context, context.references.lampEntity, `${prefix}.location`);
 }
 

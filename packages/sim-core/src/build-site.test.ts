@@ -217,7 +217,7 @@ describe("minimal build-site material delivery and construction", () => {
 
   it("m2-build-production-orders releases reservations when reserve transitions fail", () => {
     const deliveryFixture = createFixture();
-    const rejectedTick = 4_294_967_296;
+    const rejectedTick = 0;
 
     expect(
       deliveryFixture.buildSites.createDeliveryJob(

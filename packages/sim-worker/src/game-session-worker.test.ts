@@ -269,8 +269,8 @@ describe("PR-1 GameSession Simulation Worker", () => {
       readModelHash: controlBasis?.readModelHash,
     });
     expect(controlBasis).toMatchObject({
-      worldHash: "0x794ba2ff",
-      readModelHash: "0x026c716c",
+      worldHash: "0x3bac9722",
+      readModelHash: "0xe3f5eabf",
     });
   });
 

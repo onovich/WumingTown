@@ -1,5 +1,6 @@
 import { assertValidCapacity } from "./entity-id";
-import { requireSafeTick, type Tick } from "./time";
+import { isSafeTick, type Tick } from "./time";
+import type { CanonicalWorldField } from "./world-hash";
 
 export const M3_NEED_STORE_SNAPSHOT_VERSION = 1;
 export const NEED_LANE_HUNGER = 0;
@@ -44,6 +45,9 @@ export type NeedReason =
   | "need_lane_out_of_range"
   | "need_value_out_of_range"
   | "need_delta_out_of_range"
+  | "need_basis_mismatch"
+  | "need_source_invalid"
+  | "need_version_exhausted"
   | "need_tick_invalid"
   | "need_phase_out_of_range"
   | "need_interval_invalid"
@@ -51,7 +55,13 @@ export type NeedReason =
   | "need_selected_cap_invalid"
   | "need_candidate_buffer_too_small"
   | "need_dirty_backlog"
-  | "need_trace_capacity_invalid";
+  | "need_trace_capacity_invalid"
+  | "need_snapshot_invalid"
+  | "need_snapshot_version_unsupported";
+
+const NEED_CHANGED_COMMIT = Symbol("need-changed-commit");
+const NEED_NOOP_COMMIT = Symbol("need-noop-commit");
+const NEED_URGENCY_MARK_DIRTY = Symbol("need-urgency-mark-dirty");
 
 export type NeedMutationResult =
   | {
@@ -102,6 +112,86 @@ export interface NeedChangeInput {
   readonly sourceSystemId?: number;
   readonly sourceEventId?: number;
 }
+
+export interface NeedLaneMutationPrepareInput extends NeedChangeInput {
+  readonly expectedStoreVersion: number;
+  readonly expectedLaneVersion: number;
+  readonly expectedValue: number;
+  readonly delta: number;
+}
+
+export interface PreparedNeedLaneMutation {
+  ok: boolean;
+  reason: NeedReason | undefined;
+  actorId: number;
+  lane: NeedLane;
+  tick: Tick;
+  previousValue: number;
+  nextValue: number;
+  sourceSystemId: number;
+  sourceEventId: number;
+  reasonCode: number;
+  changed: boolean;
+  previousSourceTick: Tick;
+  previousSourceSystemId: number;
+  previousSourceEventId: number;
+  previousReasonCode: number;
+  previousStoreVersion: number;
+  previousLaneVersion: number;
+  nextStoreVersion: number;
+  nextLaneVersion: number;
+}
+
+export interface NeedLaneIntoOutput {
+  ok: boolean;
+  reason: NeedReason | undefined;
+  active: boolean;
+  actorId: number;
+  lane: NeedLane;
+  value: number;
+  updatePhase: number;
+  laneVersion: number;
+  storeVersion: number;
+  sourceTick: Tick;
+  sourceSystemId: number;
+  sourceEventId: number;
+  previousValue: number;
+  delta: number;
+  changeReason: NeedChangeReason | undefined;
+}
+
+export interface NeedStoreSnapshot {
+  readonly snapshotVersion: typeof M3_NEED_STORE_SNAPSHOT_VERSION;
+  readonly actorCapacity: number;
+  readonly updateIntervalTicks: number;
+  readonly phaseSalt: number;
+  readonly actorCount: number;
+  readonly storeVersion: number;
+  readonly scheduledUpdateCount: number;
+  readonly scheduledChangeCount: number;
+  readonly lastScheduledVisitedCount: number;
+  readonly active: readonly number[];
+  readonly values: readonly number[];
+  readonly updatePhases: readonly number[];
+  readonly laneVersions: readonly number[];
+  readonly sourceTicks: readonly number[];
+  readonly sourceSystemIds: readonly number[];
+  readonly sourceEventIds: readonly number[];
+  readonly previousValues: readonly number[];
+  readonly deltas: readonly number[];
+  readonly reasonCodes: readonly number[];
+  readonly scheduleHeads: readonly number[];
+  readonly scheduleCursors: readonly number[];
+  readonly scheduleNext: readonly number[];
+  readonly schedulePrevious: readonly number[];
+}
+
+export type NeedStoreRestoreResult =
+  | { readonly ok: true }
+  | {
+      readonly ok: false;
+      readonly reason: "need_snapshot_invalid" | "need_snapshot_version_unsupported";
+    };
 
 export interface NeedLastChangeView {
   readonly tick: Tick;
@@ -219,6 +309,9 @@ export class NeedStore {
   private readonly scheduleCursors: Int32Array;
   private readonly scheduleNext: Int32Array;
   private readonly schedulePrevious: Int32Array;
+  private readonly scheduledChangedKeys: Uint32Array;
+  private readonly scheduledNextValues: Uint16Array;
+  private readonly scheduledReasonCodes: Uint8Array;
   private readonly phaseSalt: number;
   private actorCountValue = 0;
   private storeVersion = 0;
@@ -235,6 +328,9 @@ export class NeedStore {
     this.actorCapacity = options.actorCapacity;
     this.updateIntervalTicks = options.updateIntervalTicks;
     this.phaseSalt = options.phaseSalt ?? 17;
+    if (!isSafeUint32Number(this.phaseSalt)) {
+      throw new Error("need phase salt must be uint32");
+    }
     const laneCapacity = options.actorCapacity * NEED_LANE_COUNT;
     this.active = new Uint8Array(options.actorCapacity);
     this.values = new Uint16Array(laneCapacity);
@@ -250,6 +346,9 @@ export class NeedStore {
     this.scheduleCursors = createEmptyLinks(options.updateIntervalTicks);
     this.scheduleNext = createEmptyLinks(laneCapacity);
     this.schedulePrevious = createEmptyLinks(laneCapacity);
+    this.scheduledChangedKeys = new Uint32Array(laneCapacity);
+    this.scheduledNextValues = new Uint16Array(laneCapacity);
+    this.scheduledReasonCodes = new Uint8Array(laneCapacity);
   }
 
   get version(): number {
@@ -268,6 +367,9 @@ export class NeedStore {
 
     if ((this.active[input.actorId] ?? 0) === 1) {
       return { ok: false, reason: "need_actor_already_registered" };
+    }
+    if (this.storeVersion === 0xffff_ffff || this.actorCountValue === 0xffff_ffff) {
+      return { ok: false, reason: "need_version_exhausted" };
     }
 
     this.active[input.actorId] = 1;
@@ -323,11 +425,149 @@ export class NeedStore {
     return this.writeValidatedLane(input, current, next, reason);
   }
 
+  prepareLaneDeltaInto(
+    input: NeedLaneMutationPrepareInput,
+    output: PreparedNeedLaneMutation,
+  ): void {
+    resetPreparedNeedMutation(output);
+    if (!isIndexInRange(input.actorId, this.actorCapacity)) {
+      output.reason = "need_actor_out_of_range";
+      return;
+    }
+    if ((this.active[input.actorId] ?? 0) !== 1) {
+      output.reason = "need_actor_not_registered";
+      return;
+    }
+    if (!isNeedLane(input.lane)) {
+      output.reason = "need_lane_out_of_range";
+      return;
+    }
+    if (!isSafeTick(input.tick)) {
+      output.reason = "need_tick_invalid";
+      return;
+    }
+    const key = createLaneKey(input.actorId, input.lane);
+    const current = this.values[key] ?? 0;
+    if (input.tick < (this.sourceTicks[key] ?? 0)) {
+      output.reason = "need_tick_invalid";
+      return;
+    }
+    const sourceSystemId = input.sourceSystemId ?? 0;
+    const sourceEventId = input.sourceEventId ?? 0;
+    if (!isSafeUint32Number(sourceSystemId) || !isSafeUint32Number(sourceEventId)) {
+      output.reason = "need_source_invalid";
+      return;
+    }
+    if (!isCallerNeedChangeReason(input.reason)) {
+      output.reason = "need_source_invalid";
+      return;
+    }
+    if (
+      !isSafeUint32Number(input.expectedStoreVersion) ||
+      !isSafeUint32Number(input.expectedLaneVersion) ||
+      !isNeedValue(input.expectedValue)
+    ) {
+      output.reason = "need_basis_mismatch";
+      return;
+    }
+    if (
+      input.expectedStoreVersion !== this.storeVersion ||
+      input.expectedLaneVersion !== (this.laneVersions[key] ?? 0) ||
+      input.expectedValue !== current
+    ) {
+      output.reason = "need_basis_mismatch";
+      return;
+    }
+    if (!isInt32(input.delta)) {
+      output.reason = "need_delta_out_of_range";
+      return;
+    }
+    const unclamped = current + input.delta;
+    const next = clampNeedValue(unclamped);
+    const changed = next !== current;
+    if (
+      changed &&
+      (this.storeVersion === 0xffff_ffff || (this.laneVersions[key] ?? 0) === 0xffff_ffff)
+    ) {
+      output.reason = "need_version_exhausted";
+      return;
+    }
+    let reason = input.reason;
+    if (unclamped < NEED_VALUE_MIN) reason = "need.clamped_min";
+    else if (unclamped > NEED_VALUE_MAX) reason = "need.clamped_max";
+    output.ok = true;
+    output.actorId = input.actorId;
+    output.lane = input.lane;
+    output.tick = input.tick;
+    output.previousValue = current;
+    output.nextValue = next;
+    output.sourceSystemId = sourceSystemId;
+    output.sourceEventId = sourceEventId;
+    output.reasonCode = encodeNeedChangeReason(reason);
+    output.changed = changed;
+    output.previousSourceTick = this.sourceTicks[key] ?? 0;
+    output.previousSourceSystemId = this.sourceSystemIds[key] ?? 0;
+    output.previousSourceEventId = this.sourceEventIds[key] ?? 0;
+    output.previousReasonCode = this.reasonCodes[key] ?? 0;
+    output.previousStoreVersion = this.storeVersion;
+    output.previousLaneVersion = this.laneVersions[key] ?? 0;
+    output.nextStoreVersion = this.storeVersion + (changed ? 1 : 0);
+    output.nextLaneVersion = (this.laneVersions[key] ?? 0) + (changed ? 1 : 0);
+  }
+
+  [NEED_CHANGED_COMMIT](prepared: PreparedNeedLaneMutation): void {
+    const key = createLaneKey(prepared.actorId, prepared.lane);
+    this.values[key] = prepared.nextValue;
+    this.sourceTicks[key] = prepared.tick;
+    this.sourceSystemIds[key] = prepared.sourceSystemId;
+    this.sourceEventIds[key] = prepared.sourceEventId;
+    this.previousValues[key] = prepared.previousValue;
+    this.deltas[key] = prepared.nextValue - prepared.previousValue;
+    this.reasonCodes[key] = prepared.reasonCode;
+    this.storeVersion = prepared.nextStoreVersion;
+    this.laneVersions[key] = prepared.nextLaneVersion;
+  }
+
+  [NEED_NOOP_COMMIT](prepared: PreparedNeedLaneMutation): void {
+    void prepared;
+    // A clamped/no-delta mutation is an authoritative zero-write commit.
+  }
+
+  readLaneInto(actorId: number, lane: NeedLane, output: NeedLaneIntoOutput): void {
+    resetNeedLaneInto(output, this.storeVersion);
+    if (!isIndexInRange(actorId, this.actorCapacity)) {
+      output.reason = "need_actor_out_of_range";
+      return;
+    }
+    output.actorId = actorId;
+    if (!isNeedLane(lane)) {
+      output.reason = "need_lane_out_of_range";
+      return;
+    }
+    output.lane = lane;
+    if ((this.active[actorId] ?? 0) !== 1) {
+      output.reason = "need_actor_not_registered";
+      return;
+    }
+    const key = createLaneKey(actorId, lane);
+    output.ok = true;
+    output.active = true;
+    output.value = this.values[key] ?? 0;
+    output.updatePhase = this.updatePhases[key] ?? 0;
+    output.laneVersion = this.laneVersions[key] ?? 0;
+    output.sourceTick = this.sourceTicks[key] ?? 0;
+    output.sourceSystemId = this.sourceSystemIds[key] ?? 0;
+    output.sourceEventId = this.sourceEventIds[key] ?? 0;
+    output.previousValue = this.previousValues[key] ?? 0;
+    output.delta = this.deltas[key] ?? 0;
+    output.changeReason = decodeNeedChangeReason(this.reasonCodes[key] ?? 0);
+  }
+
   processScheduledUpdates(
     tick: Tick,
     laneDeltas: Int32Array,
     budget: number,
-    dirtySink?: NeedDirtySink,
+    dirtySink?: NeedUrgencyIndex,
   ): NeedScheduleResult {
     if (!isSafeTickNumber(tick)) {
       return { ok: false, reason: "need_tick_invalid" };
@@ -336,6 +576,11 @@ export class NeedStore {
     if (laneDeltas.length < NEED_LANE_COUNT || !isPositiveSafeInteger(budget)) {
       return { ok: false, reason: "need_delta_out_of_range" };
     }
+    for (let lane = 0; lane < NEED_LANE_COUNT; lane += 1) {
+      if (!isInt32(laneDeltas[lane] ?? Number.NaN)) {
+        return { ok: false, reason: "need_delta_out_of_range" };
+      }
+    }
 
     const phase = tick % this.updateIntervalTicks;
     const head = this.scheduleHeads[phase] ?? -1;
@@ -343,41 +588,85 @@ export class NeedStore {
     let visited = 0;
     let changed = 0;
 
-    if (current < 0) {
+    if (current === -1) {
       current = head;
     }
+    if (!this.isExactScheduledCursorBasis(phase, head, current)) {
+      return { ok: false, reason: "need_phase_out_of_range" };
+    }
 
-    while (current >= 0 && visited < budget) {
+    for (; current >= 0 && visited < budget; ) {
       const actorId = Math.floor(current / NEED_LANE_COUNT);
       const laneValue = current - actorId * NEED_LANE_COUNT;
       const next = this.scheduleNext[current] ?? -1;
       const delta = laneDeltas[laneValue] ?? 0;
 
-      if (delta !== 0 && isNeedLane(laneValue) && (this.active[actorId] ?? 0) === 1) {
-        const result = this.applyLaneDelta(
-          {
-            actorId,
-            lane: laneValue,
-            tick,
-            reason: "need.scheduled_decay",
-          },
-          delta,
-        );
-
-        if (result.ok && result.changed) {
+      if (delta !== 0) {
+        if (tick < (this.sourceTicks[current] ?? 0)) {
+          return { ok: false, reason: "need_tick_invalid" };
+        }
+        const previous = this.values[current] ?? 0;
+        const unclamped = previous + delta;
+        const nextValue = clampNeedValue(unclamped);
+        if (nextValue !== previous) {
+          this.scheduledChangedKeys[changed] = current;
+          this.scheduledNextValues[changed] = nextValue;
+          this.scheduledReasonCodes[changed] = encodeNeedChangeReason(
+            unclamped < NEED_VALUE_MIN
+              ? "need.clamped_min"
+              : unclamped > NEED_VALUE_MAX
+                ? "need.clamped_max"
+                : "need.scheduled_decay",
+          );
           changed += 1;
-          dirtySink?.markDirty(actorId, laneValue);
         }
       }
 
       visited += 1;
       current = next;
+      if (current >= 0 && !this.isExactScheduledCursorBasis(phase, head, current)) {
+        return { ok: false, reason: "need_phase_out_of_range" };
+      }
+    }
+
+    for (let index = 0; index < changed; index += 1) {
+      const key = this.scheduledChangedKeys[index] ?? 0;
+      if (tick < (this.sourceTicks[key] ?? 0)) {
+        return { ok: false, reason: "need_tick_invalid" };
+      }
+      if ((this.laneVersions[key] ?? 0) === 0xffff_ffff) {
+        return { ok: false, reason: "need_version_exhausted" };
+      }
+    }
+
+    if (
+      this.storeVersion > 0xffff_ffff - changed ||
+      this.scheduledUpdateCount > 0xffff_ffff - visited ||
+      this.scheduledChangeCount > 0xffff_ffff - changed
+    ) {
+      return { ok: false, reason: "need_version_exhausted" };
+    }
+
+    for (let index = 0; index < changed; index += 1) {
+      const key = this.scheduledChangedKeys[index] ?? 0;
+      const previous = this.values[key] ?? 0;
+      const nextValue = this.scheduledNextValues[index] ?? previous;
+      this.values[key] = nextValue;
+      this.sourceTicks[key] = tick;
+      this.sourceSystemIds[key] = 0;
+      this.sourceEventIds[key] = 0;
+      this.previousValues[key] = previous;
+      this.deltas[key] = nextValue - previous;
+      this.reasonCodes[key] = this.scheduledReasonCodes[index] ?? 0;
+      this.storeVersion += 1;
+      this.laneVersions[key] = (this.laneVersions[key] ?? 0) + 1;
     }
 
     this.scheduleCursors[phase] = current >= 0 ? current : head;
     this.scheduledUpdateCount += visited;
     this.scheduledChangeCount += changed;
     this.lastScheduledVisitedCount = visited;
+    if (dirtySink !== undefined) this.publishScheduledDirty(dirtySink, changed);
     return {
       ok: true,
       tick,
@@ -387,6 +676,64 @@ export class NeedStore {
       budgetExhausted: current >= 0,
       version: this.storeVersion,
     };
+  }
+
+  private isExactScheduledCursorBasis(phase: number, head: number, current: number): boolean {
+    const length = this.scheduleNext.length;
+    if (!isScheduleKeyOrNone(head, length) || !isScheduleKeyOrNone(current, length)) return false;
+    if (head === -1) return current === -1;
+    const headActorId = Math.floor(head / NEED_LANE_COUNT);
+    if (
+      (this.active[headActorId] ?? 0) !== 1 ||
+      (this.updatePhases[head] ?? -1) !== phase ||
+      (this.schedulePrevious[head] ?? -2) !== -1 ||
+      current === -1
+    )
+      return false;
+
+    const actorId = Math.floor(current / NEED_LANE_COUNT);
+    const laneValue = current - actorId * NEED_LANE_COUNT;
+    const previous = this.schedulePrevious[current] ?? -2;
+    const next = this.scheduleNext[current] ?? -2;
+    if (
+      !isNeedLane(laneValue) ||
+      (this.active[actorId] ?? 0) !== 1 ||
+      (this.updatePhases[current] ?? -1) !== phase ||
+      !isScheduleKeyOrNone(previous, length) ||
+      !isScheduleKeyOrNone(next, length) ||
+      (current === head) !== (previous === -1)
+    )
+      return false;
+    if (previous >= 0) {
+      const previousActorId = Math.floor(previous / NEED_LANE_COUNT);
+      if (
+        previous >= current ||
+        (this.active[previousActorId] ?? 0) !== 1 ||
+        (this.updatePhases[previous] ?? -1) !== phase ||
+        (this.scheduleNext[previous] ?? -1) !== current
+      )
+        return false;
+    }
+    if (next >= 0) {
+      const nextActorId = Math.floor(next / NEED_LANE_COUNT);
+      if (
+        next <= current ||
+        (this.active[nextActorId] ?? 0) !== 1 ||
+        (this.updatePhases[next] ?? -1) !== phase ||
+        (this.schedulePrevious[next] ?? -1) !== current
+      )
+        return false;
+    }
+    return true;
+  }
+
+  private publishScheduledDirty(dirtySink: NeedUrgencyIndex, changed: number): void {
+    for (let index = 0; index < changed; index += 1) {
+      const key = this.scheduledChangedKeys[index] ?? 0;
+      const actorId = Math.floor(key / NEED_LANE_COUNT);
+      const laneValue = key - actorId * NEED_LANE_COUNT;
+      if (isNeedLane(laneValue)) dirtySink[NEED_URGENCY_MARK_DIRTY](actorId, laneValue);
+    }
   }
 
   readActorNeeds(actorId: number): NeedActorView | undefined {
@@ -453,6 +800,65 @@ export class NeedStore {
     return isIndexInRange(actorId, this.actorCapacity) && (this.active[actorId] ?? 0) === 1;
   }
 
+  createSnapshot(): NeedStoreSnapshot {
+    return {
+      snapshotVersion: M3_NEED_STORE_SNAPSHOT_VERSION,
+      actorCapacity: this.actorCapacity,
+      updateIntervalTicks: this.updateIntervalTicks,
+      phaseSalt: this.phaseSalt,
+      actorCount: this.actorCountValue,
+      storeVersion: this.storeVersion,
+      scheduledUpdateCount: this.scheduledUpdateCount,
+      scheduledChangeCount: this.scheduledChangeCount,
+      lastScheduledVisitedCount: this.lastScheduledVisitedCount,
+      active: Array.from(this.active),
+      values: Array.from(this.values),
+      updatePhases: Array.from(this.updatePhases),
+      laneVersions: Array.from(this.laneVersions),
+      sourceTicks: Array.from(this.sourceTicks),
+      sourceSystemIds: Array.from(this.sourceSystemIds),
+      sourceEventIds: Array.from(this.sourceEventIds),
+      previousValues: Array.from(this.previousValues),
+      deltas: Array.from(this.deltas),
+      reasonCodes: Array.from(this.reasonCodes),
+      scheduleHeads: Array.from(this.scheduleHeads),
+      scheduleCursors: Array.from(this.scheduleCursors),
+      scheduleNext: Array.from(this.scheduleNext),
+      schedulePrevious: Array.from(this.schedulePrevious),
+    };
+  }
+
+  restoreFromSnapshot(snapshot: unknown): NeedStoreRestoreResult {
+    const validation = validateNeedStoreSnapshot(
+      snapshot,
+      this.actorCapacity,
+      this.updateIntervalTicks,
+      this.phaseSalt,
+    );
+    if (typeof validation === "string") return { ok: false, reason: validation };
+    const value = validation;
+    this.active.set(value.active);
+    this.values.set(value.values);
+    this.updatePhases.set(value.updatePhases);
+    this.laneVersions.set(value.laneVersions);
+    this.sourceTicks.set(value.sourceTicks);
+    this.sourceSystemIds.set(value.sourceSystemIds);
+    this.sourceEventIds.set(value.sourceEventIds);
+    this.previousValues.set(value.previousValues);
+    this.deltas.set(value.deltas);
+    this.reasonCodes.set(value.reasonCodes);
+    this.scheduleHeads.set(value.scheduleHeads);
+    this.scheduleCursors.set(value.scheduleCursors);
+    this.scheduleNext.set(value.scheduleNext);
+    this.schedulePrevious.set(value.schedulePrevious);
+    this.actorCountValue = value.actorCount;
+    this.storeVersion = value.storeVersion;
+    this.scheduledUpdateCount = value.scheduledUpdateCount;
+    this.scheduledChangeCount = value.scheduledChangeCount;
+    this.lastScheduledVisitedCount = value.lastScheduledVisitedCount;
+    return { ok: true };
+  }
+
   createMetrics(): NeedStoreMetrics {
     return {
       version: this.storeVersion,
@@ -510,6 +916,21 @@ export class NeedStore {
     const changed = current !== nextValue;
     const key = createLaneKey(input.actorId, input.lane);
 
+    if (!changed) {
+      return {
+        ok: true,
+        actorId: input.actorId,
+        lane: input.lane,
+        changed: false,
+        value: current,
+        ownerVersion: this.storeVersion,
+        reason,
+      };
+    }
+    if (this.storeVersion === 0xffff_ffff || (this.laneVersions[key] ?? 0) === 0xffff_ffff) {
+      return { ok: false, reason: "need_version_exhausted" };
+    }
+
     this.values[key] = nextValue;
     this.sourceTicks[key] = input.tick;
     this.sourceSystemIds[key] = input.sourceSystemId ?? 0;
@@ -517,22 +938,17 @@ export class NeedStore {
     this.previousValues[key] = current;
     this.deltas[key] = nextValue - current;
     this.reasonCodes[key] = encodeNeedChangeReason(reason);
-    return this.finish(input.actorId, input.lane, changed, nextValue, reason);
-  }
-
-  private finish(
-    actorId: number,
-    lane: NeedLane,
-    changed: boolean,
-    value: number,
-    reason: NeedChangeReason,
-  ): NeedMutationResult {
-    if (changed) {
-      this.storeVersion += 1;
-    }
-
-    this.laneVersions[createLaneKey(actorId, lane)] = this.storeVersion;
-    return { ok: true, actorId, lane, changed, value, ownerVersion: this.storeVersion, reason };
+    this.storeVersion += 1;
+    this.laneVersions[key] = (this.laneVersions[key] ?? 0) + 1;
+    return {
+      ok: true,
+      actorId: input.actorId,
+      lane: input.lane,
+      changed: true,
+      value: nextValue,
+      ownerVersion: this.storeVersion,
+      reason,
+    };
   }
 
   private validateActorInput(input: NeedActorInput): NeedMutationResult {
@@ -554,7 +970,11 @@ export class NeedStore {
       return { ok: false, reason: "need_value_out_of_range" };
     }
 
-    if (input.phaseSeed !== undefined && !Number.isSafeInteger(input.phaseSeed)) {
+    const phaseSeed = input.phaseSeed ?? input.actorId;
+    if (
+      !isNonNegativeSafeInteger(phaseSeed) ||
+      !isSafeUpdatePhaseExpression(input.actorId, NEED_LANE_COUNT - 1, phaseSeed, this.phaseSalt)
+    ) {
       return { ok: false, reason: "need_phase_out_of_range" };
     }
 
@@ -570,7 +990,10 @@ export class NeedStore {
   }
 
   private validateChange(input: NeedChangeInput): NeedMutationResult {
-    if (!this.isActorActive(input.actorId)) {
+    if (!isIndexInRange(input.actorId, this.actorCapacity)) {
+      return { ok: false, reason: "need_actor_out_of_range" };
+    }
+    if ((this.active[input.actorId] ?? 0) !== 1) {
       return { ok: false, reason: "need_actor_not_registered" };
     }
 
@@ -580,6 +1003,17 @@ export class NeedStore {
 
     if (!isSafeTickNumber(input.tick)) {
       return { ok: false, reason: "need_tick_invalid" };
+    }
+    const key = createLaneKey(input.actorId, input.lane);
+    if (input.tick < (this.sourceTicks[key] ?? 0)) {
+      return { ok: false, reason: "need_tick_invalid" };
+    }
+    if (
+      !isCallerNeedChangeReason(input.reason) ||
+      !isSafeUint32Number(input.sourceSystemId ?? 0) ||
+      !isSafeUint32Number(input.sourceEventId ?? 0)
+    ) {
+      return { ok: false, reason: "need_source_invalid" };
     }
 
     return {
@@ -671,12 +1105,27 @@ export class NeedUrgencyIndex {
   }
 
   markDirty(actorId: number, lane: NeedLane): NeedMutationResult {
+    const reason = this[NEED_URGENCY_MARK_DIRTY](actorId, lane);
+    if (reason !== undefined) return { ok: false, reason };
+
+    return {
+      ok: true,
+      actorId,
+      lane,
+      changed: false,
+      value: 0,
+      ownerVersion: this.sourceVersionValue,
+      reason: "need.external_delta",
+    };
+  }
+
+  [NEED_URGENCY_MARK_DIRTY](actorId: number, lane: number): NeedReason | undefined {
     if (!isIndexInRange(actorId, this.actorCapacity)) {
-      return { ok: false, reason: "need_actor_out_of_range" };
+      return "need_actor_out_of_range";
     }
 
     if (!isNeedLane(lane)) {
-      return { ok: false, reason: "need_lane_out_of_range" };
+      return "need_lane_out_of_range";
     }
 
     const key = createLaneKey(actorId, lane);
@@ -691,15 +1140,7 @@ export class NeedUrgencyIndex {
       }
     }
 
-    return {
-      ok: true,
-      actorId,
-      lane,
-      changed: false,
-      value: 0,
-      ownerVersion: this.sourceVersionValue,
-      reason: "need.external_delta",
-    };
+    return undefined;
   }
 
   markMutationDirty(mutation: NeedMutationResult): NeedMutationResult {
@@ -1093,6 +1534,61 @@ export function createNeedStore(options: NeedStoreOptions): NeedStore {
   return new NeedStore(options);
 }
 
+export function restoreNeedStore(snapshot: NeedStoreSnapshot): NeedStore {
+  const store = createNeedStore({
+    actorCapacity: snapshot.actorCapacity,
+    updateIntervalTicks: snapshot.updateIntervalTicks,
+    phaseSalt: snapshot.phaseSalt,
+  });
+  const result = store.restoreFromSnapshot(snapshot);
+  if (!result.ok) throw new Error(result.reason);
+  return store;
+}
+
+export function commitPreparedChangedNeedLaneMutation(
+  store: NeedStore,
+  prepared: PreparedNeedLaneMutation,
+): void {
+  store[NEED_CHANGED_COMMIT](prepared);
+}
+
+export function commitPreparedNoopNeedLaneMutation(
+  store: NeedStore,
+  prepared: PreparedNeedLaneMutation,
+): void {
+  store[NEED_NOOP_COMMIT](prepared);
+}
+
+export function createNeedStoreHashFields(
+  snapshot: NeedStoreSnapshot,
+  prefix = "needs",
+): readonly CanonicalWorldField[] {
+  const fields: CanonicalWorldField[] = [
+    { name: `${prefix}.snapshotVersion`, value: snapshot.snapshotVersion },
+    { name: `${prefix}.actorCapacity`, value: snapshot.actorCapacity },
+    { name: `${prefix}.updateIntervalTicks`, value: snapshot.updateIntervalTicks },
+    { name: `${prefix}.phaseSalt`, value: snapshot.phaseSalt },
+    { name: `${prefix}.actorCount`, value: snapshot.actorCount },
+    { name: `${prefix}.storeVersion`, value: snapshot.storeVersion },
+    { name: `${prefix}.scheduledUpdateCount`, value: snapshot.scheduledUpdateCount },
+    { name: `${prefix}.scheduledChangeCount`, value: snapshot.scheduledChangeCount },
+    { name: `${prefix}.lastScheduledVisitedCount`, value: snapshot.lastScheduledVisitedCount },
+  ];
+  for (let phase = 0; phase < snapshot.updateIntervalTicks; phase += 1) {
+    const phasePrefix = `${prefix}.phase.${String(phase)}`;
+    fields.push({ name: `${phasePrefix}.head`, value: snapshot.scheduleHeads[phase] ?? -1 });
+    fields.push({ name: `${phasePrefix}.cursor`, value: snapshot.scheduleCursors[phase] ?? -1 });
+  }
+  for (let actorId = 0; actorId < snapshot.actorCapacity; actorId += 1) {
+    const actorPrefix = `${prefix}.actor.${String(actorId)}`;
+    fields.push({ name: `${actorPrefix}.active`, value: snapshot.active[actorId] ?? 0 });
+    for (let lane = 0; lane < NEED_LANE_COUNT; lane += 1) {
+      appendNeedLaneHashFields(fields, snapshot, actorId, lane, actorPrefix);
+    }
+  }
+  return fields;
+}
+
 export function createNeedUrgencyIndex(options: NeedUrgencyIndexOptions): NeedUrgencyIndex {
   return new NeedUrgencyIndex(options);
 }
@@ -1137,6 +1633,26 @@ function createUpdatePhase(
   intervalTicks: number,
 ): number {
   return (phaseSeed * phaseSalt + actorId * NEED_LANE_COUNT + lane) % intervalTicks;
+}
+
+function isSafeUpdatePhaseExpression(
+  actorId: number,
+  lane: number,
+  phaseSeed: number,
+  phaseSalt: number,
+): boolean {
+  const actorOffset = actorId * NEED_LANE_COUNT + lane;
+  if (!Number.isSafeInteger(actorOffset) || actorOffset < 0) return false;
+  if (phaseSalt === 0) return true;
+  return phaseSeed <= Math.floor((Number.MAX_SAFE_INTEGER - actorOffset) / phaseSalt);
+}
+
+function isNonNegativeSafeInteger(value: number): boolean {
+  return Number.isSafeInteger(value) && value >= 0;
+}
+
+function isScheduleKeyOrNone(value: number, capacity: number): boolean {
+  return value === -1 || (Number.isSafeInteger(value) && value >= 0 && value < capacity);
 }
 
 function clampNeedValue(value: number): number {
@@ -1306,15 +1822,442 @@ function isPositiveSafeInteger(value: number): boolean {
   return Number.isSafeInteger(value) && value > 0;
 }
 
+function resetPreparedNeedMutation(output: PreparedNeedLaneMutation): void {
+  output.ok = false;
+  output.reason = undefined;
+  output.actorId = NEED_ACTOR_NONE;
+  output.lane = NEED_LANE_HUNGER;
+  output.tick = 0;
+  output.previousValue = 0;
+  output.nextValue = 0;
+  output.sourceSystemId = 0;
+  output.sourceEventId = 0;
+  output.reasonCode = 0;
+  output.changed = false;
+  output.previousSourceTick = 0;
+  output.previousSourceSystemId = 0;
+  output.previousSourceEventId = 0;
+  output.previousReasonCode = 0;
+  output.previousStoreVersion = 0;
+  output.previousLaneVersion = 0;
+  output.nextStoreVersion = 0;
+  output.nextLaneVersion = 0;
+}
+
 function isSafeTickNumber(value: number): value is Tick {
-  try {
-    requireSafeTick(value, "need tick");
-    return true;
-  } catch {
-    return false;
-  }
+  return isSafeTick(value);
+}
+
+function isSafeUint32Number(value: unknown): value is number {
+  return (
+    typeof value === "number" && Number.isSafeInteger(value) && value >= 0 && value <= 0xffff_ffff
+  );
 }
 
 function isInt32(value: number): boolean {
   return Number.isSafeInteger(value) && value >= -0x8000_0000 && value <= 0x7fff_ffff;
+}
+
+function isCallerNeedChangeReason(value: unknown): value is NeedChangeReason {
+  return value === "need.external_delta" || value === "need.manual_set";
+}
+
+function resetNeedLaneInto(output: NeedLaneIntoOutput, storeVersion: number): void {
+  output.ok = false;
+  output.reason = undefined;
+  output.active = false;
+  output.actorId = 0;
+  output.lane = NEED_LANE_HUNGER;
+  output.value = 0;
+  output.updatePhase = 0;
+  output.laneVersion = 0;
+  output.storeVersion = storeVersion;
+  output.sourceTick = 0;
+  output.sourceSystemId = 0;
+  output.sourceEventId = 0;
+  output.previousValue = 0;
+  output.delta = 0;
+  output.changeReason = undefined;
+}
+
+const NEED_SNAPSHOT_KEYS = [
+  "snapshotVersion",
+  "actorCapacity",
+  "updateIntervalTicks",
+  "phaseSalt",
+  "actorCount",
+  "storeVersion",
+  "scheduledUpdateCount",
+  "scheduledChangeCount",
+  "lastScheduledVisitedCount",
+  "active",
+  "values",
+  "updatePhases",
+  "laneVersions",
+  "sourceTicks",
+  "sourceSystemIds",
+  "sourceEventIds",
+  "previousValues",
+  "deltas",
+  "reasonCodes",
+  "scheduleHeads",
+  "scheduleCursors",
+  "scheduleNext",
+  "schedulePrevious",
+] as const;
+
+function validateNeedStoreSnapshot(
+  snapshot: unknown,
+  actorCapacity: number,
+  updateIntervalTicks: number,
+  phaseSalt: number,
+): NeedStoreSnapshot | "need_snapshot_invalid" | "need_snapshot_version_unsupported" {
+  if (!isPlainNeedRecord(snapshot)) return "need_snapshot_invalid";
+  if (snapshot["snapshotVersion"] !== M3_NEED_STORE_SNAPSHOT_VERSION) {
+    return "need_snapshot_version_unsupported";
+  }
+  if (!hasExactNeedKeys(snapshot, NEED_SNAPSHOT_KEYS)) return "need_snapshot_invalid";
+  if (!hasNeedSnapshotValueTypes(snapshot, actorCapacity, updateIntervalTicks)) {
+    return "need_snapshot_invalid";
+  }
+  if (
+    snapshot.actorCapacity !== actorCapacity ||
+    snapshot.updateIntervalTicks !== updateIntervalTicks ||
+    snapshot.phaseSalt !== phaseSalt
+  )
+    return "need_snapshot_invalid";
+  const value = snapshot;
+  let activeCount = 0;
+  for (let actorId = 0; actorId < actorCapacity; actorId += 1) {
+    const active = value.active[actorId];
+    if (active !== 0 && active !== 1) return "need_snapshot_invalid";
+    if (active === 1) activeCount += 1;
+    for (let lane = 0; lane < NEED_LANE_COUNT; lane += 1) {
+      const key = actorId * NEED_LANE_COUNT + lane;
+      if (!validateNeedLaneSnapshot(value, key, active === 1, updateIntervalTicks)) {
+        return "need_snapshot_invalid";
+      }
+    }
+    if (
+      active === 1 &&
+      !hasCanonicalNeedUpdatePhases(value.updatePhases, actorId, updateIntervalTicks, phaseSalt)
+    )
+      return "need_snapshot_invalid";
+  }
+  if (
+    activeCount !== value.actorCount ||
+    value.actorCount > value.storeVersion ||
+    value.scheduledChangeCount > value.scheduledUpdateCount ||
+    value.scheduledChangeCount > value.storeVersion - value.actorCount ||
+    value.lastScheduledVisitedCount > value.scheduledUpdateCount
+  )
+    return "need_snapshot_invalid";
+  if (
+    activeCount === 0 &&
+    (value.storeVersion !== 0 ||
+      value.scheduledUpdateCount !== 0 ||
+      value.scheduledChangeCount !== 0 ||
+      value.lastScheduledVisitedCount !== 0)
+  ) {
+    return "need_snapshot_invalid";
+  }
+  if (value.scheduledUpdateCount === 0) {
+    for (let phase = 0; phase < value.updateIntervalTicks; phase += 1) {
+      if (value.scheduleCursors[phase] !== -1) return "need_snapshot_invalid";
+    }
+  }
+  const maxPhaseChainLength = validateNeedScheduleSnapshot(value);
+  if (maxPhaseChainLength < 0 || value.lastScheduledVisitedCount > maxPhaseChainLength) {
+    return "need_snapshot_invalid";
+  }
+  return validateNeedVersionTopology(value) ? value : "need_snapshot_invalid";
+}
+
+function hasNeedSnapshotValueTypes(
+  snapshot: Record<string, unknown>,
+  actorCapacity: number,
+  updateIntervalTicks: number,
+): snapshot is Record<string, unknown> & NeedStoreSnapshot {
+  const laneCapacity = actorCapacity * NEED_LANE_COUNT;
+  if (
+    !isSafeUint32Number(snapshot["actorCount"]) ||
+    !isSafeUint32Number(snapshot["storeVersion"]) ||
+    !isSafeUint32Number(snapshot["scheduledUpdateCount"]) ||
+    !isSafeUint32Number(snapshot["scheduledChangeCount"]) ||
+    !isSafeUint32Number(snapshot["lastScheduledVisitedCount"]) ||
+    !isDenseNeedArray(snapshot["active"], actorCapacity) ||
+    !isDenseNeedArray(snapshot["scheduleHeads"], updateIntervalTicks) ||
+    !isDenseNeedArray(snapshot["scheduleCursors"], updateIntervalTicks)
+  ) {
+    return false;
+  }
+  for (const name of NEED_LANE_SNAPSHOT_KEYS) {
+    if (!isDenseNeedArray(snapshot[name], laneCapacity)) return false;
+  }
+  return true;
+}
+
+const NEED_LANE_SNAPSHOT_KEYS = [
+  "values",
+  "updatePhases",
+  "laneVersions",
+  "sourceTicks",
+  "sourceSystemIds",
+  "sourceEventIds",
+  "previousValues",
+  "deltas",
+  "reasonCodes",
+  "scheduleNext",
+  "schedulePrevious",
+] as const;
+
+function validateNeedLaneSnapshot(
+  snapshot: NeedStoreSnapshot,
+  key: number,
+  active: boolean,
+  interval: number,
+): boolean {
+  const value = snapshot.values[key] ?? -1;
+  const phase = snapshot.updatePhases[key] ?? -1;
+  const laneVersion = snapshot.laneVersions[key] ?? -1;
+  const tick = snapshot.sourceTicks[key] ?? -1;
+  const system = snapshot.sourceSystemIds[key] ?? -1;
+  const event = snapshot.sourceEventIds[key] ?? -1;
+  const previous = snapshot.previousValues[key] ?? -1;
+  const delta = snapshot.deltas[key] ?? Number.NaN;
+  const reason = snapshot.reasonCodes[key] ?? -1;
+  const next = snapshot.scheduleNext[key] ?? -2;
+  const prior = snapshot.schedulePrevious[key] ?? -2;
+  if (!active)
+    return (
+      value === 0 &&
+      phase === 0 &&
+      laneVersion === 0 &&
+      tick === 0 &&
+      system === 0 &&
+      event === 0 &&
+      previous === 0 &&
+      delta === 0 &&
+      reason === 0 &&
+      next === -1 &&
+      prior === -1
+    );
+  return (
+    isNeedValue(value) &&
+    isIndexInRange(phase, interval) &&
+    isSafeUint32Number(laneVersion) &&
+    laneVersion > 0 &&
+    laneVersion <= snapshot.storeVersion &&
+    isSafeTick(tick) &&
+    isSafeUint32Number(system) &&
+    isSafeUint32Number(event) &&
+    isNeedValue(previous) &&
+    isInt32(delta) &&
+    previous + delta === value &&
+    isCanonicalNeedLaneReason(
+      reason,
+      value,
+      previous,
+      delta,
+      system,
+      event,
+      tick,
+      phase,
+      interval,
+    ) &&
+    Number.isSafeInteger(next) &&
+    next >= -1 &&
+    next < snapshot.values.length &&
+    Number.isSafeInteger(prior) &&
+    prior >= -1 &&
+    prior < snapshot.values.length
+  );
+}
+
+function validateNeedScheduleSnapshot(snapshot: NeedStoreSnapshot): number {
+  const seen = new Uint8Array(snapshot.values.length);
+  let maxPhaseChainLength = 0;
+  for (let phase = 0; phase < snapshot.updateIntervalTicks; phase += 1) {
+    let key = snapshot.scheduleHeads[phase] ?? -2;
+    let previous = -1;
+    let guard = 0;
+    while (key >= 0) {
+      if (
+        key >= snapshot.values.length ||
+        seen[key] === 1 ||
+        snapshot.updatePhases[key] !== phase ||
+        snapshot.schedulePrevious[key] !== previous ||
+        (previous >= 0 && key <= previous)
+      )
+        return -1;
+      seen[key] = 1;
+      previous = key;
+      key = snapshot.scheduleNext[key] ?? -2;
+      guard += 1;
+      if (guard > snapshot.values.length) return -1;
+    }
+    if (key !== -1) return -1;
+    if (guard > maxPhaseChainLength) maxPhaseChainLength = guard;
+    const cursor = snapshot.scheduleCursors[phase] ?? -2;
+    if (
+      cursor !== -1 &&
+      (cursor < 0 ||
+        cursor >= seen.length ||
+        seen[cursor] !== 1 ||
+        snapshot.updatePhases[cursor] !== phase)
+    )
+      return -1;
+  }
+  for (let key = 0; key < snapshot.values.length; key += 1) {
+    const actorId = Math.floor(key / NEED_LANE_COUNT);
+    if ((snapshot.active[actorId] === 1) !== (seen[key] === 1)) return -1;
+  }
+  return maxPhaseChainLength;
+}
+
+function validateNeedVersionTopology(snapshot: NeedStoreSnapshot): boolean {
+  const mutationCount = snapshot.storeVersion - snapshot.actorCount;
+  let saturatedLaneVersionSum = 0;
+  let laneVersionModulo = 0;
+  for (let actorId = 0; actorId < snapshot.actorCapacity; actorId += 1) {
+    if (snapshot.active[actorId] !== 1) continue;
+    const baseKey = actorId * NEED_LANE_COUNT;
+    for (let lane = 0; lane < NEED_LANE_COUNT; lane += 1) {
+      const laneVersion = snapshot.laneVersions[baseKey + lane] ?? 0;
+      laneVersionModulo = (laneVersionModulo + (laneVersion % NEED_LANE_COUNT)) % NEED_LANE_COUNT;
+      if (saturatedLaneVersionSum < mutationCount) {
+        saturatedLaneVersionSum += Math.min(laneVersion, mutationCount - saturatedLaneVersionSum);
+      }
+    }
+  }
+  return (
+    saturatedLaneVersionSum >= mutationCount &&
+    (laneVersionModulo - (mutationCount % NEED_LANE_COUNT) + NEED_LANE_COUNT) % NEED_LANE_COUNT ===
+      0
+  );
+}
+
+function isCanonicalNeedLaneReason(
+  reasonCode: number,
+  value: number,
+  previousValue: number,
+  delta: number,
+  sourceSystemId: number,
+  sourceEventId: number,
+  sourceTick: number,
+  updatePhase: number,
+  updateIntervalTicks: number,
+): boolean {
+  if (reasonCode === 0) {
+    return delta === 0 && value === previousValue && sourceSystemId === 0 && sourceEventId === 0;
+  }
+  if (reasonCode === 4) {
+    return value === NEED_VALUE_MIN && previousValue > NEED_VALUE_MIN && delta < 0;
+  }
+  if (reasonCode === 5) {
+    return value === NEED_VALUE_MAX && previousValue < NEED_VALUE_MAX && delta > 0;
+  }
+  if (reasonCode === 1) {
+    return (
+      delta !== 0 &&
+      sourceSystemId === 0 &&
+      sourceEventId === 0 &&
+      sourceTick % updateIntervalTicks === updatePhase
+    );
+  }
+  return reasonCode >= 2 && reasonCode <= 3 && delta !== 0;
+}
+
+function hasCanonicalNeedUpdatePhases(
+  updatePhases: readonly number[],
+  actorId: number,
+  updateIntervalTicks: number,
+  phaseSalt: number,
+): boolean {
+  const actorKey = actorId * NEED_LANE_COUNT;
+  const laneZero = updatePhases[actorKey] ?? -1;
+  let expected = laneZero;
+  for (let lane = 0; lane < NEED_LANE_COUNT; lane += 1) {
+    if (updatePhases[actorKey + lane] !== expected) return false;
+    expected = expected === updateIntervalTicks - 1 ? 0 : expected + 1;
+  }
+  const actorOffset = actorKey % updateIntervalTicks;
+  return isReachableNeedPhaseResidue(phaseSalt, updateIntervalTicks, actorOffset, laneZero);
+}
+
+/** @internal Package-local strict snapshot proof; not exported from the package root. */
+export function isReachableNeedPhaseResidue(
+  phaseSalt: number,
+  updateIntervalTicks: number,
+  actorOffset: number,
+  laneZero: number,
+): boolean {
+  if (
+    !Number.isSafeInteger(phaseSalt) ||
+    phaseSalt < 0 ||
+    !isPositiveSafeInteger(updateIntervalTicks) ||
+    !isIndexInRange(actorOffset, updateIntervalTicks) ||
+    !isIndexInRange(laneZero, updateIntervalTicks)
+  )
+    return false;
+  const difference =
+    laneZero >= actorOffset
+      ? laneZero - actorOffset
+      : updateIntervalTicks - (actorOffset - laneZero);
+  return difference % greatestCommonDivisor(phaseSalt, updateIntervalTicks) === 0;
+}
+
+function greatestCommonDivisor(left: number, right: number): number {
+  while (right !== 0) {
+    const remainder = left % right;
+    left = right;
+    right = remainder;
+  }
+  return left;
+}
+
+function isPlainNeedRecord(value: unknown): value is Record<string, unknown> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value) &&
+    Object.getPrototypeOf(value) === Object.prototype
+  );
+}
+
+function hasExactNeedKeys(value: Record<string, unknown>, keys: readonly string[]): boolean {
+  const actual = Object.keys(value);
+  if (actual.length !== keys.length) return false;
+  for (const key of keys) if (!Object.prototype.hasOwnProperty.call(value, key)) return false;
+  return true;
+}
+
+function isDenseNeedArray(value: unknown, length: number): value is readonly number[] {
+  if (!Array.isArray(value) || value.length !== length || Object.keys(value).length !== length)
+    return false;
+  for (let index = 0; index < length; index += 1)
+    if (typeof value[index] !== "number") return false;
+  return true;
+}
+
+function appendNeedLaneHashFields(
+  fields: CanonicalWorldField[],
+  snapshot: NeedStoreSnapshot,
+  actorId: number,
+  lane: number,
+  actorPrefix: string,
+): void {
+  const key = actorId * NEED_LANE_COUNT + lane;
+  const lanePrefix = `${actorPrefix}.lane.${String(lane)}`;
+  fields.push({ name: `${lanePrefix}.value`, value: snapshot.values[key] ?? 0 });
+  fields.push({ name: `${lanePrefix}.updatePhase`, value: snapshot.updatePhases[key] ?? 0 });
+  fields.push({ name: `${lanePrefix}.laneVersion`, value: snapshot.laneVersions[key] ?? 0 });
+  fields.push({ name: `${lanePrefix}.sourceTick`, value: snapshot.sourceTicks[key] ?? 0 });
+  fields.push({ name: `${lanePrefix}.sourceSystemId`, value: snapshot.sourceSystemIds[key] ?? 0 });
+  fields.push({ name: `${lanePrefix}.sourceEventId`, value: snapshot.sourceEventIds[key] ?? 0 });
+  fields.push({ name: `${lanePrefix}.previousValue`, value: snapshot.previousValues[key] ?? 0 });
+  fields.push({ name: `${lanePrefix}.delta`, value: snapshot.deltas[key] ?? 0 });
+  fields.push({ name: `${lanePrefix}.reasonCode`, value: snapshot.reasonCodes[key] ?? 0 });
+  fields.push({ name: `${lanePrefix}.next`, value: snapshot.scheduleNext[key] ?? -1 });
+  fields.push({ name: `${lanePrefix}.previous`, value: snapshot.schedulePrevious[key] ?? -1 });
 }

@@ -31,10 +31,10 @@ const STACK_GRAIN_BOWL = 0;
 const STACK_BANDAGE = 3;
 const EDGE_YAO_MIN = 0;
 const EDGE_YAO_LIN = 1;
-const M3_EXPECTED_LOADED_STATE_HASH = "0x0dbf661c";
-const M3_EXPECTED_SAVE_COMMAND_STREAM_HASH = "0x226832d2";
+const M3_EXPECTED_LOADED_STATE_HASH = "0x6b60d070";
+const M3_EXPECTED_SAVE_COMMAND_STREAM_HASH = "0xf4436f42";
 const M3_EXPECTED_SAVE_CONTENT_HASH = "0xdfe7107e";
-const M3_EXPECTED_SAVE_CHECKPOINT_HASH = "0x8249d7b6";
+const M3_EXPECTED_SAVE_CHECKPOINT_HASH = "0x30c759ab";
 const M3_EXPECTED_SAVE_REASON_TRACE_COUNT = 23;
 const M3_EXPECTED_SAVE_QUEUE_METRICS: M3OrdinaryLifeQueueMetrics = Object.freeze({
   needDirtyBacklog: 0,
@@ -52,7 +52,7 @@ const M3_EXPECTED_SAVE_QUEUE_METRICS: M3OrdinaryLifeQueueMetrics = Object.freeze
 });
 const M3_EXPECTED_SAVE_PERFORMANCE: M3OrdinaryLifePerformanceMetrics = Object.freeze({
   elapsedTicks: M3_SAVE_TICK,
-  commandCount: 11,
+  commandCount: 12,
   checkpointCount: 4,
   actorThinkPasses: 3,
   workCandidateVisitedCount: 2,
@@ -82,17 +82,17 @@ const M3_EXPECTED_SAVE_INVARIANTS: M3OrdinaryLifeTerminalInvariantCounters = Obj
 const M3_FOCUSED_POST_SAVE_CHECKPOINTS: readonly M3ReplayCheckpoint[] = Object.freeze([
   {
     tick: 18_000,
-    worldHash: "0x5a521286",
-    readModelHash: "0x388fee3e",
-    checkpointHash: "0x0ea47ad8",
-    rebuiltIndexHash: "0x230976e1",
+    worldHash: "0x02472fa3",
+    readModelHash: "0xa1e13e11",
+    checkpointHash: "0xfdd1c6a5",
+    rebuiltIndexHash: "0xcb8e86f8",
   },
   {
     tick: M3_FINAL_TICK,
-    worldHash: "0x9b04b712",
-    readModelHash: "0x0f12213c",
-    checkpointHash: "0x5f9923b0",
-    rebuiltIndexHash: "0xab1444f2",
+    worldHash: "0x286945bd",
+    readModelHash: "0xa1275fe5",
+    checkpointHash: "0x6f4b7c0b",
+    rebuiltIndexHash: "0xb65f8102",
   },
 ]);
 const M3_REPLAY_CHECKPOINT_SEQUENCE: readonly Tick[] = Object.freeze([
