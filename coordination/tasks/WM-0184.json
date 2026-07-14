@@ -2,7 +2,7 @@
   "id": "WM-0184",
   "title": "Allocation-free Hauling claim mapping read seam",
   "summary": "Expose an owner-owned O(1) caller-owned exact Hauling mapping read keyed by descriptor, work type, offer id and opaque target id for WM-0170 B3 final revalidation.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": ["WM-0183"],
@@ -47,7 +47,7 @@
   ],
   "branch": "task/WM-0184-allocation-free-hauling-claim-mapping-read-seam",
   "createdAt": "2026-07-14T14:06:16.006Z",
-  "updatedAt": "2026-07-14T15:26:10.009Z",
+  "updatedAt": "2026-07-14T15:34:36.592Z",
   "history": [
     {
       "at": "2026-07-14T14:06:16.007Z",
@@ -96,6 +96,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: Sole closure-manifest finding closed with the exact static three-declaration set, size and trailing-LF SHA-256; production blobs and receiver/fake/foreign guards remain unchanged. Targeted 2/2, focused 171/171, typecheck, and Keystone-approved single-worker quality 1096/1096 passed."
+    },
+    {
+      "at": "2026-07-14T15:34:26.403Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Fast-forwarded independently verified Hauling allocation-free exact mapping read seam to main; main reran targeted closure 2/2, focused 171/171, typecheck, constrained single-worker quality 1096/1096, scoped lint/format, boundaries, handoff, taskctl validation and diff checks with no failures."
+    },
+    {
+      "at": "2026-07-14T15:34:36.591Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "Post-M8",
@@ -144,5 +156,10 @@
     "verdict": "verified",
     "summary": "Sole closure-manifest finding closed with the exact static three-declaration set, size and trailing-LF SHA-256; production blobs and receiver/fake/foreign guards remain unchanged. Targeted 2/2, focused 171/171, typecheck, and Keystone-approved single-worker quality 1096/1096 passed.",
     "at": "2026-07-14T15:26:10.008Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Fast-forwarded independently verified Hauling allocation-free exact mapping read seam to main; main reran targeted closure 2/2, focused 171/171, typecheck, constrained single-worker quality 1096/1096, scoped lint/format, boundaries, handoff, taskctl validation and diff checks with no failures.",
+    "at": "2026-07-14T15:34:26.403Z"
   }
 }
