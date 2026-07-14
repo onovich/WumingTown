@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MRKSNCUJ-D9B8AD",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0184",
+  "kind": "review-request",
+  "subject": "WM-0184 ready for review",
+  "body": "Closed the sole review finding by freezing the complete sorted three-declaration Hauling mapping closure reached set, exact count, and trailing-LF SHA-256 babcdabd2dcc0998f84968f4959dcab37fede8d1d411d5ebacd1baf663c7deb3 while retaining receiver and forbidden-reachability checks. Targeted 2/2, focused 171/171, typecheck, and Keystone-approved single-worker quality 1096/1096 pass; production blobs are unchanged.",
+  "artifacts": [
+    "coordination/reports/WM-0184.md",
+    "task/WM-0184-allocation-free-hauling-claim-mapping-read-seam"
+  ],
+  "createdAt": "2026-07-14T15:16:15.691Z",
+  "acknowledgedAt": null
+}
