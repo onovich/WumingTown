@@ -2,7 +2,7 @@
   "id": "WM-0184",
   "title": "Allocation-free Hauling claim mapping read seam",
   "summary": "Expose an owner-owned O(1) caller-owned exact Hauling mapping read keyed by descriptor, work type, offer id and opaque target id for WM-0170 B3 final revalidation.",
-  "state": "in_progress",
+  "state": "review_requested",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": ["WM-0183"],
@@ -47,7 +47,7 @@
   ],
   "branch": "task/WM-0184-allocation-free-hauling-claim-mapping-read-seam",
   "createdAt": "2026-07-14T14:06:16.006Z",
-  "updatedAt": "2026-07-14T14:11:08.167Z",
+  "updatedAt": "2026-07-14T14:50:07.755Z",
   "history": [
     {
       "at": "2026-07-14T14:06:16.007Z",
@@ -72,6 +72,12 @@
       "actor": "systems-architect",
       "action": "constrained-gate-substitution-approved",
       "details": "Keystone verdict WM0184_CONSTRAINED_GATE_SUBSTITUTION_APPROVED: following the independently verified/integrated/done WM-0183 precedent, VITEST_MAX_WORKERS=1 corepack pnpm quality is the exact WM-0184 full-quality gate. The post-cache run passed 83 files and 1096/1096 tests in 98.97 s. Default-parallel failures remain resource-contention diagnostics only; no timeout, threshold, baseline, foreign test or gate strength is changed. Reviewer must reproduce with the same single-worker command."
+    },
+    {
+      "at": "2026-07-14T14:50:07.754Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Exposed allocation-free HaulingClaimFactsIndex.readMappingInto with exact four-key reset/stale semantics, public types, receiver-exact three-declaration closure, and unchanged snapshot/hash/schema. Focused 171/171 and Keystone-approved single-worker quality 1096/1096 passed; default-parallel resource contention remains documented diagnostic evidence."
     }
   ],
   "milestone": "Post-M8",
@@ -113,5 +119,6 @@
   "integrationOrder": "Strict prerequisite after WM-0183. Independent reviewer verification, project-director integration and done are mandatory before WM-0170 may resume; then main must be merged into the WM-0170 branch and the exact B2/typecheck/receiver-closure/seam audit rerun.",
   "claimedBy": "simulation-engineer",
   "threadLabel": "Tally WM-0184",
-  "blocker": null
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0184.md"
 }

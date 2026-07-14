@@ -1,0 +1,15 @@
+{
+  "id": "MSG-MRKRPR0S-C24AC5",
+  "from": "simulation-engineer",
+  "to": "reviewer",
+  "taskId": "WM-0184",
+  "kind": "review-request",
+  "subject": "WM-0184 ready for review",
+  "body": "Exposed allocation-free HaulingClaimFactsIndex.readMappingInto with exact four-key reset/stale semantics, public types, receiver-exact three-declaration closure, and unchanged snapshot/hash/schema. Focused 171/171 and Keystone-approved single-worker quality 1096/1096 passed; default-parallel resource contention remains documented diagnostic evidence.",
+  "artifacts": [
+    "coordination/reports/WM-0184.md",
+    "task/WM-0184-allocation-free-hauling-claim-mapping-read-seam"
+  ],
+  "createdAt": "2026-07-14T14:50:07.757Z",
+  "acknowledgedAt": null
+}
