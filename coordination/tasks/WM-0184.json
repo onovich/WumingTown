@@ -2,7 +2,7 @@
   "id": "WM-0184",
   "title": "Allocation-free Hauling claim mapping read seam",
   "summary": "Expose an owner-owned O(1) caller-owned exact Hauling mapping read keyed by descriptor, work type, offer id and opaque target id for WM-0170 B3 final revalidation.",
-  "state": "review_requested",
+  "state": "changes_requested",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": ["WM-0183"],
@@ -47,7 +47,7 @@
   ],
   "branch": "task/WM-0184-allocation-free-hauling-claim-mapping-read-seam",
   "createdAt": "2026-07-14T14:06:16.006Z",
-  "updatedAt": "2026-07-14T14:50:07.755Z",
+  "updatedAt": "2026-07-14T15:03:15.251Z",
   "history": [
     {
       "at": "2026-07-14T14:06:16.007Z",
@@ -78,6 +78,12 @@
       "actor": "simulation-engineer",
       "action": "complete",
       "details": "Exposed allocation-free HaulingClaimFactsIndex.readMappingInto with exact four-key reset/stale semantics, public types, receiver-exact three-declaration closure, and unchanged snapshot/hash/schema. Focused 171/171 and Keystone-approved single-worker quality 1096/1096 passed; default-parallel resource contention remains documented diagnostic evidence."
+    },
+    {
+      "at": "2026-07-14T15:03:15.251Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "changes_requested: High: packages/sim-core/src/owner-autonomy-adoption-closure.test.ts:619-635 does not lock the required exact three-declaration Hauling mapping closure manifest or SHA-256; it only asserts two helpers are present, so an extra allowed free helper would pass. Assert the complete sorted reached set/count and the trailing-newline SHA-256 babcdabd2dcc0998f84968f4959dcab37fede8d1d411d5ebacd1baf663c7deb3, retaining receiver/fake/foreign checks, then rerun focused and constrained quality gates."
     }
   ],
   "milestone": "Post-M8",
@@ -120,5 +126,11 @@
   "claimedBy": "simulation-engineer",
   "threadLabel": "Tally WM-0184",
   "blocker": null,
-  "reportPath": "coordination/reports/WM-0184.md"
+  "reportPath": "coordination/reports/WM-0184.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "changes_requested",
+    "summary": "High: packages/sim-core/src/owner-autonomy-adoption-closure.test.ts:619-635 does not lock the required exact three-declaration Hauling mapping closure manifest or SHA-256; it only asserts two helpers are present, so an extra allowed free helper would pass. Assert the complete sorted reached set/count and the trailing-newline SHA-256 babcdabd2dcc0998f84968f4959dcab37fede8d1d411d5ebacd1baf663c7deb3, retaining receiver/fake/foreign checks, then rerun focused and constrained quality gates.",
+    "at": "2026-07-14T15:03:15.251Z"
+  }
 }
