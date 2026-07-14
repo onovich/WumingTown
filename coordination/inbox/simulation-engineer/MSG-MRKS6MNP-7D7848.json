@@ -8,5 +8,5 @@
   "body": "High: packages/sim-core/src/owner-autonomy-adoption-closure.test.ts:619-635 does not lock the required exact three-declaration Hauling mapping closure manifest or SHA-256; it only asserts two helpers are present, so an extra allowed free helper would pass. Assert the complete sorted reached set/count and the trailing-newline SHA-256 babcdabd2dcc0998f84968f4959dcab37fede8d1d411d5ebacd1baf663c7deb3, retaining receiver/fake/foreign checks, then rerun focused and constrained quality gates.",
   "artifacts": ["coordination/reports/WM-0184.md"],
   "createdAt": "2026-07-14T15:03:15.253Z",
-  "acknowledgedAt": null
+  "acknowledgedAt": "2026-07-14T15:05:57.604Z"
 }

@@ -1,3 +1,7 @@
+// Test-only cryptographic manifest pin; this is not a sim-core runtime dependency.
+// eslint-disable-next-line no-restricted-imports
+import { createHash } from "node:crypto";
+
 import * as ts from "typescript";
 import { describe, expect, it } from "vitest";
 
@@ -618,8 +622,20 @@ interface InternalCommitApproval {
 describe("owner autonomy adoption receiver-exact closure", () => {
   it("roots the allocation-free Hauling mapping read through only its exact owner receiver", () => {
     const result = auditProjectRoot(HAULING_MAPPING_ROOT, true, true);
+    const reachedManifest = [
+      HAULING_MAPPING_ROOT,
+      "isUint32",
+      "resetHaulingClaimMappingOutput",
+    ] as const;
     expect(result.violations).toStrictEqual([]);
     expect(result.receiverMethods).toStrictEqual(new Set([HAULING_MAPPING_ROOT]));
+    expect(result.reached.size).toBe(3);
+    expect(result.reached).toStrictEqual(new Set(reachedManifest));
+    expect(
+      createHash("sha256")
+        .update(`${reachedManifest.join("\n")}\n`)
+        .digest("hex"),
+    ).toBe("babcdabd2dcc0998f84968f4959dcab37fede8d1d411d5ebacd1baf663c7deb3");
     expect(result.reached.has("resetHaulingClaimMappingOutput")).toBe(true);
     expect(result.reached.has("isUint32")).toBe(true);
     for (const forbidden of [
