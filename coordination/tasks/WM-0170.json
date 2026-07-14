@@ -5,7 +5,7 @@
   "state": "blocked",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
-  "dependsOn": ["WM-0169", "WM-0177", "WM-0181", "WM-0182", "WM-0183"],
+  "dependsOn": ["WM-0169", "WM-0177", "WM-0181", "WM-0182", "WM-0183", "WM-0184"],
   "docs": [
     "AGENTS.md",
     ".agents/skills/wuming-town-agent-workflow/SKILL.md",
@@ -46,7 +46,7 @@
   ],
   "branch": "task/WM-0170-pr-2-autonomous-decision-state-and-indexed-work-",
   "createdAt": "2026-07-11T07:53:17.870Z",
-  "updatedAt": "2026-07-13T08:15:25.540Z",
+  "updatedAt": "2026-07-14T14:08:00.000Z",
   "history": [
     {
       "at": "2026-07-11T07:53:17.871Z",
@@ -119,6 +119,12 @@
       "actor": "simulation-engineer",
       "action": "block",
       "details": "Independent B3 PLAN PASS at 7a483fc54701eeddb0e3285929dadb2971880075 requires exactly two serial repairs: WM-0182 ReservationLedger exact custody, then WM-0183 claim-ready owners, JobCore token custody and historical-driver adoption. Preserve B2 checkpoint 59c9731 and the approved B3 plan; resume WM-0170 only after both prerequisites are independently verified, integrated and done and the exact resume audit passes."
+    },
+    {
+      "at": "2026-07-14T14:08:00.000Z",
+      "actor": "project-director",
+      "action": "route-hauling-mapping-prerequisite",
+      "details": "Keystone returned WM0170_B3A_HAULING_ARCH_BLOCKED after the first B3-A attempt: the approved coordinator may retain only the opaque Hauling target, while HaulingClaimFactsIndex lacks the O(1) caller-owned exact mapping read needed to recover source/destination slots, interaction spots and mapping versions before composing Storage, Item and Reservation bases. Created ready WM-0184 as the sole strict prerequisite; the B3-A draft was fully withdrawn and the five WM-0170 autonomy files remain at the 7104bc6 baseline."
     }
   ],
   "milestone": "Post-M8",
@@ -146,15 +152,16 @@
     "save format/load implementation, new runtime dependency, PR-3 command/building/priority scope or release action"
   ],
   "executionLane": "simulation-engineer; Spark is prohibited because the task defines deterministic AI state, path/reservation ownership and hot-loop behavior",
-  "repairTasks": ["WM-0177", "WM-0181", "WM-0182", "WM-0183"],
+  "repairTasks": ["WM-0177", "WM-0181", "WM-0182", "WM-0183", "WM-0184"],
   "resumeProcedure": [
-    "WM-0182 must be independently reviewed as verified, integrated and marked done before WM-0183 may be promoted or claimed.",
-    "WM-0183 must then be independently reviewed as verified, integrated and marked done while consuming only WM-0182's public ReservationLedger contract.",
-    "The original simulation-engineer must unblock WM-0170 with a summary naming both done prerequisites and preserving the B2 implementation checkpoint 59c9731 plus the approved B3 plan checkpoint 7a483fc54701eeddb0e3285929dadb2971880075.",
-    "Before any B3 edit, read the exact approved plan blob at 7a483fc54701eeddb0e3285929dadb2971880075:coordination/reports/WM-0170-plan.md, rerun the B2 focused tests, typecheck and receiver-exact closure, and audit the integrated ReservationLedger/owner/JobCore/driver signatures against the plan.",
-    "Only after that audit passes may the original owner implement B3 strictly inside WM-0170 allowedPaths; WM-0170 must not edit ReservationLedger, claim-ready owner, JobCore or historical-driver files owned by WM-0182/WM-0183."
+    "WM-0182 and WM-0183 remain completed prerequisites and must not be reopened or rewritten.",
+    "WM-0184 must be independently reviewed as verified, integrated into main and marked done before WM-0170 may resume.",
+    "After WM-0184 is done, merge main into the original WM-0170 branch and preserve the B2 implementation checkpoint 59c9731 plus the approved B3 plan checkpoint 7a483fc54701eeddb0e3285929dadb2971880075.",
+    "Before any renewed B3 edit, read the exact approved plan blob at 7a483fc54701eeddb0e3285929dadb2971880075:coordination/reports/WM-0170-plan.md, rerun the B2 focused tests, typecheck and receiver-exact closure, and audit the integrated ReservationLedger/owner/JobCore/driver plus Hauling readMappingInto signatures against the plan.",
+    "The original simulation-engineer may unblock WM-0170 only after that exact audit passes, naming done WM-0182, WM-0183 and WM-0184 and confirming the five autonomy files still match the 7104bc6 pre-B3-A baseline.",
+    "Only then may the original owner restart B3-A strictly inside WM-0170 allowedPaths; WM-0170 must not edit ReservationLedger, claim-ready owner, JobCore, historical-driver or Hauling mapping-owner files owned by its prerequisites."
   ],
-  "singleWriterRule": "WM-0182 is the sole ready repair writer. WM-0183 remains proposed behind WM-0182, and WM-0170 remains blocked with its original simulation-engineer owner, B2 checkpoint 59c9731 and approved B3 plan checkpoint until both prerequisites are independently verified, integrated and done; WM-0171..WM-0175 retain their existing dependencies.",
+  "singleWriterRule": "WM-0184 is the sole ready repair writer. WM-0170 remains blocked with its original simulation-engineer owner, B2 checkpoint 59c9731 and approved B3 plan checkpoint until WM-0184 is independently verified, integrated and done; WM-0171..WM-0175 retain their existing dependencies.",
   "approvedB3Plan": {
     "checkpoint": "7a483fc54701eeddb0e3285929dadb2971880075",
     "path": "coordination/reports/WM-0170-plan.md",
@@ -165,8 +172,8 @@
   "blocker": {
     "by": "simulation-engineer",
     "to": "project-director",
-    "reason": "Independent B3 PLAN PASS at 7a483fc54701eeddb0e3285929dadb2971880075 requires exactly two serial repairs: WM-0182 ReservationLedger exact custody, then WM-0183 claim-ready owners, JobCore token custody and historical-driver adoption. Preserve B2 checkpoint 59c9731 and the approved B3 plan; resume WM-0170 only after both prerequisites are independently verified, integrated and done and the exact resume audit passes.",
+    "reason": "WM0170_B3A_HAULING_ARCH_BLOCKED: HaulingClaimFactsIndex.readClaimFactsInto requires source/destination slot ids and mapping row/index versions that B2 does not and must not duplicate, while the owner exposes no O(1) allocation-free exact mapping read keyed by descriptor, workType, offerId and opaqueTargetId. WM-0184 is the sole strict prerequisite. Do not resume B3-A until it is independently verified, integrated and done and the exact resume audit passes.",
     "previousState": "in_progress",
-    "at": "2026-07-13T08:15:25.540Z"
+    "at": "2026-07-14T14:08:00.000Z"
   }
 }

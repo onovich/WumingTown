@@ -1,0 +1,102 @@
+{
+  "id": "WM-0184",
+  "title": "Allocation-free Hauling claim mapping read seam",
+  "summary": "Expose an owner-owned O(1) caller-owned exact Hauling mapping read keyed by descriptor, work type, offer id and opaque target id for WM-0170 B3 final revalidation.",
+  "state": "ready",
+  "ownerRole": "simulation-engineer",
+  "reviewerRole": "reviewer",
+  "dependsOn": ["WM-0183"],
+  "docs": [
+    "AGENTS.md",
+    ".agents/skills/wuming-town-agent-workflow/SKILL.md",
+    "coordination/tasks/WM-0170.json",
+    "coordination/reports/WM-0170-plan.md",
+    "coordination/reports/WM-0170.md",
+    "coordination/tasks/WM-0183.json",
+    "coordination/reports/WM-0183.md",
+    "coordination/decisions/ADR-0018.md",
+    "docs/05_tech/13_autonomous_town_life_architecture.md",
+    "docs/02_systems/04_ai_jobs_reservations_pathing.md",
+    "packages/sim-core/src/autonomy-claim-facts.ts",
+    "packages/sim-core/src/work-offers.ts",
+    "packages/sim-core/src/storage-logistics-index.ts",
+    "packages/sim-core/src/item-stack-store.ts",
+    "packages/sim-core/src/reservation-ledger.ts",
+    "packages/sim-core/src/owner-autonomy-adoption-closure.test.ts",
+    "packages/sim-core/src/index.ts"
+  ],
+  "acceptance": [
+    "HaulingClaimFactsIndex exposes a public caller-owned readMappingInto surface, or an exactly equivalent owner read, keyed by descriptor, workType, offerId and opaqueTargetId; the read returns exact offer, descriptor, work type, opaque target, source and destination slot ids, source and destination interaction spot ids, mapping row version and mapping index version",
+    "The mapping read is O(1), allocation-free and read-only over existing owner mapping lanes; it fully resets the caller-owned output on every call and returns a structured stale or missing reason without interpreting opaqueTargetId as a storage slot, scanning Storage or Item owners, materializing snapshots or duplicating mapping authority in the autonomy coordinator",
+    "The new surface exposes only Hauling-owned mapping identity and versions; StorageLogisticsIndex, ItemStackStore and ReservationLedger remain the sole authorities for their exact bases, and the existing readClaimFactsInto surface remains the final composed claim-fact validation path",
+    "Focused tests prove exact-key success, every key mismatch and stale/missing mapping failure, output-object reuse, complete failure reset, zero owner mutation and unchanged snapshot/hash observations; no snapshot shape, restore behavior, schema version or runtime dependency changes",
+    "Receiver-exact TypeScript closure evidence reaches the concrete HaulingClaimFactsIndex mapping reader, proves caller-owned output identity and bounded direct indexing, and rejects allocations, owner scans, snapshot materialization, fake receivers and foreign-owner reads",
+    "The task changes only the frozen Hauling claim-fact owner surface, its focused and closure tests, package-root export and its own coordination artifacts; it does not edit WM-0170 autonomy coordinator files or generic WorkOffer, Storage, ItemStack, ReservationLedger, JobCore, historical driver, GameSession, protocol, worker or product files"
+  ],
+  "requiredChecks": [
+    "corepack pnpm typecheck",
+    "corepack pnpm exec vitest run packages/sim-core/src/autonomy-claim-facts.test.ts packages/sim-core/src/owner-autonomy-adoption-closure.test.ts --maxWorkers=1 --testTimeout=30000",
+    "corepack pnpm exec prettier --check packages/sim-core/src/autonomy-claim-facts.ts packages/sim-core/src/autonomy-claim-facts.test.ts packages/sim-core/src/owner-autonomy-adoption-closure.test.ts packages/sim-core/src/index.ts coordination/tasks/WM-0184.json coordination/reports/WM-0184.md",
+    "corepack pnpm boundaries:check",
+    "node tools/validate-handoff.mjs",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
+    "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
+    "git diff --check",
+    "corepack pnpm quality",
+    "Do not run pnpm bench, benchmark refresh, baseline update, admission or release commands for this task"
+  ],
+  "branch": "task/WM-0184-allocation-free-hauling-claim-mapping-read-seam",
+  "createdAt": "2026-07-14T14:06:16.006Z",
+  "updatedAt": "2026-07-14T14:08:00.000Z",
+  "history": [
+    {
+      "at": "2026-07-14T14:06:16.007Z",
+      "actor": "taskctl",
+      "action": "create",
+      "details": ""
+    },
+    {
+      "at": "2026-07-14T14:08:00.000Z",
+      "actor": "project-director",
+      "action": "refine-and-promote-ready",
+      "details": "Keystone returned WM0170_B3A_HAULING_ARCH_BLOCKED: B2 retains an opaque Hauling target but the owner has no allocation-free exact mapping read for the source/destination slots and mapping versions required by readClaimFactsInto. WM-0184 is the sole strict prerequisite writer; all dependencies are done."
+    }
+  ],
+  "milestone": "Post-M8",
+  "phase": "pr-2-autonomous-town-life-hauling-mapping-prerequisite",
+  "planningTask": "WM-0170",
+  "architectureDecision": "coordination/decisions/ADR-0018.md",
+  "repairFor": ["WM-0170"],
+  "approvedPlan": {
+    "checkpoint": "7a483fc54701eeddb0e3285929dadb2971880075",
+    "path": "coordination/reports/WM-0170-plan.md",
+    "verdict": "B3 PLAN PASS"
+  },
+  "writeOwnership": [
+    "packages/sim-core/src/autonomy-claim-facts.ts",
+    "packages/sim-core/src/autonomy-claim-facts.test.ts",
+    "packages/sim-core/src/owner-autonomy-adoption-closure.test.ts",
+    "packages/sim-core/src/index.ts",
+    "coordination/tasks/WM-0184.json",
+    "coordination/reports/WM-0184*.md"
+  ],
+  "allowedPaths": [
+    "packages/sim-core/src/autonomy-claim-facts.ts",
+    "packages/sim-core/src/autonomy-claim-facts.test.ts",
+    "packages/sim-core/src/owner-autonomy-adoption-closure.test.ts",
+    "packages/sim-core/src/index.ts",
+    "coordination/tasks/WM-0184.json",
+    "coordination/reports/WM-0184*.md"
+  ],
+  "forbiddenPaths": [
+    "packages/sim-core/src/game-session-autonomy*.ts or other WM-0170 coordinator/checkpoint files",
+    "packages/sim-core/src/work-offers*.ts, storage-logistics-index*.ts, item-stack-store*.ts or reservation-ledger*.ts",
+    "packages/sim-core/src/job-core*.ts, hauling-jobs*.ts, other historical drivers, integrated GameSession construction or hash files",
+    "packages/sim-protocol/**, packages/sim-worker/**, apps/**, packages/renderer-pixi/** or packages/ui-react/**",
+    "opaque target reinterpretation, global/owner scans, snapshot materialization, per-call hot-path allocation, schema/restore changes or duplicated foreign-owner authority",
+    "new runtime dependencies, benchmark/baseline/admission changes, PR-3 commands, release or deployment actions"
+  ],
+  "executionLane": "simulation-engineer; Spark is prohibited because this task changes a public authoritative owner read boundary and receiver-exact hot-path closure",
+  "singleWriterRule": "WM-0184 is the sole ready repair writer. WM-0170 remains blocked with Tally, B2 checkpoint 59c9731 and approved B3 plan checkpoint 7a483fc54701eeddb0e3285929dadb2971880075 until WM-0184 is independently verified, integrated and done.",
+  "integrationOrder": "Strict prerequisite after WM-0183. Independent reviewer verification, project-director integration and done are mandatory before WM-0170 may resume; then main must be merged into the WM-0170 branch and the exact B2/typecheck/receiver-closure/seam audit rerun."
+}
