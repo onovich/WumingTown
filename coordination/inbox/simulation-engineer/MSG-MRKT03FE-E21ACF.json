@@ -1,0 +1,12 @@
+{
+  "id": "MSG-MRKT03FE-E21ACF",
+  "from": "reviewer",
+  "to": "simulation-engineer",
+  "taskId": "WM-0184",
+  "kind": "review-approved",
+  "subject": "WM-0184 review: verified",
+  "body": "Sole closure-manifest finding closed with the exact static three-declaration set, size and trailing-LF SHA-256; production blobs and receiver/fake/foreign guards remain unchanged. Targeted 2/2, focused 171/171, typecheck, and Keystone-approved single-worker quality 1096/1096 passed.",
+  "artifacts": ["coordination/reports/WM-0184.md"],
+  "createdAt": "2026-07-14T15:26:10.010Z",
+  "acknowledgedAt": null
+}
