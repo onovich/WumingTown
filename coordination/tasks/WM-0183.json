@@ -2,7 +2,7 @@
   "id": "WM-0183",
   "title": "Claim-ready owners and reusable JobCore driver adoption",
   "summary": "Add exact claim facts, owner-versioned prepared mutation surfaces, reusable JobCore token custody, and generation-aware adoption rollback and terminal closure.",
-  "state": "verified",
+  "state": "done",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": ["WM-0182", "WM-0181"],
@@ -70,7 +70,7 @@
   ],
   "branch": "task/WM-0183-claim-ready-owners-and-reusable-jobcore-driver-a",
   "createdAt": "2026-07-13T08:08:27.732Z",
-  "updatedAt": "2026-07-14T12:53:06.080Z",
+  "updatedAt": "2026-07-14T13:01:31.007Z",
   "history": [
     {
       "at": "2026-07-13T08:08:27.732Z",
@@ -119,6 +119,18 @@
       "actor": "reviewer",
       "action": "review",
       "details": "verified: No blocking findings; acceptance evidence confirmed"
+    },
+    {
+      "at": "2026-07-14T13:01:30.957Z",
+      "actor": "project-director",
+      "action": "integrate",
+      "details": "Fast-forwarded commits 49e123e, 140bc57 and 162aae0 onto main; exact-main quality passed 83 files/1088 tests in 223.81s, four 100000-tick scenarios matched expected hashes, and taskctl/handoff/boundaries/format/diff gates passed."
+    },
+    {
+      "at": "2026-07-14T13:01:31.006Z",
+      "actor": "project-director",
+      "action": "done",
+      "details": ""
     }
   ],
   "milestone": "Post-M8",
@@ -233,5 +245,10 @@
     "verdict": "verified",
     "summary": "No blocking findings; acceptance evidence confirmed",
     "at": "2026-07-14T12:53:06.079Z"
+  },
+  "integration": {
+    "by": "project-director",
+    "summary": "Fast-forwarded commits 49e123e, 140bc57 and 162aae0 onto main; exact-main quality passed 83 files/1088 tests in 223.81s, four 100000-tick scenarios matched expected hashes, and taskctl/handoff/boundaries/format/diff gates passed.",
+    "at": "2026-07-14T13:01:30.956Z"
   }
 }
