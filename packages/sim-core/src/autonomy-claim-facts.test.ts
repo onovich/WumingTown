@@ -21,6 +21,8 @@ import {
   type ItemStackIntoOutput,
 } from "./item-stack-store";
 import type {
+  HaulingClaimMappingIntoOutput,
+  HaulingClaimMappingReadInput,
   ItemStackReadScratch,
   ItemStackQuantityAdditionPrepareInput,
   ItemStackQuantityRemovalPrepareInput,
@@ -792,6 +794,138 @@ describe("autonomy claim facts", () => {
     });
     expect(Array.from(output.factCodes)).toStrictEqual([1, 0, 0, 0, 0, 0, 0, 0]);
     expect(Array.from(output.factValues)).toStrictEqual([4, 0, 0, 0, 0, 0, 0, 0]);
+  });
+
+  it("reads the exact Hauling-owned mapping into a reusable caller output without mutation", () => {
+    const fixture = createHaulingFactsFixture();
+    const input = createHaulingMappingReadInput(fixture);
+    const output = poisonHaulingMappingOutput();
+    const identity = output;
+    const before = fixture.facts.createSnapshot();
+    const hashBefore = hashHaulingSnapshot(before);
+
+    fixture.facts.readMappingInto(input, output);
+
+    expect(output).toBe(identity);
+    expect(output).toStrictEqual({
+      ok: true,
+      reason: undefined,
+      offerId: 7,
+      descriptor: HAULING_CLAIM_FACTS_DESCRIPTOR,
+      workType: HAULING_CLAIM_FACTS_WORK_TYPE,
+      opaqueTargetId: fixture.input.opaqueTargetId,
+      sourceSlotId: 2,
+      destinationSlotId: 3,
+      sourceInteractionSpotId: 21,
+      destinationInteractionSpotId: 22,
+      rowVersion: fixture.input.expectedMappingRowVersion,
+      indexVersion: fixture.input.expectedMappingIndexVersion,
+    });
+    expect(fixture.facts.createSnapshot()).toStrictEqual(before);
+    expect(hashHaulingSnapshot(fixture.facts.createSnapshot())).toBe(hashBefore);
+  });
+
+  it.each([
+    [
+      "descriptor",
+      "hauling_claim_basis_stale",
+      (input: HaulingClaimMappingReadInput): HaulingClaimMappingReadInput => ({
+        ...input,
+        descriptor: input.descriptor + 1,
+      }),
+    ],
+    [
+      "work type",
+      "hauling_claim_basis_stale",
+      (input: HaulingClaimMappingReadInput): HaulingClaimMappingReadInput => ({
+        ...input,
+        workType: input.workType + 1,
+      }),
+    ],
+    [
+      "opaque target",
+      "hauling_claim_basis_stale",
+      (input: HaulingClaimMappingReadInput): HaulingClaimMappingReadInput => ({
+        ...input,
+        opaqueTargetId: input.opaqueTargetId + 1,
+      }),
+    ],
+    [
+      "offer id",
+      "hauling_claim_descriptor_unmapped",
+      (input: HaulingClaimMappingReadInput): HaulingClaimMappingReadInput => ({
+        ...input,
+        offerId: 6,
+      }),
+    ],
+  ] as const)(
+    "fails closed and fully resets a poisoned mapping output for mismatched %s",
+    (_label, reason, mutate): void => {
+      const fixture = createHaulingFactsFixture();
+      const input = createHaulingMappingReadInput(fixture);
+      const output = poisonHaulingMappingOutput();
+      const identity = output;
+      const before = fixture.facts.createSnapshot();
+      const hashBefore = hashHaulingSnapshot(before);
+      fixture.facts.readMappingInto(mutate(input), output);
+
+      expect(output).toBe(identity);
+      expect(output).toStrictEqual({ ...createHaulingMappingOutput(), reason });
+      expect(fixture.facts.createSnapshot()).toStrictEqual(before);
+      expect(hashHaulingSnapshot(fixture.facts.createSnapshot())).toBe(hashBefore);
+    },
+  );
+
+  it("distinguishes missing mappings from stale mapping identity and publishes only the fresh row", () => {
+    const fixture = createHaulingFactsFixture();
+    const output = poisonHaulingMappingOutput();
+    fixture.facts.readMappingInto(
+      {
+        offerId: 5,
+        descriptor: HAULING_CLAIM_FACTS_DESCRIPTOR,
+        workType: HAULING_CLAIM_FACTS_WORK_TYPE,
+        opaqueTargetId: fixture.input.opaqueTargetId,
+      },
+      output,
+    );
+    expect(output).toStrictEqual({
+      ...createHaulingMappingOutput(),
+      reason: "hauling_claim_descriptor_unmapped",
+    });
+
+    const stale = createHaulingMappingReadInput(fixture);
+    expect(
+      fixture.facts.configure({
+        offerId: 7,
+        descriptor: HAULING_CLAIM_FACTS_DESCRIPTOR,
+        workType: HAULING_CLAIM_FACTS_WORK_TYPE,
+        opaqueTargetId: stale.opaqueTargetId + 1,
+        sourceSlotId: 4,
+        destinationSlotId: 5,
+        sourceInteractionSpotId: 31,
+        destinationInteractionSpotId: 32,
+      }),
+    ).toBe(true);
+    const beforeRead = fixture.facts.createSnapshot();
+    const hashBeforeRead = hashHaulingSnapshot(beforeRead);
+    fixture.facts.readMappingInto(stale, output);
+    expect(output).toStrictEqual({
+      ...createHaulingMappingOutput(),
+      reason: "hauling_claim_basis_stale",
+    });
+    fixture.facts.readMappingInto({ ...stale, opaqueTargetId: stale.opaqueTargetId + 1 }, output);
+    expect(output).toMatchObject({
+      ok: true,
+      offerId: 7,
+      sourceSlotId: 4,
+      destinationSlotId: 5,
+      sourceInteractionSpotId: 31,
+      destinationInteractionSpotId: 32,
+      rowVersion: 2,
+      indexVersion: 2,
+    });
+    expect(fixture.facts.createSnapshot()).toStrictEqual(beforeRead);
+    expect(hashHaulingSnapshot(fixture.facts.createSnapshot())).toBe(hashBeforeRead);
   });
 
   it.each([
@@ -1753,6 +1887,49 @@ function createHaulingOutput(): HaulingClaimFactsIntoOutput {
     limits: new Uint32Array(8),
     cellIndexes: new Uint32Array(8),
     domainIds: new Uint32Array(8),
+  };
+}
+
+function createHaulingMappingReadInput(fixture: HaulingFactsFixture): HaulingClaimMappingReadInput {
+  return {
+    offerId: fixture.input.offerId,
+    descriptor: fixture.input.descriptor,
+    workType: fixture.input.workType,
+    opaqueTargetId: fixture.input.opaqueTargetId,
+  };
+}
+
+function createHaulingMappingOutput(): HaulingClaimMappingIntoOutput {
+  return {
+    ok: false,
+    reason: undefined,
+    offerId: 0,
+    descriptor: 0,
+    workType: 0,
+    opaqueTargetId: 0,
+    sourceSlotId: 0,
+    destinationSlotId: 0,
+    sourceInteractionSpotId: 0,
+    destinationInteractionSpotId: 0,
+    rowVersion: 0,
+    indexVersion: 0,
+  };
+}
+
+function poisonHaulingMappingOutput(): HaulingClaimMappingIntoOutput {
+  return {
+    ok: true,
+    reason: "hauling_claim_amount_invalid",
+    offerId: 41,
+    descriptor: 42,
+    workType: 43,
+    opaqueTargetId: 44,
+    sourceSlotId: 45,
+    destinationSlotId: 46,
+    sourceInteractionSpotId: 47,
+    destinationInteractionSpotId: 48,
+    rowVersion: 49,
+    indexVersion: 50,
   };
 }
 

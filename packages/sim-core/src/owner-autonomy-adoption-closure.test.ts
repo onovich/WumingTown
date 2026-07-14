@@ -2,6 +2,7 @@ import * as ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 const ROOT = "HaulingClaimFactsIndex.readClaimFactsInto";
+const HAULING_MAPPING_ROOT = "HaulingClaimFactsIndex.readMappingInto";
 const HAULING_ROOTS = [
   "HaulingJobStore.adoptExistingClaimsInto",
   "HaulingJobStore.rollbackNewlyAdoptedInto",
@@ -615,6 +616,34 @@ interface InternalCommitApproval {
 }
 
 describe("owner autonomy adoption receiver-exact closure", () => {
+  it("roots the allocation-free Hauling mapping read through only its exact owner receiver", () => {
+    const result = auditProjectRoot(HAULING_MAPPING_ROOT, true, true);
+    expect(result.violations).toStrictEqual([]);
+    expect(result.receiverMethods).toStrictEqual(new Set([HAULING_MAPPING_ROOT]));
+    expect(result.reached.has("resetHaulingClaimMappingOutput")).toBe(true);
+    expect(result.reached.has("isUint32")).toBe(true);
+    for (const forbidden of [
+      "HaulingClaimFactsIndex.createSnapshot",
+      "HaulingClaimFactsIndex.readClaimFactsInto",
+      "WorkOfferIndex.readOfferInto",
+      "StorageLogisticsIndex.readSlotInto",
+      "ItemStackStore.readStackInto",
+      "ReservationLedger.readActiveClaimsInto",
+    ]) {
+      expect(result.reached.has(forbidden)).toBe(false);
+    }
+  });
+
+  it("rejects a fake cast receiver for the Hauling mapping read", () => {
+    const result = auditSyntheticAccessorRoot(
+      `class HaulingClaimFactsIndex { readMappingInto(): void {} }
+       function root(value: unknown): void {
+         (value as HaulingClaimFactsIndex).readMappingInto();
+       }`,
+    );
+    expect(result.violations.length).toBeGreaterThan(0);
+  });
+
   it("roots the formal Hauling resolver through exact owner receivers allocation-free", () => {
     const result = auditProjectRoot(ROOT);
     expect(result.violations).toStrictEqual([]);
@@ -1719,7 +1748,13 @@ function resolveElementAccessor(
   return undefined;
 }
 
+const cachedProjectProgram = createProjectProgram();
+
 function createProgram(): ts.Program {
+  return cachedProjectProgram;
+}
+
+function createProjectProgram(): ts.Program {
   const configPath = ts.findConfigFile(
     process.cwd(),
     (fileName): boolean => ts.sys.fileExists(fileName),

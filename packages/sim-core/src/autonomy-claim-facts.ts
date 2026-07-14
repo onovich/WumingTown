@@ -141,6 +141,28 @@ export interface HaulingClaimFactsMappingInput {
   readonly destinationInteractionSpotId: number;
 }
 
+export interface HaulingClaimMappingReadInput {
+  readonly descriptor: number;
+  readonly workType: number;
+  readonly offerId: number;
+  readonly opaqueTargetId: number;
+}
+
+export interface HaulingClaimMappingIntoOutput {
+  ok: boolean;
+  reason: HaulingClaimFactsReason | undefined;
+  offerId: number;
+  descriptor: number;
+  workType: number;
+  opaqueTargetId: number;
+  sourceSlotId: number;
+  destinationSlotId: number;
+  sourceInteractionSpotId: number;
+  destinationInteractionSpotId: number;
+  rowVersion: number;
+  indexVersion: number;
+}
+
 export interface HaulingClaimFactsInput {
   readonly descriptor: number;
   readonly workType: number;
@@ -303,6 +325,40 @@ export class HaulingClaimFactsIndex {
     this.rowVersions[offerId] = (this.rowVersions[offerId] ?? 0) + 1;
     this.indexVersion += 1;
     return true;
+  }
+
+  readMappingInto(
+    input: HaulingClaimMappingReadInput,
+    output: HaulingClaimMappingIntoOutput,
+  ): void {
+    resetHaulingClaimMappingOutput(output);
+    const offerId = input.offerId;
+    if (!isUint32(offerId) || offerId >= this.capacity || this.active[offerId] !== 1) {
+      output.reason = "hauling_claim_descriptor_unmapped";
+      return;
+    }
+    if (
+      !isUint32(input.descriptor) ||
+      !isUint32(input.workType) ||
+      !isUint32(input.opaqueTargetId) ||
+      this.descriptors[offerId] !== input.descriptor ||
+      this.workTypes[offerId] !== input.workType ||
+      this.opaqueTargetIds[offerId] !== input.opaqueTargetId
+    ) {
+      output.reason = "hauling_claim_basis_stale";
+      return;
+    }
+    output.ok = true;
+    output.offerId = offerId;
+    output.descriptor = input.descriptor;
+    output.workType = input.workType;
+    output.opaqueTargetId = input.opaqueTargetId;
+    output.sourceSlotId = this.sourceSlotIds[offerId] ?? 0;
+    output.destinationSlotId = this.destinationSlotIds[offerId] ?? 0;
+    output.sourceInteractionSpotId = this.sourceInteractionSpotIds[offerId] ?? 0;
+    output.destinationInteractionSpotId = this.destinationInteractionSpotIds[offerId] ?? 0;
+    output.rowVersion = this.rowVersions[offerId] ?? 0;
+    output.indexVersion = this.indexVersion;
   }
 
   readClaimFactsInto(
@@ -588,6 +644,21 @@ function resetHauling(output: HaulingClaimFactsIntoOutput): void {
     output.factCodes[index] = 0;
     output.factValues[index] = 0;
   }
+}
+
+function resetHaulingClaimMappingOutput(output: HaulingClaimMappingIntoOutput): void {
+  output.ok = false;
+  output.reason = undefined;
+  output.offerId = 0;
+  output.descriptor = 0;
+  output.workType = 0;
+  output.opaqueTargetId = 0;
+  output.sourceSlotId = 0;
+  output.destinationSlotId = 0;
+  output.sourceInteractionSpotId = 0;
+  output.destinationInteractionSpotId = 0;
+  output.rowVersion = 0;
+  output.indexVersion = 0;
 }
 
 function hasExactHaulingOutputLanes(output: HaulingClaimFactsIntoOutput): boolean {

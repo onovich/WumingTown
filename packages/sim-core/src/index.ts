@@ -1105,6 +1105,8 @@ export type {
   FoodClaimFactsScratch,
   HaulingClaimFactsIntoOutput,
   HaulingClaimFactsInput,
+  HaulingClaimMappingIntoOutput,
+  HaulingClaimMappingReadInput,
   HaulingClaimFactsMappingInput,
   HaulingClaimFactsReason,
   HaulingClaimFactsScratch,

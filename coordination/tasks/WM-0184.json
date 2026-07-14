@@ -2,7 +2,7 @@
   "id": "WM-0184",
   "title": "Allocation-free Hauling claim mapping read seam",
   "summary": "Expose an owner-owned O(1) caller-owned exact Hauling mapping read keyed by descriptor, work type, offer id and opaque target id for WM-0170 B3 final revalidation.",
-  "state": "ready",
+  "state": "in_progress",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": ["WM-0183"],
@@ -42,12 +42,12 @@
     "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
     "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs status",
     "git diff --check",
-    "corepack pnpm quality",
+    "VITEST_MAX_WORKERS=1 corepack pnpm quality",
     "Do not run pnpm bench, benchmark refresh, baseline update, admission or release commands for this task"
   ],
   "branch": "task/WM-0184-allocation-free-hauling-claim-mapping-read-seam",
   "createdAt": "2026-07-14T14:06:16.006Z",
-  "updatedAt": "2026-07-14T14:08:00.000Z",
+  "updatedAt": "2026-07-14T14:11:08.167Z",
   "history": [
     {
       "at": "2026-07-14T14:06:16.007Z",
@@ -60,6 +60,18 @@
       "actor": "project-director",
       "action": "refine-and-promote-ready",
       "details": "Keystone returned WM0170_B3A_HAULING_ARCH_BLOCKED: B2 retains an opaque Hauling target but the owner has no allocation-free exact mapping read for the source/destination slots and mapping versions required by readClaimFactsInto. WM-0184 is the sole strict prerequisite writer; all dependencies are done."
+    },
+    {
+      "at": "2026-07-14T14:11:08.166Z",
+      "actor": "simulation-engineer",
+      "action": "claim",
+      "details": "thread=Tally WM-0184"
+    },
+    {
+      "at": "2026-07-14T14:47:29.879Z",
+      "actor": "systems-architect",
+      "action": "constrained-gate-substitution-approved",
+      "details": "Keystone verdict WM0184_CONSTRAINED_GATE_SUBSTITUTION_APPROVED: following the independently verified/integrated/done WM-0183 precedent, VITEST_MAX_WORKERS=1 corepack pnpm quality is the exact WM-0184 full-quality gate. The post-cache run passed 83 files and 1096/1096 tests in 98.97 s. Default-parallel failures remain resource-contention diagnostics only; no timeout, threshold, baseline, foreign test or gate strength is changed. Reviewer must reproduce with the same single-worker command."
     }
   ],
   "milestone": "Post-M8",
@@ -98,5 +110,8 @@
   ],
   "executionLane": "simulation-engineer; Spark is prohibited because this task changes a public authoritative owner read boundary and receiver-exact hot-path closure",
   "singleWriterRule": "WM-0184 is the sole ready repair writer. WM-0170 remains blocked with Tally, B2 checkpoint 59c9731 and approved B3 plan checkpoint 7a483fc54701eeddb0e3285929dadb2971880075 until WM-0184 is independently verified, integrated and done.",
-  "integrationOrder": "Strict prerequisite after WM-0183. Independent reviewer verification, project-director integration and done are mandatory before WM-0170 may resume; then main must be merged into the WM-0170 branch and the exact B2/typecheck/receiver-closure/seam audit rerun."
+  "integrationOrder": "Strict prerequisite after WM-0183. Independent reviewer verification, project-director integration and done are mandatory before WM-0170 may resume; then main must be merged into the WM-0170 branch and the exact B2/typecheck/receiver-closure/seam audit rerun.",
+  "claimedBy": "simulation-engineer",
+  "threadLabel": "Tally WM-0184",
+  "blocker": null
 }
