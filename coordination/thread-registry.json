@@ -17,9 +17,9 @@
       "registeredAt": "2026-07-10T07:32:58.987Z"
     },
     "simulation-engineer": {
-      "threadId": "019f1882-5f86-7953-8725-0394c042cbf7",
-      "label": "Tally WM-0163",
-      "registeredAt": "2026-07-10T08:26:07.559Z"
+      "threadId": "019f5aa8-56e4-75a2-9a82-50372b778d7d",
+      "label": "Tally WM-0183",
+      "registeredAt": "2026-07-14T12:54:16.447Z"
     },
     "client-engineer": {
       "threadId": "019f186b-f56d-73c0-8401-b9c7d8c8b5b2",
@@ -42,10 +42,10 @@
       "registeredAt": "2026-06-28T05:15:43.739Z"
     },
     "reviewer": {
-      "threadId": "019f4acf-7424-74a2-b386-93bbcf6dc915",
-      "label": "Mirror WM-0161 roadmap review",
-      "registeredAt": "2026-07-10T06:55:49.690Z"
+      "threadId": "019f186b-f56d-73c0-8401-b9c7d8c8b5b2",
+      "label": "Canvas WM-0183 final review",
+      "registeredAt": "2026-07-14T12:46:46.607Z"
     }
   },
-  "updatedAt": "2026-07-10T08:26:07.559Z"
+  "updatedAt": "2026-07-14T12:54:16.448Z"
 }

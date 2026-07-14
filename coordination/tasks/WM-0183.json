@@ -2,7 +2,7 @@
   "id": "WM-0183",
   "title": "Claim-ready owners and reusable JobCore driver adoption",
   "summary": "Add exact claim facts, owner-versioned prepared mutation surfaces, reusable JobCore token custody, and generation-aware adoption rollback and terminal closure.",
-  "state": "in_progress",
+  "state": "verified",
   "ownerRole": "simulation-engineer",
   "reviewerRole": "reviewer",
   "dependsOn": ["WM-0182", "WM-0181"],
@@ -42,16 +42,24 @@
     "Snapshots, hashes, restore validation and package exports cover every changed owner and JobCore field with deterministic stable iteration; M4 follows its reviewed createSnapshot/hash-only stance and no compatibility shape is silently synthesized",
     "A receiver-exact TypeScript TypeChecker closure roots every new claim-fact, owner prepare/commit and JobCore adoption/recovery surface, proves caller-owned output identity and bounded loops, and rejects allocation, materializing compatibility reads, unresolved receivers, broad cleanup and foreign-owner access in every reachable body",
     "Focused regressions cover stale owner bases, allocationEpoch ABA, occupied and empty JobCore recovery, four version-boundary transitions, combined adoption rollback, once-only effects and cleanup, then seeds 1 through 4 run the four historical scenarios for 100000 ticks each without invariant, hash or determinism regressions",
+    "Legacy WorkOffer register, update and remove roots share the Into preflight, validate global and row version headroom before any bucket, payload, active-count, owner-version or version write, allow FFFE to advance to FFFF, and reject any exhausted lane all-before-any with the exact work_offer_index_version_exhausted reason",
+    "When Storage refresh encounters WorkOffer version exhaustion, WorkOffer remains byte-for-byte unchanged while Storage completes its reviewed derived, queue and version update with mirror-tolerant offerActive semantics; this task adds no WorkOffer snapshot, hash or schema, Storage return protocol, or cross-owner rollback",
+    "This WorkOffer scope amendment is a narrow exception to the approved plan prohibition on generic WorkOffer workarounds: it repairs only the legacy no-wrap safety gap directly exercised by Storage and does not remap candidates or claim facts onto generic WorkOffers or expand BuildSite, M3, benchmark or schema scope",
+    "The deterministic-quality compatibility amendment is limited to monotonic M3 ordinary-life timing and focused replay goldens, one BuildSite reverse-Tick rollback fixture, duplicate Lamp command rejection in the playable command slice, and two reviewed sim-worker test hash literals; it adds no BuildSite feature, partial Need commit, JobCore terminal occupancy rollback, sim-worker production change, schema, benchmark, baseline, admission or release scope",
     "The task changes only the frozen claim-ready owners, JobCore, four historical drivers, M4 fact/mutation surfaces, focused tests and its own coordination artifacts; it does not edit ReservationLedger custody, ResidentAutonomyStore/B3 coordinator files, integrated GameSession, protocol/product files, dependencies, benchmarks, baselines, admission or release surfaces"
   ],
   "requiredChecks": [
     "corepack pnpm typecheck",
     "corepack pnpm exec vitest run packages/sim-core/src/job-core.test.ts packages/sim-core/src/m3-food-eating.test.ts packages/sim-core/src/m3-needs.test.ts packages/sim-core/src/m3-medical-care.test.ts packages/sim-core/src/m3-health.test.ts packages/sim-core/src/m3-rest-sleep.test.ts packages/sim-core/src/hauling-jobs.test.ts packages/sim-core/src/m4-lamps.test.ts packages/sim-core/src/m3-medical-claim-facts.test.ts packages/sim-core/src/autonomy-claim-facts.test.ts packages/sim-core/src/owner-autonomy-adoption-closure.test.ts",
+    "corepack pnpm exec vitest run packages/sim-core/src/work-offers.test.ts packages/sim-core/src/owner-hot-path-surfaces.test.ts packages/sim-core/src/hauling-jobs.test.ts packages/sim-core/src/owner-autonomy-adoption-closure.test.ts",
+    "corepack pnpm exec vitest run packages/sim-core/src/m3-ordinary-life-scenario.test.ts packages/sim-core/src/m3-save-replay.test.ts packages/sim-core/src/m3-invariants.test.ts --maxWorkers=1 --testTimeout=30000",
+    "corepack pnpm exec vitest run packages/sim-core/src/build-site.test.ts packages/sim-core/src/playable-command-slice.test.ts --maxWorkers=1 --testTimeout=30000",
+    "corepack pnpm exec vitest run packages/sim-worker/src/game-session-worker.test.ts --maxWorkers=1 --testTimeout=30000",
     "corepack pnpm scenario -- --seed 1 --ticks 100000 --scenario hauling-building",
     "corepack pnpm scenario -- --seed 2 --ticks 100000 --scenario m2-work-logistics",
     "corepack pnpm scenario -- --seed 3 --ticks 100000 --scenario m3-ordinary-life",
     "corepack pnpm scenario -- --seed 4 --ticks 100000 --scenario m4-core-vertical-slice",
-    "corepack pnpm exec prettier --check packages/sim-core/src/item-stack-store.ts packages/sim-core/src/storage-logistics-index.ts packages/sim-core/src/m3-food.ts packages/sim-core/src/m3-needs.ts packages/sim-core/src/m3-medical-care.ts packages/sim-core/src/m3-health.ts packages/sim-core/src/job-core.ts packages/sim-core/src/m3-eating-jobs.ts packages/sim-core/src/m3-rest-sleep.ts packages/sim-core/src/hauling-jobs.ts packages/sim-core/src/m3-treatment-jobs.ts packages/sim-core/src/m4-lamp-network.ts packages/sim-core/src/m3-medical-claim-facts.ts packages/sim-core/src/autonomy-claim-facts.ts packages/sim-core/src/game-session-hash-owner-fields.ts packages/sim-core/src/owner-autonomy-adoption-closure.test.ts packages/sim-core/src/index.ts coordination/tasks/WM-0183.json coordination/reports/WM-0183.md",
+    "corepack pnpm exec prettier --check packages/sim-core/src/item-stack-store.ts packages/sim-core/src/storage-logistics-index.ts packages/sim-core/src/work-offers.ts packages/sim-core/src/m3-food.ts packages/sim-core/src/m3-needs.ts packages/sim-core/src/m3-medical-care.ts packages/sim-core/src/m3-health.ts packages/sim-core/src/job-core.ts packages/sim-core/src/m3-eating-jobs.ts packages/sim-core/src/m3-rest-sleep.ts packages/sim-core/src/hauling-jobs.ts packages/sim-core/src/m3-treatment-jobs.ts packages/sim-core/src/m4-lamp-network.ts packages/sim-core/src/m3-medical-claim-facts.ts packages/sim-core/src/autonomy-claim-facts.ts packages/sim-core/src/game-session-hash-owner-fields.ts packages/sim-core/src/work-offers.test.ts packages/sim-core/src/owner-hot-path-surfaces.test.ts packages/sim-core/src/owner-autonomy-adoption-closure.test.ts packages/sim-core/src/m3-ordinary-life-scenario.ts packages/sim-core/src/m3-ordinary-life-scenario.test.ts packages/sim-core/src/m3-save-replay.ts packages/sim-core/src/build-site.test.ts packages/sim-core/src/playable-command-slice.ts packages/sim-core/src/playable-command-slice.test.ts packages/sim-worker/src/game-session-worker.test.ts packages/sim-core/src/index.ts coordination/tasks/WM-0183.json coordination/reports/WM-0183.md",
     "corepack pnpm boundaries:check",
     "node tools/validate-handoff.mjs",
     "node .agents/skills/wuming-town-agent-workflow/scripts/taskctl.mjs validate",
@@ -62,7 +70,7 @@
   ],
   "branch": "task/WM-0183-claim-ready-owners-and-reusable-jobcore-driver-a",
   "createdAt": "2026-07-13T08:08:27.732Z",
-  "updatedAt": "2026-07-13T09:25:03.029Z",
+  "updatedAt": "2026-07-14T12:53:06.080Z",
   "history": [
     {
       "at": "2026-07-13T08:08:27.732Z",
@@ -87,6 +95,30 @@
       "actor": "simulation-engineer",
       "action": "claim",
       "details": "thread=Tally WM-0183"
+    },
+    {
+      "at": "2026-07-14T06:35:46.648Z",
+      "actor": "project-director",
+      "action": "scope-amend-work-offer-headroom",
+      "details": "WORK_OFFER_REPAIR_SLICE_FREEZE_PASS: narrow exception to the approved plan prohibition on generic WorkOffer workarounds, limited to the legacy no-wrap gap directly exercised by Storage; added WorkOffer production, focused tests and owner hot-path closure evidence without candidate or claim-fact remapping or BuildSite, M3, benchmark or schema expansion; state and simulation-engineer claim remain unchanged."
+    },
+    {
+      "at": "2026-07-14T11:56:29.520Z",
+      "actor": "project-director",
+      "action": "scope-amend-quality-compat",
+      "details": "Approved narrow deterministic-quality compatibility repair for monotonic M3 ordinary-life timing and focused replay goldens, a BuildSite reverse-Tick rollback fixture, duplicate Lamp command rejection in the playable command slice, and reviewed sim-worker test hash literals; no BuildSite feature expansion, partial Need commits, JobCore terminal occupancy rollback, sim-worker production change, schema, benchmark, baseline, admission or release scope; state and simulation-engineer claim remain unchanged."
+    },
+    {
+      "at": "2026-07-14T12:39:23.381Z",
+      "actor": "simulation-engineer",
+      "action": "complete",
+      "details": "Implemented claim-ready owner seams, reusable JobCore custody, four driver adoption/cleanup, Lamp snapshot/hash closure, no-wrap owner boundaries, and deterministic quality compatibility repairs; required focused groups, full quality, control gates, and four 100000-tick scenarios passed. See coordination/reports/WM-0183.md."
+    },
+    {
+      "at": "2026-07-14T12:53:06.079Z",
+      "actor": "reviewer",
+      "action": "review",
+      "details": "verified: No blocking findings; acceptance evidence confirmed"
     }
   ],
   "milestone": "Post-M8",
@@ -102,6 +134,7 @@
   "writeOwnership": [
     "packages/sim-core/src/item-stack-store.ts",
     "packages/sim-core/src/storage-logistics-index.ts",
+    "packages/sim-core/src/work-offers.ts",
     "packages/sim-core/src/m3-food.ts",
     "packages/sim-core/src/m3-needs.ts",
     "packages/sim-core/src/m3-medical-care.ts",
@@ -126,13 +159,23 @@
     "packages/sim-core/src/m4-lamps.test.ts",
     "packages/sim-core/src/m3-medical-claim-facts.test.ts",
     "packages/sim-core/src/autonomy-claim-facts.test.ts",
+    "packages/sim-core/src/work-offers.test.ts",
+    "packages/sim-core/src/owner-hot-path-surfaces.test.ts",
     "packages/sim-core/src/owner-autonomy-adoption-closure.test.ts",
+    "packages/sim-core/src/m3-ordinary-life-scenario.ts",
+    "packages/sim-core/src/m3-ordinary-life-scenario.test.ts",
+    "packages/sim-core/src/m3-save-replay.ts",
+    "packages/sim-core/src/build-site.test.ts",
+    "packages/sim-core/src/playable-command-slice.ts",
+    "packages/sim-core/src/playable-command-slice.test.ts",
+    "packages/sim-worker/src/game-session-worker.test.ts",
     "coordination/tasks/WM-0183.json",
     "coordination/reports/WM-0183*.md"
   ],
   "allowedPaths": [
     "packages/sim-core/src/item-stack-store.ts",
     "packages/sim-core/src/storage-logistics-index.ts",
+    "packages/sim-core/src/work-offers.ts",
     "packages/sim-core/src/m3-food.ts",
     "packages/sim-core/src/m3-needs.ts",
     "packages/sim-core/src/m3-medical-care.ts",
@@ -157,7 +200,16 @@
     "packages/sim-core/src/m4-lamps.test.ts",
     "packages/sim-core/src/m3-medical-claim-facts.test.ts",
     "packages/sim-core/src/autonomy-claim-facts.test.ts",
+    "packages/sim-core/src/work-offers.test.ts",
+    "packages/sim-core/src/owner-hot-path-surfaces.test.ts",
     "packages/sim-core/src/owner-autonomy-adoption-closure.test.ts",
+    "packages/sim-core/src/m3-ordinary-life-scenario.ts",
+    "packages/sim-core/src/m3-ordinary-life-scenario.test.ts",
+    "packages/sim-core/src/m3-save-replay.ts",
+    "packages/sim-core/src/build-site.test.ts",
+    "packages/sim-core/src/playable-command-slice.ts",
+    "packages/sim-core/src/playable-command-slice.test.ts",
+    "packages/sim-worker/src/game-session-worker.test.ts",
     "coordination/tasks/WM-0183.json",
     "coordination/reports/WM-0183*.md"
   ],
@@ -165,7 +217,7 @@
     "packages/sim-core/src/reservation-ledger*.ts or other WM-0182 implementation/test files",
     "packages/sim-core/src/game-session-autonomy*.ts or other WM-0170 coordinator/checkpoint files",
     "packages/sim-core/src/game-session-runtime.ts, game-session-tick.ts, game-session-initializer.ts or integrated GameSession construction owned by WM-0171",
-    "packages/sim-protocol/**, packages/sim-worker/**, apps/**, packages/renderer-pixi/** or packages/ui-react/**",
+    "packages/sim-protocol/**, packages/sim-worker/** except packages/sim-worker/src/game-session-worker.test.ts, apps/**, packages/renderer-pixi/** or packages/ui-react/**",
     "foreign owner-identity inference, broad positive-generation cleanup, global scans, per-call hot-path allocation or unresolved compatibility reads",
     "new runtime dependencies, benchmark/baseline/admission changes, PR-3 commands, release or deployment actions"
   ],
@@ -174,5 +226,12 @@
   "integrationOrder": "Second prerequisite. Promote and claim only after WM-0182 is done; independent reviewer verification, project-director integration and done are mandatory before WM-0170 may resume.",
   "claimedBy": "simulation-engineer",
   "threadLabel": "Tally WM-0183",
-  "blocker": null
+  "blocker": null,
+  "reportPath": "coordination/reports/WM-0183.md",
+  "review": {
+    "reviewer": "reviewer",
+    "verdict": "verified",
+    "summary": "No blocking findings; acceptance evidence confirmed",
+    "at": "2026-07-14T12:53:06.079Z"
+  }
 }
